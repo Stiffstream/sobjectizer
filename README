@@ -13,25 +13,25 @@ Install Ruby and then install Mxx_ru via RubyGems command:
 
 SObjectizer can be obtained from Subversion repository on SourceForge:
 
-> svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.4.0 so-5.4.0
+> svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.0 so-5.5.0
 
 To build SObjectizer:
 
-> cd so-5.4.0/dev
+> cd so-5.5.0/dev
 > ruby build.rb
 
 Or to build SObjectizer with all tests and samples:
 
-> cd so-5.4.0/dev
+> cd so-5.5.0/dev
 > ruby build_all.rb
 
 To build html-format documentation for SObjectizer the Doxygen tool is
 necessary. If it is installed then:
 
-> cd so-5.4.0/doxygen
+> cd so-5.5.0/doxygen
 > doxygen
 
-Generated html-files will be located in so-5.4.0/dev/doc/html.
+Generated html-files will be located in so-5.5.0/dev/doc/html.
 
 License
 =======

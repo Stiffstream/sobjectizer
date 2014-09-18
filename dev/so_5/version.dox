@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_0 5.5.0 "Kazbek"
+
+	timertt library is used for timers support.
+
+	ACE Framework is no more used in SObjectizer core.
+
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
 	New helper header file so_5/api.hpp added.
