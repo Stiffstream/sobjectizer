@@ -1,0 +1,17 @@
+/*!
+
+\page so_5_4_0__no_anonymous_states so-5.4.0: There is no more true anonymous agent's states
+
+Every object of so_5::rt::state_t now has a name. Even if it is not specified
+by the user the name will be generated automatically. This helps to diagnose
+errors in event subscription and changing agent states.
+
+The automatically generated name can be up to 40-60 bytes long (it depends on
+32- or 64-bit more and on features of pointer to string conversion in standard
+library). So it is recommended not to use anonymous agent's states if count of
+agents is significant (hundreds of thousands).
+
+*/
+
+// vim:ft=cpp
+

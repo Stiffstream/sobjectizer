@@ -1,0 +1,24 @@
+/*!
+
+\page so_5_4_0__method_so_make_state so-5.4.0: New helper method so_make_state of agent_t class  
+
+New helper method so_5::rt::agent_t::so_make_state() has been added to
+so_5::rt::agent_t class. It allows to initialize state_t object immediately
+after declaration:
+
+\code
+class my_agent_t : public so_5::rt::agent_t
+   {
+   private :
+      // Anonymous state.
+      const so_5::rt::state_t st_first = so_make_state();
+      // Named state.
+      const so_5::rt::state_t st_second = so_make_state( "second" );
+      ...
+   };
+\endcode
+
+*/
+
+// vim:ft=cpp
+

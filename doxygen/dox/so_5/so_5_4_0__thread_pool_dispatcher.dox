@@ -1,0 +1,140 @@
+/*!
+
+\page so_5_4_0__thread_pool_dispatcher so-5.4.0: New thread_pool dispatcher 
+
+\section so_5_4_0__thread_pool_dispatcher__intro Intro
+
+There is a new dispatcher in SObjectizer v.5.4.0 -- thread_pool. It starts a
+number of working threads and then distributes agents among those threads.
+
+New thread_pool dispatcher doesn't distinguish between not_thread_safe and
+thread_safe event handlers. All event handlers treated as not_thread_safe. It
+means that at any moment there could be only one running event handler for an
+agent. But, unlike one_thread, active_obj and active_group dispatchers agent is
+not bound to a single working thread for all the time. Under thread_pool
+dispatcher an agent can handle one event on one working thread, then next event
+-- on another thread.
+
+\section so_5_4_0__thread_pool_dispatcher__work_principle Work Principle
+
+Thread_pool dispatcher uses two types of queues. The first one -- is an agent's
+event queue. When agent receives a message it is placed into agent's event
+queue. An agent's queue can contain multiple messages for the agent.
+Thread_pool dispatcher can have multiple agent's queue (as a corner case -- one
+queue for every agent).
+
+The second queue type -- is the dispatcher's queue. There is only one
+dispatcher's queue in thread_pool dispatcher. This queue holds references to
+not-empty agent’s queues. When a message is stored to the empty agent’s queue a
+reference to that queue is pushed into dispatcher’s queue.
+
+Working thread gets a reference to an agent’s queue from the top of
+dispatcher’s queue, handles some messages from that agent’s queue and then, if
+the agent’s queue is not empty, returns a reference to the agent’s queue into
+the dispatcher’s queue.
+
+When the dispatcher’s queue are empty all working threads sleep on it. When a
+reference is pushed to dispatcher’s queue one of the working thread awakes and
+gets that reference. If references are stored into the dispatcher’s queue
+quicker than working threads process them then dispatcher’s queue stores them
+until some working thread gets them out.
+
+When the working thread gets a reference to an agent’s queue it tries to handle
+at most as max_demands_at_once messages from the queue. The parameter
+max_demands_at_once is specified during binding agent to the dispatcher. By
+default it has value 4. It means that if there are 4 or more messages in the
+queue working thread will handle the first four of them and only then will go
+to the dispatcher’s queue for the next waiting agent’s queue.
+
+Because a working thread can sequentially handle more than one message from
+agent’s queue it is important how agents from the same cooperation will process
+the same message. For example, let there are two agents (A and B) in the same
+cooperation. Both are subscribed to messages M1 and M2. When someone sends M1
+and M2 two event handlers for both of agents must be called: A(M1), B(M1),
+A(M2) and B(M2).
+
+But if A and B use different agent’s queues there is a possibility for
+different order of event handlers invocation. Like: A(M1), A(M2), B(M1), B(M2).
+Or: A(M1), B(M1), B(M2), A(M2). Or: A1(M1), B1(M1), A(M2), B(M2).
+
+Sometimes it is required to have a strict order in which event handlers
+invocation for agents from the same cooperation. If A and B use one agent’s
+queue then the order will be A(M1), B(M1), A(M2), B(M2).
+
+Thread_pool dispatcher allows to specify which agent’s queue will be used by an
+agent -- it is called FIFO mechanism and user can specify type of FIFO
+mechanism for every agent. By default all agents use cooperation FIFO. It means
+that all agents from the same cooperation will use the same agent’s queue. And
+sequence for event handlers calls for agents from that cooperation will be as
+for one_thread dispatcher (for the example above: A(M1), B(M1), A(M2), B(M2)).
+
+But user can specify individual FIFO as FIFO mechanism. It that case an agent
+will have its own agent’s queue. That queue will be handled independently from
+agent’s queues for other agents from the same cooperation.  Recommended
+Scenarios
+
+Described working principle makes thread_pool dispatcher appropriate for the
+following use cases:
+
+* there are many (hundreds of thousands) small agents with lightweight event
+ handlers and messages for every agents occurs episodically by small groups;
+* there are very few huge agents with very heavy event handlers;
+
+\section so_5_4_0__thread_pool_dispatcher__synopsis Synopsis
+
+To create thread_pool dispatcher is necessary to call
+so_5::disp::thread_pool::create_disp() function. It receives one argument --
+count of working thread. All those threads will be created during start of
+dispatcher.
+
+\code
+#include <so_5/disp/thread_pool/h/pub.hpp>
+...
+so_5::api::run_so_environment(
+  []( so_5::rt::so_environment_t & env ) {
+    ...
+  },
+  []( so_5::rt::so_environment_params_t & params ) {
+    params.add_named_dispatcher(
+      "my_thread_pool",
+      so_5::disp::thread_pool::create_disp( 16 ) );
+  } );
+\endcode
+
+If create_disp() called without argument the dispatcher will try to detect
+count of threads by calling std::thread::hardware_concurrency() method.
+
+To create dispatcher binder for thread_pool dispatcher it is necessary to use
+one of so_5::disp::thread_pool::create_disp_binder() functions:
+
+\code
+so_5::rt::so_environment_t & env = ...;
+auto coop = env.create_coop( "my_coop",
+  // Use binder with default params: cooperation FIFO and max_demands_at_once = 4.
+  so_5::disp::thread_pool::create_disp_binder( "my_thread_pool" ) );
+
+// Use this binder parameters for several cooperations.
+using namespace so_5::disp::thread_pool;
+params_t binding_params;
+binding_params.fifo( fifo_t::individual );
+binding_params.max_demands_at_once( 1 );
+
+auto child1 = env.create_coop( "my_coop_child_1",
+  create_disp_binder( "my_thread_pool", params ) );
+...
+auto child2 = env.create_coop( "my_coop_child_2",
+  create_disp_binder( "my_thread_pool", params ) );
+
+// Configure binding parameters during create_disp_binder() call:
+auto child3 = env.create_coop( "my_coop_child_3",
+  create_disp_binder( "my_thread_pool",
+    []( params_t & p ) {
+      p.fifo( fifo_t::cooperation ); 
+      p.max_demands_at_once( 128 );
+    } );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

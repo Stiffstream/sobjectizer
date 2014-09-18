@@ -1,0 +1,40 @@
+/*!
+
+\page so_5_3_0__exception_reaction so-5.3.0: Exception reaction inheritance
+
+A mechanism for reacting to non-handled exception was introduced in v.5.2.3,
+pleas see \ref so_5_2_3__exception_reaction. It has been improved in v.5.3.0.
+
+A new value has been introduced into so_5::rt::exception_reaction_t
+enumeration: so_5::rt::inherit_exception_reaction. It means that reaction to
+non-handled exception must be derived from agent’s cooperation.
+
+An so_5::rt::agent_coop_t now has methods
+so_5::rt::agent_coop_t::set_exception_reaction() and
+so_5::rt::agent_coop_t::exception_reaction(). The first one allows to set an
+exception reaction flag for whole cooperation. The second one returns the
+exception reaction flag value. But there is a trick: if exception reaction flag
+for cooperation is inherit_exception_reaction (it is default value) then
+exception_reaction() for parent cooperation is called. If there is no parent
+cooperation then so_5::rt::so_environment::exception_reaction() is called.
+
+An exception reaction flag for the whole SO Environment could be set by
+so_5::rt::so_environment_params_t::exception_reaction() method on environment
+creation.
+
+All of those mean that now exception reaction could be set on different levels:
+
+- at the most top level for SO Environment;
+- at the level of a cooperation;
+- at the level of an agent.
+
+By default exception reaction for SO Environment is abort_on_exception, e.g.
+application will be aborted if any non-handled exception occurs.
+
+For agent and agent cooperation the default exception reaction is
+inherit_exception_reaction.
+
+*/
+
+// vim:ft=cpp
+

@@ -1,0 +1,80 @@
+/*!
+ * \example so_5/chstate/main.cpp
+ */
+
+/*!
+ * \example so_5/coop_listener/main.cpp
+ */
+
+/*!
+ * \example so_5/coop_notification/main.cpp
+ */
+
+/*!
+ * \example so_5/coop_user_resources/main.cpp
+ */
+
+/*!
+ * \example so_5/disp/main.cpp
+ */
+
+/*!
+ * \example so_5/exception_handler/main.cpp
+ */
+
+/*!
+ * \example so_5/exception_logger/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_all/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_delay/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_evt_handler/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_periodic/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_world/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_world_adhoc/main.cpp
+ */
+
+/*!
+ * \example so_5/layer/main.cpp
+ */
+
+/*!
+ * \example so_5/svc/hello/main.cpp
+ */
+
+/*!
+ * \example so_5/svc/exceptions/main.cpp
+ */
+
+/*!
+ * \example so_5/svc/parallel_sum/main.cpp
+ */
+
+/*!
+ * \example so_5/ping_pong_minimal/main.cpp
+ */
+
+/*!
+ * \example so_5/ping_pong/main.cpp
+ */
+
+/*!
+ * \example so_5/hardwork_imit/main.cpp
+ */
+// vim:ft=cpp.doxygen

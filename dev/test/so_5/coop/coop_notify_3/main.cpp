@@ -1,0 +1,149 @@
+/*
+ * A test for stardard coop reg/dereg notificators.
+ */
+
+#include <iostream>
+#include <sstream>
+
+#include <so_5/rt/h/rt.hpp>
+#include <so_5/api/h/api.hpp>
+
+#include <so_5/disp/active_obj/h/pub.hpp>
+
+struct msg_child_deregistered : public so_5::rt::signal_t {};
+
+class a_child_t : public so_5::rt::agent_t
+{
+		typedef so_5::rt::agent_t base_type_t;
+
+	public :
+		a_child_t(
+			so_5::rt::so_environment_t & env )
+			:	base_type_t( env )
+		{
+		}
+};
+
+class a_test_t : public so_5::rt::agent_t
+{
+	typedef so_5::rt::agent_t base_type_t;
+
+	public :
+		a_test_t(
+			so_5::rt::so_environment_t & env )
+			:	base_type_t( env )
+			,	m_mbox( env.create_local_mbox() )
+			,	m_cycle( 0 )
+		{}
+
+		void
+		so_define_agent()
+		{
+			so_subscribe( m_mbox ).in( st_wait_registration )
+					.event( &a_test_t::evt_coop_registered );
+			so_subscribe( m_mbox ).in( st_wait_deregistration )
+					.event( &a_test_t::evt_coop_deregistered );
+		}
+
+		void
+		so_evt_start()
+		{
+			so_change_state( st_wait_registration );
+
+			create_next_coop();
+		}
+
+		void
+		evt_coop_registered(
+			const so_5::rt::event_data_t< so_5::rt::msg_coop_registered > & evt )
+		{
+			std::cout << "registered: " << evt->m_coop_name << std::endl;
+
+			so_change_state( st_wait_deregistration );
+
+			so_environment().deregister_coop(
+					evt->m_coop_name,
+					so_5::rt::dereg_reason::normal );
+		}
+
+		void
+		evt_coop_deregistered(
+			const so_5::rt::event_data_t< so_5::rt::msg_coop_deregistered > & evt )
+		{
+			std::cout << "deregistered: " << evt->m_coop_name << std::endl;
+
+			if( 5 == m_cycle )
+				so_environment().stop();
+			else
+			{
+				++m_cycle;
+				so_change_state( st_wait_registration );
+
+				create_next_coop();
+			}
+		}
+
+	private :
+		const so_5::rt::mbox_ref_t m_mbox;
+
+		int m_cycle;
+
+		so_5::rt::state_t st_wait_registration = so_make_state();
+		so_5::rt::state_t st_wait_deregistration = so_make_state();
+
+		void
+		create_next_coop()
+		{
+			auto child_coop = so_environment().create_coop(
+					make_coop_name(),
+					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+
+			child_coop->set_parent_coop_name( so_coop_name() );
+			child_coop->add_reg_notificator(
+					so_5::rt::make_coop_reg_notificator( m_mbox ) );
+			child_coop->add_dereg_notificator(
+					so_5::rt::make_coop_dereg_notificator( m_mbox ) );
+
+			child_coop->add_agent( new a_child_t( so_environment() ) );
+
+			so_environment().register_coop( std::move( child_coop ) );
+		}
+
+		std::string
+		make_coop_name() const
+		{
+			std::ostringstream s;
+			s << "coop_" << m_cycle;
+
+			return s.str();
+		}
+};
+
+void
+init( so_5::rt::so_environment_t & env )
+{
+	env.register_agent_as_coop(
+			"test",
+			new a_test_t( env ) );
+}
+int
+main( int argc, char * argv[] )
+{
+	try
+	{
+		so_5::api::run_so_environment(
+				&init,
+				std::move( so_5::rt::so_environment_params_t()
+						.add_named_dispatcher(
+								"active_obj",
+								so_5::disp::active_obj::create_disp() ) ) );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+

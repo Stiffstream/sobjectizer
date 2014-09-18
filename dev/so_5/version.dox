@@ -1,0 +1,227 @@
+/*!
+
+\page so_5__version so_5: Version History
+
+\section so_5__4_0 5.4.0 "Katyn-Tau"
+
+	New helper header file so_5/api.hpp added.
+	See \ref so_5_4_0__new_header_all_hpp.
+
+	New method so_5::rt::so_environment_t::add_dispatcher_if_not_exists()
+	is implemeted. It allows to add new dispatcher on running
+	SO Environment. Added dispatcher cannot be removed.
+	See \ref so_5_4_0__add_dispatcher_if_not_exists.
+
+	New helper methods so_5::rt::agent_t::so_deregister_agent_coop() and
+	so_5::rt::agent_t::so_deregister_agent_coop_normally().
+	See \ref so_5_4_0__coop_dereg_helper_methods.
+
+	A new feature for SObjectizer Environment: SO Environment is shutting
+	down automatically if there is no more live cooperations.
+	This feature is on by default. To disable it new method
+	so_5::rt::so_environment_params_t::disable_autoshutdown() must be used.
+	See \ref so_5_4_0__autoshutdown_mode.
+
+	New methods so_5::rt::agent_t::so_make_state() introduced to
+	simplify initialization of so_5::rt::state_t objects.
+	See \ref so_5_4_0__method_so_make_state.
+
+	Two new dispatchers: so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
+	The dispatcher adv_thread_pool can use event handler thread safety
+	information for launching several thread-safe event handlers of one
+	agent on different threads at the same time.
+	See \ref so_5_4_0__thread_pool_dispatcher and
+	\ref so_5_4_0__adv_thread_pool_dispatcher.
+
+	A possibility to specify thread safety for event handler. By default
+	all event handlers are not thread safe and SObjectizer is guarantees
+	that those handler will not be called from different threads at the
+	same time. But if event is declared as thread safe then dispatcher
+	is free to launch several thread-safe event handlers at different
+	threads at the same time.
+	See \ref so_5_4_0__thread_safety_for_events.
+
+	New sequence of agent to dispatcher binding. Now it is two stage
+	procedure which guaratees that no so_evt_start() is called until
+	all cooperation's agents are bound to dispatchers.
+
+	New format of so_5::rt::agent_coop_t::add_agent(). Those methods now
+	return a pointer to agent which has been added to cooperation.
+	See \ref so_5_4_0__new_format_of_add_agent.
+
+	There is no more anonymous agent states. If user doesn't specify name
+	for the state it will be generated automatically.
+	See \ref so_5_4_0__no_anonymous_states.
+
+	A new type of mbox is introduced: this is multi-producer/single-consumer
+	mbox. That mbox is belonging to the agent. A reference to that
+	mbox can be obtained only by agent_t::so_direct_mbox() method.
+	Anyone can send messages/signals to such mbox, but only the owner
+	can be subscribed to messages from such mbox.
+	See \ref so_5_4_0__new_mpsc_mbox.
+
+	Format of so_5::rt::mbox_t::query_name() is changed. Now the std::string
+	object is returned, not the const reference as in previous versions.
+
+	A working thread identifier is now stored for every agent and controlled by
+	some operations (like changing agent's state and managing agent's
+	subscriptions).
+
+	A new mechanism for event queues are implemented.
+
+	Prototypes of methods of so_5::rt::disp_binder_t are changed:
+	now they are received reference to so_5::rt::so_environment_t.
+
+	There is no more local event queue for agents.
+	Method so_5::rt::so_environment_params_t::agent_event_queue_mutex_pool_size()
+	is obsolete and marked as deprecated.
+
+\section so_5__3_0 5.3.0 "Shota Rustaveli Peak"
+
+	New formats and forms of event- and signal-handlers are supported.
+	See \ref so_5_3_0__new_event_handlers_formats for details.
+
+	A form of synchronous interaction with agents is introduced.
+	See \ref so_5_3_0__synchronous_interaction for details.
+
+	Ad-hoc agents implemented. See \ref so_5_3_0__adhoc_agents for details.
+
+	Exception reaction for agents and agent cooperation could be
+	inhreited now. See \ref so_5_3_0__exception_reaction for details.
+
+	Several new forms of so_5::api::run_so_environment() added.
+	See \ref so_5_3_0__new_run_so_environment for details.
+
+	Namespace so_5::chrono_helpers and the function so_5::chrono_helpers::to_ms()
+	added to simplify usage of C++11 std::chrono::duration values.
+
+\section so_5__2_3 5.2.3 "Mijirgi"
+
+	Methods so_5::rt::agent_t::so_subscribe(),
+	so_5::rt::agent_t::so_drop_subscription() and
+	so_5::rt::agent_t::so_drop_subscription_for_all_states() are made public
+	since v.5.2.3.2.
+
+	Class so_5::rt::so_environment_params_t is now moveable (but not
+	copyable).
+
+	New exception handling mechanism implemented.
+	An enumeration so_5::rt::exception_reaction_t and method
+	so_5::rt::agent_t::so_exception_reaction() added.
+	Old event_exception_handler_t and related stuff removed.
+	For more details see \ref so_5_2_3__exception_reaction.
+
+	A class so_5::rt::coop_dereg_reason_t added. New namespace with
+	cooperation deregistration reasons enumeration added:
+	so_5::rt::dereg_reason.
+
+	Format of so_5::rt::so_environment_t::deregisted_coop() changed. It is
+	necessary to specify reason of cooperation deregistration.
+
+	New sample 'coop_user_resources' added.
+
+	An ability to store some dynamically allocated user resource inside
+	cooperation is added via so_5::rt::agent_coop_t::take_under_control()
+	method.
+	For more details see \ref so_5_2_3__cooperation_controlled_resources.
+
+	The so_5::rt::agent_coop_t contructor is now declared as public. It means
+	that it is possible to create classess which are derived from agent_coop_t.
+	The agent_coop_t destructor is protected now. So the only way to work
+	with agent cooperations is create them as dynamically allocated objects
+	and pass pointers to them to so_5::rt::agent_coop_unique_ptr_t wrappers.
+
+	New sample 'coop_notification' added.
+
+	Demands queues now store agent pointers, not smart references as in
+	previous versions.
+
+	so_5::rt::msg_coop_registered and so_5::rt::msg_coop_deregistered added.
+	so_5::rt::make_coop_reg_notificator() and
+	so_5::rt::make_coop_dereg_notificator() added.
+
+	so_5::rt::coop_reg_notificator_t and so_5::rt::coop_dereg_notificator_t
+	so_5::rt::agent_coop_t::add_reg_notificator() and
+	so_5::rt::agent_coop_t::add_dereg_notificator() are introduced.
+	See \ref so_5_2_3__cooperation_notificators for more details.
+
+	Parent-child relationship added for cooperations.
+	For the details see \ref so_5_2_3__parent_child_coops.
+
+	Cooperation mutex pool no more used and removed from SObjectizer code.
+	Some related method marked as deprecated and will be removed in
+	future releases.
+
+\section so_5__2_2 5.2.2 "Tetnuld"
+
+	Method so_5::rt::event_data_t::make_reference added. It returns
+	an instance of so_5::rt::smart_atomic_reference_t<MSG> where MSG is the
+	same type as in event_data_t.
+
+	Another overloaded method deliver_message() added to so_5::rt::mbox_t.
+	It accepts so_5::rt::smart_atomic_reference_t<MSG>.
+
+	Those changes make possible to resending or storing the same message
+	without copying a message.
+
+	Method so_5::rt::smart_atomic_reference_t::reset() added.
+
+\section so_5__2_1 5.2.1 "Tetnuld"
+
+	Methods so_5::rt::so_environment_t::register_agent_as_coop() added.
+
+\section so_5__2_0 5.2.0 "Tetnuld"
+
+	Return codes no more used for error reporting in public methods of
+	SObjectizer classes. In case of error an exception is thrown.
+	All stuff related to return codes (e.g. throwing_strategy_t and so on)
+	have been removed. Only exceptions are used now.
+
+	Format of so_5::rt::agent_coop_t::add_agent() methods has been changed.
+	Now add_agent() accepts std::unique_ptr and raw so_5::rt::agent_t
+	pointers, not agent_ref_t as in previous versions.
+
+	An instance of so_5::rt::so_environment_params_t now is passed to
+	so_5::rt::so_environment_t constructor by rvalue reference, not by
+	const reference as in previous versions. 
+
+	A template not_null_event_data_t and all related stuff have been removed.
+
+	A new base class for all signals (e.g. messages without any data)
+	introduced. Since then all signals classes should be derived from
+	so_5::rt::signal_t.
+
+	Special checks for inheritance from so_5::rt::message_t and
+	so_5::rt::signal_t inserted into deliver_message/deliver_signal and
+	schedule_timer methods. Those checks work in compile-time.
+
+	Special checks for not-null message pointers inserted into deliver_message
+	and schedult_timer methods. So it is impossible to use those methods to send
+	null messages. Signals should be used for this purpose.
+
+	A version of deliver_message for raw message pointer is added (since
+	v.5.2.0.2).
+
+	Some changes to message dispatching scheme.
+
+	Some refactoring of code inside SObjectizer internals.
+
+\section so_5__1_2 5.1.2
+
+	All comments in code have been translated to English.
+
+	Some small code improvements and refactoring.
+
+\section so_5__1_0 5.1.0 "Jimara"
+
+	Transport layer has been rewritten.
+
+	An exception handler/logger facility has been added.
+
+	A cooperation listener has been added.
+
+\section so_5__0_0 5.0.0 "Ushba"
+
+	A first version of new generation of SObjectizer.
+*/
+// vim:ft=cpp.doxygen

@@ -1,0 +1,104 @@
+/*!
+
+\page so_5_4_0__thread_safety_for_events so-5.4.0: thread_safety flag for event handlers
+
+By default in SObjectizer all event handlers are assumed to be not thread safe.
+Standard dispatchers guarantee that not_thread_safe event handlers will work
+alone and only on the context of one working thread.
+
+A new feature in v.5.4.0 allows to specify that event handler is a thread safe
+handler. It means that event handler doesn't change state of agent (or does it
+in thread safe manner). If user specifies a event handler as thread_safe
+handler it gives to SObjectizer's dispatcher a right of running thread-safe
+handlers of the same agent in parallel on the different working threads. But
+with the following conditions:
+
+* a not_thread_safe event handler can't be started until there is any other
+  running event handler of the agent. A start of not_thread_safe event handler
+  will be delayed until all already running event handlers finish their work;
+* no one event handler can't be started until there is a working not_thread_safe
+event handler;
+* no one thread_safe event handler can't be started until there is a working
+not_thread_safe event handler.
+
+To specify thread_safe event handler it is necessary to pass additional
+argument to event() method in subscription chain:
+
+\code
+class my_agent : public so_5::rt::agent_t
+{
+public :
+
+   void so_define_agent() override
+   {
+      so_subscribe( so_direct_mbox() ).in( st_disconnected )
+         // thread_safety flag is not specified.
+         // This is not_thread_safe event handler and it
+         // can't work in parallel with other event handlers
+         // because it changes agent's state.
+         .event( so_5::signal< msg_reconnect >, &my_agent::evt_reconnect )
+         // This is thread_safe agent and it doesn't change agent's state.
+         .event(
+               &my_agent::evt_send_when_disconnected,
+               so_5::thread_safe )
+         // This is thread_safe agent and it doesn't change agent's state.
+         .event( so_5::signal< msg_get_status >,
+               []() -> std::string { return "disconnected"; },
+               so_5::thread_safe );
+      ...
+   }
+	...
+}
+\endcode
+
+As a example of thread_safe and not_thread_safe event handler lets see an agent
+for performing cryptography operations: encrypting and decrypting. This
+operations are stateless and can be done in parallel. But the agent must be
+reconfigured from time to time. The reconfiguration operation is stateful and
+event handler for reconfigure message is not_thread_safe.
+
+User must only specify the thread_safety flag for those event handlers. All
+other work will be done by SObjectizer. It means that evt_encrypt and
+evt_decrypt will be running in parallel until an occurrence of msg_reconfigure.
+SObjectizer will wait until all previously started evt_encrypt/evt_decrypt
+finish their work and only then will start evt_reconfigure. While
+evt_reconfigure is working all other event handlers will be delayed and will be
+started only after return from evt_reconfigure:
+
+\code
+class a_cryptographer_t : public so_5::rt::agent_t 
+    {
+    public :
+        virtual void
+        so_define_agent() override
+            {
+                // not_thread_safe event handler.
+                so_subscribe( so_direct_mbox() )
+                    .event( &a_cryptographer_t::evt_reconfigure );
+
+                // thread_safe event handlers.
+                so_subscribe( so_direct_mbox() )
+                    .event( &a_cryptographer_t::evt_encrypt, so_5::thread_safe )
+                    .event( &a_cryptographer_t::evt_decrypt, so_5::thread_safe );
+            }
+
+        void
+        evt_reconfigure( const msg_reconfigure & evt ) { ... }
+
+        encrypt_result_t
+        evt_encrypt( const msg_encrypt & evt ) { ... }
+
+        decrypt_result_t
+        evt_decrypt( const msg_decrypt & evt ) { ... }
+    };
+\endcode
+
+Because event handlers can be either ordinary event handlers or synchronous
+service requests handlers (it depends not on handler but on message sender or
+service caller) it means that thread_safe event handler can be used for
+parallel processing of several parallel service requests. 
+
+*/
+
+// vim:ft=cpp
+

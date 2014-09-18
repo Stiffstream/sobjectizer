@@ -1,0 +1,147 @@
+/*!
+ * \brief Main SObjectizer-5 namespace
+ */
+namespace so_5
+{
+	/*!
+	 * \brief Public API functions of SObjectizer-5.
+	 */
+	namespace api
+	{
+		/*!
+		 * \brief Internal implemetation details of public API functions.
+		 */
+		namespace impl
+		{
+		} /* namespace so_5::api::impl */
+
+	} /* namespace so_5::api */
+
+	/*!
+	 * \brief Event dispatchers.
+	 */
+	namespace disp
+	{
+		/*!
+		 * \brief Active groups dispatcher.
+		 */
+		namespace active_group
+		{
+			/*!
+			 * \brief Active groups dispatcher implemetation details.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace active_group */
+
+		/*!
+		 * \brief Active objects dispatcher.
+		 */
+		namespace active_obj
+		{
+			/*!
+			 * \brief Active objects dispatcher implemetation details.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace active_obj */
+
+		/*!
+		 * \brief Dispatcher with single working thread.
+		 */
+		namespace one_thread
+		{
+			/*!
+			 * \brief Implementation details for dispatcher with
+			 * single working thread.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace one_thread */
+
+		/*!
+		 * \brief Reusable components for dispatchers.
+		 *
+		 * This namespace contains classes and functions which can
+		 * be reused by various types of dispatchers.
+		 */
+		namespace reuse
+		{
+			/*!
+			 * \brief Implemetation details of dispatcher's working thread.
+			 */
+			namespace work_thread
+			{
+			} /* namespace work_thread */
+
+		} /* namespace reuse */
+
+	} /* namespace disp */
+
+	/*!
+	 * \brief All code related to implementation of SObjectizer run-time.
+	 */
+	namespace rt
+	{
+		/*!
+		 * \brief Details of SObjectizer run-time implementations.
+		 */
+		namespace impl
+		{
+			/*!
+			 * \brief Details of cooperation deregistration implementation
+			 */
+			namespace coop_dereg
+			{
+			} /* namespace coop_dereg */
+
+		} /* namespace impl */
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Enumeration of cooperation deregistration reasons.
+		 */
+		namespace dereg_reason
+		{
+		} /* namespace dereg_reason */
+
+	} /* namespace rt */
+
+	/*!
+	 * \brief All details related to timers and timer events.
+	 */
+	namespace timer_thread
+	{
+		/*!
+		 * \brief All code related to implementation of timer via ACE.
+		 */
+		namespace ace_timer_queue_adapter
+		{
+			/*!
+			 * \brief Details of timer implemetation via ACE.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace ace_timer_queue_adapter */
+
+	} /* namespace timer_thread */
+
+	/*!
+	 * \brief Various utility code.
+	 */
+	namespace util
+	{
+	} /* namespace util */
+
+} /* namespace so_5 */
+
+// vim:ft=cpp.doxygen
+

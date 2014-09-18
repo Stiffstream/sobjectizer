@@ -1,0 +1,39 @@
+/*!
+
+\page so_5_4_0__event_method_chaining so-5.4.0: so_subscribe().event() methods chaining
+
+Calls to event() methods during event subscription can be chained now:
+
+\code
+class my_agent : public so_5::rt::agent_t
+{
+public :
+
+   void so_define_agent() override
+   {
+      so_subscribe( so_direct_mbox() ).in( st_disconnected )
+         .event( so_5::signal< msg_reconnect >, &my_agent::evt_reconnect )
+         .event( &my_agent::evt_send_when_disconnected )
+         .event( so_5::signal< msg_get_status >,
+               []() -> std::string { return "disconnected"; } );
+      ...
+   }
+	...
+};
+\endcode
+
+\note In SObjectizer v.5.4.0 call to event() create subscription only for the
+states, specified by previous calls to in() in the same chain. For example in
+the chain so_subscribe(mbox).in(s1).in(s2).event(e1).in(s3).event(e2) event e1
+will be subscribed for states s1 and s2, but not for state s3. Event e2 will be
+subscribed for the all states: s1, s2, s3. But the chain like
+so_subscribe(mbox).event(e3).in(s4) has no sence: event e3 will be subscribed
+only for the default state and the call to in(s4) will be completely ignored.
+There is no guarantee that this approach will be saved for the future
+SObjectizer's version. So it is recommended not to mix calls in() and event()
+in subscription chain -- all calls to in() must precede to calls to event().
+
+*/
+
+// vim:ft=cpp
+

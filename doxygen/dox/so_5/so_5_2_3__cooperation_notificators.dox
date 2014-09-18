@@ -1,0 +1,206 @@
+/*!
+
+\page so_5_2_3__cooperation_notificators so-5.2.3: Cooperation notifications
+
+Version 5.2.3 introduces some features for informing agents about cooperation
+related events.
+
+\section so_5_2_3__cooperation_notificators__dereg_reason Cooperation deregistration reason
+
+Very important change in v.5.2.3 is the introduction of
+so_5::rt::coop_dereg_reason_t structure and so_5::rt::dereg_reason namespace.
+The so_5::rt::coop_dereg_reason_t describes the reason of cooperation
+deregistration. For example: normal deregistration due to application logic
+(value so_5::rt::dereg_reason::normal) or deregistration as a reaction to
+unhandled exception (value so_5::rt::dereg_reason::unhandled_exception) or
+because the parent cooperation is being deregistered (value
+so_5::rt::dereg_reason::parent_deregistration).
+
+At the moment coop_dereg_reason_t contains only one value -- integer
+deregistration reason code which is accessible via
+so_5::rt::coop_dereg_reason_t::reason() method. But in the future SObjectizer
+versions the content of coop_dereg_reason_t could be expanded.
+
+The format of so_5::rt::so_environment_t::deregister_coop() is changed. Now
+this method requires not only the cooperation name but also an integer
+deregistration reason code. So the code which uses deregister_coop() should be
+adapted when switching to SObjectizer v.5.2.3.
+
+The deregistration reason codes are divided into two parts: values below
+so_5::rt::dereg_reason::user_defined_reason is reserved for SObjectizer. The
+user could use these values (like mentioned above normal, unhandled_exception
+and parent_deregistration), but must not change its meaning.
+
+Values from so_5::rt::dereg_reason::user_defined_reason and above could be used
+for user purposes. So it is possible to define and use domain specific reason
+codes, like:
+
+\code
+const int timeout = so_5::rt::dereg_reason::user_defined_reason + 1;
+const int task_completed = so_5::rt::dereg_reason::user_defined_reason + 2;
+
+class domain_specific_task_t : public so_5::rt::agent_t
+{
+...
+	void
+	evt_request_processed( const so_5::rt::event_data_t< msg_result > & evt )
+	{
+		handle_result(*evt);
+		so_environment().deregister_coop(so_coop_name(), task_completed);
+	}
+	void
+	evt_processing_timedout( const so_5::rt::event_data_t< msg_timeout > & )
+	{
+		so_environment().deregister_coop(so_coop_name(), timeout);
+	}
+};
+\endcode
+
+\section so_5_2_3__cooperation_notificators__reason_to_listeners Deregistration reason passed to coop_listener
+
+The format of so_5::rt::coop_listener_t::on_deregistered() is changed: now it
+receives not only name of deregistered cooperation but also the cooperation
+deregistration reason:
+
+\code
+virtual void
+on_deregistered(
+	so_environment_t & so_env,
+	const std::string & coop_name,
+	const coop_dereg_reason_t & reason);
+\endcode
+
+It is incompatible with previous version and appropriate changes must be
+applied to cooperation listeners.
+
+\section so_5_2_3__cooperation_notificators__reg_notificators Cooperation registration notificators
+
+A new thing is introduced in v.5.2.3: this is cooperation registration
+notificators. Notificator is a functional object with prototype:
+
+\code
+void reg_notificator(
+	so_5::rt::so_environment_t & env,
+	const std::string & coop_name );
+\endcode
+
+The precise type of registration notificator is defined in
+so_5::rt::coop_reg_notificator_t typedef.
+
+Notificators should be bound to cooperation object before cooperation
+registration:
+
+\code
+so_5::rt::agent_coop_unique_ptr_t coop = ...;
+coop->add_reg_notificator(
+	[]( so_5::rt::so_environment_t &, const std::string & name ) {
+		std::cout << "cooperation registered: " << name << std::endl;
+	} );
+\endcode
+
+There is no limit for cooperation reg_notificator count. All of them will be
+called by SObjectizer Environment inside
+so_5::rt::so_environment_t::register_coop() method right after all registration
+specific actions will be complete.
+
+\section so_5_2_3__cooperation_notificators__dereg_notificators Cooperation deregistration notificators
+
+Cooperation deregistration noitificators are introduced together with
+registration notificators. They are also functional objects but with prototype:
+
+\code
+void dereg_notificator(
+	so_5::rt::so_environment_t & env,
+	const std::string & coop_name,
+	const so_5::rt::coop_dereg_reason_t & reason );
+\endcode
+
+The precise type of registration notificator is defined in
+so_5::rt::coop_reg_notificator_t typedef.
+
+Notificators should be bound to cooperation object before cooperation
+registration:
+
+\code
+so_5::rt::agent_coop_unique_ptr_t coop = ...;
+coop->add_dereg_notificator(
+	[]( so_5::rt::so_environment_t &,
+	const std::string & name,
+	const so_5::rt::coop_dereg_reason_t & reason ) {
+		std::cout << "cooperation deregistered(" << reason.reason()
+			<<  "): " << name << std::endl;
+	} );
+\endcode
+
+There is no limit for cooperation dereg_notificator count. All of them will be
+called by SObjectizer Environment method right after final cooperation
+deregistration actions. Cooperation object will be destroyed before invoking
+deregistration notificators.
+
+\section so_5_2_3__cooperation_notificators__std_notificators Standard registration and deregistration notificators implementation
+
+SObjectizer provides standard implementation for \c reg_ and \c dereg_notificators.
+They just send so_5::rt::msg_coop_registered and
+so_5::rt::msg_coop_deregistered to the mbox specified. Standard \c reg_notificator
+is created by so_5::rt::make_coop_reg_notificator() function. And standard
+dereg_notificator is created by so_5::rt::make_coop_dereg_notificator()
+function. They could be used for controlling lifetime of child cooperation,
+for example:
+
+\code
+class a_parent_t : public so_5::rt::agent_t
+{
+public :
+	void
+	so_define_agent()
+	{
+		so_subscribe( m_mbox ).event( &a_parent_t::evt_coop_registered );
+		so_subscribe( m_mbox ).event( &a_parent_t::evt_coop_deregistered );
+	}
+
+	void
+	so_evt_start()
+	{
+		create_child_cooperation();
+	}
+
+	void
+	evt_coop_registered( const so_5::rt::event_data_t<
+		so_5::rt::msg_coop_registered > & evt )
+	{
+		// Child cooperation started. Some amount of work should be
+		// scheduled to it.
+		... // Some actions.
+	}
+
+	void
+	evt_coop_deregistered( const so_5::rt::event_data_t<
+		so_5::rt::msg_coop_deregistered > & evt )
+	{
+		// If child cooperation destroyed because of exception it
+		// should be registered again.
+		if( so_5::rt::dereg_reason::unhandled_exception == evt->m_reason.reason() )
+			create_child_cooperation();
+	}
+
+private :
+	void
+	create_child_cooperation()
+	{
+		auto coop = so_environment().create_coop( "child" );
+		coop->set_parent_coop_name( so_coop_name() );
+		coop->add_reg_notificator(
+			so_5::rt::make_coop_reg_notificator( m_mbox ) );
+		coop->add_dereg_notificator(
+			so_5::rt::make_coop_dereg_notificator( m_mbox ) );
+		so_environment().register_coop( std::move(coop) );
+	}
+
+	const so_5::rt::mbox_ref_t m_mbox;
+};
+\endcode
+
+*/
+
+// vim:ft=cpp
+

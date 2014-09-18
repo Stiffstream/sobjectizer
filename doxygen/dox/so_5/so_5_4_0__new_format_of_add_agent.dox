@@ -1,0 +1,55 @@
+/*!
+
+\page so_5_4_0__new_format_of_add_agent so-5.4.0: New format of add_agent method of agent_coop_t class 
+
+Method so_5::rt::agent_coop_t::add_agent() now returns pointer to the agent
+that has been added to cooperation. That pointer remains valid until
+cooperation object is
+live.
+
+This method format simplifies access to agent's direct mbox (see \ref
+so_5_4_0__new_mpsc_mbox for the details about direct mboxes). The following
+example shows exchange of references to direct mboxes in ping-pong sample:
+
+\code
+class pinger_t : public so_5::rt::agent_t
+   {
+   public :
+      ...
+      void set_ponger_mbox( const so_5::rt::mbox_ref_t & mbox )
+      {
+         m_ponger_mbox = mbox;
+      }
+      ...
+   private :
+      so_5::rt::mbox_ref_t m_ponger_mbox;
+   };
+
+class ponger_t : public so_5::rt::agent_t
+   {
+   public :
+      ...
+      void set_pinger_mbox( const so_5::rt::mbox_ref_t & mbox )
+      {
+         m_pinger_mbox = mbox;
+      }
+      ...
+   private :
+      so_5::rt::mbox_ref_t m_pinger_mbox;
+   };
+
+...
+so_5::rt::so_environment_t & env = ...;
+auto coop = env.create_coop( "ping_pong" );
+
+auto pinger = coop->add_agent( new pinger_t(env) );
+auto ponger = coop->add_agent( new ponger_t(env) );
+
+pinger->set_ponger_mbox( ponger->so_direct_mbox() );
+ponger->set_pinger_mbox( pinger->so_direct_mbox() ); 
+\endcode
+
+*/
+
+// vim:ft=cpp
+

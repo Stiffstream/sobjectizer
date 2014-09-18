@@ -1,0 +1,86 @@
+/*!
+
+\page so_5_2_3__exception_reaction so-5.2.3: Reaction to unhandled exceptions
+
+\note There is an important change to that mechanism in v.5.3.0, see \ref so_5_3_0__exception_reaction.
+
+SObjectizer agents should provide no-throw guarantee: e.g. all exception should
+be caught and handled inside agent's event handlers. But if some exception is
+went out from event handler by some reason (by mistake for example) then
+SObjectizer should known what to do in such situation. In version 5.2.3 a new
+approach of handling exceptions is implemented.
+
+The enumeration so_5::rt::exception_reaction_t is introduced. And new virtual
+method so_exception_reaction() is added to so_5::rt::agent_t class.
+
+When SObjectizer caught an exception from agent's event handler it calls
+so_exception_reaction() method on problematic agent. Then SObjectizer analyzes
+return value and does appropriate actions:
+
+- so_5::rt::abort_on_exception -- terminates application immediately by calling abort()
+  function. That return code means that agent does not provide any exception
+  safety guarantee. Agent or some part of application is in incorrect state and
+  application execution cannot be continued.
+
+- so_5::rt::shutdown_sobjectizer_on_exception -- switches agent to the special state and
+  initiates shutdown of SObjectizer Environment. In that state agent cannot
+  receive messages. That return code means that agent provides basic exception
+  safety guarantee (no leak or damage of any resources), but application's
+  state is not logically correct and it is not desirable to continue
+  application execution.
+
+- so_5::rt::deregister_coop_on_exception -- switches agent to the special state and
+  initiates cooperation deregistration. Only cooperation to which agent belongs to
+  will be deregistered (if there are some children cooperation they will
+  be deregistered too). In that special state agent cannot receive messages.
+  That return code means that agent provides basic exception safety guarantee
+  (no leak or damage of any resources), but agent's state is not logically
+  correct. Agent's inconsistency has no influence on whole application and
+  application work could be continued without that agent (and its cooperation).
+
+- so_5::rt::ignore_exception -- just ignores exceptions and continues application
+  execution. That return code means that agent provides strong exception safety
+  guarantee.
+
+Default implementation of agent_t::so_exception_reaction() returns
+so_5::rt::deregister_coop_on_exception. It means that SObjectizer expects that
+agents provide basic exception guarantee even in case of unhandled exceptions.
+
+If agent wants a different reaction from SObjectizer it should override
+so_exception_reaction() method. For example, a stateless agent which only do
+some transformation of message could return so_5::rt::ignore_exception:
+
+\code
+class a_currency_changer_t : public so_5::rt::agent_t
+{
+...
+	virtual so_5::rt::exception_reaction_t
+	so_exception_reaction() const
+	{
+		return so_5::rt::ignore_exception;
+	}
+...
+	// Exceptions here do not damage the agent.
+	void
+	evt_transform_message(
+		const so_5::rt::event_data_t< payment_request_t > evt )
+	{
+		if( "RUR" == evt->currency_code() )
+		{
+			// Currency code should be changed to RUB.
+			std::unique_ptr< paymet_request_t > new_request(
+				new payment_request( *evt ) );
+			new_request->set_currency_code( "RUB" );
+			m_target_mbox->deliver_message( std::move( new_request ) );
+		}
+		else
+			// Resend unmodified message.
+			m_target_mbox->deliver_message( evt.make_reference() );
+	}
+};
+\endcode
+
+*/
+
+// vim:ft=cpp
+

@@ -1,0 +1,85 @@
+/*!
+
+\page so_5_3_0__new_run_so_environment so-5.3.0: New run_so_environment() variants
+
+The two new form of so_5::api::run_so_environment() routines introduced. One of
+them receives lambda or std::function object as initialization function. It
+allows to write like this:
+
+\code
+int
+main( int argc, char ** argv )
+{
+	try
+	{
+		so_5::api::run_so_environment(
+				[argc, argv]( so_5::rt::so_environment_t & env ) {
+					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
+					init( env, meetings );
+				},
+				std::move(
+						so_5::rt::so_environment_params_t()
+								.add_named_dispatcher(
+										"active_obj",
+										so_5::disp::active_obj::create_disp() ) ) );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+\endcode
+
+The another allows to edit semiprepared so_5::rt::so_environment_params_t object by function (or lambda, or std::function object):
+
+\code
+int
+main( int argc, char ** argv )
+	{
+		try
+			{
+				so_5::api::run_so_environment(
+					//
+					// This is a lambda for starting actions.	
+					//
+					[argc, argv]( so_5::rt::so_environment_t & env ) {
+						const std::size_t ITERATIONS = 2 == argc ?
+								static_cast< std::size_t >(std::atoi( argv[1] )) :
+								10u;
+						auto coop = env.create_coop(
+								so_5::rt::nonempty_name_t( "test_coop" ),
+								so_5::disp::active_obj::create_disp_binder(
+										"active_obj" ) );
+
+						coop->add_agent( new a_runner_t( env, ITERATIONS ) );
+
+						env.register_coop( std::move( coop ) );
+					},
+					//
+					// This is a lambda for tuning SO Environment parameters.
+					//
+					[]( so_5::rt::so_environment_params_t & p ) {
+						p.add_named_dispatcher(
+							"active_obj",
+							so_5::disp::active_obj::create_disp() );
+						p.exception_reaction(
+							so_5::rt::shutdown_sobjectizer_on_exception );
+					} );
+			}
+		catch( const std::exception & ex )
+			{
+				std::cerr << "Error: " << ex.what() << std::endl;
+				return 1;
+			}
+
+		return 0;
+	}
+\endcode
+
+*/
+
+// vim:ft=cpp
+

@@ -1,0 +1,96 @@
+/*!
+
+\page so_5_4_0__adv_thread_pool_dispatcher so-5.4.0: New adv_thread_pool dispatcher 
+
+\section so_5_4_0__adv_thread_pool_dispatcher__intro Intro
+
+Another new dispatcher in v.5.4.0 is adv_thread_pool dispatcher. It is a more
+advanced and complex variant of thread_pool dispatcher (see \ref
+so_5_4_0__thread_pool_dispatcher for the details).
+
+There are two major differences between adv_thread_pool and thread_pool
+dispatcher.
+
+1) adv_thread_pool dispatcher analyzes thread_safety flag for event handler and
+can start several thread_safe handlers for a single agent in parallel on
+different threads. Wherein the dispatcher guarantees that a not_thread_safe
+event handler can’t be started in parallel with any other event handler for the
+same agent.
+
+2) adv_thread_pool has no parameter max_demands_at_once for handling messages
+from agent’s queue and uses a different scheme. A working threads gets
+reference to an agent’s queue from the dispatcher thread and looks at the top
+message in the queue. Then working thread checks the possibility of handling of
+that message. Handling is possible if:
+
+* there is no any working event handler for the agents or
+* there are working thread_safe event handlers and this message will be handled
+  by thread_safe handler.
+
+If handling is possible message will be extracted from agent’s queue and
+processed. If not, the message will stay at the top of agent’s queue. Its
+processing will be initiated later when all currently working event handlers
+finish their work.
+
+In the case when most of agent’s event handlers are not_thread_safe
+adv_thread_pool dispatcher will work not as efficient as thread_pool
+dispatcher. It means that adv_thread_pool dispatcher is appropriate for the
+situations when there are few huge agents with very heavy, but stateless event
+handlers.
+
+\section so_5_4_0__adv_thread_pool_dispatcher__synopsis Synopsis
+
+To create adv_thread_pool dispatcher it is necessary to call
+so_5::disp::adv_thread_pool::create_disp() function. It receives one argument
+-- count of working thread. All those threads will be created during start of
+dispatcher.
+
+\code
+#include <so_5/disp/adv_thread_pool/h/pub.hpp>
+...
+so_5::api::run_so_environment(
+ []( so_5::rt::so_environment_t & env ) {
+   ...
+ },
+ []( so_5::rt::so_environment_params_t & params ) {
+   params.add_named_dispatcher(
+     "my_adv_thread_pool",
+     so_5::disp::adv_thread_pool::create_disp( 16 ) );
+ } );
+\endcode
+
+If create_disp() called without argument the dispatcher will try to detect
+count of thread by calling std::thread::hardware_concurrency() method.
+
+To create dispatcher binder for thread_pool dispatcher it is necessary to use
+one of so_5::disp::adv_thread_pool::create_disp_binder() functions:
+
+\code
+so_5::rt::so_environment_t & env = ...;
+auto coop = env.create_coop( "my_coop",
+ // Use binder with default params: cooperation FIFO.
+ so_5::disp::adv_thread_pool::create_disp_binder( "my_adv_thread_pool" ) );
+
+// Use this binder parameters for several cooperations.
+using namespace so_5::disp::adv_thread_pool;
+params_t binding_params;
+binding_params.fifo( fifo_t::individual );
+
+auto child1 = env.create_coop( "my_coop_child_1",
+ create_disp_binder( "my_adv_thread_pool", params ) );
+...
+auto child2 = env.create_coop( "my_coop_child_2",
+ create_disp_binder( "my_adv_thread_pool", params ) );
+
+// Configure binding parameters during create_disp_binder() call:
+auto child3 = env.create_coop( "my_coop_child_3",
+ create_disp_binder( "my_adv_thread_pool",
+   []( params_t & p ) {
+     p.fifo( fifo_t::cooperation );
+   } );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

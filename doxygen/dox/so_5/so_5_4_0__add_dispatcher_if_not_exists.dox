@@ -1,0 +1,39 @@
+/*!
+
+\page so_5_4_0__add_dispatcher_if_not_exists so-5.4.0: A possibility to add a dispatcher after start of SObjectizer Environment
+
+Since v.5.4.0 it is possible to add a new dispatcher to SObjectizer Environment
+after start of the Environment. New method
+so_5::rt::so_environment_t::add_dispatcher_if_not_exists() added for this
+purpose:
+
+\code
+void my_agent::evt_long_request( const request & evt )
+{
+   // New child cooperation is necessary for handling the request.
+   // An instance of dispatcher is required for the cooperation.
+
+   // Create a dispatcher if it not exists.
+   so_environment().add_dispatcher_if_not_exists(
+         "long_request_handler_disp",
+         []() { return so_5::disp::active_group::create_disp(); } );
+
+   // Agents of child cooparation will be bound to that dispatcher.
+   auto coop = so_environment().create_coop(
+         "long_request_handler",
+         so_5::disp::active_group::create_disp_binder(
+               "long_request_handler_disp",
+               "child_coop" ) );
+   coop->set_parent_coop_name( so_coop_name() );
+   ...
+}
+\endcode
+
+\note There is a possibility to add new dispatcher at run-time but there is no
+possibility to remove it. This feature can be added in future versions of
+SObjectizer if there will be a necessity for it.
+
+*/
+
+// vim:ft=cpp
+

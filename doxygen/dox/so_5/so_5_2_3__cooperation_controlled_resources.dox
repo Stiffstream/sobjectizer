@@ -1,0 +1,116 @@
+/*!
+
+\page so_5_2_3__cooperation_controlled_resources so-5.2.3: Cooperation controlled resources
+
+\section so_5_2_3__cooperation_controlled_resources__the_problem The problem
+
+Sometimes it is necessary to provide some resource to all cooperation's agents.
+For example: DB connection object or logger object. And that resource must live
+longer than the lifetime of agents of cooperation. One obvious solution is to use
+std::shared_ptr or another kind of smart pointer:
+
+\code
+so_5::rt::so_environment_t & env = ...;
+auto coop = env.create_coop( "sample" );
+std::shared_ptr< logger_t > logger( new some_task_specific_logger_t() );
+coop->add_agent( new first_agent_t( env, logger, ... ) );
+coop->add_agent( new second_agent_t( env, logger, ... ) );
+\endcode
+
+It guarantees that logger will be destroyed only after destroying all
+cooperation agents.
+
+But what if you should use agent which requires reference to logger, not smart
+pointer? How to control lifetime of that object?
+
+Version 5.2.3 provides two answers for this question.
+
+\section so_5_2_3__cooperation_controlled_resources__the_solutions The solutions
+
+\subsection so_5_2_3__cooperation_controlled_resources__the_solutions__user_coop A descendant from agent_coop_t class
+
+Since v.5.2.3 it is possible to make a derived class from
+so_5::rt::agent_coop_t. The only condition for derived classes: its object
+should be dynamically allocated. It is necessary because SObjectizer
+Environment takes those objects under control and destroys them by calling
+\c delete.
+
+Under this approach cooperation could control object lifetime this way:
+
+\code
+class coop_with_logger_t : public so_5::rt::agent_coop_t
+{
+	typedef so_5::rt::agent_coop_t base_type_t;
+public :
+	coop_with_logger_t(
+		// Cooperation name.
+		const so_5::rt::nonempty_name_t & name,
+		// Default dispatcher binding.
+		so_5::rt::disp_binder_unique_ptr_t coop_disp_binder,
+		// SObjectizer Environment.
+		so_environment_t & env )
+		: base_type_t( name, coop_disp_binder, env )
+		{}
+	...
+	logger_t &
+	logger()
+	{
+		return m_logger;
+	}
+
+private :
+	// Logger for cooperation.
+	some_task_specific_logger_t m_logger;
+};
+...
+so_5::rt::so_environment_t & env = ...;
+so_5::rt::agent_coop_unique_ptr_t coop(
+	new coop_with_logger_t( "sample",
+		so_5::rt::create_default_disp_binder(),
+		env ) );
+coop->add_agent( new first_agent_t( env, coop->logger(), ... ) );
+coop->add_agent( new second_agent_t( env, coop->logger(), ... ) );
+\endcode
+
+And because cooperation lifetime is longer than agents lifetime it is safe to
+pass reference to logger to agents.
+
+\subsection so_5_2_3__cooperation_controlled_resources__the_solutions__take_under_control Usage of take_under_control method
+
+A new method for so_5::rt::agent_coop_t class is introduced in v.5.2.3:
+take_under_control(). It accepts raw or unique_ptr pointer to dynamically
+allocated objects and takes this object under control of cooperation. Non
+limited count of objects could be taken under control of cooperation. They will
+be destroyed only after destroying agents of cooperation.
+
+With this approach the sample with logger object could be rewritten in the following way:
+
+\code
+so_5::rt::so_environment_t & env = ...;
+so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "sample" );
+// take_under_control returns raw pointer to object.
+// So its could be stored for further use.
+logger_t & logger = *(coop->take_under_control( new some_task_specific_logger_t() ));
+coop->add_agent( new first_agent_t( env, logger, ... ) );
+coop->add_agent( new second_agent_t( env, logger, ... ) );
+\endcode
+
+
+\section so_5_2_3__cooperation_controlled_resources__technical_notes Some technical notes
+
+Strictly speaking the destruction of agents in cooperation destructor depends
+on agents reference counters. Cooperation holds smart references to its agents.
+Cooperation decrements reference counters inside smart references in the
+cooperation’s destructor. In normal situation those counter receives zero value
+and this leads to agents destruction. But there is a possibility that user
+receive and store smart reference to an agent somewhere else. In that
+situation agent will not be destroyed with its cooperation. If the agent
+will access some external resource via reference/pointer (like logger from
+example above) anything might happen. But this situation is not under
+control of SObjectizer. And user should provide appropriate resource
+lifetime policy in such cases.
+
+*/
+
+// vim:ft=cpp
+

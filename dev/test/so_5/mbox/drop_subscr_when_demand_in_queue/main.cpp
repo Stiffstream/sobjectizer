@@ -1,0 +1,108 @@
+/*
+ * A test for processing drop_subscription when demand is in queue.
+ */
+
+#include <iostream>
+#include <sstream>
+
+#include <so_5/rt/h/rt.hpp>
+#include <so_5/api/h/api.hpp>
+
+struct msg_one : public so_5::rt::signal_t {};
+struct msg_two : public so_5::rt::signal_t {};
+struct msg_three : public so_5::rt::signal_t {};
+struct msg_four : public so_5::rt::signal_t {};
+
+class a_test_t : public so_5::rt::agent_t
+{
+		typedef so_5::rt::agent_t base_type_t;
+
+	public :
+		a_test_t(
+			so_5::rt::so_environment_t & env )
+			:	base_type_t( env )
+			,	m_mbox( env.create_local_mbox() )
+		{
+		}
+
+		void
+		so_define_agent()
+		{
+			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_one );
+			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_two );
+			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_three );
+			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_four );
+		}
+
+		void
+		so_evt_start()
+		{
+			m_mbox->deliver_signal< msg_one >();
+			m_mbox->deliver_signal< msg_two >();
+			m_mbox->deliver_signal< msg_three >();
+		}
+
+		void
+		evt_one( const so_5::rt::event_data_t< msg_one > & )
+		{
+			for( size_t i = 0; i != 10000u; ++i )
+			{
+				so_drop_subscription( m_mbox, &a_test_t::evt_two );
+
+				so_subscribe( m_mbox ).event( &a_test_t::evt_two );
+
+				m_mbox->deliver_signal< msg_two >();
+			}
+
+			so_drop_subscription( m_mbox, &a_test_t::evt_two );
+		}
+
+		void
+		evt_two( const so_5::rt::event_data_t< msg_two > & )
+		{
+			std::abort();
+		}
+
+		void
+		evt_three( const so_5::rt::event_data_t< msg_three > & )
+		{
+			m_mbox->deliver_signal< msg_four >();
+		}
+
+		void
+		evt_four( const so_5::rt::event_data_t< msg_four > & )
+		{
+			so_environment().stop();
+		}
+
+	private :
+		so_5::rt::mbox_ref_t m_mbox;
+};
+
+void
+init( so_5::rt::so_environment_t & env )
+{
+	env.register_agent_as_coop( "test", new a_test_t( env ) );
+}
+
+int
+main( int argc, char * argv[] )
+{
+	try
+	{
+		so_5::api::run_so_environment(
+				&init,
+				so_5::rt::so_environment_params_t() );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}

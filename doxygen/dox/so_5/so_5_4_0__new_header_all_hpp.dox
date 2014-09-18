@@ -1,0 +1,25 @@
+/*!
+
+\page so_5_4_0__new_header_all_hpp so-5.4.0: New header file all.hpp
+
+A new helper header file `so_5/all.hpp` has been added in v.5.4.0. It allows to
+include just one header file in your .cpp-file and gets access to all
+SObjectizer's public stuff. For example:
+
+\code
+#include <so_5/all.hpp>
+\endcode
+
+instead of
+
+\code
+#include <so_5/rt/h/rt.hpp>
+#include <so_5/api/h/api.hpp>
+#include <so_5/disp/one_thread/h/pub.hpp>
+#include <so_5/disp/active_group/h/pub.hpp>
+\endcode
+
+*/
+
+// vim:ft=cpp
+

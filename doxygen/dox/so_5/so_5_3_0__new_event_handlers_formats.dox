@@ -1,0 +1,92 @@
+/*!
+
+\page so_5_3_0__new_event_handlers_formats so-5.3.0: New event handlers formats
+
+New format for event- and signal handlers are supported since v.5.3.0.
+
+<b>The first major change: handlers could return values now</b>. So it is possible to write a handler like this:
+
+\code
+std::string evt_get_status( const so_5::rt::event_data_t< msg_get_status > & )
+  {
+    return "Ready";
+  }
+int evt_convert( const so_5::rt::event_data_t< msg_convert > & evt )
+  {
+    return std::atoi( evt->m_value );
+  }
+\endcode
+
+It allows to use handler as traditional event-handler and as service request handler.
+
+<b>The second major change: handlers could receive arguments without so_5::rt::event_data_t wrapper</b>. It especially useful for event handlers:
+
+\code
+int evt_convert( const msg_convert & msg )
+  {
+    return std::atoi( msg.m_value );
+  }
+\endcode
+
+Such event handler is subscribed as usual:
+
+\code
+virtual void my_agent_t::so_define_agent()
+  {
+    so_subscribe(mbox).event( &my_agent_t::evt_convert );
+  }
+\endcode
+
+Signal handler also could has a new form:
+
+\code
+std::string evt_get_status()
+  {
+    return "Ready";
+  }
+\endcode
+
+But is must be subscribed by new version of so_subscribe().event() chain:
+
+\code
+virtual void my_agent_t::so_define_agent()
+  {
+    so_subscribe(mbox).event(
+      so_5::signal< msg_get_status >,
+      &my_agent_t::evt_get_status );
+  }
+\endcode
+
+The main difference between old and new form is impossibility to redirect the same message to another mbox. Old form allows this by make_reference method of event_data_t:
+
+\code
+void evt_some_event(
+  const so_5::rt::event_data_t< msg_with_very_big_data_inside > & evt )
+{
+  // The same message must be sent to another agent.
+  some_another_mbox->deliver_message( evt.make_reference() );
+}
+\endcode
+
+New form handlers cannot do that. So if it is necessary to redirects the same message to another mbox than old form event handler must be used.
+
+<b>The third major change: lambda-functions could be used as event- and signal-handlers</b>:
+
+\code
+virtual void my_agent_t::so_define_agent()
+  {
+    so_subscribe(mbox).event(
+      [](const msg_convert & m) { return std::atoi(m.m_value); } );
+
+    so_subscribe(mbox).event(
+      so_5::signal< msg_get_status >,
+      []() -> std::string { return "Ready"; } );
+  }
+\endcode
+
+<b>Note</b>. The lambda-functions with event_data_t-wrapper as argument are not supported now. Old-format event handlers must be used instead.
+
+*/
+
+// vim:ft=cpp
+

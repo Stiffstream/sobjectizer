@@ -1,0 +1,76 @@
+/*!
+
+\page so_5_4_0__new_mpsc_mbox so-5.4.0: New type of mbox -- multi-producer and single-consumer
+
+Until v.5.4.0 there was only one type of mbox in SObjectizer:
+multi-producer/multi-consumer (MPMC). Mboxes of those types are created by
+create_local_mbox() and create_local_mbox(name) methods of class
+so_5::rt::so_environment_t.
+
+MPMC mbox is like a bulletin board: everyone can pin a message to it and
+everyone can read a pinned message. MPMC mboxes are used to implement
+publish-subscribe model in SObjectizer. A message type is used as a topic.
+
+MPMC mboxes are good when 1-to-many or many-to-many agents interaction is
+required. But they are too expensive for the case of 1-to-1 interaction. It is
+because message passing via MPMC mbox consists of two phases:
+
+* on the first phase there is a lookup for subscriber list for the specified
+  message type;
+* on the second phase there is a check for possibility of handling this message
+  type in the current subscriber’s state.
+
+For the 1-to-1 agents interaction the first phase is redundant. The 1-to-1
+interaction will be more efficient if a message is directly passed to the
+subscriber’s queue without looking up the subscriber list for the message type.
+
+This is a goal for a new type of mboxes in SObjectizer 5.4.0 -- direct and
+efficient support for 1-to-1 agents interaction.
+
+New type of mbox is a multi-producer/single-consumer (MPSC) message box. Those
+mboxes are automatically created by SObjectizer for every agent. When a
+constructor of agent_t finishes its work there is a MPSC mbox for the agent.
+That mbox can be accessed via so_5::rt::agent_t::so_direct_mbox() method. That
+mbox belongs to the agent for which mbox is created. That agent is the owner of
+the MPSC mbox.
+
+New MPSC mbox implements so_5::rt::mbox_t interface just as existing MPMC mbox.
+References to the MPSC mboxes can be stored by so_5::rt::mbox_ref_t objects.
+References to MPSC mboxes in form of so_5::rt::mbox_ref_t can be passed to
+other agents or can be stored anywhere user wants.
+
+The main difference between MPSC and MPMC mboxes is the inability to subscribe
+to the messages from the mbox except for the owner of mbox.
+
+There is a one significant trait of MPSC mbox in comparison with MPMC mbox:
+because there is no the first phase (lookup for list of subscribers by the
+message type) it is possible to push a message to agent’s queue even if the
+agent is not subscribed to it. This message will be rejected on the second
+phase when the checking for ability of message processing is performed.
+
+After introduction of MPSC mboxes there is a question for a SObjectizer’s user:
+which type of mboxes should be used and for which purposes?
+
+Old MPMC mboxes must be used when an agent is a producer of some information
+which could be processed by several different agents. Or when there are several
+producers for information and several consumers for that information.
+
+New MPSC mboxes must be used when agent is a receiver of some agent-specific
+information and/or agent-specific commands. For example the message about the
+need to reconfigure agent is a agent-specific and it is better to send it to
+agent’s MPSC mbox than to common MPMC mbox shared between several agents.
+
+Another case for MPSC mboxes is a creation of channel for information
+processing. For example agent-meter receives a data about air temperature and
+sends it directly to agent-controller. Agent-controller collects data from
+several meters and then sends data package to agent-analyzer. Agent-analyzer
+performs the initial information checking and normalizing. And then sends
+preprocessed data directly to agent-processor. There could be several groups of
+meter agents, controller agents and so on. But because they use different
+mboxes for information exchange they will work independently without any
+influence from one the another.
+
+*/
+
+// vim:ft=cpp
+

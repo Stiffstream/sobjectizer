@@ -1,0 +1,70 @@
+/*!
+\page so_5_2_3__parent_child_coops so-5.2.3: Parent-child cooperation relationship
+
+\section so_5_2_3__parent_child_coops__general General idea
+
+Parent-child cooperation relationship from SObjectizer-4 is implemented in
+version 5.2.3. It allows to specify the parent cooperation for new cooperation
+before new cooperation registration. Then if the parent cooperation
+deregistered all its children cooperations will be deregistered automatically.
+If some child cooperation has its own children cooperations they will be
+deregistered as well.
+
+The parent-child relation serves for two main purposes:
+
+1. Simplification for management of child agent which perform some part of
+parent cooperation tasks. For example parent cooperation could receipt user
+requests and create child cooperations for serving those requests. When parent
+cooperation is being deregistered all its children cooperations should be
+deregistered too. And since v.5.2.3 it is done automatically.
+
+2. Simplification for resource management. For example an agent from parent
+cooperation could create some resource like DB connection object. And then pass
+reference to that object to agents from child cooperation. It is safe to use
+such reference because SObjectizer guarantees that children cooperations will be
+destroyed before its parent cooperation. So it is necessary to do resource
+control only in parent cooperation.
+
+To specify parent cooperation new method
+so_5::rt::agent_coop_t::set_parent_coop_name() was introduced. It must be
+applied with the name of already registered cooperation in order to set
+parent-child relationship. The usage of that method looks like:
+
+\code
+so_5::rt::so_environment_t & env = ...;
+
+auto coop = env.create_coop( "child_coop" );
+coop->set_parent_coop_name( "parent_coop" );
+... // Add agents to cooperation.
+env.register_coop( std::move(coop) );
+\endcode
+
+\section so_5_2_3__parent_child_coops__details Some technical details
+
+Name of parent cooperation is checked inside the
+so_5::rt::so_environment_t::register_coop() method. The cooperation with specified
+name must be registered at that moment and must not be under deregistration
+process. If cooperation name is unknown or parent cooperation is being
+deregistered then an error is raised.
+
+When name of a parent cooperation is passed to
+so_5::rt::so_environment_t::deregister_coop() then SObjectizer makes a full list
+of all children cooperations (e.g. direct children cooperations, children of
+children and so on). And then initiates deregistration for all of them at once.
+It means that all cooperations will receive deregistration signal at the same
+time. But because cooperation deregistration could take some time some of
+cooperations could finish their deregistration process earlier and some later.
+Because of that agents of the parent cooperation could finish their work before
+agents from children cooperations.
+
+But the destruction of cooperation will be done in particular order.
+Cooperations without any children will be deregistered at first turn. Then
+the parents of already deregistered cooperations will be deregistered.
+Then parents of those parents and so on. The root cooperation which name
+was specified in so_5::rt::so_environment_t::deregister_coop()
+will be destroyed the last.
+
+*/
+
+// vim:ft=cpp
+

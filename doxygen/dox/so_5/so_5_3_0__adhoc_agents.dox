@@ -1,0 +1,160 @@
+/*!
+
+\page so_5_3_0__adhoc_agents so-5.3.0: Ad-hoc agents
+
+\section so_5_3_0__adhoc_agents__intro Introduction
+
+A new type of agents is introduced in v.5.3.0 -- ad-hoc agents. They are agents which could be constructed and registered without necessity of defining dedicated C++ class.
+
+To construct ad-hoc agent is necessary to call define_method for cooperation object. This method returns a special proxy object which is used to definition of behaviour of new agent. For example this method chain creates agents which handles a message and a signal.
+
+\code
+    auto coop = env.create_coop( "sample" );
+    // Definition of ad-hoc agent.
+    coop->define_agent()
+       // First event for that agent.
+       .event(
+          // A mbox as message source.
+          some_mbox,
+          // Event handling code. Type of message is deduced automatically.
+          []( const msg_convert & msg ) -> int {
+             return std::atoi( msg.m_value );
+          } )
+       // Second event for that agent.
+       .event(
+          // A mbox as message source.
+          some_mbox,
+          // Type of signal. Must be specified explicitly.
+          so_5::signal< msg_get_status >,
+          // Event handling code.
+          []() -> std::string {
+             return "ready";
+          } ); 
+\endcode
+
+\section so_5_3_0__adhoc_agents__details Details
+
+\subsection so_5_3_0__adhoc_agents__details__disp_binders Binding ad-hoc agent to the specified dispatcher
+
+Ad-hoc agent uses default cooperation dispatcher binder:
+
+\code
+    auto coop = env.create_coop( "active", so_5::disp::active_obj::create_disp_binder( "1" ) );
+    // First active agent.
+    coop->define_agent().event( ... );
+    // Second active agent.
+    coop->define_agent().event( ... );
+\endcode
+
+But another dispatcher binder could be specified as an argument for define_agent() method:
+
+\code
+    auto coop = env.create_coop( "active", so_5::disp::active_obj::create_disp_binder( "1" ) );
+    // This agent will be active because it uses cooperation binder object.
+    coop->define_agent().event( ... );
+    // This agent will be passive.
+    coop->define_agent( so_5::rt::create_default_disp_binder() ).event( ... );
+\endcode
+
+\subsection so_5_3_0__adhoc_agents__details__on_start_finish Specifying starting and finish ad-hoc agent actions
+
+Ordinary agents have so_evt_start() and so_evt_finish() methods which are called at the start and at the end of agent work. Similar behaviour could be specified to ad-hoc agents by on_start() and on_finish() methods chains:
+
+\code
+    auto coop = env.create_coop( "demo" );
+    coop->define_agent()
+       // A start action for the agent.
+       .on_start( []() {
+            std::cout << "Agent started" << std::endl;
+          } )
+       // A finish action for the agent.
+       .on_finish( []() {
+            std::cout << "Agent finished" << std::endl;
+          } )
+       ...
+\endcode
+
+\subsection so_5_3_0__adhoc_agents__details__exception_reaction Specifying exception reaction for ad-hoc agent
+
+Ordinary agents could reimplement so_exception_reaction() method to specify reaction to non-handled exceptions. Ad-hoc agents do not have that method. If ad-hoc agent should specify some reaction to non-handled exception this could be done by exception_reaction() method chain:
+
+\code
+    coop->define_agent()
+       // Exception from that agent could be safely ignored.
+       .exception_reaction( so_5::rt::ignore_exception )
+       .event( target_mbox,
+          [target_mbox]( const msg_payment_request & msg ) {
+             if( "RUR" == msg.currency_code() )
+                {
+                   std::unique_ptr< msg_payment_request > new_request( new msg_payment_request( msg ) );
+                   new_request->set_currency_code( "RUB" );
+                   target_mbox->deliver_message( std::move( new_request ) );
+                }
+             else
+                target_mbox->deliver_message( new msg_payment_request( msg ) );
+          } );
+\endcode
+
+
+\section so_5_3_0__adhoc_agents__major_differences Major differences from ordinary agents
+
+Ad-hoc agents have the following major differences from ordinary agents.
+
+\subsection so_5_3_0__adhoc_agents__major_differences__no_so_env No access to SObjectizer Environment
+
+Ad-hoc agents have no access to so_environment. An ordinary agent could do:
+
+\code
+    void a_some_agent_t::evt_shutdown_signal()
+       {
+          // SObjectizer RunTime should be shut down.
+          so_environment().stop();
+       }
+\endcode
+
+Ad-hoc agent should store reverence to so_enviroment as a capture variable:
+
+\code
+    auto coop = so_environment().create_coop( "child" );
+    so_5::rt::so_environment_t & env = so_environment();
+    coop->define_agent()
+       .event( some_mbox, so_5::signal< msg_shutdown_signal >,
+          // Note that env is captured by reference!
+          [&env]() { env.stop(); } );
+\endcode
+
+\subsection so_5_3_0__adhoc_agents__major_differences__no_states No states
+
+Ad-hoc agents cannot have states. Ordinary agents could define states by creating so_5::rt::state_t objects and then switching from one state to another. Ad-hoc agents have only one state which is hidden from the developer.
+
+\subsection so_5_3_0__adhoc_agents__major_differences__no_coop No access to cooperation
+
+Ad-hoc agents have no access to the cooperation they belong. The ordinary agent could do:
+
+\code
+    void a_some_agent_t::evt_some_event()
+       {
+          if( ...Work is impossible... )
+             so_environment().deregister_coop( so_coop_name() );
+       }
+\endcode
+
+But ad-hoc agent cannot.
+
+\subsection so_5_3_0__adhoc_agents__major_differences__no_event_data Inability to receive event_data_t as argument
+
+Lambda functions which are used as event handlers for ad-hoc agents should have one of the following prototypes:
+
+\code
+    // For ordinary message handling.
+    Result (const Message & )
+    // For signal handling.
+    Result ()
+\endcode
+
+It is impossible to pass event_data_t object as argument to ad-hoc agent's event. So it is impossible to resend the same message object from ad-hoc agent's event (because there is not access to so_5::rt::event_data_t::make_reference() method).
+
+*/
+
+// vim:ft=cpp
+

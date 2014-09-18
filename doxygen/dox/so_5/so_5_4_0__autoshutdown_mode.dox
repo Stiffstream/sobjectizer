@@ -1,0 +1,27 @@
+/*!
+
+\page so_5_4_0__autoshutdown_mode so-5.4.0: Autoshutdown mode for SObjectizer Environment
+
+An autoshutdown mode is introduced in SObjectizer v.5.4.0. This mode is on by
+default. In this mode SObjectizer Environment automatically shuts down its work
+after deregistering the last working cooperation.
+
+This simplifies implementation of small programs with few cooperations inside
+(like small command-line utilities or tests): every cooperation deregisters
+iteself after finishing its work and SObjectizer is finished automatically.
+
+If autoshutdown mode is not appropriate for the application it can be disabled
+by so_5::rt::so_environment_params_t::disable_autoshutdown() method:
+
+\code
+so_5::api::run_so_environment(
+  []( so_5::rt::so_environment_t & env ) { ... },
+  []( so_5::rt::so_environment_params_t & params ) {
+    params.disable_autoshutdown();
+  } );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

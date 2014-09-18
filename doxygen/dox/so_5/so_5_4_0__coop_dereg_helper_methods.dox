@@ -1,0 +1,49 @@
+/*!
+
+\page so_5_4_0__coop_dereg_helper_methods so-5.4.0: Helper methods for cooperation deregistration
+
+There are two new methods in agent_t class: so_deregister_agent_coop() and
+so_deregister_agent_normally(). They allow to write more compact and readable
+code.
+
+Just for a comparison:
+
+_Before v.5.4.0_
+
+\code
+void my_agent::evt_operation_fail()
+{
+    // Deregistering cooperation due to inability to complete operation.
+    so_environment().deregister_coop(
+        so_coop_name(),
+        so_5::rt::dereg_reason::user_defined_reason + 100 );
+}
+void my_agent::evt_operation_success()
+{
+    // Deregistering cooperation because operation successfully completed.
+    so_environment().deregister_coop(
+        so_coop_name(),
+        so_5::rt::dereg_reason::normal );
+}
+\endcode
+
+_Since v.5.4.0_
+
+\code
+void my_agent::evt_operation_fail()
+{
+    // Deregistering cooperation due to inability to complete operation.
+    so_deregister_agent_coop(
+        so_5::rt::dereg_reason::user_defined_reason + 100 );
+}
+void my_agent::evt_operation_success()
+{
+    // Deregistering cooperation because operation successfully completed.
+    so_deregister_agent_coop_normally();
+}
+\endcode
+
+*/
+
+// vim:ft=cpp
+
