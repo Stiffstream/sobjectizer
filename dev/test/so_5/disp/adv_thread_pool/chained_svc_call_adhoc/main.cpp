@@ -18,7 +18,7 @@
 
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
-#include <test/so_5/time_limited_execution.hpp>
+#include <various_helpers_1/time_limited_execution.hpp>
 
 const unsigned int thread_pool_size = 16;
 

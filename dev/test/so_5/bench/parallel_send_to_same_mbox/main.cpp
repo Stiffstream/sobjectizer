@@ -14,7 +14,7 @@
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-#include <test/so_5/bench/benchmark_helpers.hpp>
+#include <various_helpers_1/benchmark_helpers.hpp>
 
 struct msg_send : public so_5::rt::signal_t {};
 

@@ -16,8 +16,8 @@
 #include <so_5/disp/thread_pool/h/pub.hpp>
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
-#include <test/so_5/bench/benchmark_helpers.hpp>
-#include <test/so_5/bench/cmd_line_args_helpers.hpp>
+#include <various_helpers_1/benchmark_helpers.hpp>
+#include <various_helpers_1/cmd_line_args_helpers.hpp>
 
 enum class dispatcher_t
 	{

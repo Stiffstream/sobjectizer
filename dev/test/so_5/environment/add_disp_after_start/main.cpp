@@ -15,7 +15,7 @@
 #include <so_5/api/h/api.hpp>
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-#include <test/so_5/time_limited_execution.hpp>
+#include <various_helpers_1/time_limited_execution.hpp>
 
 struct msg_child_info : public so_5::rt::message_t
 {

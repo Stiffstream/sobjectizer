@@ -19,8 +19,8 @@
 
 #include <so_5/h/spinlocks.hpp>
 
-#include <test/so_5/time_limited_execution.hpp>
-#include <test/so_5/bench/benchmark_helpers.hpp>
+#include <various_helpers_1/time_limited_execution.hpp>
+#include <various_helpers_1/benchmark_helpers.hpp>
 
 typedef std::set< so_5::current_thread_id_t > thread_id_set_t;
 

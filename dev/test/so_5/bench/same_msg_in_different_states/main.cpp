@@ -9,7 +9,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-#include <test/so_5/bench/benchmark_helpers.hpp>
+#include <various_helpers_1/benchmark_helpers.hpp>
 
 struct msg_tick : public so_5::rt::signal_t {};
 
