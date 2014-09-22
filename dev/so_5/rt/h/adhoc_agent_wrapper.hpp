@@ -115,7 +115,7 @@ class adhoc_agent_definition_proxy_t
 		/*!
 		 * Define reaction to work start.
 		 */
-		inline adhoc_agent_definition_proxy_t
+		inline adhoc_agent_definition_proxy_t &
 		on_start( std::function< void() > handler )
 			{
 				m_agent.set_on_evt_start( handler );
@@ -126,7 +126,7 @@ class adhoc_agent_definition_proxy_t
 		/*!
 		 * Define reaction to work finish.
 		 */
-		inline adhoc_agent_definition_proxy_t
+		inline adhoc_agent_definition_proxy_t &
 		on_finish( std::function< void() > handler )
 			{
 				m_agent.set_on_evt_finish( handler );
@@ -137,11 +137,13 @@ class adhoc_agent_definition_proxy_t
 		/*!
 		 * Define reaction to non-handled exception.
 		 */
-		inline adhoc_agent_definition_proxy_t
+		inline adhoc_agent_definition_proxy_t &
 		exception_reaction(
 			exception_reaction_t reaction )
 			{
 				m_agent.set_exception_reaction( reaction );
+
+				return *this;
 			}
 
 	private :

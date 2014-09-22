@@ -211,7 +211,7 @@ class a_sender_t
 				if( m_iterations_left )
 					{
 						for( auto & m : m_mboxes )
-							m->deliver_signal< SIGNAL >();
+							m->template deliver_signal< SIGNAL >();
 
 						initiate_next_iteration();
 

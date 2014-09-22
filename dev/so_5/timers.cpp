@@ -164,7 +164,7 @@ class actual_timer_t : public timer_t
 template< class TIMER_THREAD >
 class actual_thread_t : public timer_thread_t
 	{
-		typedef actual_timer_t< TIMER_THREAD > actual_timer_t;
+		typedef actual_timer_t< TIMER_THREAD > timer_demand_t;
 
 	public :
 		//! Initializing constructor.
@@ -194,8 +194,8 @@ class actual_thread_t : public timer_thread_t
 			std::chrono::milliseconds pause,
 			std::chrono::milliseconds period ) override
 			{
-				std::unique_ptr< actual_timer_t > timer(
-						new actual_timer_t( m_thread.get() ) );
+				std::unique_ptr< timer_demand_t > timer(
+						new timer_demand_t( m_thread.get() ) );
 
 				so_5::rt::mbox_ref_t mbox{ mbox_r };
 				so_5::rt::message_ref_t msg{ msg_r };
