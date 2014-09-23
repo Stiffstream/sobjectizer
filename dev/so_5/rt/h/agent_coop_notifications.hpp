@@ -61,7 +61,7 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
  * \since v.5.2.3
  * \brief Create notificator about cooperation registration completion.
  */
-SO_5_EXPORT_FUNC_SPEC(coop_reg_notificator_t)
+SO_5_FUNC coop_reg_notificator_t
 make_coop_reg_notificator(
 	//! A mbox to which msg_coop_registered will be sent.
 	const mbox_ref_t & mbox );
@@ -73,7 +73,7 @@ make_coop_reg_notificator(
  * \since v.5.2.3
  * \brief Create notificator about cooperation deregistration completion.
  */
-SO_5_EXPORT_FUNC_SPEC(coop_dereg_notificator_t)
+SO_5_FUNC coop_dereg_notificator_t
 make_coop_dereg_notificator(
 	//! A mbox to which msg_coop_deregistered will be sent.
 	const mbox_ref_t & mbox );

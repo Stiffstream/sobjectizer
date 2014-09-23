@@ -27,11 +27,11 @@ namespace active_group
 {
 
 //! Creates the dispatcher.
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
+SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp();
 
 //! Creates the dispatcher binder.
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
+SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Dispatcher name.
 	const std::string & disp_name,

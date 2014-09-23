@@ -85,7 +85,7 @@ typedef std::shared_ptr< disp_binder_t >
 	disp_binder_ref_t;
 
 //! Create an instance of the default dispatcher binding.
-SO_5_EXPORT_FUNC_SPEC( disp_binder_unique_ptr_t )
+SO_5_FUNC disp_binder_unique_ptr_t
 create_default_disp_binder();
 
 } /* namespace rt */

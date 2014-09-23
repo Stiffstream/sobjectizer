@@ -304,7 +304,7 @@ using timer_list_thread_t = timertt::timer_list_thread_template_t<
 
 } /* namespace timers_details */
 
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_wheel_thread(
 	error_logger_shptr_t logger )
 	{
@@ -316,7 +316,7 @@ create_timer_wheel_thread(
 				timertt_thread_t::default_granularity() );
 	}
 
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_wheel_thread(
 	error_logger_shptr_t logger,
 	unsigned int wheel_size,
@@ -336,7 +336,7 @@ create_timer_wheel_thread(
 				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
 	}
 
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_heap_thread(
 	error_logger_shptr_t logger )
 	{
@@ -347,7 +347,7 @@ create_timer_heap_thread(
 				timertt_thread_t::default_initial_heap_capacity() );
 	}
 
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_heap_thread(
 	error_logger_shptr_t logger,
 	std::size_t initial_heap_capacity )
@@ -365,7 +365,7 @@ create_timer_heap_thread(
 				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
 	}
 
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_list_thread(
 	error_logger_shptr_t logger )
 	{

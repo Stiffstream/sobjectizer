@@ -65,7 +65,7 @@ params_t::query_max_demands_at_once() const
 //
 // create_disp
 //
-SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
+SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp(
 	std::size_t thread_count )
 	{
@@ -147,7 +147,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 //
 // create_disp_binder
 //
-SO_5_EXPORT_FUNC_SPEC(so_5::rt::disp_binder_unique_ptr_t)
+SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
 	std::string disp_name,
 	const params_t & params )

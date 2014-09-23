@@ -115,7 +115,7 @@ default_thread_pool_size()
  * \since v.5.4.0
  * \brief Create thread pool dispatcher.
  */
-SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
+SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp(
 	//! Count of working threads.
 	std::size_t thread_count );
@@ -142,7 +142,7 @@ create_disp()
  * \since v.5.4.0
  * \brief Create dispatcher binder for thread pool dispatcher.
  */
-SO_5_EXPORT_FUNC_SPEC(so_5::rt::disp_binder_unique_ptr_t)
+SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher.
 	std::string disp_name,

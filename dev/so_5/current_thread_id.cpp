@@ -19,7 +19,7 @@
 
 namespace so_5
 {
-	SO_5_EXPORT_FUNC_SPEC( current_thread_id_t )
+	SO_5_FUNC current_thread_id_t
 	query_current_thread_id()
 		{
 			return current_thread_id_t(

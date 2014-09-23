@@ -54,7 +54,7 @@ namespace so_5
 	//! A special wrapper around native thread ID.
 	class current_thread_id_t
 		{
-			friend SO_5_EXPORT_FUNC_SPEC(current_thread_id_t) query_current_thread_id();
+			friend SO_5_FUNC current_thread_id_t query_current_thread_id();
 
 		public :
 			typedef std::uint_least64_t id_t;
@@ -122,7 +122,7 @@ namespace so_5
 		}
 
 	//! Get the ID of the current thread.
-	SO_5_EXPORT_FUNC_SPEC( current_thread_id_t )
+	SO_5_FUNC current_thread_id_t
 	query_current_thread_id();
 
 } /* namespace so_5 */

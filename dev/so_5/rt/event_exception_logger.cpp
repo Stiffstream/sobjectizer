@@ -62,7 +62,7 @@ class std_event_exception_logger_t
 // create_std_event_exception_logger
 //
 
-CPP_UTIL_2_EXPORT_FUNC_SPEC( event_exception_logger_unique_ptr_t )
+SO_5_FUNC event_exception_logger_unique_ptr_t
 create_std_event_exception_logger()
 {
 	return event_exception_logger_unique_ptr_t(

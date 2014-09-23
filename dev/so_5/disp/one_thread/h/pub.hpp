@@ -27,11 +27,11 @@ namespace one_thread
 {
 
 //! Create a dispatcher.
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
+SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp();
 
 //! Create a dispatcher binder object.
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
+SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher to be bound to.
 	const std::string & disp_name );

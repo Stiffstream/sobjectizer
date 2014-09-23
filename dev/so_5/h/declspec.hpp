@@ -11,15 +11,15 @@
 	#define SO_5_TYPE\
 	CPP_UTIL_2_EXPORT
 
-	#define SO_5_EXPORT_FUNC_SPEC(ret_type)\
-	CPP_UTIL_2_EXPORT_FUNC_SPEC(ret_type)
+	#define SO_5_FUNC\
+	CPP_UTIL_2_EXPORT
 
 #else
 	#define SO_5_TYPE\
 	CPP_UTIL_2_IMPORT
 
-	#define SO_5_EXPORT_FUNC_SPEC(ret_type)\
-	CPP_UTIL_2_IMPORT_FUNC_SPEC(ret_type)
+	#define SO_5_FUNC\
+	CPP_UTIL_2_IMPORT
 
 #endif
 

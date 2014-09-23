@@ -15,14 +15,14 @@ namespace disp
 namespace one_thread
 {
 
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
+SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp()
 {
 	return so_5::rt::dispatcher_unique_ptr_t(
 		new impl::dispatcher_t );
 }
 
-SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
+SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder( const std::string & disp_name )
 {
 	return so_5::rt::disp_binder_unique_ptr_t(
@@ -36,7 +36,7 @@ create_disp_binder( const std::string & disp_name )
 namespace rt
 {
 
-SO_5_EXPORT_FUNC_SPEC( disp_binder_unique_ptr_t )
+SO_5_FUNC disp_binder_unique_ptr_t
 create_default_disp_binder()
 {
 	// Dispatcher with empty name means default dispatcher.

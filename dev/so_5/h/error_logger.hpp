@@ -63,7 +63,7 @@ using error_logger_shptr_t = std::shared_ptr< error_logger_t >;
  * \brief A factory for creating error_logger implemenation which
  * uses std::stderr as log stream.
  */
-SO_5_EXPORT_FUNC_SPEC( error_logger_shptr_t )
+SO_5_FUNC error_logger_shptr_t
 create_stderr_logger();
 
 namespace log_msg_details

@@ -201,7 +201,7 @@ using timer_thread_factory_t = std::function<
  * \brief Create timer thread based on timer_wheel mechanism.
  * \note Default parameters will be used for timer thread.
  */
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_wheel_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger );
@@ -211,7 +211,7 @@ create_timer_wheel_thread(
  * \brief Create timer thread based on timer_wheel mechanism.
  * \note Parameters must be specified explicitely.
  */
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_wheel_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger,
@@ -225,7 +225,7 @@ create_timer_wheel_thread(
  * \brief Create timer thread based on timer_heap mechanism.
  * \note Default parameters will be used for timer thread.
  */
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_heap_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger );
@@ -235,7 +235,7 @@ create_timer_heap_thread(
  * \brief Create timer thread based on timer_heap mechanism.
  * \note Parameters must be specified explicitely.
  */
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_heap_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger,
@@ -246,7 +246,7 @@ create_timer_heap_thread(
  * \since v.5.5.0
  * \brief Create timer thread based on timer_list mechanism.
  */
-SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_list_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger );

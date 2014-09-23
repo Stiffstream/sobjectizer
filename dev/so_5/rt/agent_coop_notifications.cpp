@@ -43,7 +43,7 @@ msg_coop_deregistered::~msg_coop_deregistered()
 //
 // make_coop_reg_notificator
 //
-SO_5_EXPORT_FUNC_SPEC(coop_reg_notificator_t)
+SO_5_FUNC coop_reg_notificator_t
 make_coop_reg_notificator(
 	const mbox_ref_t & mbox )
 	{
@@ -58,7 +58,7 @@ make_coop_reg_notificator(
 //
 // make_coop_dereg_notificator
 //
-SO_5_EXPORT_FUNC_SPEC(coop_dereg_notificator_t)
+SO_5_FUNC coop_dereg_notificator_t
 make_coop_dereg_notificator(
 	const mbox_ref_t & mbox )
 	{
