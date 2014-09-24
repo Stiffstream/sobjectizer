@@ -16,6 +16,7 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -298,6 +299,16 @@ class SO_5_TYPE environment_params_t
 		 */
 		bool m_autoshutdown_disabled;
 };
+
+//
+// so_environment_params_t
+//
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0
+ */
+SO_5_DEPRECATED_ATTR("use name so_5::rt::environment_params_t instead")
+typedef environment_params_t so_environment_params_t;
 
 //
 // environment_t
@@ -1028,6 +1039,16 @@ class SO_5_TYPE environment_t
 		 * \}
 		 */
 };
+
+//
+// so_environment_t
+//
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0
+ */
+SO_5_DEPRECATED_ATTR("use name so_5::rt::environment_t instead")
+typedef environment_t so_environment_t;
 
 } /* namespace rt */
 

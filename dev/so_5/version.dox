@@ -4,6 +4,12 @@
 
 \section so_5__5_0 5.5.0 "Kazbek"
 
+	SObjectizer Environment class renamed to so_5::rt::environment_t.
+	Class with parameters for SObjectizer Environment renamed to
+	so_5::rt::environment_params_t.
+	Old names (so_5::rt::so_environment_t, so_5::rt::so_environment_params_t)
+	kept for backward compatibility.
+
 	timertt library is used for timers support.
 
 	ACE Framework is no more used in SObjectizer core.
