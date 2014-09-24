@@ -30,7 +30,7 @@ class test_agent_t
 	public:
 
 		test_agent_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & test_mbox )
 			:
 				base_type_t( env ),
@@ -83,7 +83,7 @@ void
 reg_coop(
 	const std::string & coop_name,
 	const so_5::rt::mbox_ref_t & test_mbox,
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 {
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( coop_name );
@@ -95,7 +95,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	so_5::rt::mbox_ref_t test_mbox =
 		env.create_local_mbox( g_test_mbox_name );

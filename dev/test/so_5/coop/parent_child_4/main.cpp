@@ -25,7 +25,7 @@ class a_child_t : public so_5::rt::agent_t
 {
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & self_mbox,
 			const so_5::rt::mbox_ref_t & parent_mbox )
 			:	so_5::rt::agent_t( env )
@@ -88,7 +88,7 @@ class a_parent_t : public so_5::rt::agent_t
 {
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
@@ -122,7 +122,7 @@ class a_driver_t : public so_5::rt::agent_t
 {
 	public :
 		a_driver_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( env.create_local_mbox() )
 		{}
@@ -175,7 +175,7 @@ class a_driver_t : public so_5::rt::agent_t
 };
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	auto coop = env.create_coop( "driver",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
@@ -193,7 +193,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 				&init,
-				[]( so_5::rt::so_environment_params_t & p ) {
+				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",
 						so_5::disp::active_obj::create_disp() );
 				} );

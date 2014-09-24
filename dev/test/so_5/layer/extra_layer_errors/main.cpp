@@ -72,16 +72,16 @@ class test_layer_bad_start_t
 };
 
 class so_environment_error_checker_t
-	:	public so_5::rt::so_environment_t
+	:	public so_5::rt::environment_t
 	,	public separate_so_thread::init_finish_signal_mixin_t
 {
-		typedef so_5::rt::so_environment_t base_type_t;
+		typedef so_5::rt::environment_t base_type_t;
 	public:
 		so_environment_error_checker_t()
 			:
 				base_type_t(
 					std::move(
-						so_5::rt::so_environment_params_t()
+						so_5::rt::environment_params_t()
 							.add_layer( new test_layer_t< 0 > ) ) )
 		{}
 

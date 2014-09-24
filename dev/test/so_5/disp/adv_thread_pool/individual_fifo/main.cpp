@@ -62,7 +62,7 @@ class a_test_t : public so_5::rt::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			thread_id_collector_t & collector,
 			const so_5::rt::mbox_ref_t & shutdowner_mbox )
 			:	so_5::rt::agent_t( env )
@@ -111,7 +111,7 @@ class a_shutdowner_t : public so_5::rt::agent_t
 {
 	public :
 		a_shutdowner_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			std::size_t working_agents )
 			:	so_5::rt::agent_t( env )
 			,	m_working_agents( working_agents )
@@ -156,7 +156,7 @@ run_sobjectizer( collector_container_t & collectors )
 	duration_meter_t duration( "running of test cooperations" );
 
 	so_5::api::run_so_environment(
-		[&]( so_5::rt::so_environment_t & env )
+		[&]( so_5::rt::environment_t & env )
 		{
 			so_5::rt::mbox_ref_t shutdowner_mbox;
 			{
@@ -191,7 +191,7 @@ run_sobjectizer( collector_container_t & collectors )
 				env.register_coop( std::move( c ) );
 			}
 		},
-		[]( so_5::rt::so_environment_params_t & params )
+		[]( so_5::rt::environment_params_t & params )
 		{
 			params.add_named_dispatcher(
 					"thread_pool",

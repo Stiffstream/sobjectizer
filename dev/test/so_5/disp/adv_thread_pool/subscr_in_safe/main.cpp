@@ -61,7 +61,7 @@ class a_test_t : public so_5::rt::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{
 		}
@@ -140,7 +140,7 @@ void
 run_sobjectizer()
 {
 	so_5::api::run_so_environment(
-		[&]( so_5::rt::so_environment_t & env )
+		[&]( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"test",
@@ -149,7 +149,7 @@ run_sobjectizer()
 							"thread_pool",
 							so_5::disp::adv_thread_pool::params_t() ) );
 		},
-		[]( so_5::rt::so_environment_params_t & params )
+		[]( so_5::rt::environment_params_t & params )
 		{
 			params.add_named_dispatcher(
 					"thread_pool",

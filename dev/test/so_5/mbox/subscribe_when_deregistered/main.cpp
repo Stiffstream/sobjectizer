@@ -28,7 +28,7 @@ class test_agent_t
 
 	public:
 		test_agent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env ),
 				m_mbox( so_environment().create_local_mbox() )
@@ -141,7 +141,7 @@ stage_monitors_t g_stage_monitors;
 
 void
 init(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 {
 	for( int i = 0; i < 8; ++i )
 	{
@@ -174,7 +174,7 @@ class listener_t : public so_5::rt::coop_listener_t
 	public :
 		virtual void
 		on_registered(
-			so_5::rt::so_environment_t & so_env,
+			so_5::rt::environment_t & so_env,
 			const std::string & coop_name )
 		{
 			g_stage_monitors.notify_about_registration();
@@ -182,7 +182,7 @@ class listener_t : public so_5::rt::coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::so_environment_t & so_env,
+			so_5::rt::environment_t & so_env,
 			const std::string & coop_name,
 			const so_5::rt::coop_dereg_reason_t &)
 		{
@@ -198,7 +198,7 @@ main( int, char ** )
 		so_5::api::run_so_environment(
 			&init,
 			std::move(
-				so_5::rt::so_environment_params_t()
+				so_5::rt::environment_params_t()
 					.add_named_dispatcher(
 						so_5::rt::nonempty_name_t( "active_obj" ),
 						so_5::disp::active_obj::create_disp() )

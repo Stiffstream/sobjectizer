@@ -45,20 +45,20 @@ class test_layer_t
 		{}
 };
 
-class so_environment_t
-	:	public so_5::rt::so_environment_t
+class test_environment_t
+	:	public so_5::rt::environment_t
 	,	public separate_so_thread::init_finish_signal_mixin_t
 {
-		typedef so_5::rt::so_environment_t base_type_t;
+		typedef so_5::rt::environment_t base_type_t;
 	public:
-		so_environment_t(
+		test_environment_t(
 			test_layer_t< 1 > * tl1,
 			test_layer_t< 2 > * tl2,
 			test_layer_t< 3 > * tl3 )
 			:
 				base_type_t(
 					std::move(
-						so_5::rt::so_environment_params_t()
+						so_5::rt::environment_params_t()
 							.add_layer(
 								std::unique_ptr< test_layer_t< 1 > >( tl1 ) )
 							.add_layer(
@@ -67,7 +67,7 @@ class so_environment_t
 								std::unique_ptr< test_layer_t< 3 > >( tl3 ) ) ) )
 		{}
 
-		virtual ~so_environment_t(){}
+		virtual ~test_environment_t(){}
 
 		virtual void
 		init()
@@ -82,7 +82,7 @@ check_layers_match(
 	test_layer_t< 1 > * tl1,
 	test_layer_t< 2 > * tl2,
 	test_layer_t< 3 > * tl3,
-	const so_environment_t & so_env )
+	const test_environment_t & so_env )
 {
 	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 1 > >(), tl1 ); 
 	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 2 > >(), tl2 );
@@ -95,7 +95,7 @@ UT_UNIT_TEST( check_all_exist )
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
-	so_environment_t so_env( tl1, tl2, tl3 );
+	test_environment_t so_env( tl1, tl2, tl3 );
 
 	separate_so_thread::run_on( so_env, [&]() {
 			check_layers_match( tl1, tl2, tl3, so_env );
@@ -107,7 +107,7 @@ UT_UNIT_TEST( check_1_2_exist )
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 
-	so_environment_t so_env( tl1, tl2, 0 );
+	test_environment_t so_env( tl1, tl2, 0 );
 
 	separate_so_thread::run_on( so_env, [&]() {
 			check_layers_match( tl1, tl2, 0, so_env );
@@ -119,7 +119,7 @@ UT_UNIT_TEST( check_1_3_exist )
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
-	so_environment_t so_env( tl1, 0, tl3 );
+	test_environment_t so_env( tl1, 0, tl3 );
 
 	separate_so_thread::run_on( so_env, [&]() {
 			check_layers_match( tl1, 0, tl3, so_env );
@@ -131,7 +131,7 @@ UT_UNIT_TEST( check_2_3_exist )
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
-	so_environment_t so_env( 0, tl2, tl3 );
+	test_environment_t so_env( 0, tl2, tl3 );
 
 	separate_so_thread::run_on( so_env, [&]() {
 			check_layers_match( 0, tl2, tl3, so_env );
@@ -144,7 +144,7 @@ UT_UNIT_TEST( check_2_3_exist )
 			(test_layer_t< N >*) last_created_objects[ N ] )
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	CHECK_LAYER_EXISTANCE( env, 1 );
 	CHECK_LAYER_EXISTANCE( env, 2 );
@@ -190,7 +190,7 @@ UT_UNIT_TEST( check_many_layers )
 {
 	so_5::api::run_so_environment(
 		&init,
-		std::move( so_5::rt::so_environment_params_t()
+		std::move( so_5::rt::environment_params_t()
 			ADD_LAYER( 1 )
 			ADD_LAYER( 2 )
 			ADD_LAYER( 3 )

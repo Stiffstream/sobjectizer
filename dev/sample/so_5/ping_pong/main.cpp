@@ -94,7 +94,7 @@ run_sample(
 		unsigned int pings_left = cfg.m_request_count;
 
 		so_5::api::run_so_environment(
-			[&pings_left, &cfg]( so_5::rt::so_environment_t & env )
+			[&pings_left, &cfg]( so_5::rt::environment_t & env )
 			{
 				// Types of signals for the agents.
 				struct msg_ping : public so_5::rt::signal_t {};
@@ -129,7 +129,7 @@ run_sample(
 
 				env.register_coop( std::move( coop ) );
 			},
-			[&cfg]( so_5::rt::so_environment_params_t & p )
+			[&cfg]( so_5::rt::environment_params_t & p )
 			{
 				if( cfg.m_active_objects )
 					// Special dispatcher is necessary for agents.

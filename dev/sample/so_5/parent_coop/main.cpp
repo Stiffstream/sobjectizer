@@ -47,7 +47,7 @@ class a_child_t
 	typedef so_5::rt::agent_t base_type_t;
 
 	public:
-		a_child_t( so_5::rt::so_environment_t & env,
+		a_child_t( so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & result_mbox,
 			unsigned int task_id ) 
 		:
@@ -126,7 +126,7 @@ class a_parent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
 	public:
-		a_parent_t( so_5::rt::so_environment_t & env ) 
+		a_parent_t( so_5::rt::environment_t & env ) 
 		: base_type_t( env )
 		{}
 
@@ -212,7 +212,7 @@ class a_parent_t
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );

@@ -82,7 +82,7 @@ class a_pinger_t
 	
 	public :
 		a_pinger_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const cfg_t & cfg,
 			measure_result_t & measure_result )
 			:	base_type_t( env )
@@ -154,7 +154,7 @@ class a_ponger_t
 	
 	public :
 		a_ponger_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	base_type_t( env )
 			{}
 
@@ -229,7 +229,7 @@ class test_env_t
 			{}
 
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 			{
 				auto binder = ( m_cfg.m_active_objects ?
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
@@ -278,7 +278,7 @@ main( int argc, char ** argv )
 
 		test_env_t test_env( cfg );
 
-		so_5::rt::so_environment_params_t params;
+		so_5::rt::environment_params_t params;
 		if( cfg.m_active_objects )
 			params.add_named_dispatcher(
 					"active_obj",

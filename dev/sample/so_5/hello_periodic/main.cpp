@@ -22,7 +22,7 @@ class msg_stop_signal : public so_5::rt::signal_t {};
 class a_hello_t : public so_5::rt::agent_t
 {
 	public:
-		a_hello_t( so_5::rt::so_environment_t & env )
+		a_hello_t( so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_evt_count( 0 )
 			,	m_shutdowner_mbox(
@@ -123,7 +123,7 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 
 // Creation of 'hello' cooperation.
 void
-create_hello_coop( so_5::rt::so_environment_t & env )
+create_hello_coop( so_5::rt::environment_t & env )
 {
 	// Single agent can be registered as whole cooperation.
 	env.register_agent_as_coop( "hello", new a_hello_t( env ) );
@@ -131,7 +131,7 @@ create_hello_coop( so_5::rt::so_environment_t & env )
 
 // Creation of 'shutdowner' cooperation.
 void
-create_shutdowner_coop( so_5::rt::so_environment_t & env )
+create_shutdowner_coop( so_5::rt::environment_t & env )
 {
 	// Mbox for shutdowner agent.
 	auto mbox = env.create_local_mbox( "shutdown" );
@@ -156,7 +156,7 @@ create_shutdowner_coop( so_5::rt::so_environment_t & env )
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	create_hello_coop( env );
 	create_shutdowner_coop( env );

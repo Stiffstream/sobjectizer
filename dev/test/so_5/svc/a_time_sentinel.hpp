@@ -12,7 +12,7 @@ class a_time_sentinel_t
 		struct msg_timeout : public so_5::rt::signal_t {};
 
 		a_time_sentinel_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( env.create_local_mbox() )
 			{}

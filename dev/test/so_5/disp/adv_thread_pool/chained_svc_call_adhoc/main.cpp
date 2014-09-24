@@ -34,7 +34,7 @@ struct msg_request_string : public so_5::rt::message_t
 };
 
 so_5::rt::agent_coop_unique_ptr_t
-create_test_coop( so_5::rt::so_environment_t & env )
+create_test_coop( so_5::rt::environment_t & env )
 {
 	auto c = env.create_coop( "test",
 			so_5::disp::adv_thread_pool::create_disp_binder(
@@ -92,11 +92,11 @@ main( int argc, char * argv[] )
 			[]()
 			{
 				so_5::api::run_so_environment(
-					[]( so_5::rt::so_environment_t & env )
+					[]( so_5::rt::environment_t & env )
 					{
 						env.register_coop( create_test_coop( env ) );
 					},
-					[]( so_5::rt::so_environment_params_t & params )
+					[]( so_5::rt::environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 								"thread_pool",

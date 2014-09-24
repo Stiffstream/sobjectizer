@@ -58,7 +58,7 @@ class a_manager_t : public so_5::rt::agent_t
 {
 	public :
 		a_manager_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & worker_mbox,
 			const so_5::rt::mbox_ref_t & checker_mbox,
 			unsigned int requests,
@@ -130,7 +130,7 @@ class a_manager_t : public so_5::rt::agent_t
 
 so_5::rt::agent_coop_unique_ptr_t
 create_test_coop(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	so_5::rt::disp_binder_unique_ptr_t disp_binder,
 	unsigned int requests,
 	unsigned int milliseconds )
@@ -275,7 +275,7 @@ int main( int argc, char ** argv )
 		const config_t config = parse_params( argc, argv );
 
 		so_5::api::run_so_environment(
-			[config]( so_5::rt::so_environment_t & env )
+			[config]( so_5::rt::environment_t & env )
 			{
 				env.register_coop(
 						create_test_coop(
@@ -284,7 +284,7 @@ int main( int argc, char ** argv )
 								config.m_requests,
 								config.m_milliseconds ) );
 			},
-			[config]( so_5::rt::so_environment_params_t & params )
+			[config]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 						config_t::dispatcher_name,

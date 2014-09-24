@@ -26,7 +26,7 @@ class a_ordinary_t
 
 	public:
 
-		a_ordinary_t( so_5::rt::so_environment_t & env )
+		a_ordinary_t( so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -82,7 +82,7 @@ class a_throwing_t
 		typedef so_5::rt::agent_t base_type_t;
 
 	public:
-		a_throwing_t( so_5::rt::so_environment_t & env )
+		a_throwing_t( so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -111,7 +111,7 @@ a_throwing_t::so_evt_start()
 
 void
 reg_coop(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 {
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
@@ -138,7 +138,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	reg_coop( env );
 	env.stop();
@@ -151,7 +151,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"active_obj",

@@ -88,7 +88,7 @@ class event_handler_data_t;
 } /* namespace impl */
 
 class state_t;
-class so_environment_t;
+class environment_t;
 class agent_coop_t;
 class agent_t;
 
@@ -404,7 +404,7 @@ class SO_5_TYPE agent_t
 		*/
 		explicit agent_t(
 			//! The Environment for this agent must exist.
-			so_environment_t & env );
+			environment_t & env );
 
 		virtual ~agent_t();
 
@@ -423,7 +423,7 @@ class SO_5_TYPE agent_t
 					// Agent state.
 					const so_5::rt::state_t m_sample_state;
 				public:
-					a_sample_t( so_5::rt::so_environment_t & env )
+					a_sample_t( so_5::rt::environment_t & env )
 						:
 							base_type_t( env ),
 							m_sample_state( self_ptr() )
@@ -979,7 +979,7 @@ class SO_5_TYPE agent_t
 			}
 			\endcode
 		*/
-		so_environment_t &
+		environment_t &
 		so_environment();
 
 		/*!
@@ -1105,7 +1105,7 @@ class SO_5_TYPE agent_t
 		std::unique_ptr< impl::subscription_storage_t > m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
-		so_environment_t & m_env;
+		environment_t & m_env;
 
 		/*!
 		 * \since v.5.4.0

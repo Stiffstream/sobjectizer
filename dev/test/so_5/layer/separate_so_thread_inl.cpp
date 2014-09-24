@@ -9,7 +9,7 @@ namespace separate_so_thread
 {
 
 void
-entry_point( so_5::rt::so_environment_t * env )
+entry_point( so_5::rt::environment_t * env )
 {
 	try
 	{
@@ -22,14 +22,14 @@ entry_point( so_5::rt::so_environment_t * env )
 	}
 }
 
-typedef std::map< so_5::rt::so_environment_t *, std::thread >
+typedef std::map< so_5::rt::environment_t *, std::thread >
 	env_thread_map_t;
 
 env_thread_map_t		g_env_thread_map;
 std::mutex	g_lock;
 
 void
-start( so_5::rt::so_environment_t & env )
+start( so_5::rt::environment_t & env )
 {
 	std::lock_guard< std::mutex > lock( g_lock );
 
@@ -42,7 +42,7 @@ start( so_5::rt::so_environment_t & env )
 }
 
 void
-wait( so_5::rt::so_environment_t & env )
+wait( so_5::rt::environment_t & env )
 {
 	std::lock_guard< std::mutex > lock( g_lock );
 

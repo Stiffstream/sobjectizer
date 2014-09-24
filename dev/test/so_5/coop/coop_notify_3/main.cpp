@@ -18,7 +18,7 @@ class a_child_t : public so_5::rt::agent_t
 
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	base_type_t( env )
 		{
 		}
@@ -30,7 +30,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	base_type_t( env )
 			,	m_mbox( env.create_local_mbox() )
 			,	m_cycle( 0 )
@@ -120,7 +120,7 @@ class a_test_t : public so_5::rt::agent_t
 };
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	env.register_agent_as_coop(
 			"test",
@@ -133,7 +133,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 				&init,
-				std::move( so_5::rt::so_environment_params_t()
+				std::move( so_5::rt::environment_params_t()
 						.add_named_dispatcher(
 								"active_obj",
 								so_5::disp::active_obj::create_disp() ) ) );

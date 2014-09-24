@@ -7,8 +7,7 @@
 	\brief SObjectizer Environment definition.
 */
 
-#if !defined( _SO_5__RT__SO_ENVIRONMENT_HPP_ )
-#define _SO_5__RT__SO_ENVIRONMENT_HPP_
+#pragma once
 
 #include <functional>
 #include <chrono>
@@ -38,7 +37,7 @@ namespace rt
 {
 
 //
-// so_environment_params_t
+// environment_params_t
 //
 
 //! Parameters for the SObjectizer Environment initialization.
@@ -47,7 +46,7 @@ namespace rt
  *
  * \see http://www.parashift.com/c++-faq/named-parameter-idiom.html
  */
-class SO_5_TYPE so_environment_params_t
+class SO_5_TYPE environment_params_t
 {
 	public:
 		/*!
@@ -55,27 +54,27 @@ class SO_5_TYPE so_environment_params_t
 		 *
 		 * Sets default values for parameters.
 		 */
-		so_environment_params_t();
+		environment_params_t();
 		/*!
 		 * \since v.5.2.3
 		 * \brief Move constructor.
 		 */
-		so_environment_params_t( so_environment_params_t && other );
-		~so_environment_params_t();
+		environment_params_t( environment_params_t && other );
+		~environment_params_t();
 
 		/*!
 		 * \since v.5.2.3
 		 * \brief Move operator.
 		 */
-		so_environment_params_t &
-		operator=( so_environment_params_t && other );
+		environment_params_t &
+		operator=( environment_params_t && other );
 
 		/*!
 		 * \since v.5.2.3
 		 * \brief Swap operation.
 		 */
 		void
-		swap( so_environment_params_t & other );
+		swap( environment_params_t & other );
 
 		//! Add a named dispatcher.
 		/*!
@@ -86,7 +85,7 @@ class SO_5_TYPE so_environment_params_t
 		 * \note If a dispatcher with \a name is already registered it
 		 * will be replaced by a new dispatcher \a dispatcher.
 		 */
-		so_environment_params_t &
+		environment_params_t &
 		add_named_dispatcher(
 			//! Dispatcher name.
 			const nonempty_name_t & name,
@@ -98,7 +97,7 @@ class SO_5_TYPE so_environment_params_t
 		 * If \a factory is a null then the default timer thread
 		 * will be used.
 		 */
-		so_environment_params_t &
+		environment_params_t &
 		timer_thread(
 			//! timer_thread factory to be used.
 			so_5::timer_thread_factory_t factory );
@@ -110,7 +109,7 @@ class SO_5_TYPE so_environment_params_t
 		 * The method distinguishes layers from each other by the type SO_LAYER.
 		*/
 		template< class SO_LAYER >
-		so_environment_params_t &
+		environment_params_t &
 		add_layer(
 			//! A layer to be added.
 			std::unique_ptr< SO_LAYER > layer_ptr )
@@ -136,7 +135,7 @@ class SO_5_TYPE so_environment_params_t
 		 * The method distinguishes layers from each other by the type SO_LAYER.
 		*/
 		template< class SO_LAYER >
-		so_environment_params_t &
+		environment_params_t &
 		add_layer(
 			//! A layer to be added.
 			SO_LAYER * layer_raw_ptr )
@@ -145,12 +144,12 @@ class SO_5_TYPE so_environment_params_t
 		}
 
 		//! Set cooperation listener object.
-		so_environment_params_t &
+		environment_params_t &
 		coop_listener(
 			coop_listener_unique_ptr_t coop_listener );
 
 		//! Set exception logger object.
-		so_environment_params_t &
+		environment_params_t &
 		event_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
 
@@ -172,7 +171,7 @@ class SO_5_TYPE so_environment_params_t
 		 * \since v.5.3.0
 		 * \brief Set exception reaction flag value.
 		 */
-		so_environment_params_t &
+		environment_params_t &
 		exception_reaction( exception_reaction_t value )
 		{
 			m_exception_reaction = value;
@@ -193,9 +192,9 @@ class SO_5_TYPE so_environment_params_t
 		 * If it is not appropriate then this method must be called.
 		 * It disables autoshutdown of SO Environment. Event if there is
 		 * no more live cooperations SO Environment will work until
-		 * explisit call to so_environment_t::stop() method.
+		 * explisit call to environment_t::stop() method.
 		 */
-		so_environment_params_t &
+		environment_params_t &
 		disable_autoshutdown()
 		{
 			m_autoshutdown_disabled = true;
@@ -301,7 +300,7 @@ class SO_5_TYPE so_environment_params_t
 };
 
 //
-// so_environment_t
+// environment_t
 //
 
 //! SObjectizer Environment.
@@ -312,22 +311,22 @@ class SO_5_TYPE so_environment_params_t
  * the SObjectizer Run-Time execution.
  *
  * The main method of starting SObjectizer Environment creates a
- * class derived from the so_environment_t and reimplementing the
- * so_environment_t::init() method.
+ * class derived from the environment_t and reimplementing the
+ * environment_t::init() method.
  * This method should be used to define starting actions of
  * application. For example first application cooperations can
  * be registered here and starting messages can be sent to them.
  *
- * The SObjectizer Environment calls the so_environment_t::init() when
+ * The SObjectizer Environment calls the environment_t::init() when
  * the SObjectizer Run-Time is successfully started. 
  * If something happened during the Run-Time startup then 
  * the method init() will not be called.
  *
- * The SObjectizer Run-Time is started by the so_environment_t::run().
+ * The SObjectizer Run-Time is started by the environment_t::run().
  * This method blocks the caller thread until SObjectizer completely
  * finished its work.
  *
- * The SObjectizer Run-Time is finished by the so_environment_t::stop().
+ * The SObjectizer Run-Time is finished by the environment_t::stop().
  * This method doesn't block the caller thread. Instead it sends a special
  * shutdown signal to the Run-Time. The SObjectizer Run-Time then 
  * informs agents about this and waits finish of agents work.
@@ -349,7 +348,7 @@ class SO_5_TYPE so_environment_params_t
  * Syncronization objects for these mboxes can be obtained from
  * common pools or assigned by a user during mbox creation.
  *
- * Mboxes are created by so_environment_t::create_local_mbox() methods.
+ * Mboxes are created by environment_t::create_local_mbox() methods.
  * All these methods return the mbox_ref_t which is a smart reference 
  * to the mbox.
  *
@@ -358,7 +357,7 @@ class SO_5_TYPE so_environment_params_t
  * the create_local_mbox() should be stored somewhere.
  *
  * Named mbox must be destroyed manually by calling the 
- * so_environment_t::destroy_mbox() method. But physically the deletion of the 
+ * environment_t::destroy_mbox() method. But physically the deletion of the 
  * named mbox postponed to the deletion of last reference to it. 
  * So if there is some reference to the named mbox it instance will live 
  * with this reference. But mbox itself will be removed from 
@@ -367,12 +366,12 @@ class SO_5_TYPE so_environment_params_t
  *
  * \section so_env__coop_methods Methods for working with cooperations.
  *
- * Cooperations can be created by so_environment_t::create_coop() methods.
+ * Cooperations can be created by environment_t::create_coop() methods.
  *
- * The method so_environment_t::register_coop() should be used for the 
+ * The method environment_t::register_coop() should be used for the 
  * cooperation registration.
  *
- * Method so_environment_t::deregister_coop() should be used for the 
+ * Method environment_t::deregister_coop() should be used for the 
  * cooperation deregistration.
  *
  * \section so_env__delayed_message_methods Methods for 
@@ -385,7 +384,7 @@ class SO_5_TYPE so_environment_params_t
  * message delivery will be canceled. For periodic messages destroying of
  * the timer event means that message delivery will be stopped.
  *
- * Timer events can be created by so_environment_t::schedule_timer()
+ * Timer events can be created by environment_t::schedule_timer()
  * methods. The one version of the schedule_timer() is intended for
  * messages with an actual data. The second one -- for the signals without
  * the message data.
@@ -395,30 +394,30 @@ class SO_5_TYPE so_environment_params_t
  * to store this reference somewhere. Also the timer event can be destroyed
  * by the so_5::timer_thread::timer_id_ref_t::release() method.
  *
- * A special method so_environment_t::single_timer() can be used in
+ * A special method environment_t::single_timer() can be used in
  * case when a single shot timer event is necessary. With using this
  * method there is no need to store reference for the scheduled
  * single shot timer event.
  */
-class SO_5_TYPE so_environment_t
+class SO_5_TYPE environment_t
 {
 		//! Auxiliary methods for getting reference to itself.
 		/*!
 		 * Could be used in constructors without compiler warnings.
 		 */
-		so_environment_t &
+		environment_t &
 		self_ref();
 
 	public:
-		explicit so_environment_t(
+		explicit environment_t(
 			//! Initialization params.
-			so_environment_params_t && so_environment_params );
+			environment_params_t && so_environment_params );
 
-		virtual ~so_environment_t();
+		virtual ~environment_t();
 
-		so_environment_t( const so_environment_t & ) = delete;
-		so_environment_t &
-		operator=( const so_environment_t & ) = delete;
+		environment_t( const environment_t & ) = delete;
+		environment_t &
+		operator=( const environment_t & ) = delete;
 
 		/*!
 		 * \name Methods for working with mboxes.
@@ -475,7 +474,7 @@ class SO_5_TYPE so_environment_t
 		 *
 		 * \par Usage:
 			\code
-			so_5::rt::so_environment_t & env = ...;
+			so_5::rt::environment_t & env = ...;
 			env.add_dispatcher_if_not_exists(
 				"my_coop_dispatcher",
 				[]() { so_5::disp::one_thread::create_disp(); } );
@@ -1033,6 +1032,4 @@ class SO_5_TYPE so_environment_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

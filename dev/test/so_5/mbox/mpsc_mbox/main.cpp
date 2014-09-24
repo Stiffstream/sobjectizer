@@ -21,7 +21,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			std::string & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
@@ -81,7 +81,7 @@ main( int argc, char * argv[] )
 		std::string sequence;
 
 		so_5::api::run_so_environment(
-			[&sequence]( so_5::rt::so_environment_t & env )
+			[&sequence]( so_5::rt::environment_t & env )
 			{
 				auto coop = env.create_coop( "test",
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
@@ -108,7 +108,7 @@ main( int argc, char * argv[] )
 
 				env.register_coop( std::move( coop ) );
 			},
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher( "active_obj",
 					so_5::disp::active_obj::create_disp() );

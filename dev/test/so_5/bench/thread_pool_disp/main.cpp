@@ -117,7 +117,7 @@ class a_test_t : public so_5::rt::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & controller_mbox,
 			std::size_t messages_to_send )
 			:	so_5::rt::agent_t( env )
@@ -164,7 +164,7 @@ class a_contoller_t : public so_5::rt::agent_t
 {
 	public :
 		a_contoller_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			cfg_t cfg )
 			:	so_5::rt::agent_t( env )
 			,	m_cfg( std::move( cfg ) )
@@ -343,12 +343,12 @@ main( int argc, char ** argv )
 		show_cfg( cfg );
 
 		so_5::api::run_so_environment(
-			[cfg]( so_5::rt::so_environment_t & env )
+			[cfg]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
 						new a_contoller_t( env, cfg ) );
 			},
-			[cfg]( so_5::rt::so_environment_params_t & params )
+			[cfg]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"thread_pool",

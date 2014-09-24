@@ -12,7 +12,7 @@ class a_pinger_t : public so_5::rt::agent_t
 	{
 	public :
 		a_pinger_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox,
 			int pings_to_send )
 			:	so_5::rt::agent_t( env )
@@ -61,7 +61,7 @@ main( int argc, char ** argv )
 	try
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				// Mbox for agent's interaction.
 				auto mbox = env.create_local_mbox();

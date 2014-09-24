@@ -27,7 +27,7 @@ class test_agent_t
 	public:
 
 		test_agent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env ),
 				m_test_mbox( so_environment().create_local_mbox() )
@@ -105,7 +105,7 @@ test_agent_t::evt_stop(
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
 }

@@ -23,7 +23,7 @@ class a_child_t
 {
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & parent_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
@@ -55,7 +55,7 @@ class a_parent_t
 
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int iterations )
 			:	base_type_t( env )
 			,	m_iterations_left( iterations )
@@ -226,7 +226,7 @@ main( int argc, char ** argv )
 		const int iterations = argc == 2 ? std::atoi( argv[ 1 ] ) : 100;
 
 		so_5::api::run_so_environment(
-			[iterations]( so_5::rt::so_environment_t & env )
+			[iterations]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "parent",
 					new a_parent_t( env, iterations ) );

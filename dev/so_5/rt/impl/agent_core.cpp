@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 namespace so_5
 {
@@ -260,7 +260,7 @@ deregistration_processor_t::initiate_abort_on_exception(
 } /* namespace agent_core_details */
 
 agent_core_t::agent_core_t(
-	so_environment_t & so_environment,
+	environment_t & so_environment,
 	coop_listener_unique_ptr_t coop_listener )
 	:
 		m_so_environment( so_environment ),
@@ -492,7 +492,7 @@ agent_core_t::wait_all_coop_to_deregister()
 	}
 }
 
-so_environment_t &
+environment_t &
 agent_core_t::environment()
 {
 	return m_so_environment;

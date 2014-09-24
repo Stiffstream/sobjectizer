@@ -41,7 +41,7 @@ class a_hello_t
 		typedef so_5::rt::agent_t base_type_t;
 
 	public:
-		a_hello_t( so_5::rt::so_environment_t & env )
+		a_hello_t( so_5::rt::environment_t & env )
 			: base_type_t( env )
 		{}
 		virtual ~a_hello_t()
@@ -76,7 +76,7 @@ class a_hello_t
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );

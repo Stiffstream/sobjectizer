@@ -28,7 +28,7 @@ class test_agent_t
 
 	public:
 		test_agent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -90,7 +90,7 @@ class test_agent_finisher_t
 
 	public:
 		test_agent_finisher_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -110,7 +110,7 @@ void
 push_group(
 	so_5::rt::agent_coop_t & coop,
 	const std::string & group_name,
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 {
 	for( int i = 0; i < test_agent_t::agents_cout(); ++i )
 	{
@@ -122,7 +122,7 @@ push_group(
 	}
 }
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
@@ -144,7 +144,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					so_5::rt::nonempty_name_t( "active_group" ),

@@ -102,7 +102,7 @@ class agent_core_t
 	public:
 		explicit agent_core_t(
 			//! SObjectizer Environment.
-			so_environment_t & so_environment_impl,
+			environment_t & so_environment_impl,
 			//! Cooperation action listener.
 			coop_listener_unique_ptr_t coop_listener );
 
@@ -180,7 +180,7 @@ class agent_core_t
 		 * \note This access is necessary to use error_logger for
 		 * logging error messages.
 		 */
-		so_environment_t &
+		environment_t &
 		environment();
 
 	private:
@@ -248,7 +248,7 @@ class agent_core_t
 		};
 
 		//! SObjectizer Environment to work with.
-		so_environment_t & m_so_environment;
+		environment_t & m_so_environment;
 
 		//! Lock for operations on cooperations.
 		std::mutex m_coop_operations_lock;

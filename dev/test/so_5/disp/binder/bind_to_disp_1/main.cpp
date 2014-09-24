@@ -47,7 +47,7 @@ class test_agent_sender_t
 	public:
 
 		test_agent_sender_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox )
 			:
 				base_type_t( env ),
@@ -127,7 +127,7 @@ class test_agent_receiver_t
 
 	public:
 		test_agent_receiver_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox )
 			:
 				base_type_t( env ),
@@ -171,7 +171,7 @@ test_agent_receiver_t::evt_test(
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	so_5::rt::mbox_ref_t mbox = env.create_local_mbox();
 
@@ -198,7 +198,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			[]( so_5::rt::so_environment_params_t & params ) {
+			[]( so_5::rt::environment_params_t & params ) {
 					params.add_named_dispatcher(
 						so_5::rt::nonempty_name_t( "sender_disp" ),
 						so_5::disp::one_thread::create_disp() );

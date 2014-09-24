@@ -106,7 +106,7 @@ void
 run_test()
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				auto coop = env.create_coop(
 						so_5::rt::nonempty_name_t( "test_coop" ),
@@ -122,7 +122,7 @@ run_test()
 
 				env.register_coop( std::move( coop ) );
 			},
-			[]( so_5::rt::so_environment_params_t & p )
+			[]( so_5::rt::environment_params_t & p )
 			{
 				p.add_named_dispatcher(
 					"active_obj",

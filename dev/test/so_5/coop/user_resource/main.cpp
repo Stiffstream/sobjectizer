@@ -38,7 +38,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			resource_t & resource )
 			:	base_type_t( env )
 			,	m_resource( resource )
@@ -69,7 +69,7 @@ class test_agent_coop_t
 		test_agent_coop_t(
 			const so_5::rt::nonempty_name_t & name,
 			so_5::rt::disp_binder_unique_ptr_t coop_disp_binder,
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			sequence_holder_t & sequence )
 			:	base_type_t( name, std::move(coop_disp_binder), env )
 			,	m_sequence( sequence )
@@ -91,7 +91,7 @@ class a_test_starter_t : public so_5::rt::agent_t
 
 	public :
 		a_test_starter_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			sequence_holder_t & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
@@ -157,7 +157,7 @@ class test_env_t
 {
 	public :
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"starter", new a_test_starter_t( env, m_sequence ) );
@@ -191,7 +191,7 @@ main( int argc, char * argv[] )
 		so_5::api::run_so_environment_on_object(
 				test_env,
 				&test_env_t::init,
-				so_5::rt::so_environment_params_t() );
+				so_5::rt::environment_params_t() );
 
 		test_env.check_result();
 	}

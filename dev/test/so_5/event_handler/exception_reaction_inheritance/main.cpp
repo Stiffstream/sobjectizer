@@ -20,7 +20,7 @@ class a_test_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & self_mbox )
 			:	base_type_t( env )
 			,	m_self_mbox( self_mbox )
@@ -44,7 +44,7 @@ class a_parent_t
 {
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{}
 
@@ -65,7 +65,7 @@ class a_parent_t
 };
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	auto coop = env.create_coop( "test" );
 	coop->add_agent( new a_parent_t( env ) );
@@ -80,7 +80,7 @@ main( int, char ** )
 	try
 	{
 		so_5::api::run_so_environment( &init,
-				std::move( so_5::rt::so_environment_params_t()
+				std::move( so_5::rt::environment_params_t()
 						.exception_reaction(
 								so_5::rt::shutdown_sobjectizer_on_exception ) ) );
 	}

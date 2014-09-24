@@ -23,7 +23,7 @@ namespace so_5
 namespace rt
 {
 
-class so_environment_t;
+class environment_t;
 
 namespace impl
 {
@@ -75,20 +75,20 @@ class SO_5_TYPE so_layer_t
 		 * Throws an exception if a layer is not bound to
 		 * the SObjectizer Environment.
 		 */
-		so_environment_t &
+		environment_t &
 		so_environment();
 
 	private:
 		//! Bind layer to the SObjectizer Environment.
 		void
-		bind_to_environment( so_environment_t * env );
+		bind_to_environment( environment_t * env );
 
 		//! SObjectizer Environment to which layer is bound.
 		/*!
 		 * Pointer has the actual value only after binding 
 		 * to the SObjectizer Environment.
 		 */
-		so_environment_t * m_so_environment;
+		environment_t * m_so_environment;
 };
 
 //! Typedef for the layer's autopointer.

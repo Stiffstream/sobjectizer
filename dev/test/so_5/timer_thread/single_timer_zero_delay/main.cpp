@@ -23,7 +23,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int & message_counter )
 			:	base_type_t( env )
 			,	m_message_counter( message_counter )
@@ -89,7 +89,7 @@ struct test_env_t
 	{}
 
 	void
-	init( so_5::rt::so_environment_t & env )
+	init( so_5::rt::environment_t & env )
 	{
 		env.register_agent_as_coop( "test_coop",
 				new a_test_t( env, m_message_counter ) );

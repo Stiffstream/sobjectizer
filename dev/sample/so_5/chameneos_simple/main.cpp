@@ -83,7 +83,7 @@ class a_meeting_place_t
 	{
 	public :
 		a_meeting_place_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int creatures,
 			int meetings )
 			:	so_5::rt::agent_t( env )
@@ -167,7 +167,7 @@ class a_creature_t
 	{
 	public :
 		a_creature_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & meeting_place_mbox,
 			color_t color )
 			:	so_5::rt::agent_t( env )
@@ -245,7 +245,7 @@ const std::size_t CREATURE_COUNT = 4;
 
 void
 init(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	int meetings )
 	{
 		color_t creature_colors[ CREATURE_COUNT ] =
@@ -279,11 +279,11 @@ main( int argc, char ** argv )
 	try
 	{
 		so_5::api::run_so_environment(
-				[argc, argv]( so_5::rt::so_environment_t & env ) {
+				[argc, argv]( so_5::rt::environment_t & env ) {
 					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
 					init( env, meetings );
 				},
-				[]( so_5::rt::so_environment_params_t & p ) {
+				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher(
 							"active_obj",
 							so_5::disp::active_obj::create_disp() );

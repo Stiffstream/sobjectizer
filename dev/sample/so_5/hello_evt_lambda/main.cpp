@@ -18,7 +18,7 @@ struct msg_hello : public so_5::rt::message_t
 class a_hello_t : public so_5::rt::agent_t
 {
 	public:
-		a_hello_t( so_5::rt::so_environment_t & env )
+		a_hello_t( so_5::rt::environment_t & env )
 			: so_5::rt::agent_t( env )
 		{}
 		virtual ~a_hello_t()
@@ -63,7 +63,7 @@ main( int, char ** )
 	try
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "coop", new a_hello_t( env ) );
 			} );

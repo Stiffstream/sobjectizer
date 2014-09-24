@@ -19,7 +19,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 		static unsigned int subscriptions;
 		static unsigned int unsubscriptions;
 
-		test_mbox_t( so_5::rt::so_environment_t & env )
+		test_mbox_t( so_5::rt::environment_t & env )
 			:	m_actual_mbox( env.create_local_mbox() )
 			{
 			}
@@ -74,7 +74,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 		query_name() const { return m_actual_mbox->query_name(); }
 
 		static so_5::rt::mbox_ref_t
-		create( so_5::rt::so_environment_t & env )
+		create( so_5::rt::environment_t & env )
 			{
 				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
 			}
@@ -90,7 +90,7 @@ class a_first_t : public so_5::rt::agent_t
 {
 	public :
 		a_first_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
@@ -117,7 +117,7 @@ main( int argc, char * argv[] )
 	try
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				{
 					auto test_mbox = test_mbox_t::create( env );

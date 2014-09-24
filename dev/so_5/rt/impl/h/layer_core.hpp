@@ -24,7 +24,7 @@ namespace so_5
 namespace rt
 {
 
-class so_environment_t;
+class environment_t;
 
 namespace impl
 {
@@ -92,7 +92,7 @@ class layer_core_t
 	public:
 		layer_core_t(
 			//! SObjectizer Environment to work with.
-			so_environment_t & env,
+			environment_t & env,
 			//! Layers which are known before SObjectizer start.
 			const so_layer_map_t & so_layers );
 		~layer_core_t();
@@ -124,7 +124,7 @@ class layer_core_t
 
 	private:
 		//! SObjectizer Environment to work with.
-		so_environment_t & m_env;
+		environment_t & m_env;
 
 		//! Default layers.
 		/*!

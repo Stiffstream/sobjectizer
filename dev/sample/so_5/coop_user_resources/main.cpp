@@ -42,7 +42,7 @@ class a_child_t
 
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			std::string agent_name,
 			const so_5::rt::mbox_ref_t & parent_mbox,
 			logger_t & logger )
@@ -79,7 +79,7 @@ class a_parent_t
 
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			logger_t & logger,
 			size_t child_count )
 			:	base_type_t( env )
@@ -155,7 +155,7 @@ class a_parent_t
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	auto coop = env.create_coop( "parent" );
 	auto logger = coop->take_under_control( new logger_t() );

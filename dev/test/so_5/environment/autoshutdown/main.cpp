@@ -22,7 +22,7 @@ class a_test_t : public so_5::rt::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{}
 
@@ -59,7 +59,7 @@ main( int argc, char * argv[] )
 			[]()
 			{
 				so_5::api::run_so_environment(
-					[]( so_5::rt::so_environment_t & env )
+					[]( so_5::rt::environment_t & env )
 					{
 						for( int i = 0; i < 1024; ++i )
 						{

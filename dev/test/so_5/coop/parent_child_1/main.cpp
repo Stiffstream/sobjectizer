@@ -12,7 +12,7 @@ struct msg_child_started : public so_5::rt::signal_t {};
 
 void
 create_and_register_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	int ordinal,
 	int max_deep );
 
@@ -22,7 +22,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int ordinal,
 			int max_deep )
 			:	base_type_t( env )
@@ -101,7 +101,7 @@ create_coop_name( int ordinal )
 
 void
 create_and_register_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	int ordinal,
 	int max_deep )
 {
@@ -120,7 +120,7 @@ class a_test_starter_t : public so_5::rt::agent_t
 	typedef so_5::rt::agent_t base_type_t;
 
 	public :
-		a_test_starter_t( so_5::rt::so_environment_t & env )
+		a_test_starter_t( so_5::rt::environment_t & env )
 			:	base_type_t( env )
 		{}
 
@@ -150,7 +150,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & coop_name )
 		{
 			std::cout << "registered: " << coop_name << std::endl;
@@ -165,7 +165,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & coop_name,
 			const so_5::rt::coop_dereg_reason_t & reason )
 		{
@@ -216,7 +216,7 @@ class test_env_t
 {
 	public :
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					STARTER_COOP_NAME, new a_test_starter_t( env ) );
@@ -249,11 +249,11 @@ main( int argc, char * argv[] )
 	{
 		test_env_t test_env;
 		so_5::api::run_so_environment(
-				[&test_env]( so_5::rt::so_environment_t & env )
+				[&test_env]( so_5::rt::environment_t & env )
 				{
 					test_env.init( env );
 				},
-				[&test_env]( so_5::rt::so_environment_params_t & params )
+				[&test_env]( so_5::rt::environment_params_t & params )
 				{
 					params.coop_listener( test_env.make_listener() );
 					params.disable_autoshutdown();

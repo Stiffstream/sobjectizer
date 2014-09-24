@@ -12,7 +12,7 @@ struct msg_child_started : public so_5::rt::signal_t {};
 
 void
 create_and_register_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
 	int max_children,
@@ -25,7 +25,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & self_name,
 			const std::string & parent_coop_name,
 			int max_children,
@@ -120,7 +120,7 @@ create_coop_name(
 
 void
 create_and_register_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
 	int max_children,
@@ -154,7 +154,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & coop_name )
 		{
 			++m_active_coops;
@@ -162,7 +162,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & coop_name,
 			const so_5::rt::coop_dereg_reason_t &)
 		{
@@ -192,7 +192,7 @@ class test_env_t
 		}
 
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 		{
 			create_and_register_agent( env, "", 0, 4, 0, 8 );
 		}
@@ -224,7 +224,7 @@ main( int argc, char * argv[] )
 		so_5::api::run_so_environment_on_object(
 				test_env,
 				&test_env_t::init,
-				std::move( so_5::rt::so_environment_params_t().
+				std::move( so_5::rt::environment_params_t().
 						coop_listener(
 								test_coop_listener_t::make(
 										test_env.active_coops_counter() ) ) ) );

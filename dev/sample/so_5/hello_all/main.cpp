@@ -38,7 +38,7 @@ class a_hello_t : public so_5::rt::agent_t
 {
 	public:
 		a_hello_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & agent_name )
 			:	so_5::rt::agent_t( env ),
 				m_agent_name( agent_name ),
@@ -117,7 +117,7 @@ a_hello_t::evt_hello_to_you(
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );

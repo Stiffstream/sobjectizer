@@ -34,7 +34,7 @@ class a_test_t : public so_5::rt::agent_t
 	{
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int & message_counter )
 			:	so_5::rt::agent_t( env )
 			,	m_message_counter( message_counter )
@@ -97,11 +97,11 @@ do_test( so_5::timer_thread_factory_t factory )
 		int counter = 0;
 
 		so_5::api::run_so_environment(
-			[&counter]( so_5::rt::so_environment_t & env ) {
+			[&counter]( so_5::rt::environment_t & env ) {
 				env.register_agent_as_coop(
 						"test", new a_test_t( env, counter ) );
 			},
-			[&factory]( so_5::rt::so_environment_params_t & params ) {
+			[&factory]( so_5::rt::environment_params_t & params ) {
 				params.timer_thread( factory );
 			} );
 

@@ -38,7 +38,7 @@ class so_environment_impl_t;
 
 } /* namespace impl */
 
-class so_environment_t;
+class environment_t;
 class agent_coop_t;
 
 namespace dereg_reason
@@ -120,13 +120,13 @@ class coop_dereg_reason_t
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name );
 \endcode
  */
 typedef std::function<
-				void(so_environment_t &, const std::string &) >
+				void(environment_t &, const std::string &) >
 		coop_reg_notificator_t;
 
 //
@@ -154,7 +154,7 @@ class SO_5_TYPE coop_reg_notificators_container_t
 		 */
 		void
 		call_all(
-			so_environment_t & env,
+			environment_t & env,
 			const std::string & coop_name ) const;
 
 	private :
@@ -184,7 +184,7 @@ typedef smart_atomic_reference_t< coop_reg_notificators_container_t >
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name,
 	// Reason of deregistration.
@@ -193,7 +193,7 @@ notificator(
  */
 typedef std::function<
 				void(
-						so_environment_t &,
+						environment_t &,
 						const std::string &,
 						const coop_dereg_reason_t &) >
 		coop_dereg_notificator_t;
@@ -223,7 +223,7 @@ class SO_5_TYPE coop_dereg_notificators_container_t
 		 */
 		void
 		call_all(
-			so_environment_t & env,
+			environment_t & env,
 			const std::string & coop_name,
 			const coop_dereg_reason_t & reason ) const;
 
@@ -284,7 +284,7 @@ class SO_5_TYPE agent_coop_t
 			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment.
-			so_environment_t & env );
+			environment_t & env );
 
 		//! Get cooperation name.
 		const std::string &
@@ -585,7 +585,7 @@ class SO_5_TYPE agent_coop_t
 		 * \since v.5.3.0
 		 * \brief Access to SO Environment for which cooperation is bound.
 		 */
-		inline so_environment_t &
+		inline environment_t &
 		environment() const
 			{
 				return m_env;
@@ -657,7 +657,7 @@ class SO_5_TYPE agent_coop_t
 		agent_array_t m_agent_array;
 
 		//! SObjectizer Environment for which cooperation is created.
-		so_environment_t & m_env;
+		environment_t & m_env;
 
 		//! Count for entities.
 		/*!

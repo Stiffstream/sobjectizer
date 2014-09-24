@@ -17,7 +17,7 @@ class a_first_t : public so_5::rt::agent_t
 {
 	public :
 		a_first_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{
 		}
@@ -43,7 +43,7 @@ class a_second_t : public so_5::rt::agent_t
 {
 	public :
 		a_second_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
@@ -78,7 +78,7 @@ main( int argc, char * argv[] )
 	try
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				auto coop = env.create_coop( "test" );
 

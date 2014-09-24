@@ -68,7 +68,7 @@ class a_client_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
@@ -118,7 +118,7 @@ class a_client_t
 
 void
 init(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 	{
 		auto coop = env.create_coop(
 				"test_coop",
@@ -142,7 +142,7 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					[]( so_5::rt::so_environment_params_t & p ) {
+					[]( so_5::rt::environment_params_t & p ) {
 						p.add_named_dispatcher(
 							"active_obj",
 							so_5::disp::active_obj::create_disp() );

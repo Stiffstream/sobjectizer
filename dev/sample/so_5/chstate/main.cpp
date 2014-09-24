@@ -58,7 +58,7 @@ class a_state_swither_t : public so_5::rt::agent_t
 		so_5::rt::state_t m_state_shutdown = so_make_state( "shutdown" );
 
 	public:
-		a_state_swither_t( so_5::rt::so_environment_t & env )
+		a_state_swither_t( so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{}
 
@@ -217,7 +217,7 @@ state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	std::unique_ptr< a_state_swither_t > ag( new a_state_swither_t( env ) );
 

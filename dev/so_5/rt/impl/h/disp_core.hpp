@@ -15,7 +15,7 @@
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/spinlocks.hpp>
 
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 #include <so_5/rt/h/disp.hpp>
 
 #include <so_5/rt/h/event_exception_logger.hpp>
@@ -38,7 +38,7 @@ class disp_core_t
 {
 	public:
 		disp_core_t(
-			so_environment_t & so_environment,
+			environment_t & so_environment,
 			const named_dispatcher_map_t & named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
@@ -93,7 +93,7 @@ class disp_core_t
 
 	private:
 		//! SObjectizer Environment to work with.
-		so_environment_t & m_so_environment;
+		environment_t & m_so_environment;
 
 		//! Default dispatcher.
 		dispatcher_unique_ptr_t m_default_dispatcher;

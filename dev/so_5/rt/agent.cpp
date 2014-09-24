@@ -4,7 +4,7 @@
 
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage.hpp>
@@ -150,7 +150,7 @@ state_t::is_target( const agent_t * agent ) const
 //
 
 agent_t::agent_t(
-	so_environment_t & env )
+	environment_t & env )
 	:	m_current_state_ptr( &default_agent_state )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
@@ -294,7 +294,7 @@ agent_t::so_was_defined() const
 	return m_was_defined;
 }
 
-so_environment_t &
+environment_t &
 agent_t::so_environment()
 {
 	return m_env;

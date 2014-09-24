@@ -17,7 +17,7 @@ class a_child_t
 
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			bool should_throw )
 			:	base_type_t( env )
 			,	m_should_throw( should_throw )
@@ -42,7 +42,7 @@ class a_parent_t
 
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	base_type_t( env )
 			,	m_counter( 0 )
 			,	m_max_counter( 3 )
@@ -121,7 +121,7 @@ main( int, char ** )
 	{
 		so_5::api::run_so_environment(
 			// The SObjectizer Environment initialization.
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				// Creating and registering a cooperation.
 				env.register_agent_as_coop( "parent", new a_parent_t( env ) );

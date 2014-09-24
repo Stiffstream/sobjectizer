@@ -15,7 +15,7 @@
 #include <so_5/h/ret_code.hpp>
 
 #include <so_5/rt/h/disp_binder.hpp>
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 
@@ -88,7 +88,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 
 		virtual disp_binding_activator_t
 		bind_agent(
-			so_environment_t & env,
+			environment_t & env,
 			agent_ref_t agent )
 			{
 				using namespace so_5::disp::reuse;
@@ -108,7 +108,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_environment_t & env,
+			environment_t & env,
 			agent_ref_t agent )
 			{
 				using namespace so_5::disp::reuse;

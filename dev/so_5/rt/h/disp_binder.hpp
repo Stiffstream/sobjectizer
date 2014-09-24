@@ -23,15 +23,7 @@ namespace so_5
 namespace rt
 {
 
-namespace impl
-{
-
-class so_environment_impl_t;
-
-} /* namespace impl */
-
-
-class so_environment_t;
+class environment_t;
 
 //
 // disp_binding_activator_t
@@ -62,7 +54,7 @@ class SO_5_TYPE disp_binder_t
 		bind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher
 			//! are working.
-			so_environment_t & env,
+			environment_t & env,
 			//! Agent to be bound.
 			agent_ref_t agent_ref ) = 0;
 
@@ -71,7 +63,7 @@ class SO_5_TYPE disp_binder_t
 		unbind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher
 			//! are working.
-			so_environment_t & env,
+			environment_t & env,
 			//! Agent to be bound.
 			agent_ref_t agent_ref ) = 0;
 

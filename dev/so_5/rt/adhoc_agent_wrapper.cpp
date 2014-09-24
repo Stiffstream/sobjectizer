@@ -16,7 +16,7 @@ namespace so_5
 namespace rt
 {
 
-adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( so_environment_t & env )
+adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( environment_t & env )
 	:	agent_t( env )
 	,	m_exception_reaction( inherit_exception_reaction )
 	{}

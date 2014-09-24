@@ -30,7 +30,7 @@ class a_child_t : public so_5::rt::agent_t
 {
 	public:
 		a_child_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & parent_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
@@ -53,7 +53,7 @@ class a_parent_t : public so_5::rt::agent_t
 {
 	public :
 		a_parent_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & dispatcher_name )
 			:	so_5::rt::agent_t( env )
 			,	m_dispatcher_name( dispatcher_name )
@@ -110,7 +110,7 @@ main( int argc, char * argv[] )
 			[]()
 			{
 				so_5::api::run_so_environment(
-					[]( so_5::rt::so_environment_t & env )
+					[]( so_5::rt::environment_t & env )
 					{
 						for( int i = 0; i < 32; ++i )
 						{

@@ -56,7 +56,7 @@ typed_layer_ref_t::operator < ( const typed_layer_ref_t & tl ) const
 //
 
 layer_core_t::layer_core_t(
-	so_environment_t & env,
+	environment_t & env,
 	const so_layer_map_t & so_layers )
 	:
 		m_env( env ),

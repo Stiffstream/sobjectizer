@@ -7,7 +7,7 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 #include <so_5/rt/h/agent.hpp>
 
@@ -37,7 +37,7 @@ coop_reg_notificators_container_t::add(
 
 void
 coop_reg_notificators_container_t::call_all(
-	so_environment_t & env,
+	environment_t & env,
 	const std::string & coop_name ) const
 {
 	for( auto i = m_notificators.begin(); i != m_notificators.end(); ++i )
@@ -75,7 +75,7 @@ coop_dereg_notificators_container_t::add(
 
 void
 coop_dereg_notificators_container_t::call_all(
-	so_environment_t & env,
+	environment_t & env,
 	const std::string & coop_name,
 	const coop_dereg_reason_t & reason ) const
 {
@@ -123,7 +123,7 @@ agent_coop_t::destroy( agent_coop_t * coop )
 agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
-	so_environment_t & env )
+	environment_t & env )
 	:	m_coop_name( name.query_name() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )

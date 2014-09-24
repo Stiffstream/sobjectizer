@@ -19,7 +19,7 @@
 class a_first_t : public so_5::rt::agent_t
 {
 	public :
-		a_first_t( so_5::rt::so_environment_t & env )
+		a_first_t( so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 		{}
 
@@ -36,7 +36,7 @@ class a_second_t : public so_5::rt::agent_t
 
 	public :
 		a_second_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			int * receiver )
 			:	so_5::rt::agent_t( env )
 			,	m_receiver( *receiver )
@@ -76,7 +76,7 @@ main( int argc, char * argv[] )
 			[&actual]()
 			{
 				so_5::api::run_so_environment(
-					[&actual]( so_5::rt::so_environment_t & env )
+					[&actual]( so_5::rt::environment_t & env )
 					{
 						env.register_agent_as_coop( "first", new a_first_t( env ) );
 

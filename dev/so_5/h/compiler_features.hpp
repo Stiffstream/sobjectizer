@@ -8,8 +8,7 @@
  * \brief Detection of compiler version and absence of various features.
  */
 
-#if !defined( SO_5__COMPILER_FEATURES_HPP )
-#define SO_5__COMPILER_FEATURES_HPP
+#pragma once
 
 #if defined( _MSC_VER ) && ( _MSC_VER <= 1700 )
 	// Visual C++ 2012 and earlier doesn't support variadic templates.
@@ -31,5 +30,9 @@
 	#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
 #endif
 
+#if __cplusplus > 201103L
+	#define SO_5_DEPRECATED_ATTR(msg) [[deprecated(msg)]]
+#else
+	#define SO_5_DEPRECATED_ATTR(msg)
 #endif
 

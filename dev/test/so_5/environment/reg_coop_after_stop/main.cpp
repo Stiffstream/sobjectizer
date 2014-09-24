@@ -46,7 +46,7 @@ class a_second_t : public so_5::rt::agent_t
 
 	public :
 		a_second_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			log_t & log )
 			:	so_5::rt::agent_t( env )
 			,	m_log( log )
@@ -74,7 +74,7 @@ class a_first_t : public so_5::rt::agent_t
 {
 	public :
 		a_first_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			log_t & log )
 			:	so_5::rt::agent_t( env )
 			,	m_log( log )
@@ -126,7 +126,7 @@ main( int argc, char * argv[] )
 			[&log]()
 			{
 				so_5::api::run_so_environment(
-					[&log]( so_5::rt::so_environment_t & env )
+					[&log]( so_5::rt::environment_t & env )
 					{
 						env.add_dispatcher_if_not_exists(
 							"active_obj",

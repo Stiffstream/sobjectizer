@@ -37,7 +37,7 @@ disp_binder_t::~disp_binder_t()
 
 so_5::rt::disp_binding_activator_t
 disp_binder_t::bind_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	so_5::rt::agent_ref_t agent_ref )
 {
 	using so_5::rt::disp_binding_activator_t;
@@ -70,7 +70,7 @@ disp_binder_t::bind_agent(
 
 void
 disp_binder_t::unbind_agent(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	so_5::rt::agent_ref_t agent_ref )
 {
 	using namespace so_5::disp::reuse;

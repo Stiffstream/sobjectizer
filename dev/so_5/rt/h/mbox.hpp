@@ -289,7 +289,7 @@ class service_invoke_proxy_t
  * delivered and the timer thread pushes message instances to the mbox
  * at the appropriate time.
  *
- * \see so_environment_t::schedule_timer(), so_environment_t::single_timer().
+ * \see environment_t::schedule_timer(), environment_t::single_timer().
  */
 class SO_5_TYPE mbox_t
 	:

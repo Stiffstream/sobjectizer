@@ -16,7 +16,7 @@
 #include <so_5/rt/h/state.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 #include <so_5/rt/h/agent_coop_notifications.hpp>
 
 #include <so_5/h/chrono_helpers.hpp>

@@ -25,7 +25,7 @@ class a_sender_t
 	{
 	public :
 		a_sender_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox,
 			unsigned int send_count )
 			:	so_5::rt::agent_t( env )
@@ -53,7 +53,7 @@ class a_shutdowner_t
 	{
 	public :
 		a_shutdowner_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox,
 			unsigned int sender_count )
 			:	so_5::rt::agent_t( env )
@@ -73,7 +73,7 @@ class a_shutdowner_t
 
 void
 init(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	unsigned int agent_count,
 	unsigned int send_count )
 	{
@@ -111,11 +111,11 @@ main( int argc, char ** argv )
 		benchmark.start();
 
 		so_5::api::run_so_environment(
-			[agent_count, send_count]( so_5::rt::so_environment_t & env )
+			[agent_count, send_count]( so_5::rt::environment_t & env )
 			{
 				init( env, agent_count, send_count );
 			},
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher( "active_obj",
 					so_5::disp::active_obj::create_disp() );

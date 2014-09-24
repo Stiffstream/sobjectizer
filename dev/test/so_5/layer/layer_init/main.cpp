@@ -77,7 +77,7 @@ test_layer_t::check_calls()
 
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	env.stop();
 }
@@ -86,7 +86,7 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 {
 	so_5::api::run_so_environment(
 			&init,
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_layer( new test_layer_t );
 			} );

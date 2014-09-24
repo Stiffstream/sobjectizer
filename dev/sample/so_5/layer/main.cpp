@@ -133,7 +133,7 @@ class a_hello_t
 
 	public:
 		a_hello_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const std::string & agent_name )
 			:
 				base_type_t( env ),
@@ -247,7 +247,7 @@ a_hello_t::subscribe( so_5::rt::mbox_ref_t & shutdown_mbox )
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
@@ -268,7 +268,7 @@ main( int, char ** )
 	{
 		so_5::api::run_so_environment(
 				&init,
-				[]( so_5::rt::so_environment_params_t & p ) {
+				[]( so_5::rt::environment_params_t & p ) {
 					p.add_layer(
 							std::unique_ptr< shutdowner_layer_t >(
 									new shutdowner_layer_t() ) );

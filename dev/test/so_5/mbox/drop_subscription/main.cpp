@@ -22,7 +22,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			std::string & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
@@ -184,7 +184,7 @@ class test_env_t
 {
 	public :
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"test", new a_test_t( env, m_sequence ) );
@@ -214,7 +214,7 @@ main( int argc, char * argv[] )
 		so_5::api::run_so_environment_on_object(
 				test_env,
 				&test_env_t::init,
-				so_5::rt::so_environment_params_t() );
+				so_5::rt::environment_params_t() );
 
 		test_env.check_result();
 	}

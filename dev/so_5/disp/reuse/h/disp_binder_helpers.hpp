@@ -15,7 +15,7 @@
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 namespace so_5
 {
@@ -34,7 +34,7 @@ namespace reuse
 template< class RESULT, class DISPATCHER > 
 RESULT
 do_with_dispatcher(
-	so_5::rt::so_environment_t & env,
+	so_5::rt::environment_t & env,
 	const std::string & disp_name,
 	std::function< RESULT ( DISPATCHER & ) > action )
 	{

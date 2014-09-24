@@ -36,7 +36,7 @@ class a_vector_summator_t : public so_5::rt::agent_t
 	{
 	public :
 		a_vector_summator_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & self_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
@@ -117,7 +117,7 @@ class a_runner_t : public so_5::rt::agent_t
 	{
 	public :
 		a_runner_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			std::size_t iterations )
 			:	so_5::rt::agent_t( env )
 			,	ITERATIONS( iterations )
@@ -190,7 +190,7 @@ main( int argc, char ** argv )
 		try
 			{
 				so_5::api::run_so_environment(
-						[argc, argv]( so_5::rt::so_environment_t & env ) {
+						[argc, argv]( so_5::rt::environment_t & env ) {
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
@@ -203,7 +203,7 @@ main( int argc, char ** argv )
 
 							env.register_coop( std::move( coop ) );
 						},
-						[]( so_5::rt::so_environment_params_t & p ) {
+						[]( so_5::rt::environment_params_t & p ) {
 							p.add_named_dispatcher(
 								"active_obj",
 								so_5::disp::active_obj::create_disp() );

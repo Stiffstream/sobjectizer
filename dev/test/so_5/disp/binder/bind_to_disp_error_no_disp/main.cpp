@@ -21,7 +21,7 @@ class test_agent_t
 
 	public:
 		test_agent_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -31,7 +31,7 @@ class test_agent_t
 };
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	bool exception_thrown = false;
 	try

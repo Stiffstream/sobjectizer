@@ -88,7 +88,7 @@ class my_agent_t
 
 	public:
 		my_agent_t(
-			so_5::rt::so_environment_t & env );
+			so_5::rt::environment_t & env );
 
 		virtual ~my_agent_t() {}
 
@@ -122,7 +122,7 @@ class my_agent_t
 };
 
 my_agent_t::my_agent_t(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 	:
 		base_type_t( env )
 {
@@ -257,7 +257,7 @@ main( int, char ** )
 	try
 	{
 		so_5::api::run_so_environment(
-			[]( so_5::rt::so_environment_t & env )
+			[]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "coop", new my_agent_t( env ) );
 			} );

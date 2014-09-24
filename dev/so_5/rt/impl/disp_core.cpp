@@ -25,7 +25,7 @@ namespace impl
 //
 
 disp_core_t::disp_core_t(
-	so_environment_t & so_environment,
+	environment_t & so_environment,
 	const named_dispatcher_map_t & named_dispatcher_map,
 	event_exception_logger_unique_ptr_t logger )
 	:

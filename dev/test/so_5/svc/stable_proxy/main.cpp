@@ -23,7 +23,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 	public :
 		static bool test_passed;
 
-		test_mbox_t( so_5::rt::so_environment_t & env )
+		test_mbox_t( so_5::rt::environment_t & env )
 			:	m_actual_mbox( env.create_local_mbox() )
 			{
 				std::cout << "test_mbox_t::ctor()" << std::endl;
@@ -83,7 +83,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 		query_name() const { return m_actual_mbox->query_name(); }
 
 		static so_5::rt::mbox_ref_t
-		create( so_5::rt::so_environment_t & env )
+		create( so_5::rt::environment_t & env )
 			{
 				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
 			}
@@ -106,7 +106,7 @@ class a_client_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			// In ordinal case the mbox will be destroyed immediatelly
 			// after a_client_t constructor finished.
@@ -157,7 +157,7 @@ class a_client_t
 
 void
 init(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 	{
 		test_mbox_t::test_passed = false;
 
@@ -178,7 +178,7 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					[]( so_5::rt::so_environment_params_t & p ) {
+					[]( so_5::rt::environment_params_t & p ) {
 						p.add_named_dispatcher(
 							so_5::rt::nonempty_name_t( "active_obj" ),
 							so_5::disp::active_obj::create_disp() );

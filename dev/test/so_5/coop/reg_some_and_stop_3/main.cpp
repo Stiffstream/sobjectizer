@@ -24,7 +24,7 @@ class a_slave_t
 
 	public:
 		a_slave_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & master_mbox )
 			:
 				base_type_t( env ),
@@ -57,7 +57,7 @@ class a_master_t
 
 	public:
 		a_master_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -91,7 +91,7 @@ class a_master_t
 };
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop_1", new a_master_t( env ) );
 }

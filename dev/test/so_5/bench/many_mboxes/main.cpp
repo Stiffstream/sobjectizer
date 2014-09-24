@@ -137,7 +137,7 @@ class a_worker_t
 	{
 	public :
 		a_worker_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_signals_received( 0 )
 			{
@@ -159,7 +159,7 @@ class a_sender_t
 	{
 	public :
 		a_sender_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & common_mbox,
 			std::size_t iterations,
 			const std::vector< so_5::rt::mbox_ref_t > & mboxes,
@@ -237,7 +237,7 @@ class a_starter_stopper_t
 	{
 	public :
 		a_starter_stopper_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const cfg_t & cfg )
 			:	so_5::rt::agent_t( env )
 			,	m_common_mbox( env.create_local_mbox() )
@@ -418,12 +418,12 @@ main( int argc, char ** argv )
 			}
 
 		so_5::api::run_so_environment(
-			[cfg]( so_5::rt::so_environment_t & env )
+			[cfg]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
 						new a_starter_stopper_t( env, cfg ) );
 			},
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				// This timer thread doesn't consume resources without
 				// actual delayed/periodic messages.

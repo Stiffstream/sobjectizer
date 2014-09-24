@@ -8,12 +8,12 @@
 #include <so_5/api/h/api.hpp>
 
 class test_environment_t
-	:	public so_5::rt::so_environment_t
+	:	public so_5::rt::environment_t
 	{
 	public :
 		test_environment_t()
-			:	so_5::rt::so_environment_t(
-					so_5::rt::so_environment_params_t() )
+			:	so_5::rt::environment_t(
+					so_5::rt::environment_params_t() )
 			{}
 
 		virtual void
@@ -28,7 +28,7 @@ struct msg_get_status : public so_5::rt::signal_t {};
 class a_test_t : public so_5::rt::agent_t
 	{
 	public :
-		a_test_t( so_5::rt::so_environment_t & env )
+		a_test_t( so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_signal_handled( false )
 			,	m_thread_safe_signal_handled( false )

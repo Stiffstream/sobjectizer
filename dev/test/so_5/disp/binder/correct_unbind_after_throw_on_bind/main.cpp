@@ -26,7 +26,7 @@ class a_ordinary_t
 
 	public:
 		a_ordinary_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:
 				base_type_t( env )
 		{
@@ -163,7 +163,7 @@ class throwing_disp_binder_t
 
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			so_5::rt::agent_ref_t agent_ref )
 		{
 			auto & disp = dynamic_cast< dispatcher_t & >(
@@ -182,7 +182,7 @@ class throwing_disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			so_5::rt::agent_ref_t agent_ref )
 		{
 			auto & disp = dynamic_cast< dispatcher_t & >(
@@ -196,7 +196,7 @@ class throwing_disp_binder_t
 
 void
 reg_coop(
-	so_5::rt::so_environment_t & env )
+	so_5::rt::environment_t & env )
 {
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "test_coop",
 			so_5::rt::disp_binder_unique_ptr_t(
@@ -221,7 +221,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::so_environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	reg_coop( env );
 
@@ -235,7 +235,7 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			[]( so_5::rt::so_environment_params_t & params )
+			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"test",

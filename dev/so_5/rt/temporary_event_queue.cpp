@@ -13,7 +13,7 @@
 #include <queue>
 #include <cstdlib>
 
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 namespace so_5
 {

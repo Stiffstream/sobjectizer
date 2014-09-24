@@ -35,7 +35,7 @@ so_layer_t::wait()
 {
 }
 
-so_environment_t &
+environment_t &
 so_layer_t::so_environment()
 {
 	if( nullptr == m_so_environment )
@@ -49,7 +49,7 @@ so_layer_t::so_environment()
 }
 
 void
-so_layer_t::bind_to_environment( so_environment_t * env )
+so_layer_t::bind_to_environment( environment_t * env )
 {
 	m_so_environment = env;
 }

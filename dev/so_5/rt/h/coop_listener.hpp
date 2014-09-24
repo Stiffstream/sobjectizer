@@ -21,7 +21,7 @@ namespace so_5
 namespace rt
 {
 
-class so_environment_t;
+class environment_t;
 class coop_dereg_reason_t;
 
 //
@@ -50,7 +50,7 @@ class SO_5_TYPE coop_listener_t
 		virtual void
 		on_registered(
 			//! SObjectizer Environment.
-			so_environment_t & so_env,
+			environment_t & so_env,
 			//! Cooperation which was registered.
 			const std::string & coop_name ) = 0;
 
@@ -61,7 +61,7 @@ class SO_5_TYPE coop_listener_t
 		virtual void
 		on_deregistered(
 			//! SObjectizer Environment.
-			so_environment_t & so_env,
+			environment_t & so_env,
 			//! Cooperation which was registered.
 			const std::string & coop_name,
 			//! Reason of deregistration.

@@ -1,5 +1,5 @@
 /*
-	Test of moveabillity of so_environment_params_t.
+	Test of moveabillity of environment_params_t.
 */
 
 // NOTE: this test is temporary empty because of deletion of
@@ -10,23 +10,23 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-so_5::rt::so_environment_params_t
+so_5::rt::environment_params_t
 make_param()
 {
-	so_5::rt::so_environment_params_t params;
+	so_5::rt::environment_params_t params;
 
 	return params;
 }
 
-UT_UNIT_TEST( so_environment_params )
+UT_UNIT_TEST( environment_params )
 {
-	so_5::rt::so_environment_params_t param = make_param();
+	so_5::rt::environment_params_t param = make_param();
 }
 
 int
 main( int argc, char * argv[] )
 {
-	UT_RUN_UNIT_TEST( so_environment_params )
+	UT_RUN_UNIT_TEST( environment_params )
 
 	return 0;
 }

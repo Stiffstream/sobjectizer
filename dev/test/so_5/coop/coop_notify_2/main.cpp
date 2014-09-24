@@ -19,7 +19,7 @@ class a_child_t : public so_5::rt::agent_t
 
 	public :
 		a_child_t(
-			so_5::rt::so_environment_t & env )
+			so_5::rt::environment_t & env )
 			:	base_type_t( env )
 		{
 		}
@@ -39,7 +39,7 @@ class a_test_t : public so_5::rt::agent_t
 
 	public :
 		a_test_t(
-			so_5::rt::so_environment_t & env,
+			so_5::rt::environment_t & env,
 			const so_5::rt::coop_reg_notificator_t & reg_notificator,
 			const so_5::rt::coop_dereg_notificator_t & dereg_notificator )
 			:	base_type_t( env )
@@ -65,7 +65,7 @@ class a_test_t : public so_5::rt::agent_t
 			child_coop->add_reg_notificator( m_reg_notificator );
 			child_coop->add_dereg_notificator( m_dereg_notificator );
 			child_coop->add_dereg_notificator(
-					[this]( so_5::rt::so_environment_t &,
+					[this]( so_5::rt::environment_t &,
 						const std::string &,
 						const so_5::rt::coop_dereg_reason_t &)
 					{
@@ -137,7 +137,7 @@ class test_env_t
 		{}
 
 		void
-		init( so_5::rt::so_environment_t & env )
+		init( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"test",
@@ -167,7 +167,7 @@ class test_env_t
 		so_5::rt::coop_reg_notificator_t
 		create_on_reg_notificator()
 		{
-			return [this]( so_5::rt::so_environment_t &,
+			return [this]( so_5::rt::environment_t &,
 							const std::string & )
 					{
 						m_sequence.add( "on_reg_1" );
@@ -183,7 +183,7 @@ class test_env_t
 		so_5::rt::coop_dereg_notificator_t
 		create_on_dereg_notificator()
 		{
-			return [this]( so_5::rt::so_environment_t &,
+			return [this]( so_5::rt::environment_t &,
 							const std::string &,
 							const so_5::rt::coop_dereg_reason_t &)
 					{
@@ -201,7 +201,7 @@ main( int argc, char * argv[] )
 		so_5::api::run_so_environment_on_object(
 				test_env,
 				&test_env_t::init,
-				std::move( so_5::rt::so_environment_params_t()
+				std::move( so_5::rt::environment_params_t()
 						.add_named_dispatcher(
 								"active_obj",
 								so_5::disp::active_obj::create_disp() ) ) );
