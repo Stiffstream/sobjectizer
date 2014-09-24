@@ -1105,7 +1105,7 @@ class SO_5_TYPE agent_t
 		std::unique_ptr< impl::subscription_storage_t > m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
-		impl::so_environment_impl_t * m_so_environment_impl;
+		so_environment_t & m_env;
 
 		/*!
 		 * \since v.5.4.0
@@ -1173,16 +1173,6 @@ class SO_5_TYPE agent_t
 		bind_to_coop(
 			//! Cooperation for that agent.
 			agent_coop_t & coop );
-
-		//! Bind agent to the SObjectizer Environment.
-		/*!
-		 * Method is called from the agent constructor.
-		 *
-		 * Method initializes the internal SObjectizer Environment pointer.
-		 */
-		void
-		bind_to_environment(
-			impl::so_environment_impl_t & env_impl );
 
 		//! Agent shutdown deriver.
 		/*!

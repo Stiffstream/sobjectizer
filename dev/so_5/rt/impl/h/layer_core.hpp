@@ -91,10 +91,10 @@ class layer_core_t
 {
 	public:
 		layer_core_t(
-			//! Layers which are known before SObjectizer start.
-			const so_layer_map_t & so_layers,
 			//! SObjectizer Environment to work with.
-			so_environment_t * env );
+			so_environment_t & env,
+			//! Layers which are known before SObjectizer start.
+			const so_layer_map_t & so_layers );
 		~layer_core_t();
 
 		//! Get a layer.
@@ -124,7 +124,7 @@ class layer_core_t
 
 	private:
 		//! SObjectizer Environment to work with.
-		so_environment_t * m_env;
+		so_environment_t & m_env;
 
 		//! Default layers.
 		/*!

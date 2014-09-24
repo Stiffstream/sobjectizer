@@ -13,7 +13,6 @@
 
 #include <so_5/rt/h/disp_binder.hpp>
 #include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/impl/h/so_environment_impl.hpp>
 
 namespace so_5
 {

@@ -56,8 +56,8 @@ typed_layer_ref_t::operator < ( const typed_layer_ref_t & tl ) const
 //
 
 layer_core_t::layer_core_t(
-	const so_layer_map_t & so_layers,
-	so_environment_t * env )
+	so_environment_t & env,
+	const so_layer_map_t & so_layers )
 	:
 		m_env( env ),
 		m_default_layers( so_layers.begin(), so_layers.end() )
@@ -68,7 +68,7 @@ layer_core_t::layer_core_t(
 		it != it_end;
 		++it )
 	{
-		it->m_layer->bind_to_environment( m_env );
+		it->m_layer->bind_to_environment( &m_env );
 	}
 }
 
@@ -210,7 +210,7 @@ layer_core_t::add_extra_layer(
 			rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
 			"trying to add extra layer that already exists in extra list" );
 
-	layer->bind_to_environment( m_env );
+	layer->bind_to_environment( &m_env );
 
 	try
 	{

@@ -11,6 +11,8 @@
 #define _SO_5__RT__SO_ENVIRONMENT_HPP_
 
 #include <functional>
+#include <chrono>
+#include <memory>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
@@ -35,13 +37,6 @@ namespace so_5
 namespace rt
 {
 
-namespace impl
-{
-
-class so_environment_impl_t;
-
-} /* namespace impl */
-
 //
 // so_environment_params_t
 //
@@ -54,8 +49,6 @@ class so_environment_impl_t;
  */
 class SO_5_TYPE so_environment_params_t
 {
-		friend class impl::so_environment_impl_t;
-
 	public:
 		/*!
 		 * \brief Constructor.
@@ -83,52 +76,6 @@ class SO_5_TYPE so_environment_params_t
 		 */
 		void
 		swap( so_environment_params_t & other );
-
-		//! Set mutex pool size for the syncronizing work with mboxes.
-		/*!
-		 * A ACE_RW_Thread_Mutex is necessary to work with mboxes.
-		 * However there are can be so many mboxes and lifetime
-		 * of them can be so small that it is not efficient to
-		 * create a dedicated mutex for every mbox.
-		 *
-		 * A mutex pool is used by the SObjectizer Environment for this
-		 * purpose.
-		 *
-		 * This method allows change the default mutex pool size.
-		 *
-		 * \see so_environment_t::create_local_mbox().
-		 *
-		 * \deprecated Obsolete in 5.4.0
-		 */
-		so_environment_params_t &
-		mbox_mutex_pool_size(
-			unsigned int mutex_pool_size );
-
-		//! Set mutex pool size for the syncronizing work with agent cooperations.
-		/*!
-		 * A work with cooperations requires syncronization.
-		 * The SObjectizer Environment uses a pool of mutexes to do this.
-		 *
-		 * This method allows change the default mutex pool size.
-		 *
-		 * \deprecated Obsolete in 5.2.3.
-		 */
-		so_environment_params_t &
-		agent_coop_mutex_pool_size(
-			unsigned int mutex_pool_size );
-
-		//! Set mutex pool size for the syncronizing work with event queues.
-		/*!
-		 * A work with the local agent event queues requires syncronization.
-		 * SObjectizer Environment uses pool of mutexes to do that.
-		 *
-		 * This method allows change the default mutex pool size.
-		 *
-		 * \deprecated Obsolete in 5.4.0.
-		 */
-		so_environment_params_t &
-		agent_event_queue_mutex_pool_size(
-			unsigned int mutex_pool_size );
 
 		//! Add a named dispatcher.
 		/*!
@@ -197,34 +144,15 @@ class SO_5_TYPE so_environment_params_t
 			return add_layer( std::unique_ptr< SO_LAYER >( layer_raw_ptr ) );
 		}
 
+		//! Set cooperation listener object.
 		so_environment_params_t &
 		coop_listener(
 			coop_listener_unique_ptr_t coop_listener );
 
+		//! Set exception logger object.
 		so_environment_params_t &
 		event_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
-
-		unsigned int
-		mbox_mutex_pool_size() const;
-
-		/*!
-		 * \deprecated Obsolete in v.5.2.3.
-		 */
-		unsigned int
-		agent_coop_mutex_pool_size() const;
-
-		/*!
-		 * \deprecated Obsolete in 5.4.0.
-		 */
-		unsigned int
-		agent_event_queue_mutex_pool_size() const;
-
-		const named_dispatcher_map_t &
-		named_dispatcher_map() const;
-
-		const so_layer_map_t &
-		so_layers_map() const;
 
 		/*!
 		 * \name Exception reaction flag management methods.
@@ -286,6 +214,48 @@ class SO_5_TYPE so_environment_params_t
 			return m_autoshutdown_disabled;
 		}
 
+		/*!
+		 * \name Methods for internal use only.
+		 * \{
+		 */
+//FIXME: this method must be in form of so5__giveout_named_dispatcher_map.
+		const named_dispatcher_map_t &
+		so5__named_dispatcher_map() const
+		{
+			return m_named_dispatcher_map;
+		}
+
+//FIXME: this method must be in form of so5__giveout_layers_map.
+		const so_layer_map_t &
+		so5__layers_map() const
+		{
+			return m_so_layers;
+		}
+
+		//! Get cooperation listener.
+		coop_listener_unique_ptr_t
+		so5__giveout_coop_listener()
+		{
+			return std::move( m_coop_listener );
+		}
+
+		//! Get exception logger.
+		event_exception_logger_unique_ptr_t
+		so5__giveout_event_exception_logger()
+		{
+			return std::move( m_event_exception_logger );
+		}
+
+		//! Get the timer_thread factory.
+		so_5::timer_thread_factory_t
+		so5__giveout_timer_thread_factory()
+		{
+			return std::move( m_timer_thread_factory );
+		}
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Add an additional layer.
 		/*!
@@ -299,21 +269,6 @@ class SO_5_TYPE so_environment_params_t
 			const std::type_index & type,
 			//! A layer to be added.
 			so_layer_unique_ptr_t layer_ptr );
-
-		//! Pool size of mutexes to be used with mboxes.
-		unsigned int m_mbox_mutex_pool_size;
-
-		//! Pool size of mutexes to be used with agent cooperations.
-		/*!
-		 * \deprecated Obsolete in v.5.2.3.
-		 */
-		unsigned int m_agent_coop_mutex_pool_size;
-
-		//! Pool size of mutexes to be used with agent local queues.
-		/*!
-		 * \deprecated Obsolete in 5.4.0.
-		 */
-		unsigned int m_agent_event_queue_mutex_pool_size;
 
 		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
@@ -460,6 +415,10 @@ class SO_5_TYPE so_environment_t
 			so_environment_params_t && so_environment_params );
 
 		virtual ~so_environment_t();
+
+		so_environment_t( const so_environment_t & ) = delete;
+		so_environment_t &
+		operator=( const so_environment_t & ) = delete;
 
 		/*!
 		 * \name Methods for working with mboxes.
@@ -914,10 +873,6 @@ class SO_5_TYPE so_environment_t
 		 * \}
 		 */
 
-		//! Access to the environment implementation.
-		impl::so_environment_impl_t &
-		so_environment_impl();
-
 		/*!
 		 * \since v.5.2.3.
 		 * \brief Call event exception logger for logging an exception.
@@ -942,6 +897,33 @@ class SO_5_TYPE so_environment_t
 		 */
 		error_logger_t &
 		error_logger() const;
+
+		/*!
+		 * \name Methods for internal use inside SObjectizer.
+		 * \{
+		 */
+		//! Create multi-producer/single-consumer mbox.
+		mbox_ref_t
+		so5__create_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t * single_consumer,
+			//! Event queue proxy for the consumer.
+			event_queue_proxy_ref_t event_queue );
+
+		//! Notification about readiness to the deregistration.
+		void
+		so5__ready_to_deregister_notify(
+			//! Cooperation which is ready to be deregistered.
+			agent_coop_t * coop );
+
+		//! Do the final actions of a cooperation deregistration.
+		void
+		so5__final_deregister_coop(
+			//! Cooperation name to be deregistered.
+			const std::string & coop_name );
+		/*!
+		 * \}
+		 */
 
 	private:
 		//! Schedule timer event.
@@ -990,8 +972,10 @@ class SO_5_TYPE so_environment_t
 		remove_extra_layer(
 			const std::type_index & type );
 
-		//! Real SObjectizer Environment implementation.
-		impl::so_environment_impl_t * m_so_environment_impl;
+		struct internals_t;
+
+		//! SObjectizer Environment internals.
+		std::unique_ptr< internals_t > m_impl;
 };
 
 } /* namespace rt */
@@ -999,3 +983,4 @@ class SO_5_TYPE so_environment_t
 } /* namespace so_5 */
 
 #endif
+

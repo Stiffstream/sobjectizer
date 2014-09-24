@@ -7,6 +7,7 @@
 
 #include <so_5/h/exception.hpp>
 #include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/so_environment.hpp>
 
 namespace so_5
 {

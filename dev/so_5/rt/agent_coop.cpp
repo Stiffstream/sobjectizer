@@ -7,7 +7,6 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/h/so_environment.hpp>
 
 #include <so_5/rt/h/agent.hpp>
@@ -403,7 +402,7 @@ agent_coop_t::decrement_usage_count()
 		if( COOP_REGISTERED == m_registration_status )
 		{
 			m_registration_status = COOP_DEREGISTERING;
-			m_env.so_environment_impl().ready_to_deregister_notify( this );
+			m_env.so5__ready_to_deregister_notify( this );
 		}
 	}
 }
@@ -413,7 +412,7 @@ agent_coop_t::final_deregister_coop()
 {
 	unbind_agents_from_disp( m_agent_array.end() );
 
-	m_env.so_environment_impl().final_deregister_coop( m_coop_name );
+	m_env.so5__final_deregister_coop( m_coop_name );
 }
 
 agent_coop_t *

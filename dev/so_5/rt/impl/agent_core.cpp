@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <so_5/rt/impl/h/so_environment_impl.hpp>
+#include <so_5/rt/h/so_environment.hpp>
 
 namespace so_5
 {

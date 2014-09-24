@@ -6,7 +6,6 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/so_environment.hpp>
 
-#include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
@@ -156,11 +155,11 @@ agent_t::agent_t(
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
-	,	m_so_environment_impl( 0 )
+	,	m_env( env )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
 	,	m_direct_mbox(
-			env.so_environment_impl().create_mpsc_mbox(
+			env.so5__create_mpsc_mbox(
 				self_ptr(),
 				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
@@ -170,9 +169,6 @@ agent_t::agent_t(
 	,	m_is_coop_deregistered( false )
 {
 	m_event_queue_proxy->switch_to( m_tmp_event_queue );
-
-	// Bind to the environment should be done.
-	bind_to_environment( env.so_environment_impl() );
 }
 
 agent_t::~agent_t()
@@ -301,7 +297,7 @@ agent_t::so_was_defined() const
 so_environment_t &
 agent_t::so_environment()
 {
-	return m_so_environment_impl->query_public_so_environment();
+	return m_env;
 }
 
 void
@@ -424,13 +420,6 @@ agent_t::bind_to_coop(
 {
 	m_agent_coop = &coop;
 	m_is_coop_deregistered = false;
-}
-
-inline void
-agent_t::bind_to_environment(
-	impl::so_environment_impl_t & env_impl )
-{
-	m_so_environment_impl = &env_impl;
 }
 
 void
