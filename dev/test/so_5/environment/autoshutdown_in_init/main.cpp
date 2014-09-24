@@ -11,8 +11,7 @@
 #include <chrono>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
@@ -75,7 +74,7 @@ main( int argc, char * argv[] )
 		run_with_time_limit(
 			[&actual]()
 			{
-				so_5::api::run_so_environment(
+				so_5::launch(
 					[&actual]( so_5::rt::environment_t & env )
 					{
 						env.register_agent_as_coop( "first", new a_first_t( env ) );

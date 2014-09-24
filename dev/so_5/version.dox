@@ -4,6 +4,9 @@
 
 \section so_5__5_0 5.5.0 "Kazbek"
 
+	Two new functions so_5::launch() are implemeted to be used instead
+	of bunch of so_5::api::run_so_environment() functions.
+
 	SObjectizer Environment class renamed to so_5::rt::environment_t.
 	Class with parameters for SObjectizer Environment renamed to
 	so_5::rt::environment_params_t.

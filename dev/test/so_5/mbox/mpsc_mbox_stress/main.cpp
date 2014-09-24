@@ -225,7 +225,7 @@ main( int argc, char ** argv )
 	{
 		const int iterations = argc == 2 ? std::atoi( argv[ 1 ] ) : 100;
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[iterations]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "parent",

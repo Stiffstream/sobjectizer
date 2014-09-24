@@ -342,7 +342,7 @@ main( int argc, char ** argv )
 		cfg_t cfg = try_parse_cmdline( argc, argv );
 		show_cfg( cfg );
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[cfg]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",

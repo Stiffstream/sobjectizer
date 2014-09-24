@@ -10,8 +10,7 @@
 #include <thread>
 #include <chrono>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 // A dummy agent to be placed into test cooperations.
 class test_agent_t
@@ -72,7 +71,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

@@ -13,10 +13,7 @@
 #include <chrono>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/adv_thread_pool/h/pub.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
@@ -139,7 +136,7 @@ class a_test_t : public so_5::rt::agent_t
 void
 run_sobjectizer()
 {
-	so_5::api::run_so_environment(
+	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(

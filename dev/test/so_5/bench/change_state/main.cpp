@@ -96,14 +96,6 @@ class a_test_t
 		std::vector< const so_5::rt::state_t * > m_states;
 	};
 
-void
-init(
-	so_5::rt::environment_t & env,
-	unsigned int tick_count )
-	{
-		env.register_agent_as_coop( "test", new a_test_t( env, tick_count ) );
-	}
-
 int
 main( int argc, char ** argv )
 {
@@ -111,7 +103,13 @@ main( int argc, char ** argv )
 	{
 		const unsigned int tick_count = 2 == argc ? std::atoi( argv[1] ) : 1000;
 
-		so_5::api::run_so_environment_with_parameter( &init, tick_count );
+		so_5::launch(
+			[tick_count]( so_5::rt::environment_t & env )
+			{
+				env.register_agent_as_coop(
+					"test",
+					new a_test_t( env, tick_count ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

@@ -93,7 +93,7 @@ run_sample(
 		// This variable will be a part of pinger agent's state.
 		unsigned int pings_left = cfg.m_request_count;
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[&pings_left, &cfg]( so_5::rt::environment_t & env )
 			{
 				// Types of signals for the agents.

@@ -19,6 +19,7 @@
 #include <functional>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <so_5/rt/h/environment.hpp>
 
@@ -119,7 +120,10 @@ main( int argc, char * argv[] )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -167,7 +171,10 @@ main( int argc, char * argv[] )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -216,7 +223,10 @@ main( int argc, char * argv[] )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -293,7 +303,10 @@ main( int argc, char ** argv )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class INIT, class PARAM_TYPE >
 void
 run_so_environment_with_parameter(
@@ -381,8 +394,11 @@ main( int argc, char ** argv )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
 
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class INIT, class PARAM_TYPE >
 void
 run_so_environment_with_parameter(
@@ -472,7 +488,10 @@ main( int argc, char ** argv )
 	return 0;
 }
 \endcode
+
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class OBJECT, class METHOD >
 void
 run_so_environment_on_object(
@@ -495,6 +514,10 @@ run_so_environment_on_object(
 }
 
 //! Launch a SObjectizer Environment by a class method.
+/*!
+\deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
+*/
+SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class OBJECT, class METHOD >
 void
 run_so_environment_on_object(
@@ -511,6 +534,145 @@ run_so_environment_on_object(
 }
 
 } /* namespace api */
+
+//
+// launch
+//
+//! Launch a SObjectizer Environment with default parameters.
+/*!
+Example with free function as initializer:
+
+\code
+void init( so_5::rt::environment_t & env )
+{
+	env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
+}
+
+int main()
+{
+	so_5::launch( &init );
+
+	return 0;
+}
+\endcode
+
+Example with lambda-function as initializer:
+\code
+int main()
+{
+	so_5::launch( []( so_5::rt::environment_t & env )
+		{
+			env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
+		} );
+
+	return 0;
+}
+\endcode
+
+Example with object method as initializer:
+\code
+class application_t
+{
+public :
+	void
+	init( so_5::rt::environment_t & env )
+	{
+		env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
+	}
+	...
+};
+
+int main()
+{
+	using namespace std;
+	using namespace std::placeholders;
+
+	application_t app;
+
+	so_5::launch( bind( &application_t::init, &app, _1 ) );
+
+	return 0;
+}
+\endcode
+*/
+inline void
+launch(
+	//! Initialization routine.
+	so_5::api::generic_simple_init_t init_routine )
+{
+	so_5::api::impl::so_quick_environment_t< decltype(init_routine) > env(
+			init_routine,
+			so_5::rt::environment_params_t() );
+
+	env.run();
+}
+
+//! Launch a SObjectizer Environment with explicitely specified parameters.
+/*!
+Example with free functions as initializers:
+
+\code
+void init( so_5::rt::environment_t & env )
+{
+	env.register_agent_as_coop(
+			"main_coop",
+			new my_agent_t( env ),
+			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+}
+
+void params_setter( so_5::rt::environment_params_t & params )
+{
+	params.add_named_dispatcher( "active_obj",
+			so_5::disp::active_obj::create_disp() );
+}
+
+int main()
+{
+	so_5::launch( &init, &params_setter );
+
+	return 0;
+}
+\endcode
+
+Example with lambda-functions as initializers:
+\code
+int main()
+{
+	so_5::launch(
+		[]( so_5::rt::environment_t & env )
+		{
+			env.register_agent_as_coop(
+					"main_coop",
+					new my_agent_t( env ),
+					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+		},
+		[]( so_5::rt::environment_params_t & params )
+		{
+			params.add_named_dispatcher( "active_obj",
+					so_5::disp::active_obj::create_disp() );
+		} );
+
+	return 0;
+}
+\endcode
+
+*/
+inline void
+launch(
+	//! Initialization routine.
+	so_5::api::generic_simple_init_t init_routine,
+	//! Parameters setting routine.
+	so_5::api::generic_simple_so_env_params_tuner_t params_tuner )
+{
+	so_5::rt::environment_params_t params;
+	params_tuner( params );
+
+	so_5::api::impl::so_quick_environment_t< decltype(init_routine) > env(
+			init_routine,
+			std::move( params ) );
+
+	env.run();
+}
 
 } /* namespace so_5 */
 

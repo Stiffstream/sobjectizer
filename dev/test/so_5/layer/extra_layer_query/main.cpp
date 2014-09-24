@@ -8,12 +8,7 @@
 #include <memory>
 #include <exception>
 
-#include <cpp_util_2/h/defs.hpp>
-
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/rt/h/so_layer.hpp>
-
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 #include <utest_helper_1/h/helper.hpp>
 
@@ -311,7 +306,7 @@ init( so_5::rt::environment_t & env )
 
 UT_UNIT_TEST( check_many_layers )
 {
-	so_5::api::run_so_environment( &init );
+	so_5::launch( &init );
 }
 
 

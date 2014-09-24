@@ -81,7 +81,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

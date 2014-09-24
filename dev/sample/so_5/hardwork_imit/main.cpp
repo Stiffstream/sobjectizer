@@ -274,7 +274,7 @@ int main( int argc, char ** argv )
 	{
 		const config_t config = parse_params( argc, argv );
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[config]( so_5::rt::environment_t & env )
 			{
 				env.register_coop(

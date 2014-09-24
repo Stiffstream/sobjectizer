@@ -110,7 +110,7 @@ main( int argc, char ** argv )
 		benchmarker_t benchmark;
 		benchmark.start();
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[agent_count, send_count]( so_5::rt::environment_t & env )
 			{
 				init( env, agent_count, send_count );

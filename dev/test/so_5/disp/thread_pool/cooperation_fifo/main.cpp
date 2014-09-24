@@ -12,12 +12,7 @@
 #include <chrono>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/thread_pool/h/pub.hpp>
-
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 #include <various_helpers_1/benchmark_helpers.hpp>
@@ -158,7 +153,7 @@ run_sobjectizer( collector_container_t & collectors )
 {
 	duration_meter_t duration( "running of test cooperations" );
 
-	so_5::api::run_so_environment(
+	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
 			so_5::rt::mbox_ref_t shutdowner_mbox;

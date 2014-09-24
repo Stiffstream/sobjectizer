@@ -1,5 +1,5 @@
 /*
-	Test of so_5::api::run_so_environment() routines.
+	Test of so_5::launch() routines.
 
 	Tests both: compilation of template routines specialization
 	and params passin correctnes.
@@ -7,8 +7,9 @@
 
 #include <utest_helper_1/h/helper.hpp>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <functional>
+
+#include <so_5/all.hpp>
 
 void
 init( so_5::rt::environment_t & env )
@@ -16,10 +17,9 @@ init( so_5::rt::environment_t & env )
 	env.stop();
 }
 
-UT_UNIT_TEST( run_so_environment )
+UT_UNIT_TEST( launch_with_free_function_pointer )
 {
-	so_5::api::run_so_environment(
-		&init );
+	so_5::launch( &init );
 }
 
 const std::string test_str_param = "Hello!";
@@ -48,23 +48,24 @@ init_with_int_param(
 	env.stop();
 }
 
-UT_UNIT_TEST( run_so_environment_with_parameter )
+UT_UNIT_TEST( launch_with_parameter )
 {
+	using namespace std;
+	using namespace std::placeholders;
+
 	{
 		const std::string param = test_str_param;
-		UT_PUSH_CONTEXT( "string paramater");
-		so_5::api::run_so_environment_with_parameter(
-			&init_with_string_param,
-			param );
+		UT_PUSH_CONTEXT( "string parameter");
+		so_5::launch(
+			bind( &init_with_string_param, _1, param ) );
 		UT_POP_CONTEXT();
 	}
 
 	{
 		const int param = test_int_param;
 		UT_PUSH_CONTEXT( "int paramater");
-		so_5::api::run_so_environment_with_parameter(
-			&init_with_int_param,
-			param );
+		so_5::launch(
+			bind( &init_with_int_param, _1, param ) );
 		UT_POP_CONTEXT();
 	}
 }
@@ -87,20 +88,22 @@ struct so_init_tester_t
 		operator = ( const so_init_tester_t & );
 };
 
-UT_UNIT_TEST( run_so_environment_on_object )
+UT_UNIT_TEST( launch_on_object )
 {
+	using namespace std;
+	using namespace std::placeholders;
+
 	so_init_tester_t so_init_tester;
-	so_5::api::run_so_environment_on_object(
-		so_init_tester,
-		&so_init_tester_t::init );
+	so_5::launch(
+		bind( &so_init_tester_t::init, &so_init_tester, _1 ) );
 }
 
 int
 main( int argc, char * argv[] )
 {
-	UT_RUN_UNIT_TEST( run_so_environment )
-	UT_RUN_UNIT_TEST( run_so_environment_with_parameter )
-	UT_RUN_UNIT_TEST( run_so_environment_on_object )
+	UT_RUN_UNIT_TEST( launch_with_free_function_pointer )
+	UT_RUN_UNIT_TEST( launch_with_parameter )
+	UT_RUN_UNIT_TEST( launch_on_object )
 
 	return 0;
 }

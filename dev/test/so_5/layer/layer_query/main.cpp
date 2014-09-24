@@ -188,9 +188,11 @@ init( so_5::rt::environment_t & env )
 
 UT_UNIT_TEST( check_many_layers )
 {
-	so_5::api::run_so_environment(
+	so_5::launch(
 		&init,
-		std::move( so_5::rt::environment_params_t()
+		[]( so_5::rt::environment_params_t & params )
+		{
+			params
 			ADD_LAYER( 1 )
 			ADD_LAYER( 2 )
 			ADD_LAYER( 3 )
@@ -222,8 +224,8 @@ UT_UNIT_TEST( check_many_layers )
 			ADD_LAYER( 29 )
 			ADD_LAYER( 30 )
 			ADD_LAYER( 31 )
-			ADD_LAYER( 32 ) )
-		);
+			ADD_LAYER( 32 );
+		} );
 }
 
 

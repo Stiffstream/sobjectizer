@@ -139,6 +139,10 @@ class test_env_t
 		void
 		init( so_5::rt::environment_t & env )
 		{
+			env.add_dispatcher_if_not_exists(
+					"active_obj",
+					so_5::disp::active_obj::create_disp );
+
 			env.register_agent_as_coop(
 					"test",
 					new a_test_t(
@@ -198,13 +202,11 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment_on_object(
-				test_env,
-				&test_env_t::init,
-				std::move( so_5::rt::environment_params_t()
-						.add_named_dispatcher(
-								"active_obj",
-								so_5::disp::active_obj::create_disp() ) ) );
+		so_5::launch(
+			[&test_env]( so_5::rt::environment_t & env )
+			{
+				test_env.init( env );
+			} );
 
 		test_env.check_result();
 	}

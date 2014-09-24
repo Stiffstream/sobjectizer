@@ -5,8 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_child_started : public so_5::rt::signal_t {};
 
@@ -221,13 +220,17 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment_on_object(
-				test_env,
-				&test_env_t::init,
-				std::move( so_5::rt::environment_params_t().
-						coop_listener(
-								test_coop_listener_t::make(
-										test_env.active_coops_counter() ) ) ) );
+		so_5::launch(
+			[&]( so_5::rt::environment_t & env )
+			{
+				test_env.init( env );
+			},
+			[&]( so_5::rt::environment_params_t & params )
+			{
+				params.coop_listener(
+						test_coop_listener_t::make(
+								test_env.active_coops_counter() ) );
+			} );
 
 		test_env.check_result();
 	}

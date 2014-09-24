@@ -5,9 +5,7 @@
 #include <iostream>
 #include <exception>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/types.hpp>
+#include <so_5/all.hpp>
 
 #define PERROR_AND_ABORT__(file, line, condition_text) \
 	std::cerr << file << ":" << line << ": exception expected but not thrown: " << condition_text << std::endl; \
@@ -133,7 +131,7 @@ main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

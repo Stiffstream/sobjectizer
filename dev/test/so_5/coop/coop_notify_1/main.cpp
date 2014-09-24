@@ -135,10 +135,11 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment_on_object(
-				test_env,
-				&test_env_t::init,
-				so_5::rt::environment_params_t() );
+		so_5::launch(
+			[&test_env]( so_5::rt::environment_t & env )
+			{
+				test_env.init( env );
+			} );
 
 		test_env.check_result();
 	}

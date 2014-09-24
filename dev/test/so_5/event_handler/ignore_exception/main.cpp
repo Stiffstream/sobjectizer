@@ -5,8 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_test_signal : public so_5::rt::signal_t {};
 
@@ -74,7 +73,7 @@ main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

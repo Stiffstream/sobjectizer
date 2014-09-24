@@ -189,7 +189,7 @@ main( int argc, char ** argv )
 	{
 		try
 			{
-				so_5::api::run_so_environment(
+				so_5::launch(
 						[argc, argv]( so_5::rt::environment_t & env ) {
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :

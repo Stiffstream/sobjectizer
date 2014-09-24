@@ -278,7 +278,7 @@ main( int argc, char ** argv )
 {
 	try
 	{
-		so_5::api::run_so_environment(
+		so_5::launch(
 				[argc, argv]( so_5::rt::environment_t & env ) {
 					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
 					init( env, meetings );

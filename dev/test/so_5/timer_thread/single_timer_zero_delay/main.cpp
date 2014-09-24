@@ -5,8 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_test : public so_5::rt::message_t
 {};
@@ -101,16 +100,18 @@ main( int argc, char ** argv )
 {
 	try
 	{
-		test_env_t env;
+		test_env_t test_env;
 
-		so_5::api::run_so_environment_on_object(
-			env,
-			&test_env_t::init );
+		so_5::launch(
+			[&]( so_5::rt::environment_t & env )
+			{
+				test_env.init( env );
+			} );
 
-		if( 2 != env.m_message_counter )
+		if( 2 != test_env.m_message_counter )
 		{
 			std::cerr << "expected and actual message_counter value mismatch, "
-					"actual value: " << env.m_message_counter << std::endl;
+					"actual value: " << test_env.m_message_counter << std::endl;
 			std::abort();
 		}
 

@@ -12,10 +12,7 @@
 #include <chrono>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/adv_thread_pool/h/pub.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
@@ -91,7 +88,7 @@ const std::size_t thread_count = 4;
 void
 run_sobjectizer()
 {
-	so_5::api::run_so_environment(
+	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
 			so_5::rt::mbox_ref_t shutdowner_mbox;

@@ -100,7 +100,7 @@ class a_test_t : public so_5::rt::agent_t
 void
 run_sobjectizer()
 {
-	so_5::api::run_so_environment(
+	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(

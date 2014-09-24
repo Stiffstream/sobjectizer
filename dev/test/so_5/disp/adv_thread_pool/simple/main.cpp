@@ -56,7 +56,7 @@ main( int argc, char * argv[] )
 		run_with_time_limit(
 			[]()
 			{
-				so_5::api::run_so_environment(
+				so_5::launch(
 					[]( so_5::rt::environment_t & env )
 					{
 						env.register_agent_as_coop(

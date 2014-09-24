@@ -84,7 +84,7 @@ init( so_5::rt::environment_t & env )
 
 UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 {
-	so_5::api::run_so_environment(
+	so_5::launch(
 			&init,
 			[]( so_5::rt::environment_params_t & params )
 			{

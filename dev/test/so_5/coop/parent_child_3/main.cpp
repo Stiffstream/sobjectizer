@@ -5,8 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_child_started : public so_5::rt::signal_t {};
 
@@ -246,7 +245,7 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment(
+		so_5::launch(
 				[&test_env]( so_5::rt::environment_t & env )
 				{
 					test_env.init( env );

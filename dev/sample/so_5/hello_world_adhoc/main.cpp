@@ -12,7 +12,7 @@ main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[]( so_5::rt::environment_t & env )
 			{
 				// Creating a cooperation.

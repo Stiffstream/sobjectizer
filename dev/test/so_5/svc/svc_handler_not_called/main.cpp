@@ -129,13 +129,14 @@ main( int, char ** )
 	{
 		try
 			{
-				so_5::api::run_so_environment(
+				so_5::launch(
 					&init,
-					std::move(
-						so_5::rt::environment_params_t()
-							.add_named_dispatcher(
-								so_5::rt::nonempty_name_t( "active_obj" ),
-								so_5::disp::active_obj::create_disp() ) ) );
+					[]( so_5::rt::environment_params_t & params )
+					{
+						params.add_named_dispatcher(
+								"active_obj",
+								so_5::disp::active_obj::create_disp() );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

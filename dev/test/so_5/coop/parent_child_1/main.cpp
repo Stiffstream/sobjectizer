@@ -248,7 +248,7 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment(
+		so_5::launch(
 				[&test_env]( so_5::rt::environment_t & env )
 				{
 					test_env.init( env );

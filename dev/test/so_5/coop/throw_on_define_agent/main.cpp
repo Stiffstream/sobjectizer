@@ -8,11 +8,7 @@
 #include <stdexcept>
 #include <cstdlib>
 
-#include <so_5/h/types.hpp>
-
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
@@ -149,7 +145,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment(
+		so_5::launch(
 			&init,
 			[]( so_5::rt::environment_params_t & params )
 			{

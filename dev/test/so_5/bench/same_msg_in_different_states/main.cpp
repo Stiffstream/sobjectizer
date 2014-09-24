@@ -111,7 +111,7 @@ main( int argc, char ** argv )
 			std::cout << "*** benchmark for " << states << " state(s) ***"
 				<< std::endl;
 
-			so_5::api::run_so_environment(
+			so_5::launch(
 				[states, tick_count]( so_5::rt::environment_t & env )
 				{
 					env.register_agent_as_coop( "test",

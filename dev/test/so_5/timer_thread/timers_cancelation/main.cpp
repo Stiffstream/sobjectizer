@@ -96,7 +96,7 @@ do_test( so_5::timer_thread_factory_t factory )
 	{
 		int counter = 0;
 
-		so_5::api::run_so_environment(
+		so_5::launch(
 			[&counter]( so_5::rt::environment_t & env ) {
 				env.register_agent_as_coop(
 						"test", new a_test_t( env, counter ) );

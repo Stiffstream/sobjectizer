@@ -5,10 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 struct msg_child_deregistered : public so_5::rt::signal_t {};
 
@@ -119,24 +116,21 @@ class a_test_t : public so_5::rt::agent_t
 		}
 };
 
-void
-init( so_5::rt::environment_t & env )
-{
-	env.register_agent_as_coop(
-			"test",
-			new a_test_t( env ) );
-}
 int
 main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment(
-				&init,
-				std::move( so_5::rt::environment_params_t()
-						.add_named_dispatcher(
-								"active_obj",
-								so_5::disp::active_obj::create_disp() ) ) );
+		so_5::launch(
+			[]( so_5::rt::environment_t & env )
+			{
+				env.add_dispatcher_if_not_exists(
+						"active_obj",
+						so_5::disp::active_obj::create_disp );
+				env.register_agent_as_coop(
+						"test",
+						new a_test_t( env ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

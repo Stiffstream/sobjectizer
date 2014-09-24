@@ -191,7 +191,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment(
+		so_5::launch(
 				&init,
 				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",

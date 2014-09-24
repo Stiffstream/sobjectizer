@@ -6,8 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 #include "../../svc/a_time_sentinel.hpp"
 
@@ -79,10 +78,12 @@ main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init,
-				std::move( so_5::rt::environment_params_t()
-						.exception_reaction(
-								so_5::rt::shutdown_sobjectizer_on_exception ) ) );
+		so_5::launch( &init,
+			[]( so_5::rt::environment_params_t & params )
+			{
+				params.exception_reaction(
+						so_5::rt::shutdown_sobjectizer_on_exception );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

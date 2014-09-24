@@ -278,17 +278,18 @@ main( int argc, char ** argv )
 
 		test_env_t test_env( cfg );
 
-		so_5::rt::environment_params_t params;
-		if( cfg.m_active_objects )
-			params.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-
-//FIXME: timer_list_factory must be used!
-		so_5::api::run_so_environment_on_object(
-				test_env,
-				&test_env_t::init,
-				std::move( params ) );
+		so_5::launch(
+			[&]( so_5::rt::environment_t & env )
+			{
+				test_env.init( env );
+			},
+			[&]( so_5::rt::environment_params_t & params )
+			{
+				if( cfg.m_active_objects )
+					params.add_named_dispatcher(
+							"active_obj",
+							so_5::disp::active_obj::create_disp() );
+			} );
 
 		test_env.process_results();
 

@@ -47,7 +47,7 @@ main( int, char ** )
 	try
 	{
 		// Starting SObjectizer.
-		so_5::api::run_so_environment(
+		so_5::launch(
 			// A function for SO Environment initialization.
 			[]( so_5::rt::environment_t & env )
 			{
