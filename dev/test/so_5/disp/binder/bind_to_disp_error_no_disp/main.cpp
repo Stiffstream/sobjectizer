@@ -8,10 +8,7 @@
 #include <memory>
 #include <map>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/one_thread/h/pub.hpp>
+#include <so_5/all.hpp>
 
 class test_agent_t
 	:

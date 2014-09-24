@@ -127,7 +127,7 @@ init(
 	so_5::rt::environment_t & env )
 	{
 		auto coop = env.create_coop(
-				so_5::rt::nonempty_name_t( "test_coop" ),
+				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 		so_5::rt::smart_atomic_reference_t< msg_param > msg( new msg_param() );

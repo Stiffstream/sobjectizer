@@ -6,10 +6,7 @@
 #include <exception>
 #include <stdexcept>
 
-#include <so_5/h/types.hpp>
-
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct test_message_1
 	:

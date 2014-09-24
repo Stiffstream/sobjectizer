@@ -6,8 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_test : public so_5::rt::message_t
 	{

@@ -7,11 +7,7 @@
 #include <exception>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/types.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 #include "../a_time_sentinel.hpp"
 
@@ -162,7 +158,7 @@ init(
 		test_mbox_t::test_passed = false;
 
 		auto coop = env.create_coop(
-				so_5::rt::nonempty_name_t( "test_coop" ),
+				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 		coop->add_agent( new a_client_t( env ) );
@@ -180,7 +176,7 @@ main( int, char ** )
 					&init,
 					[]( so_5::rt::environment_params_t & p ) {
 						p.add_named_dispatcher(
-							so_5::rt::nonempty_name_t( "active_obj" ),
+							"active_obj",
 							so_5::disp::active_obj::create_disp() );
 					} );
 			}

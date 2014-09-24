@@ -116,7 +116,7 @@ main( int argc, char * argv[] )
 			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
+					"active_obj",
 					so_5::disp::active_obj::create_disp() );
 			} );
 

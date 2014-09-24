@@ -6,10 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 #include "test/so_5/svc/a_time_sentinel.hpp"
 

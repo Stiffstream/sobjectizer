@@ -10,10 +10,7 @@
 #include <thread>
 #include <chrono>
 
-#include <so_5/h/types.hpp>
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 so_5::atomic_counter_t g_agents_count;
 so_5::atomic_counter_t g_evt_count;

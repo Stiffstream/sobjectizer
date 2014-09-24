@@ -10,8 +10,7 @@
 #include <sstream>
 #include <cstdlib>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/benchmark_helpers.hpp>
 #include <various_helpers_1/cmd_line_args_helpers.hpp>

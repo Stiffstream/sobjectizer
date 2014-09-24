@@ -6,9 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_ping : public so_5::rt::signal_t {};
 struct msg_ack : public so_5::rt::signal_t {};

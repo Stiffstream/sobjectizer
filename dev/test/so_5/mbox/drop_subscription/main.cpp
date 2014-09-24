@@ -5,8 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_one : public so_5::rt::signal_t {};
 struct msg_two : public so_5::rt::signal_t {};

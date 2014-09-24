@@ -195,10 +195,10 @@ main( int argc, char * argv[] )
 			&init,
 			[]( so_5::rt::environment_params_t & params ) {
 					params.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "sender_disp" ),
+						"sender_disp",
 						so_5::disp::one_thread::create_disp() );
 					params.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "receiver_disp" ),
+						"receiver_disp",
 						so_5::disp::one_thread::create_disp() );
 			} );
 	}

@@ -7,8 +7,7 @@
 #include <numeric>
 #include <chrono>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 #include <various_helpers_1/benchmark_helpers.hpp>
 

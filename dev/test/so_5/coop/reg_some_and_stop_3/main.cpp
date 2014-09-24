@@ -66,8 +66,7 @@ class a_master_t
 		so_evt_start()
 		{
 			so_5::rt::mbox_ref_t mbox = so_environment()
-				.create_local_mbox( so_5::rt::nonempty_name_t(
-					so_coop_name() + "_mbox" ) );
+				.create_local_mbox( so_coop_name() + "_mbox" );
 
 			so_subscribe( mbox )
 				.in( so_default_state() )

@@ -7,8 +7,7 @@
 #include <exception>
 #include <stdexcept>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct test_message
 	: public so_5::rt::signal_t

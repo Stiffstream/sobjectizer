@@ -7,8 +7,7 @@
 
 #include <utest_helper_1/h/helper.hpp>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 so_5::rt::environment_params_t
 make_param()

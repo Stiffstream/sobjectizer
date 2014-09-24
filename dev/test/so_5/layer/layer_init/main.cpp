@@ -6,11 +6,7 @@
 #include <map>
 #include <exception>
 
-#include <cpp_util_2/h/defs.hpp>
-
-#include <so_5/api/h/api.hpp>
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/rt/h/so_layer.hpp>
+#include <so_5/all.hpp>
 
 #include <utest_helper_1/h/helper.hpp>
 

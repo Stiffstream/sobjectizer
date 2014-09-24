@@ -9,9 +9,7 @@
 #include <map>
 #include <exception>
 
-#include <so_5/api/h/api.hpp>
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/h/ret_code.hpp>
+#include <so_5/all.hpp>
 
 // A dummy agent to be placed into test cooperation.
 class test_agent_t

@@ -8,11 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/types.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 struct msg1{};
 struct msg2{};
@@ -146,7 +142,7 @@ init(
 	for( int i = 0; i < 8; ++i )
 	{
 		so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-			so_5::rt::nonempty_name_t( "test_coop" ),
+			"test_coop",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 		coop->add_agent( new test_agent_t( env ) );

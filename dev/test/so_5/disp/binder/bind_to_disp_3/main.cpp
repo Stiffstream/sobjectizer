@@ -142,7 +142,7 @@ main( int argc, char * argv[] )
 			[]( so_5::rt::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_group" ),
+					"active_group",
 					so_5::disp::active_group::create_disp() );
 			} );
 
