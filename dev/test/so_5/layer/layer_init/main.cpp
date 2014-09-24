@@ -86,11 +86,10 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 {
 	so_5::api::run_so_environment(
 			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 4 )
-					.agent_event_queue_mutex_pool_size( 4 )
-					.add_layer( new test_layer_t ) ) );
+			[]( so_5::rt::so_environment_params_t & params )
+			{
+				params.add_layer( new test_layer_t );
+			} );
 
 	test_layer_t::check_calls();
 }

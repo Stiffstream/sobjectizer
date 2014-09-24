@@ -976,6 +976,58 @@ class SO_5_TYPE so_environment_t
 
 		//! SObjectizer Environment internals.
 		std::unique_ptr< internals_t > m_impl;
+
+		/*!
+		 * \name Implementation details related to run/stop functionality.
+		 * \{
+		 */
+		/*!
+		 * \brief Run layers and call next run stage.
+		 */
+		void
+		impl__run_layers_and_go_further();
+
+		/*!
+		 * \brief Run dispatchers and call next run stage.
+		 */
+		void
+		impl__run_dispatcher_and_go_further();
+
+		/*!
+		 * \brief Run timer and call next run stage.
+		 */
+		void
+		impl__run_timer_and_go_further();
+
+		/*!
+		 * \brief Run agent core and call next run stage.
+		 */
+		void
+		impl__run_agent_core_and_go_further();
+
+		/*!
+		 * \brief Run customer's initialization routine and wait for
+		 * start of deregistration procedure.
+		 */
+		void
+		impl__run_user_supplied_init_and_wait_for_stop();
+
+		/*!
+		 * \brief Templated implementation of one run stage.
+		 */
+		void
+		impl__do_run_stage(
+			//! Short description of stage.
+			const std::string & stage_name,
+			//! Stage initialization code.
+			std::function< void() > init_fn,
+			//! Stage deinitialization code.
+			std::function< void() > deinit_fn,
+			//! Next stage method.
+			std::function< void() > next_stage );
+		/*!
+		 * \}
+		 */
 };
 
 } /* namespace rt */

@@ -118,15 +118,12 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size(
-						test_agent_t::agents_cout()/2 )
-					.agent_event_queue_mutex_pool_size(
-						test_agent_t::agents_cout()/2 )
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_obj" ),
-						so_5::disp::active_obj::create_disp() ) ) );
+			[]( so_5::rt::so_environment_params_t & params )
+			{
+				params.add_named_dispatcher(
+					so_5::rt::nonempty_name_t( "active_obj" ),
+					so_5::disp::active_obj::create_disp() );
+			} );
 
 		if( !test_agent_t::ok() )
 			throw std::runtime_error( "!test_agent_t::ok()" );

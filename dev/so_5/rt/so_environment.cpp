@@ -347,13 +347,29 @@ so_environment_t::add_extra_layer(
 void
 so_environment_t::run()
 {
-//FIXME: implement this!
+	try
+	{
+		impl__run_layers_and_go_further();
+	}
+	catch( const so_5::exception_t & )
+	{
+		// Rethrow our exception because it already has all information.
+		throw;
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_environment_error,
+				std::string( "some unexpected error during "
+						"environment launching: " ) + x.what() );
+	}
 }
 
 void
 so_environment_t::stop()
 {
-//FIXME: implement this!
+	// Sends shutdown signal for all agents.
+	m_impl->m_agent_core.start_deregistration();
 }
 
 void
@@ -404,6 +420,163 @@ so_environment_t::so5__final_deregister_coop(
 		stop();
 }
 
+void
+so_environment_t::impl__run_layers_and_go_further()
+{
+	impl__do_run_stage(
+			"run_layers",
+			[this] { m_impl->m_layer_core.start(); },
+			[this] { m_impl->m_layer_core.finish(); },
+			[this] { impl__run_dispatcher_and_go_further(); } );
+}
+
+void
+so_environment_t::impl__run_dispatcher_and_go_further()
+{
+	impl__do_run_stage(
+			"run_dispatcher",
+			[this] { m_impl->m_disp_core.start(); },
+			[this] { m_impl->m_disp_core.finish(); },
+			[this] { impl__run_timer_and_go_further(); } );
+}
+
+void
+so_environment_t::impl__run_timer_and_go_further()
+{
+	impl__do_run_stage(
+			"run_timer",
+			[this] { m_impl->m_timer_thread->start(); },
+			[this] { m_impl->m_timer_thread->finish(); },
+			[this] { impl__run_agent_core_and_go_further(); } );
+}
+
+void
+so_environment_t::impl__run_agent_core_and_go_further()
+{
+	impl__do_run_stage(
+			"run_agent_core",
+			[this] { m_impl->m_agent_core.start(); },
+			[this] { m_impl->m_agent_core.finish(); },
+			[this] { impl__run_user_supplied_init_and_wait_for_stop(); } );
+}
+
+namespace autoshutdown_guard
+{
+	//! An empty agent for the special cooperation for protection of
+	//! init function from autoshutdown feature.
+	class a_empty_agent_t : public agent_t
+	{
+		public :
+			a_empty_agent_t( so_environment_t & env )
+				:	agent_t( env )
+			{}
+	};
+
+	void
+	register_init_guard_cooperation(
+		so_environment_t & env,
+		bool autoshutdown_disabled )
+	{
+		if( !autoshutdown_disabled )
+			env.register_agent_as_coop(
+					"__so_5__init_autoshutdown_guard__",
+					new a_empty_agent_t( env ) );
+	}
+
+	void
+	deregistr_init_guard_cooperation(
+		so_environment_t & env,
+		bool autoshutdown_disabled )
+	{
+		if( !autoshutdown_disabled )
+			env.deregister_coop(
+					"__so_5__init_autoshutdown_guard__",
+					dereg_reason::normal );
+	}
+}
+
+void
+so_environment_t::impl__run_user_supplied_init_and_wait_for_stop()
+{
+	try
+	{
+		// init method must be protected from autoshutdown feature.
+		autoshutdown_guard::register_init_guard_cooperation(
+				*this,
+				m_impl->m_autoshutdown_disabled );
+
+		// Initilizing environment.
+		init();
+
+		// Protection is no more needed.
+		autoshutdown_guard::deregistr_init_guard_cooperation(
+				*this,
+				m_impl->m_autoshutdown_disabled );
+
+		m_impl->m_agent_core.wait_for_start_deregistration();
+	}
+	catch( const std::exception & ex )
+	{
+		stop();
+		m_impl->m_agent_core.wait_for_start_deregistration();
+
+		throw;
+	}
+}
+
+void
+so_environment_t::impl__do_run_stage(
+	const std::string & stage_name,
+	std::function< void() > init_fn,
+	std::function< void() > deinit_fn,
+	std::function< void() > next_stage )
+{
+	try
+	{
+		init_fn();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				stage_name + ": initialization failed, exception is: '" +
+				x.what() + "'" );
+	}
+
+	try
+	{
+		next_stage();
+	}
+	catch( const std::exception & x )
+	{
+		try
+		{
+			deinit_fn();
+		}
+		catch( const std::exception & nested )
+		{
+			SO_5_THROW_EXCEPTION(
+					rc_unexpected_error,
+					stage_name + ": deinitialization failed during "
+					"exception handling. Original exception is: '" + x.what() +
+					"', deinitialization exception is: '" + nested.what() + "'" );
+		}
+
+		throw;
+	}
+
+	try
+	{
+		deinit_fn();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				stage_name + ": deinitialization failed, exception is: '" +
+				x.what() + "'" );
+	}
+}
 } /* namespace rt */
 
 } /* namespace so_5 */

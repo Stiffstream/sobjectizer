@@ -161,12 +161,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment(
-			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 4 )
-					.agent_event_queue_mutex_pool_size( 4 ) ) );
+		so_5::api::run_so_environment( &init );
 
 		if( test_agent_t::m_handler_in_state_default_calls != 1 ||
 			test_agent_t::m_handler_in_state_1_calls != 1 ||

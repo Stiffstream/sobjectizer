@@ -198,16 +198,14 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 4 )
-					.agent_event_queue_mutex_pool_size( 4 )
-					.add_named_dispatcher(
+			[]( so_5::rt::so_environment_params_t & params ) {
+					params.add_named_dispatcher(
 						so_5::rt::nonempty_name_t( "sender_disp" ),
-						so_5::disp::one_thread::create_disp() )
-					.add_named_dispatcher(
+						so_5::disp::one_thread::create_disp() );
+					params.add_named_dispatcher(
 						so_5::rt::nonempty_name_t( "receiver_disp" ),
-						so_5::disp::one_thread::create_disp() ) ) );
+						so_5::disp::one_thread::create_disp() );
+			} );
 	}
 	catch( const std::exception & ex )
 	{
