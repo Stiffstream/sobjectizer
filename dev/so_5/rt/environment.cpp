@@ -23,6 +23,7 @@ environment_params_t::environment_params_t()
 	:	m_event_exception_logger( create_std_event_exception_logger() )
 	,	m_exception_reaction( abort_on_exception )
 	,	m_autoshutdown_disabled( false )
+	,	m_error_logger( create_stderr_logger() )
 {
 }
 
@@ -35,6 +36,7 @@ environment_params_t::environment_params_t(
 	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
 	,	m_exception_reaction( other.m_exception_reaction )
 	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
+	,	m_error_logger( std::move( other.m_error_logger ) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -61,6 +63,8 @@ environment_params_t::swap( environment_params_t & other )
 
 	std::swap( m_exception_reaction, other.m_exception_reaction );
 	std::swap( m_autoshutdown_disabled, other.m_autoshutdown_disabled );
+
+	m_error_logger.swap( other.m_error_logger );
 }
 
 environment_params_t &
@@ -178,15 +182,14 @@ struct environment_t::internals_t
 	internals_t(
 		environment_t & env,
 		environment_params_t && params )
-//FIXME: error_logger object must be taken from so_environment_params!
-		:	m_error_logger( create_stderr_logger() )
+		:	m_error_logger( params.so5__error_logger() )
 		,	m_mbox_core( new impl::mbox_core_t() )
 		,	m_agent_core(
 				env,
 				params.so5__giveout_coop_listener() )
 		,	m_disp_core(
 				env,
-				params.so5__named_dispatcher_map(),
+				params.so5__giveout_named_dispatcher_map(),
 				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
 				env,

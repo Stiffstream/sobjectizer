@@ -39,7 +39,7 @@ class disp_core_t
 	public:
 		disp_core_t(
 			environment_t & so_environment,
-			const named_dispatcher_map_t & named_dispatcher_map,
+			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
 		virtual ~disp_core_t();

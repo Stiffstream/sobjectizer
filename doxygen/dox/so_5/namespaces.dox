@@ -141,6 +141,14 @@ namespace so_5
 	{
 	} /* namespace util */
 
+	/*!
+	 * \since v.5.5.0
+	 * \brief Timers implementation details.
+	 */
+	namespace timers_details
+	{
+	} /* namespace timers_details */
+
 } /* namespace so_5 */
 
 // vim:ft=cpp.doxygen

@@ -97,7 +97,7 @@ typedef std::unique_ptr< so_layer_t > so_layer_unique_ptr_t;
 //! Typedef for the layer's smart pointer.
 typedef std::shared_ptr< so_layer_t > so_layer_ref_t;
 
-//! Typedef for rhe map from a layer typeid to the layer.
+//! Typedef for the map from a layer typeid to the layer.
 typedef std::map< std::type_index, so_layer_ref_t > so_layer_map_t;
 
 } /* namespace rt */

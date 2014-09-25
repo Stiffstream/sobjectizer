@@ -215,17 +215,28 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \since v.5.5.0
+		 * \brief Set error logger for the environment.
+		 */
+		environment_params_t &
+		error_logger( const error_logger_shptr_t & logger )
+		{
+			m_error_logger = logger;
+			return *this;
+		}
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
-//FIXME: this method must be in form of so5__giveout_named_dispatcher_map.
-		const named_dispatcher_map_t &
-		so5__named_dispatcher_map() const
+		//! Get map of named dispatchers.
+		named_dispatcher_map_t
+		so5__giveout_named_dispatcher_map()
 		{
-			return m_named_dispatcher_map;
+			return std::move( m_named_dispatcher_map );
 		}
 
-//FIXME: this method must be in form of so5__giveout_layers_map.
+		//! Get map of default SObjectizer's layers.
 		const so_layer_map_t &
 		so5__layers_map() const
 		{
@@ -251,6 +262,13 @@ class SO_5_TYPE environment_params_t
 		so5__giveout_timer_thread_factory()
 		{
 			return std::move( m_timer_thread_factory );
+		}
+
+		//! Get error logger for the environment.
+		const error_logger_shptr_t &
+		so5__error_logger() const
+		{
+			return m_error_logger;
 		}
 		/*!
 		 * \}
@@ -298,6 +316,12 @@ class SO_5_TYPE environment_params_t
 		 * \see disable_autoshutdown()
 		 */
 		bool m_autoshutdown_disabled;
+
+		/*!
+		 * \since v.5.5.0
+		 * \brief Error logger for the environment.
+		 */
+		error_logger_shptr_t m_error_logger;
 };
 
 //

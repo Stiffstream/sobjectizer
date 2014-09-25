@@ -90,7 +90,6 @@ timer_thread_t::timer_thread_t()
 timer_thread_t::~timer_thread_t()
 	{}
 
-//FIXME: this namespace must be described in namespaces.dox
 namespace timers_details
 {
 

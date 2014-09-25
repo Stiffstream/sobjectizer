@@ -441,8 +441,17 @@ agent_t::shutdown_agent()
 						typeid(void),
 						message_ref_t(),
 						&agent_t::demand_handler_on_finish ) );
-//FIXME: may be it is necessary to call std::abort() in the
-//case when q == nullptr?
+	else
+	{
+		SO_5_LOG_ERROR( so_environment(), log_stream )
+		{
+			log_stream << "Unexpected error: m_event_queue_proxy->shutdown() "
+				"returns nullptr. Unable to push demand_handler_on_finish for "
+				"the agent (" << this << "). Application will be aborted"
+				<< std::endl;
+			std::abort();
+		}
+	}
 }
 
 namespace

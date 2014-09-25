@@ -62,14 +62,11 @@ layer_core_t::layer_core_t(
 		m_env( env ),
 		m_default_layers( so_layers.begin(), so_layers.end() )
 {
-	for( so_layer_list_t::iterator
-		it = m_default_layers.begin(),
-		it_end = m_default_layers.end();
-		it != it_end;
-		++it )
-	{
-		it->m_layer->bind_to_environment( &m_env );
-	}
+	std::for_each( m_default_layers.begin(), m_default_layers.end(),
+		[this]( so_layer_list_t::value_type & item )
+		{
+			item.m_layer->bind_to_environment( &m_env );
+		} );
 }
 
 layer_core_t::~layer_core_t()
@@ -82,42 +79,14 @@ search_for_layer(
 	const so_layer_list_t & layers,
 	const std::type_index & type )
 {
-	so_layer_list_t::const_iterator
-		it = layers.begin(),
-		it_end = layers.end();
-
-//FIXME: a simple binary search should be used.
-	for(
-		size_t size = std::distance( it, it_end );
-		size > 0;
-		size = std::distance( it, it_end ) )
-	{
-		if( size <= 8 )
-		{
-			// Too few items, use simple enumeration.
-			while( it != it_end )
+	auto search_result = std::lower_bound( layers.begin(), layers.end(),
+			type,
+			[]( const so_layer_list_t::value_type & a, const std::type_index & b )
 			{
-				if( type == it->m_true_type )
-					return it;
-
-				++it;
-			}
-		}
-		else
-		{
-			// Too many layers, use binary search.
-			so_layer_list_t::const_iterator it_center =
-				it + size / 2;
-
-			if( type == it_center->m_true_type )
-				return it_center;
-
-			if( type < it_center->m_true_type )
-				it_end = it_center;
-			else
-				it = it_center + 1;
-		}
-	}
+				return a.m_true_type < b;
+			} );
+	if( search_result != layers.end() && search_result->m_true_type == type )
+		return search_result;
 
 	return layers.end();
 }
@@ -192,7 +161,6 @@ layer_core_t::add_extra_layer(
 	const std::type_index & type,
 	const so_layer_ref_t & layer )
 {
-//FIXME: check for exception safety!
 	if( nullptr == layer.get() )
 		SO_5_THROW_EXCEPTION(
 			rc_trying_to_add_nullptr_extra_layer,
@@ -223,14 +191,29 @@ layer_core_t::add_extra_layer(
 			std::string( "layer raised an exception: " ) + x.what() );
 	}
 
-	typed_layer_ref_t typed_layer( type, layer );
+	try
+	{
+		typed_layer_ref_t typed_layer( type, layer );
 
-	m_extra_layers.insert(
-		std::lower_bound(
-			m_extra_layers.begin(),
-			m_extra_layers.end(),
-			typed_layer ),
-		typed_layer );
+		m_extra_layers.insert(
+			std::lower_bound(
+				m_extra_layers.begin(),
+				m_extra_layers.end(),
+				typed_layer ),
+			typed_layer );
+	}
+	catch( const std::exception & x )
+	{
+		// Unable to store layer. Layer must be stopped...
+		layer->shutdown();
+		layer->wait();
+
+		// ...And error must be reported.
+		SO_5_THROW_EXCEPTION(
+			rc_unable_to_start_extra_layer,
+			std::string( "unable to store pointer to layer, exception: " ) +
+				x.what() );
+	}
 }
 
 void
