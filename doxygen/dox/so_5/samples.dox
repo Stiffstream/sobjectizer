@@ -77,4 +77,8 @@
 /*!
  * \example so_5/hardwork_imit/main.cpp
  */
+
+/*!
+ * \example so_5/many_timers/main.cpp
+ */
 // vim:ft=cpp.doxygen

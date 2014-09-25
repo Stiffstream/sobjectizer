@@ -126,6 +126,9 @@ main()
 		check_factory( "timer_wheel_factory(20,1s)",
 				so_5::timer_wheel_factory( 20, std::chrono::seconds(1) ) );
 		check_factory( "timer_list_factory", so_5::timer_list_factory() );
+		check_factory( "timer_heap_factory", so_5::timer_heap_factory() );
+		check_factory( "timer_heap_factory(2048)",
+				so_5::timer_heap_factory( 2048 ) );
 
 		return 0;
 	}
