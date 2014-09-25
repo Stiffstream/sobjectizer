@@ -48,8 +48,8 @@ class a_hello_t : public so_5::rt::agent_t
 		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
-		so_5::timer_thread::timer_id_ref_t m_hello_timer_id;
-		so_5::timer_thread::timer_id_ref_t m_stop_timer_id;
+		so_5::timer_id_t m_hello_timer_id;
+		so_5::timer_id_t m_stop_timer_id;
 
 		// How much timer event has been processed.
 		unsigned int m_evt_count;
@@ -80,9 +80,9 @@ a_hello_t::so_evt_start()
 				std::move( msg ),
 				so_direct_mbox(),
 				// Delay for a second.
-				so_5::chrono_helpers::to_ms( std::chrono::seconds(1) ),
+				std::chrono::seconds(1),
 				// Repeat every 1.25 of seconds.
-				so_5::chrono_helpers::to_ms( std::chrono::milliseconds(1250) ) );
+				std::chrono::milliseconds(1250) );
 
 	// Sending a stop signal.
 	m_stop_timer_id =
@@ -90,9 +90,9 @@ a_hello_t::so_evt_start()
 			.schedule_timer< msg_stop_signal >(
 				m_shutdowner_mbox,
 				// Delay for two seconds.
-				so_5::chrono_helpers::to_ms( std::chrono::seconds(2) ),
+				std::chrono::seconds(2),
 				// Not a periodic.
-				0 );
+				std::chrono::seconds::zero() );
 }
 
 void
@@ -116,8 +116,8 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 				.schedule_timer< msg_stop_signal >(
 					m_shutdowner_mbox,
 					// 1300ms but specified in microsecs just for demonstration.
-					so_5::chrono_helpers::to_ms( std::chrono::microseconds(1300000) ),
-					0 );
+					std::chrono::microseconds(1300000),
+					std::chrono::seconds::zero() );
 	}
 }
 

@@ -705,6 +705,41 @@ class SO_5_TYPE environment_t
 		 */
 
 		//! Schedule timer event.
+		/*!
+		 * \since v.5.5.0
+		 */
+		template< class MESSAGE >
+		so_5::timer_id_t
+		schedule_timer(
+			//! Message to be sent after timeout.
+			std::unique_ptr< MESSAGE > msg,
+			//! Mbox to which message will be delivered.
+			const mbox_ref_t & mbox,
+			//! Timeout before the first delivery.
+			std::chrono::steady_clock::duration pause,
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
+			*/
+			std::chrono::steady_clock::duration period )
+		{
+			ensure_message_with_actual_data( msg.get() );
+
+			return schedule_timer(
+				std::type_index( typeid( MESSAGE ) ),
+				message_ref_t( msg.release() ),
+				mbox,
+				pause,
+				period );
+		}
+
+		//! Schedule timer event.
+		/*!
+		 * \deprecated Obsolete in v.5.5.0. Use versions with
+		 * std::chrono::steady_clock::duration parameters.
+		 */
+		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		so_5::timer_id_t
 		schedule_timer(
@@ -727,11 +762,44 @@ class SO_5_TYPE environment_t
 				std::type_index( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
-				delay_msec,
-				period_msec );
+				std::chrono::milliseconds( delay_msec ),
+				std::chrono::milliseconds( period_msec ) );
 		}
 
 		//! Schedule a timer event for a signal.
+		/*!
+		 * \since v.5.5.0
+		 */
+		template< class MESSAGE >
+		so_5::timer_id_t
+		schedule_timer(
+			//! Mbox to which signal will be delivered.
+			const mbox_ref_t & mbox,
+			//! Timeout before the first delivery.
+			std::chrono::steady_clock::duration pause,
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
+			*/
+			std::chrono::steady_clock::duration period )
+		{
+			ensure_signal< MESSAGE >();
+
+			return schedule_timer(
+				std::type_index( typeid( MESSAGE ) ),
+				message_ref_t(),
+				mbox,
+				pause,
+				period );
+		}
+
+		//! Schedule a timer event for a signal.
+		/*!
+		 * \deprecated Obsolete in v.5.5.0. Use versions with
+		 * std::chrono::steady_clock::duration parameters.
+		 */
+		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		so_5::timer_id_t
 		schedule_timer(
@@ -752,11 +820,39 @@ class SO_5_TYPE environment_t
 				std::type_index( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
-				delay_msec,
-				period_msec );
+				std::chrono::milliseconds( delay_msec ),
+				std::chrono::milliseconds( period_msec ) );
 		}
 
 		//! Schedule a single shot timer event.
+		/*!
+		 * \since v.5.5.0
+		 */
+		template< class MESSAGE >
+		void
+		single_timer(
+			//! Message to be sent after timeout.
+			std::unique_ptr< MESSAGE > msg,
+			//! Mbox to which message will be delivered.
+			const mbox_ref_t & mbox,
+			//! Timeout before delivery.
+			std::chrono::steady_clock::duration pause )
+		{
+			ensure_message_with_actual_data( msg.get() );
+
+			single_timer(
+				std::type_index( typeid( MESSAGE ) ),
+				message_ref_t( msg.release() ),
+				mbox,
+				pause );
+		}
+
+		//! Schedule a single shot timer event.
+		/*!
+		 * \deprecated Obsolete in v.5.5.0. Use versions with
+		 * std::chrono::steady_clock::duration parameters.
+		 */
+		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		void
 		single_timer(
@@ -773,10 +869,36 @@ class SO_5_TYPE environment_t
 				std::type_index( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
-				delay_msec );
+				std::chrono::milliseconds( delay_msec ) );
 		}
 
 		//! Schedule a single shot timer event for a signal.
+		/*!
+		 * \since v.5.5.0
+		 */
+		template< class MESSAGE >
+		void
+		single_timer(
+			//! Mbox to which signal will be delivered.
+			const mbox_ref_t & mbox,
+			//! Timeout before delivery.
+			std::chrono::steady_clock::duration pause )
+		{
+			ensure_signal< MESSAGE >();
+
+			single_timer(
+				std::type_index( typeid( MESSAGE ) ),
+				message_ref_t(),
+				mbox,
+				pause );
+		}
+
+		//! Schedule a single shot timer event for a signal.
+		/*!
+		 * \deprecated Obsolete in v.5.5.0. Use versions with
+		 * std::chrono::steady_clock::duration parameters.
+		 */
+		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		void
 		single_timer(
@@ -791,7 +913,7 @@ class SO_5_TYPE environment_t
 				std::type_index( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
-				delay_msec );
+				std::chrono::milliseconds( delay_msec ) );
 		}
 		/*!
 		 * \}
@@ -946,13 +1068,13 @@ class SO_5_TYPE environment_t
 			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
-			unsigned int delay_msec,
+			std::chrono::steady_clock::duration pause,
 			//! Period of the delivery repetition for periodic messages.
 			/*! 
 				\note Value 0 indicates that it's not periodic message 
 					(will be delivered one time).
 			*/
-			unsigned int period_msec = 0 );
+			std::chrono::steady_clock::duration period );
 
 		//! Schedule a single shot timer event.
 		void
@@ -964,7 +1086,7 @@ class SO_5_TYPE environment_t
 			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
-			unsigned int delay_msec );
+			std::chrono::steady_clock::duration pause );
 
 		//! Access to an additional layer.
 		so_layer_t *

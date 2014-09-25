@@ -70,8 +70,7 @@ a_hello_t::so_evt_start()
 	so_environment().single_timer(
 		std::move( msg ),
 		so_direct_mbox(),
-		// Delay for 2 seconds.
-		2*1000 );
+		std::chrono::seconds( 2 ) );
 }
 
 void
@@ -82,7 +81,7 @@ a_hello_t::evt_hello_delay( const msg_hello & msg )
 
 	so_environment().single_timer< msg_stop_signal >(
 		so_direct_mbox(),
-		2*1000 );
+		std::chrono::seconds( 2 ) );
 }
 
 void

@@ -79,9 +79,9 @@ class a_child_t
 				.schedule_timer< task_completed_t >(
 					so_direct_mbox(),
 					// One second delay.
-					1 * 1000,
+					std::chrono::seconds( 1 ),
 					// Not periodic.
-					0 ); 
+					std::chrono::seconds::zero() ); 
 		}
 
 		virtual void
@@ -113,7 +113,7 @@ class a_child_t
 		const so_5::rt::mbox_ref_t m_result_mbox; 
 
 		// Self-timer ref.
-		so_5::timer_thread::timer_id_ref_t	m_timer_ref; 
+		so_5::timer_id_t	m_timer_ref; 
 
 		// Task ID.
 		unsigned int m_task_id;

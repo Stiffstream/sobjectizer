@@ -191,8 +191,8 @@ class actual_thread_t : public timer_thread_t
 			const std::type_index & type_index,
 			const so_5::rt::mbox_ref_t & mbox_r,
 			const so_5::rt::message_ref_t & msg_r,
-			std::chrono::milliseconds pause,
-			std::chrono::milliseconds period ) override
+			std::chrono::steady_clock::duration pause,
+			std::chrono::steady_clock::duration period ) override
 			{
 				std::unique_ptr< timer_demand_t > timer(
 						new timer_demand_t( m_thread.get() ) );
@@ -215,8 +215,8 @@ class actual_thread_t : public timer_thread_t
 			const std::type_index & type_index,
 			const so_5::rt::mbox_ref_t & mbox,
 			const so_5::rt::message_ref_t & msg,
-			std::chrono::milliseconds pause,
-			std::chrono::milliseconds period ) override
+			std::chrono::steady_clock::duration pause,
+			std::chrono::steady_clock::duration period ) override
 			{
 				m_thread->activate(
 						pause,

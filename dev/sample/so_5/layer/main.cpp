@@ -73,7 +73,7 @@ class shutdowner_layer_t
 
 			so_environment().single_timer< msg_shutdown >(
 				m_shutdown_mbox,
-				3*1000 );
+				std::chrono::seconds( 3 ) );
 		}
 
 		// Shutdown layer.

@@ -303,15 +303,15 @@ environment_t::schedule_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_ref_t & mbox,
-	unsigned int delay_msec,
-	unsigned int period_msec )
+	std::chrono::steady_clock::duration pause,
+	std::chrono::steady_clock::duration period )
 {
 	return m_impl->m_timer_thread->schedule(
 			type_wrapper,
 			mbox,
 			msg,
-			std::chrono::milliseconds( delay_msec ),
-			std::chrono::milliseconds( period_msec ) );
+			pause,
+			period );
 }
 
 void
@@ -319,13 +319,13 @@ environment_t::single_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_ref_t & mbox,
-	unsigned int delay_msec )
+	std::chrono::steady_clock::duration pause )
 {
-	return m_impl->m_timer_thread->schedule_anonymous(
+	m_impl->m_timer_thread->schedule_anonymous(
 			type_wrapper,
 			mbox,
 			msg,
-			std::chrono::milliseconds( delay_msec ),
+			pause,
 			std::chrono::milliseconds::zero() );
 }
 

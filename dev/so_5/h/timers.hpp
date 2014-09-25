@@ -155,10 +155,10 @@ class SO_5_TYPE timer_thread_t
 			//! Message to be sent.
 			const so_5::rt::message_ref_t & msg,
 			//! Pause before first message delivery.
-			std::chrono::milliseconds pause,
+			std::chrono::steady_clock::duration pause,
 			//! Period for message repetition.
 			//! Zero value means single shot delivery.
-			std::chrono::milliseconds period ) = 0;
+			std::chrono::steady_clock::duration period ) = 0;
 
 		//! Push anonymous delayed/periodic message to the timer queue.
 		/*!
@@ -173,10 +173,10 @@ class SO_5_TYPE timer_thread_t
 			//! Message to be sent.
 			const so_5::rt::message_ref_t & msg,
 			//! Pause before first message delivery.
-			std::chrono::milliseconds pause,
+			std::chrono::steady_clock::duration pause,
 			//! Period for message repetition.
 			//! Zero value means single shot delivery.
-			std::chrono::milliseconds period ) = 0;
+			std::chrono::steady_clock::duration period ) = 0;
 	};
 
 //! Auxiliary typedef for timer_thread autopointer.

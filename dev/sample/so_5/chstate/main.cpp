@@ -102,7 +102,7 @@ class a_state_swither_t : public so_5::rt::agent_t
 		// Timer event id.
 		// If we do not store it the periodic message will
 		// be canceled automatically.
-		so_5::timer_thread::timer_id_ref_t m_timer_id;
+		so_5::timer_id_t m_timer_id;
 };
 
 void
@@ -139,8 +139,8 @@ a_state_swither_t::so_evt_start()
 	// Periodic message should be initiated.
 	m_timer_id = so_environment().schedule_timer< msg_periodic >(
 			so_direct_mbox(),
-			1 * 1000,
-			1 * 1000 );
+			std::chrono::seconds( 1 ),
+			std::chrono::seconds( 1 ) );
 }
 
 void
