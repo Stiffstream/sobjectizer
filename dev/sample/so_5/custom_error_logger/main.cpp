@@ -1,5 +1,5 @@
 /*
- * A sample for the exception handler and cooperation notifications.
+ * A sample for the custom error logger and cooperation notifications.
  */
 
 #include <iostream>
