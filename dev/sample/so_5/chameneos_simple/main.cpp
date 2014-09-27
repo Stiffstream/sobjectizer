@@ -32,10 +32,7 @@
 #include <iterator>
 #include <numeric>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 enum color_t
 	{
@@ -93,7 +90,7 @@ class a_meeting_place_t
 			{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 			{
 				so_change_state( st_empty );
 
@@ -177,7 +174,7 @@ class a_creature_t
 			{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 			{
 				so_subscribe( so_direct_mbox() )
 					.event( &a_creature_t::evt_meeting_result );
@@ -189,7 +186,7 @@ class a_creature_t
 			}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 			{
 				m_meeting_place_mbox->deliver_message(
 						new msg_meeting_request( so_direct_mbox(), m_color ) );

@@ -26,11 +26,11 @@ class a_hello_t : public so_5::rt::agent_t
 
 		// Definition of an agent for SObjectizer.
 		virtual void
-		so_define_agent();
+		so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start();
+		so_evt_start() override;
 
 		// Hello message handler.
 		void

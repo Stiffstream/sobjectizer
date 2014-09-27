@@ -5,10 +5,8 @@
 #include <iostream>
 #include <set>
 
-// Main SObjectizer header files.
-#include <so_5/api/h/api.hpp>
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/rt/h/so_layer.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 class msg_shutdown : public so_5::rt::signal_t {};
 
@@ -67,7 +65,7 @@ class shutdowner_layer_t
 
 		// Start layer.
 		virtual void
-		start()
+		start() override
 		{
 			m_shutdown_mbox = so_environment().create_local_mbox( "shutdown_mbox" );
 
@@ -78,14 +76,14 @@ class shutdowner_layer_t
 
 		// Shutdown layer.
 		virtual void
-		shutdown()
+		shutdown() override
 		{
 			std::cout << "shutdowner_layer shutdown()" << std::endl;
 		}
 
 		// Wait for the layer shutdown.
 		virtual void
-		wait()
+		wait() override
 		{
 			std::cout << "shutdowner_layer wait()" << std::endl;
 		}
@@ -146,11 +144,11 @@ class a_hello_t
 
 		// Definition of an agent for SObjectizer.
 		virtual void
-		so_define_agent();
+		so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start();
+		so_evt_start() override;
 
 		// A reaction to the common greeting.
 		void

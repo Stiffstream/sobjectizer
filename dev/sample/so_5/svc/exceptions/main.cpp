@@ -27,7 +27,7 @@ class a_convert_service_t
 			{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 			{
 				so_subscribe( so_direct_mbox() )
 						.event( []( const msg_convert & msg ) -> int
@@ -60,7 +60,7 @@ class a_client_t
 			{}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 			{
 				std::string values_to_convert[] = {
 						"1", "2", "a1", "a2", "3", "a3", "41", "42", "43" };

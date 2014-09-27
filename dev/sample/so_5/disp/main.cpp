@@ -5,14 +5,8 @@
 #include <iostream>
 #include <sstream>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-// SObjectizer dispatchers.
-#include <so_5/disp/one_thread/h/pub.hpp>
-#include <so_5/disp/active_group/h/pub.hpp>
-#include <so_5/disp/active_obj/h/pub.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // A class for an agent.
 class a_disp_user_t
@@ -34,11 +28,11 @@ class a_disp_user_t
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start();
+		so_evt_start() override;
 
 		// A reaction to finish of work in SObjectizer.
 		virtual void
-		so_evt_finish();
+		so_evt_finish() override;
 
 	private:
 		const std::string m_name;

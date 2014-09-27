@@ -6,9 +6,8 @@
 #include <stdexcept>
 #include <sstream>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // Logger sample class.
 // Object of that class will be used as user resource for cooperation.
@@ -59,7 +58,7 @@ class a_child_t
 		}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			m_logger.log( m_agent_name + ": finishing" );
 			m_parent_mbox->deliver_signal< msg_child_finished >();
@@ -96,7 +95,7 @@ class a_parent_t
 		}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() ).event(
 					so_5::signal< msg_child_finished >,

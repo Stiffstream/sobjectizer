@@ -5,9 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // A class of the exception logger.
 class sample_event_exception_logger_t
@@ -22,7 +21,7 @@ class sample_event_exception_logger_t
 		virtual void
 		log_exception(
 			const std::exception & event_exception,
-			const std::string & coop_name )
+			const std::string & coop_name ) override
 		{
 			std::cerr
 				<< "Event_exception, coop:"
@@ -49,7 +48,7 @@ class a_hello_t
 
 		// A reaction to start work in SObjectizer.
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_environment().install_exception_logger(
 				so_5::rt::event_exception_logger_unique_ptr_t(
@@ -60,7 +59,7 @@ class a_hello_t
 
 		// A reaction to finish work in SObjectizer.
 		virtual void
-		so_evt_finish()
+		so_evt_finish() override
 		{
 			// Stopping SObjectizer.
 			so_environment().stop();

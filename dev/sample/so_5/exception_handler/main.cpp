@@ -5,9 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // A class of an agent which will throw an exception.
 class a_hello_t
@@ -24,13 +23,13 @@ class a_hello_t
 		{}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			throw std::runtime_error( "sample exception" );
 		}
 
 		virtual so_5::rt::exception_reaction_t
-		so_exception_reaction() const
+		so_exception_reaction() const override
 		{
 			return so_5::rt::shutdown_sobjectizer_on_exception;
 		}

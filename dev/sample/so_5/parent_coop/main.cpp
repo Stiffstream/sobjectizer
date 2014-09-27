@@ -12,9 +12,8 @@
 #include <iostream>
 #include <sstream>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // Result of task which will be send to a parent agent.
 class task_result_t : public so_5::rt::message_t
@@ -63,7 +62,7 @@ class a_child_t
 
 		// Definition of the agent for SObjectizer.
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( &a_child_t::evt_task_completed );
@@ -71,7 +70,7 @@ class a_child_t
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			std::cout << "Child: has started to do task " << m_task_id << std::endl;
 
@@ -85,7 +84,7 @@ class a_child_t
 		}
 
 		virtual void
-		so_evt_finish()
+		so_evt_finish() override
 		{
 			std::cout << "Child: has finished, task " << m_task_id << std::endl;
 		}
@@ -137,7 +136,7 @@ class a_parent_t
 
 		// Definition of the agent for SObjectizer.
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( &a_parent_t::evt_task_result );
@@ -145,7 +144,7 @@ class a_parent_t
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			std::cout << "Parent: agent has started." << std::endl;
 
@@ -154,7 +153,7 @@ class a_parent_t
 		}
 
 		virtual void
-		so_evt_finish()
+		so_evt_finish() override
 		{
 			std::cout << "Parent: agent has finished." << std::endl;
 		}

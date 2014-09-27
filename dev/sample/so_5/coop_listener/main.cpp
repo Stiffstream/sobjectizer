@@ -4,10 +4,8 @@
 
 #include <iostream>
 
-// Main SObjectizer headers.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/rt/h/coop_listener.hpp>
+// Main SObjectizer header.
+#include <so_5/all.hpp>
 
 // An agent class definition.
 class a_hello_t
@@ -49,7 +47,7 @@ class coop_listener_impl_t
 		virtual void
 		on_registered(
 			so_5::rt::environment_t & so_env,
-			const std::string & coop_name ) throw()
+			const std::string & coop_name ) override
 		{
 			std::cout << "coop_listener: register coop '"
 				<< coop_name << "'\n";
@@ -60,7 +58,7 @@ class coop_listener_impl_t
 		on_deregistered(
 			so_5::rt::environment_t & so_env,
 			const std::string & coop_name,
-			const so_5::rt::coop_dereg_reason_t & reason ) throw()
+			const so_5::rt::coop_dereg_reason_t & reason ) override
 		{
 			std::cout << "coop_listener: deregister coop '"
 				<< coop_name << "', reason: "

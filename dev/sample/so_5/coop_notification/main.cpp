@@ -5,9 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // A class of an agent which will throw an exception.
 class a_child_t
@@ -24,7 +23,7 @@ class a_child_t
 		{}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			if( m_should_throw )
 				throw std::runtime_error( "A child agent failure!" );
@@ -49,7 +48,7 @@ class a_parent_t
 		{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( &a_parent_t::evt_child_created );

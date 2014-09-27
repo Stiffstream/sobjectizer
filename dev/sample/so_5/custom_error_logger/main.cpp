@@ -5,9 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // A cooperation notificator which will not throw exceptions.
 void

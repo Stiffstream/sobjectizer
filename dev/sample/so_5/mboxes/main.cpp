@@ -5,9 +5,8 @@
 #include <iostream>
 #include <string>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // State sequence for sample agent.
 enum sample_state_t
@@ -94,11 +93,11 @@ class my_agent_t
 
 		// Definition of an agent for SObjectizer.
 		virtual void
-		so_define_agent();
+		so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start();
+		so_evt_start() override;
 
 		// Handle change state.
 		void

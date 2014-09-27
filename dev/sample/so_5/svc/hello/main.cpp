@@ -75,7 +75,7 @@ class a_client_t
 			{}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 			{
 				std::cout << "hello_svc: "
 						<< m_svc_mbox->get_one< std::string >()

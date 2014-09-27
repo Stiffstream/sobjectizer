@@ -135,7 +135,7 @@ public :
 	{}
 
 	virtual void
-	so_define_agent()
+	so_define_agent() override
 	{
 		so_subscribe( so_direct_mbox() )
 			.event( so_5::signal< msg_timer >, &a_receiver_t::evt_timer );
@@ -170,7 +170,7 @@ public :
 	{}
 
 	virtual void
-	so_evt_start()
+	so_evt_start() override
 	{
 		for( unsigned long long i = 0; i != m_messages_to_send; ++i )
 			so_environment().single_timer< msg_timer >( m_dest_mbox, m_delay );

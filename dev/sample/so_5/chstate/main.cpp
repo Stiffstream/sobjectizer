@@ -14,9 +14,8 @@
 #include <iostream>
 #include <time.h>
 
-// Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header file.
+#include <so_5/all.hpp>
 
 // Periodic message.
 class msg_periodic : public so_5::rt::signal_t {};
@@ -40,7 +39,7 @@ class state_monitor_t
 		virtual void
 		changed(
 			so_5::rt::agent_t &,
-			const so_5::rt::state_t & state )
+			const so_5::rt::state_t & state ) override
 		{
 			std::cout << m_type_hint << " agent changed state to "
 				<< state.query_name()
@@ -67,11 +66,11 @@ class a_state_swither_t : public so_5::rt::agent_t
 
 		// Definition of the agent for SObjectizer.
 		virtual void
-		so_define_agent();
+		so_define_agent() override;
 
 		// Reaction to start into SObjectizer.
 		virtual void
-		so_evt_start();
+		so_evt_start() override;
 
 		// Message handler for the default state.
 		void

@@ -23,7 +23,7 @@ class a_hello_t
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			std::cout << "Hello, world! This is SObjectizer v.5."
 				<< std::endl;
@@ -34,7 +34,7 @@ class a_hello_t
 
 		// A reaction to finish of work in SObjectizer.
 		virtual void
-		so_evt_finish()
+		so_evt_finish() override
 		{
 			std::cout << "Bye! This was SObjectizer v.5."
 				<< std::endl;

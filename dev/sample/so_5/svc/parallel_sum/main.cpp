@@ -44,13 +44,13 @@ class a_vector_summator_t : public so_5::rt::agent_t
 			{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 			{
 				so_subscribe( m_self_mbox ).event( &a_vector_summator_t::evt_sum );
 			}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
 				auto coop = so_environment().create_coop(
@@ -125,7 +125,7 @@ class a_runner_t : public so_5::rt::agent_t
 			{}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 			{
 				create_summator_coop();
 				fill_test_vector();
