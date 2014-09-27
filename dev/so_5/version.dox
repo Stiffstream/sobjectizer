@@ -7,6 +7,7 @@
 	Timer-handling methods so_5::rt::environment_t::schedule_timer()
 	and so_5::rt::environment_t::single_timer() now accept
 	std::chrono::duration as arguments.
+	See \ref so_5_5_0__native_stdchrono_support.
 
 	Two new functions so_5::launch() are implemeted to be used instead
 	of bunch of so_5::api::run_so_environment() functions.

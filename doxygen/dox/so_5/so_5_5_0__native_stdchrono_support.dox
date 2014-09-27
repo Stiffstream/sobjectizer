@@ -1,0 +1,45 @@
+/*!
+
+\page so_5_5_0__native_stdchrono_support so-5.5.0: Native support for std::chrono
+
+Since v.5.5.0 it is possible to _specify_ pause and _period_ parameters for
+single_timer and schedule_timer methods as std::chrono-values:
+
+\code
+class my_agent_t : public so_5::rt::agent_t
+{
+public :
+	virtual void so_evt_start() override
+	{
+		m_hello_timer_id = so_environment()
+			 .schedule_timer(
+				  std::move( msg ),
+				  so_direct_mbox(),
+				  // Delay for a second.
+				  std::chrono::seconds(1),
+				  // Repeat every 1.25 of seconds.
+				  std::chrono::milliseconds(1250) );
+
+		m_stop_timer_id = so_environment()
+			 .schedule_timer< msg_stop_signal >(
+				  m_shutdowner_mbox,
+				  // Delay for two seconds.
+				  std::chrono::seconds(2),
+				  // Not a periodic.
+				  std::chrono::seconds::zero() );
+		...
+	}
+	...
+private :
+	so_5::timer_id_t m_hello_timer_id;
+	so_5::timer_id_t m_stop_timer_id;
+};
+\endcode
+
+Old single_timer/schedule_timer are still here and can be used too. But they
+are marked as deprecated and can be removed in next major SObjectizer updates.
+
+*/
+
+// vim:ft=cpp
+
