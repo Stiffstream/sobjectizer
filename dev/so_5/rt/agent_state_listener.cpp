@@ -10,6 +10,10 @@ namespace so_5
 namespace rt
 {
 
+agent_state_listener_t::agent_state_listener_t()
+{
+}
+
 agent_state_listener_t::~agent_state_listener_t()
 {
 }

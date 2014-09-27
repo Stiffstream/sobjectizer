@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include <cpp_util_2/h/lexcast.hpp>
-
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
 
 namespace so_5

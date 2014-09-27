@@ -12,8 +12,6 @@
 
 #include <memory>
 
-#include <cpp_util_2/h/nocopy.hpp>
-
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/state.hpp>
 
@@ -45,10 +43,13 @@ class state_t;
  * Because this could lead to the infinite recursion.
  */
 class SO_5_TYPE agent_state_listener_t
-	:
-		private cpp_util_2::nocopy_t
 {
+		agent_state_listener_t( const agent_state_listener_t & ) = delete;
+		agent_state_listener_t &
+		operator=( const agent_state_listener_t & ) = delete;
+
 	public:
+		agent_state_listener_t();
 		virtual ~agent_state_listener_t();
 
 		//! Hook method for state changes.

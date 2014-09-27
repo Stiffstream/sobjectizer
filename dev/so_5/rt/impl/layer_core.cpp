@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <iterator>
 
-#include <cpp_util_2/h/lexcast.hpp>
-
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 namespace so_5

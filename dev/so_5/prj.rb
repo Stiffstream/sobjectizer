@@ -82,26 +82,14 @@ MxxRu::Cpp::dll_target {
 		}
 
 		sources_root( 'one_thread' ) {
-			sources_root( 'impl' ) {
-				cpp_source( 'disp.cpp' )
-				cpp_source( 'disp_binder.cpp' )
-			}
 			cpp_source( 'pub.cpp' )
 		}
 
 		sources_root( 'active_obj' ) {
-			sources_root( 'impl' ) {
-				cpp_source( 'disp.cpp' )
-				cpp_source( 'disp_binder.cpp' )
-			}
 			cpp_source( 'pub.cpp' )
 		}
 
 		sources_root( 'active_group' ) {
-			sources_root( 'impl' ) {
-				cpp_source( 'disp.cpp' )
-				cpp_source( 'disp_binder.cpp' )
-			}
 			cpp_source( 'pub.cpp' )
 		}
 

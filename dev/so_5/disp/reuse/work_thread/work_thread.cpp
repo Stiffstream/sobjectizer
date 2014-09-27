@@ -7,8 +7,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <cpp_util_2/h/lexcast.hpp>
-
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/environment.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
