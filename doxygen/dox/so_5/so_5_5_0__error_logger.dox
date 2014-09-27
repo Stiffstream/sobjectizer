@@ -1,0 +1,60 @@
+/*!
+
+\page so_5_5_0__error_logger so-5.5.0: An error_logger interface
+
+Previous versions of SObjectizer use ACE_Logger facility from ACE Framework. In
+the case of an error SObjectizer core used one of ACE_Logger macros (e.g.
+ACE_DEBUG) to place error message to appropriate error stream or/and log file.
+If user want to store error messages to some specific destination he/she had to
+tune ACE_Logger (at the start of application for example).
+
+But since v.5.5.0 SObjectizer doesn't use ACE Framework any more. So if user
+wants to store SObjectizer's error messages to some location he/she must define
+and specify its own error_logger to the SObjectizer Environment parameters.
+Something like this:
+
+\code
+class custom_error_logger : public so_5::rt::error_logger_t
+{
+public :
+    // Constructor.
+    custom_error_logger( some_log_interface log ) : log_(log) {}
+
+    // Error message handler.
+    virtual void log(
+        const char * file,
+        unsigned int line,
+        const std::string & message ) override
+    {
+        log_.store_message( message );
+    }
+
+private :
+    some_log_interface log_;
+};
+...
+// Tuning SObjectizer Environment parameters at start.
+some_log_interface log = create_log(...);
+...
+so_5::launch(
+    []( so_5::rt::environment_t & env )
+    {
+        // Some initialization stuff...
+    },
+    [log]( so_5::rt::environment_params_t & params )
+    {
+        // Setting logger.
+        params.error_logger( so_5::rt::error_logger_shptr_t(
+            new custom_error_log( log ) ) );
+        ...
+    } );
+\endcode
+
+If custom error logger is not specified by the user then a default error logger
+will be used. SObjectizer creates default error logger by
+so_5::create_stderr_logger(). This logger uses std::cerr as error stream.
+
+*/
+
+// vim:ft=cpp
+

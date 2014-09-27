@@ -1,0 +1,41 @@
+/*!
+
+\page so_5_5_0__timer_thread_factories so-5.5.0: Timer thread factories
+
+Since v.5.5.0 the <a
+href="https://sourceforge.net/p/sobjectizer/wiki/Timer%20Thread%20Template">Timer
+Thread Template</a> library is used for timers implementation. The timertt
+provides several timer mechanisms and user can choose which one will be used
+with SObjectizer Environment.
+
+There are several factory function for timer mechanism creation:
+so_5::timer_wheel_factory, so_5::timer_list_factory and
+so_5::timer_heap_factory. Any of them can be used in tuning SObjectizer
+Environment parameters. For example:
+
+\code
+so_5::launch(
+    []( so_5::rt::environment_t & env )
+    {
+        // Some initialization stuff...
+    },
+    // SObjectizer Environment parameters tuning.
+    []( so_5::rt::environment_params_t & params )
+    {
+        // Use timer_wheel mechanism with wheel size 10000
+        // and timer step size of 5ms.
+        params.timer_thread(
+            so_5::timer_wheel_factory( 10000, 
+                std::chrono::milliseconds(5) ) );
+        ...
+    } );
+\endcode
+
+By default the timer_heap mechanism is used. But if your application uses a lot
+of timers (millions or tens of millions or even more) then timer_wheel must be
+considered as more appropriate for big amount of timers.
+
+*/
+
+// vim:ft=cpp
+

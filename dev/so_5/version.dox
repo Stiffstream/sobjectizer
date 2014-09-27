@@ -17,7 +17,13 @@
 	Old names (so_5::rt::so_environment_t, so_5::rt::so_environment_params_t)
 	kept for backward compatibility.
 
-	timertt library is used for timers support.
+	timertt library is used for timers support. Because of that user has
+	a possibility to select the most appropriate timer mechanism for
+	its application. See \ref so_5_5_0__timer_thread_factories for more
+	details.
+
+	Because ACE_Logging is no more used new interface, so_5::error_logger_t is
+	introduced. See \ref so_5_5_0__error_logger for more details.
 
 	ACE Framework is no more used in SObjectizer core.
 
