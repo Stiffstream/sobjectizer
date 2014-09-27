@@ -81,4 +81,9 @@
 /*!
  * \example so_5/many_timers/main.cpp
  */
+
+/*!
+ * \example so_5/custom_error_logger/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

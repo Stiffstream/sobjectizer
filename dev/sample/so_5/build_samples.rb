@@ -27,4 +27,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/ping_pong/prj.rb'
 	required_prj 'sample/so_5/hardwork_imit/prj.rb'
 	required_prj 'sample/so_5/many_timers/prj.rb'
+	required_prj 'sample/so_5/custom_error_logger/prj.rb'
 }
