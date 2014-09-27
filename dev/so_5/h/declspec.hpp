@@ -23,6 +23,14 @@
 
 #endif /* __MINGW32__ */
 
+// For the cases when export/import not needed.
+#if !defined( SO_5_EXPORT )
+	#define SO_5_EXPORT
+#endif
+#if !defined( SO_5_IMPORT )
+	#define SO_5_IMPORT
+#endif
+
 #if defined( SO_5_PRJ )
 	#define SO_5_TYPE SO_5_EXPORT
 
