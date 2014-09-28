@@ -21,19 +21,13 @@
 class msg_periodic : public so_5::rt::signal_t {};
 
 // State listener for fixing state changes.
-class state_monitor_t
-	:
-		public so_5::rt::agent_state_listener_t
+class state_monitor_t : public so_5::rt::agent_state_listener_t
 {
 	const std::string m_type_hint;
 
 	public:
 		state_monitor_t( const std::string & type_hint )
-			:
-				m_type_hint( type_hint )
-		{}
-
-		virtual ~state_monitor_t()
+			:	m_type_hint( type_hint )
 		{}
 
 		virtual void
@@ -51,10 +45,10 @@ class state_monitor_t
 class a_state_swither_t : public so_5::rt::agent_t
 {
 		// Agent states.
-		so_5::rt::state_t m_state_1 = so_make_state( "state_1" );
-		so_5::rt::state_t m_state_2 = so_make_state( "state_2" );
-		so_5::rt::state_t m_state_3 = so_make_state( "state_3" );
-		so_5::rt::state_t m_state_shutdown = so_make_state( "shutdown" );
+		so_5::rt::state_t st_1 = so_make_state( "state_1" );
+		so_5::rt::state_t st_2 = so_make_state( "state_2" );
+		so_5::rt::state_t st_3 = so_make_state( "state_3" );
+		so_5::rt::state_t st_shutdown = so_make_state( "shutdown" );
 
 	public:
 		a_state_swither_t( so_5::rt::environment_t & env )
@@ -74,66 +68,61 @@ class a_state_swither_t : public so_5::rt::agent_t
 
 		// Message handler for the default state.
 		void
-		evt_handler_default(
-			const so_5::rt::event_data_t< msg_periodic > & );
+		evt_handler_default();
 
 		// Message handler for the state_1.
 		void
-		evt_handler_1(
-			const so_5::rt::event_data_t< msg_periodic > & );
+		evt_handler_1();
 
 		// Message handler for the state_2.
 		void
-		evt_handler_2(
-			const so_5::rt::event_data_t< msg_periodic > & );
+		evt_handler_2();
 
 		// Message handler for the state_3.
 		void
-		evt_handler_3(
-			const so_5::rt::event_data_t< msg_periodic > & );
+		evt_handler_3();
 
 		// Message handler for the shutdown_state.
 		void
-		evt_handler_shutdown(
-			const so_5::rt::event_data_t< msg_periodic > & );
+		evt_handler_shutdown();
 
 	private:
 		// Timer event id.
 		// If we do not store it the periodic message will
 		// be canceled automatically.
 		so_5::timer_id_t m_timer_id;
+
+		// Helper method for showing that event handler is called.
+		void
+		show_event_invocation( const char * event_name );
 };
 
 void
 a_state_swither_t::so_define_agent()
 {
+	using namespace so_5;
+
 	// Message subsription.
 	so_subscribe( so_direct_mbox() )
-		.event( &a_state_swither_t::evt_handler_default );
+		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_default );
 
-	so_subscribe( so_direct_mbox() )
-		.in( m_state_1 )
-		.event( &a_state_swither_t::evt_handler_1 );
+	so_subscribe( so_direct_mbox() ).in( st_1 )
+		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_1 );
 
-	so_subscribe( so_direct_mbox() )
-		.in( m_state_2 )
-		.event( &a_state_swither_t::evt_handler_2 );
+	so_subscribe( so_direct_mbox() ).in( st_2 )
+		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_2 );
 
-	so_subscribe( so_direct_mbox() )
-		.in( m_state_3 )
-		.event( &a_state_swither_t::evt_handler_3 );
+	so_subscribe( so_direct_mbox() ).in( st_3 )
+		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_3 );
 
-	so_subscribe( so_direct_mbox() )
-		.in( m_state_shutdown )
-		.event( &a_state_swither_t::evt_handler_shutdown );
+	so_subscribe( so_direct_mbox() ).in( st_shutdown )
+		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_shutdown );
 }
 
 void
 a_state_swither_t::so_evt_start()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "a_state_swither_t::so_evt_start()" << std::endl;
+	show_event_invocation( "so_evt_start()" );
 
 	// Periodic message should be initiated.
 	m_timer_id = so_environment().schedule_timer< msg_periodic >(
@@ -143,65 +132,45 @@ a_state_swither_t::so_evt_start()
 }
 
 void
-a_state_swither_t::evt_handler_default(
-	const so_5::rt::event_data_t< msg_periodic > & )
+a_state_swither_t::evt_handler_default()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "evt_handler_default" << std::endl;
+	show_event_invocation( "evt_handler_default" );
 
 	// Switching to the next state.
-	so_change_state( m_state_1 );
+	so_change_state( st_1 );
 }
 
 void
-a_state_swither_t::evt_handler_1(
-	const so_5::rt::event_data_t< msg_periodic > & )
+a_state_swither_t::evt_handler_1()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "evt_handler_1, state: " << so_current_state().query_name()
-		<< std::endl;
+	show_event_invocation( "evt_handler_1" );
 
 	// Switching to the next state.
-	so_change_state( m_state_2 );
+	so_change_state( st_2 );
 }
 
 void
-a_state_swither_t::evt_handler_2(
-	const so_5::rt::event_data_t< msg_periodic > & )
+a_state_swither_t::evt_handler_2()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "evt_handler_2, state: " << so_current_state().query_name()
-		<< std::endl;
+	show_event_invocation( "evt_handler_2" );
 
 	// Switching to the next state.
-	so_change_state( m_state_3 );
+	so_change_state( st_3 );
 }
 
 void
-a_state_swither_t::evt_handler_3(
-	const so_5::rt::event_data_t< msg_periodic > & )
+a_state_swither_t::evt_handler_3()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "evt_handler_3, state: " << so_current_state().query_name()
-		<< std::endl;
+	show_event_invocation( "evt_handler_3" );
 
 	// Switching to the next state.
-	so_change_state( m_state_shutdown );
+	so_change_state( st_shutdown );
 }
 
 void
-a_state_swither_t::evt_handler_shutdown(
-	const so_5::rt::event_data_t< msg_periodic > & )
+a_state_swither_t::evt_handler_shutdown()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "evt_handler_shutdown, state: "
-		<< so_current_state().query_name()
-		<< std::endl;
+	show_event_invocation( "evt_handler_3" );
 
 	// Switching to the default state.
 	so_change_state( so_default_state() );
@@ -209,6 +178,15 @@ a_state_swither_t::evt_handler_shutdown(
 	// Finishing SObjectizer's work.
 	std::cout << "Stop sobjectizer..." << std::endl;
 	so_environment().stop();
+}
+
+void
+a_state_swither_t::show_event_invocation( const char * event_name )
+{
+	time_t t = time( 0 );
+	std::cout << asctime( localtime( &t ) )
+		<< event_name << ", state: " << so_current_state().query_name()
+		<< std::endl;
 }
 
 // A state listener.
@@ -248,3 +226,4 @@ main( int, char ** )
 
 	return 0;
 }
+
