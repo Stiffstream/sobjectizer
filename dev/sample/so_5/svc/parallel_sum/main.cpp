@@ -6,6 +6,7 @@
 #include <exception>
 #include <numeric>
 #include <vector>
+#include <cstdlib>
 
 #include <so_5/all.hpp>
 

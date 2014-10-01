@@ -12,6 +12,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <cstdio>
 #include <iostream>
 
 #include <so_5/h/current_thread_id.hpp>

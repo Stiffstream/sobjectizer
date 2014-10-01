@@ -4,6 +4,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 #include <stdexcept>
 
 #include <so_5/all.hpp>

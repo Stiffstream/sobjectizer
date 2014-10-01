@@ -31,6 +31,7 @@
 #include <iostream>
 #include <iterator>
 #include <numeric>
+#include <cstdlib>
 
 #include <so_5/all.hpp>
 

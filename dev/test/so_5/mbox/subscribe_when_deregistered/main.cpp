@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <exception>
+#include <cstdlib>
 #include <mutex>
 #include <condition_variable>
 

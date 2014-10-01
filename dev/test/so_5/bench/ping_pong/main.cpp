@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include <cstdio>
+#include <cstdlib>
 
 #include <so_5/all.hpp>
 

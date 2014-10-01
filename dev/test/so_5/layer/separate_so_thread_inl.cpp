@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <cstdlib>
 
 namespace separate_so_thread
 {

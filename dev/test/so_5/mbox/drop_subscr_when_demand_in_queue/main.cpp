@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 #include <sstream>
 
 #include <so_5/all.hpp>

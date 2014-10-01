@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 
 #include <so_5/all.hpp>
 

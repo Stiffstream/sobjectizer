@@ -8,17 +8,11 @@
 #include <so_5/all.hpp>
 
 // Definition of an agent for SObjectizer.
-class a_hello_t
-	:
-		public so_5::rt::agent_t
+class a_hello_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_hello_t( so_5::rt::environment_t & env )
-			: base_type_t( env )
-		{}
-		virtual ~a_hello_t()
+			: so_5::rt::agent_t( env )
 		{}
 
 		// A reaction to start of work in SObjectizer.

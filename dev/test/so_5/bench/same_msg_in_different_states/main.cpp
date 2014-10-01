@@ -5,6 +5,7 @@
 #include <iterator>
 #include <numeric>
 #include <chrono>
+#include <cstdlib>
 
 #include <so_5/all.hpp>
 
