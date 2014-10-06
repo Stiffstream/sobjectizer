@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <vector>
 #include <mutex>
+#include <tuple>
 
 #include <so_5/all.hpp>
 
@@ -531,22 +532,42 @@ init( so_5::rt::environment_t & env,
 	env.register_coop( std::move( coop ) );
 }
 
+std::tuple< std::size_t, std::chrono::seconds >
+process_command_line_args( int argc, char ** argv )
+{
+	std::size_t philosophers = 5;
+	unsigned int test_duration = 20;
+
+	if( argc > 1 )
+	{
+		philosophers = std::atoi( argv[ 1 ] );
+		if( philosophers < 2 || philosophers > 10000 )
+			throw std::invalid_argument(
+					"philosophers count must be in [2..10000]" );
+	}
+	if( argc > 2 )
+	{
+		test_duration = std::atoi( argv[ 2 ] );
+		if( !test_duration || test_duration > 3600 )
+			throw std::invalid_argument(
+					"philosophers count must be in [1..3600] seconds" );
+	}
+
+	return std::make_tuple( philosophers, std::chrono::seconds( test_duration ) );
+}
+
 int
 main( int argc, char ** argv )
 {
 	try
 	{
-		std::size_t philosophers = 5;
-		unsigned int test_duration = 20;
-		if( argc > 1 )
-			philosophers = std::atoi( argv[ 1 ] );
-		if( argc > 2 )
-			test_duration = std::atoi( argv[ 2 ] );
+		auto params = process_command_line_args( argc, argv );
 
 		so_5::launch(
-				[philosophers, test_duration]( so_5::rt::environment_t & env )
+				[params]( so_5::rt::environment_t & env )
 				{
-					init( env, philosophers, std::chrono::seconds( test_duration ) );
+					using namespace std;
+					init( env, get<0>(params), get<1>(params) );
 				},
 				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",
