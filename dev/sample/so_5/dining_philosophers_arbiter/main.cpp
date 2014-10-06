@@ -40,8 +40,10 @@
 
 #endif
 
+// This request will be sent by the hungry agent.
 struct msg_start_eating_request : public so_5::rt::message_t
 {
+	// Agent identifier.
 	std::size_t m_philosopher;
 
 	msg_start_eating_request( std::size_t philosopher )
@@ -49,10 +51,14 @@ struct msg_start_eating_request : public so_5::rt::message_t
 	{}
 };
 
+// This signal will be sent to the hungry agent to whom
+// eating is allowed.
 struct msg_start_eating : public so_5::rt::signal_t {};
 
+// This is notification about end of eating session.
 struct msg_eating_finished : public so_5::rt::message_t
 {
+	// Agent identifier.
 	std::size_t m_philosopher;
 
 	msg_eating_finished( std::size_t philosopher )
@@ -60,12 +66,28 @@ struct msg_eating_finished : public so_5::rt::message_t
 	{}
 };
 
+// The state of a fork.
 struct fork_state_t
 {
+	// Indication that the fork is in use.
+	// It is true if some agent is holding it and waiting
+	// for the right fork.
+	// Or if agent is eating (e.g. agent holds both forks).
 	bool m_in_use = false;
+
+	// Indication that someone is waiting on that fork.
+	// It could be agent which waits for his left fork
+	// (but in that case agent is waiting only for the left fork).
+	// Or it could be agent which waits for his right fork
+	// (in that case agent is already holding his left fork).
+	//
+	// Value false means that there is no any waiting agents.
 	bool m_someone_is_waiting = false;
 };
 
+// An arbiter who allows philosophers to eat.
+//
+// It also finishes the sample after test_duration seconds.
 class a_arbiter_t : public so_5::rt::agent_t
 {
 	struct msg_shutdown : public so_5::rt::signal_t {};
@@ -85,6 +107,8 @@ public :
 		self_check__init();
 	}
 
+	// This method must be subsequently called during
+	// the creation of the philosophers.
 	void
 	add_philosopher(
 		const so_5::rt::mbox_ref_t & mbox )
@@ -114,6 +138,9 @@ public :
 				m_test_duration );
 	}
 
+	// Some philosopher is hungry and wants to eat. 
+	// This request is fulfilled or philosopher will wait for
+	// one of his forks.
 	void
 	evt_start_eating_request( const msg_start_eating_request & evt )
 	{
@@ -122,11 +149,17 @@ public :
 		self_check__ensure_invariants();
 	}
 
+	// Some philosopher completed eating.
+	// The forks of this philosopher will be marked as free and
+	// if there is someone who is waiting for them it will be
+	// processed.
 	void
 	evt_eating_finished( const msg_eating_finished & evt )
 	{
 		self_check__philosopher_is_thinking( evt.m_philosopher );
 
+		// Free left fork and check if it is necessary
+		// for the left neighbor as right fork...
 		auto & left_fork = m_forks[ evt.m_philosopher ];
 		left_fork.m_in_use = false;
 
@@ -139,6 +172,8 @@ public :
 			enable_eating_for_philosopher( left_neighbor( evt.m_philosopher ) );
 		}
 
+		// Free right fork and check if it is necessary
+		// for the right neighbor as left fork...
 		const auto right_fork_index = right_neighbor( evt.m_philosopher );
 		auto & right_fork = m_forks[ right_fork_index ];
 		right_fork.m_in_use = false;
@@ -154,22 +189,30 @@ public :
 	}
 
 private :
+	// Count of the philosophers in the test.
 	const std::size_t m_philosophers_count;
 
+	// Duration of the sample.
 	const std::chrono::seconds m_test_duration;
 
+	// States of the forks.
 	std::vector< fork_state_t > m_forks;
 
+	// Mboxes for the philosophers.
+	// They are necessary to send msg_start_eating signals
+	// for a philosopher when his right fork is taken to him.
 	std::vector< so_5::rt::mbox_ref_t > m_philosophers;
 
 	void
 	try_allow_philosopher_to_eat( std::size_t philosopher )
 	{
+		// Left fork must be free to start the process.
 		auto & left_fork = m_forks[ philosopher ];
 		if( left_fork.m_in_use )
 		{
 			if( left_fork.m_someone_is_waiting )
 			{
+				// This is invariant violation. Work cannot be continued.
 				std::cerr << "fork(" << philosopher
 					<< "), left for philosopher(" << philosopher
 					<< "): is in use and someone is waiting for it"
@@ -195,6 +238,7 @@ private :
 			auto & right_fork = m_forks[ right_fork_index ];
 			if( right_fork.m_in_use )
 			{
+				// This is invariant violation. Work cannot be continued.
 				if( right_fork.m_someone_is_waiting )
 				{
 					std::cerr << "fork(" << right_fork_index
@@ -298,6 +342,9 @@ private :
 	void
 	self_check__ensure_invariants() const
 	{
+		if( 1 == m_philosophers_count )
+			return;
+
 		for( std::size_t i = 0; i != m_philosophers_count; ++i )
 		{
 			auto p = m_philosopher_states[ i ];
@@ -336,6 +383,13 @@ private :
 
 };
 
+// A philosopher agent.
+// Does the infinite loop of think()/eat() methods.
+//
+// The switch from thinking to eating is done automatically
+// when think() method finishes. As opposite the switch from
+// eating to thinking is done automatically after return
+// from eat() method.
 class a_philosopher_t : public so_5::rt::agent_t
 {
 	struct msg_start_thinking : public so_5::rt::signal_t {};
@@ -427,8 +481,10 @@ protected :
 	}
 
 private :
+	// Agent identifier.
 	const std::size_t m_index;
 
+	// Arbiter mbox. Necessary for sending requests and notifications.
 	const so_5::rt::mbox_ref_t m_arbiter_mbox;
 
 	void
@@ -448,17 +504,18 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::rt::environment_t & env,
+	const std::size_t philosophers_count,
+	const std::chrono::seconds test_duration )
 {
-	const std::size_t philosophers_count = 5;
-
-	auto coop = env.create_coop( "dining_philosophers_with_arbiter" );
+	auto coop = env.create_coop( "dining_philosophers_with_arbiter",
+			// All philosophers will be active objects.
+			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 	auto arbiter = coop->add_agent(
-			new a_arbiter_t(
-				env,
-				philosophers_count,
-				std::chrono::seconds(1) ) );
+			new a_arbiter_t( env, philosophers_count, test_duration ),
+			// But the arbiter will work on different context.
+			so_5::rt::create_default_disp_binder() );
 
 	for( std::size_t i = 0; i != philosophers_count; ++i )
 	{
@@ -466,8 +523,7 @@ init( so_5::rt::environment_t & env )
 				new a_philosopher_t(
 					env,
 					i,
-					arbiter->so_direct_mbox() ),
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+					arbiter->so_direct_mbox() ) );
 
 		arbiter->add_philosopher( p->so_direct_mbox() );
 	}
@@ -476,12 +532,22 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main()
+main( int argc, char ** argv )
 {
 	try
 	{
+		std::size_t philosophers = 5;
+		unsigned int test_duration = 20;
+		if( argc > 1 )
+			philosophers = std::atoi( argv[ 1 ] );
+		if( argc > 2 )
+			test_duration = std::atoi( argv[ 2 ] );
+
 		so_5::launch(
-				init,
+				[philosophers, test_duration]( so_5::rt::environment_t & env )
+				{
+					init( env, philosophers, std::chrono::seconds( test_duration ) );
+				},
 				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",
 							so_5::disp::active_obj::create_disp() );
