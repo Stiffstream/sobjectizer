@@ -432,7 +432,10 @@ public :
 
 		TRACE_MESSAGE() << "[" << m_index << "] Stopped thinking" << std::endl;
 
-		send_start_eating_request();
+		TRACE_MESSAGE() << "[" << m_index << "] Waiting" << std::endl;
+
+		m_arbiter_mbox->deliver_message(
+				new msg_start_eating_request( m_index ) );
 	}
 
 	void
@@ -448,14 +451,6 @@ public :
 				new msg_eating_finished( m_index ) );
 
 		initiate_thinking();
-	}
-
-	void
-	evt_stop_eating()
-	{
-		TRACE_MESSAGE() << "[" << m_index << "] Stopped eating" << std::endl;
-
-		send_start_eating_request();
 	}
 
 protected :
@@ -492,15 +487,6 @@ private :
 	initiate_thinking()
 	{
 		so_direct_mbox()->deliver_signal< msg_start_thinking >();
-	}
-
-	void
-	send_start_eating_request()
-	{
-		TRACE_MESSAGE() << "[" << m_index << "] Waiting" << std::endl;
-
-		m_arbiter_mbox->deliver_message(
-				new msg_start_eating_request( m_index ) );
 	}
 };
 
