@@ -211,23 +211,13 @@ private :
 		auto & left_fork = m_forks[ philosopher ];
 		if( left_fork.m_in_use )
 		{
-			if( left_fork.m_someone_is_waiting )
-			{
-				// This is invariant violation. Work cannot be continued.
-				std::cerr << "fork(" << philosopher
-					<< "), left for philosopher(" << philosopher
-					<< "): is in use and someone is waiting for it"
-					<< std::endl;
-				std::abort();
-			}
-			else
-			{
-				// Just mark that there is a waiting philosopher for this fork.
-				// No more can be done now.
-				left_fork.m_someone_is_waiting = true;
+			self_check__ensure_no_one_waiting_on_left_fork( philosopher );
 
-				self_check__philosopher_is_waiting( philosopher );
-			}
+			// Just mark that there is a waiting philosopher for this fork.
+			// No more can be done now.
+			left_fork.m_someone_is_waiting = true;
+
+			self_check__philosopher_is_waiting( philosopher );
 		}
 		else
 		{
@@ -235,27 +225,16 @@ private :
 			left_fork.m_in_use = true;
 
 			// Checking availability of this right fork.
-			const auto right_fork_index = right_neighbor( philosopher );
-			auto & right_fork = m_forks[ right_fork_index ];
+			auto & right_fork = m_forks[ right_neighbor( philosopher ) ];
 			if( right_fork.m_in_use )
 			{
-				// This is invariant violation. Work cannot be continued.
-				if( right_fork.m_someone_is_waiting )
-				{
-					std::cerr << "fork(" << right_fork_index
-						<< "), right for philosopher(" << philosopher
-						<< "): is in use and someone is waiting for it"
-						<< std::endl;
-					std::abort();
-				}
-				else
-				{
-					// Just mark that there is a waiting philosopher for this fork.
-					// No more can be done now.
-					right_fork.m_someone_is_waiting = true;
+				self_check__ensure_no_one_waiting_on_right_fork( philosopher );
 
-					self_check__philosopher_is_waiting( philosopher );
-				}
+				// Just mark that there is a waiting philosopher for this fork.
+				// No more can be done now.
+				right_fork.m_someone_is_waiting = true;
+
+				self_check__philosopher_is_waiting( philosopher );
 			}
 			else
 			{
@@ -304,6 +283,13 @@ private :
 
 	void
 	self_check__ensure_invariants() {}
+
+	void
+	self_check__ensure_no_one_waiting_on_left_fork( std::size_t ) {}
+
+	void
+	self_check__ensure_no_one_waiting_on_right_fork( std::size_t ) {}
+
 #else
 	enum class philosopher_state_t
 	{
@@ -338,6 +324,35 @@ private :
 	self_check__philosopher_is_waiting( std::size_t index )
 	{
 		m_philosopher_states[ index ] = philosopher_state_t::waiting;
+	}
+
+	void
+	self_check__ensure_no_one_waiting_on_left_fork( std::size_t index )
+	{
+		if( m_forks[ index ].m_someone_is_waiting )
+		{
+			// This is invariant violation. Work cannot be continued.
+			std::cerr << "fork(" << index
+				<< "), left for philosopher(" << index
+				<< "): is in use and someone is waiting for it"
+				<< std::endl;
+			std::abort();
+		}
+	}
+
+	void
+	self_check__ensure_no_one_waiting_on_right_fork( std::size_t index )
+	{
+		auto rindex = right_neighbor( index );
+		// This is invariant violation. Work cannot be continued.
+		if( m_forks[ rindex ].m_someone_is_waiting )
+		{
+			std::cerr << "fork(" << rindex
+				<< "), right for philosopher(" << index
+				<< "): is in use and someone is waiting for it"
+				<< std::endl;
+			std::abort();
+		}
 	}
 
 	void
@@ -552,8 +567,7 @@ main( int argc, char ** argv )
 		so_5::launch(
 				[params]( so_5::rt::environment_t & env )
 				{
-					using namespace std;
-					init( env, get<0>(params), get<1>(params) );
+					init( env, std::get<0>(params), std::get<1>(params) );
 				},
 				[]( so_5::rt::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",
