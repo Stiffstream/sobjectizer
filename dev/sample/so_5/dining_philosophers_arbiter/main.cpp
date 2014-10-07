@@ -120,15 +120,12 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe( so_direct_mbox() )
-			.event( so_5::signal< msg_shutdown >,
-					[this]() { so_environment().stop(); } );
+		so_default_state().handle< msg_shutdown >(
+				[this]() { so_environment().stop(); } );
 
-		so_subscribe( so_direct_mbox() )
-			.event( &a_arbiter_t::evt_start_eating_request );
+		so_default_state().handle( &a_arbiter_t::evt_start_eating_request );
 
-		so_subscribe( so_direct_mbox() )
-			.event( &a_arbiter_t::evt_eating_finished );
+		so_default_state().handle( &a_arbiter_t::evt_eating_finished );
 	}
 
 	virtual void
@@ -423,13 +420,11 @@ public :
 	virtual void
 	so_define_agent()
 	{
-		so_subscribe( so_direct_mbox() )
-			.event( so_5::signal< msg_start_thinking >,
-					&a_philosopher_t::evt_start_thinking );
+		so_default_state().handle< msg_start_thinking >(
+				&a_philosopher_t::evt_start_thinking );
 
-		so_subscribe( so_direct_mbox() )
-			.event( so_5::signal< msg_start_eating >,
-					&a_philosopher_t::evt_start_eating );
+		so_default_state().handle< msg_start_eating >(
+				&a_philosopher_t::evt_start_eating );
 	}
 
 	virtual void

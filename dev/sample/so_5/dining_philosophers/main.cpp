@@ -39,23 +39,17 @@ public :
 	{
 		st_free.activate();
 
-		so_subscribe_self().in( st_free )
-			.event( [this]( const msg_take & evt )
+		st_free.handle( [this]( const msg_take & evt )
 				{
 					st_taken.activate();
 					so_5::send< msg_taken >( evt.m_who );
 				} );
 
-		so_subscribe_self().in( st_taken )
-			.event( []( const msg_take & evt )
+		st_taken.handle( []( const msg_take & evt )
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.event( so_5::signal< msg_put >,
-				[this]()
-				{
-					st_free.activate();
-				} );
+			.handle< msg_put >( [this]() { st_free.activate(); } );
 	}
 
 private :
@@ -83,8 +77,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().in( st_thinking )
-			.event( so_5::signal< msg_stop_thinking >,
+		st_thinking.handle< msg_stop_thinking >(
 				[this]()
 				{
 					show_msg( "become hungry, try to take left fork" );
@@ -93,8 +86,7 @@ public :
 					so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
 				} );
 
-		so_subscribe_self().in( st_wait_left )
-			.event( so_5::signal< msg_taken >,
+		st_wait_left.handle< msg_taken >( 
 				[this]()
 				{
 					show_msg( "left fork taken, try to take right fork" );
@@ -102,15 +94,14 @@ public :
 
 					so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
 				} )
-			.event( so_5::signal< msg_busy >,
+			.handle< msg_busy >(
 				[this]()
 				{
 					show_msg( "left fork is busy, return to thinking" );
 					return_to_thinking();
 				} );
 
-		so_subscribe_self().in( st_wait_right )
-			.event( so_5::signal< msg_taken >,
+		st_wait_right.handle< msg_taken >(
 				[this]()
 				{
 					show_msg( "right fork taken, start eating" );
@@ -118,7 +109,7 @@ public :
 					so_environment().single_timer< msg_stop_eating >(
 						so_direct_mbox(), random_pause() );
 				} )
-			.event( so_5::signal< msg_busy >,
+			.handle< msg_busy >(
 				[this]()
 				{
 					show_msg( "right fork is busy, put left fork, return to thinking" );
@@ -126,8 +117,7 @@ public :
 					return_to_thinking();
 				} );
 
-		so_subscribe_self().in( st_eating )
-			.event( so_5::signal< msg_stop_eating >,
+		st_eating.handle< msg_stop_eating >(
 				[this]()
 				{
 					show_msg( "stop eating, put right fork, put left fork, "

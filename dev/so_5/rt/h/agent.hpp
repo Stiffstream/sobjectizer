@@ -1915,6 +1915,28 @@ subscription_bind_t::create_subscription_for_states(
 					thread_safety );
 }
 
+/*
+ * Implementation of template methods of state_t class.
+ */
+template< typename... ARGS >
+const state_t &
+state_t::handle( ARGS&&... args ) const
+{
+	m_target_agent->so_subscribe_self().in( *this ).event(
+			std::forward< ARGS >(args)... );
+	return *this;
+}
+
+template< typename SIGNAL, typename... ARGS >
+const state_t &
+state_t::handle( ARGS&&... args ) const
+{
+	m_target_agent->so_subscribe_self().in( *this ).event(
+			so_5::signal< SIGNAL >,
+			std::forward< ARGS >(args)... );
+	return *this;
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */

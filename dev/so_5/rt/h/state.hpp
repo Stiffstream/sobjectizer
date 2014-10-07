@@ -75,6 +75,22 @@ class SO_5_TYPE state_t
 		void
 		activate() const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 */
+		template< typename... ARGS >
+		const state_t &
+		handle( ARGS&&... args ) const;
+
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 */
+		template< typename SIGNAL, typename... ARGS >
+		const state_t &
+		handle( ARGS&&... args ) const;
+
 	private:
 		//! Owner of this state.
 		agent_t * const m_target_agent;
