@@ -393,6 +393,7 @@ class SO_5_TYPE agent_t
 		friend class subscription_bind_t;
 		friend class smart_atomic_reference_t< agent_t >;
 		friend class agent_coop_t;
+		friend class state_t;
 
 		friend class so_5::rt::impl::mpsc_mbox_t;
 

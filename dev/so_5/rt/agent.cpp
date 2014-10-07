@@ -69,14 +69,14 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 
 state_t::state_t(
-	const agent_t * agent )
+	agent_t * agent )
 	:	m_target_agent( agent )
 	,	m_state_name( create_anonymous_state_name( agent, self_ptr() ) )
 {
 }
 
 state_t::state_t(
-	const agent_t * agent,
+	agent_t * agent,
 	std::string state_name )
 	:
 		m_target_agent( agent ),
@@ -143,6 +143,12 @@ state_t::is_target( const agent_t * agent ) const
 		return true;
 	else
 		return false;
+}
+
+void
+state_t::activate() const
+{
+	m_target_agent->so_change_state( *this );
 }
 
 //

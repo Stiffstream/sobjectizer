@@ -42,12 +42,12 @@ class SO_5_TYPE state_t
 		 * A name for the state will be generated automatically.
 		 */
 		explicit state_t(
-			const agent_t * agent );
+			agent_t * agent );
 		/*!
 		 * \brief Full constructor.
 		 */
 		state_t(
-			const agent_t * agent,
+			agent_t * agent,
 			std::string state_name );
 		/*!
 		 * \since v.5.4.0
@@ -68,9 +68,16 @@ class SO_5_TYPE state_t
 		bool
 		is_target( const agent_t * agent ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Switch agent to that state.
+		 */
+		void
+		activate() const;
+
 	private:
 		//! Owner of this state.
-		const agent_t * m_target_agent;
+		agent_t * const m_target_agent;
 
 		//! State name.
 		std::string m_state_name;

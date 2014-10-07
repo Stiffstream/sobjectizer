@@ -37,12 +37,12 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_change_state( st_free );
+		st_free.activate();
 
 		so_subscribe_self().in( st_free )
 			.event( [this]( const msg_take & evt )
 				{
-					so_change_state( st_taken );
+					st_taken.activate();
 					evt.m_who->deliver_signal< msg_taken >();
 				} );
 
@@ -54,7 +54,7 @@ public :
 			.event( so_5::signal< msg_put >,
 				[this]()
 				{
-					so_change_state( st_free );
+					st_free.activate();
 				} );
 	}
 
@@ -88,7 +88,7 @@ public :
 				[this]()
 				{
 					show_msg( "become hungry, try to take left fork" );
-					so_change_state( st_wait_left );
+					st_wait_left.activate();
 					m_left_fork->deliver_message( new msg_take( so_direct_mbox() ) );
 				} );
 
@@ -97,7 +97,7 @@ public :
 				[this]()
 				{
 					show_msg( "left fork taken, try to take right fork" );
-					so_change_state( st_wait_right );
+					st_wait_right.activate();
 					m_right_fork->deliver_message( new msg_take( so_direct_mbox() ) );
 				} )
 			.event( so_5::signal< msg_busy >,
@@ -112,7 +112,7 @@ public :
 				[this]()
 				{
 					show_msg( "right fork taken, start eating" );
-					so_change_state( st_eating );
+					st_eating.activate();
 					so_environment().single_timer< msg_stop_eating >(
 						so_direct_mbox(), random_pause() );
 				} )
@@ -162,7 +162,7 @@ private :
 	void
 	return_to_thinking()
 	{
-		so_change_state( st_thinking );
+		st_thinking.activate();
 		so_environment().single_timer< msg_stop_thinking >(
 			so_direct_mbox(), random_pause() );
 	}
