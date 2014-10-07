@@ -39,14 +39,14 @@ public :
 	{
 		so_change_state( st_free );
 
-		so_subscribe( so_direct_mbox() ).in( st_free )
+		so_subscribe_self().in( st_free )
 			.event( [this]( const msg_take & evt )
 				{
 					so_change_state( st_taken );
 					evt.m_who->deliver_signal< msg_taken >();
 				} );
 
-		so_subscribe( so_direct_mbox() ).in( st_taken )
+		so_subscribe_self().in( st_taken )
 			.event( []( const msg_take & evt )
 				{
 					evt.m_who->deliver_signal< msg_busy >();
@@ -83,7 +83,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe( so_direct_mbox() ).in( st_thinking )
+		so_subscribe_self().in( st_thinking )
 			.event( so_5::signal< msg_stop_thinking >,
 				[this]()
 				{
@@ -92,7 +92,7 @@ public :
 					m_left_fork->deliver_message( new msg_take( so_direct_mbox() ) );
 				} );
 
-		so_subscribe( so_direct_mbox() ).in( st_wait_left )
+		so_subscribe_self().in( st_wait_left )
 			.event( so_5::signal< msg_taken >,
 				[this]()
 				{
@@ -107,7 +107,7 @@ public :
 					return_to_thinking();
 				} );
 
-		so_subscribe( so_direct_mbox() ).in( st_wait_right )
+		so_subscribe_self().in( st_wait_right )
 			.event( so_5::signal< msg_taken >,
 				[this]()
 				{
@@ -124,7 +124,7 @@ public :
 					return_to_thinking();
 				} );
 
-		so_subscribe( so_direct_mbox() ).in( st_eating )
+		so_subscribe_self().in( st_eating )
 			.event( so_5::signal< msg_stop_eating >,
 				[this]()
 				{

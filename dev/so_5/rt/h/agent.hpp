@@ -657,7 +657,7 @@ class SO_5_TYPE agent_t
 			Usage sample:
 			\code
 			void
-			a_sample_t::so_define_agent()
+			a_sample_t::so_define_agent() override
 			{
 				so_subscribe( m_mbox_target )
 					.in( m_state_one )
@@ -671,6 +671,25 @@ class SO_5_TYPE agent_t
 			const mbox_ref_t & mbox_ref )
 		{
 			return subscription_bind_t( *this, mbox_ref );
+		}
+
+		/*!
+		 * \since v.5.5.1
+		 * \brief Initiate subscription to agent's direct mbox.
+		 *
+		 * \par Usage sample:
+			\code
+			void a_sample_t::so_define_agent() override
+			{
+				so_subscribe_self().in( m_state_one ).event( ... );
+				so_subscribe_self().in( m_state_two ).event( ... );
+			}
+			\endcode
+		 */
+		inline subscription_bind_t
+		so_subscribe_self()
+		{
+			return so_subscribe( so_direct_mbox() );
 		}
 
 		/*!
