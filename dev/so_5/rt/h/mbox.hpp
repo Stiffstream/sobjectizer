@@ -21,7 +21,7 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/rt/h/mbox_ref_fwd.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
 
@@ -39,17 +39,8 @@ class named_local_mbox_t;
 
 } /* namespace impl */
 
-class mbox_t;
 class agent_t;
 
-//
-// mbox_ref_t
-//
-//! Smart reference for the mbox_t.
-/*!
- * \note Defined as typedef since v.5.2.0
- */
-typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
 
 template< class RESULT >
 class service_invoke_proxy_t;

@@ -1922,8 +1922,9 @@ template< typename... ARGS >
 const state_t &
 state_t::handle( ARGS&&... args ) const
 {
-	m_target_agent->so_subscribe_self().in( *this ).event(
-			std::forward< ARGS >(args)... );
+	m_target_agent->so_subscribe( m_target_agent->so_direct_mbox() )
+		.in( *this ).event( std::forward< ARGS >(args)... );
+
 	return *this;
 }
 
@@ -1931,9 +1932,11 @@ template< typename SIGNAL, typename... ARGS >
 const state_t &
 state_t::handle( ARGS&&... args ) const
 {
-	m_target_agent->so_subscribe_self().in( *this ).event(
+	m_target_agent->so_subscribe( m_target_agent->so_direct_mbox() )
+		.in( *this ).event(
 			so_5::signal< SIGNAL >,
 			std::forward< ARGS >(args)... );
+
 	return *this;
 }
 

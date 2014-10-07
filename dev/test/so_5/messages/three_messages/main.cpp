@@ -62,18 +62,15 @@ class test_agent_t
 
 		void
 		evt_test_1(
-			const so_5::rt::event_data_t< test_message_1 > &
-				msg );
+			const so_5::rt::event_data_t< test_message_1 > & msg );
 
 		void
 		evt_test_2(
-			const so_5::rt::event_data_t< test_message_2 > &
-				msg );
+			const so_5::rt::event_data_t< test_message_2 > & msg );
 
 		void
 		evt_test_3(
-			const so_5::rt::event_data_t< test_message_3 > &
-				msg );
+			const so_5::rt::event_data_t< test_message_3 > & msg );
 
 	private:
 		so_5::rt::mbox_ref_t m_test_mbox;
