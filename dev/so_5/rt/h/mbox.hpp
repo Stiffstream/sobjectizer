@@ -723,7 +723,63 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 	}
 #endif
 
+namespace impl
+{
+	/*
+	 * This is helpers for so_5::send implementation.
+	 */
+
+	template< class MESSAGE, bool IS_SIGNAL >
+	struct instantiator_and_sender_t
+	{
+		void send( const so_5::rt::mbox_ref_t & to )
+		{
+			std::unique_ptr< MESSAGE > msg( new MESSAGE() );
+
+			to->deliver_message( std::move( msg ) );
+		}
+	};
+
+	template< class MESSAGE >
+	struct instantiator_and_sender_t< MESSAGE, true >
+	{
+		void send( const so_5::rt::mbox_ref_t & to )
+		{
+			to->deliver_signal< MESSAGE >();
+		}
+	};
+}
+
 } /* namespace rt */
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a message.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send( const so_5::rt::mbox_ref_t & to, ARGS&&... args )
+	{
+		std::unique_ptr< MESSAGE > msg(
+				new MESSAGE( std::forward<ARGS>(args)... ) );
+
+		to->deliver_message( std::move( msg ) );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for sending a signal.
+ */
+template< typename MESSAGE >
+void
+send( const so_5::rt::mbox_ref_t & to )
+	{
+		so_5::rt::impl::instantiator_and_sender_t<
+				MESSAGE,
+				std::is_base_of< so_5::rt::signal_t, MESSAGE >::value > helper;
+
+		helper.send( to );
+	}
 
 } /* namespace so_5 */
 

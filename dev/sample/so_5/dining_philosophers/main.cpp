@@ -43,13 +43,13 @@ public :
 			.event( [this]( const msg_take & evt )
 				{
 					st_taken.activate();
-					evt.m_who->deliver_signal< msg_taken >();
+					so_5::send< msg_taken >( evt.m_who );
 				} );
 
 		so_subscribe_self().in( st_taken )
 			.event( []( const msg_take & evt )
 				{
-					evt.m_who->deliver_signal< msg_busy >();
+					so_5::send< msg_busy >( evt.m_who );
 				} )
 			.event( so_5::signal< msg_put >,
 				[this]()
@@ -89,7 +89,8 @@ public :
 				{
 					show_msg( "become hungry, try to take left fork" );
 					st_wait_left.activate();
-					m_left_fork->deliver_message( new msg_take( so_direct_mbox() ) );
+
+					so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
 				} );
 
 		so_subscribe_self().in( st_wait_left )
@@ -98,7 +99,8 @@ public :
 				{
 					show_msg( "left fork taken, try to take right fork" );
 					st_wait_right.activate();
-					m_right_fork->deliver_message( new msg_take( so_direct_mbox() ) );
+
+					so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
 				} )
 			.event( so_5::signal< msg_busy >,
 				[this]()
@@ -120,7 +122,7 @@ public :
 				[this]()
 				{
 					show_msg( "right fork is busy, put left fork, return to thinking" );
-					m_left_fork->deliver_signal< msg_put >();
+					so_5::send< msg_put >( m_left_fork );
 					return_to_thinking();
 				} );
 
@@ -130,8 +132,9 @@ public :
 				{
 					show_msg( "stop eating, put right fork, put left fork, "
 						"return to thinking" );
-					m_right_fork->deliver_signal< msg_put >();
-					m_left_fork->deliver_signal< msg_put >();
+
+					so_5::send< msg_put >( m_right_fork );
+					so_5::send< msg_put >( m_left_fork );
 					return_to_thinking();
 				} );
 	}
