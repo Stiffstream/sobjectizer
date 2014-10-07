@@ -510,9 +510,13 @@ init( so_5::rt::environment_t & env,
 	const std::size_t philosophers_count,
 	const std::chrono::seconds test_duration )
 {
+	so_5::disp::thread_pool::params_t bind_params;
+	bind_params.fifo( so_5::disp::thread_pool::fifo_t::individual );
+
 	auto coop = env.create_coop( "dining_philosophers_with_arbiter",
 			// All philosophers will be active objects.
-			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+			so_5::disp::thread_pool::create_disp_binder(
+					"philosopher_disp", bind_params ) );
 
 	auto arbiter = coop->add_agent(
 			new a_arbiter_t( env, philosophers_count, test_duration ),
@@ -542,9 +546,9 @@ process_command_line_args( int argc, char ** argv )
 	if( argc > 1 )
 	{
 		philosophers = std::atoi( argv[ 1 ] );
-		if( philosophers < 2 || philosophers > 10000 )
+		if( philosophers < 2 || philosophers > 1000000 )
 			throw std::invalid_argument(
-					"philosophers count must be in [2..10000]" );
+					"philosophers count must be in [2..1000000]" );
 	}
 	if( argc > 2 )
 	{
@@ -570,8 +574,8 @@ main( int argc, char ** argv )
 					init( env, std::get<0>(params), std::get<1>(params) );
 				},
 				[]( so_5::rt::environment_params_t & p ) {
-					p.add_named_dispatcher( "active_obj",
-							so_5::disp::active_obj::create_disp() );
+					p.add_named_dispatcher( "philosopher_disp",
+							so_5::disp::thread_pool::create_disp( 250 ) );
 				} );
 	}
 	catch( const std::exception & ex )
