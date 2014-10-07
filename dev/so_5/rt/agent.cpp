@@ -112,20 +112,10 @@ namespace {
 
 /*!
  * \since v.5.4.0
- * \brief A special object for the default state for all agents.
- *
- * It is not necessary to have this object in every agents.
- * They can use pointer to the common global constant object.
- */
-const state_t default_agent_state( nullptr, "<DEFAULT_STATE>" );
-
-/*!
- * \since v.5.4.0
  * \brief A special object for the state in which agent is awaiting
  * for deregistration after unhandled exception.
  *
- * Like \a default_agent_state this object can be shared between
- * all agents.
+ * This object will be shared between all agents.
  */
 const state_t awaiting_deregistration_state(
 		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
@@ -137,8 +127,6 @@ state_t::is_target( const agent_t * agent ) const
 {
 	if( m_target_agent )
 		return m_target_agent == agent;
-	else if( this == &default_agent_state )
-		return true;
 	else if( this == &awaiting_deregistration_state )
 		return true;
 	else
@@ -157,7 +145,7 @@ state_t::activate() const
 
 agent_t::agent_t(
 	environment_t & env )
-	:	m_current_state_ptr( &default_agent_state )
+	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
@@ -251,7 +239,7 @@ agent_t::so_direct_mbox() const
 const state_t &
 agent_t::so_default_state() const
 {
-	return default_agent_state;
+	return st_default;
 }
 
 void

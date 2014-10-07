@@ -85,6 +85,14 @@ class SO_5_TYPE state_t
 		const state_t &
 		handle( ARGS&&... args ) const;
 
+		template< typename... ARGS >
+		const state_t &
+		handle( mbox_ref_t & from, ARGS&&... args ) const;
+
+		template< typename... ARGS >
+		const state_t &
+		handle( const mbox_ref_t & from, ARGS&&... args ) const;
+
 		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
@@ -92,6 +100,14 @@ class SO_5_TYPE state_t
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		handle( ARGS&&... args ) const;
+
+		template< typename SIGNAL, typename... ARGS >
+		const state_t &
+		handle( mbox_ref_t & from, ARGS&&... args ) const;
+
+		template< typename SIGNAL, typename... ARGS >
+		const state_t &
+		handle( const mbox_ref_t & from, ARGS&&... args ) const;
 
 	private:
 		//! Owner of this state.
@@ -103,6 +119,17 @@ class SO_5_TYPE state_t
 		inline const state_t *
 		self_ptr() const { return this; }
 
+		template< typename... ARGS >
+		const state_t &
+		subscribe_message_handler(
+			const mbox_ref_t & from,
+			ARGS&&... args ) const;
+
+		template< typename SIGNAL, typename... ARGS >
+		const state_t &
+		subscribe_signal_handler(
+			const mbox_ref_t & from,
+			ARGS&&... args ) const;
 };
 
 } /* namespace rt */

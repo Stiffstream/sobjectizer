@@ -22,8 +22,8 @@ class a_pinger_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent() override
 			{
-				so_subscribe( m_mbox ).event(
-						so_5::signal< msg_pong >, &a_pinger_t::evt_pong );
+				so_default_state().handle< msg_pong >(
+						m_mbox, &a_pinger_t::evt_pong );
 			}
 
 		virtual void

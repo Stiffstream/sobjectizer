@@ -1099,6 +1099,8 @@ class SO_5_TYPE agent_t
 		 */
 
 	private:
+		const state_t st_default = so_make_state( "<DEFAULT>" );
+
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
 
@@ -1922,20 +1924,78 @@ template< typename... ARGS >
 const state_t &
 state_t::handle( ARGS&&... args ) const
 {
-	m_target_agent->so_subscribe( m_target_agent->so_direct_mbox() )
-		.in( *this ).event( std::forward< ARGS >(args)... );
+	return this->subscribe_message_handler(
+			m_target_agent->so_direct_mbox(),
+			std::forward< ARGS >(args)... );
 
 	return *this;
+}
+
+template< typename... ARGS >
+const state_t &
+state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
+{
+	return this->subscribe_message_handler( from,
+			std::forward< ARGS >(args)... );
+}
+
+template< typename... ARGS >
+const state_t &
+state_t::handle( const mbox_ref_t & from, ARGS&&... args ) const
+{
+	return this->subscribe_message_handler( from,
+			std::forward< ARGS >(args)... );
 }
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
 state_t::handle( ARGS&&... args ) const
 {
-	m_target_agent->so_subscribe( m_target_agent->so_direct_mbox() )
-		.in( *this ).event(
-			so_5::signal< SIGNAL >,
+	return this->subscribe_signal_handler< SIGNAL >(
+			m_target_agent->so_direct_mbox(),
 			std::forward< ARGS >(args)... );
+}
+
+template< typename SIGNAL, typename... ARGS >
+const state_t &
+state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
+{
+	return this->subscribe_signal_handler< SIGNAL >(
+			from,
+			std::forward< ARGS >(args)... );
+}
+
+template< typename SIGNAL, typename... ARGS >
+const state_t &
+state_t::handle( const mbox_ref_t & from, ARGS&&... args ) const
+{
+	return this->subscribe_signal_handler< SIGNAL >(
+			from,
+			std::forward< ARGS >(args)... );
+}
+
+template< typename... ARGS >
+const state_t &
+state_t::subscribe_message_handler(
+	const mbox_ref_t & from,
+	ARGS&&... args ) const
+{
+	m_target_agent->so_subscribe( from ).in( *this )
+			.event( std::forward< ARGS >(args)... );
+
+	return *this;
+}
+
+template< typename SIGNAL, typename... ARGS >
+const state_t &
+state_t::subscribe_signal_handler(
+	const mbox_ref_t & from,
+	ARGS&&... args ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this ).event(
+					so_5::signal< SIGNAL >,
+					std::forward< ARGS >(args)... );
 
 	return *this;
 }
