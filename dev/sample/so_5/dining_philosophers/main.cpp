@@ -77,49 +77,37 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_thinking.handle< msg_stop_thinking >(
-				[this]()
-				{
+		st_thinking.handle< msg_stop_thinking >( [this]() {
 					show_msg( "become hungry, try to take left fork" );
 					st_wait_left.activate();
 
 					so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
 				} );
 
-		st_wait_left.handle< msg_taken >( 
-				[this]()
-				{
+		st_wait_left.handle< msg_taken >( [this]() {
 					show_msg( "left fork taken, try to take right fork" );
 					st_wait_right.activate();
 
 					so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
 				} )
-			.handle< msg_busy >(
-				[this]()
-				{
+			.handle< msg_busy >( [this]() {
 					show_msg( "left fork is busy, return to thinking" );
 					return_to_thinking();
 				} );
 
-		st_wait_right.handle< msg_taken >(
-				[this]()
-				{
+		st_wait_right.handle< msg_taken >( [this]() {
 					show_msg( "right fork taken, start eating" );
 					st_eating.activate();
-					so_environment().single_timer< msg_stop_eating >(
-						so_direct_mbox(), random_pause() );
+					so_5::send_delayed_to_agent< msg_stop_eating >(
+						*this, random_pause() );
 				} )
-			.handle< msg_busy >(
-				[this]()
-				{
+			.handle< msg_busy >( [this]() {
 					show_msg( "right fork is busy, put left fork, return to thinking" );
 					so_5::send< msg_put >( m_left_fork );
 					return_to_thinking();
 				} );
 
-		st_eating.handle< msg_stop_eating >(
-				[this]()
-				{
+		st_eating.handle< msg_stop_eating >( [this]() {
 					show_msg( "stop eating, put right fork, put left fork, "
 						"return to thinking" );
 
@@ -156,8 +144,7 @@ private :
 	return_to_thinking()
 	{
 		st_thinking.activate();
-		so_environment().single_timer< msg_stop_thinking >(
-			so_direct_mbox(), random_pause() );
+		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, random_pause() );
 	}
 
 	static std::chrono::milliseconds
@@ -191,7 +178,8 @@ init( so_5::rt::environment_t & env )
 		.event( shutdown_mbox, so_5::signal< msg_shutdown >,
 			[&env]() { env.stop(); } );
 
-	env.single_timer< msg_shutdown >( shutdown_mbox, std::chrono::seconds(10) );
+	so_5::send_delayed< msg_shutdown >(
+			env, shutdown_mbox, std::chrono::seconds(10) );
 
 	env.register_coop( std::move( coop ) );
 }

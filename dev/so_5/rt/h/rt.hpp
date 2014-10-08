@@ -18,6 +18,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/environment.hpp>
 #include <so_5/rt/h/agent_coop_notifications.hpp>
+#include <so_5/rt/h/send_functions.hpp>
 
 #include <so_5/h/chrono_helpers.hpp>
 

@@ -13,6 +13,8 @@ struct msg_hello : public so_5::rt::message_t
 {
 	// Greeting.
 	std::string m_message;
+
+	msg_hello( std::string message ) : m_message( std::move( message ) ) {}
 };
 
 // Stop message.
@@ -24,8 +26,6 @@ class a_hello_t : public so_5::rt::agent_t
 	public:
 		a_hello_t( so_5::rt::environment_t & env )
 			: so_5::rt::agent_t( env )
-		{}
-		virtual ~a_hello_t()
 		{}
 
 		// Definition of an agent for SObjectizer.
@@ -43,6 +43,11 @@ class a_hello_t : public so_5::rt::agent_t
 		// Stop signal handler.
 		void
 		evt_stop_signal();
+
+	private:
+		// Helper function for printing messages.
+		static void
+		show_message( const std::string & what );
 };
 
 void
@@ -59,40 +64,38 @@ a_hello_t::so_define_agent()
 void
 a_hello_t::so_evt_start()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "a_hello_t::so_evt_start()" << std::endl;
+	show_message( "a_hello_t::so_evt_start()" );
 
-	std::unique_ptr< msg_hello > msg( new msg_hello );
-	msg->m_message = "Hello, world! This is SObjectizer v.5.";
-
-	// Send greeting.
-	so_environment().single_timer(
-		std::move( msg ),
-		so_direct_mbox(),
-		std::chrono::seconds( 2 ) );
+	so_5::send_delayed_to_agent< msg_hello >(
+		*this,
+		std::chrono::seconds( 2 ),
+		"Hello, world! This is SObjectizer v.5." );
 }
 
 void
 a_hello_t::evt_hello_delay( const msg_hello & msg )
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) ) << msg.m_message << std::endl;
+	show_message( msg.m_message );
 
-	so_environment().single_timer< msg_stop_signal >(
-		so_direct_mbox(),
+	so_5::send_delayed_to_agent< msg_stop_signal >(
+		*this,
 		std::chrono::seconds( 2 ) );
 }
 
 void
 a_hello_t::evt_stop_signal()
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "Stop SObjectizer..." << std::endl;
+	show_message( "Stop SObjectizer..." );
 
 	// Shutting down SObjectizer.
 	so_environment().stop();
+}
+
+void
+a_hello_t::show_message( const std::string & what )
+{
+	time_t t = time( 0 );
+	std::cout << asctime( localtime( &t ) ) << what << std::endl;
 }
 
 int
