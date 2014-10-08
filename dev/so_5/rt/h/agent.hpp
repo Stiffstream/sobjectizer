@@ -622,6 +622,8 @@ class SO_5_TYPE agent_t
 		const state_t &
 		so_default_state() const;
 
+	public : /* Note: since v.5.5.1 method so_change_state() is public */
+
 		//! Method changes state.
 		/*!
 			Usage sample:
@@ -1998,6 +2000,16 @@ state_t::subscribe_signal_handler(
 					std::forward< ARGS >(args)... );
 
 	return *this;
+}
+
+/*!
+ * \since v.5.5.1
+ * \brief A shortcat for switching the agent state.
+ */
+inline void
+operator>>=( agent_t * agent, const state_t & new_state )
+{
+	agent->so_change_state( new_state );
 }
 
 } /* namespace rt */

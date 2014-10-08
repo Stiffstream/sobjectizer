@@ -88,82 +88,70 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_thinking.handle< msg_stop_thinking >( [this]() {
+		st_thinking.handle< msg_stop_thinking >( [=]() {
 				show_msg( "become hungry, try to take forks" );
-				st_wait_any.activate();
+				this >>= st_hungry;
 
 				so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
 				so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
 			} );
 
-		st_wait_any.handle( [this]( const msg_taken & evt ) {
-				(evt.m_who == m_left_fork ?
-				 	st_left_taken : st_right_taken).activate();
-
+		st_hungry.handle( [=]( const msg_taken & evt ) {
+				show_msg( fork_name( evt.m_who ) + " fork taken" );
 				m_first_taken = evt.m_who;
+				this >>= st_one_taken;
 			} )
-			.handle< msg_busy >( [this]() {
-				st_wait_second.activate();
+			.handle< msg_busy >( [=]() {
+				this >>= st_denied;
 			} );
 
-		st_left_taken.handle( [this]( const msg_taken & evt ) {
-				start_eating( "forks taken (left, then right)" );
+		st_one_taken.handle( [=]( const msg_taken & evt ) {
+				show_msg( fork_name( evt.m_who ) + " fork taken" );
+				show_msg( "take both forks, start eating" );
+				this >>= st_eating;
+				so_5::send_delayed_to_agent< msg_stop_eating >(
+					*this, random_pause() );
 			} )
-			.handle< msg_busy >( &a_philosopher_t::evt_second_busy );
+			.handle< msg_busy >( [=]() {
+				show_msg( "put " + fork_name( m_first_taken ) +
+					" down because " + opposite_fork_name( m_first_taken ) +
+					" denied" );
+				so_5::send< msg_put >( m_first_taken );
+				think();
+			} );
 
-		st_right_taken.handle( [this]( const msg_taken & evt ) {
-				start_eating( "forks taken (right, then left)" );
-			} )
-			.handle< msg_busy >( &a_philosopher_t::evt_second_busy );
-
-		st_wait_second.handle( [this]( const msg_taken & evt ) {
+		st_denied.handle( [=]( const msg_taken & evt ) {
+				show_msg( "put " + fork_name( evt.m_who ) +
+					" down because " + opposite_fork_name( evt.m_who ) +
+					" denied" );
 				so_5::send< msg_put >( evt.m_who );
-
-				show_msg( "attempt to eat failed (one fork busy), "
-					"return to thinking" );
-				return_to_thinking();
+				think();
 			} )
-			.handle< msg_busy >( [this]() {
-				show_msg( "attempt to eat failed (both forks busy), "
-					"return to thinking" );
-				return_to_thinking();
+			.handle< msg_busy >( [=]() {
+				show_msg( "both forks busy" );
+				think();
 			} );
 
-		st_eating.handle< msg_stop_eating >( [this]() {
+		st_eating.handle< msg_stop_eating >( [=]() {
 				show_msg( "stop eating, put forks, return to thinking" );
-
 				so_5::send< msg_put >( m_right_fork );
 				so_5::send< msg_put >( m_left_fork );
-				return_to_thinking();
+				think();
 			} );
 	}
 
 	virtual void
 	so_evt_start() override
 	{
-		return_to_thinking();
-	}
-
-	void
-	evt_second_busy()
-	{
-		std::string first = (m_first_taken == m_left_fork ? "left" : "right");
-		std::string second = (m_first_taken == m_left_fork ? "right" : "left");
-
-		show_msg( first + " taken, but " + second + " busy, put " + first +
-				", return to thinking" );
-		so_5::send< msg_put >( m_first_taken );
-
-		return_to_thinking();
+		think();
 	}
 
 private :
-	const so_5::rt::state_t st_thinking = so_make_state( "thinking" );
-	const so_5::rt::state_t st_wait_any = so_make_state( "wait_any" );
-	const so_5::rt::state_t st_wait_second = so_make_state( "wait_second" );
-	const so_5::rt::state_t st_left_taken = so_make_state( "left_taken" );
-	const so_5::rt::state_t st_right_taken = so_make_state( "right_taken" );
-	const so_5::rt::state_t st_eating = so_make_state( "eating" );
+	const so_5::rt::state_t st_thinking = so_make_state();
+	const so_5::rt::state_t st_hungry = so_make_state();
+	const so_5::rt::state_t st_denied = so_make_state();
+	const so_5::rt::state_t st_one_taken = so_make_state();
+	const so_5::rt::state_t st_eating = so_make_state();
 
 	const std::string m_name;
 
@@ -172,6 +160,18 @@ private :
 
 	so_5::rt::mbox_ref_t m_first_taken;
 
+	std::string
+	fork_name( const so_5::rt::mbox_ref_t & fork ) const
+	{
+		return (m_left_fork == fork ? "left" : "right");
+	}
+
+	std::string
+	opposite_fork_name( const so_5::rt::mbox_ref_t & fork ) const
+	{
+		return (m_left_fork == fork ? "right" : "left");
+	}
+
 	void
 	show_msg( const std::string & msg ) const
 	{
@@ -179,19 +179,11 @@ private :
 	}
 
 	void
-	return_to_thinking()
+	think()
 	{
 		show_msg( "start thinking" );
-		st_thinking.activate();
+		this >>= st_thinking;
 		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, random_pause() );
-	}
-
-	void
-	start_eating( const std::string & msg )
-	{
-		show_msg( msg );
-		st_eating.activate();
-		so_5::send_delayed_to_agent< msg_stop_eating >( *this, random_pause() );
 	}
 
 	static std::chrono::milliseconds
@@ -219,16 +211,10 @@ init( so_5::rt::environment_t & env )
 				forks[ i ]->so_direct_mbox(),
 				forks[ (i + 1) % count ]->so_direct_mbox() ) );
 
-	struct msg_shutdown : public so_5::rt::signal_t {};
-	auto shutdown_mbox = env.create_local_mbox();
-	coop->define_agent()
-		.event( shutdown_mbox, so_5::signal< msg_shutdown >,
-			[&env]() { env.stop(); } );
-
-	so_5::send_delayed< msg_shutdown >(
-			env, shutdown_mbox, std::chrono::seconds(10) );
-
 	env.register_coop( std::move( coop ) );
+
+	std::this_thread::sleep_for( std::chrono::seconds(20) );
+	env.stop();
 }
 
 int
