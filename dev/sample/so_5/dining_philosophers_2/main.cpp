@@ -88,7 +88,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_thinking.handle< msg_stop_thinking >( [=]() {
+		st_thinking.handle< msg_stop_thinking >( [=]{
 				show_msg( "become hungry, try to take forks" );
 				this >>= st_hungry;
 
@@ -101,9 +101,7 @@ public :
 				m_first_taken = evt.m_who;
 				this >>= st_one_taken;
 			} )
-			.handle< msg_busy >( [=]() {
-				this >>= st_denied;
-			} );
+			.handle< msg_busy >( [=]{ this >>= st_denied; } );
 
 		st_one_taken.handle( [=]( const msg_taken & evt ) {
 				show_msg( fork_name( evt.m_who ) + " fork taken" );
@@ -112,7 +110,7 @@ public :
 				so_5::send_delayed_to_agent< msg_stop_eating >(
 					*this, random_pause() );
 			} )
-			.handle< msg_busy >( [=]() {
+			.handle< msg_busy >( [=]{
 				show_msg( "put " + fork_name( m_first_taken ) +
 					" down because " + opposite_fork_name( m_first_taken ) +
 					" denied" );
@@ -127,12 +125,12 @@ public :
 				so_5::send< msg_put >( evt.m_who );
 				think();
 			} )
-			.handle< msg_busy >( [=]() {
+			.handle< msg_busy >( [=]{
 				show_msg( "both forks busy" );
 				think();
 			} );
 
-		st_eating.handle< msg_stop_eating >( [=]() {
+		st_eating.handle< msg_stop_eating >( [=]{
 				show_msg( "stop eating, put forks, return to thinking" );
 				so_5::send< msg_put >( m_right_fork );
 				so_5::send< msg_put >( m_left_fork );

@@ -37,11 +37,11 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_free.activate();
+		this >>= st_free;
 
-		st_free.handle( [this]( const msg_take & evt )
+		st_free.handle( [=]( const msg_take & evt )
 				{
-					st_taken.activate();
+					this >>= st_taken;
 					so_5::send< msg_taken >( evt.m_who );
 				} );
 
@@ -49,7 +49,7 @@ public :
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.handle< msg_put >( [this]() { st_free.activate(); } );
+			.handle< msg_put >( [=] { this >>= st_free; } );
 	}
 
 private :
@@ -77,50 +77,45 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_thinking.handle< msg_stop_thinking >( [this]() {
-					show_msg( "become hungry, try to take left fork" );
-					st_wait_left.activate();
+		st_thinking.handle< msg_stop_thinking >( [=] {
+				show_msg( "become hungry, try to take left fork" );
+				this >>= st_wait_left;
+				so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
+			} );
 
-					so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
-				} );
+		st_wait_left.handle< msg_taken >( [=] {
+				show_msg( "left fork taken, try to take right fork" );
+				this >>= st_wait_right;
+				so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
+			} )
+			.handle< msg_busy >( [=] {
+				show_msg( "left fork is busy, return to thinking" );
+				think();
+			} );
 
-		st_wait_left.handle< msg_taken >( [this]() {
-					show_msg( "left fork taken, try to take right fork" );
-					st_wait_right.activate();
+		st_wait_right.handle< msg_taken >( [=] {
+				show_msg( "right fork taken, start eating" );
+				this >>= st_eating;
+				so_5::send_delayed_to_agent< msg_stop_eating >( *this, pause() );
+			} )
+			.handle< msg_busy >( [=] {
+				show_msg( "right fork is busy, put left fork, return to thinking" );
+				so_5::send< msg_put >( m_left_fork );
+				think();
+			} );
 
-					so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
-				} )
-			.handle< msg_busy >( [this]() {
-					show_msg( "left fork is busy, return to thinking" );
-					return_to_thinking();
-				} );
-
-		st_wait_right.handle< msg_taken >( [this]() {
-					show_msg( "right fork taken, start eating" );
-					st_eating.activate();
-					so_5::send_delayed_to_agent< msg_stop_eating >(
-						*this, random_pause() );
-				} )
-			.handle< msg_busy >( [this]() {
-					show_msg( "right fork is busy, put left fork, return to thinking" );
-					so_5::send< msg_put >( m_left_fork );
-					return_to_thinking();
-				} );
-
-		st_eating.handle< msg_stop_eating >( [this]() {
-					show_msg( "stop eating, put right fork, put left fork, "
-						"return to thinking" );
-
-					so_5::send< msg_put >( m_right_fork );
-					so_5::send< msg_put >( m_left_fork );
-					return_to_thinking();
-				} );
+		st_eating.handle< msg_stop_eating >( [=] {
+				show_msg( "stop eating, put forks, return to thinking" );
+				so_5::send< msg_put >( m_right_fork );
+				so_5::send< msg_put >( m_left_fork );
+				think();
+			} );
 	}
 
 	virtual void
 	so_evt_start() override
 	{
-		return_to_thinking();
+		think();
 	}
 
 private :
@@ -141,14 +136,14 @@ private :
 	}
 
 	void
-	return_to_thinking()
+	think()
 	{
-		st_thinking.activate();
-		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, random_pause() );
+		this >>= st_thinking;
+		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, pause() );
 	}
 
 	static std::chrono::milliseconds
-	random_pause()
+	pause()
 	{
 		return std::chrono::milliseconds( 250 + (std::rand() % 250) );
 	}
@@ -172,16 +167,10 @@ init( so_5::rt::environment_t & env )
 				forks[ i ]->so_direct_mbox(),
 				forks[ (i + 1) % count ]->so_direct_mbox() ) );
 
-	struct msg_shutdown : public so_5::rt::signal_t {};
-	auto shutdown_mbox = env.create_local_mbox();
-	coop->define_agent()
-		.event( shutdown_mbox, so_5::signal< msg_shutdown >,
-			[&env]() { env.stop(); } );
-
-	so_5::send_delayed< msg_shutdown >(
-			env, shutdown_mbox, std::chrono::seconds(10) );
-
 	env.register_coop( std::move( coop ) );
+
+	std::this_thread::sleep_for( std::chrono::seconds(20) );
+	env.stop();
 }
 
 int
