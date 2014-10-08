@@ -47,6 +47,19 @@ namespace impl
 
 					env.single_timer( std::move( msg ), to, pause );
 				}
+
+			timer_id_t
+			send_periodic(
+				so_5::rt::environment_t & env,
+				const so_5::rt::mbox_ref_t & to,
+				std::chrono::steady_clock::duration pause,
+				std::chrono::steady_clock::duration period )
+				{
+					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
+
+					return env.schedule_timer(
+							std::move( msg ), to, pause, period );
+				}
 		};
 
 	template< class MESSAGE >
@@ -65,6 +78,16 @@ namespace impl
 				std::chrono::steady_clock::duration pause )
 				{
 					env.single_timer< MESSAGE >( to, pause );
+				}
+
+			timer_id_t
+			send_periodic(
+				so_5::rt::environment_t & env,
+				const so_5::rt::mbox_ref_t & to,
+				std::chrono::steady_clock::duration pause,
+				std::chrono::steady_clock::duration period )
+				{
+					return env.schedule_timer< MESSAGE >( to, pause, period );
 				}
 		};
 
@@ -228,6 +251,157 @@ send_delayed_to_agent(
 				agent.so_environment(),
 				agent.so_direct_mbox(),
 				pause );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a periodic message.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! An environment to be used for timer.
+	so_5::rt::environment_t & env,
+	//! Mbox for the message to be sent to.
+	const so_5::rt::mbox_ref_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		std::unique_ptr< MESSAGE > msg(
+				new MESSAGE( std::forward<ARGS>(args)... ) );
+
+		return env.schedule_timer( std::move( msg ), to, pause, period );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a periodic message.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	so_5::rt::agent_t & agent,
+	//! Mbox for the message to be sent to.
+	const so_5::rt::mbox_ref_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				to,
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for delivering a periodic signal.
+ */
+template< typename MESSAGE >
+timer_id_t
+send_periodic(
+	//! An environment to be used for timer.
+	so_5::rt::environment_t & env,
+	//! Mbox for the message to be sent to.
+	const so_5::rt::mbox_ref_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period )
+	{
+		so_5::rt::impl::instantiator_and_sender_t<
+				MESSAGE,
+				std::is_base_of< so_5::rt::signal_t, MESSAGE >::value > helper;
+
+		return helper.send_periodic( env, to, pause, period );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for delivering a periodic signal.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE >
+timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	so_5::rt::agent_t & agent,
+	//! Mbox for the message to be sent to.
+	const so_5::rt::mbox_ref_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				to,
+				pause,
+				period );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for delivering a delayed signal to
+ * the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE >
+timer_id_t
+send_delayed_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				period );
 	}
 
 } /* namespace so_5 */

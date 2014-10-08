@@ -13,6 +13,8 @@ struct msg_hello_periodic : public so_5::rt::message_t
 {
 	// Greeting.
 	std::string m_message;
+
+	msg_hello_periodic( std::string msg ) : m_message( std::move( msg ) ) {}
 };
 
 // Stop message.
@@ -27,8 +29,6 @@ class a_hello_t : public so_5::rt::agent_t
 			,	m_evt_count( 0 )
 			,	m_shutdowner_mbox(
 					so_environment().create_local_mbox( "shutdown" ) )
-		{}
-		virtual ~a_hello_t()
 		{}
 
 		// Definition of an agent for SObjectizer.
@@ -70,29 +70,23 @@ a_hello_t::so_evt_start()
 	std::cout << asctime( localtime( &t ) )
 		<< "a_hello_t::so_evt_start()" << std::endl;
 
-	std::unique_ptr< msg_hello_periodic > msg( new msg_hello_periodic );
-	msg->m_message = "Hello, periodic!";
-
 	// Sending a greeting.
-	m_hello_timer_id =
-		so_environment()
-			.schedule_timer(
-				std::move( msg ),
-				so_direct_mbox(),
-				// Delay for a second.
-				std::chrono::seconds(1),
-				// Repeat every 1.25 of seconds.
-				std::chrono::milliseconds(1250) );
+	m_hello_timer_id = so_5::send_periodic_to_agent< msg_hello_periodic >(
+		*this,
+		// Delay for a second.
+		std::chrono::seconds(1),
+		// Repeat every 1.25 of seconds.
+		std::chrono::milliseconds(1250),
+		"Hello, periodic!" );
 
 	// Sending a stop signal.
-	m_stop_timer_id =
-		so_environment()
-			.schedule_timer< msg_stop_signal >(
-				m_shutdowner_mbox,
-				// Delay for two seconds.
-				std::chrono::seconds(2),
-				// Not a periodic.
-				std::chrono::seconds::zero() );
+	m_stop_timer_id = so_5::send_periodic< msg_stop_signal >(
+		*this,
+		m_shutdowner_mbox,
+		// Delay for two seconds.
+		std::chrono::seconds(2),
+		// Not a periodic.
+		std::chrono::seconds::zero() );
 }
 
 void
@@ -111,13 +105,12 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 	{
 		// Reschedule a stop signal.
 		// Previous a stop signal should be canceled.
-		m_stop_timer_id =
-			so_environment()
-				.schedule_timer< msg_stop_signal >(
-					m_shutdowner_mbox,
-					// 1300ms but specified in microsecs just for demonstration.
-					std::chrono::microseconds(1300000),
-					std::chrono::seconds::zero() );
+		m_stop_timer_id = so_5::send_periodic< msg_stop_signal >(
+			*this,
+			m_shutdowner_mbox,
+			// 1300ms but specified in microsecs just for demonstration.
+			std::chrono::microseconds(1300000),
+			std::chrono::seconds::zero() );
 	}
 }
 
