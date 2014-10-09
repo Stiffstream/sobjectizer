@@ -126,6 +126,29 @@ send( const so_5::rt::mbox_ref_t & to )
 
 /*!
  * \since v.5.5.1
+ * \brief A utility function for creating and delivering a message to
+ * the agent's direct mbox.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send( const so_5::rt::agent_t & receiver, ARGS&&... args )
+	{
+		send< MESSAGE >( receiver.so_direct_mbox(), std::forward<ARGS>(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for sending a signal to the agent's direct mbox.
+ */
+template< typename MESSAGE >
+void
+send( const so_5::rt::agent_t & receiver )
+	{
+		send< MESSAGE >( receiver.so_direct_mbox() );
+	}
+
+/*!
+ * \since v.5.5.1
  * \brief A utility function for creating and delivering a delayed message.
  */
 template< typename MESSAGE, typename... ARGS >
