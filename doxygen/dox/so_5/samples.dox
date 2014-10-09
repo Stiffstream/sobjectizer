@@ -86,4 +86,12 @@
  * \example so_5/custom_error_logger/main.cpp
  */
 
+/*!
+ * \example so_5/dining_philosophers/main.cpp
+ */
+
+/*!
+ * \example so_5/dining_philosophers_2/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

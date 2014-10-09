@@ -2005,6 +2005,28 @@ state_t::subscribe_signal_handler(
 /*!
  * \since v.5.5.1
  * \brief A shortcat for switching the agent state.
+ *
+ * \par Usage example.
+	\code
+	class my_agent : public so_5::rt::agent_t
+	{
+		const so_5::rt::state_t st_normal = so_make_state();
+		const so_5::rt::state_t st_error = so_make_state();
+		...
+	public :
+		virtual void so_define_agent() override
+		{
+			this >>= st_normal;
+
+			st_normal.handle( [=]( const msg_failure & evt ) {
+				this >>= st_error;
+				...
+			});
+			...
+		};
+		...
+	};
+	\endcode
  */
 inline void
 operator>>=( agent_t * agent, const state_t & new_state )

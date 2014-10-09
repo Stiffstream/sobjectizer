@@ -80,15 +80,81 @@ class SO_5_TYPE state_t
 		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for messages which are
+		 * sent to agent's direct mbox.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle( [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.handle( &my_agent::evt_shutdown );
+					...
+				}
+			};
+			\endcode
 		 */
 		template< typename... ARGS >
 		const state_t &
 		handle( ARGS&&... args ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for messages which are
+		 * sent to \a from message-box.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle( m_owner, [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.handle( m_owner, &my_agent::evt_shutdown );
+					...
+				}
+			private :
+				so_5::rt::mbox_ref_t m_owner;
+			};
+			\endcode
+		 */
 		template< typename... ARGS >
 		const state_t &
 		handle( mbox_ref_t & from, ARGS&&... args ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for messages which are
+		 * sent to \a from message-box.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle( m_owner, [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.handle( m_owner, &my_agent::evt_shutdown );
+					...
+				}
+			private :
+				const so_5::rt::mbox_ref_t m_owner;
+			};
+			\endcode
+		 */
 		template< typename... ARGS >
 		const state_t &
 		handle( const mbox_ref_t & from, ARGS&&... args ) const;
@@ -96,15 +162,84 @@ class SO_5_TYPE state_t
 		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for signal subscriptions.
+		 * \note This method must be used for messages which are
+		 * sent to agent's direct mbox.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle< msg_reconfig >( [=] { ... } );
+					st_normal.handle< msg_shutdown >( &my_agent::evt_shutdown );
+					...
+				}
+			};
+			\endcode
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		handle( ARGS&&... args ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for signal subscriptions.
+		 * \note This method must be used for messages which are
+		 * sent to \a from message-box.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle< msg_reconfig >( m_owner, [=] { ... } );
+					st_normal.handle< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
+					...
+				}
+			private :
+				so_5::rt::mbox_ref_t m_owner;
+			};
+			\endcode
+		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		handle( mbox_ref_t & from, ARGS&&... args ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Helper for subscription of event handler in this state.
+		 *
+		 * \note This method must be used for signal subscriptions.
+		 * \note This method must be used for messages which are
+		 * sent to \a from message-box.
+		 *
+		 * \par Usage example
+			\code
+			class my_agent : public so_5::rt::agent_t
+			{
+				const so_5::rt::state_t st_normal = so_make_state();
+			public :
+				...
+				virtual void so_define_agent() override {
+					st_normal.handle< msg_reconfig >( m_owner, [=] { ... } );
+					st_normal.handle< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
+					...
+				}
+			private :
+				const so_5::rt::mbox_ref_t m_owner;
+			};
+			\endcode
+		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		handle( const mbox_ref_t & from, ARGS&&... args ) const;
@@ -119,12 +254,20 @@ class SO_5_TYPE state_t
 		inline const state_t *
 		self_ptr() const { return this; }
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief A helper for handle-methods implementation.
+		 */
 		template< typename... ARGS >
 		const state_t &
 		subscribe_message_handler(
 			const mbox_ref_t & from,
 			ARGS&&... args ) const;
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief A helper for handle-methods implementation.
+		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		subscribe_signal_handler(
