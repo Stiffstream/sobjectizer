@@ -48,11 +48,11 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_free.activate();
+		this >>= st_free;
 
-		st_free.handle( [this]( const msg_take & evt )
+		st_free.handle( [=]( const msg_take & evt )
 				{
-					st_taken.activate();
+					this >>= st_taken;
 					so_5::send< msg_taken >( evt.m_who, so_direct_mbox() );
 				} );
 
@@ -60,7 +60,7 @@ public :
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.handle< msg_put >( [this]() { st_free.activate(); } );
+			.handle< msg_put >( [=]() { this >>= st_free; } );
 	}
 
 private :
