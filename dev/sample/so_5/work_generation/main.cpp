@@ -60,7 +60,9 @@ public :
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
-	{}
+	{
+		m_random_engine.seed( std::hash< std::string >()( m_name ) );
+	}
 
 	virtual void
 	so_define_agent() override
@@ -93,7 +95,7 @@ private :
 	static const int max_application_requests_at_once = 100;
 	// Max sleeping time for the next turn.
 	// Milliseconds.
-	static const int max_next_turn_sleeping_time = 250;
+	static const int max_next_turn_sleeping_time = 50;
 
 	void
 	evt_next_turn()
@@ -243,7 +245,9 @@ public :
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_receiver( receiver )
-	{}
+	{
+		m_random_engine.seed( std::hash< std::string >()( m_name ) );
+	}
 
 	virtual void
 	so_define_agent() override
@@ -280,8 +284,9 @@ private :
 		// Get the next portion.
 		auto requests = m_receiver->
 				get_one< std::vector< application_request > >()
-				.wait_for( std::chrono::milliseconds( 100 ) )
+				.wait_forever()
 				.sync_get< a_load_receiver_t::msg_take_requests >();
+
 		if( requests.empty() )
 		{
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
@@ -304,7 +309,7 @@ private :
 				<< requests.size() << std::endl;
 
 		const auto processing_time = std::chrono::microseconds(
-				requests.size() * random( 10, 150 ) );
+				requests.size() * random( 150, 1500 ) );
 
 		std::this_thread::sleep_for( processing_time );
 
