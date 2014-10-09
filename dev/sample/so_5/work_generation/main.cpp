@@ -23,6 +23,26 @@ private :
 #define TRACE() \
 if( auto l = locker_t{ g_trace_mutex } ) std::cout  
 
+// Helper class with fatilities to random numbers generation.
+class random_generator_mixin_t
+{
+public :
+	random_generator_mixin_t()
+	{
+		m_random_engine.seed( std::hash<random_generator_mixin_t *>()(this) );
+	}
+
+	int
+	random( int l, int h )
+	{
+		return std::uniform_int_distribution<>( l, h )( m_random_engine );
+	}
+
+private :
+	// Engine for random values generation.
+	std::default_random_engine m_random_engine;
+};
+
 // Message to be processed by worker agent.
 struct application_request : public so_5::rt::message_t
 {
@@ -47,7 +67,8 @@ struct application_request : public so_5::rt::message_t
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::rt::agent_t
+class a_generator_t : public so_5::rt::agent_t,
+	private random_generator_mixin_t
 {
 public :
 	a_generator_t(
@@ -60,9 +81,7 @@ public :
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
-	{
-		m_random_engine.seed( std::hash< std::string >()( m_name ) );
-	}
+	{}
 
 	virtual void
 	so_define_agent() override
@@ -86,21 +105,10 @@ private :
 	// Workers.
 	const std::vector< so_5::rt::mbox_ref_t > m_workers_mboxes;
 
-	// Engine for random values generation.
-	std::default_random_engine m_random_engine;
-
-	// Working parameters.
-	//
-	// Max count of application_request per one turn.
-	static const int max_application_requests_at_once = 100;
-	// Max sleeping time for the next turn.
-	// Milliseconds.
-	static const int max_next_turn_sleeping_time = 50;
-
 	void
 	evt_next_turn()
 	{
-		const int requests = random( 1, max_application_requests_at_once );
+		const int requests = random( 1, 100 );
 
 		TRACE() << "GEN(" << m_name << ") turn started, requests="
 				<< requests << std::endl;
@@ -113,15 +121,14 @@ private :
 				++sent;
 		}
 
-		const int next_turn_pause = random(
-				0, max_next_turn_sleeping_time );
+		const auto next_turn_pause = std::chrono::milliseconds( random(0, 50) );
 
 		TRACE() << "GEN(" << m_name << ") requests generated="
 				<< sent << ", will sleep for "
-				<< next_turn_pause << "ms" << std::endl;
+				<< next_turn_pause.count() << "ms" << std::endl;
 
-		so_5::send_delayed< msg_next_turn >( *this, so_direct_mbox(),
-				std::chrono::milliseconds( next_turn_pause ) );
+		so_5::send_delayed< msg_next_turn >(
+				*this, so_direct_mbox(), next_turn_pause );
 	}
 
 	bool
@@ -137,18 +144,12 @@ private :
 						"Mr.Alexander Graham Bell",
 						"Mr.Thomas A. Watson",
 						"Mr. Watson - Come here - I want to see you",
-						"besteffort,inmemory,normalpriority",
+						"BestEffort,InMemory,NormalPriority",
 						m_name );
 		if( !r )
 			workers.erase( it );
 
 		return r;
-	}
-
-	int
-	random( int low, int high )
-	{
-		return std::uniform_int_distribution<>( low, high )( m_random_engine );
 	}
 };
 
@@ -223,6 +224,7 @@ private :
 	std::vector< application_request >
 	evt_take_requests()
 	{
+		// Value to return.
 		std::vector< application_request > result;
 		result.swap( m_requests );
 
@@ -238,7 +240,8 @@ private :
 };
 
 // Load processor agent.
-class a_processor_t : public so_5::rt::agent_t
+class a_processor_t : public so_5::rt::agent_t,
+	private random_generator_mixin_t
 {
 public :
 	a_processor_t(
@@ -251,9 +254,7 @@ public :
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_receiver( receiver )
-	{
-		m_random_engine.seed( std::hash< std::string >()( m_name ) );
-	}
+	{}
 
 	virtual void
 	so_define_agent() override
@@ -265,7 +266,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		evt_next_turn();
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -277,12 +278,6 @@ private :
 
 	// Receiver.
 	const so_5::rt::mbox_ref_t m_receiver;
-
-	// Engine for random values generation.
-	std::default_random_engine m_random_engine;
-
-	const std::chrono::milliseconds next_turn_sleep_time =
-		std::chrono::milliseconds( 25 );
 
 	void
 	evt_next_turn()
@@ -298,7 +293,7 @@ private :
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
 					<< std::endl;
 			so_5::send_delayed< msg_next_turn >(
-					*this, so_direct_mbox(), next_turn_sleep_time );
+					*this, so_direct_mbox(), std::chrono::milliseconds( 25 ) );
 		}
 		else
 		{
@@ -321,12 +316,6 @@ private :
 
 		TRACE() << "PRO(" << m_name << ") processing took: "
 				<< processing_time.count() / 1000.0 << "ms" << std::endl;
-	}
-
-	int
-	random( int low, int high )
-	{
-		return std::uniform_int_distribution<>( low, high )( m_random_engine );
 	}
 };
 
