@@ -109,8 +109,8 @@ private :
 		int sent = 0;
 		while( sent < requests && !live_workers.empty() )
 		{
-			generate_next_request( live_workers );
-			++sent;
+			if( generate_next_request( live_workers ) )
+				++sent;
 		}
 
 		const int next_turn_pause = random(
@@ -124,19 +124,25 @@ private :
 				std::chrono::milliseconds( next_turn_pause ) );
 	}
 
-	void
+	bool
 	generate_next_request( std::vector< so_5::rt::mbox_ref_t > & workers )
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
 			std::advance( it, random( 0, workers.size() - 1 ) );
 
-		so_5::send< application_request >( *it,
-				"Mr.Alexander Graham Bell",
-				"Mr.Thomas A. Watson",
-				"Mr. Watson - Come here - I want to see you",
-				"besteffort,inmemory,normalpriority",
-				m_name );
+		auto r = (**it).get_one< bool >()
+				.wait_forever()
+				.make_sync_get< application_request >(
+						"Mr.Alexander Graham Bell",
+						"Mr.Thomas A. Watson",
+						"Mr. Watson - Come here - I want to see you",
+						"besteffort,inmemory,normalpriority",
+						m_name );
+		if( !r )
+			workers.erase( it );
+
+		return r;
 	}
 
 	int
@@ -276,7 +282,7 @@ private :
 	std::default_random_engine m_random_engine;
 
 	const std::chrono::milliseconds next_turn_sleep_time =
-		std::chrono::milliseconds( 250 );
+		std::chrono::milliseconds( 25 );
 
 	void
 	evt_next_turn()
@@ -369,7 +375,9 @@ init( so_5::rt::environment_t & env )
 	auto coop = env.create_coop( "generators",
 			so_5::disp::thread_pool::create_disp_binder(
 					"generators",
-					so_5::disp::thread_pool::params_t() ) );
+					[]( so_5::disp::thread_pool::params_t & p ) {
+						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
+					} ) );
 
 	for( int i = 0; i != 3; ++i )
 	{
