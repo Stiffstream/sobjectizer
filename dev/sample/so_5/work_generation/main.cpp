@@ -201,7 +201,7 @@ public :
 		// Max capacity of receiver
 		std::size_t max_receiver_capacity )
 		:	so_5::rt::agent_t( env )
-		,	m_name( name )
+		,	m_name( std::move( name ) )
 		,	max_capacity( max_receiver_capacity )
 	{
 		m_requests.reserve( max_capacity );
