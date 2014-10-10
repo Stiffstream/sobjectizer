@@ -37,7 +37,20 @@ main( int argc, char * argv[] )
 							coop->add_agent( new a_test_t( env ) );
 
 							env.register_coop( std::move( coop ) );
+
+							env.register_agent_as_coop( so_5::autoname,
+									new a_test_t( env ) );
+
+							env.register_agent_as_coop( so_5::autoname,
+									new a_test_t( env ),
+									so_5::disp::one_thread::create_disp_binder(
+											"another" ) );
 						}
+					},
+					[]( so_5::rt::environment_params_t & params )
+					{
+						params.add_named_dispatcher( "another",
+							so_5::disp::one_thread::create_disp() );
 					} );
 			},
 			5,

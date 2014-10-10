@@ -632,8 +632,8 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		 * std::unique_ptr< my_agent > a( new my_agent(...) );
-		 * so_env.register_agent_as_coop( "sample_coop", std::move(a) );
+		   std::unique_ptr< my_agent > a( new my_agent(...) );
+		   so_env.register_agent_as_coop( "sample_coop", std::move(a) );
 		 * \endcode
 		 */
 		template< class A >
@@ -648,6 +648,30 @@ class SO_5_TYPE environment_t
 		}
 
 		/*!
+		 * \since v.5.5.1.
+		 * \brief Register single agent as a cooperation with automatically
+		 * generated name.
+		 *
+		 * It is just a helper methods for convience.
+		 *
+		 * Usage sample:
+		 * \code
+		   std::unique_ptr< my_agent > a( new my_agent(...) );
+		   so_env.register_agent_as_coop( so_5::autoname, std::move(a) );
+		 * \endcode
+		 */
+		template< class A >
+		void
+		register_agent_as_coop(
+			autoname_indicator_t indicator(),
+			std::unique_ptr< A > agent )
+		{
+			auto coop = create_coop( indicator );
+			coop->add_agent( std::move( agent ) );
+			register_coop( std::move( coop ) );
+		}
+
+		/*!
 		 * \since v.5.2.1
 		 * \brief Register single agent as a cooperation.
 		 *
@@ -655,9 +679,9 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		 * so_env.register_agent_as_coop(
-		 * 	"sample_coop",
-		 * 	new my_agent_t(...) );
+		   so_env.register_agent_as_coop(
+		   	"sample_coop",
+		   	new my_agent_t(...) );
 		 * \endcode
 		 */
 		inline void
@@ -671,6 +695,28 @@ class SO_5_TYPE environment_t
 		}
 
 		/*!
+		 * \since v.5.5.1
+		 * \brief Register single agent as a cooperation with automatically
+		 * generated name.
+		 *
+		 * It is just a helper methods for convience.
+		 *
+		 * Usage sample:
+		 * \code
+		   so_env.register_agent_as_coop( so_5::autoname, new my_agent_t(...) );
+		 * \endcode
+		 */
+		inline void
+		register_agent_as_coop(
+			autoname_indicator_t indicator(),
+			agent_t * agent )
+		{
+			register_agent_as_coop(
+					indicator,
+					std::unique_ptr< agent_t >( agent ) );
+		}
+
+		/*!
 		 * \since v.5.2.1
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
@@ -679,13 +725,13 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		 * std::unique_ptr< my_agent > a( new my_agent(...) );
-		 * so_env.register_agent_as_coop(
-		 * 		"sample_coop",
-		 * 		std::move(a),
-		 * 		so_5::disp::active_group::create_disp_binder(
-		 * 				"active_group",
-		 * 				"some_active_group" ) );
+		   std::unique_ptr< my_agent > a( new my_agent(...) );
+		   so_env.register_agent_as_coop(
+		   		"sample_coop",
+		   		std::move(a),
+		   		so_5::disp::active_group::create_disp_binder(
+		   				"active_group",
+		   				"some_active_group" ) );
 		 * \endcode
 		 */
 		template< class A >
@@ -701,6 +747,36 @@ class SO_5_TYPE environment_t
 		}
 
 		/*!
+		 * \since v.5.5.1
+		 * \brief Register single agent as a cooperation with specified
+		 * dispatcher binder and automatically generated name.
+		 *
+		 * It is just a helper methods for convience.
+		 *
+		 * Usage sample:
+		 * \code
+		   std::unique_ptr< my_agent > a( new my_agent(...) );
+		   so_env.register_agent_as_coop(
+					so_5::autoname,
+		   		std::move(a),
+		   		so_5::disp::active_group::create_disp_binder(
+		   				"active_group",
+		   				"some_active_group" ) );
+		 * \endcode
+		 */
+		template< class A >
+		void
+		register_agent_as_coop(
+			autoname_indicator_t indicator(),
+			std::unique_ptr< A > agent,
+			disp_binder_unique_ptr_t disp_binder )
+		{
+			auto coop = create_coop( indicator, std::move( disp_binder ) );
+			coop->add_agent( std::move( agent ) );
+			register_coop( std::move( coop ) );
+		}
+
+		/*!
 		 * \since v.5.2.1
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
@@ -709,12 +785,12 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		 * so_env.register_agent_as_coop(
-		 * 	"sample_coop",
-		 * 	new my_agent_t(...),
-		 * 	so_5::disp::active_group::create_disp_binder(
-		 * 			"active_group",
-		 * 			"some_active_group" ) );
+		   so_env.register_agent_as_coop(
+		   	"sample_coop",
+		   	new my_agent_t(...),
+		   	so_5::disp::active_group::create_disp_binder(
+		   			"active_group",
+		   			"some_active_group" ) );
 		 * \endcode
 		 */
 		inline void
@@ -725,6 +801,35 @@ class SO_5_TYPE environment_t
 		{
 			register_agent_as_coop(
 					coop_name,
+					std::unique_ptr< agent_t >( agent ),
+					std::move( disp_binder ) );
+		}
+
+		/*!
+		 * \since v.5.5.1
+		 * \brief Register single agent as a cooperation with specified
+		 * dispatcher binder and automatically generated name.
+		 *
+		 * It is just a helper methods for convience.
+		 *
+		 * Usage sample:
+		 * \code
+		   so_env.register_agent_as_coop(
+				so_5::autoname,
+		   	new my_agent_t(...),
+		   	so_5::disp::active_group::create_disp_binder(
+		   			"active_group",
+		   			"some_active_group" ) );
+		 * \endcode
+		 */
+		inline void
+		register_agent_as_coop(
+			autoname_indicator_t indicator(),
+			agent_t * agent,
+			disp_binder_unique_ptr_t disp_binder )
+		{
+			register_agent_as_coop(
+					indicator,
 					std::unique_ptr< agent_t >( agent ),
 					std::move( disp_binder ) );
 		}

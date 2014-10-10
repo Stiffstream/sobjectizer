@@ -400,7 +400,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		auto coop = env.create_coop( "processor_" + std::to_string(i) );
+		auto coop = env.create_coop( so_5::autoname );
 
 		auto receiver = std::unique_ptr< a_receiver_t >(
 				new a_receiver_t( env, "r" + std::to_string(i), c ) );
@@ -432,7 +432,7 @@ init( so_5::rt::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
-	auto coop = env.create_coop( "generators",
+	auto coop = env.create_coop( so_5::autoname,
 			so_5::disp::thread_pool::create_disp_binder(
 					"generators",
 					[]( so_5::disp::thread_pool::params_t & p ) {
