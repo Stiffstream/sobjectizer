@@ -4,6 +4,8 @@
 
 #include <so_5/rt/h/environment.hpp>
 
+#include <string>
+
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
 #include <so_5/rt/impl/h/disp_core.hpp>
@@ -178,6 +180,12 @@ struct environment_t::internals_t
 	 */
 	const bool m_autoshutdown_disabled;
 
+	/*!
+	 * \since v.5.5.1
+	 * \brief A counter for automatically generated cooperation names.
+	 */
+	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -278,11 +286,32 @@ environment_t::create_coop(
 
 agent_coop_unique_ptr_t
 environment_t::create_coop(
+	autoname_indicator_t indicator() )
+{
+	return create_coop( indicator, create_default_disp_binder() );
+}
+
+agent_coop_unique_ptr_t
+environment_t::create_coop(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t disp_binder )
 {
 	return agent_coop_unique_ptr_t(
 			new agent_coop_t( name, std::move(disp_binder), self_ref() ) );
+}
+
+agent_coop_unique_ptr_t
+environment_t::create_coop(
+	autoname_indicator_t indicator(),
+	disp_binder_unique_ptr_t disp_binder )
+{
+	auto counter = ++(m_impl->m_autoname_counter);
+	std::string name = "__so5_autoname_" + std::to_string(counter) + "__";
+	return agent_coop_unique_ptr_t(
+			new agent_coop_t(
+					std::move(name),
+					std::move(disp_binder),
+					self_ref() ) );
 }
 
 void

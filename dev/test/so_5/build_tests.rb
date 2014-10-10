@@ -13,6 +13,7 @@ MxxRu::Cpp::composite_target {
 	required_prj 'test/so_5/environment/autoshutdown_disabled/prj.ut.rb'
 	required_prj 'test/so_5/environment/add_disp_after_start/prj.ut.rb'
 	required_prj 'test/so_5/environment/reg_coop_after_stop/prj.ut.rb'
+	required_prj 'test/so_5/environment/autoname_coop/prj.ut.rb'
 
 	required_prj 'test/so_5/execution_hint/basic_checks/prj.ut.rb'
 

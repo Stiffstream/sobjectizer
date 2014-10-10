@@ -34,6 +34,19 @@
 namespace so_5
 {
 
+/*!
+ * \since v.5.5.1
+ * \brief Special type for autoname-cooperation implementation.
+ */
+struct autoname_indicator_t {};
+
+/*!
+ * \since v.5.5.1
+ * \brief Special marker for indication of automatic name generation.
+ */
+inline autoname_indicator_t
+autoname() { return autoname_indicator_t(); }
+
 namespace rt
 {
 
@@ -542,6 +555,16 @@ class SO_5_TYPE environment_t
 			//! A new cooperation name.
 			const nonempty_name_t & name );
 
+		//! Create a cooperation with automatically generated name.
+		/*!
+		 * \since v.5.5.1
+		 * \return A new cooperation with automatically generated name. This
+		 * cooperation will use default dispatcher binders.
+		 */
+		agent_coop_unique_ptr_t
+		create_coop(
+			autoname_indicator_t indicator() );
+
 		//! Create a cooperation.
 		/*!
 		 * A binder \a disp_binder will be used for binding cooperation
@@ -566,6 +589,19 @@ class SO_5_TYPE environment_t
 		create_coop(
 			//! A new cooperation name.
 			const nonempty_name_t & name,
+			//! A default binder for this cooperation.
+			disp_binder_unique_ptr_t disp_binder );
+
+		//! Create a cooperation with automatically generated name.
+		/*!
+		 * \since v.5.5.1
+		 * \return A cooperation with automatically generated name and
+		 * \a disp_binder as the default dispatcher binder.
+		 */
+		agent_coop_unique_ptr_t
+		create_coop(
+			//! A new cooperation name.
+			autoname_indicator_t indicator(),
 			//! A default binder for this cooperation.
 			disp_binder_unique_ptr_t disp_binder );
 
