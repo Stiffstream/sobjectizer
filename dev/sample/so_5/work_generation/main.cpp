@@ -29,7 +29,7 @@ class random_generator_mixin_t
 public :
 	random_generator_mixin_t()
 	{
-		m_random_engine.seed( std::hash<random_generator_mixin_t *>()(this) );
+		m_random_engine.seed( std::hash<decltype(this)>()(this) );
 	}
 
 	int
@@ -86,6 +86,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		// Just one handler in one state.
 		so_default_state().handle< msg_next_turn >(
 				&a_generator_t::evt_next_turn );
 	}
@@ -93,6 +94,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
+		// Start work cycle.
 		so_5::send_to_agent< msg_next_turn >( *this );
 	}
 
@@ -108,19 +110,24 @@ private :
 	void
 	evt_next_turn()
 	{
+		// How many requests will be sent on this turn.
 		const int requests = random( 1, 100 );
 
 		TRACE() << "GEN(" << m_name << ") turn started, requests="
 				<< requests << std::endl;
 
+		// We need copy of workers list to modify it if
+		// some worker rejects our requests.
 		std::vector< so_5::rt::mbox_ref_t > live_workers( m_workers_mboxes );
 		int sent = 0;
+		// If there is no active workers there is no need to continue.
 		while( sent < requests && !live_workers.empty() )
 		{
 			if( generate_next_request( live_workers ) )
 				++sent;
 		}
 
+		// How much to sleep until next turn.
 		const auto next_turn_pause = std::chrono::milliseconds( random(0, 50) );
 
 		TRACE() << "GEN(" << m_name << ") requests generated="
@@ -135,8 +142,10 @@ private :
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
+			// There are more then one live workers. Select one randomly.
 			std::advance( it, random( 0, workers.size() - 1 ) );
 
+		// Prepare request.
 		auto request = std::unique_ptr< application_request >(
 				new application_request(
 						"Mr.Alexander Graham Bell",
@@ -145,6 +154,7 @@ private :
 						"BestEffort,InMemory,NormalPriority",
 						m_name ) );
 
+		// Send it to worker.
 		auto result = push_request_to_receiver( *it, std::move( request ) );
 		if( !result )
 			workers.erase( it );
@@ -157,6 +167,9 @@ private :
 		const so_5::rt::mbox_ref_t & to,
 		std::unique_ptr< application_request > req )
 	{
+		// There is a plenty of room for any errors related to
+		// synchronous invocation. Catch them all and treat them
+		// as inabillity of worker to process request.
 		try
 		{
 			return to->get_one< bool >()
@@ -174,13 +187,13 @@ private :
 };
 
 // Load receiver agent.
-class a_load_receiver_t : public so_5::rt::agent_t
+class a_receiver_t : public so_5::rt::agent_t
 {
 public :
 	// A signal to take the collected requests to processor.
 	struct msg_take_requests : public so_5::rt::signal_t {};
 
-	a_load_receiver_t(
+	a_receiver_t(
 		// Environment to work in.
 		so_5::rt::environment_t & env,
 		// Receiver's name.
@@ -199,11 +212,19 @@ public :
 	{
 		this >>= st_not_full;
 
-		st_not_full.handle( &a_load_receiver_t::evt_store_request )
-			.handle< msg_take_requests >( &a_load_receiver_t::evt_take_requests );
+		// When in the normal state...
+		st_not_full
+			// Store new request in ordinary way...
+			.handle( &a_receiver_t::evt_store_request )
+			// Return request array to processor.
+			.handle< msg_take_requests >( &a_receiver_t::evt_take_requests );
 
-		st_overload.handle( &a_load_receiver_t::evt_reject_request )
-			.handle< msg_take_requests >( &a_load_receiver_t::evt_take_requests );
+		// When overload...
+		st_overload
+			// Reject any new request...
+			.handle( &a_receiver_t::evt_reject_request )
+			// But return request array to processer as usual.
+			.handle< msg_take_requests >( &a_receiver_t::evt_take_requests );
 	}
 
 private :
@@ -222,12 +243,15 @@ private :
 	bool
 	evt_store_request( const application_request & what )
 	{
+		// Just store new request.
 		m_requests.push_back( what );
 
 		if( m_requests.size() < max_capacity )
+			// Not overloaded, new requests could be accepted.
 			return true;
 		else
 		{
+			// Overloaded. New requests will be rejected.
 			this >>= st_overload;
 			return false;
 		}
@@ -255,6 +279,7 @@ private :
 		m_requests.reserve( max_capacity );
 		this >>= st_not_full;
 
+		// Return request array to producer.
 		return result;
 	}
 };
@@ -279,6 +304,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		// Just one handler in the default state.
 		so_default_state().handle< msg_next_turn >(
 				&a_processor_t::evt_next_turn );
 	}
@@ -286,6 +312,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
+		// Start working cycle.
 		so_5::send_to_agent< msg_next_turn >( *this );
 	}
 
@@ -302,10 +329,14 @@ private :
 	void
 	evt_next_turn()
 	{
+		// Take requests from receiver.
 		auto requests = take_requests();
 
 		if( requests.empty() )
 		{
+			// No requests. There is no sense to make next request
+			// immediately. It is better to take some time to generators
+			// and receiver.
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
 					<< std::endl;
 			so_5::send_delayed_to_agent< msg_next_turn >(
@@ -313,6 +344,7 @@ private :
 		}
 		else
 		{
+			// There are some requests. They must be processed.
 			process_requests( requests );
 			// Start next turn immediately.
 			so_5::send_to_agent< msg_next_turn >( *this );
@@ -322,12 +354,15 @@ private :
 	std::vector< application_request >
 	take_requests()
 	{
+		// There is a plenty of room for any errors related to
+		// synchronous invocation. Catch them all and treat them
+		// as inabillity of receiver to provide request array.
 		try
 		{
 			return m_receiver->
 					get_one< std::vector< application_request > >()
 					.wait_for( std::chrono::milliseconds( 20 ) )
-					.sync_get< a_load_receiver_t::msg_take_requests >();
+					.sync_get< a_receiver_t::msg_take_requests >();
 		}
 		catch( const std::exception & x )
 		{
@@ -344,9 +379,10 @@ private :
 		TRACE() << "PRO(" << m_name << ") start processing, requests="
 				<< requests.size() << std::endl;
 
+		// Just imitation of requests processing.
+		// Processing time is proportional to count of requests.
 		const auto processing_time = std::chrono::microseconds(
 				requests.size() * random( 150, 1500 ) );
-
 		std::this_thread::sleep_for( processing_time );
 
 		TRACE() << "PRO(" << m_name << ") processing took: "
@@ -366,8 +402,8 @@ create_processing_coops( so_5::rt::environment_t & env )
 	{
 		auto coop = env.create_coop( "processor_" + std::to_string(i) );
 
-		auto receiver = std::unique_ptr< a_load_receiver_t >(
-				new a_load_receiver_t( env, "r" + std::to_string(i), c ) );
+		auto receiver = std::unique_ptr< a_receiver_t >(
+				new a_receiver_t( env, "r" + std::to_string(i), c ) );
 
 		auto receiver_mbox = receiver->so_direct_mbox();
 		result.push_back( receiver_mbox );

@@ -30,4 +30,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/custom_error_logger/prj.rb'
 	required_prj 'sample/so_5/dining_philosophers/prj.rb'
 	required_prj 'sample/so_5/dining_philosophers_2/prj.rb'
+	required_prj 'sample/so_5/work_generation/prj.rb'
 }

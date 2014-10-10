@@ -94,4 +94,8 @@
  * \example so_5/dining_philosophers_2/main.cpp
  */
 
+/*!
+ * \example so_5/work_generation/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
