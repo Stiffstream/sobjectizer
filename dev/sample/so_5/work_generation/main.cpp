@@ -138,18 +138,39 @@ private :
 		if( workers.size() > 1 )
 			std::advance( it, random( 0, workers.size() - 1 ) );
 
-		auto r = (**it).get_one< bool >()
-				.wait_forever()
-				.make_sync_get< application_request >(
+		auto request = std::unique_ptr< application_request >(
+				new application_request(
 						"Mr.Alexander Graham Bell",
 						"Mr.Thomas A. Watson",
 						"Mr. Watson - Come here - I want to see you",
 						"BestEffort,InMemory,NormalPriority",
-						m_name );
-		if( !r )
+						m_name ) );
+
+		auto result = push_request_to_receiver( *it, std::move( request ) );
+		if( !result )
 			workers.erase( it );
 
-		return r;
+		return result;
+	}
+
+	bool
+	push_request_to_receiver(
+		const so_5::rt::mbox_ref_t & to,
+		std::unique_ptr< application_request > req )
+	{
+		try
+		{
+			return to->get_one< bool >()
+					.wait_for( std::chrono::milliseconds( 10 ) )
+					.sync_get( std::move( req ) );
+		}
+		catch( const std::exception & x )
+		{
+			TRACE()<< "GEN(" << m_name << ") failed to push request: "
+					<< x.what() << std::endl;
+		}
+
+		return false;
 	}
 };
 
@@ -282,11 +303,7 @@ private :
 	void
 	evt_next_turn()
 	{
-		// Get the next portion.
-		auto requests = m_receiver->
-				get_one< std::vector< application_request > >()
-				.wait_forever()
-				.sync_get< a_load_receiver_t::msg_take_requests >();
+		auto requests = take_requests();
 
 		if( requests.empty() )
 		{
@@ -301,6 +318,25 @@ private :
 			// Start next turn immediately.
 			so_5::send< msg_next_turn >( *this );
 		}
+	}
+
+	std::vector< application_request >
+	take_requests()
+	{
+		try
+		{
+			return m_receiver->
+					get_one< std::vector< application_request > >()
+					.wait_for( std::chrono::milliseconds( 20 ) )
+					.sync_get< a_load_receiver_t::msg_take_requests >();
+		}
+		catch( const std::exception & x )
+		{
+			TRACE() << "PRO(" << m_name << ") failed to take requests: "
+					<< x.what() << std::endl;
+		}
+
+		return std::vector< application_request >();
 	}
 
 	void
