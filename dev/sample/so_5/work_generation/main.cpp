@@ -93,7 +93,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send< msg_next_turn >( *this );
+		so_5::send_to_agent< msg_next_turn >( *this );
 	}
 
 private :
@@ -127,8 +127,7 @@ private :
 				<< sent << ", will sleep for "
 				<< next_turn_pause.count() << "ms" << std::endl;
 
-		so_5::send_delayed< msg_next_turn >(
-				*this, so_direct_mbox(), next_turn_pause );
+		so_5::send_delayed_to_agent< msg_next_turn >( *this, next_turn_pause );
 	}
 
 	bool
@@ -287,7 +286,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send< msg_next_turn >( *this );
+		so_5::send_to_agent< msg_next_turn >( *this );
 	}
 
 private :
@@ -309,14 +308,14 @@ private :
 		{
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
 					<< std::endl;
-			so_5::send_delayed< msg_next_turn >(
-					*this, so_direct_mbox(), std::chrono::milliseconds( 25 ) );
+			so_5::send_delayed_to_agent< msg_next_turn >(
+					*this, std::chrono::milliseconds( 25 ) );
 		}
 		else
 		{
 			process_requests( requests );
 			// Start next turn immediately.
-			so_5::send< msg_next_turn >( *this );
+			so_5::send_to_agent< msg_next_turn >( *this );
 		}
 	}
 

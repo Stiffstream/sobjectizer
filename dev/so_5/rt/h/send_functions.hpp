@@ -131,7 +131,7 @@ send( const so_5::rt::mbox_ref_t & to )
  */
 template< typename MESSAGE, typename... ARGS >
 void
-send( const so_5::rt::agent_t & receiver, ARGS&&... args )
+send_to_agent( const so_5::rt::agent_t & receiver, ARGS&&... args )
 	{
 		send< MESSAGE >( receiver.so_direct_mbox(), std::forward<ARGS>(args)... );
 	}
@@ -142,7 +142,7 @@ send( const so_5::rt::agent_t & receiver, ARGS&&... args )
  */
 template< typename MESSAGE >
 void
-send( const so_5::rt::agent_t & receiver )
+send_to_agent( const so_5::rt::agent_t & receiver )
 	{
 		send< MESSAGE >( receiver.so_direct_mbox() );
 	}
@@ -405,14 +405,14 @@ send_periodic(
 
 /*!
  * \since v.5.5.1
- * \brief A utility function for delivering a delayed signal to
+ * \brief A utility function for delivering a periodic signal to
  * the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
  */
 template< typename MESSAGE >
 timer_id_t
-send_delayed_to_agent(
+send_periodic_to_agent(
 	//! An agent whos environment must be used.
 	so_5::rt::agent_t & agent,
 	//! Pause for message delaying.
