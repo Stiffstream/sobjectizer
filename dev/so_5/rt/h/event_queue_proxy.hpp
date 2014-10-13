@@ -93,7 +93,7 @@ class event_queue_proxy_t : private atomic_refcounted_t
  * \since v.5.4.0
  * \brief Typedef for smart pointer to event_queue_proxy.
  */
-typedef smart_atomic_reference_t< event_queue_proxy_t >
+typedef intrusive_ptr_t< event_queue_proxy_t >
 		event_queue_proxy_ref_t;
 
 } /* namespace rt */

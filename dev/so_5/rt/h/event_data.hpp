@@ -77,10 +77,10 @@ class event_data_t
 			return get();
 		}
 
-		smart_atomic_reference_t< MSG >
+		intrusive_ptr_t< MSG >
 		make_reference() const
 		{
-			return smart_atomic_reference_t< MSG >( m_message_instance );
+			return intrusive_ptr_t< MSG >( m_message_instance );
 		}
 
 	private:

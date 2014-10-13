@@ -71,7 +71,7 @@ class infinite_wait_service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		RESULT
-		sync_get( smart_atomic_reference_t< PARAM > msg_ref ) const;
+		sync_get( intrusive_ptr_t< PARAM > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter.
 		/*!
@@ -141,7 +141,7 @@ class wait_for_service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		RESULT
-		sync_get( smart_atomic_reference_t< PARAM > msg_ref ) const;
+		sync_get( intrusive_ptr_t< PARAM > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
@@ -207,7 +207,7 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		async( smart_atomic_reference_t< PARAM > msg_ref ) const;
+		async( intrusive_ptr_t< PARAM > msg_ref ) const;
 
 		//! Make service request call with param.
 		/*!
@@ -305,7 +305,7 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_message(
 			//! Message data.
-			const smart_atomic_reference_t< MESSAGE > & msg_ref ) const;
+			const intrusive_ptr_t< MESSAGE > & msg_ref ) const;
 
 		//! Deliver message.
 		/*!
@@ -410,7 +410,7 @@ class SO_5_TYPE mbox_t
 template< class MESSAGE >
 inline void
 mbox_t::deliver_message(
-	const smart_atomic_reference_t< MESSAGE > & msg_ref ) const
+	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
 {
 	ensure_message_with_actual_data( msg_ref.get() );
 
@@ -489,7 +489,7 @@ template< class RESULT >
 template< class PARAM >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::async(
-	smart_atomic_reference_t< PARAM > msg_ref ) const
+	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
 		ensure_message_with_actual_data( msg_ref.get() );
 
@@ -514,7 +514,7 @@ std::future< RESULT >
 service_invoke_proxy_t<RESULT>::async(
 	std::unique_ptr< PARAM > msg_unique_ptr ) const
 	{
-		return this->async( smart_atomic_reference_t< PARAM >(
+		return this->async( intrusive_ptr_t< PARAM >(
 					msg_unique_ptr.release() ) );
 	}
 
@@ -523,7 +523,7 @@ template< class PARAM >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::async( PARAM * msg ) const
 	{
-		return this->async( smart_atomic_reference_t< PARAM >( msg ) );
+		return this->async( intrusive_ptr_t< PARAM >( msg ) );
 	}
 
 template< class RESULT >
@@ -548,7 +548,7 @@ template< class PARAM, typename... ARGS >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
 	{
-		smart_atomic_reference_t< PARAM > msg(
+		intrusive_ptr_t< PARAM > msg(
 				new PARAM( std::forward<ARGS>(args)... ) );
 
 		return this->async( std::move( msg ) );
@@ -577,7 +577,7 @@ template< class RESULT >
 template< class PARAM >
 RESULT
 infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
-	smart_atomic_reference_t< PARAM > msg_ref ) const
+	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
 		return m_creator.async( std::move(msg_ref) ).get();
 	}
@@ -589,7 +589,7 @@ infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
 	std::unique_ptr< PARAM > msg_unique_ptr ) const
 	{
 		return this->sync_get(
-				smart_atomic_reference_t< PARAM >( msg_unique_ptr.release() ) );
+				intrusive_ptr_t< PARAM >( msg_unique_ptr.release() ) );
 	}
 
 template< class RESULT >
@@ -598,7 +598,7 @@ RESULT
 infinite_wait_service_invoke_proxy_t< RESULT >::sync_get( PARAM * msg ) const
 	{
 		return this->sync_get(
-				smart_atomic_reference_t< PARAM >( msg ) );
+				intrusive_ptr_t< PARAM >( msg ) );
 	}
 
 template< class RESULT >
@@ -657,7 +657,7 @@ template< class RESULT, class DURATION >
 template< class PARAM >
 RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
-	smart_atomic_reference_t< PARAM > msg_ref ) const
+	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
 		auto f = m_creator.async( std::move(msg_ref) );
 
@@ -674,7 +674,7 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 	std::unique_ptr< PARAM > msg_unique_ptr ) const
 	{
 		return this->sync_get(
-				smart_atomic_reference_t< PARAM >(
+				intrusive_ptr_t< PARAM >(
 						msg_unique_ptr.release() ) );
 	}
 
@@ -685,22 +685,20 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 	PARAM * msg ) const
 	{
 		return this->sync_get(
-				smart_atomic_reference_t< PARAM >( msg ) );
+				intrusive_ptr_t< PARAM >( msg ) );
 	}
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 template< class RESULT, class DURATION >
 template< class PARAM, typename... ARGS >
 RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 	ARGS&&... args ) const
 	{
-		smart_atomic_reference_t< PARAM > msg(
+		intrusive_ptr_t< PARAM > msg(
 				new PARAM( std::forward<ARGS>(args)... ) );
 
 		return this->sync_get( std::move( msg ) );
 	}
-#endif
 
 } /* namespace rt */
 

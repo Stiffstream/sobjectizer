@@ -18,6 +18,7 @@ MxxRu::Cpp::dll_target {
 	# ./
 	cpp_source 'exception.cpp'
 	cpp_source 'current_thread_id.cpp'
+	cpp_source 'atomic_refcounted.cpp'
 
 	cpp_source 'error_logger.cpp'
 
@@ -26,7 +27,6 @@ MxxRu::Cpp::dll_target {
 	# Run-time.
 	sources_root( 'rt' ) {
 
-		cpp_source( 'atomic_refcounted.cpp' )
 		cpp_source( 'nonempty_name.cpp' )
 
 		cpp_source( 'message.cpp' )

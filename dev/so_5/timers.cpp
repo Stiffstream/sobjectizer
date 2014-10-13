@@ -28,7 +28,7 @@ timer_id_t::timer_id_t()
 	{}
 
 timer_id_t::timer_id_t(
-	so_5::rt::smart_atomic_reference_t< timer_t > && timer )
+	so_5::intrusive_ptr_t< timer_t > && timer )
 	:	m_timer( std::move( timer ) )
 	{}
 

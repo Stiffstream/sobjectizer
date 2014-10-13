@@ -291,8 +291,8 @@ namespace rt
 {
 
 // For compatibility with previous versions.
-SO_5_DEPRECATED_ATTR("Use so_5::intrusive_ptr_t instead")
 template< class T >
+SO_5_DEPRECATED_ATTR("Use so_5::intrusive_ptr_t instead")
 using smart_atomic_reference_t = intrusive_ptr_t< T >;
 
 } /* namespace rt */

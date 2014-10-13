@@ -286,7 +286,7 @@ class agent_queue_t
  * \since v.5.4.0
  * \brief A typedef of smart pointer for agent_queue.
  */
-typedef so_5::rt::smart_atomic_reference_t< agent_queue_t > agent_queue_ref_t;
+typedef so_5::intrusive_ptr_t< agent_queue_t > agent_queue_ref_t;
 
 //
 // work_thread_t

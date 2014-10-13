@@ -62,7 +62,7 @@ class SO_5_TYPE timer_id_t
 		timer_id_t();
 		//! Initializing constructor.
 		timer_id_t(
-			so_5::rt::smart_atomic_reference_t< timer_t > && timer );
+			so_5::intrusive_ptr_t< timer_t > && timer );
 		//! Copy constructor.
 		timer_id_t(
 			const timer_id_t & o );
@@ -92,7 +92,7 @@ class SO_5_TYPE timer_id_t
 
 	private :
 		//! Actual timer.
-		so_5::rt::smart_atomic_reference_t< timer_t > m_timer;
+		so_5::intrusive_ptr_t< timer_t > m_timer;
 	};
 
 namespace timer_thread

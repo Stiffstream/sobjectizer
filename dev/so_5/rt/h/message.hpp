@@ -56,7 +56,7 @@ class SO_5_TYPE message_t
 /*!
  * \note Defined as typedef since v.5.2.0
  */
-typedef smart_atomic_reference_t< message_t > message_ref_t;
+typedef intrusive_ptr_t< message_t > message_ref_t;
 
 //
 // signal_t

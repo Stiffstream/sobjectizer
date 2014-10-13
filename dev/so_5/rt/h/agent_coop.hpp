@@ -168,7 +168,7 @@ class SO_5_TYPE coop_reg_notificators_container_t
  * \since v.5.2.3
  * \brief Typedef for smart pointer to notificators_container.
  */
-typedef smart_atomic_reference_t< coop_reg_notificators_container_t >
+typedef intrusive_ptr_t< coop_reg_notificators_container_t >
 	coop_reg_notificators_container_ref_t;
 
 //
@@ -238,7 +238,7 @@ class SO_5_TYPE coop_dereg_notificators_container_t
  * \since v.5.2.3
  * \brief Typedef for smart pointer to notificators_container.
  */
-typedef smart_atomic_reference_t< coop_dereg_notificators_container_t >
+typedef intrusive_ptr_t< coop_dereg_notificators_container_t >
 	coop_dereg_notificators_container_ref_t;
 
 //! Agent cooperation.

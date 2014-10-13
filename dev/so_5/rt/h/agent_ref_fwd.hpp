@@ -28,7 +28,7 @@ class agent_t;
 /*!
  * \note Defined as typedef since v.5.2.0
  */
-typedef smart_atomic_reference_t< agent_t > agent_ref_t;
+typedef intrusive_ptr_t< agent_t > agent_ref_t;
 
 } /* namespace rt */
 

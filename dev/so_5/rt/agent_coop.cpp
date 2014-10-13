@@ -173,12 +173,12 @@ namespace
 	template< class C, class N >
 	inline void
 	do_add_notificator_to(
-		smart_atomic_reference_t< C > & to,
+		intrusive_ptr_t< C > & to,
 		const N & notificator )
 	{
 		if( !to )
 		{
-			to = smart_atomic_reference_t< C >( new C() );
+			to = intrusive_ptr_t< C >( new C() );
 		}
 
 		to->add( notificator );
