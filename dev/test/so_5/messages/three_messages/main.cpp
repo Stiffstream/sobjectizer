@@ -79,11 +79,11 @@ class test_agent_t
 void
 test_agent_t::so_define_agent()
 {
-	so_default_state().handle( m_test_mbox, &test_agent_t::evt_test_1 );
+	so_default_state().event( m_test_mbox, &test_agent_t::evt_test_1 );
 
-	so_default_state().handle( m_test_mbox, &test_agent_t::evt_test_2 );
+	so_default_state().event( m_test_mbox, &test_agent_t::evt_test_2 );
 
-	so_default_state().handle( m_test_mbox, &test_agent_t::evt_test_3 );
+	so_default_state().event( m_test_mbox, &test_agent_t::evt_test_3 );
 }
 
 void

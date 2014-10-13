@@ -87,7 +87,7 @@ public :
 	so_define_agent() override
 	{
 		// Just one handler in one state.
-		so_default_state().handle< msg_next_turn >(
+		so_default_state().event< msg_next_turn >(
 				&a_generator_t::evt_next_turn );
 	}
 
@@ -215,16 +215,16 @@ public :
 		// When in the normal state...
 		st_not_full
 			// Store new request in ordinary way...
-			.handle( &a_receiver_t::evt_store_request )
+			.event( &a_receiver_t::evt_store_request )
 			// Return request array to processor.
-			.handle< msg_take_requests >( &a_receiver_t::evt_take_requests );
+			.event< msg_take_requests >( &a_receiver_t::evt_take_requests );
 
 		// When overload...
 		st_overload
 			// Reject any new request...
-			.handle( &a_receiver_t::evt_reject_request )
+			.event( &a_receiver_t::evt_reject_request )
 			// But return request array to processer as usual.
-			.handle< msg_take_requests >( &a_receiver_t::evt_take_requests );
+			.event< msg_take_requests >( &a_receiver_t::evt_take_requests );
 	}
 
 private :
@@ -305,7 +305,7 @@ public :
 	so_define_agent() override
 	{
 		// Just one handler in the default state.
-		so_default_state().handle< msg_next_turn >(
+		so_default_state().event< msg_next_turn >(
 				&a_processor_t::evt_next_turn );
 	}
 

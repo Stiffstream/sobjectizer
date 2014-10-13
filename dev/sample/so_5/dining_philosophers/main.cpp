@@ -39,17 +39,17 @@ public :
 	{
 		this >>= st_free;
 
-		st_free.handle( [=]( const msg_take & evt )
+		st_free.event( [=]( const msg_take & evt )
 				{
 					this >>= st_taken;
 					so_5::send< msg_taken >( evt.m_who );
 				} );
 
-		st_taken.handle( []( const msg_take & evt )
+		st_taken.event( []( const msg_take & evt )
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.handle< msg_put >( [=] { this >>= st_free; } );
+			.event< msg_put >( [=] { this >>= st_free; } );
 	}
 
 private :
@@ -77,34 +77,34 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		st_thinking.handle< msg_stop_thinking >( [=] {
+		st_thinking.event< msg_stop_thinking >( [=] {
 				show_msg( "become hungry, try to take left fork" );
 				this >>= st_wait_left;
 				so_5::send< msg_take >( m_left_fork, so_direct_mbox() );
 			} );
 
-		st_wait_left.handle< msg_taken >( [=] {
+		st_wait_left.event< msg_taken >( [=] {
 				show_msg( "left fork taken, try to take right fork" );
 				this >>= st_wait_right;
 				so_5::send< msg_take >( m_right_fork, so_direct_mbox() );
 			} )
-			.handle< msg_busy >( [=] {
+			.event< msg_busy >( [=] {
 				show_msg( "left fork is busy, return to thinking" );
 				think();
 			} );
 
-		st_wait_right.handle< msg_taken >( [=] {
+		st_wait_right.event< msg_taken >( [=] {
 				show_msg( "right fork taken, start eating" );
 				this >>= st_eating;
 				so_5::send_delayed_to_agent< msg_stop_eating >( *this, pause() );
 			} )
-			.handle< msg_busy >( [=] {
+			.event< msg_busy >( [=] {
 				show_msg( "right fork is busy, put left fork, return to thinking" );
 				so_5::send< msg_put >( m_left_fork );
 				think();
 			} );
 
-		st_eating.handle< msg_stop_eating >( [=] {
+		st_eating.event< msg_stop_eating >( [=] {
 				show_msg( "stop eating, put forks, return to thinking" );
 				so_5::send< msg_put >( m_right_fork );
 				so_5::send< msg_put >( m_left_fork );

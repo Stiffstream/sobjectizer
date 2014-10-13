@@ -92,8 +92,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle( [=]( const msg_reconfig & evt ) { ... } );
-					st_normal.handle( &my_agent::evt_shutdown );
+					st_normal.event( [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.event( &my_agent::evt_shutdown );
 					...
 				}
 			};
@@ -101,7 +101,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename... ARGS >
 		const state_t &
-		handle( ARGS&&... args ) const;
+		event( ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -118,8 +118,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle( m_owner, [=]( const msg_reconfig & evt ) { ... } );
-					st_normal.handle( m_owner, &my_agent::evt_shutdown );
+					st_normal.event( m_owner, [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.event( m_owner, &my_agent::evt_shutdown );
 					...
 				}
 			private :
@@ -129,7 +129,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename... ARGS >
 		const state_t &
-		handle( mbox_ref_t & from, ARGS&&... args ) const;
+		event( mbox_ref_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -146,8 +146,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle( m_owner, [=]( const msg_reconfig & evt ) { ... } );
-					st_normal.handle( m_owner, &my_agent::evt_shutdown );
+					st_normal.event( m_owner, [=]( const msg_reconfig & evt ) { ... } );
+					st_normal.event( m_owner, &my_agent::evt_shutdown );
 					...
 				}
 			private :
@@ -157,7 +157,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename... ARGS >
 		const state_t &
-		handle( const mbox_ref_t & from, ARGS&&... args ) const;
+		event( const mbox_ref_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -175,8 +175,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle< msg_reconfig >( [=] { ... } );
-					st_normal.handle< msg_shutdown >( &my_agent::evt_shutdown );
+					st_normal.event< msg_reconfig >( [=] { ... } );
+					st_normal.event< msg_shutdown >( &my_agent::evt_shutdown );
 					...
 				}
 			};
@@ -184,7 +184,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		handle( ARGS&&... args ) const;
+		event( ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -202,8 +202,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle< msg_reconfig >( m_owner, [=] { ... } );
-					st_normal.handle< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
+					st_normal.event< msg_reconfig >( m_owner, [=] { ... } );
+					st_normal.event< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
 					...
 				}
 			private :
@@ -213,7 +213,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		handle( mbox_ref_t & from, ARGS&&... args ) const;
+		event( mbox_ref_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -231,8 +231,8 @@ class SO_5_TYPE state_t
 			public :
 				...
 				virtual void so_define_agent() override {
-					st_normal.handle< msg_reconfig >( m_owner, [=] { ... } );
-					st_normal.handle< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
+					st_normal.event< msg_reconfig >( m_owner, [=] { ... } );
+					st_normal.event< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
 					...
 				}
 			private :
@@ -242,7 +242,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		handle( const mbox_ref_t & from, ARGS&&... args ) const;
+		event( const mbox_ref_t & from, ARGS&&... args ) const;
 
 	private:
 		//! Owner of this state.

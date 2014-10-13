@@ -1924,7 +1924,7 @@ subscription_bind_t::create_subscription_for_states(
  */
 template< typename... ARGS >
 const state_t &
-state_t::handle( ARGS&&... args ) const
+state_t::event( ARGS&&... args ) const
 {
 	return this->subscribe_message_handler(
 			m_target_agent->so_direct_mbox(),
@@ -1935,7 +1935,7 @@ state_t::handle( ARGS&&... args ) const
 
 template< typename... ARGS >
 const state_t &
-state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( mbox_ref_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_message_handler( from,
 			std::forward< ARGS >(args)... );
@@ -1943,7 +1943,7 @@ state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
 
 template< typename... ARGS >
 const state_t &
-state_t::handle( const mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( const mbox_ref_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_message_handler( from,
 			std::forward< ARGS >(args)... );
@@ -1951,7 +1951,7 @@ state_t::handle( const mbox_ref_t & from, ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::handle( ARGS&&... args ) const
+state_t::event( ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			m_target_agent->so_direct_mbox(),
@@ -1960,7 +1960,7 @@ state_t::handle( ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( mbox_ref_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
@@ -1969,7 +1969,7 @@ state_t::handle( mbox_ref_t & from, ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::handle( const mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( const mbox_ref_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
