@@ -127,7 +127,7 @@ class adhoc_agent_definition_proxy_t
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const mbox_ref_t & mbox,
-			ARGS... args )
+			ARGS&&... args )
 			{
 				return this->event( mbox, signal< SIGNAL >,
 						std::forward< ARGS >(args)... );

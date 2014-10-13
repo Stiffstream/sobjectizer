@@ -11,9 +11,6 @@
 #pragma once
 
 #if defined( _MSC_VER ) && ( _MSC_VER <= 1700 )
-	// Visual C++ 2012 and earlier doesn't support variadic templates.
-	#define SO_5_NO_VARIADIC_TEMPLATES
-
 	#if _MSC_VER == 1700
 		// Please see details at:
 		// http://connect.microsoft.com/VisualStudio/feedback/details/761829/c-11-unexpected-behavior-for-std-future-wait-for-and-std-packaged-task

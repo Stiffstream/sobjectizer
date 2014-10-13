@@ -89,7 +89,6 @@ class infinite_wait_service_invoke_proxy_t
 		RESULT
 		sync_get( PARAM * msg ) const;
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
@@ -97,7 +96,6 @@ class infinite_wait_service_invoke_proxy_t
 		template< class PARAM, typename... ARGS >
 		RESULT
 		make_sync_get( ARGS&&... args ) const;
-#endif
 
 	private :
 		const creator_t m_creator;
@@ -171,7 +169,6 @@ class wait_for_service_invoke_proxy_t
 		RESULT
 		sync_get( PARAM * msg ) const;
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
@@ -179,7 +176,6 @@ class wait_for_service_invoke_proxy_t
 		template< class PARAM, typename... ARGS >
 		RESULT
 		make_sync_get( ARGS&&... args ) const;
-#endif
 
 	private :
 		const creator_t m_creator;
@@ -242,7 +238,6 @@ class service_invoke_proxy_t
 			//! Timeout for std::future::wait_for().
 			const DURATION & timeout ) const;
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
@@ -250,7 +245,6 @@ class service_invoke_proxy_t
 		template< class PARAM, typename... ARGS >
 		std::future< RESULT >
 		make_async( ARGS&&... args ) const;
-#endif
 
 	private :
 		const mbox_ref_t m_mbox;
@@ -549,7 +543,6 @@ service_invoke_proxy_t<RESULT>::wait_for(
 				*this, timeout );
 	}
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 template< class RESULT >
 template< class PARAM, typename... ARGS >
 std::future< RESULT >
@@ -560,7 +553,6 @@ service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
 
 		return this->async( std::move( msg ) );
 	}
-#endif
 
 //
 // implementation of infinite_wait_service_invoke_proxy_t
@@ -609,7 +601,6 @@ infinite_wait_service_invoke_proxy_t< RESULT >::sync_get( PARAM * msg ) const
 				smart_atomic_reference_t< PARAM >( msg ) );
 	}
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 template< class RESULT >
 template< class PARAM, typename... ARGS >
 RESULT
@@ -619,7 +610,6 @@ infinite_wait_service_invoke_proxy_t< RESULT >::make_sync_get(
 		return m_creator.template make_async< PARAM, ARGS... >(
 				std::forward<ARGS>(args)... ).get();
 	}
-#endif /* SO_5_NO_VARIADIC_TEMPLATES */
 
 //
 // implemetation of wait_for_service_invoke_proxy_t

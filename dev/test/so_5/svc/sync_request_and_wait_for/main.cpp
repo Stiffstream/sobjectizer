@@ -258,7 +258,6 @@ class a_client_t
 									"2" );
 							} );
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 				m_normal_convert_actions.emplace_back(
 						[this]() {
 							compare_and_abort_if_missmatch(
@@ -267,7 +266,6 @@ class a_client_t
 											.make_sync_get< msg_convert >( 3 ),
 									"3" );
 							} );
-#endif
 			}
 
 		void
@@ -296,14 +294,12 @@ class a_client_t
 													new msg_back_call_convert(12) ) );
 						}, "12" ) );
 
-#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
 									.make_sync_get< msg_back_call_convert >( 13 );
 						}, "13" ) );
-#endif
 			}
 
 		static action_t

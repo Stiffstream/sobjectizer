@@ -247,7 +247,7 @@ class subscription_bind_t
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		subscription_bind_t &
-		event( ARGS... args )
+		event( ARGS&&... args )
 			{
 				return this->event( so_5::signal< SIGNAL >,
 						std::forward< ARGS >(args)... );
