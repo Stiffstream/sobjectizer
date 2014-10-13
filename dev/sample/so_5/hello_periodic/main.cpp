@@ -134,7 +134,7 @@ create_shutdowner_coop( so_5::rt::environment_t & env )
 	
 	// Shutdowner agent.
 	coop->define_agent()
-		.event( mbox, so_5::signal< msg_stop_signal >,
+		.event< msg_stop_signal >( mbox,
 			[&env, mbox]() {
 				time_t t = time( 0 );
 				std::cout << asctime( localtime( &t ) )

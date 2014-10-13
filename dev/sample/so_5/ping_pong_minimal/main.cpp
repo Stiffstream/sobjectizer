@@ -72,11 +72,8 @@ main( int argc, char ** argv )
 				coop->add_agent( new a_pinger_t( env, mbox, 100000 ) );
 
 				// Ponger agent.
-				coop->define_agent()
-					.event(
-						mbox,
-						so_5::signal< msg_ping >,
-						[mbox]() { mbox->deliver_signal< msg_pong >(); } );
+				coop->define_agent().event< msg_ping >(
+						mbox, [mbox]() { so_5::send< msg_pong >( mbox ); } );
 
 				// Register the cooperation.
 				env.register_coop( std::move( coop ) );

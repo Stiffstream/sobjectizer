@@ -15,7 +15,7 @@ define_hello_service(
 	so_5::rt::agent_coop_t & coop,
 	const so_5::rt::mbox_ref_t & self_mbox )
 	{
-		coop.define_agent().event( self_mbox, so_5::signal< msg_hello_svc >,
+		coop.define_agent().event< msg_hello_svc >( self_mbox,
 			[]() -> std::string {
 				std::cout << "svc_hello called" << std::endl;
 				return "Hello, World!";
@@ -55,7 +55,7 @@ define_shutdown_service(
 	const so_5::rt::mbox_ref_t & self_mbox )
 	{
 		auto & env = coop.environment();
-		coop.define_agent().event( self_mbox, so_5::signal< msg_shutdown >,
+		coop.define_agent().event< msg_shutdown >( self_mbox,
 			[&env]() {
 				std::cout << "svc_shutdown called" << std::endl;
 

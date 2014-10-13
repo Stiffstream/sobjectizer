@@ -113,6 +113,27 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
+		 * \since v.5.5.1
+		 * \brief Subscription of event- or service-handler to signal.
+		 *
+		 * \par Usage sample:
+		 * \code
+		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   coop->define_agent()
+		   	.event< msg_my_signal >( mbox, [=] { ... } );
+		 * \endcode
+		 */
+		template< class SIGNAL, typename... ARGS >
+		inline adhoc_agent_definition_proxy_t &
+		event(
+			const mbox_ref_t & mbox,
+			ARGS... args )
+			{
+				return this->event( mbox, signal< SIGNAL >,
+						std::forward< ARGS >(args)... );
+			}
+
+		/*!
 		 * Define reaction to work start.
 		 */
 		inline adhoc_agent_definition_proxy_t &

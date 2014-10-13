@@ -109,21 +109,21 @@ run_sample(
 
 				// Pinger agent.
 				coop->define_agent()
-					.on_start( [mbox]() { mbox->deliver_signal< msg_ping >(); } )
-					.event( mbox, so_5::signal< msg_pong >,
+					.on_start( [mbox]() { so_5::send< msg_ping >( mbox ); } )
+					.event< msg_pong >( mbox,
 						[&pings_left, &env, mbox]()
 						{
 							if( pings_left ) --pings_left;
 							if( pings_left )
-								mbox->deliver_signal< msg_ping >();
+								so_5::send< msg_ping >( mbox );
 							else
 								env.stop();
 						} );
 
 				// Ponger agent.
 				coop->define_agent()
-					.event( mbox, so_5::signal< msg_ping >,
-						[mbox]() { mbox->deliver_signal< msg_pong >(); } );
+					.event< msg_ping >( mbox,
+						[mbox]() { so_5::send< msg_pong >( mbox ); } );
 
 				env.register_coop( std::move( coop ) );
 			},
