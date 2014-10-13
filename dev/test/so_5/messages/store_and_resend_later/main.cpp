@@ -241,7 +241,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		so_5::rt::mbox_ref_t m_mbox;
 
-		so_5::rt::smart_atomic_reference_t< msg_test > m_stored_message;
+		so_5::intrusive_ptr_t< msg_test > m_stored_message;
 
 		so_5::rt::state_t st_stored = so_make_state( "stored" );
 };

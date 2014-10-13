@@ -52,7 +52,7 @@ struct msg_meeting_result : public so_5::rt::message_t
 			{}
 	};
 
-typedef so_5::rt::smart_atomic_reference_t< msg_meeting_result >
+typedef so_5::intrusive_ptr_t< msg_meeting_result >
 	msg_meeting_result_smart_ref_t;
 
 struct msg_meeting_request : public so_5::rt::message_t
@@ -72,7 +72,7 @@ struct msg_meeting_request : public so_5::rt::message_t
 			{}
 	};
 
-typedef so_5::rt::smart_atomic_reference_t< msg_meeting_request >
+typedef so_5::intrusive_ptr_t< msg_meeting_request >
 	msg_meeting_request_smart_ref_t;
 
 struct msg_shutdown_request : public so_5::rt::signal_t {};

@@ -99,7 +99,7 @@ class a_client_t
 		a_client_t(
 			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_ref_t & svc_mbox,
-			const so_5::rt::smart_atomic_reference_t< msg_param > & param )
+			const so_5::intrusive_ptr_t< msg_param > & param )
 			:	so_5::rt::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			,	m_param( param )
@@ -119,7 +119,7 @@ class a_client_t
 	private :
 		const so_5::rt::mbox_ref_t m_svc_mbox;
 
-		so_5::rt::smart_atomic_reference_t< msg_param > m_param;
+		so_5::intrusive_ptr_t< msg_param > m_param;
 	};
 
 void
@@ -130,7 +130,7 @@ init(
 				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-		so_5::rt::smart_atomic_reference_t< msg_param > msg( new msg_param() );
+		so_5::intrusive_ptr_t< msg_param > msg( new msg_param() );
 
 		auto svc_mbox = env.create_local_mbox();
 		so_5::rt::mbox_ref_t current_svc_mbox = svc_mbox;
