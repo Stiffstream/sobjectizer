@@ -12,13 +12,11 @@
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <type_traits>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 //! The base class for the object with a reference counting.
@@ -73,7 +71,7 @@ class SO_5_TYPE atomic_refcounted_t
 };
 
 //
-// smart_atomic_reference_t
+// intrusive_ptr_t
 //
 /*!
  * \since v.5.2.0
@@ -82,7 +80,7 @@ class SO_5_TYPE atomic_refcounted_t
  * \tparam T class which must be derived from the atomic_refcounted_t.
  */
 template< class T >
-class smart_atomic_reference_t
+class intrusive_ptr_t
 {
 		static void ensure_right_T()
 		{
@@ -96,27 +94,27 @@ class smart_atomic_reference_t
 		/*!
 		 * Constructs a null reference.
 		 */
-		smart_atomic_reference_t()
+		intrusive_ptr_t()
 			:	m_obj( nullptr )
 		{
 			ensure_right_T();
 		}
 		//! Constructor for a raw pointer.
-		smart_atomic_reference_t( T * obj )
+		intrusive_ptr_t( T * obj )
 			:	m_obj( obj )
 		{
 			ensure_right_T();
 			take_object();
 		}
 		//! Copy constructor.
-		smart_atomic_reference_t( const smart_atomic_reference_t & o )
+		intrusive_ptr_t( const intrusive_ptr_t & o )
 			:	m_obj( o.m_obj )
 		{
 			ensure_right_T();
 			take_object();
 		}
 		//! Move constructor.
-		smart_atomic_reference_t( smart_atomic_reference_t && o )
+		intrusive_ptr_t( intrusive_ptr_t && o )
 			:	m_obj( o.m_obj )
 		{
 			ensure_right_T();
@@ -128,8 +126,8 @@ class smart_atomic_reference_t
 		 * \brief Constructor from another smart reference.
 		 */
 		template< class Y >
-		smart_atomic_reference_t(
-			const smart_atomic_reference_t< Y > & o )
+		intrusive_ptr_t(
+			const intrusive_ptr_t< Y > & o )
 			:	m_obj( dynamic_cast< T * >( o.get() ) )
 		{
 			ensure_right_T();
@@ -137,23 +135,23 @@ class smart_atomic_reference_t
 		}
 
 		//! Destructor.
-		~smart_atomic_reference_t()
+		~intrusive_ptr_t()
 		{
 			dismiss_object();
 		}
 
 		//! Copy operator.
-		smart_atomic_reference_t &
-		operator=( const smart_atomic_reference_t & o )
+		intrusive_ptr_t &
+		operator=( const intrusive_ptr_t & o )
 		{
-			smart_atomic_reference_t t( o );
+			intrusive_ptr_t t( o );
 			swap( t );
 			return *this;
 		}
 
 		//! Move operator.
-		smart_atomic_reference_t &
-		operator=( smart_atomic_reference_t && o )
+		intrusive_ptr_t &
+		operator=( intrusive_ptr_t && o )
 		{
 			if( &o != this )
 			{
@@ -166,7 +164,7 @@ class smart_atomic_reference_t
 
 		//! Swap values.
 		void
-		swap( smart_atomic_reference_t & o )
+		swap( intrusive_ptr_t & o )
 		{
 			T * t = m_obj;
 			m_obj = o.m_obj;
@@ -188,10 +186,10 @@ class smart_atomic_reference_t
 		 * \brief Make reference with casing to different type.
 		 */
 		template< class Y >
-		smart_atomic_reference_t< Y >
+		intrusive_ptr_t< Y >
 		make_reference() const
 		{
-			return smart_atomic_reference_t< Y >( *this );
+			return intrusive_ptr_t< Y >( *this );
 		}
 
 		//! Is this a null reference?
@@ -235,7 +233,7 @@ class smart_atomic_reference_t
 		 * \name Comparision
 		 * \{
 		 */
-		bool operator==( const smart_atomic_reference_t & o ) const
+		bool operator==( const intrusive_ptr_t & o ) const
 		{
 			T * p1 = get();
 			T * p2 = o.get();
@@ -246,7 +244,7 @@ class smart_atomic_reference_t
 			return false;
 		}
 
-		bool operator<( const smart_atomic_reference_t & o ) const
+		bool operator<( const intrusive_ptr_t & o ) const
 		{
 			T * p1 = get();
 			T * p2 = o.get();
@@ -288,6 +286,14 @@ class smart_atomic_reference_t
 			}
 		}
 };
+
+namespace rt
+{
+
+// For compatibility with previous versions.
+SO_5_DEPRECATED_ATTR("Use so_5::intrusive_ptr_t instead")
+template< class T >
+using smart_atomic_reference_t = intrusive_ptr_t< T >;
 
 } /* namespace rt */
 

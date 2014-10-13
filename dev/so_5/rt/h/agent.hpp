@@ -19,10 +19,10 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -412,7 +412,7 @@ class SO_5_TYPE agent_t
 		private atomic_refcounted_t
 {
 		friend class subscription_bind_t;
-		friend class smart_atomic_reference_t< agent_t >;
+		friend class intrusive_ptr_t< agent_t >;
 		friend class agent_coop_t;
 		friend class state_t;
 

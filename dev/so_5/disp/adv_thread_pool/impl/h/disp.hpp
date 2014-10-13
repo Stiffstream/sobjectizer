@@ -19,10 +19,10 @@
 #include <forward_list>
 
 #include <so_5/h/spinlocks.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/atomic_refcounted.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 
@@ -68,9 +68,9 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  */
 class agent_queue_t
 	:	public so_5::rt::event_queue_t
-	,	private so_5::rt::atomic_refcounted_t
+	,	private so_5::atomic_refcounted_t
 	{
-		friend class so_5::rt::smart_atomic_reference_t< agent_queue_t >;
+		friend class so_5::intrusive_ptr_t< agent_queue_t >;
 
 	private :
 		//! Actual demand in event queue.

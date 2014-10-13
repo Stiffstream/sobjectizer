@@ -278,7 +278,7 @@ class SO_5_TYPE mbox_t
 	:
 		private atomic_refcounted_t
 {
-		friend class smart_atomic_reference_t< mbox_t >;
+		friend class intrusive_ptr_t< mbox_t >;
 
 		mbox_t( const mbox_t & );
 		void

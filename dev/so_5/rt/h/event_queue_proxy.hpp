@@ -14,9 +14,9 @@
 #include <mutex>
 
 #include <so_5/h/spinlocks.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/atomic_refcounted.hpp>
 
 namespace so_5
 {
@@ -30,7 +30,7 @@ namespace rt
  */
 class event_queue_proxy_t : private atomic_refcounted_t
 	{
-		friend class smart_atomic_reference_t< event_queue_proxy_t >;
+		friend class intrusive_ptr_t< event_queue_proxy_t >;
 
 	public :
 		event_queue_proxy_t()

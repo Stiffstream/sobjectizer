@@ -12,7 +12,7 @@
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
-#include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 #include <type_traits>
 #include <typeindex>

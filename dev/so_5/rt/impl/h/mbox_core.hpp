@@ -17,7 +17,7 @@
 #include <functional>
 #include <mutex>
 
-#include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>

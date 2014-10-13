@@ -11,7 +11,7 @@
 #if !defined( _SO_5__RT__AGENT_REF_FWD_HPP_ )
 #define _SO_5__RT__AGENT_REF_FWD_HPP_
 
-#include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
 namespace so_5
 {

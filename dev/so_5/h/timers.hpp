@@ -16,8 +16,8 @@
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/h/error_logger.hpp>
+#include <so_5/h/atomic_refcounted.hpp>
 
-#include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/message.hpp>
 
@@ -32,9 +32,9 @@ namespace so_5
  * \brief A base class for timer identificator.
  */
 class SO_5_TYPE timer_t
-	:	private so_5::rt::atomic_refcounted_t
+	:	private so_5::atomic_refcounted_t
 	{
-		friend class so_5::rt::smart_atomic_reference_t< timer_t >;
+		friend class intrusive_ptr_t< timer_t >;
 
 	public :
 		virtual ~timer_t();
