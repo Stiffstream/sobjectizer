@@ -45,11 +45,11 @@ enum color_t
 
 struct msg_meeting_request : public so_5::rt::message_t
 	{
-		so_5::rt::mbox_ref_t m_who;
+		so_5::rt::mbox_t m_who;
 		color_t m_color;
 
 		msg_meeting_request(
-			const so_5::rt::mbox_ref_t & who,
+			const so_5::rt::mbox_t & who,
 			color_t color )
 			:	m_who( who )
 			,	m_color( color )
@@ -156,7 +156,7 @@ class a_meeting_place_t
 		int m_remaining_meetings;
 		int m_total_meetings;
 
-		so_5::rt::mbox_ref_t m_first_creature_mbox;
+		so_5::rt::mbox_t m_first_creature_mbox;
 		color_t m_first_creature_color;
 	};
 
@@ -166,7 +166,7 @@ class a_creature_t
 	public :
 		a_creature_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & meeting_place_mbox,
+			const so_5::rt::mbox_t & meeting_place_mbox,
 			color_t color )
 			:	so_5::rt::agent_t( env )
 			,	m_meeting_place_mbox( meeting_place_mbox )
@@ -213,7 +213,7 @@ class a_creature_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_meeting_place_mbox;
+		const so_5::rt::mbox_t m_meeting_place_mbox;
 
 		int m_meeting_counter;
 

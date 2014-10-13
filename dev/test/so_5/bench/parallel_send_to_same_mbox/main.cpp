@@ -24,7 +24,7 @@ class a_sender_t
 	public :
 		a_sender_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			unsigned int send_count )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
@@ -41,7 +41,7 @@ class a_sender_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_mbox;
+		const so_5::rt::mbox_t m_mbox;
 
 		unsigned int m_send_count;
 	};
@@ -52,7 +52,7 @@ class a_shutdowner_t
 	public :
 		a_shutdowner_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			unsigned int sender_count )
 			:	so_5::rt::agent_t( env )
 			,	m_sender_count( sender_count )

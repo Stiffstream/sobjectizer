@@ -23,7 +23,7 @@ namespace so_5
 namespace rt
 {
 
-class mbox_t;
+class abstract_message_box_t;
 
 //! Template for the message incapsulation.
 /*!

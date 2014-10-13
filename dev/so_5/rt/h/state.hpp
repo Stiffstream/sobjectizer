@@ -16,7 +16,7 @@
 
 #include <so_5/h/declspec.hpp>
 
-#include <so_5/rt/h/mbox_ref_fwd.hpp>
+#include <so_5/rt/h/mbox_fwd.hpp>
 
 namespace so_5
 {
@@ -123,13 +123,13 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_ref_t m_owner;
+				so_5::rt::mbox_t m_owner;
 			};
 			\endcode
 		 */
 		template< typename... ARGS >
 		const state_t &
-		event( mbox_ref_t & from, ARGS&&... args ) const;
+		event( mbox_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -151,13 +151,13 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				const so_5::rt::mbox_ref_t m_owner;
+				const so_5::rt::mbox_t m_owner;
 			};
 			\endcode
 		 */
 		template< typename... ARGS >
 		const state_t &
-		event( const mbox_ref_t & from, ARGS&&... args ) const;
+		event( const mbox_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -207,13 +207,13 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_ref_t m_owner;
+				so_5::rt::mbox_t m_owner;
 			};
 			\endcode
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		event( mbox_ref_t & from, ARGS&&... args ) const;
+		event( mbox_t & from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -236,13 +236,13 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				const so_5::rt::mbox_ref_t m_owner;
+				const so_5::rt::mbox_t m_owner;
 			};
 			\endcode
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		event( const mbox_ref_t & from, ARGS&&... args ) const;
+		event( const mbox_t & from, ARGS&&... args ) const;
 
 	private:
 		//! Owner of this state.
@@ -261,7 +261,7 @@ class SO_5_TYPE state_t
 		template< typename... ARGS >
 		const state_t &
 		subscribe_message_handler(
-			const mbox_ref_t & from,
+			const mbox_t & from,
 			ARGS&&... args ) const;
 
 		/*!
@@ -271,7 +271,7 @@ class SO_5_TYPE state_t
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		subscribe_signal_handler(
-			const mbox_ref_t & from,
+			const mbox_t & from,
 			ARGS&&... args ) const;
 };
 

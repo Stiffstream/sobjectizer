@@ -20,7 +20,7 @@ class a_test_t
 	public :
 		a_test_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
+			const so_5::rt::mbox_t & self_mbox )
 			:	base_type_t( env )
 			,	m_self_mbox( self_mbox )
 		{}
@@ -34,7 +34,7 @@ class a_test_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 };
 
 class a_parent_t

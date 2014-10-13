@@ -12,7 +12,7 @@ class a_pinger_t : public so_5::rt::agent_t
 	public :
 		a_pinger_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			int pings_to_send )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
@@ -42,7 +42,7 @@ class a_pinger_t : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_mbox;
+		const so_5::rt::mbox_t m_mbox;
 
 		int m_pings_left;
 

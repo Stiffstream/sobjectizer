@@ -397,7 +397,7 @@ typedef environment_params_t so_environment_params_t;
  * common pools or assigned by a user during mbox creation.
  *
  * Mboxes are created by environment_t::create_local_mbox() methods.
- * All these methods return the mbox_ref_t which is a smart reference 
+ * All these methods return the mbox_t which is a smart reference 
  * to the mbox.
  *
  * An anonymous mbox is automatically destroyed when the last reference to it is
@@ -476,7 +476,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 *	\note always creates a new mbox.
 		 */
-		mbox_ref_t
+		mbox_t
 		create_local_mbox();
 
 		//! Create named mbox with the default mutex.
@@ -484,7 +484,7 @@ class SO_5_TYPE environment_t
 		 * If \a mbox_name is unique then a new mutex will be created.
 		 * If not the reference to existing mutex will be returned.
 		 */
-		mbox_ref_t
+		mbox_t
 		create_local_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
@@ -879,7 +879,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause,
 			//! Period of the delivery repetition for periodic messages.
@@ -911,7 +911,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
 			//! Period of the delivery repetition for periodic messages.
@@ -939,7 +939,7 @@ class SO_5_TYPE environment_t
 		so_5::timer_id_t
 		schedule_timer(
 			//! Mbox to which signal will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause,
 			//! Period of the delivery repetition for periodic messages.
@@ -969,7 +969,7 @@ class SO_5_TYPE environment_t
 		so_5::timer_id_t
 		schedule_timer(
 			//! Mbox to which signal will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
 			//! Period of the delivery repetition for periodic messages.
@@ -999,7 +999,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before delivery.
 			std::chrono::steady_clock::duration pause )
 		{
@@ -1024,7 +1024,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
@@ -1045,7 +1045,7 @@ class SO_5_TYPE environment_t
 		void
 		single_timer(
 			//! Mbox to which signal will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before delivery.
 			std::chrono::steady_clock::duration pause )
 		{
@@ -1068,7 +1068,7 @@ class SO_5_TYPE environment_t
 		void
 		single_timer(
 			//! Mbox to which signal will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
@@ -1200,7 +1200,7 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 		//! Create multi-producer/single-consumer mbox.
-		mbox_ref_t
+		mbox_t
 		so5__create_mpsc_mbox(
 			//! The only consumer for the messages.
 			agent_t * single_consumer,
@@ -1231,7 +1231,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause,
 			//! Period of the delivery repetition for periodic messages.
@@ -1249,7 +1249,7 @@ class SO_5_TYPE environment_t
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
 			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause );
 

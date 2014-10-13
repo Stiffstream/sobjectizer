@@ -34,7 +34,7 @@ namespace impl
  * \since v.5.4.0
  * \brief A multi-producer/single-consumer mbox definition.
  */
-class mpsc_mbox_t : public mbox_t
+class mpsc_mbox_t : public abstract_message_box_t
 {
 	public:
 		explicit mpsc_mbox_t(

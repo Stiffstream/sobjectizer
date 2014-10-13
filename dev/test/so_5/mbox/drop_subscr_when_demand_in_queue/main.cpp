@@ -80,7 +80,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 };
 
 void

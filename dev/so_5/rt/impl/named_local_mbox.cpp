@@ -21,7 +21,7 @@ namespace impl
 
 named_local_mbox_t::named_local_mbox_t(
 	const std::string & name,
-	const mbox_ref_t & mbox,
+	const mbox_t & mbox,
 	impl::mbox_core_t & mbox_core )
 	:
 		m_name( name ),

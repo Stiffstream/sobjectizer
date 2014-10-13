@@ -29,7 +29,7 @@ class a_child_t : public so_5::rt::agent_t
 	public:
 		a_child_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & parent_mbox )
+			const so_5::rt::mbox_t & parent_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
 		{}
@@ -44,7 +44,7 @@ class a_child_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_parent_mbox;
+		const so_5::rt::mbox_t m_parent_mbox;
 };
 
 class a_parent_t : public so_5::rt::agent_t

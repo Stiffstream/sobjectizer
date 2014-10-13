@@ -230,7 +230,7 @@ agent_t::so_switch_to_awaiting_deregistration_state()
 	so_change_state( awaiting_deregistration_state );
 }
 
-const mbox_ref_t &
+const mbox_t &
 agent_t::so_direct_mbox() const
 {
 	return m_direct_mbox;
@@ -473,7 +473,7 @@ namespace
 
 	std::string
 	make_subscription_description(
-		const mbox_ref_t & mbox_ref,
+		const mbox_t & mbox_ref,
 		std::type_index msg_type,
 		const state_t & state )
 	{
@@ -489,7 +489,7 @@ namespace
 
 void
 agent_t::create_event_subscription(
-	const mbox_ref_t & mbox_ref,
+	const mbox_t & mbox_ref,
 	std::type_index type_index,
 	const state_t & target_state,
 	const event_handler_method_t & method,
@@ -511,7 +511,7 @@ agent_t::create_event_subscription(
 void
 agent_t::do_drop_subscription(
 	const std::type_index & type_index,
-	const mbox_ref_t & mbox_ref,
+	const mbox_t & mbox_ref,
 	const state_t & target_state )
 {
 	ensure_operation_is_on_working_thread( "do_drop_subscription" );
@@ -526,7 +526,7 @@ agent_t::do_drop_subscription(
 void
 agent_t::do_drop_subscription_for_all_states(
 	const std::type_index & type_index,
-	const mbox_ref_t & mbox_ref )
+	const mbox_t & mbox_ref )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's

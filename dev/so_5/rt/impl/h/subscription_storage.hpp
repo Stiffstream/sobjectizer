@@ -208,7 +208,7 @@ class subscription_storage_t
 
 		void
 		create_event_subscription(
-			const mbox_ref_t & mbox_ref,
+			const mbox_t & mbox_ref,
 			std::type_index type_index,
 			const state_t & target_state,
 			const event_handler_method_t & method,
@@ -217,13 +217,13 @@ class subscription_storage_t
 		void
 		drop_subscription(
 			const std::type_index & type_index,
-			const mbox_ref_t & mbox_ref,
+			const mbox_t & mbox_ref,
 			const state_t & target_state );
 
 		void
 		drop_subscription_for_all_states(
 			const std::type_index & type_index,
-			const mbox_ref_t & mbox_ref );
+			const mbox_t & mbox_ref );
 
 		const event_handler_data_t *
 		find_handler(
@@ -238,7 +238,7 @@ class subscription_storage_t
 		agent_t * m_owner;
 
 		//! Type of subscription map.
-		typedef std::map< subscription_details::key_t, mbox_ref_t > map_t;
+		typedef std::map< subscription_details::key_t, mbox_t > map_t;
 
 		//! Map of subscriptions.
 		/*!

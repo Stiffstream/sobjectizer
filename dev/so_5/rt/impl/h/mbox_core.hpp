@@ -60,17 +60,17 @@ class mbox_core_t
 		/*!
 			\note always creates a new mbox.
 		*/
-		mbox_ref_t
+		mbox_t
 		create_local_mbox();
 
 		//! Create local named mbox.
 		/*!
 			\note if mbox with specified name \a mbox_name is present, 
 			method won't create a new mbox. In this case method 
-			will return a new mbox_ref_t, which links to 
+			will return a new mbox_t, which links to 
 			the present mbox (with this name).
 		*/
-		mbox_ref_t
+		mbox_t
 		create_local_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
@@ -79,7 +79,7 @@ class mbox_core_t
 		 * \since v.5.4.0
 		 * \brief Create anonymous mpsc_mbox.
 		 */
-		mbox_ref_t
+		mbox_t
 		create_mpsc_mbox(
 			//! The only consumer for messages.
 			agent_t * single_consumer,
@@ -108,7 +108,7 @@ class mbox_core_t
 			{}
 
 			named_mbox_info_t(
-				const mbox_ref_t mbox )
+				const mbox_t mbox )
 				:
 					m_external_ref_count( 1 ),
 					m_mbox( mbox )
@@ -117,7 +117,7 @@ class mbox_core_t
 			//! Reference count by external mbox_refs.
 			unsigned int m_external_ref_count;
 			//! Real mbox for that name.
-			mbox_ref_t m_mbox;
+			mbox_t m_mbox;
 		};
 
 		//! Typedef for the map from the mbox name to the mbox information.
@@ -137,13 +137,13 @@ class mbox_core_t
 		 * \since v.5.2.0
 		 * \brief Low-level implementation of named mbox creation.
 		 */
-		mbox_ref_t
+		mbox_t
 		create_named_mbox(
 			//! Mbox name.
 			const nonempty_name_t & nonempty_name,
 			//! Functional object to create new instance of mbox.
-			//! Must have a prototype: mbox_ref_t factory().
-			const std::function< mbox_ref_t() > & factory );
+			//! Must have a prototype: mbox_t factory().
+			const std::function< mbox_t() > & factory );
 };
 
 //! Smart reference to the mbox_core_t.

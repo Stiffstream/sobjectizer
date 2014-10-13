@@ -54,7 +54,7 @@ class a_client_t
 	public :
 		a_client_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & svc_mbox )
+			const so_5::rt::mbox_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
@@ -90,7 +90,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_svc_mbox;
+		const so_5::rt::mbox_t m_svc_mbox;
 	};
 
 void

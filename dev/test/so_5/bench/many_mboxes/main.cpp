@@ -159,9 +159,9 @@ class a_sender_t
 	public :
 		a_sender_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & common_mbox,
+			const so_5::rt::mbox_t & common_mbox,
 			std::size_t iterations,
-			const std::vector< so_5::rt::mbox_ref_t > & mboxes,
+			const std::vector< so_5::rt::mbox_t > & mboxes,
 			const std::vector< a_worker_t * > & workers )
 			:	so_5::rt::agent_t( env )
 			,	m_common_mbox( common_mbox )
@@ -197,9 +197,9 @@ class a_sender_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_common_mbox;
+		const so_5::rt::mbox_t m_common_mbox;
 		std::size_t m_iterations_left;
-		const std::vector< so_5::rt::mbox_ref_t > & m_mboxes;
+		const std::vector< so_5::rt::mbox_t > & m_mboxes;
 
 		void
 		try_start_next_iteration()
@@ -223,7 +223,7 @@ class a_sender_t
 		void
 		initiate_next_iteration()
 			{
-				so_5::rt::mbox_t & m = *(so_direct_mbox());
+				so_5::rt::abstract_message_box_t & m = *(so_direct_mbox());
 				m.deliver_signal< msg_next_iteration >();
 			}
 	};
@@ -286,7 +286,7 @@ class a_starter_stopper_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_common_mbox;
+		const so_5::rt::mbox_t m_common_mbox;
 
 		const cfg_t m_cfg;
 
@@ -294,7 +294,7 @@ class a_starter_stopper_t
 
 		benchmarker_t m_benchmark;
 
-		std::vector< so_5::rt::mbox_ref_t > m_mboxes;
+		std::vector< so_5::rt::mbox_t > m_mboxes;
 		std::vector< a_worker_t * > m_workers;
 
 		typedef std::function< so_5::rt::agent_t *() >

@@ -72,7 +72,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		const int m_max_deep;
 
-		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_t m_self_mbox;
 
 		static std::string
 		mbox_name( int ordinal )

@@ -22,18 +22,18 @@
 
 struct msg_take : public so_5::rt::message_t
 {
-	const so_5::rt::mbox_ref_t m_who;
+	const so_5::rt::mbox_t m_who;
 
-	msg_take( so_5::rt::mbox_ref_t who ) : m_who( std::move( who ) ) {}
+	msg_take( so_5::rt::mbox_t who ) : m_who( std::move( who ) ) {}
 };
 
 struct msg_busy : public so_5::rt::signal_t {};
 
 struct msg_taken : public so_5::rt::message_t
 {
-	const so_5::rt::mbox_ref_t m_who;
+	const so_5::rt::mbox_t m_who;
 
-	msg_taken( so_5::rt::mbox_ref_t who ) : m_who( std::move( who ) ) {}
+	msg_taken( so_5::rt::mbox_t who ) : m_who( std::move( who ) ) {}
 };
 
 struct msg_put : public so_5::rt::signal_t {};
@@ -77,8 +77,8 @@ public :
 	a_philosopher_t(
 		so_5::rt::environment_t & env,
 		std::string name,
-		so_5::rt::mbox_ref_t left_fork,
-		so_5::rt::mbox_ref_t right_fork )
+		so_5::rt::mbox_t left_fork,
+		so_5::rt::mbox_t right_fork )
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_left_fork( std::move( left_fork ) )
@@ -153,19 +153,19 @@ private :
 
 	const std::string m_name;
 
-	const so_5::rt::mbox_ref_t m_left_fork;
-	const so_5::rt::mbox_ref_t m_right_fork;
+	const so_5::rt::mbox_t m_left_fork;
+	const so_5::rt::mbox_t m_right_fork;
 
-	so_5::rt::mbox_ref_t m_first_taken;
+	so_5::rt::mbox_t m_first_taken;
 
 	std::string
-	fork_name( const so_5::rt::mbox_ref_t & fork ) const
+	fork_name( const so_5::rt::mbox_t & fork ) const
 	{
 		return (m_left_fork == fork ? "left" : "right");
 	}
 
 	std::string
-	opposite_fork_name( const so_5::rt::mbox_ref_t & fork ) const
+	opposite_fork_name( const so_5::rt::mbox_t & fork ) const
 	{
 		return (m_left_fork == fork ? "right" : "left");
 	}

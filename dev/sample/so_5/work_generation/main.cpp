@@ -77,7 +77,7 @@ public :
 		// Name of generator.
 		std::string name,
 		// Workers.
-		const std::vector< so_5::rt::mbox_ref_t > & workers_mboxes )
+		const std::vector< so_5::rt::mbox_t > & workers_mboxes )
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
@@ -105,7 +105,7 @@ private :
 	// Generator name.
 	const std::string m_name;
 	// Workers.
-	const std::vector< so_5::rt::mbox_ref_t > m_workers_mboxes;
+	const std::vector< so_5::rt::mbox_t > m_workers_mboxes;
 
 	void
 	evt_next_turn()
@@ -118,7 +118,7 @@ private :
 
 		// We need copy of workers list to modify it if
 		// some worker rejects our requests.
-		std::vector< so_5::rt::mbox_ref_t > live_workers( m_workers_mboxes );
+		std::vector< so_5::rt::mbox_t > live_workers( m_workers_mboxes );
 		int sent = 0;
 		// If there is no active workers there is no need to continue.
 		while( sent < requests && !live_workers.empty() )
@@ -138,7 +138,7 @@ private :
 	}
 
 	bool
-	generate_next_request( std::vector< so_5::rt::mbox_ref_t > & workers )
+	generate_next_request( std::vector< so_5::rt::mbox_t > & workers )
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
@@ -164,7 +164,7 @@ private :
 
 	bool
 	push_request_to_receiver(
-		const so_5::rt::mbox_ref_t & to,
+		const so_5::rt::mbox_t & to,
 		std::unique_ptr< application_request > req )
 	{
 		// There is a plenty of room for any errors related to
@@ -295,7 +295,7 @@ public :
 		// Processor's name.
 		std::string name,
 		// Receiver mbox.
-		const so_5::rt::mbox_ref_t & receiver )
+		const so_5::rt::mbox_t & receiver )
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_receiver( receiver )
@@ -324,7 +324,7 @@ private :
 	const std::string m_name;
 
 	// Receiver.
-	const so_5::rt::mbox_ref_t m_receiver;
+	const so_5::rt::mbox_t m_receiver;
 
 	void
 	evt_next_turn()
@@ -390,10 +390,10 @@ private :
 	}
 };
 
-std::vector< so_5::rt::mbox_ref_t >
+std::vector< so_5::rt::mbox_t >
 create_processing_coops( so_5::rt::environment_t & env )
 {
-	std::vector< so_5::rt::mbox_ref_t > result;
+	std::vector< so_5::rt::mbox_t > result;
 
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 

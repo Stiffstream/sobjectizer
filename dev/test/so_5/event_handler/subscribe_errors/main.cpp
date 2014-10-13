@@ -77,7 +77,7 @@ class test_agent_t
 
 	private:
 		// Mbox to subscribe.
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 };
 
 

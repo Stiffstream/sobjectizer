@@ -133,7 +133,7 @@ class subscription_bind_t
 			//! Agent to subscribe.
 			agent_t & agent,
 			//! Mbox for messages to be subscribed.
-			const mbox_ref_t & mbox_ref );
+			const mbox_t & mbox_ref );
 
 		//! Set up a state in which events are allowed be processed.
 		inline subscription_bind_t &
@@ -257,7 +257,7 @@ class subscription_bind_t
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;
 		//! Mbox for messages to subscribe.
-		mbox_ref_t m_mbox_ref;
+		mbox_t m_mbox_ref;
 
 		/*!
 		 * \since v.5.3.0
@@ -630,7 +630,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief Get the agent's direct mbox.
 		 */
-		const mbox_ref_t &
+		const mbox_t &
 		so_direct_mbox() const;
 
 	protected:
@@ -692,7 +692,7 @@ class SO_5_TYPE agent_t
 		inline subscription_bind_t
 		so_subscribe(
 			//! Mbox for messages to subscribe.
-			const mbox_ref_t & mbox_ref )
+			const mbox_t & mbox_ref )
 		{
 			return subscription_bind_t( *this, mbox_ref );
 		}
@@ -730,7 +730,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			const state_t & target_state,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
@@ -751,7 +751,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			const state_t & target_state,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
@@ -767,7 +767,7 @@ class SO_5_TYPE agent_t
 		template< class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			const state_t & target_state,
 			signal_indicator_t< MESSAGE >() )
 		{
@@ -788,7 +788,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
 			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
@@ -808,7 +808,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
 			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
@@ -823,7 +823,7 @@ class SO_5_TYPE agent_t
 		template< class MESSAGE >
 		inline void
 		so_drop_subscription(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
 			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
@@ -844,7 +844,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription_for_all_states(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
 			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
@@ -865,7 +865,7 @@ class SO_5_TYPE agent_t
 		template< class AGENT, class MESSAGE >
 		inline void
 		so_drop_subscription_for_all_states(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
 			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
@@ -881,7 +881,7 @@ class SO_5_TYPE agent_t
 		template< class MESSAGE >
 		inline void
 		so_drop_subscription_for_all_states(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
 			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
@@ -968,7 +968,7 @@ class SO_5_TYPE agent_t
 				public:
 					void
 					set_target_mbox(
-						const so_5::rt::mbox_ref_t & mbox )
+						const so_5::rt::mbox_t & mbox )
 					{
 						// mbox cannot be changed after agent registration.
 						if( !so_was_defined() )
@@ -978,7 +978,7 @@ class SO_5_TYPE agent_t
 					}
 
 				private:
-					so_5::rt::mbox_ref_t m_target_mbox;
+					so_5::rt::mbox_t m_target_mbox;
 			};
 			\endcode
 		*/
@@ -1177,7 +1177,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief A direct mbox for the agent.
 		 */
-		const mbox_ref_t m_direct_mbox;
+		const mbox_t m_direct_mbox;
 
 		/*!
 		 * \since v.5.4.0
@@ -1240,7 +1240,7 @@ class SO_5_TYPE agent_t
 		void
 		create_event_subscription(
 			//! Message's mbox.
-			const mbox_ref_t & mbox_ref,
+			const mbox_t & mbox_ref,
 			//! Message type.
 			std::type_index type_index,
 			//! State for event.
@@ -1259,7 +1259,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_ref_t & mbox_ref,
+			const mbox_t & mbox_ref,
 			//! State for event.
 			const state_t & target_state );
 
@@ -1272,7 +1272,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_ref_t & mbox_ref );
+			const mbox_t & mbox_ref );
 		/*!
 		 * \}
 		 */
@@ -1424,7 +1424,7 @@ class SO_5_TYPE agent_t
 inline
 subscription_bind_t::subscription_bind_t(
 	agent_t & agent,
-	const mbox_ref_t & mbox_ref )
+	const mbox_t & mbox_ref )
 	:	m_agent( agent )
 	,	m_mbox_ref( mbox_ref )
 {
@@ -1956,7 +1956,7 @@ state_t::event( ARGS&&... args ) const
 
 template< typename... ARGS >
 const state_t &
-state_t::event( mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( mbox_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_message_handler( from,
 			std::forward< ARGS >(args)... );
@@ -1964,7 +1964,7 @@ state_t::event( mbox_ref_t & from, ARGS&&... args ) const
 
 template< typename... ARGS >
 const state_t &
-state_t::event( const mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( const mbox_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_message_handler( from,
 			std::forward< ARGS >(args)... );
@@ -1981,7 +1981,7 @@ state_t::event( ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::event( mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( mbox_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
@@ -1990,7 +1990,7 @@ state_t::event( mbox_ref_t & from, ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::event( const mbox_ref_t & from, ARGS&&... args ) const
+state_t::event( const mbox_t & from, ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
@@ -2000,7 +2000,7 @@ state_t::event( const mbox_ref_t & from, ARGS&&... args ) const
 template< typename... ARGS >
 const state_t &
 state_t::subscribe_message_handler(
-	const mbox_ref_t & from,
+	const mbox_t & from,
 	ARGS&&... args ) const
 {
 	m_target_agent->so_subscribe( from ).in( *this )
@@ -2012,7 +2012,7 @@ state_t::subscribe_message_handler(
 template< typename SIGNAL, typename... ARGS >
 const state_t &
 state_t::subscribe_signal_handler(
-	const mbox_ref_t & from,
+	const mbox_t & from,
 	ARGS&&... args ) const
 {
 	m_target_agent->so_subscribe( from )

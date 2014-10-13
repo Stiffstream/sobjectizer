@@ -81,7 +81,7 @@ class a_test_t : public so_5::rt::agent_t
 		const so_5::rt::coop_reg_notificator_t m_reg_notificator;
 		const so_5::rt::coop_dereg_notificator_t m_dereg_notificator;
 
-		const so_5::rt::mbox_ref_t m_mbox;
+		const so_5::rt::mbox_t m_mbox;
 };
 
 class test_env_t

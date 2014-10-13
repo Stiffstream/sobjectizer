@@ -30,7 +30,7 @@ namespace impl
 	struct instantiator_and_sender_t
 		{
 			void
-			send( const so_5::rt::mbox_ref_t & to )
+			send( const so_5::rt::mbox_t & to )
 				{
 					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
 
@@ -40,7 +40,7 @@ namespace impl
 			void
 			send_delayed(
 				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_ref_t & to,
+				const so_5::rt::mbox_t & to,
 				std::chrono::steady_clock::duration pause )
 				{
 					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
@@ -51,7 +51,7 @@ namespace impl
 			timer_id_t
 			send_periodic(
 				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_ref_t & to,
+				const so_5::rt::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period )
 				{
@@ -66,7 +66,7 @@ namespace impl
 	struct instantiator_and_sender_t< MESSAGE, true >
 		{
 			void
-			send( const so_5::rt::mbox_ref_t & to )
+			send( const so_5::rt::mbox_t & to )
 				{
 					to->deliver_signal< MESSAGE >();
 				}
@@ -74,7 +74,7 @@ namespace impl
 			void
 			send_delayed(
 				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_ref_t & to,
+				const so_5::rt::mbox_t & to,
 				std::chrono::steady_clock::duration pause )
 				{
 					env.single_timer< MESSAGE >( to, pause );
@@ -83,7 +83,7 @@ namespace impl
 			timer_id_t
 			send_periodic(
 				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_ref_t & to,
+				const so_5::rt::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period )
 				{
@@ -101,7 +101,7 @@ namespace impl
  */
 template< typename MESSAGE, typename... ARGS >
 void
-send( const so_5::rt::mbox_ref_t & to, ARGS&&... args )
+send( const so_5::rt::mbox_t & to, ARGS&&... args )
 	{
 		std::unique_ptr< MESSAGE > msg(
 				new MESSAGE( std::forward<ARGS>(args)... ) );
@@ -115,7 +115,7 @@ send( const so_5::rt::mbox_ref_t & to, ARGS&&... args )
  */
 template< typename MESSAGE >
 void
-send( const so_5::rt::mbox_ref_t & to )
+send( const so_5::rt::mbox_t & to )
 	{
 		so_5::rt::impl::instantiator_and_sender_t<
 				MESSAGE,
@@ -157,7 +157,7 @@ send_delayed(
 	//! An environment to be used for timer.
 	so_5::rt::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -181,7 +181,7 @@ send_delayed(
 	//! An agent whos environment must be used.
 	so_5::rt::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -225,7 +225,7 @@ send_delayed(
 	//! An environment to be used for timer.
 	so_5::rt::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause )
 	{
@@ -248,7 +248,7 @@ send_delayed(
 	//! An agent whos environment must be used.
 	so_5::rt::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause )
 	{
@@ -286,7 +286,7 @@ send_periodic(
 	//! An environment to be used for timer.
 	so_5::rt::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -312,7 +312,7 @@ send_periodic(
 	//! An agent whos environment must be used.
 	so_5::rt::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -365,7 +365,7 @@ send_periodic(
 	//! An environment to be used for timer.
 	so_5::rt::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -390,7 +390,7 @@ send_periodic(
 	//! An agent whos environment must be used.
 	so_5::rt::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_ref_t & to,
+	const so_5::rt::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.

@@ -77,7 +77,7 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		int & m_message_counter;
 
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 };
 
 struct test_env_t

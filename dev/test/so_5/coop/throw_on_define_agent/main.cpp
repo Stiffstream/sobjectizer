@@ -33,7 +33,7 @@ class a_ordinary_t
 		virtual void
 		so_define_agent()
 		{
-			so_5::rt::mbox_ref_t mbox = so_environment()
+			so_5::rt::mbox_t mbox = so_environment()
 				.create_local_mbox( g_test_mbox_name );
 
 			so_subscribe( mbox )

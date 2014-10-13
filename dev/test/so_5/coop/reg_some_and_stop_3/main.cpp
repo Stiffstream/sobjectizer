@@ -22,7 +22,7 @@ class a_slave_t
 	public:
 		a_slave_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & master_mbox )
+			const so_5::rt::mbox_t & master_mbox )
 			:
 				base_type_t( env ),
 				m_master_mbox( master_mbox )
@@ -42,7 +42,7 @@ class a_slave_t
 		}
 
 	private:
-		so_5::rt::mbox_ref_t m_master_mbox;
+		so_5::rt::mbox_t m_master_mbox;
 
 };
 
@@ -65,7 +65,7 @@ class a_master_t
 		virtual void
 		so_evt_start()
 		{
-			so_5::rt::mbox_ref_t mbox = so_environment()
+			so_5::rt::mbox_t mbox = so_environment()
 				.create_local_mbox( so_coop_name() + "_mbox" );
 
 			so_subscribe( mbox )

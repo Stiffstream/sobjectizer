@@ -56,7 +56,7 @@ class a_test_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 
 		int m_counter;
 		const int m_max_attempts;

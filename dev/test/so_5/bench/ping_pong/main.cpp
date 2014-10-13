@@ -90,13 +90,13 @@ class a_pinger_t
 			{}
 
 		void
-		set_self_mbox( const so_5::rt::mbox_ref_t & mbox )
+		set_self_mbox( const so_5::rt::mbox_t & mbox )
 			{
 				m_self_mbox = mbox;
 			}
 
 		void
-		set_ponger_mbox( const so_5::rt::mbox_ref_t & mbox )
+		set_ponger_mbox( const so_5::rt::mbox_t & mbox )
 			{
 				m_ponger_mbox = mbox;
 			}
@@ -130,8 +130,8 @@ class a_pinger_t
 			}
 
 	private :
-		so_5::rt::mbox_ref_t m_self_mbox;
-		so_5::rt::mbox_ref_t m_ponger_mbox;
+		so_5::rt::mbox_t m_self_mbox;
+		so_5::rt::mbox_t m_ponger_mbox;
 
 		const cfg_t m_cfg;
 		measure_result_t & m_measure_result;
@@ -157,13 +157,13 @@ class a_ponger_t
 			{}
 
 		void
-		set_self_mbox( const so_5::rt::mbox_ref_t & mbox )
+		set_self_mbox( const so_5::rt::mbox_t & mbox )
 			{
 				m_self_mbox = mbox;
 			}
 
 		void
-		set_pinger_mbox( const so_5::rt::mbox_ref_t & mbox )
+		set_pinger_mbox( const so_5::rt::mbox_t & mbox )
 			{
 				m_pinger_mbox = mbox;
 			}
@@ -182,8 +182,8 @@ class a_ponger_t
 			}
 
 	private :
-		so_5::rt::mbox_ref_t m_self_mbox;
-		so_5::rt::mbox_ref_t m_pinger_mbox;
+		so_5::rt::mbox_t m_self_mbox;
+		so_5::rt::mbox_t m_pinger_mbox;
 	};
 
 void

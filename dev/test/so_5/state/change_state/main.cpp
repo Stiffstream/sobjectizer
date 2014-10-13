@@ -61,7 +61,7 @@ class test_agent_t
 		static int m_handler_in_state_3_calls;
 
 	private:
-		so_5::rt::mbox_ref_t m_test_mbox;
+		so_5::rt::mbox_t m_test_mbox;
 };
 
 int test_agent_t::m_handler_in_state_default_calls = 0;

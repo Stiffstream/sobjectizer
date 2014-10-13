@@ -45,7 +45,7 @@ class a_hello_t : public so_5::rt::agent_t
 
 	private:
 		// Agent's mbox.
-		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
+		const so_5::rt::mbox_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
 		so_5::timer_id_t m_hello_timer_id;

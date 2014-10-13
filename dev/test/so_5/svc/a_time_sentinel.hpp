@@ -36,7 +36,7 @@ class a_time_sentinel_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 	};
 
 #endif

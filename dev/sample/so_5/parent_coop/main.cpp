@@ -47,7 +47,7 @@ class a_child_t
 
 	public:
 		a_child_t( so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & result_mbox,
+			const so_5::rt::mbox_t & result_mbox,
 			unsigned int task_id ) 
 		:
 			base_type_t( env ),
@@ -109,7 +109,7 @@ class a_child_t
 
 	private:
 		// Result mbox.
-		const so_5::rt::mbox_ref_t m_result_mbox; 
+		const so_5::rt::mbox_t m_result_mbox; 
 
 		// Self-timer ref.
 		so_5::timer_id_t	m_timer_ref; 
@@ -206,7 +206,7 @@ class a_parent_t
 		}
 
 		// Agent mbox.
-		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_t m_self_mbox;
 };
 
 // The SObjectizer Environment initialization.

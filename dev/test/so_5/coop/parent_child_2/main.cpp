@@ -94,7 +94,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		int m_started_children;
 
-		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_t m_self_mbox;
 
 		void
 		notify_parent()

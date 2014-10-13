@@ -11,10 +11,10 @@
 
 #include "../a_time_sentinel.hpp"
 
-class test_mbox_t : public so_5::rt::mbox_t
+class test_mbox_t : public so_5::rt::abstract_message_box_t
 	{
 	private :
-		const so_5::rt::mbox_ref_t m_actual_mbox;
+		const so_5::rt::mbox_t m_actual_mbox;
 
 	public :
 		static bool test_passed;
@@ -78,10 +78,10 @@ class test_mbox_t : public so_5::rt::mbox_t
 		virtual std::string
 		query_name() const { return m_actual_mbox->query_name(); }
 
-		static so_5::rt::mbox_ref_t
+		static so_5::rt::mbox_t
 		create( so_5::rt::environment_t & env )
 			{
-				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
+				return so_5::rt::mbox_t( new test_mbox_t( env ) );
 			}
 	};
 
@@ -95,7 +95,7 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
-typedef decltype( (static_cast< so_5::rt::mbox_t * >(nullptr))->get_one< std::string >().wait_forever() ) proxy_t;
+typedef decltype( (static_cast< so_5::rt::abstract_message_box_t * >(nullptr))->get_one< std::string >().wait_forever() ) proxy_t;
 
 class a_client_t
 	:	public so_5::rt::agent_t

@@ -23,7 +23,7 @@ class a_child_t
 	public :
 		a_child_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & parent_mbox )
+			const so_5::rt::mbox_t & parent_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
 			{}
@@ -41,7 +41,7 @@ class a_child_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_parent_mbox;
+		const so_5::rt::mbox_t m_parent_mbox;
 };
 
 // A class of parent agent.
@@ -164,7 +164,7 @@ class a_parent_t
 		std::size_t m_acks_received;
 		std::size_t m_destroy_received;
 
-		std::vector< so_5::rt::mbox_ref_t > m_child_mboxes;
+		std::vector< so_5::rt::mbox_t > m_child_mboxes;
 
 		void
 		try_start_new_iteration()
@@ -184,7 +184,7 @@ class a_parent_t
 			m_acks_received = 0;
 			m_destroy_received = 0;
 
-			m_child_mboxes = std::vector< so_5::rt::mbox_ref_t >();
+			m_child_mboxes = std::vector< so_5::rt::mbox_t >();
 			m_child_mboxes.reserve( m_max_agents );
 
 			auto coop = so_environment().create_coop( "child" );

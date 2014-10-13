@@ -19,7 +19,7 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/mbox_ref_fwd.hpp>
+#include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
 
@@ -190,8 +190,8 @@ template< class RESULT >
 class service_invoke_proxy_t
 	{
 	public :
-		service_invoke_proxy_t( const mbox_ref_t & mbox );
-		service_invoke_proxy_t( mbox_ref_t && mbox );
+		service_invoke_proxy_t( const mbox_t & mbox );
+		service_invoke_proxy_t( mbox_t && mbox );
 
 		//! Make asynchronous service request.
 		/*!
@@ -247,11 +247,11 @@ class service_invoke_proxy_t
 		make_async( ARGS&&... args ) const;
 
 	private :
-		const mbox_ref_t m_mbox;
+		const mbox_t m_mbox;
 	};
 
 //
-// mbox_t
+// abstract_message_box_t
 //
 
 //! Mail box class.
@@ -259,34 +259,32 @@ class service_invoke_proxy_t
  * The class serves as an interface for sending and receiving messages.
  *
  * All mboxes can be created via the SObjectizer Environment. References to
- * mboxes are stored and manipulated by so_5::rt::mbox_ref_t objects.
+ * mboxes are stored and manipulated by so_5::rt::mbox_t objects.
  *
- * mbox_t has two versions of the deliver_message() method. 
+ * abstract_message_box_t has two versions of the deliver_message() method. 
  * The first one requires pointer to the actual message data and is intended 
  * for delivering messages to agents.
  * The second one doesn't use a pointer to the actual message data and 
  * is intended for delivering signals to agents.
  *
- * mbox_t also is used for the delivery of delayed and periodic messages.
- * The SObjectizer Environment stores mbox for which messages must be
- * delivered and the timer thread pushes message instances to the mbox
- * at the appropriate time.
+ * abstract_message_box_t also is used for the delivery of delayed and periodic
+ * messages.  The SObjectizer Environment stores mbox for which messages must
+ * be delivered and the timer thread pushes message instances to the mbox at
+ * the appropriate time.
  *
  * \see environment_t::schedule_timer(), environment_t::single_timer().
  */
-class SO_5_TYPE mbox_t
-	:
-		private atomic_refcounted_t
+class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 {
-		friend class intrusive_ptr_t< mbox_t >;
+		friend class intrusive_ptr_t< abstract_message_box_t >;
 
-		mbox_t( const mbox_t & );
+		abstract_message_box_t( const abstract_message_box_t & );
 		void
-		operator = ( const mbox_t & );
+		operator = ( const abstract_message_box_t & );
 
 	public:
-		mbox_t();
-		virtual ~mbox_t();
+		abstract_message_box_t();
+		virtual ~abstract_message_box_t();
 
 		/*!
 		 * \since v.5.4.0
@@ -341,7 +339,7 @@ class SO_5_TYPE mbox_t
 		get_one()
 			{
 				return service_invoke_proxy_t< RESULT >(
-						mbox_ref_t( this ) );
+						mbox_t( this ) );
 			}
 
 		/*!
@@ -352,7 +350,7 @@ class SO_5_TYPE mbox_t
 		inline service_invoke_proxy_t< void >
 		run_one()
 			{
-				return service_invoke_proxy_t< void >( mbox_ref_t( this ) );
+				return service_invoke_proxy_t< void >( mbox_t( this ) );
 			}
 
 		//! Deliver message for all subscribers.
@@ -399,9 +397,9 @@ class SO_5_TYPE mbox_t
 		 * \name Comparision.
 		 * \{
 		 */
-		bool operator==( const mbox_t & o ) const;
+		bool operator==( const abstract_message_box_t & o ) const;
 
-		bool operator<( const mbox_t & o ) const;
+		bool operator<( const abstract_message_box_t & o ) const;
 		/*!
 		 * \}
 		 */
@@ -409,7 +407,7 @@ class SO_5_TYPE mbox_t
 
 template< class MESSAGE >
 inline void
-mbox_t::deliver_message(
+abstract_message_box_t::deliver_message(
 	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
 {
 	ensure_message_with_actual_data( msg_ref.get() );
@@ -421,7 +419,7 @@ mbox_t::deliver_message(
 
 template< class MESSAGE >
 void
-mbox_t::deliver_message(
+abstract_message_box_t::deliver_message(
 	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
 {
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
@@ -433,7 +431,7 @@ mbox_t::deliver_message(
 
 template< class MESSAGE >
 void
-mbox_t::deliver_message(
+abstract_message_box_t::deliver_message(
 	MESSAGE * msg_raw_ptr ) const
 {
 	this->deliver_message( std::unique_ptr< MESSAGE >( msg_raw_ptr ) );
@@ -441,7 +439,7 @@ mbox_t::deliver_message(
 
 template< class MESSAGE >
 void
-mbox_t::deliver_signal() const
+abstract_message_box_t::deliver_signal() const
 {
 	ensure_signal< MESSAGE >();
 
@@ -455,13 +453,13 @@ mbox_t::deliver_signal() const
 //
 template< class RESULT >
 service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
-	const mbox_ref_t & mbox )
+	const mbox_t & mbox )
 	:	m_mbox( mbox )
 	{}
 
 template< class RESULT >
 service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
-	mbox_ref_t && mbox )
+	mbox_t && mbox )
 	:	m_mbox( std::move(mbox) )
 	{}
 

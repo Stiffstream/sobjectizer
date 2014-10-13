@@ -23,7 +23,7 @@ struct msg_get_status : public so_5::rt::signal_t {};
 void
 define_convert_service(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & self_mbox )
+	const so_5::rt::mbox_t & self_mbox )
 	{
 		coop.define_agent()
 			.event( self_mbox, []( const msg_convert & msg ) -> std::string
@@ -45,7 +45,7 @@ struct msg_shutdown : public so_5::rt::signal_t {};
 void
 define_shutdown_service(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & self_mbox )
+	const so_5::rt::mbox_t & self_mbox )
 	{
 		auto & env = coop.environment();
 		coop.define_agent()
@@ -69,7 +69,7 @@ compare_and_abort_if_missmatch(
 void
 define_client(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & svc_mbox )
+	const so_5::rt::mbox_t & svc_mbox )
 	{
 		coop.define_agent()
 			.on_start(

@@ -38,7 +38,7 @@ class a_vector_summator_t : public so_5::rt::agent_t
 	public :
 		a_vector_summator_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
+			const so_5::rt::mbox_t & self_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_part_summator_mbox( env.create_local_mbox() )
@@ -80,8 +80,8 @@ class a_vector_summator_t : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-		const so_5::rt::mbox_ref_t m_part_summator_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::rt::mbox_t m_part_summator_mbox;
 	};
 
 class progress_indicator_t
@@ -139,7 +139,7 @@ class a_runner_t : public so_5::rt::agent_t
 	private :
 		const std::size_t ITERATIONS;
 
-		const so_5::rt::mbox_ref_t m_summator_mbox;
+		const so_5::rt::mbox_t m_summator_mbox;
 
 		vector_t m_vector;
 

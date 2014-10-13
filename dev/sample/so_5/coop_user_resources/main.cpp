@@ -43,7 +43,7 @@ class a_child_t
 		a_child_t(
 			so_5::rt::environment_t & env,
 			std::string agent_name,
-			const so_5::rt::mbox_ref_t & parent_mbox,
+			const so_5::rt::mbox_t & parent_mbox,
 			logger_t & logger )
 			:	base_type_t( env )
 			,	m_agent_name( std::move( agent_name ) )
@@ -66,7 +66,7 @@ class a_child_t
 
 	private :
 		const std::string m_agent_name;
-		const so_5::rt::mbox_ref_t m_parent_mbox;
+		const so_5::rt::mbox_t m_parent_mbox;
 		logger_t & m_logger;
 };
 

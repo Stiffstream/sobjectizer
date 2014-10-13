@@ -239,7 +239,7 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		controller_t & m_controller;
 
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 
 		so_5::intrusive_ptr_t< msg_test > m_stored_message;
 

@@ -28,7 +28,7 @@ class test_agent_t
 
 		test_agent_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & test_mbox )
+			const so_5::rt::mbox_t & test_mbox )
 			:
 				base_type_t( env ),
 				m_test_mbox( test_mbox )
@@ -55,7 +55,7 @@ class test_agent_t
 		static so_5::atomic_counter_t m_message_rec_cnt;
 
 	private:
-		so_5::rt::mbox_ref_t m_test_mbox;
+		so_5::rt::mbox_t m_test_mbox;
 
 };
 
@@ -79,7 +79,7 @@ test_agent_t::evt_test(
 void
 reg_coop(
 	const std::string & coop_name,
-	const so_5::rt::mbox_ref_t & test_mbox,
+	const so_5::rt::mbox_t & test_mbox,
 	so_5::rt::environment_t & env )
 {
 	so_5::rt::agent_coop_unique_ptr_t coop =
@@ -94,7 +94,7 @@ reg_coop(
 void
 init( so_5::rt::environment_t & env )
 {
-	so_5::rt::mbox_ref_t test_mbox =
+	so_5::rt::mbox_t test_mbox =
 		env.create_local_mbox( g_test_mbox_name );
 
 	reg_coop( "test_coop_1", test_mbox, env );

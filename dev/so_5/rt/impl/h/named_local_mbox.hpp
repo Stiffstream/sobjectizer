@@ -39,13 +39,13 @@ namespace impl
 */
 class named_local_mbox_t
 	:
-		public mbox_t
+		public abstract_message_box_t
 {
 		friend class impl::mbox_core_t;
 
 		named_local_mbox_t(
 			const std::string & name,
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			impl::mbox_core_t & mbox_core );
 
 	public:
@@ -85,7 +85,7 @@ class named_local_mbox_t
 		impl::mbox_core_ref_t m_mbox_core;
 
 		//! Actual mbox.
-		mbox_ref_t m_mbox;
+		mbox_t m_mbox;
 };
 
 } /* namespace impl */

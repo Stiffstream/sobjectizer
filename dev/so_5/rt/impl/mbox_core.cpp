@@ -34,32 +34,32 @@ mbox_core_t::~mbox_core_t()
 }
 
 
-mbox_ref_t
+mbox_t
 mbox_core_t::create_local_mbox()
 {
-	mbox_ref_t mbox_ref( new local_mbox_t( ++m_mbox_id_counter ) );
+	mbox_t mbox_ref( new local_mbox_t( ++m_mbox_id_counter ) );
 
 	return mbox_ref;
 }
 
-mbox_ref_t
+mbox_t
 mbox_core_t::create_local_mbox(
 	const nonempty_name_t & mbox_name )
 {
 	return create_named_mbox(
 			mbox_name,
-			[this]() -> mbox_ref_t {
-				return mbox_ref_t(
+			[this]() -> mbox_t {
+				return mbox_t(
 					new local_mbox_t( ++m_mbox_id_counter ) );
 			} );
 }
 
-mbox_ref_t
+mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
 	event_queue_proxy_ref_t event_queue )
 {
-	return mbox_ref_t(
+	return mbox_t(
 			new mpsc_mbox_t(
 					++m_mbox_id_counter,
 					single_consumer,
@@ -83,10 +83,10 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
-mbox_ref_t
+mbox_t
 mbox_core_t::create_named_mbox(
 	const nonempty_name_t & nonempty_name,
-	const std::function< mbox_ref_t() > & factory )
+	const std::function< mbox_t() > & factory )
 {
 	const std::string & name = nonempty_name.query_name();
 	std::lock_guard< std::mutex > lock( m_dictionary_lock );
@@ -97,7 +97,7 @@ mbox_core_t::create_named_mbox(
 	if( m_named_mboxes_dictionary.end() != it )
 	{
 		++(it->second.m_external_ref_count);
-		return mbox_ref_t(
+		return mbox_t(
 			new named_local_mbox_t(
 				name,
 				it->second.m_mbox,
@@ -105,11 +105,11 @@ mbox_core_t::create_named_mbox(
 	}
 
 	// There is no mbox with such name. New mbox should be created.
-	mbox_ref_t mbox_ref = factory();
+	mbox_t mbox_ref = factory();
 
 	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
 
-	return mbox_ref_t( new named_local_mbox_t( name, mbox_ref, *this ) );
+	return mbox_t( new named_local_mbox_t( name, mbox_ref, *this ) );
 }
 
 //

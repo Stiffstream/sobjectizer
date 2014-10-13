@@ -13,7 +13,7 @@ class msg_hello_svc : public so_5::rt::signal_t {};
 void
 define_hello_service(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & self_mbox )
+	const so_5::rt::mbox_t & self_mbox )
 	{
 		coop.define_agent().event< msg_hello_svc >( self_mbox,
 			[]() -> std::string {
@@ -33,7 +33,7 @@ struct msg_convert : public so_5::rt::message_t
 void
 define_convert_service(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & self_mbox )
+	const so_5::rt::mbox_t & self_mbox )
 	{
 		coop.define_agent().event( self_mbox,
 			[]( const msg_convert & msg ) -> std::string {
@@ -52,7 +52,7 @@ struct msg_shutdown : public so_5::rt::signal_t {};
 void
 define_shutdown_service(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_ref_t & self_mbox )
+	const so_5::rt::mbox_t & self_mbox )
 	{
 		auto & env = coop.environment();
 		coop.define_agent().event< msg_shutdown >( self_mbox,
@@ -69,7 +69,7 @@ class a_client_t
 	public :
 		a_client_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & svc_mbox )
+			const so_5::rt::mbox_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
@@ -113,7 +113,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_svc_mbox;
+		const so_5::rt::mbox_t m_svc_mbox;
 	};
 
 void

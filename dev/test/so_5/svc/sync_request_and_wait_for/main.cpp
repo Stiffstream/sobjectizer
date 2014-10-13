@@ -42,8 +42,8 @@ class a_convert_service_t
 	public :
 		a_convert_service_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox,
-			const so_5::rt::mbox_ref_t & back_call_mbox )
+			const so_5::rt::mbox_t & self_mbox,
+			const so_5::rt::mbox_t & back_call_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_back_call_mbox( back_call_mbox )
@@ -107,8 +107,8 @@ class a_convert_service_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-		const so_5::rt::mbox_ref_t m_back_call_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::rt::mbox_t m_back_call_mbox;
 	};
 
 void
@@ -133,8 +133,8 @@ class a_client_t
 
 		a_client_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox,
-			const so_5::rt::mbox_ref_t & svc_mbox )
+			const so_5::rt::mbox_t & self_mbox,
+			const so_5::rt::mbox_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_svc_mbox( svc_mbox )
@@ -213,8 +213,8 @@ class a_client_t
 	private :
 		const so_5::rt::state_t st_deadlocks = so_make_state( "deadlocks" );
 
-		const so_5::rt::mbox_ref_t m_self_mbox;
-		const so_5::rt::mbox_ref_t m_svc_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::rt::mbox_t m_svc_mbox;
 
 		typedef std::function< void(void) > action_t;
 

@@ -23,7 +23,7 @@ class a_test_t : public so_5::rt::agent_t
 	public:
 		a_test_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & shutdowner_mbox )
+			const so_5::rt::mbox_t & shutdowner_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_shutdowner_mbox( shutdowner_mbox )
 		{
@@ -52,7 +52,7 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		static std::atomic_uint m_workers;
 
-		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
+		const so_5::rt::mbox_t m_shutdowner_mbox;
 };
 
 std::atomic_uint a_test_t::m_workers = ATOMIC_VAR_INIT( 0 );
@@ -90,7 +90,7 @@ run_sobjectizer()
 	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
-			so_5::rt::mbox_ref_t shutdowner_mbox;
+			so_5::rt::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
 				auto a = c->add_agent( new a_shutdowner_t( env, thread_count ) );

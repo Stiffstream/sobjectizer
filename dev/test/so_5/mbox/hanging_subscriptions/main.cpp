@@ -7,10 +7,10 @@
 
 #include <so_5/all.hpp>
 
-class test_mbox_t : public so_5::rt::mbox_t
+class test_mbox_t : public so_5::rt::abstract_message_box_t
 	{
 	private :
-		const so_5::rt::mbox_ref_t m_actual_mbox;
+		const so_5::rt::mbox_t m_actual_mbox;
 
 	public :
 		static unsigned int subscriptions;
@@ -70,10 +70,10 @@ class test_mbox_t : public so_5::rt::mbox_t
 		virtual std::string
 		query_name() const { return m_actual_mbox->query_name(); }
 
-		static so_5::rt::mbox_ref_t
+		static so_5::rt::mbox_t
 		create( so_5::rt::environment_t & env )
 			{
-				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
+				return so_5::rt::mbox_t( new test_mbox_t( env ) );
 			}
 	};
 
@@ -88,7 +88,7 @@ class a_first_t : public so_5::rt::agent_t
 	public :
 		a_first_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox )
+			const so_5::rt::mbox_t & mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( mbox )
 		{
@@ -105,7 +105,7 @@ class a_first_t : public so_5::rt::agent_t
 		{}
 
 	private :
-		const so_5::rt::mbox_ref_t m_mbox;
+		const so_5::rt::mbox_t m_mbox;
 };
 
 int

@@ -173,7 +173,7 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		std::string & m_sequence;
 
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 
 		so_5::rt::state_t st_1 = so_make_state();
 		so_5::rt::state_t st_2 = so_make_state();

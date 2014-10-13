@@ -64,7 +64,7 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 SO_5_FUNC coop_reg_notificator_t
 make_coop_reg_notificator(
 	//! A mbox to which msg_coop_registered will be sent.
-	const mbox_ref_t & mbox );
+	const mbox_t & mbox );
 
 //
 // make_coop_dereg_notificator
@@ -76,7 +76,7 @@ make_coop_reg_notificator(
 SO_5_FUNC coop_dereg_notificator_t
 make_coop_dereg_notificator(
 	//! A mbox to which msg_coop_deregistered will be sent.
-	const mbox_ref_t & mbox );
+	const mbox_t & mbox );
 
 } /* namespace rt */
 

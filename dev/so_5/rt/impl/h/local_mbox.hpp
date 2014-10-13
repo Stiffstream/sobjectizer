@@ -34,7 +34,7 @@ namespace impl
 //
 
 //! A class for representing a local anonymous mbox.
-class local_mbox_t : public mbox_t
+class local_mbox_t : public abstract_message_box_t
 {
 	public:
 		local_mbox_t( mbox_id_t id );

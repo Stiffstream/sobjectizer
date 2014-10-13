@@ -48,7 +48,7 @@ namespace
 
 	std::string
 	make_subscription_description(
-		const mbox_ref_t & mbox_ref,
+		const mbox_t & mbox_ref,
 		std::type_index msg_type,
 		const state_t & state )
 	{
@@ -77,7 +77,7 @@ subscription_storage_t::~subscription_storage_t()
 
 void
 subscription_storage_t::create_event_subscription(
-	const mbox_ref_t & mbox_ref,
+	const mbox_t & mbox_ref,
 	std::type_index type_index,
 	const state_t & target_state,
 	const event_handler_method_t & method,
@@ -127,7 +127,7 @@ subscription_storage_t::create_event_subscription(
 void
 subscription_storage_t::drop_subscription(
 	const std::type_index & type_index,
-	const mbox_ref_t & mbox_ref,
+	const mbox_t & mbox_ref,
 	const state_t & target_state )
 	{
 		key_t key( mbox_ref->id(), type_index, target_state );
@@ -153,7 +153,7 @@ subscription_storage_t::drop_subscription(
 void
 subscription_storage_t::drop_subscription_for_all_states(
 	const std::type_index & type_index,
-	const mbox_ref_t & mbox_ref )
+	const mbox_t & mbox_ref )
 	{
 		key_t key( mbox_ref->id(), type_index );
 

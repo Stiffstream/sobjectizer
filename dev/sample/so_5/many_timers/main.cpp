@@ -159,7 +159,7 @@ class a_sender_t : public so_5::rt::agent_t
 public :
 	a_sender_t(
 		so_5::rt::environment_t & env,
-		so_5::rt::mbox_ref_t dest_mbox,
+		so_5::rt::mbox_t dest_mbox,
 		unsigned long long messages_to_send,
 		std::chrono::milliseconds delay )
 		:	so_5::rt::agent_t( env )
@@ -176,7 +176,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_ref_t m_dest_mbox;
+	const so_5::rt::mbox_t m_dest_mbox;
 
 	const unsigned long long m_messages_to_send;
 

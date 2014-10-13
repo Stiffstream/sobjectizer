@@ -224,8 +224,8 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		controller_t & m_controller;
 
-		so_5::rt::mbox_ref_t m_mbox_1;
-		so_5::rt::mbox_ref_t m_mbox_2;
+		so_5::rt::mbox_t m_mbox_1;
+		so_5::rt::mbox_t m_mbox_2;
 };
 
 struct test_env_t

@@ -43,7 +43,7 @@ class test_agent_sender_t
 
 		test_agent_sender_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox )
+			const so_5::rt::mbox_t & mbox )
 			:
 				base_type_t( env ),
 				m_send_session_complited( 0 ),
@@ -70,10 +70,10 @@ class test_agent_sender_t
 		unsigned int m_send_session_complited;
 
 		// Receiver mbox.
-		so_5::rt::mbox_ref_t m_mbox_receiver;
+		so_5::rt::mbox_t m_mbox_receiver;
 
 		// Self mbox.
-		so_5::rt::mbox_ref_t m_notification_mbox;
+		so_5::rt::mbox_t m_notification_mbox;
 };
 
 void
@@ -123,7 +123,7 @@ class test_agent_receiver_t
 	public:
 		test_agent_receiver_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox )
+			const so_5::rt::mbox_t & mbox )
 			:
 				base_type_t( env ),
 				m_source_mbox( mbox )
@@ -146,7 +146,7 @@ class test_agent_receiver_t
 
 	private:
 		// A source of messages.
-		so_5::rt::mbox_ref_t m_source_mbox;
+		so_5::rt::mbox_t m_source_mbox;
 };
 
 void
@@ -168,7 +168,7 @@ test_agent_receiver_t::evt_test(
 void
 init( so_5::rt::environment_t & env )
 {
-	so_5::rt::mbox_ref_t mbox = env.create_local_mbox();
+	so_5::rt::mbox_t mbox = env.create_local_mbox();
 
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );

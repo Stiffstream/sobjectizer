@@ -84,7 +84,7 @@ class a_test_t : public so_5::rt::agent_t
 		a_test_t(
 			so_5::rt::environment_t & env,
 			thread_id_collector_t & collector,
-			const so_5::rt::mbox_ref_t & shutdowner_mbox )
+			const so_5::rt::mbox_t & shutdowner_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_collector( collector )
 		{
@@ -153,7 +153,7 @@ run_sobjectizer( collector_container_t & collectors )
 	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
 		{
-			so_5::rt::mbox_ref_t shutdowner_mbox;
+			so_5::rt::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
 				auto a = c->add_agent( new a_shutdowner_t( env,

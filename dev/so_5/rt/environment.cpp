@@ -232,13 +232,13 @@ environment_t::~environment_t()
 {
 }
 
-mbox_ref_t
+mbox_t
 environment_t::create_local_mbox( )
 {
 	return m_impl->m_mbox_core->create_local_mbox();
 }
 
-mbox_ref_t
+mbox_t
 environment_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name )
 {
@@ -334,7 +334,7 @@ so_5::timer_id_t
 environment_t::schedule_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
-	const mbox_ref_t & mbox,
+	const mbox_t & mbox,
 	std::chrono::steady_clock::duration pause,
 	std::chrono::steady_clock::duration period )
 {
@@ -350,7 +350,7 @@ void
 environment_t::single_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
-	const mbox_ref_t & mbox,
+	const mbox_t & mbox,
 	std::chrono::steady_clock::duration pause )
 {
 	m_impl->m_timer_thread->schedule_anonymous(
@@ -424,7 +424,7 @@ environment_t::error_logger() const
 	return *(m_impl->m_error_logger);
 }
 
-mbox_ref_t
+mbox_t
 environment_t::so5__create_mpsc_mbox(
 	agent_t * single_consumer,
 	event_queue_proxy_ref_t event_queue )

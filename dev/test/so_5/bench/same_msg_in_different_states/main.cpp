@@ -81,7 +81,7 @@ class a_test_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 
 		int m_tick_count;
 		std::uint_fast64_t m_messages_received;

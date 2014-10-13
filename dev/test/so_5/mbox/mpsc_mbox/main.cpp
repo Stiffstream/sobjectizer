@@ -84,7 +84,7 @@ main( int argc, char * argv[] )
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 				auto a_test = new a_test_t( env, sequence );
-				const so_5::rt::mbox_ref_t mbox = a_test->so_direct_mbox();
+				const so_5::rt::mbox_t mbox = a_test->so_direct_mbox();
 
 				coop->add_agent( a_test );
 

@@ -45,7 +45,7 @@ msg_coop_deregistered::~msg_coop_deregistered()
 //
 SO_5_FUNC coop_reg_notificator_t
 make_coop_reg_notificator(
-	const mbox_ref_t & mbox )
+	const mbox_t & mbox )
 	{
 		return [mbox](
 				environment_t &,
@@ -60,7 +60,7 @@ make_coop_reg_notificator(
 //
 SO_5_FUNC coop_dereg_notificator_t
 make_coop_dereg_notificator(
-	const mbox_ref_t & mbox )
+	const mbox_t & mbox )
 	{
 		return [mbox](
 				environment_t &,

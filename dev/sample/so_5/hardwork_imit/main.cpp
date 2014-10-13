@@ -59,8 +59,8 @@ class a_manager_t : public so_5::rt::agent_t
 	public :
 		a_manager_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & worker_mbox,
-			const so_5::rt::mbox_ref_t & checker_mbox,
+			const so_5::rt::mbox_t & worker_mbox,
+			const so_5::rt::mbox_t & checker_mbox,
 			unsigned int requests,
 			unsigned int milliseconds )
 			:	so_5::rt::agent_t( env )
@@ -117,8 +117,8 @@ class a_manager_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_worker_mbox;
-		const so_5::rt::mbox_ref_t m_checker_mbox;
+		const so_5::rt::mbox_t m_worker_mbox;
+		const so_5::rt::mbox_t m_checker_mbox;
 
 		const unsigned int m_requests;
 		unsigned int m_processed = 0;

@@ -86,7 +86,7 @@ class adhoc_agent_definition_proxy_t
 		template< class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
@@ -101,7 +101,7 @@ class adhoc_agent_definition_proxy_t
 		template< class MESSAGE, class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE > (*indicator)(),
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
@@ -126,7 +126,7 @@ class adhoc_agent_definition_proxy_t
 		template< class SIGNAL, typename... ARGS >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_ref_t & mbox,
+			const mbox_t & mbox,
 			ARGS&&... args )
 			{
 				return this->event( mbox, signal< SIGNAL >,

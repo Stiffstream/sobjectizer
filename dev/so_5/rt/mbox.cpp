@@ -10,22 +10,22 @@ namespace so_5
 namespace rt
 {
 
-mbox_t::mbox_t()
+abstract_message_box_t::abstract_message_box_t()
 {
 }
 
-mbox_t::~mbox_t()
+abstract_message_box_t::~abstract_message_box_t()
 {
 }
 
 bool
-mbox_t::operator==( const mbox_t & o ) const
+abstract_message_box_t::operator==( const abstract_message_box_t & o ) const
 {
 	return id() == o.id();
 }
 
 bool
-mbox_t::operator<( const mbox_t & o ) const
+abstract_message_box_t::operator<( const abstract_message_box_t & o ) const
 {
 	return id() < o.id();
 }

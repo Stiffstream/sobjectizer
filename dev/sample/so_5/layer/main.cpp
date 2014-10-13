@@ -17,7 +17,7 @@ class msg_hello_to_all
 	public:
 		msg_hello_to_all(
 			const std::string & sender,
-			const so_5::rt::mbox_ref_t & mbox )
+			const so_5::rt::mbox_t & mbox )
 			:
 				m_sender( sender ),
 				m_mbox( mbox )
@@ -29,7 +29,7 @@ class msg_hello_to_all
 		// Sender name.
 		std::string m_sender;
 		// Sender mbox.
-		so_5::rt::mbox_ref_t m_mbox;
+		so_5::rt::mbox_t m_mbox;
 };
 
 class msg_hello_to_you
@@ -117,7 +117,7 @@ class shutdowner_layer_t
 
 	private:
 		// Mbox for sending a shutdown signal.
-		so_5::rt::mbox_ref_t m_shutdown_mbox;
+		so_5::rt::mbox_t m_shutdown_mbox;
 
 		std::set< so_5::rt::agent_t* > m_subscribers;
 };
@@ -167,17 +167,17 @@ class a_hello_t
 		// A shutdown message subscription.
 		// This method is a callback for the shutdowner_layer.
 		void
-		subscribe( so_5::rt::mbox_ref_t & shutdown_mbox );
+		subscribe( so_5::rt::mbox_t & shutdown_mbox );
 
 	private:
 		// Agent name.
 		const std::string m_agent_name;
 
 		// Agent mbox.
-		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_t m_self_mbox;
 
 		// Common mbox.
-		so_5::rt::mbox_ref_t m_common_mbox;
+		so_5::rt::mbox_t m_common_mbox;
 
 };
 
@@ -215,7 +215,7 @@ a_hello_t::evt_hello_to_all(
 	// If we are not the sender then send personal greeting back.
 	if( m_agent_name != evt_data.m_sender )
 	{
-		so_5::rt::mbox_ref_t mbox = evt_data.m_mbox;
+		so_5::rt::mbox_t mbox = evt_data.m_mbox;
 		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
 	}
 }
@@ -237,7 +237,7 @@ a_hello_t::evt_shutdown()
 }
 
 void
-a_hello_t::subscribe( so_5::rt::mbox_ref_t & shutdown_mbox )
+a_hello_t::subscribe( so_5::rt::mbox_t & shutdown_mbox )
 {
 	std::cout << m_agent_name << ": subscription to shutdown\n";
 	so_subscribe( shutdown_mbox ).event< msg_shutdown >(

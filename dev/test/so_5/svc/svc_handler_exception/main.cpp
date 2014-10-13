@@ -32,7 +32,7 @@ class a_convert_service_t
 	public :
 		a_convert_service_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
+			const so_5::rt::mbox_t & self_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			{}
@@ -57,7 +57,7 @@ class a_convert_service_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 	};
 
 struct msg_shutdown : public so_5::rt::signal_t {};
@@ -68,7 +68,7 @@ class a_shutdowner_t
 	public :
 		a_shutdowner_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
+			const so_5::rt::mbox_t & self_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			{}
@@ -87,7 +87,7 @@ class a_shutdowner_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 	};
 
 void
@@ -110,7 +110,7 @@ class a_client_t
 	public :
 		a_client_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & svc_mbox )
+			const so_5::rt::mbox_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
@@ -139,7 +139,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_svc_mbox;
+		const so_5::rt::mbox_t m_svc_mbox;
 	};
 
 void

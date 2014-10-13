@@ -73,7 +73,7 @@ class test_agent_t
 			const so_5::rt::event_data_t< test_message_3 > & msg );
 
 	private:
-		so_5::rt::mbox_ref_t m_test_mbox;
+		so_5::rt::mbox_t m_test_mbox;
 };
 
 void

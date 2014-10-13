@@ -50,7 +50,7 @@ class test_agent_t
 		evt_test();
 
 	private:
-		so_5::rt::mbox_ref_t	m_test_mbox;
+		so_5::rt::mbox_t	m_test_mbox;
 
 		so_5::timer_thread::timer_id_ref_t	m_timer_ref;
 

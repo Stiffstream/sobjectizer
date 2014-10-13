@@ -81,7 +81,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_mbox;
+		const so_5::rt::mbox_t m_mbox;
 
 		int m_cycle;
 

@@ -11,7 +11,7 @@ struct msg_hello_to_all : public so_5::rt::message_t
 {
 	msg_hello_to_all(
 		std::string sender,
-		const so_5::rt::mbox_ref_t & mbox )
+		const so_5::rt::mbox_t & mbox )
 		:	m_sender( std::move( sender ) ),
 			m_mbox( mbox )
 	{}
@@ -19,7 +19,7 @@ struct msg_hello_to_all : public so_5::rt::message_t
 	// Sender name.
 	const std::string m_sender;
 	// Sender Mbox.
-	const so_5::rt::mbox_ref_t m_mbox;
+	const so_5::rt::mbox_t m_mbox;
 };
 
 struct msg_hello_to_you : public so_5::rt::message_t
@@ -68,7 +68,7 @@ class a_hello_t : public so_5::rt::agent_t
 		const std::string m_agent_name;
 
 		// Common mbox for all sample agents.
-		const so_5::rt::mbox_ref_t m_common_mbox;
+		const so_5::rt::mbox_t m_common_mbox;
 };
 
 void
@@ -102,7 +102,7 @@ a_hello_t::evt_hello_to_all(
 	// If this agent is not the sender then reply should be sent.
 	if( m_agent_name != evt_data.m_sender )
 	{
-		so_5::rt::mbox_ref_t mbox = evt_data.m_mbox;
+		so_5::rt::mbox_t mbox = evt_data.m_mbox;
 		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
 	}
 }

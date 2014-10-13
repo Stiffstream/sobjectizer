@@ -115,7 +115,7 @@ class a_test_t : public so_5::rt::agent_t
 	public:
 		a_test_t(
 			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_ref_t & controller_mbox,
+			const so_5::rt::mbox_t & controller_mbox,
 			std::size_t messages_to_send )
 			:	so_5::rt::agent_t( env )
 			,	m_controller_mbox( controller_mbox )
@@ -150,7 +150,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_ref_t m_controller_mbox;
+		const so_5::rt::mbox_t m_controller_mbox;
 
 		const std::size_t m_messages_to_send;
 		std::size_t m_messages_sent;
@@ -203,7 +203,7 @@ class a_contoller_t : public so_5::rt::agent_t
 		const cfg_t m_cfg;
 		std::size_t m_working_agents;
 
-		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_t m_self_mbox;
 
 		benchmarker_t m_benchmarker;
 
