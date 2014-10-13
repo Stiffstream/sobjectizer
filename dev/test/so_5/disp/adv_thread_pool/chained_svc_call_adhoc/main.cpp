@@ -48,7 +48,7 @@ create_test_coop( so_5::rt::environment_t & env )
 		.on_start( [mbox]() {
 				mbox->deliver_signal< msg_run_test >();
 			} )
-		.event( mbox, so_5::signal< msg_run_test >,
+		.event< msg_run_test >( mbox,
 			[&env, mbox, requester]() {
 				std::ostringstream ss;
 				for( unsigned int i = 1; i < thread_pool_size; ++i )

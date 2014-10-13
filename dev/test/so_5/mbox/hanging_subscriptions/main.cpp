@@ -127,10 +127,10 @@ main( int argc, char * argv[] )
 					}
 
 					coop1->define_agent()
-						.event( test_mbox, so_5::signal< msg_one >, []() {} );
+						.event< msg_one >( test_mbox, [] {} );
 					coop1->define_agent()
-						.event( test_mbox, so_5::signal< msg_two >, []() {} )
-						.event( test_mbox, so_5::signal< msg_one >, []() {} );
+						.event< msg_two >( test_mbox, [] {} )
+						.event< msg_one >( test_mbox, [] {} );
 				}
 
 				auto coop = env.create_coop( "test2" );

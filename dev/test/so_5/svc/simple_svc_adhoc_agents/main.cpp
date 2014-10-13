@@ -33,7 +33,7 @@ define_convert_service(
 
 					return s.str();
 				} )
-			.event( self_mbox, so_5::signal< msg_get_status >,
+			.event< msg_get_status >( self_mbox,
 				[]() -> std::string
 				{
 					return "ready";
@@ -49,10 +49,7 @@ define_shutdown_service(
 	{
 		auto & env = coop.environment();
 		coop.define_agent()
-			.event(
-				self_mbox,
-				so_5::signal< msg_shutdown >,
-				[&env]() { env.stop(); } );
+			.event< msg_shutdown >( self_mbox, [&env]() { env.stop(); } );
 	};
 
 void
