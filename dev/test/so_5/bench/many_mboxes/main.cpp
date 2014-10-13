@@ -170,7 +170,7 @@ class a_sender_t
 			{
 				for( auto a : workers )
 					for( auto & m : m_mboxes )
-						a->so_subscribe( m ).event< SIGNAL >(
+						a->so_subscribe( m ).template event< SIGNAL >(
 								&a_worker_t::evt_signal );
 			}
 
