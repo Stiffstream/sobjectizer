@@ -28,10 +28,9 @@ class a_test_t
 		void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox ).event( so_5::signal< msg_test_signal >,
-					[]() {
-						throw std::runtime_error( "Exception from a_test_t!" );
-					} );
+			so_subscribe( m_self_mbox ).event< msg_test_signal >( [] {
+					throw std::runtime_error( "Exception from a_test_t!" );
+				} );
 		}
 
 	private :

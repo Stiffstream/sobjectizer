@@ -97,8 +97,7 @@ class a_parent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_child_finished >,
+			so_subscribe_self().event< msg_child_finished >(
 					&a_parent_t::evt_child_finished );
 		}
 

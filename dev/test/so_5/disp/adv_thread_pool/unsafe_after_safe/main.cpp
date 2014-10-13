@@ -38,13 +38,12 @@ class a_test_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() )
-				.event( so_5::signal< msg_shutdown >, &a_test_t::evt_shutdown )
-				.event( so_5::signal< msg_safe_signal >,
+			so_subscribe_self()
+				.event< msg_shutdown >( &a_test_t::evt_shutdown )
+				.event< msg_safe_signal >(
 						&a_test_t::evt_safe_signal,
 						so_5::thread_safe )
-				.event( so_5::signal< msg_unsafe_signal >,
-						&a_test_t::evt_unsafe_signal );
+				.event< msg_unsafe_signal >( &a_test_t::evt_unsafe_signal );
 		}
 
 		void

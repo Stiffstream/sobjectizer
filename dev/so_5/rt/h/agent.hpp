@@ -232,6 +232,27 @@ class subscription_bind_t
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
+		/*!
+		 * \since v.5.5.1
+		 * \brief Make subscription to the signal.
+		 *
+		 * \par Usage sample:
+		 * \code
+		   virtual void my_agent::so_define_agent()
+		   {
+		   	so_subscribe_self().event< msg_my_signal >( &my_agent::event );
+		   	so_subscribe_self().event< msg_another_signal( [=] { ... } );
+		   }
+		 * \endcode
+		 */
+		template< typename SIGNAL, typename... ARGS >
+		subscription_bind_t &
+		event( ARGS... args )
+			{
+				return this->event( so_5::signal< SIGNAL >,
+						std::forward< ARGS >(args)... );
+			}
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;

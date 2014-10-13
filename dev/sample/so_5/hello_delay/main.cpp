@@ -54,11 +54,9 @@ void
 a_hello_t::so_define_agent()
 {
 	// Message subscription.
-	so_subscribe( so_direct_mbox() )
-		.event( &a_hello_t::evt_hello_delay );
+	so_subscribe_self().event( &a_hello_t::evt_hello_delay );
 
-	so_subscribe( so_direct_mbox() )
-		.event( so_5::signal< msg_stop_signal >, &a_hello_t::evt_stop_signal );
+	so_subscribe_self().event< msg_stop_signal >( &a_hello_t::evt_stop_signal );
 }
 
 void

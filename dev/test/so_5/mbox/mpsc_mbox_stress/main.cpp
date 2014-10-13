@@ -35,11 +35,9 @@ class a_child_t
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( so_direct_mbox() ).event(
-						so_5::signal< msg_ping >,
-						[this]() {
-							m_parent_mbox->deliver_signal< msg_ack >();
-						} );
+				so_subscribe_self().event< msg_ping >( [=]() {
+						m_parent_mbox->deliver_signal< msg_ack >();
+					} );
 			}
 
 	private :
@@ -67,22 +65,16 @@ class a_parent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() ).event(
-					&a_parent_t::evt_child_created );
+			so_subscribe_self().event( &a_parent_t::evt_child_created );
 
-			so_subscribe( so_direct_mbox() ).event(
-					&a_parent_t::evt_child_destroyed );
+			so_subscribe_self().event( &a_parent_t::evt_child_destroyed );
 
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_ack >,
-					&a_parent_t::evt_ack );
+			so_subscribe_self().event< msg_ack >( &a_parent_t::evt_ack );
 
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_child_agent_destroyed >,
+			so_subscribe_self().event< msg_child_agent_destroyed >(
 					&a_parent_t::evt_child_agent_destroyed );
 
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_next_iteration >,
+			so_subscribe_self().event< msg_next_iteration >(
 					&a_parent_t::evt_next_iteration );
 		}
 

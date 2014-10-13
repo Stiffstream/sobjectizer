@@ -44,13 +44,10 @@ class a_second_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe( so_direct_mbox() )
-				.event( so_5::signal< msg_timer >,
-					[this]()
-					{
-						m_receiver = 42;
-						so_deregister_agent_coop_normally();
-					} );
+			so_subscribe_self().event< msg_timer >( [=] {
+					m_receiver = 42;
+					so_deregister_agent_coop_normally();
+				} );
 		}
 
 		virtual void

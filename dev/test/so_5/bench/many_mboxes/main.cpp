@@ -170,20 +170,17 @@ class a_sender_t
 			{
 				for( auto a : workers )
 					for( auto & m : m_mboxes )
-						a->so_subscribe( m ).event(
-								so_5::signal< SIGNAL >,
+						a->so_subscribe( m ).event< SIGNAL >(
 								&a_worker_t::evt_signal );
 			}
 
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_common_mbox ).event(
-						so_5::signal< msg_start >,
+				so_subscribe( m_common_mbox ).template event< msg_start >(
 						&a_sender_t::evt_start );
 
-				so_subscribe( so_direct_mbox() ).event(
-						so_5::signal< msg_next_iteration >,
+				so_subscribe_self().template event< msg_next_iteration >(
 						&a_sender_t::evt_next_iteration );
 			}
 
@@ -252,8 +249,7 @@ class a_starter_stopper_t
 		so_define_agent()
 			{
 				so_subscribe( m_common_mbox )
-						.event( so_5::signal< msg_shutdown >,
-								&a_starter_stopper_t::evt_shutdown );
+						.event< msg_shutdown >( &a_starter_stopper_t::evt_shutdown );
 			}
 
 		virtual void

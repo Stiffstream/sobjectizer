@@ -40,12 +40,11 @@ class a_test_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_run_test >,
+			so_subscribe_self().event< msg_run_test >(
 					&a_test_t::evt_run_test,
 					so_5::thread_safe );
 
-			so_subscribe( so_direct_mbox() ).event(
+			so_subscribe_self().event(
 					&a_test_t::evt_request_string,
 					so_5::thread_safe );
 		}

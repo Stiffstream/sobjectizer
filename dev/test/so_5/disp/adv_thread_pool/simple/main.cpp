@@ -27,9 +27,7 @@ class a_test_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_hello >,
-					&a_test_t::evt_hello );
+			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
 		}
 
 		virtual void

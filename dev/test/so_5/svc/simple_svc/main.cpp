@@ -38,8 +38,7 @@ class a_convert_service_t
 						.event( &a_convert_service_t::svc_convert );
 
 				so_subscribe( m_self_mbox )
-						.event(
-								so_5::signal< msg_get_status >,
+						.event< msg_get_status >(
 								&a_convert_service_t::evt_get_status );
 			}
 

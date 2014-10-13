@@ -240,8 +240,8 @@ void
 a_hello_t::subscribe( so_5::rt::mbox_ref_t & shutdown_mbox )
 {
 	std::cout << m_agent_name << ": subscription to shutdown\n";
-	so_subscribe( shutdown_mbox )
-		.event( so_5::signal< msg_shutdown >, &a_hello_t::evt_shutdown );
+	so_subscribe( shutdown_mbox ).event< msg_shutdown >(
+			&a_hello_t::evt_shutdown );
 }
 
 void

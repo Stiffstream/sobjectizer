@@ -128,10 +128,9 @@ class a_test_t : public so_5::rt::agent_t
 		so_define_agent()
 		{
 			so_subscribe( m_controller_mbox )
-					.event( so_5::signal< msg_start >, &a_test_t::evt_start );
+					.event< msg_start >( &a_test_t::evt_start );
 				
-			so_subscribe( so_direct_mbox() )
-					.event( so_5::signal< msg_hello >, &a_test_t::evt_hello );
+			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
 		}
 
 		void
@@ -173,8 +172,7 @@ class a_contoller_t : public so_5::rt::agent_t
 		so_define_agent()
 		{
 			so_subscribe( m_self_mbox )
-				.event( so_5::signal< msg_shutdown >,
-						&a_contoller_t::evt_shutdown );
+				.event< msg_shutdown >( &a_contoller_t::evt_shutdown );
 		}
 
 		void

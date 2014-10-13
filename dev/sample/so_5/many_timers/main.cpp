@@ -137,8 +137,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe( so_direct_mbox() )
-			.event( so_5::signal< msg_timer >, &a_receiver_t::evt_timer );
+		so_subscribe_self().event< msg_timer >( &a_receiver_t::evt_timer );
 	}
 
 	void

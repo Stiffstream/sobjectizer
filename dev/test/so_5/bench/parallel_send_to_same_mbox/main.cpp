@@ -57,8 +57,8 @@ class a_shutdowner_t
 			:	so_5::rt::agent_t( env )
 			,	m_sender_count( sender_count )
 			{
-				so_subscribe( mbox ).event( so_5::signal< msg_complete >,
-					[this]() {
+				so_subscribe( mbox ).event< msg_complete >(
+					[=] {
 						m_sender_count -= 1;
 						if( !m_sender_count )
 							so_environment().stop();

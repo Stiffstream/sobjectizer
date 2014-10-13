@@ -60,7 +60,7 @@ void
 test_agent_t::so_define_agent()
 {
 	so_subscribe( m_test_mbox )
-		.event( so_5::signal< test_message >, &test_agent_t::evt_test );
+		.event< test_message >( &test_agent_t::evt_test );
 }
 
 void

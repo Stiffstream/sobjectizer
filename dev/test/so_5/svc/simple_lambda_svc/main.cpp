@@ -44,7 +44,7 @@ class a_convert_service_t
 								} );
 
 				so_subscribe( m_self_mbox )
-						.event( so_5::signal< msg_get_status >,
+						.event< msg_get_status >(
 								[]() -> std::string
 								{
 									return "ready";
@@ -72,7 +72,7 @@ class a_shutdowner_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.event( so_5::signal< msg_shutdown >,
+						.event< msg_shutdown >(
 								[this]() { so_environment().stop(); } );
 			}
 

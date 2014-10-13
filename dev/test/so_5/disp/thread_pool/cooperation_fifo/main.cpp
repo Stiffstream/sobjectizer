@@ -88,11 +88,10 @@ class a_test_t : public so_5::rt::agent_t
 			:	so_5::rt::agent_t( env )
 			,	m_collector( collector )
 		{
-			so_subscribe( so_direct_mbox() )
-					.event( so_5::signal< msg_hello >,
-							[this, shutdowner_mbox]() {
-								shutdowner_mbox->deliver_signal< msg_shutdown >();
-							} );
+			so_subscribe_self().event< msg_hello >(
+				[this, shutdowner_mbox]() {
+					shutdowner_mbox->deliver_signal< msg_shutdown >();
+				} );
 		}
 
 		void
@@ -120,13 +119,11 @@ class a_shutdowner_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() )
-				.event( so_5::signal< msg_shutdown >,
-					[this]() {
-						--m_working_agents;
-						if( !m_working_agents )
-							so_environment().stop();
-					} );
+			so_subscribe_self().event< msg_shutdown >( [=] {
+					--m_working_agents;
+					if( !m_working_agents )
+						so_environment().stop();
+				} );
 		}
 
 	private :

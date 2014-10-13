@@ -99,8 +99,7 @@ class a_contoller_t : public so_5::rt::agent_t
 		so_define_agent()
 		{
 			so_subscribe( so_direct_mbox() )
-				.event( so_5::signal< msg_shutdown >,
-						&a_contoller_t::evt_shutdown );
+				.event< msg_shutdown >( &a_contoller_t::evt_shutdown );
 		}
 
 		void

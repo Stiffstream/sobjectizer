@@ -38,14 +38,13 @@ class a_test_t : public so_5::rt::agent_t
 			so_change_state( st_safe );
 
 			so_subscribe( so_direct_mbox() ).in( st_unsafe )
-				.event( so_5::signal< msg_shutdown >, &a_test_t::evt_shutdown );
+				.event< msg_shutdown >( &a_test_t::evt_shutdown );
 
 			so_subscribe( so_direct_mbox() ).in( st_safe )
-				.event( so_5::signal< msg_safe_signal >,
+				.event< msg_safe_signal >(
 						&a_test_t::evt_safe_signal,
 						so_5::thread_safe )
-				.event( so_5::signal< msg_unsafe_signal >,
-						&a_test_t::evt_unsafe_signal );
+				.event< msg_unsafe_signal >( &a_test_t::evt_unsafe_signal );
 		}
 
 		void

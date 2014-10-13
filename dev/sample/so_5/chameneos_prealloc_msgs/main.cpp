@@ -194,12 +194,10 @@ class a_creature_t
 		virtual void
 		so_define_agent() override
 			{
-				so_subscribe( so_direct_mbox() )
+				so_subscribe_self()
 					.event( &a_creature_t::evt_meeting_result );
 
-				so_subscribe( so_direct_mbox() )
-					.event(
-							so_5::signal< msg_shutdown_request >,
+				so_subscribe_self().event< msg_shutdown_request >(
 							&a_creature_t::evt_shutdown_request );
 			}
 

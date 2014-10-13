@@ -70,9 +70,7 @@ class a_test_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() )
-					.event( so_5::signal< msg_hello >,
-							&a_test_t::evt_hello );
+			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
 		}
 
 		void
@@ -115,13 +113,11 @@ class a_shutdowner_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() )
-				.event( so_5::signal< msg_shutdown >,
-					[this]() {
-						--m_working_agents;
-						if( !m_working_agents )
-							so_environment().stop();
-					} );
+			so_subscribe_self().event< msg_shutdown >( [=] {
+					--m_working_agents;
+					if( !m_working_agents )
+						so_environment().stop();
+				} );
 		}
 
 	private :

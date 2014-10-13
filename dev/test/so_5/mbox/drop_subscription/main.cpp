@@ -37,20 +37,20 @@ class a_test_t : public so_5::rt::agent_t
 				.event( &a_test_t::evt_default_two )
 				.event( &a_test_t::evt_default_three )
 				.event( &a_test_t::evt_default_four )
-				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
+				.event< msg_five >( &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_1 )
 				.event( &a_test_t::evt_st_1_one )
 				.event( &a_test_t::evt_st_1_two )
 				.event( &a_test_t::evt_st_1_three )
 				.event( &a_test_t::evt_default_four )
-				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
+				.event< msg_five >( &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_2 )
 				.event( &a_test_t::evt_st_2_one )
 				.event( &a_test_t::evt_st_2_two )
 				.event( &a_test_t::evt_st_2_three )
-				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
+				.event< msg_five >( &a_test_t::evt_five );
 		}
 
 		void

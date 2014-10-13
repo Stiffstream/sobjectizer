@@ -38,15 +38,13 @@ class a_test_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_tick >,
-					[this]() {
-						m_ticks += 1;
-						if( m_ticks < 15 )
-							so_direct_mbox()->deliver_signal< msg_tick >();
-						else
-							so_deregister_agent_coop_normally();
-					} );
+			so_subscribe_self().event< msg_tick >( [=] {
+					m_ticks += 1;
+					if( m_ticks < 15 )
+						so_direct_mbox()->deliver_signal< msg_tick >();
+					else
+						so_deregister_agent_coop_normally();
+				} );
 		}
 
 		virtual void

@@ -34,8 +34,7 @@ class a_child_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_mbox ).event(
-					so_5::signal< msg_check_signal >,
+			so_subscribe( m_mbox ).event< msg_check_signal >(
 					&a_child_t::evt_check_signal );
 
 			try
@@ -94,7 +93,7 @@ class a_parent_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_mbox ).event( so_5::signal< msg_initiate_dereg >,
+			so_subscribe( m_mbox ).event< msg_initiate_dereg >(
 					&a_parent_t::evt_initiate_dereg );
 		}
 
@@ -127,10 +126,10 @@ class a_driver_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_mbox ).event( so_5::signal< msg_parent_started >,
+			so_subscribe( m_mbox ).event< msg_parent_started >(
 					&a_driver_t::evt_parent_started );
 
-			so_subscribe( m_mbox ).event( so_5::signal< msg_shutdown >,
+			so_subscribe( m_mbox ).event< msg_shutdown >(
 					&a_driver_t::evt_shutdown );
 		}
 
