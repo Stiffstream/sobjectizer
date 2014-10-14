@@ -73,7 +73,7 @@ class a_manager_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe( so_direct_mbox() )
+			so_subscribe_self()
 				.event( &a_manager_t::evt_hardwork_done )
 				.event( &a_manager_t::evt_hardwork_checked );
 		}

@@ -132,20 +132,20 @@ my_agent_t::so_define_agent()
 {
 	std::cout << "so_define_agent()" << std::endl;
 
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.in( m_first_state )
 		.event( &my_agent_t::change_state_event_handler );
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.in( m_second_state )
 		.event( &my_agent_t::change_state_event_handler );
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.event( &my_agent_t::change_state_event_handler );
 
 	std::cout << "\tsubscribe my_event_handler in "
 		<< m_first_state.query_name()
 		<< std::endl;
 
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.in( m_first_state )
 		.event( &my_agent_t::my_event_handler );
 
@@ -153,7 +153,7 @@ my_agent_t::so_define_agent()
 		<< m_first_state.query_name()
 		<< std::endl;
 
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.in( m_first_state )
 		.event( &my_agent_t::my_another_event_handler );
 
@@ -161,7 +161,7 @@ my_agent_t::so_define_agent()
 		<< m_second_state.query_name()
 		<< std::endl;
 
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.in( m_second_state )
 		.event( &my_agent_t::my_event_handler );
 }

@@ -40,7 +40,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe( so_direct_mbox() )
+		so_subscribe_self()
 			.event( &a_parent_t::evt_child_created );
 	}
 

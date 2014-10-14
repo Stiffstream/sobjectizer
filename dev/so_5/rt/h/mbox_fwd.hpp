@@ -31,6 +31,9 @@ typedef intrusive_ptr_t< abstract_message_box_t > mbox_t;
 
 // Just for compatibility with previous versions.
 SO_5_DEPRECATED_ATTR( "Use mbox_t instead" )
+/*!
+ * \deprecated Obsolete in v.5.5.1. The so_5::rt::mbox_t must be used instead.
+ */
 typedef mbox_t mbox_ref_t;
 
 } /* namespace rt */

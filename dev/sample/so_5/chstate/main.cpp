@@ -103,19 +103,19 @@ a_state_swither_t::so_define_agent()
 	using namespace so_5;
 
 	// Message subsription.
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_default );
 
-	so_subscribe( so_direct_mbox() ).in( st_1 )
+	so_subscribe_self().in( st_1 )
 		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_1 );
 
-	so_subscribe( so_direct_mbox() ).in( st_2 )
+	so_subscribe_self().in( st_2 )
 		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_2 );
 
-	so_subscribe( so_direct_mbox() ).in( st_3 )
+	so_subscribe_self().in( st_3 )
 		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_3 );
 
-	so_subscribe( so_direct_mbox() ).in( st_shutdown )
+	so_subscribe_self().in( st_shutdown )
 		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_shutdown );
 }
 

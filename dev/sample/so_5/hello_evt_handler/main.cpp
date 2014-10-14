@@ -41,7 +41,7 @@ void
 a_hello_t::so_define_agent()
 {
 	// The hello message subscription.
-	so_subscribe( so_direct_mbox() ).event( &a_hello_t::evt_hello );
+	so_subscribe_self().event( &a_hello_t::evt_hello );
 }
 
 void

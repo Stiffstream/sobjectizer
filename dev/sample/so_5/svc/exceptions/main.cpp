@@ -29,7 +29,7 @@ class a_convert_service_t
 		virtual void
 		so_define_agent() override
 			{
-				so_subscribe( so_direct_mbox() )
+				so_subscribe_self()
 						.event( []( const msg_convert & msg ) -> int
 						{
 							std::istringstream s( msg.m_value );

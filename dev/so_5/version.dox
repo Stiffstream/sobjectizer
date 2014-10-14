@@ -2,6 +2,23 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_1 5.5.1 "Shkhara"
+
+	The old name so_5::rt::mbox_ref_t is marked as deprecated. Name mbox_t must
+	be used instead. The old name will remain valid for several future versions
+	of SObjectizer. But it is strongly recommended to use so_5::rt::mbox_t in
+	the new code.
+
+	The old name so_5::rt::smart_atomic_reference_t is marked as deprecated.
+	Name so_5::intrusive_ptr_t must be used instead. The old name will remain
+	valid for several future versions of SObjectizer. But it is strongly
+	recommended to use so_5::intrusive_ptr_t in the new code.
+	Also the so_5::atomic_refcounted_t is now moved from namespace so_5::rt
+	to so_5.
+
+	A method so_5::rt::agent_t::so_subscribe_self() has been introduced. It is
+	just a shorthand for <tt>so_subscrive(so_direct_mbox())</tt>.
+
 \section so_5__5_0 5.5.0 "Kazbek"
 
 	Timer-handling methods so_5::rt::environment_t::schedule_timer()

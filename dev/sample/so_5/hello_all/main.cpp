@@ -78,7 +78,7 @@ a_hello_t::so_define_agent()
 	so_subscribe( m_common_mbox )
 		.event( &a_hello_t::evt_hello_to_all );
 
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.event( &a_hello_t::evt_hello_to_you );
 }
 

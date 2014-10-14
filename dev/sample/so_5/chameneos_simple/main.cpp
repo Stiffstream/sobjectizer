@@ -95,12 +95,12 @@ class a_meeting_place_t
 			{
 				so_change_state( st_empty );
 
-				so_subscribe( so_direct_mbox() ).in( st_empty )
+				so_subscribe_self().in( st_empty )
 					.event( &a_meeting_place_t::evt_first_creature );
-				so_subscribe( so_direct_mbox() ).in( st_one_creature_inside )
+				so_subscribe_self().in( st_one_creature_inside )
 					.event( &a_meeting_place_t::evt_second_creature );
 
-				so_subscribe( so_direct_mbox() ).in( st_empty )
+				so_subscribe_self().in( st_empty )
 					.event( &a_meeting_place_t::evt_shutdown_ack );
 			}
 

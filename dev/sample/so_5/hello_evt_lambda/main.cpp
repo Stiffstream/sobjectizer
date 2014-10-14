@@ -37,7 +37,7 @@ void
 a_hello_t::so_define_agent()
 {
 	// The hello message subscription.
-	so_subscribe( so_direct_mbox() )
+	so_subscribe_self()
 		.event( [this]( const msg_hello & msg )
 				{
 					std::cout << msg.m_message << std::endl;

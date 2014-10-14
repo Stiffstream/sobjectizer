@@ -64,7 +64,7 @@ class a_child_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe( so_direct_mbox() )
+			so_subscribe_self()
 				.event( &a_child_t::evt_task_completed );
 		}
 
@@ -138,7 +138,7 @@ class a_parent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe( so_direct_mbox() )
+			so_subscribe_self()
 				.event( &a_parent_t::evt_task_result );
 		}
 

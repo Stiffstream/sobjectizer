@@ -59,8 +59,7 @@ void
 a_hello_t::so_define_agent()
 {
 	// Message subscription.
-	so_subscribe( so_direct_mbox() )
-		.event( &a_hello_t::evt_hello_periodic );
+	so_subscribe_self().event( &a_hello_t::evt_hello_periodic );
 }
 
 void

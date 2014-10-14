@@ -291,8 +291,11 @@ namespace rt
 {
 
 // For compatibility with previous versions.
-template< class T >
 SO_5_DEPRECATED_ATTR("Use so_5::intrusive_ptr_t instead")
+/*!
+ * \deprecated Obsolete in v.5.5.1. Use so_5::intrusive_ptr_t instead.
+ */
+template< class T >
 using smart_atomic_reference_t = intrusive_ptr_t< T >;
 
 } /* namespace rt */
