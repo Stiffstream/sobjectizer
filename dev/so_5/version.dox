@@ -19,6 +19,9 @@
 	A method so_5::rt::agent_t::so_subscribe_self() has been introduced. It is
 	just a shorthand for <tt>so_subscrive(so_direct_mbox())</tt>.
 
+	A state of an agent can now be changed by several methods.
+	See \ref so_5_5_1__change_agent_state.
+
 \section so_5__5_0 5.5.0 "Kazbek"
 
 	Timer-handling methods so_5::rt::environment_t::schedule_timer()

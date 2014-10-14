@@ -1,0 +1,74 @@
+/*!
+
+\page so_5_5_1__change_agent_state so-5.5.1: Two new methods for changing an agent state
+
+Two new methods for changing agent's state are added in v.5.5.1.
+
+First one uses new so_5::rt::state_t::activate() method. It means that agent's
+state can be changed this way:
+
+\code
+class my_agent_t : public so_5::rt::agent_t
+{
+  const so_5::rt::state_t st_normal = so_make_state();
+  const so_5::rt::state_t st_busy = so_make_state();
+...
+public :
+  virtual void so_define_agent() override
+  {
+    st_normal.activate();
+    ...
+  }
+
+  void evt_request( const msg_start_request & evt )
+  {
+    st_busy.activate();
+    ...
+  }
+
+  void evt_complete_request( const msg_processing_result & evt )
+  {
+    ...
+    st_normal.activate();
+  }
+};
+\endcode
+
+The second one uses overloaded `>>=` operator:
+
+\code
+class my_agent_t : public so_5::rt::agent_t
+{
+  const so_5::rt::state_t st_normal = so_make_state();
+  const so_5::rt::state_t st_busy = so_make_state();
+...
+public :
+  virtual void so_define_agent() override
+  {
+    this >>= st_normal;
+    ...
+  }
+
+  void evt_request( const msg_start_request & evt )
+  {
+    this >>= st_busy;
+    ...
+  }
+
+  void evt_complete_request( const msg_processing_result & evt )
+  {
+    ...
+    this >>= st_normal;
+  }
+};
+\endcode
+
+The old method so_5::rt::agent_t::so_change_state() is still here. It is not
+deprecated and will be supported by the future versions of SObjectizer. New
+methods are introduced to allow a developer to write more concise and readable
+code.
+ 
+*/
+
+// vim:ft=cpp
+
