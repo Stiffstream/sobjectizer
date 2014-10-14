@@ -1,0 +1,76 @@
+/*!
+
+\page so_5_5_1__subscribe_event_via_state so-5.5.1: Subscribing an agent events via state_t::event method
+
+The traditional way for subscribing an agent events is
+`so_subscribe().in().event()` chain. But sometimes this way is too verbose.
+Because of that since v.5.5.1 it is possible to subscribe an agent's event via
+new so_5::rt::state_t::event() methods. For example those two
+`so_define_agent()` methods do exactly the same things.
+
+A traditional approach:
+
+\code
+void my_agent::so_define_agent()
+{
+  so_subscribe_self().in( st_not_connected )
+    .event( &my_agent::evt_connected )
+    .event( &my_agent::evt_connect_failed );
+
+  so_subscribe_self().in( st_connected )
+    .event( &my_agent::evt_close_connection )
+    .event( &my_agent::evt_incoming_data )
+    .event( &my_agent::evt_disconnected );
+
+  so_subscribe( m_configurator_mbox ).in( st_not_connected )
+    .event( &my_agent::evt_change_config_when_disconnected );
+  so_subscribe( m_configurator_mbox ).in( st_connected )
+    .event( &my_agent::evt_change_config_when_connected );
+}
+\endcode
+
+A new approach:
+
+\code
+void my_agent::so_define_agent()
+{
+  st_not_connected
+    .event( &my_agent::evt_connected )
+    .event( &my_agent::evt_connect_failed );
+
+  st_connected
+    .event( &my_agent::evt_close_connection )
+    .event( &my_agent::evt_incoming_data )
+    .event( &my_agent::evt_disconnected );
+
+  st_not_connected
+    .event( m_configurator_mbox,
+            &my_agent::evt_change_config_when_disconnected );
+  st_connected
+    .event( m_configurator_mbox,
+            &my_agent::evt_change_config_when_connected );
+}
+\endcode
+
+The main difference in those methods is inability to subscribe the one event
+for several states by state_t::event() method chain. A traditional approach
+must be used in such case:
+
+\code
+void my_agent::so_define_agent()
+{
+  so_subscribe_self()
+    .in( st_not_connected )
+    .in( st_waiting_auth_result )
+    .in( st_waiting_reconnect )
+    .in( st_reconfig_failed )
+    .event( &my_agent::evt_get_status_when_no_connection );
+
+  st_connected.event( &my_agent::evt_get_status_when_connected );
+}
+\endcode
+ 
+*/
+
+// vim:ft=cpp
+
