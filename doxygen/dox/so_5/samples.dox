@@ -39,6 +39,10 @@
  */
 
 /*!
+ * \example so_5/hello_evt_lambda/main.cpp
+ */
+
+/*!
  * \example so_5/hello_periodic/main.cpp
  */
 
@@ -92,6 +96,22 @@
 
 /*!
  * \example so_5/work_generation/main.cpp
+ */
+
+/*!
+ * \example so_5/subscriptions/main.cpp
+ */
+
+/*!
+ * \example so_5/chameneos_prealloc_msgs/main.cpp
+ */
+
+/*!
+ * \example so_5/chameneos_simple/main.cpp
+ */
+
+/*!
+ * \example so_5/parent_coop/main.cpp
  */
 
 // vim:ft=cpp.doxygen

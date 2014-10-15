@@ -15,7 +15,7 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/exception_reaction/prj.rb'
 	required_prj 'sample/so_5/coop_notification/prj.rb'
 	required_prj 'sample/so_5/coop_user_resources/prj.rb'
-	required_prj 'sample/so_5/mboxes/prj.rb'
+	required_prj 'sample/so_5/subscriptions/prj.rb'
 	required_prj 'sample/so_5/parent_coop/prj.rb'
 	required_prj 'sample/so_5/chameneos_simple/prj.rb'
 	required_prj 'sample/so_5/chameneos_prealloc_msgs/prj.rb'
