@@ -1,0 +1,114 @@
+/*!
+
+\page so_5_5_1__new_send_function_family so-5.5.1: New send function family
+
+The traditional way of sending messages and signals have two small drawbacks.
+
+1. There is some level of verbosity in preparing and sending messages:
+
+\code
+// In C++11, where there is no std::make_unique from C++14.
+auto msg = std::unique_ptr< my_message >( new my_message( some_args ) );
+mbox->deliver_message( std::move( msg ) );
+\endcode
+
+Especially when sending a delayed messages:
+
+\code
+auto msg = std::unique_ptr< my_message >( new my_message( some_args ) );
+so_environment().single_timer( std::move( msg ), mbox, pause );
+\endcode
+
+2. There is a difference in sending messages and signals:
+
+\code
+// Message sending.
+mbox->deliver_message( msg );
+
+// Signal sending.
+mbox->deliver_signal< my_signal >();
+\endcode
+
+This makes template-based programming a little bit difficult.
+
+To simplify SObjectizer usage and reduce verbosity of the code a new family of
+`so_5::send` functions is introduced.
+
+The simple message sending can be written as:
+
+\code
+so_5::send< my_message >( mbox, some_args );
+\endcode
+
+It is an equivalent of:
+
+\code
+auto msg = std::unique< my_message >( new my_message( some_args ) );
+mbox->deliver_message( std::move( msg ) );
+\endcode
+
+By utilizing variadic templates of C++11 the `some_args` can me a sequence of arguments:
+
+\code
+so_5::send< msg_connect >( mbox, ip_address, ip_port, waiting_time );
+\endcode
+
+The same form of `so_5::send` is used for signal sending:
+
+\code
+so_5::send< my_signal >( mbox );
+\endcode
+
+Usually it is necessary to send messages to the agent's direct mbox. So instead of writing:
+
+\code
+so_5::send< msg >( agent.so_direct_mbox(), ... );
+\endcode
+
+it is possible to use `so_5::send_to_agent` function:
+
+\code
+so_5::send_to_agent< msg >( agent, ... );
+\endcode
+
+There are `so_5::send_delayed` functions for sending delayed messages/signals:
+
+\code
+// Sending delayed message.
+so_5::send_delayed< my_message >( mbox, pause, some_args );
+
+// Sending delayed signal.
+so_5::send_delayed< my_signal >( mbox, pause );
+\endcode
+
+There are `so_5::send_delayed_to_agent` functions for sending delayed
+messages/signals to an agent's direct mbox:
+
+\code
+so_5::send_delayed_to_agent< my_message >( agent, pause, some_args );
+so_5::send_delayed_to_agent< my_signal >( agent, pause );
+\endcode
+
+There also are `so_5::send_periodic` functions for sending periodic
+messages/signals:
+
+\code
+// Sending periodic message.
+so_5::send_periodic< my_message >( mbox, pause, period, some_args );
+
+// Sending periodic signal.
+so_5::send_delayed< my_signal >( mbox, pause, period );
+\endcode
+
+There are `so_5::send_periodic_to_agent` functions for sending periodic
+messages/signals to an agent's direct mbox:
+
+\code
+so_5::send_periodic_to_agent< my_message >( agent, pause, period, some_args );
+so_5::send_periodic_to_agent< my_signal >( agent, pause, period );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

@@ -1,0 +1,52 @@
+/*!
+
+\page so_5_5_1__new_event_method_overloads so-5.5.1: New overloads for agent subscription methods
+
+There are two new `event` methods for subscription of an event to a signal.
+
+The first one related to event subscription for ordinary agents. It is possible
+to subscribe event that way:
+
+\code
+so_subscribe_self().event< msg_get_status >( &my_agent::evt_get_status );
+\endcode
+
+instead of:
+
+\code
+so_subscribe_self().event( so_5::signal< msg_get_status >, &my_agent::evt_get_status );
+\endcode
+
+The second one related to ad-hoc agents:
+
+\code
+coop->define_agent().event< msg_get_status >( mbox, [] { return "ready"; } );
+\endcode
+
+instead of:
+
+\code
+coop->define_agent().event( mbox, so_5::signal< msg_get_status >, [] { return "ready"; } );
+\endcode
+
+The old form with `so_5::signal<MSG>` marker is still supported and will be
+supported in the future versions of SObjectizer. Moreover the
+`so_5::signal<MSG>` marker is necessary for event unsubscription:
+
+\code
+// Event subscription.
+// New way...
+so_subscribe_self().event< msg_get_status >( &my_agent::evt_get_status );
+// Old way (verbose, but still pretty usable)...
+so_subscribe_self().event( so_5::signal< msg_shutdown >, &my_agent::evt_shutdown );
+
+// Event unsubscription.
+// Can be done only via so_5::signal marker.
+so_drop_subscription( so_direct_mbox(), so_5::signal< msg_get_status > );
+so_drop_subscription( so_direct_mbox(), so_5::signal< msg_shutdown > );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

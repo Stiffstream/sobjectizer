@@ -26,6 +26,12 @@
 	so_5::rt::state_t::event() method chain. See \ref
 	so_5_5_1__subscribe_event_via_state.
 
+	New overload to simplify subscription for signals. See \ref
+	so_5_5_1__new_event_method_overloads.
+
+	New family of free functions introduced to simplify messages and signal
+	sending. See \ref so_5_5_1__new_send_function_family.
+
 \section so_5__5_0 5.5.0 "Kazbek"
 
 	Timer-handling methods so_5::rt::environment_t::schedule_timer()
