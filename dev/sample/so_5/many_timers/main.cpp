@@ -14,7 +14,7 @@
 struct cfg_t
 {
 	// Count of messages to be sent.
-	unsigned long long m_messages = 500000000;
+	unsigned long long m_messages = 5000000;
 
 	// Initial delay for every message.
 	std::chrono::milliseconds m_delay = std::chrono::milliseconds{ 100 };
