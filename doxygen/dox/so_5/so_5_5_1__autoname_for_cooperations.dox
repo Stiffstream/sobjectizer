@@ -1,0 +1,29 @@
+/*!
+
+\page so_5_5_1__autoname_for_cooperations so-5.5.1: Automatic generation of cooperation names
+
+SObjectizer requires an unique name for every cooperation. But sometimes the
+selection of unique cooperation name is a very boring task for user. Since
+v.5.5.1 there is a possibility to specify `so_5::autoname` market to
+`create_coop` method. In that case SObjectizer RunTime will create an unique
+name for new cooperation:
+
+\code
+void init( so_5::rt::environment_t & env )
+{
+  auto coop = env.create_coop( so_5::autoname );
+  ...
+  auto another_coop = env.create_coop( so_5::autoname,
+    so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+  ...
+}
+\endcode
+
+<b>Note.</b> A SObjectizer generated name will start from `__so_5` prefix. So
+it is better to avoid using this prefix for user's cooperations. 
+
+*/
+
+
+// vim:ft=cpp
+
