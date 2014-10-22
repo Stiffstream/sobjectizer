@@ -7,8 +7,7 @@
 	\brief A base class for agents.
 */
 
-#if !defined( _SO_5__RT__AGENT_HPP_ )
-#define _SO_5__RT__AGENT_HPP_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -16,6 +15,7 @@
 #include <utility>
 #include <type_traits>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
@@ -29,6 +29,11 @@
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -83,7 +88,7 @@ class state_listener_controller_t;
 class mpsc_mbox_t;
 
 class subscription_storage_t;
-class event_handler_data_t;
+struct event_handler_data_t;
 
 } /* namespace impl */
 
@@ -255,7 +260,7 @@ class subscription_bind_t
 
 	private:
 		//! Agent to which we are subscribing.
-		agent_t & m_agent;
+		agent_t * m_agent;
 		//! Mbox for messages to subscribe.
 		mbox_t m_mbox_ref;
 
@@ -1425,7 +1430,7 @@ inline
 subscription_bind_t::subscription_bind_t(
 	agent_t & agent,
 	const mbox_t & mbox_ref )
-	:	m_agent( agent )
+	:	m_agent( &agent )
 	,	m_mbox_ref( mbox_ref )
 {
 }
@@ -1434,7 +1439,7 @@ inline subscription_bind_t &
 subscription_bind_t::in(
 	const state_t & state )
 {
-	if( !state.is_target( &m_agent ) )
+	if( !state.is_target( m_agent ) )
 	{
 		SO_5_THROW_EXCEPTION(
 			rc_agent_is_not_the_state_owner,
@@ -1698,7 +1703,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1746,7 +1751,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1797,7 +1802,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1924,15 +1929,15 @@ subscription_bind_t::create_subscription_for_states(
 {
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
-		m_agent.create_event_subscription(
+		m_agent->create_event_subscription(
 			m_mbox_ref,
 			msg_type,
-			m_agent.so_default_state(),
+			m_agent->so_default_state(),
 			method,
 			thread_safety );
 	else
 		for( auto s : m_states )
-			m_agent.create_event_subscription(
+			m_agent->create_event_subscription(
 					m_mbox_ref,
 					msg_type,
 					*s,
@@ -2059,5 +2064,7 @@ operator>>=( agent_t * agent, const state_t & new_state )
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
 

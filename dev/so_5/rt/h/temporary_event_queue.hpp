@@ -14,6 +14,8 @@
 #include <mutex>
 #include <memory>
 
+#include <so_5/h/compiler_features.hpp>
+
 #include <so_5/rt/h/event_queue.hpp>
 
 namespace so_5
@@ -21,6 +23,11 @@ namespace so_5
 
 namespace rt
 {
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 /*!
  * \since v.5.4.0
@@ -82,6 +89,10 @@ class SO_5_TYPE temporary_event_queue_t : public event_queue_t
 		 */
 		std::unique_ptr< temporary_queue_t > m_tmp_queue;
 	};
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
 } /* namespace rt */
 

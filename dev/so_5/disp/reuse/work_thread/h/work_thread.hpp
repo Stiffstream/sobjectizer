@@ -139,11 +139,6 @@ class demand_queue_t : public so_5::rt::event_queue_t
 class work_thread_t
 {
 	public:
-		work_thread_t(
-			rt::dispatcher_t & disp );
-
-		~work_thread_t();
-
 		//! Start the working thread.
 		void
 		start();
@@ -214,13 +209,6 @@ class work_thread_t
 		 * \attention Receive the value only after start of thread body.
 		 */
 		so_5::current_thread_id_t m_thread_id;
-
-		//! Owner of this working thread.
-		/*!
-		 * This reference is necessary to handle exceptions.
-		 * The exception handler is got from the dispatcher.
-		 */
-		rt::dispatcher_t & m_disp;
 };
 
 /*!

@@ -28,15 +28,9 @@ namespace impl
 /*!
 	\brief A dispatcher with the single working thread and an event queue.
 */
-class dispatcher_t
-	:
-		public so_5::rt::dispatcher_t
+class dispatcher_t : public so_5::rt::dispatcher_t
 {
 	public:
-		dispatcher_t()
-			:	m_work_thread( *self_ptr() )
-		{}
-
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 		virtual void
@@ -78,9 +72,7 @@ class dispatcher_t
 //
 
 //! Agent dispatcher binder.
-class disp_binder_t
-	:
-		public so_5::rt::disp_binder_t
+class disp_binder_t : public so_5::rt::disp_binder_t
 {
 	public:
 		explicit disp_binder_t(

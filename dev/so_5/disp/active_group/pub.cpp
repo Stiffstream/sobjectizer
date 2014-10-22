@@ -181,7 +181,7 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 	// New thread should be created.
 	using namespace so_5::disp::reuse::work_thread;
 
-	work_thread_shptr_t thread( new work_thread_t( *this ) );
+	work_thread_shptr_t thread( new work_thread_t() );
 	thread->start();
 
 	m_groups.insert(

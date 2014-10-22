@@ -190,8 +190,8 @@ template< class RESULT >
 class service_invoke_proxy_t
 	{
 	public :
-		service_invoke_proxy_t( const mbox_t & mbox );
-		service_invoke_proxy_t( mbox_t && mbox );
+		explicit service_invoke_proxy_t( const mbox_t & mbox );
+		explicit service_invoke_proxy_t( mbox_t && mbox );
 
 		//! Make asynchronous service request.
 		/*!
@@ -247,7 +247,7 @@ class service_invoke_proxy_t
 		make_async( ARGS&&... args ) const;
 
 	private :
-		const mbox_t m_mbox;
+		mbox_t m_mbox;
 	};
 
 //

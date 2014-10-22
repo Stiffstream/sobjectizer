@@ -12,6 +12,7 @@
 
 #include <string>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 
 namespace so_5
@@ -19,6 +20,11 @@ namespace so_5
 
 namespace rt
 {
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 //
 // nonempty_name_t
@@ -52,6 +58,10 @@ class SO_5_TYPE nonempty_name_t
 		//! Value.
 		std::string m_nonempty_name;
 };
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
 } /* namespace rt */
 

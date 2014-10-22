@@ -14,6 +14,7 @@
 #include <map>
 #include <set>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
@@ -23,6 +24,11 @@ namespace so_5
 
 namespace rt
 {
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 class state_t;
 class agent_t;
@@ -274,6 +280,10 @@ class SO_5_TYPE state_t
 			const mbox_t & from,
 			ARGS&&... args ) const;
 };
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
 } /* namespace rt */
 

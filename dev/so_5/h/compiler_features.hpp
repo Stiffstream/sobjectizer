@@ -10,7 +10,13 @@
 
 #pragma once
 
-#if defined( _MSC_VER ) && ( _MSC_VER <= 1700 )
+#if defined( _MSC_VER )
+	#define SO_5_MSVC
+
+	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
+	// implementation.
+	#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
+
 	#if _MSC_VER == 1700
 		// Please see details at:
 		// http://connect.microsoft.com/VisualStudio/feedback/details/761829/c-11-unexpected-behavior-for-std-future-wait-for-and-std-packaged-task
@@ -19,12 +25,7 @@
 		// synchronous service calls.
 		#define SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED
 	#endif
-#endif 
 
-#if defined( _MSC_VER )
-	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
-	// implementation.
-	#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
 #endif
 
 #if __cplusplus > 201103L

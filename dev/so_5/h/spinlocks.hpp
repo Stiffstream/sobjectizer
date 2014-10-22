@@ -206,7 +206,8 @@ class read_lock_guard_t
 			}
 
 		read_lock_guard_t( const read_lock_guard_t & ) = delete;
-		read_lock_guard_t( read_lock_guard_t && ) = delete;
+		read_lock_guard_t &
+		operator=( const read_lock_guard_t & ) = delete;
 	};
 
 } /* namespace so_5 */

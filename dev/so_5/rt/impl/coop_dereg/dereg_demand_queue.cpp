@@ -28,7 +28,7 @@ dereg_demand_queue_t::~dereg_demand_queue_t()
 void
 dereg_demand_queue_t::push( agent_coop_t * coop )
 {
-	bool was_empty;
+	bool was_empty = false;
 	{
 		std::lock_guard< std::mutex > lock( m_lock );
 

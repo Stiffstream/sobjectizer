@@ -363,7 +363,7 @@ agent_core_t::register_coop(
 				coop_ref,
 				parent );
 	}
-	catch( const exception_t & ex )
+	catch( const exception_t & )
 	{
 		throw;
 	}

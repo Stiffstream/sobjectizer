@@ -48,8 +48,8 @@ struct key_t
 
 	//! Default constructor.
 	inline key_t()
-		:	m_state( nullptr )
-		,	m_msg_type( typeid(void) )
+		:	m_msg_type( typeid(void) )
+		,	m_state( nullptr )
 		{}
 
 	//! Constructor for the case when it is necessary to

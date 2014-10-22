@@ -471,20 +471,6 @@ namespace
 		return false;
 	}
 
-	std::string
-	make_subscription_description(
-		const mbox_t & mbox_ref,
-		std::type_index msg_type,
-		const state_t & state )
-	{
-		std::ostringstream s;
-		s << "(mbox:'" << mbox_ref->query_name()
-			<< "', msg_type:'" << msg_type.name() << "', state:'"
-			<< state.query_name() << "')";
-
-		return s.str();
-	}
-
 } /* namespace anonymous */
 
 void

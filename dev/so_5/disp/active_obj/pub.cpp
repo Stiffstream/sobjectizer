@@ -144,7 +144,7 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 
 	using namespace so_5::disp::reuse::work_thread;
 
-	work_thread_shptr_t thread( new work_thread_t( *this ) );
+	work_thread_shptr_t thread( new work_thread_t() );
 
 	thread->start();
 	m_agent_threads[ &agent ] = thread;

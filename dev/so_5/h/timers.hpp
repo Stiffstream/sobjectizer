@@ -24,6 +24,11 @@
 namespace so_5
 {
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
 //
 // timer_t
 //
@@ -339,6 +344,10 @@ timer_list_factory()
 /*!
  * \}
  */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
 } /* namespace so_5 */
 

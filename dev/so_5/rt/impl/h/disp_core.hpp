@@ -38,7 +38,6 @@ class disp_core_t
 {
 	public:
 		disp_core_t(
-			environment_t & so_environment,
 			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
@@ -92,9 +91,6 @@ class disp_core_t
 			const std::string & coop_name );
 
 	private:
-		//! SObjectizer Environment to work with.
-		environment_t & m_so_environment;
-
 		//! Default dispatcher.
 		dispatcher_unique_ptr_t m_default_dispatcher;
 

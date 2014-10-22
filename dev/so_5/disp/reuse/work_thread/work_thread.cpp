@@ -113,17 +113,6 @@ demand_queue_t::clear()
 // work_thread_t
 //
 
-work_thread_t::work_thread_t(
-	rt::dispatcher_t & disp )
-	:
-		m_disp( disp )
-{
-}
-
-work_thread_t::~work_thread_t()
-{
-}
-
 void
 work_thread_t::start()
 {

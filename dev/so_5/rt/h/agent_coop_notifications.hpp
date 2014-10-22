@@ -8,11 +8,15 @@
 	\brief Agent cooperation notifications definition.
 */
 
-#if !defined( _SO_5__RT__AGENT_COOP_NOTIFICATIONS_HPP_ )
-#define _SO_5__RT__AGENT_COOP_NOTIFICATIONS_HPP_
+#pragma once
 
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/mbox.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -82,5 +86,7 @@ make_coop_dereg_notificator(
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
 

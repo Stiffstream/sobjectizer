@@ -8,12 +8,16 @@
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
  */
 
-#if !defined( SO_5__RT__ADHOC_AGENT_WRAPPER_HPP )
-#define SO_5__RT__ADHOC_AGENT_WRAPPER_HPP
+#pragma once
 
 #include <so_5/rt/h/agent.hpp>
 
 #include <functional>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -77,7 +81,7 @@ class adhoc_agent_definition_proxy_t
 	public :
 		adhoc_agent_definition_proxy_t(
 			adhoc_agent_wrapper_t * agent )
-			:	m_agent( *agent )
+			:	m_agent( agent )
 			{}
 
 		/*!
@@ -90,7 +94,7 @@ class adhoc_agent_definition_proxy_t
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
-				m_agent.so_subscribe( mbox ).event( lambda, thread_safety );
+				m_agent->so_subscribe( mbox ).event( lambda, thread_safety );
 
 				return *this;
 			}
@@ -106,7 +110,7 @@ class adhoc_agent_definition_proxy_t
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
-				m_agent.so_subscribe( mbox )
+				m_agent->so_subscribe( mbox )
 						.event( indicator, lambda, thread_safety );
 
 				return *this;
@@ -139,7 +143,7 @@ class adhoc_agent_definition_proxy_t
 		inline adhoc_agent_definition_proxy_t &
 		on_start( std::function< void() > handler )
 			{
-				m_agent.set_on_evt_start( handler );
+				m_agent->set_on_evt_start( handler );
 
 				return *this;
 			}
@@ -150,7 +154,7 @@ class adhoc_agent_definition_proxy_t
 		inline adhoc_agent_definition_proxy_t &
 		on_finish( std::function< void() > handler )
 			{
-				m_agent.set_on_evt_finish( handler );
+				m_agent->set_on_evt_finish( handler );
 
 				return *this;
 			}
@@ -162,17 +166,20 @@ class adhoc_agent_definition_proxy_t
 		exception_reaction(
 			exception_reaction_t reaction )
 			{
-				m_agent.set_exception_reaction( reaction );
+				m_agent->set_exception_reaction( reaction );
 
 				return *this;
 			}
 
 	private :
-		adhoc_agent_wrapper_t & m_agent;
+		adhoc_agent_wrapper_t * m_agent;
 	};
 
 } /* namespace rt */
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
+

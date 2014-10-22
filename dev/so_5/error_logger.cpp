@@ -15,7 +15,15 @@
 #include <cstdio>
 #include <iostream>
 
+#include <so_5/h/compiler_features.hpp>
+
 #include <so_5/h/current_thread_id.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	// Warning about non-secure localtime and sprintf.
+	#pragma warning(disable: 4996)
+#endif
 
 namespace so_5
 {
@@ -46,34 +54,40 @@ class stderr_logger_t : public error_logger_t
 		log(
 			const char * file,
 			unsigned int line,
-			const std::string & message ) override
-			{
-				using namespace std;
-				using namespace chrono;
-
-				ostringstream total_message;
-
-				auto now = system_clock::now();
-				auto ms = duration_cast< milliseconds >( now.time_since_epoch() );
-				time_t unix_time = duration_cast< seconds >( ms ).count();
-
-				char date_time_first_part[ 64 ];
-				strftime( date_time_first_part, sizeof( date_time_first_part ) - 1,
-						"%Y-%m-%d %H:%M:%S", localtime( &unix_time ) );
-				char date_time_second_part[ 16 ];
-				sprintf( date_time_second_part, ".%03u", 
-						static_cast< unsigned int >( ms.count() % 1000u ) );
-
-				total_message << "[" << date_time_first_part
-						<< date_time_second_part
-						<< " TID:" << query_current_thread_id()
-						<< "] " << message
-						<< " (" << file << ":" << line
-						<< ")\n";
-
-				cerr << total_message.str();
-			}
+			const std::string & message ) override;
 	};
+
+void
+stderr_logger_t::log(
+	const char * file,
+	unsigned int line,
+	const std::string & message )
+	{
+		using namespace std;
+		using namespace chrono;
+
+		ostringstream total_message;
+
+		auto now = system_clock::now();
+		auto ms = duration_cast< milliseconds >( now.time_since_epoch() );
+		time_t unix_time = duration_cast< seconds >( ms ).count();
+
+		char date_time_first_part[ 64 ];
+		strftime( date_time_first_part, sizeof( date_time_first_part ) - 1,
+				"%Y-%m-%d %H:%M:%S", localtime( &unix_time ) );
+		char date_time_second_part[ 16 ];
+		sprintf( date_time_second_part, ".%03u", 
+				static_cast< unsigned int >( ms.count() % 1000u ) );
+
+		total_message << "[" << date_time_first_part
+				<< date_time_second_part
+				<< " TID:" << query_current_thread_id()
+				<< "] " << message
+				<< " (" << file << ":" << line
+				<< ")\n";
+
+		cerr << total_message.str();
+	}
 
 //
 // create_stderr_logger
@@ -85,4 +99,8 @@ create_stderr_logger()
 	}
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 

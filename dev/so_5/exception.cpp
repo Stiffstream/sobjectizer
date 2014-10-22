@@ -22,7 +22,15 @@ exception_t::exception_t(
 {
 }
 
-exception_t::~exception_t() throw()
+exception_t::exception_t(
+	const exception_t & x )
+	:
+		base_type_t( x ),
+		m_error_code( x.m_error_code )
+{
+}
+
+exception_t::~exception_t()
 {
 }
 

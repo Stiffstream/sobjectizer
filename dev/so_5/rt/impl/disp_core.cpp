@@ -25,11 +25,9 @@ namespace impl
 //
 
 disp_core_t::disp_core_t(
-	environment_t & so_environment,
 	named_dispatcher_map_t named_dispatcher_map,
 	event_exception_logger_unique_ptr_t logger )
 	:
-		m_so_environment( so_environment ),
 		m_default_dispatcher( so_5::disp::one_thread::create_disp() ),
 		m_named_dispatcher_map( std::move( named_dispatcher_map ) ),
 		m_event_exception_logger( std::move( logger ) ),
