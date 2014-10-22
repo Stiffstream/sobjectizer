@@ -6,6 +6,12 @@ implementing agents.
 Obtaining and building
 ======================
 
+Building via Mxx_ru
+===================
+
+NOTE. This is a standard way for building SObjectizer. This way is used in
+SObjectizer development process.
+
 To build SObjectizer it is necessary to use Ruby language and Mxx_ru tool.
 Install Ruby and then install Mxx_ru via RubyGems command:
 
@@ -32,6 +38,41 @@ necessary. If it is installed then:
 > doxygen
 
 Generated html-files will be located in so-5.5.2/dev/doc/html.
+
+Building via CMake
+==================
+
+NOTE. This way of building is not used by SObjectizer developers. The projects
+files for CMake are contributed by users.
+
+To build SObjectizer via CMake it is necessary to have CMake and some knowledge
+of how to use it. The following action is just a demonstration:
+
+SObjectizer can be obtained from Subversion repository on SourceForge:
+
+> svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.2 so-5.5.2
+
+To build SObjectizer under Linux:
+
+> cd so-5.5.2
+> mkdir cmake_build
+> cd cmake_build
+> cmake -DCMAKE_INSTALL_PREFIX=./ ../dev
+> make
+> make install
+
+Those commands will create all necessary Makefile, then build SObjectizer and
+samples (building and runing tests via CMake is not supported in v.5.5.2), then
+copy all executables to 'bin' subdir and shared library to 'lib' subdir.
+
+To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
+
+> cd so-5.5.2
+> mkdir cmake_build
+> cd cmake_build
+> cmake -DCMAKE_INSTALL_PREFIX=./ -G "Visual Studio 12 2013" ../dev
+> msbuild /t:Build /p:Configuration=Release Project.sln
+> msbuild /t:Build /p:Configuration=Release INSTALL.vcxproj
 
 License
 =======
