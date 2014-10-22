@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-set(SO_5_VERSION 5.5.1)
+set(SO_5_VERSION 5.5.2)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" 
      OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"

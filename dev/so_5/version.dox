@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_2 5.5.2 "Jangi-Tau"
+
+	Initial support for CMake added.
+
+	Some warnings which are detected at high warning level fixed.
+
 \section so_5__5_1 5.5.1 "Shkhara"
 
 	The old name so_5::rt::mbox_ref_t is marked as deprecated. Name mbox_t must
