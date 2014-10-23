@@ -48,22 +48,32 @@ files for CMake are contributed by users.
 To build SObjectizer via CMake it is necessary to have CMake and some knowledge
 of how to use it. The following action is just a demonstration:
 
-SObjectizer can be obtained from Subversion repository on SourceForge:
+SObjectizer can be obtained from Subversion repository on SourceForge.
+To get and build SObjectizer under Linux in command line run:
 
-> svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.2 so-5.5.2
+svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.2 so-5.5.2
+cd so-5.5.2
+mkdir cmake_build
+cd cmake_build
+cmake -DCMAKE_INSTALL_PREFIX=./ ../dev
+make
+make install
 
-To build SObjectizer under Linux:
+Those commands will create all necessary Makefile, then build SObjectizer 
+(building and runing tests via CMake is not supported in v.5.5.2). If
+You need to build examples too, use
 
-> cd so-5.5.2
-> mkdir cmake_build
-> cd cmake_build
-> cmake -DCMAKE_INSTALL_PREFIX=./ ../dev
-> make
-> make install
+> cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=./ ../dev
 
-Those commands will create all necessary Makefile, then build SObjectizer and
-samples (building and runing tests via CMake is not supported in v.5.5.2), then
-copy all executables to 'bin' subdir and shared library to 'lib' subdir.
+When make install fineshed
+./bin directory will contain samples executables
+./lib will contain shared libso.5.x.x.so
+
+cmake build system currently supports this options:
+
+BUILD_ALL      Enable building examples and tests [default: OFF]
+BUILD_EXAMPLES Enable building examples [default: OFF]
+BUILD_TESTS    Enable building tests    [default: OFF]
 
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
