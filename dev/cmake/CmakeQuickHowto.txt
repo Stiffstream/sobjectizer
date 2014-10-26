@@ -1,0 +1,107 @@
+CMake Quick HowTo
+==================
+
+NOTE. This way of building is not used by SObjectizer developers. The projects
+files for CMake are contributed by users.
+
+cmake & Linux
+==============
+
+  # first download so sources by svn
+  # avalable tags and branches You can see in repository
+  # http://sourceforge.net/p/sobjectizer/repo/HEAD/tree/
+  # cmake build supported after version 5.5.2 (this have partial cmake support)
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/branches/so_5 so_5
+  cd so_5
+  mkdir cmake_build
+  cd cmake_build
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files ../dev
+  make
+  make install
+
+Those commands will create all necessary Makefile, then build SObjectizer. 
+
+CMAKE_INSTALL_PREFIX - standard cmake variable, it contains path for final
+files base installation dir. At make install files will be copied here
+
+If it necessary to build examples and tests too, use
+
+  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../dev
+
+When 'make install' finished './installed_files' will contain two subfolders
+'./bin' with samples and './lib' with shared libso.5.x.x.so
+
+If You just need to build project CMAKE_INSTALL_PREFIX not needed and You 
+can stop after 'make' command, make install not required.
+
+If You need (re)build project files and run tests, just
+
+  cmake -DBUILD_TESTS=ON ../dev
+  make 
+  make test
+
+CMAKE_INSTALL_PREFIX and make install not needed (no installation).
+
+CMake build system currently supports this custom options:
+
+  BUILD_ALL      Enable building examples and tests [default: OFF]
+  BUILD_EXAMPLES Enable building examples [default: OFF]
+  BUILD_TESTS    Enable building tests    [default: OFF]
+
+cmake & Windows
+================
+To build SObjectizer under Windows by MS Visual Studio 2013 from command line You
+need console with properly configured compiler environment variables via vcvarsall.bat
+(I start it from "Start->All Programms->Visuil Studio 2013->Tools")
+
+  cd so-5.5.2
+  mkdir cmake_build
+  cd cmake_build
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev
+  msbuild /m /t:Build /p:Configuration=Release ALL_BUILD.vcxproj
+  msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
+
+If it necessary to build examples too, use BUILD_ALL in cmake invocation:
+
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../dev
+
+msbuild's Configuration argument usually can be one of "Debug", "Release", "MinSizeRel" or
+"RelWithDebInfo".
+
+The easiest way to use cmake in Windows - use it's graphical interface cmake-gui
+In cmake-gui window You can choose directory, where sources placed, where to create cmake build
+files. After this check "Advanced" checkbox, push "Configure" button, choose compilation way and
+press "Finish". Few seconds later You will see cmake variables list. Find "CMAKE_INSTALL_PREFIX"
+and set it to directory, where compiled files will be placed after installation stage. Check 
+required BUILD_ALL, BUILD_TESTS, BUILD_EXAMPLES options. Then press "Configure", wait, then 
+press "Generate" button.
+
+After cmake project files generated You can bun build from command line.
+
+Running tests from Windows
+==========================
+
+  :: run once
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 12 2013" ../dev
+  :: and after each change
+  msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
+  run_tests.bat
+
+run_tests.bat will temporary set PATH and run all tests. It is possible to run tests (it You 
+turned it on at cmake run) after building project (without installing), but You will need to
+include path to so.5.x.x.dll in PATH manually. It's because msbuild can be runned for different
+configurations (Debug Release MinSizeRel RelWithDebInfo), so it append Configuration name to
+compiled files pathes, but mingw32-make will not do that. But after installation stage 
+so.5.x.x.dll will be in known directory.
+
+Running tests without installation (set need to be configured once if You will not change
+Configuration=Release argument)
+
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 12 2013" ../dev
+  msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
+  set PATH=%PATH%;dir_with_compiled_so.5.x.x.dll
+  ctest --force-new-ctest-process
+  :: or msbuild /m /p:Configuration=Release RUN_TESTS.vcxproj
+
+If You certain that You know better way to use cmake crossaplatform - let me know.
+san@masterspline.net or tell SObjectizer's core developers.

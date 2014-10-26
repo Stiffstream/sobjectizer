@@ -61,7 +61,9 @@ NOTE. This way of building is not used by SObjectizer developers. The projects
 files for CMake are contributed by users.
 
 To build SObjectizer via CMake it is necessary to have CMake and some knowledge
-of how to use it. The following action is just a demonstration.
+of how to use it. The following action is just a demonstration. For more 
+detailed info about cmake build system for SObjectizer see
+dev/cmake/CmakeQuickHowto.txt
 
 To get and build SObjectizer under Linux in command line run:
 
@@ -69,18 +71,17 @@ To get and build SObjectizer under Linux in command line run:
   cd so-5.5.2
   mkdir cmake_build
   cd cmake_build
-  cmake -DCMAKE_INSTALL_PREFIX=./ ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files ../dev
   make
   make install
 
-Those commands will create all necessary Makefile, then build SObjectizer 
-(building and runing tests via CMake is not supported in v.5.5.2). If
-it necessary to build examples too, use
+Those commands will create all necessary Makefile, then build SObjectizer. If
+it necessary to build examples and tests too, use
 
-  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=./ ../dev
+  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../dev
 
-When make install fineshed './bin' directory will contain samples executables
-'./lib' will contain shared libso.5.x.x.so
+When 'make install' finished './installed_files' will contain two subfolders
+'./bin' with samples and './lib' with shared libso.5.x.x.so
 
 CMake build system currently supports this options:
 
@@ -93,14 +94,13 @@ To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
   cd so-5.5.2
   mkdir cmake_build
   cd cmake_build
-  cmake -DCMAKE_INSTALL_PREFIX=./ -G "Visual Studio 12 2013" ../dev
-  msbuild /t:Build /p:Configuration=Release Project.sln
-  msbuild /t:Build /p:Configuration=Release INSTALL.vcxproj
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev
+  msbuild /m /t:Build /p:Configuration=Release ALL_BUILD.vcxproj
+  msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
 
 If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
-  cmake -DCMAKE_INSTALL_PREFIX=./ -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../dev
-
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../dev
 
 License
 =======
