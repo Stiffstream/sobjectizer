@@ -284,17 +284,17 @@ create_exception_handler_for_timertt( error_logger_shptr_t logger )
  * \{
  */
 //! timer_wheel thread type.
-using timer_wheel_thread_t = timertt::timer_wheel_thread_template_t<
+using timer_wheel_thread_t = timertt::timer_wheel_thread_template<
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_heap thread type.
-using timer_heap_thread_t = timertt::timer_heap_thread_template_t<
+using timer_heap_thread_t = timertt::timer_heap_thread_template<
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_list thread type.
-using timer_list_thread_t = timertt::timer_list_thread_template_t<
+using timer_list_thread_t = timertt::timer_list_thread_template<
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 /*!
