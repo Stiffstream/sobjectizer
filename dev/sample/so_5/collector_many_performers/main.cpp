@@ -68,6 +68,10 @@ struct application_request : public so_5::rt::message_t
 	{}
 };
 
+// Typedef for smart intrusive pointer to application_request object.
+typedef so_5::intrusive_ptr_t< application_request >
+	application_request_smart_ptr_t;
+
 // Load generation agent.
 class a_generator_t : public so_5::rt::agent_t,
 	private random_generator_mixin_t
@@ -231,32 +235,33 @@ private :
 	const std::size_t max_capacity;
 
 	// Storage for requests between turns.
-	std::deque< application_request > m_requests;
+	std::deque< application_request_smart_ptr_t > m_requests;
 
 	// Storage for mboxes of free performers.
 	std::deque< so_5::rt::mbox_t > m_free_performers;
 
 	bool
-	evt_receive_job( const application_request & what )
+	evt_receive_job(
+		const so_5::rt::event_data_t< application_request > & evt )
 	{
 		bool processed = true;
 
 		// If there is a free performer then request must be sent to processing.
 		if( !m_free_performers.empty() )
 		{
-			send_job_to_first_free_performer( what );
+			send_job_to_first_free_performer( evt.make_reference() );
 		}
 		else if( m_requests.size() < max_capacity )
 		{
 			// Request can be stored for the future processing.
-			m_requests.push_back( what );
+			m_requests.push_back( evt.make_reference() );
 		}
 		else
 		{
 			// Request must be rejected becase there is no free slots
 			// and there is no room to store.
 			TRACE() << "COL(" << m_name << ") reject request from "
-					<< what.m_generator << std::endl;
+					<< evt->m_generator << std::endl;
 
 			processed = false;
 		}
@@ -278,12 +283,13 @@ private :
 	}
 
 	void
-	send_job_to_first_free_performer( const application_request & what )
+	send_job_to_first_free_performer(
+		const application_request_smart_ptr_t & what )
 	{
 		const so_5::rt::mbox_t to = m_free_performers.front();
 		m_free_performers.pop_front();
 
-		so_5::send< application_request >( to, what );
+		to->deliver_message( what );
 	}
 };
 
