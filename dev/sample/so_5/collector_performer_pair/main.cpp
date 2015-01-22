@@ -201,11 +201,12 @@ public :
 		std::string name,
 		// Max capacity of receiver
 		std::size_t max_receiver_capacity,
+		// Max count of jobs to be processed in parallel.
 		std::size_t max_concurrent_jobs )
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	max_capacity( max_receiver_capacity )
-		,	m_max_concurrent_jobs( max_concurrent_jobs )
+		,	m_available_concurrent_performers( max_concurrent_jobs )
 	{
 	}
 
@@ -236,11 +237,8 @@ private :
 	// Performer's mbox. All requests will be sent to that mbox.
 	so_5::rt::mbox_t m_performer_mbox;
 
-	// Max count of requests to be processed in parallel.
-	const std::size_t m_max_concurrent_jobs;
-
-	// Current count of available concurrent slots for parallel processing.
-	std::size_t m_available_concurrent_slots = 0;
+	// Current count of available concurrent performers for parallel processing.
+	std::size_t m_available_concurrent_performers;
 
 	bool
 	evt_receive_job( const application_request & what )
@@ -248,9 +246,9 @@ private :
 		bool processed = true;
 
 		// If there is a free slot then request must be sent to processing.
-		if( m_available_concurrent_slots )
+		if( m_available_concurrent_performers )
 		{
-			--m_available_concurrent_slots;
+			--m_available_concurrent_performers;
 			so_5::send< application_request >( m_performer_mbox, what );
 		}
 		else if( m_requests.size() < max_capacity )
@@ -274,11 +272,11 @@ private :
 	void
 	evt_select_next_job()
 	{
-		++m_available_concurrent_slots;
+		++m_available_concurrent_performers;
 
 		if( !m_requests.empty() )
 		{
-			--m_available_concurrent_slots;
+			--m_available_concurrent_performers;
 			so_5::send< application_request >(
 					m_performer_mbox, m_requests.front() );
 
@@ -298,13 +296,10 @@ public :
 		// Performer's name.
 		std::string name,
 		// Collector mbox.
-		const so_5::rt::mbox_t & collector_mbox,
-		// Max count of requests to be processed in parallel.
-		std::size_t max_concurrent_jobs )
+		const so_5::rt::mbox_t & collector_mbox )
 		:	so_5::rt::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_collector_mbox( collector_mbox )
-		,	m_max_concurrent_jobs( max_concurrent_jobs )
 	{}
 
 	virtual void
@@ -316,23 +311,12 @@ public :
 				so_5::thread_safe );
 	}
 
-	virtual void
-	so_evt_start() override
-	{
-		// Start working cycle.
-		for( std::size_t i = 0; i != m_max_concurrent_jobs; ++i )
-			so_5::send< a_collector_t::msg_select_next_job >( m_collector_mbox );
-	}
-
 private :
 	// Processor name.
 	const std::string m_name;
 
 	// Collector.
 	const so_5::rt::mbox_t m_collector_mbox;
-
-	// Max count of requests to be processed in parallel.
-	const std::size_t m_max_concurrent_jobs;
 
 	void
 	evt_perform_job( const application_request & job )
@@ -397,8 +381,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 				new a_performer_t(
 						env,
 						"p" + std::to_string(i),
-						collector_mbox,
-						concurrent_slots ) );
+						collector_mbox ) );
 		collector->set_performer_mbox( performer->so_direct_mbox() );
 
 		coop->add_agent( std::move( collector ),
