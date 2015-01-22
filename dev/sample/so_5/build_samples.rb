@@ -31,4 +31,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/dining_philosophers_2/prj.rb'
 	required_prj 'sample/so_5/work_generation/prj.rb'
 	required_prj 'sample/so_5/collector_performer_pair/prj.rb'
+	required_prj 'sample/so_5/collector_many_performers/prj.rb'
 }
