@@ -36,19 +36,29 @@ struct msg_reply : public so_5::rt::message_t
 	std::string m_id;
 	std::string m_result;
 	std::time_t m_deadline;
-	std::time_t m_processed_at;
+	std::time_t m_started_at;
 
 	msg_reply(
 		std::string id,
 		std::string result,
 		std::time_t deadline,
-		std::time_t processed_at )
+		std::time_t started_at )
 		:	m_id( std::move( id ) )
 		,	m_result( std::move( result ) )
 		,	m_deadline( deadline )
-		,	m_processed_at( processed_at )
+		,	m_started_at( started_at )
 	{}
 };
+
+// Simple helper function for time formatting.
+std::string
+time_to_string( std::time_t t )
+{
+	char r[ 32 ];
+	std::strftime( r, sizeof(r) - 1, "%H:%M:%S", std::localtime(&t) );
+
+	return r;
+}
 
 // Agent for generation of serie of requests.
 class a_generator_t : public so_5::rt::agent_t
@@ -70,7 +80,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		unsigned int delays[] = { 0, 4, 4, 3, 2, 8, 10, 18 };
+		unsigned int delays[] = { 1, 4, 5, 3, 9, 15, 12 };
 
 		const std::time_t now = std::time(nullptr);
 
@@ -80,10 +90,15 @@ public :
 			std::ostringstream idstream;
 			idstream << "i=" << i << ";d=" << d;
 
+			const std::string id = idstream.str();
+			const std::time_t deadline = now + d;
+
 			so_5::send< msg_request >( m_processor_mbox,
-					idstream.str(),
-					now + d,
+					id,
+					deadline,
 					so_direct_mbox() );
+			std::cout << "sent: [" << id << "], deadline: "
+					<< time_to_string( deadline ) << std::endl;
 
 			++m_expected_replies;
 			++i;
@@ -98,8 +113,14 @@ private :
 	void
 	evt_reply( const msg_reply & evt )
 	{
-		std::cout << "reply received: id=(" << evt.m_id << "), result=("
-				<< evt.m_result << ")" << std::endl;
+		std::cout
+				<< time_to_string( std::time(nullptr) ) << ": "
+				<< evt.m_result << ": ["
+				<< evt.m_id << "], started: "
+				<< time_to_string( evt.m_started_at )
+				<< ", deadline: "
+				<< time_to_string( evt.m_deadline )
+				<< std::endl;
 
 		--m_expected_replies;
 		if( !m_expected_replies )
@@ -275,11 +296,15 @@ private :
 	// Request which is currently processed.
 	msg_request_smart_ptr_t m_request;
 
+	// When the processing started.
+	std::time_t m_processing_started_at;
+
 	void
 	evt_request( const so_5::rt::event_data_t< msg_request > & evt )
 	{
 		this >>= st_busy;
 		m_request = evt.make_reference();
+		m_processing_started_at = std::time(nullptr);
 
 		so_5::send_delayed_to_agent< msg_processing_done >(
 				*this,
@@ -295,7 +320,7 @@ private :
 				m_request->m_id,
 				"successful",
 				m_request->m_deadline,
-				std::time(nullptr) );
+				m_processing_started_at );
 
 		// Switching to free state and cleaning up resources.
 		this >>= st_free;
