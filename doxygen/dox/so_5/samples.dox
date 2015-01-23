@@ -114,4 +114,16 @@
  * \example so_5/parent_coop/main.cpp
  */
 
+/*!
+ * \example so_5/collector_performer_pair/main.cpp
+ */
+
+/*!
+ * \example so_5/collector_many_performers/main.cpp
+ */
+
+/*!
+ * \example so_5/simple_message_deadline/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
