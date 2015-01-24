@@ -30,23 +30,34 @@ struct msg_request : public so_5::rt::message_t
 // Just a useful alias.
 using msg_request_smart_ptr_t = so_5::intrusive_ptr_t< msg_request >;
 
-// A reply to request.
-struct msg_reply : public so_5::rt::message_t
+// A successful reply to request.
+struct msg_positive_reply : public so_5::rt::message_t
 {
 	std::string m_id;
 	std::string m_result;
-	std::time_t m_deadline;
 	std::time_t m_started_at;
 
-	msg_reply(
+	msg_positive_reply(
 		std::string id,
 		std::string result,
-		std::time_t deadline,
 		std::time_t started_at )
 		:	m_id( std::move( id ) )
 		,	m_result( std::move( result ) )
-		,	m_deadline( deadline )
 		,	m_started_at( started_at )
+	{}
+};
+
+// A negative reply to request.
+struct msg_negative_reply : public so_5::rt::message_t
+{
+	std::string m_id;
+	std::time_t m_deadline;
+
+	msg_negative_reply(
+		std::string id,
+		std::time_t deadline )
+		:	m_id( std::move( id ) )
+		,	m_deadline( deadline )
 	{}
 };
 
@@ -74,7 +85,9 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event( &a_generator_t::evt_reply );
+		so_default_state()
+				.event( &a_generator_t::evt_positive_reply )
+				.event( &a_generator_t::evt_negative_reply );
 	}
 
 	virtual void
@@ -111,17 +124,33 @@ private :
 	unsigned int m_expected_replies = 0;
 
 	void
-	evt_reply( const msg_reply & evt )
+	evt_positive_reply( const msg_positive_reply & evt )
 	{
 		std::cout
-				<< time_to_string( std::time(nullptr) ) << ": "
-				<< evt.m_result << ": ["
-				<< evt.m_id << "], started: "
+				<< time_to_string( std::time(nullptr) ) << " - OK: ["
+				<< evt.m_id << "], started_at: "
 				<< time_to_string( evt.m_started_at )
-				<< ", deadline: "
+				<< ", result: " << evt.m_result
+				<< std::endl;
+
+		count_reply();
+	}
+
+	void
+	evt_negative_reply( const msg_negative_reply & evt )
+	{
+		std::cout
+				<< time_to_string( std::time(nullptr) ) << " - FAIL: ["
+				<< evt.m_id << "], deadline: "
 				<< time_to_string( evt.m_deadline )
 				<< std::endl;
 
+		count_reply();
+	}
+
+	void
+	count_reply()
+	{
 		--m_expected_replies;
 		if( !m_expected_replies )
 			so_deregister_agent_coop_normally();
@@ -221,23 +250,32 @@ private :
 		}
 	}
 
+	// Reaction for request for next job from performer.
 	void
 	evt_select_next_job()
 	{
 		if( m_pending_requests.empty() )
+			// Because there are no more pending jobs
+			// we should wait them in performer_is_free state.
 			this >>= st_performer_is_free;
 		else
 		{
+			// We ara still in performer_is_busy state and
+			// next job must be sent to the performer.
+
 			auto & request = m_pending_requests.top();
 			m_performer_mbox->deliver_message( request );
 			m_pending_requests.pop();
 		}
 	}
 
+	// Reaction for check deadline timer signal.
 	void
 	evt_check_deadline()
 	{
 		const std::time_t now = std::time(nullptr);
+
+		// Just remove all jobs for which deadline is already passed.
 		while( !m_pending_requests.empty() )
 		{
 			auto & request = m_pending_requests.top();
@@ -254,12 +292,10 @@ private :
 	void
 	send_negative_reply( const msg_request & request )
 	{
-		so_5::send< msg_reply >(
+		so_5::send< msg_negative_reply >(
 				request.m_reply_to,
 				request.m_id,
-				"failed(deadline)",
-				request.m_deadline,
-				std::time(nullptr) );
+				request.m_deadline );
 	}
 };
 
@@ -277,54 +313,26 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		this >>= st_free;
-
-		st_free.event( &a_performer_t::evt_request );
-
-		st_busy.event< msg_processing_done >(
-				&a_performer_t::evt_processing_done );
+		so_default_state().event( &a_performer_t::evt_request );
 	}
 
 private :
-	struct msg_processing_done : public so_5::rt::signal_t {};
-
-	const so_5::rt::state_t st_free = so_make_state();
-	const so_5::rt::state_t st_busy = so_make_state();
-
 	const so_5::rt::mbox_t m_collector_mbox;
 
-	// Request which is currently processed.
-	msg_request_smart_ptr_t m_request;
-
-	// When the processing started.
-	std::time_t m_processing_started_at;
-
 	void
-	evt_request( const so_5::rt::event_data_t< msg_request > & evt )
+	evt_request( const msg_request & evt )
 	{
-		this >>= st_busy;
-		m_request = evt.make_reference();
-		m_processing_started_at = std::time(nullptr);
+		const std::time_t started_at = std::time(nullptr);
 
-		so_5::send_delayed_to_agent< msg_processing_done >(
-				*this,
-				std::chrono::seconds( 4 ) );
-	}
+		// Imitation of some work.
+		std::this_thread::sleep_for( std::chrono::seconds(4) );
 
-	void
-	evt_processing_done()
-	{
 		// Reply must be sent to request generator.
-		so_5::send< msg_reply >(
-				m_request->m_reply_to,
-				m_request->m_id,
-				"successful",
-				m_request->m_deadline,
-				m_processing_started_at );
-
-		// Switching to free state and cleaning up resources.
-		this >>= st_free;
-		m_request = msg_request_smart_ptr_t();
+		so_5::send< msg_positive_reply >(
+				evt.m_reply_to,
+				evt.m_id,
+				"-=<" + evt.m_id + ">=-",
+				started_at );
 
 		// New job must be requested.
 		so_5::send< a_collector_t::msg_select_next_job >( m_collector_mbox );
