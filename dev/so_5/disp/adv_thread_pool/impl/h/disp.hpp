@@ -124,9 +124,12 @@ class agent_queue_t
 			{
 				bool need_schedule = false;
 				{
+					// Do memory allocation before spinlock locking.
+					auto new_demand = new demand_t( std::move( demand ) );
+
 					std::lock_guard< spinlock_t > lock( m_lock );
 
-					m_tail->m_next = new demand_t( std::move( demand ) );
+					m_tail->m_next = new_demand;
 					m_tail = m_tail->m_next;
 
 					if( m_head.m_next == m_tail )
