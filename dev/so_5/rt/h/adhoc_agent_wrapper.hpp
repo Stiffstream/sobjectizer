@@ -171,6 +171,23 @@ class adhoc_agent_definition_proxy_t
 				return *this;
 			}
 
+		/*!
+		 * \since v.5.5.3
+		 * \brief Access to agent's direct mbox.
+		 *
+		 * \par Usage sample:
+		 \code
+		 auto coop = env.create_coop();
+		 auto adhoc_agent = coop.define_agent();
+		 adhoc_agent.event( adhoc_agent.direct_mbox(), []{ ... } );
+		 \endcode
+		 */
+		inline const mbox_t &
+		direct_mbox() const
+			{
+				return m_agent->so_direct_mbox();
+			}
+
 	private :
 		adhoc_agent_wrapper_t * m_agent;
 	};

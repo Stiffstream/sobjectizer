@@ -6,6 +6,9 @@
 
 	Switching to timertt-1.1.0.
 
+	A possibility to get ad-hoc agent's direct mbox added via
+	so_5::rt::adhoc_agent_definition_proxy_t::direct_mbox() method.
+
 \section so_5__5_2 5.5.2 "Jangi-Tau"
 
 	Initial support for CMake added.

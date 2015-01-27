@@ -137,19 +137,18 @@ create_test_coop(
 {
 	auto c = env.create_coop( "test", std::move( disp_binder ) );
 
-	auto worker_mbox = env.create_local_mbox();
-	auto checker_mbox = env.create_local_mbox();
+	auto worker = c->define_agent();
+	auto checker = c->define_agent();
 
 	auto a_manager = c->add_agent(
 			new a_manager_t(
 					env,
-					worker_mbox,
-					checker_mbox,
+					worker.direct_mbox(),
+					checker.direct_mbox(),
 					requests,
 					milliseconds ) );
 
-	c->define_agent()
-		.event( worker_mbox,
+	worker.event( worker.direct_mbox(),
 				[a_manager]( const msg_do_hardwork & evt )
 				{
 					std::this_thread::sleep_for(
@@ -160,8 +159,7 @@ create_test_coop(
 				},
 				so_5::thread_safe );
 
-	c->define_agent()
-		.event( checker_mbox,
+	checker.event( checker.direct_mbox(),
 				[a_manager]( const msg_check_hardwork & evt )
 				{
 					std::this_thread::sleep_for(
