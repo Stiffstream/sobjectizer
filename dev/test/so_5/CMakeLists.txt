@@ -80,3 +80,5 @@ add_subdirectory(bench/change_state)
 add_subdirectory(bench/many_mboxes)
 add_subdirectory(bench/thread_pool_disp)
 add_subdirectory(bench/no_workload)
+add_subdirectory(bench/agent_ring)
+
