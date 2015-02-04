@@ -84,7 +84,7 @@ try_parse_cmdline(
 					tmp_cfg.m_threads, ++current, last,
 					"-t", "size of thread pool" );
 
-			else if( is_arg( *current, "i", "--individual-fifo" ) )
+			else if( is_arg( *current, "-i", "--individual-fifo" ) )
 					tmp_cfg.m_individual_fifo = true;
 
 			else if( is_arg( *current, "-P", "--adv-thread-pool" ) )
