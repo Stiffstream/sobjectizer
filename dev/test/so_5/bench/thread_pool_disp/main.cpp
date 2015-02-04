@@ -30,6 +30,7 @@ struct cfg_t
 		std::size_t m_threads = 0;
 		bool m_individual_fifo = false;
 		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
+		std::size_t m_messages_to_send_at_start = 1;
 	};
 
 cfg_t
@@ -48,14 +49,15 @@ try_parse_cmdline(
 					std::cout << "usage:\n"
 							"_test.bench.so_5.thread_pool_disp <options>\n"
 							"\noptions:\n"
-							"-c, --cooperations     count of cooperations\n"
-							"-a, --agents           count of agents in cooperation\n"
-							"-m, --messages         count of messages for every agent\n"
-							"-d, --demands-at-once  count consequently processed demands\n"
-							"-t, --threads          size of thread pool\n"
-							"-i, --individual-fifo  use individual FIFO for agents\n"
-							"-P, --adv-thread-pool  use adv_thread_pool dispatcher\n"
-							"-h, --help             show this description\n"
+							"-c, --cooperations      count of cooperations\n"
+							"-a, --agents            count of agents in cooperation\n"
+							"-m, --messages          count of messages for every agent\n"
+							"-d, --demands-at-once   count consequently processed demands\n"
+							"-S, --messages-at-start count of messages to be sent at start\n"
+							"-t, --threads           size of thread pool\n"
+							"-i, --individual-fifo   use individual FIFO for agents\n"
+							"-P, --adv-thread-pool   use adv_thread_pool dispatcher\n"
+							"-h, --help              show this description\n"
 							<< std::endl;
 					std::exit(1);
 				}
@@ -79,6 +81,11 @@ try_parse_cmdline(
 						tmp_cfg.m_demands_at_once, ++current, last,
 						"-d", "count of consequently processed demands" );
 
+			else if( is_arg( *current, "-S", "--messages-at-start" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_messages_to_send_at_start, ++current, last,
+						"-S", "count of messages to be sent at start" );
+
 			else if( is_arg( *current, "-t", "--threads" ) )
 				mandatory_arg_to_value(
 					tmp_cfg.m_threads, ++current, last,
@@ -94,6 +101,13 @@ try_parse_cmdline(
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
 		}
+
+	if( tmp_cfg.m_messages_to_send_at_start >= tmp_cfg.m_messages )
+		throw std::runtime_error(
+				"invalid number of messages to be sent at start: " +
+				std::to_string( tmp_cfg.m_messages_to_send_at_start ) +
+				" (total messages to send: " +
+				std::to_string( tmp_cfg.m_messages ) + ")" );
 
 	return tmp_cfg;
 }
@@ -116,11 +130,12 @@ class a_test_t : public so_5::rt::agent_t
 		a_test_t(
 			so_5::rt::environment_t & env,
 			const so_5::rt::mbox_t & controller_mbox,
-			std::size_t messages_to_send )
+			std::size_t total_messages_to_send,
+			std::size_t messages_at_start )
 			:	so_5::rt::agent_t( env )
 			,	m_controller_mbox( controller_mbox )
-			,	m_messages_to_send( messages_to_send )
-			,	m_messages_sent( 0 )
+			,	m_messages_to_send( total_messages_to_send )
+			,	m_messages_at_start( messages_at_start )
 		{
 		}
 
@@ -136,24 +151,32 @@ class a_test_t : public so_5::rt::agent_t
 		void
 		evt_start()
 		{
-			so_direct_mbox()->deliver_signal< msg_hello >();
+			for( m_messages_sent = 0; m_messages_sent != m_messages_at_start;
+					++m_messages_sent )
+				so_direct_mbox()->deliver_signal< msg_hello >();
 		}
 
 		void
 		evt_hello()
 		{
-			++m_messages_sent;
-			if( m_messages_sent >= m_messages_to_send )
+			++m_messages_received;
+			if( m_messages_received >= m_messages_to_send )
 				m_controller_mbox->deliver_signal< msg_shutdown >();
-			else
+			else if( m_messages_sent < m_messages_to_send )
+			{
 				so_direct_mbox()->deliver_signal< msg_hello >();
+				++m_messages_sent;
+			}
 		}
 
 	private :
 		const so_5::rt::mbox_t m_controller_mbox;
 
 		const std::size_t m_messages_to_send;
-		std::size_t m_messages_sent;
+		const std::size_t m_messages_at_start;
+
+		std::size_t m_messages_sent = 0;
+		std::size_t m_messages_received = 0;
 };
 
 class a_contoller_t : public so_5::rt::agent_t
@@ -228,7 +251,8 @@ class a_contoller_t : public so_5::rt::agent_t
 							new a_test_t(
 									so_environment(),
 									m_self_mbox,
-									m_cfg.m_messages ) );
+									m_cfg.m_messages,
+									m_cfg.m_messages_to_send_at_start ) );
 				}
 				so_environment().register_coop( std::move( c ) );
 			}
@@ -274,6 +298,7 @@ show_cfg( const cfg_t & cfg )
 	std::cout << "coops: " << cfg.m_cooperations
 			<< ", agents in coop: " << cfg.m_agents
 			<< ", msg per agent: " << cfg.m_messages
+			<< " (at start: " << cfg.m_messages_to_send_at_start << ")"
 			<< ", total msgs: " << total_messages( cfg )
 			<< std::endl;
 
