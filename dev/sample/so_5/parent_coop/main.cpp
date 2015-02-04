@@ -74,13 +74,10 @@ class a_child_t
 		{
 			std::cout << "Child: has started to do task " << m_task_id << std::endl;
 
-			m_timer_ref = so_environment()
-				.schedule_timer< task_completed_t >(
-					so_direct_mbox(),
+			so_5::send_delayed_to_agent< task_completed_t >(
+					*this,
 					// One second delay.
-					std::chrono::seconds( 1 ),
-					// Not periodic.
-					std::chrono::seconds::zero() ); 
+					std::chrono::seconds( 1 ) ); 
 		}
 
 		virtual void
@@ -97,25 +94,19 @@ class a_child_t
 			std::cout << "Child: has completed his task " << m_task_id << std::endl;
 
 			// Send information about result to the parent agent.
-			m_result_mbox->deliver_message(
-				new task_result_t( m_task_id ) ); 
+			so_5::send< task_result_t >( m_result_mbox, m_task_id );
 
 			// Deregister child cooperation and close 
 			// down activity of this child instance.
-			so_environment().deregister_coop(
-					so_coop_name(),
-					so_5::rt::dereg_reason::normal );
+			so_deregister_agent_coop_normally();
 		}
 
 	private:
 		// Result mbox.
 		const so_5::rt::mbox_t m_result_mbox; 
 
-		// Self-timer ref.
-		so_5::timer_id_t	m_timer_ref; 
-
 		// Task ID.
-		unsigned int m_task_id;
+		const unsigned int m_task_id;
 };
 
 // Parent agent in his parent cooperation.
@@ -172,17 +163,6 @@ class a_parent_t
 
 	private:
 
-		// Generates next child cooperation name.
-		std::string
-		generate_child_coop_name() const 
-		{
-			static unsigned int n = 0;
-			++n;
-			std::stringstream s;
-			s << "child_coop_" << n;
-			return s.str();
-		}
-
 		//! Starts child to solve a task number ID.
 		void
 		start_child( unsigned int id )
@@ -191,15 +171,11 @@ class a_parent_t
 
 			// Creating a child cooperation.
 			so_5::rt::agent_coop_unique_ptr_t child_coop =
-				so_environment().create_coop( generate_child_coop_name() );
+				so_5::rt::create_child_coop( *this, so_5::autoname );
 
 			// Adding agents to the cooperation.
 			child_coop->add_agent(
 					new a_child_t( so_environment(), so_direct_mbox(), id ) );
-
-			// Set the parent coopeation name
-			// (which is equal to the parent-coop name).
-			child_coop->set_parent_coop_name( so_coop_name() );
 
 			// Initiate child's work.
 			so_environment().register_coop( std::move( child_coop ) ); 

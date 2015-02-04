@@ -54,10 +54,10 @@ class a_vector_summator_t : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
-				auto coop = so_environment().create_coop(
-						so_coop_name() + "::part_summator",
+				auto coop = so_5::rt::create_child_coop(
+						*this,
+						so_5::autoname,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
-				coop->set_parent_coop_name( so_coop_name() );
 
 				coop->define_agent()
 					.event(
@@ -146,10 +146,10 @@ class a_runner_t : public so_5::rt::agent_t
 		void
 		create_summator_coop()
 			{
-				auto coop = so_environment().create_coop(
-						so_coop_name() + "::vector_summator",
+				auto coop = so_5::rt::create_child_coop(
+						*this,
+						so_5::autoname,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
-				coop->set_parent_coop_name( so_coop_name() );
 
 				coop->add_agent(
 						new a_vector_summator_t(

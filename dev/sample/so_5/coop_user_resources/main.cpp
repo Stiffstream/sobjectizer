@@ -131,8 +131,7 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			auto coop = so_environment().create_coop( "child" );
-			coop->set_parent_coop_name( so_coop_name() );
+			auto coop = so_5::rt::create_child_coop( *this, "child" );
 
 			for( size_t i = 0; i != m_child_count; ++i )
 			{

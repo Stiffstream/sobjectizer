@@ -242,8 +242,10 @@ class a_contoller_t : public so_5::rt::agent_t
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
-				auto c = so_environment().create_coop( ss.str(), create_binder() );
-				c->set_parent_coop_name( so_coop_name() );
+				auto c = so_5::rt::create_child_coop(
+						*this,
+						ss.str(),
+						create_binder() );
 
 				for( std::size_t a = 0; a != m_cfg.m_agents; ++a )
 				{

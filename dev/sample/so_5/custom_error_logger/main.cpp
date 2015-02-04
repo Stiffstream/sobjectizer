@@ -47,9 +47,7 @@ public :
 	void
 	so_evt_start() override
 	{
-		auto coop = so_environment().create_coop( "child" );
-		// Cooperation has parent.
-		coop->set_parent_coop_name( so_coop_name() );
+		auto coop = so_5::rt::create_child_coop( *this, "child" );
 
 		// Add necessary cooperation notificators for coop.
 		coop->add_reg_notificator(

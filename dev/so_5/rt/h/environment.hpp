@@ -1342,6 +1342,42 @@ class SO_5_TYPE environment_t
 SO_5_DEPRECATED_ATTR("use name so_5::rt::environment_t instead")
 typedef environment_t so_environment_t;
 
+/*!
+ * \since v.5.5.3
+ * \brief A simple way for creating child cooperation.
+ *
+ * \par Usage sample
+	\code
+	class owner : public so_5::rt::agent_t
+	{
+	public :
+		...
+		virtual void
+		so_evt_start() override
+		{
+			auto child = so_5::rt::create_child_coop( *this, so_5::autoname );
+			child->add_agent( new worker( so_environment() ) );
+			...
+			so_environment().register_coop( std::move( child ) );
+		}
+	};
+	\endcode
+ */
+template< typename... ARGS >
+agent_coop_unique_ptr_t
+create_child_coop(
+	//! Owner of the cooperation.
+	agent_t & owner,
+	//! Arguments for the environment_t::create_coop() method.
+	ARGS&&... args )
+{
+	auto coop = owner.so_environment().create_coop(
+			std::forward< ARGS >(args)... );
+	coop->set_parent_coop_name( owner.so_coop_name() );
+
+	return coop;
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
