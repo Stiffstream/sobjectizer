@@ -15,30 +15,35 @@
 #include <various_helpers_1/benchmark_helpers.hpp>
 #include <various_helpers_1/cmd_line_args_helpers.hpp>
 
+enum class subscr_storage_type_t
+	{
+		vector_based,
+		map_based,
+		hash_table_based
+	};
+
+const char *
+subscr_storage_name( subscr_storage_type_t type )
+	{
+		if( subscr_storage_type_t::vector_based == type )
+			return "vector_based";
+		else if( subscr_storage_type_t::map_based == type )
+			return "map_based";
+		else
+			return "hash_table_based";
+	}
+
 struct cfg_t
 	{
-		std::size_t m_mboxes;
-		std::size_t m_agents;
-		std::size_t m_msg_types;
-		std::size_t m_iterations;
+		std::size_t m_mboxes = 1024;
+		std::size_t m_agents = 512;
+		std::size_t m_msg_types = 4;
+		std::size_t m_iterations = 10;
 
-		cfg_t()
-			:	m_mboxes( 1024 )
-			,	m_agents( 512 )
-			,	m_msg_types( 4 )
-			,	m_iterations( 10 )
-			{}
+		subscr_storage_type_t m_subscr_storage =
+				subscr_storage_type_t::map_based;
 
-		cfg_t(
-			std::size_t mboxes,
-			std::size_t agents,
-			std::size_t msg_types,
-			std::size_t iterations )
-			:	m_mboxes( mboxes )
-			,	m_agents( agents )
-			,	m_msg_types( msg_types )
-			,	m_iterations( iterations )
-			{}
+		std::size_t m_vector_subscr_storage_capacity = 8;
 	};
 
 cfg_t
@@ -57,10 +62,15 @@ try_parse_cmdline(
 					std::cout << "usage:\n"
 							"_test.bench.so_5.many_mboxes <options>\n"
 							"\noptions:\n"
-							"-m, --mboxes      count of mboxes\n"
-							"-a, --agents      count of agents\n"
-							"-t, --types       count of message types\n"
-							"-i, --iterations  count of iterations for every message type\n"
+							"-m, --mboxes           count of mboxes\n"
+							"-a, --agents           count of agents\n"
+							"-t, --types            count of message types\n"
+							"-i, --iterations       count of iterations for every "
+									"message type\n"
+							"-s, --storage-type     type of subscription storage\n"
+							"                       allowed values: vector, map, hash\n"
+							"-V, --vector-capacity  initial capacity of vector-based"
+									"subscription storage\n"
 							"-h, --help        show this description\n"
 							<< std::endl;
 					std::exit(1);
@@ -81,6 +91,27 @@ try_parse_cmdline(
 				mandatory_arg_to_value(
 						tmp_cfg.m_iterations, ++current, last,
 						"-i", "count of iterations for every message type" );
+			else if( is_arg( *current, "-V", "--vector-capacity" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_vector_subscr_storage_capacity, ++current, last,
+						"-V", "initial capacity on vector-based"
+								"subscription storage" );
+			else if( is_arg( *current, "-s", "--storage-type" ) )
+				{
+					std::string type;
+					mandatory_arg_to_value( type, ++current, last,
+							"-s", "type of subscription storage" );
+					if( "vector" == type )
+						tmp_cfg.m_subscr_storage = subscr_storage_type_t::vector_based;
+					else if( "map" == type )
+						tmp_cfg.m_subscr_storage = subscr_storage_type_t::map_based;
+					else if( "hash" == type )
+						tmp_cfg.m_subscr_storage = subscr_storage_type_t::hash_table_based;
+					else
+						throw std::runtime_error(
+								std::string( "unsupported subscription storage type: " ) +
+										type );
+				}
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -136,8 +167,12 @@ class a_worker_t
 	{
 	public :
 		a_worker_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::rt::environment_t & env,
+			so_5::rt::subscription_storage_factory_t subscr_storage_factory )
+			:	so_5::rt::agent_t(
+					env,
+					tuning_options().subscription_storage_factory(
+							subscr_storage_factory ) )
 			,	m_signals_received( 0 )
 			{
 			}
@@ -159,11 +194,15 @@ class a_sender_t
 	public :
 		a_sender_t(
 			so_5::rt::environment_t & env,
+			so_5::rt::subscription_storage_factory_t subscr_storage_factory,
 			const so_5::rt::mbox_t & common_mbox,
 			std::size_t iterations,
 			const std::vector< so_5::rt::mbox_t > & mboxes,
 			const std::vector< a_worker_t * > & workers )
-			:	so_5::rt::agent_t( env )
+			:	so_5::rt::agent_t(
+					env,
+					tuning_options().subscription_storage_factory(
+							subscr_storage_factory ) )
 			,	m_common_mbox( common_mbox )
 			,	m_iterations_left( iterations )
 			,	m_mboxes( mboxes )
@@ -207,7 +246,7 @@ class a_sender_t
 				if( m_iterations_left )
 					{
 						for( auto & m : m_mboxes )
-							m->template deliver_signal< SIGNAL >();
+							so_5::send< SIGNAL >( m );
 
 						initiate_next_iteration();
 
@@ -234,8 +273,13 @@ class a_starter_stopper_t
 	public :
 		a_starter_stopper_t(
 			so_5::rt::environment_t & env,
+			so_5::rt::subscription_storage_factory_t subscr_storage_factory,
 			const cfg_t & cfg )
-			:	so_5::rt::agent_t( env )
+			:	so_5::rt::agent_t(
+					env,
+					tuning_options().subscription_storage_factory(
+							subscr_storage_factory ) )
+			,	m_subscr_storage_factory( subscr_storage_factory )
 			,	m_common_mbox( env.create_local_mbox() )
 			,	m_cfg( cfg )
 			,	m_agents_finished( 0 )
@@ -258,7 +302,14 @@ class a_starter_stopper_t
 				std::cout << "* mboxes: " << m_cfg.m_mboxes << "\n"
 						<< "* agents: " << m_cfg.m_agents << "\n"
 						<< "* msg_types: " << m_cfg.m_msg_types << "\n"
-						<< "* iterations: " << m_cfg.m_iterations << std::endl;
+						<< "* iterations: " << m_cfg.m_iterations << "\n"
+						<< "* subscr_storage: "
+						<< subscr_storage_name( m_cfg.m_subscr_storage )
+						<< std::endl;
+				if( subscr_storage_type_t::vector_based == m_cfg.m_subscr_storage )
+					std::cout << "* vector_initial_capacity: "
+							<< m_cfg.m_vector_subscr_storage_capacity
+							<< std::endl;
 
 				create_child_coop();
 
@@ -286,6 +337,8 @@ class a_starter_stopper_t
 			}
 
 	private :
+		const so_5::rt::subscription_storage_factory_t m_subscr_storage_factory;
+
 		const so_5::rt::mbox_t m_common_mbox;
 
 		const cfg_t m_cfg;
@@ -312,6 +365,7 @@ class a_starter_stopper_t
 						[this]() \
 						{ \
 							return new a_sender_t< msg_signal_##I >( so_environment(),  \
+									m_subscr_storage_factory, \
 									m_common_mbox, \
 									m_cfg.m_iterations, \
 									m_mboxes, \
@@ -374,7 +428,9 @@ class a_starter_stopper_t
 					m_workers.reserve( m_cfg.m_agents );
 					for( std::size_t i = 0; i != m_cfg.m_agents; ++i )
 						{
-							m_workers.push_back( new a_worker_t( so_environment() ) );
+							m_workers.push_back( new a_worker_t(
+									so_environment(),
+									m_subscr_storage_factory ) );
 							coop->add_agent( m_workers.back() );
 						}
 				}
@@ -394,6 +450,21 @@ class a_starter_stopper_t
 				std::cout << "child coop created..." << std::endl;
 			}
 	};
+
+so_5::rt::subscription_storage_factory_t
+factory_by_cfg( const cfg_t & cfg )
+	{
+		using namespace so_5::rt;
+
+		const auto type = cfg.m_subscr_storage;
+		if( subscr_storage_type_t::vector_based == type  )
+			return vector_based_subscription_storage_factory(
+					cfg.m_vector_subscr_storage_capacity );
+		else if( subscr_storage_type_t::map_based == type )
+			return map_based_subscription_storage_factory();
+		else
+			return hash_table_based_subscription_storage_factory();
+	}
 
 int
 main( int argc, char ** argv )
@@ -416,7 +487,10 @@ main( int argc, char ** argv )
 			[cfg]( so_5::rt::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
-						new a_starter_stopper_t( env, cfg ) );
+						new a_starter_stopper_t(
+								env,
+								factory_by_cfg( cfg ),
+								cfg ) );
 			},
 			[]( so_5::rt::environment_params_t & params )
 			{

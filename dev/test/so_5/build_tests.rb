@@ -62,6 +62,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/mbox/subscribe_when_deregistered/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/drop_subscription/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/drop_subscr_when_demand_in_queue/prj.ut.rb" )
+	required_prj( "test/so_5/mbox/adaptive_subscr_storage/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/mpsc_mbox/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/mpsc_mbox_illegal_subscriber/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/mpsc_mbox_stress/prj.rb" )

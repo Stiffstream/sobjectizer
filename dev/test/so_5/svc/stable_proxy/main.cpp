@@ -78,6 +78,12 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual std::string
 		query_name() const { return m_actual_mbox->query_name(); }
 
+		virtual so_5::rt::mbox_type_t
+		type() const override
+			{
+				return m_actual_mbox->type();
+			}
+
 		static so_5::rt::mbox_t
 		create( so_5::rt::environment_t & env )
 			{

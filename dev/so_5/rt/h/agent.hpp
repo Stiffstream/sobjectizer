@@ -24,11 +24,13 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
+#include <so_5/rt/h/agent_tuning_options.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/subscription_storage_fwd.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -87,7 +89,6 @@ class state_listener_controller_t;
 
 class mpsc_mbox_t;
 
-class subscription_storage_t;
 struct event_handler_data_t;
 
 } /* namespace impl */
@@ -433,6 +434,29 @@ class SO_5_TYPE agent_t
 			//! The Environment for this agent must exist.
 			environment_t & env );
 
+		/*!
+		 * \since v.5.5.3
+		 * \brief Constructor which allows specification of
+		 * agent's tuning options.
+		 *
+		 * \par Usage sample:
+		 \code
+		 using namespace so_5::rt;
+		 class my_agent : public agent_t
+		 {
+		 public :
+		 	my_agent( environment_t & env )
+				:	agent_t( env, agent_t::tuning_options()
+						.subscription_storage_factory(
+								vector_based_subscription_storage_factory() ) )
+				{...}
+		 }
+		 \endcode
+		 */
+		agent_t(
+			environment_t & env,
+			agent_tuning_options_t tuning_options );
+
 		virtual ~agent_t();
 
 		//! Get the raw pointer of itself.
@@ -638,6 +662,16 @@ class SO_5_TYPE agent_t
 		const mbox_t &
 		so_direct_mbox() const;
 
+		/*!
+		 * \since v.5.5.3
+		 * \brief Create tuning options object with default values.
+		 */
+		inline static agent_tuning_options_t
+		tuning_options()
+		{
+			return agent_tuning_options_t();
+		}
+
 	protected:
 		/*!
 		 * \name Methods for working with the agent state.
@@ -739,7 +773,7 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -760,7 +794,7 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -776,7 +810,22 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+		}
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			const state_t & target_state )
+		{
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -796,7 +845,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -816,7 +865,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -831,7 +880,21 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+		}
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox )
+		{
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -852,7 +915,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 
 		/*!
@@ -873,7 +936,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 
 		/*!
@@ -889,7 +952,22 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+		}
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for all states.
+		 *
+		 * \note Doesn't throw if there is no any subscription for
+		 * that mbox and message type.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription_for_all_states(
+			const mbox_t & mbox )
+		{
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 		/*!
 		 * \}
@@ -1152,7 +1230,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief All agent's subscriptions.
 		 */
-		std::unique_ptr< impl::subscription_storage_t > m_subscriptions;
+		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
@@ -1261,10 +1339,10 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		do_drop_subscription(
-			//! Message type.
-			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_t & mbox_ref,
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type,
 			//! State for event.
 			const state_t & target_state );
 
@@ -1274,10 +1352,10 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		do_drop_subscription_for_all_states(
-			//! Message type.
-			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_t & mbox_ref );
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type );
 		/*!
 		 * \}
 		 */

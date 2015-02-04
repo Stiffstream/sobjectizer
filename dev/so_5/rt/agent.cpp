@@ -7,7 +7,7 @@
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
-#include <so_5/rt/impl/h/subscription_storage.hpp>
+#include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 
 #include <sstream>
@@ -145,10 +145,18 @@ state_t::activate() const
 
 agent_t::agent_t(
 	environment_t & env )
+	:	agent_t( env, tuning_options() )
+{
+}
+
+agent_t::agent_t(
+	environment_t & env,
+	agent_tuning_options_t options )
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
-	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
+	,	m_subscriptions(
+			options.query_subscription_storage_factory()( self_ptr() ) )
 	,	m_env( env )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
@@ -496,8 +504,8 @@ agent_t::create_event_subscription(
 
 void
 agent_t::do_drop_subscription(
-	const std::type_index & type_index,
-	const mbox_t & mbox_ref,
+	const mbox_t & mbox,
+	const std::type_index & msg_type,
 	const state_t & target_state )
 {
 	ensure_operation_is_on_working_thread( "do_drop_subscription" );
@@ -506,13 +514,13 @@ agent_t::do_drop_subscription(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	m_subscriptions->drop_subscription( type_index, mbox_ref, target_state );
+	m_subscriptions->drop_subscription( mbox, msg_type, target_state );
 }
 
 void
 agent_t::do_drop_subscription_for_all_states(
-	const std::type_index & type_index,
-	const mbox_t & mbox_ref )
+	const mbox_t & mbox,
+	const std::type_index & msg_type )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -521,7 +529,7 @@ agent_t::do_drop_subscription_for_all_states(
 	ensure_operation_is_on_working_thread(
 			"do_drop_subscription_for_all_states" );
 
-	m_subscriptions->drop_subscription_for_all_states( type_index, mbox_ref );
+	m_subscriptions->drop_subscription_for_all_states( mbox, msg_type );
 }
 
 void

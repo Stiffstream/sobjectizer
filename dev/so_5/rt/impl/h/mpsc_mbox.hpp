@@ -45,7 +45,7 @@ class mpsc_mbox_t : public abstract_message_box_t
 		virtual ~mpsc_mbox_t();
 
 		virtual mbox_id_t
-		id() const
+		id() const override
 			{
 				return m_id;
 			}
@@ -53,25 +53,31 @@ class mpsc_mbox_t : public abstract_message_box_t
 		void
 		deliver_message(
 			const std::type_index & msg_type,
-			const message_ref_t & message_ref ) const;
+			const message_ref_t & message_ref ) const override;
 
 		virtual void
 		deliver_service_request(
 			const std::type_index & msg_type,
-			const message_ref_t & svc_request_ref ) const;
+			const message_ref_t & svc_request_ref ) const override;
 
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
-			agent_t * subscriber );
+			agent_t * subscriber ) override;
 
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & msg_type,
-			agent_t * subscriber );
+			agent_t * subscriber ) override;
 
 		virtual std::string
-		query_name() const;
+		query_name() const override;
+
+		virtual mbox_type_t
+		type() const override
+			{
+				return mbox_type_t::multi_producer_single_consumer;
+			}
 
 	private:
 		/*!

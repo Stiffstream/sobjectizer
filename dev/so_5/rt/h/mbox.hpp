@@ -251,6 +251,23 @@ class service_invoke_proxy_t
 	};
 
 //
+// mbox_type_t
+//
+/*!
+ * \since v.5.5.3
+ * \brief Type of the message box.
+ */
+enum class mbox_type_t
+	{
+		//! Mbox is Multi-Producer and Multi-Consumer.
+		//! Anyone can send messages to it, there can be many subscribers.
+		multi_producer_multi_consumer,
+		//! Mbox is Multi-Producer and Single-Consumer.
+		//! Anyone can send messages to it, there can be only one subscriber.
+		multi_producer_single_consumer
+	};
+
+//
 // abstract_message_box_t
 //
 
@@ -392,6 +409,17 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		//! Get the mbox name.
 		virtual std::string
 		query_name() const = 0;
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Get the type of message box.
+		 *
+		 * \note This method is primarily intended for internal usage.
+		 * It is useful sometimes in subscription-related operations
+		 * because there is no need to do some actions for MPSC mboxes.
+		 */
+		virtual mbox_type_t
+		type() const = 0;
 
 		/*!
 		 * \name Comparision.

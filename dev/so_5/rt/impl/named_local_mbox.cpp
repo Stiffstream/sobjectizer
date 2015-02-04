@@ -79,6 +79,12 @@ named_local_mbox_t::query_name() const
 	return m_name;
 }
 
+mbox_type_t
+named_local_mbox_t::type() const
+{
+	return m_mbox->type();
+}
+
 } /* namespace impl */
 
 } /* namespace rt */
