@@ -103,15 +103,14 @@ class a_meeting_place_t
 		virtual void
 		so_define_agent() override
 			{
-				so_change_state( st_empty );
+				this >>= st_empty;
 
-				so_subscribe_self().in( st_empty )
-					.event( &a_meeting_place_t::evt_first_creature );
-				so_subscribe_self().in( st_one_creature_inside )
-					.event( &a_meeting_place_t::evt_second_creature );
-
-				so_subscribe_self().in( st_empty )
+				st_empty
+					.event( &a_meeting_place_t::evt_first_creature )
 					.event( &a_meeting_place_t::evt_shutdown_ack );
+
+				st_one_creature_inside
+					.event( &a_meeting_place_t::evt_second_creature );
 			}
 
 		void
@@ -120,7 +119,7 @@ class a_meeting_place_t
 			{
 				if( m_remaining_meetings )
 				{
-					so_change_state( st_one_creature_inside );
+					this >>= st_one_creature_inside;
 
 					m_first_creature_info = evt.make_reference();
 				}
@@ -144,7 +143,7 @@ class a_meeting_place_t
 
 				--m_remaining_meetings;
 
-				so_change_state( st_empty );
+				this >>= st_empty;
 			}
 
 		void
@@ -194,10 +193,9 @@ class a_creature_t
 		virtual void
 		so_define_agent() override
 			{
-				so_subscribe_self()
-					.event( &a_creature_t::evt_meeting_result );
-
-				so_subscribe_self().event< msg_shutdown_request >(
+				so_default_state()
+					.event( &a_creature_t::evt_meeting_result )
+					.event< msg_shutdown_request >(
 							&a_creature_t::evt_shutdown_request );
 			}
 
@@ -223,8 +221,8 @@ class a_creature_t
 				m_request_message->m_color = FADED;
 				std::cout << "Creatures met: " << m_meeting_counter << std::endl;
 
-				m_meeting_place_mbox->deliver_message(
-						new msg_shutdown_ack( m_meeting_counter ) );
+				so_5::send< msg_shutdown_ack >(
+						m_meeting_place_mbox, m_meeting_counter );
 			}
 
 	private :
