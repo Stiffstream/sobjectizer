@@ -9,15 +9,11 @@
 #include <so_5/all.hpp>
 
 // A class of an agent which will throw an exception.
-class a_hello_t
-	:
-		public so_5::rt::agent_t
+class a_hello_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_hello_t( so_5::rt::environment_t & env )
-			: base_type_t( env )
+			: so_5::rt::agent_t( env )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -35,20 +31,15 @@ class a_hello_t
 		}
 };
 
-// The SObjectizer Environment initialization.
-void
-init( so_5::rt::environment_t & env )
-{
-	// Creating and registering a cooperation.
-	env.register_agent_as_coop( "coop", new a_hello_t( env ) );
-}
-
 int
 main( int, char ** )
 {
 	try
 	{
-		so_5::launch( &init );
+		so_5::launch( []( so_5::rt::environment_t & env ) {
+				env.register_agent_as_coop( "coop", new a_hello_t( env ) );
+			} );
+
 	}
 	catch( const std::exception & ex )
 	{

@@ -33,15 +33,11 @@ class sample_event_exception_logger_t
 };
 
 // A class of an agent which will throw an exception.
-class a_hello_t
-	:
-		public so_5::rt::agent_t
+class a_hello_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_hello_t( so_5::rt::environment_t & env )
-			: base_type_t( env )
+			: so_5::rt::agent_t( env )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -57,42 +53,26 @@ class a_hello_t
 			throw std::runtime_error( "sample exception" );
 		}
 
-		// A reaction to finish work in SObjectizer.
-		virtual void
-		so_evt_finish() override
-		{
-			// Stopping SObjectizer.
-			so_environment().stop();
-		}
-
 		// An instruction to SObjectizer for unhandled exception.
-		so_5::rt::exception_reaction_t
-		so_exception_reaction() const
+		virtual so_5::rt::exception_reaction_t
+		so_exception_reaction() const override
 		{
 			return so_5::rt::deregister_coop_on_exception;
 		}
 };
-
-// The SObjectizer Environment initialization.
-void
-init( so_5::rt::environment_t & env )
-{
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
-
-	// Adding agent to the cooperation.
-	coop->add_agent( new a_hello_t( env ) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
-}
 
 int
 main( int, char ** )
 {
 	try
 	{
-		so_5::launch( &init );
+		so_5::launch(
+			// SObjectizer initialization code.
+			[]( so_5::rt::environment_t & env )
+			{
+				// Creating and registering cooperation with a single agent.
+				env.register_agent_as_coop( "sample", new a_hello_t( env ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

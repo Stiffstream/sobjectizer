@@ -85,16 +85,18 @@ class a_manager_t : public so_5::rt::agent_t
 
 			for( unsigned int i = 0; i != m_requests; ++i )
 			{
-				m_worker_mbox->deliver_message(
-						new msg_do_hardwork { i, m_milliseconds } );
+				so_5::send< msg_do_hardwork >(
+						m_worker_mbox,
+						i, m_milliseconds );
 			}
 		}
 
 		void
 		evt_hardwork_done( const msg_hardwork_done & evt )
 		{
-			m_checker_mbox->deliver_message(
-					new msg_check_hardwork { evt.m_index, m_milliseconds } );
+			so_5::send< msg_check_hardwork >(
+					m_checker_mbox,
+					evt.m_index, m_milliseconds );
 		}
 
 		void
@@ -154,8 +156,8 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					a_manager->so_direct_mbox()->deliver_message(
-							new msg_hardwork_done { evt.m_index } );
+					so_5::send_to_agent< msg_hardwork_done >(
+							*a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 
@@ -165,8 +167,8 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					a_manager->so_direct_mbox()->deliver_message(
-							new msg_hardwork_checked { evt.m_index } );
+					so_5::send_to_agent< msg_hardwork_checked >(
+							*a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 
