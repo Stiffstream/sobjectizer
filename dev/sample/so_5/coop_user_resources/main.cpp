@@ -61,7 +61,7 @@ class a_child_t
 		so_evt_start() override
 		{
 			m_logger.log( m_agent_name + ": finishing" );
-			m_parent_mbox->deliver_signal< msg_child_finished >();
+			so_5::send< msg_child_finished >( m_parent_mbox );
 		}
 
 	private :
@@ -97,7 +97,7 @@ class a_parent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe_self().event< msg_child_finished >(
+			so_default_state().event< msg_child_finished >(
 					&a_parent_t::evt_child_finished );
 		}
 

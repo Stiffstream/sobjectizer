@@ -50,9 +50,8 @@ class a_parent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe_self()
-				.event( &a_parent_t::evt_child_created );
-			so_subscribe_self()
+			so_default_state()
+				.event( &a_parent_t::evt_child_created )
 				.event( &a_parent_t::evt_child_destroyed );
 		}
 

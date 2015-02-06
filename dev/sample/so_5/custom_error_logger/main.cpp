@@ -110,7 +110,7 @@ main( int, char ** )
 			[]( so_5::rt::environment_params_t & params )
 			{
 				params.error_logger(
-					so_5::error_logger_shptr_t( new custom_logger_t() ) );
+					std::make_shared< custom_logger_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

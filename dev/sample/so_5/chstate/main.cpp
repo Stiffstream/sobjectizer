@@ -100,23 +100,17 @@ class a_state_swither_t : public so_5::rt::agent_t
 void
 a_state_swither_t::so_define_agent()
 {
-	using namespace so_5;
-
 	// Message subsription.
-	so_subscribe_self()
-		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_default );
+	so_default_state()
+		.event< msg_periodic >( &a_state_swither_t::evt_handler_default );
 
-	so_subscribe_self().in( st_1 )
-		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_1 );
+	st_1.event< msg_periodic >( &a_state_swither_t::evt_handler_1 );
 
-	so_subscribe_self().in( st_2 )
-		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_2 );
+	st_2.event< msg_periodic >( &a_state_swither_t::evt_handler_2 );
 
-	so_subscribe_self().in( st_3 )
-		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_3 );
+	st_3.event< msg_periodic >( &a_state_swither_t::evt_handler_3 );
 
-	so_subscribe_self().in( st_shutdown )
-		.event( signal< msg_periodic >, &a_state_swither_t::evt_handler_shutdown );
+	st_shutdown.event< msg_periodic >( &a_state_swither_t::evt_handler_shutdown );
 }
 
 void
