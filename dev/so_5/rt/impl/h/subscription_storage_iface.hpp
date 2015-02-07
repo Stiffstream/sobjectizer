@@ -12,6 +12,7 @@
 
 #include <ostream>
 #include <sstream>
+#include <vector>
 
 #include <so_5/h/types.hpp>
 

@@ -84,24 +84,24 @@ class a_client_t
 
 				std::cout << "convert_svc: "
 						<< m_svc_mbox->get_one< std::string >()
-								.async( new msg_convert( 42 ) ).get()
+								.make_async< msg_convert >( 42 ).get()
 						<< std::endl;
 
 				std::cout << "sync_convert_svc: "
 						<< m_svc_mbox->get_one< std::string >()
-								.wait_forever().sync_get( new msg_convert( 1020 ) )
+								.wait_forever().make_sync_get< msg_convert >( 1020 )
 						<< std::endl;
 
 				// More complex case with conversion.
 				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
 				// These requests should be processed before next 'sync_request'...
-				auto c1 = svc_proxy.async( new msg_convert( 1 ) );
-				auto c2 = svc_proxy.async( new msg_convert( 2 ) );
+				auto c1 = svc_proxy.make_async< msg_convert >( 1 );
+				auto c2 = svc_proxy.make_async< msg_convert >( 2 );
 
 				// Two previous request should be processed before that call.
 				std::cout << "sync_convert_svc: "
-						<< svc_proxy.wait_forever().sync_get( new msg_convert( 3 ) )
+						<< svc_proxy.wait_forever().make_sync_get< msg_convert >(3)
 						<< std::endl;
 
 				// But their value will be accessed only now.

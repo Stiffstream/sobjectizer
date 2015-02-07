@@ -10,6 +10,7 @@
 
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 
+#include <algorithm>
 #include <map>
 #include <unordered_map>
 

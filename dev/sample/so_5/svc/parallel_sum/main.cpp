@@ -75,8 +75,9 @@ class a_vector_summator_t : public so_5::rt::agent_t
 				auto m = evt.m_vector.begin() + evt.m_vector.size() / 2;
 
 				return std::accumulate( evt.m_vector.begin(), m, 0 ) +
-						m_part_summator_mbox->get_one< int >().wait_forever().sync_get(
-								new msg_sum_part( m, evt.m_vector.end() ) );
+						m_part_summator_mbox->get_one< int >().wait_forever()
+								.make_sync_get< msg_sum_part >(
+										m, evt.m_vector.end() );
 			}
 
 	private :
@@ -178,7 +179,7 @@ class a_runner_t : public so_5::rt::agent_t
 					{
 						m_summator_mbox->get_one< int >()
 								.wait_forever()
-								.sync_get( new msg_sum_vector( m_vector ) );
+								.make_sync_get< msg_sum_vector >( m_vector );
 
 						indicator.update( i );
 					}
