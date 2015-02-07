@@ -88,8 +88,9 @@ a_hello_t::so_evt_start()
 	std::cout << m_agent_name << ".so_evt_start" << std::endl;
 
 	// Send greeting to all agents.
-	m_common_mbox->deliver_message(
-		new msg_hello_to_all( m_agent_name, so_direct_mbox() ) );
+	so_5::send< msg_hello_to_all >(
+		m_common_mbox,
+		m_agent_name, so_direct_mbox() );
 }
 
 void
@@ -102,8 +103,7 @@ a_hello_t::evt_hello_to_all(
 	// If this agent is not the sender then reply should be sent.
 	if( m_agent_name != evt_data.m_sender )
 	{
-		so_5::rt::mbox_t mbox = evt_data.m_mbox;
-		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
+		so_5::send< msg_hello_to_you >( evt_data.m_mbox, m_agent_name );
 	}
 }
 

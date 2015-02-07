@@ -12,6 +12,9 @@ struct msg_hello : public so_5::rt::message_t
 {
 	// Greeting.
 	std::string m_message;
+
+	msg_hello( std::string message ) : m_message( std::move( message ) )
+	{}
 };
 
 // An agent class definition.
@@ -21,41 +24,31 @@ class a_hello_t : public so_5::rt::agent_t
 		a_hello_t( so_5::rt::environment_t & env )
 			: so_5::rt::agent_t( env )
 		{}
-		virtual ~a_hello_t()
-		{}
 
 		// Definition of an agent for SObjectizer.
 		virtual void
-		so_define_agent() override;
+		so_define_agent() override
+		{
+			// The hello message subscription.
+			so_subscribe_self()
+				.event( [this]( const msg_hello & msg )
+						{
+							std::cout << msg.m_message << std::endl;
+
+							// Shutting down SObjectizer.
+							so_environment().stop();
+						} );
+		}
 
 		// A reaction to start of work in SObjectizer.
 		virtual void
-		so_evt_start() override;
+		so_evt_start() override
+		{
+			// Send hello message.
+			so_5::send_to_agent< msg_hello >( *this,
+					"Hello, world! This is SObjectizer-5.");
+		}
 };
-
-void
-a_hello_t::so_define_agent()
-{
-	// The hello message subscription.
-	so_subscribe_self()
-		.event( [this]( const msg_hello & msg )
-				{
-					std::cout << msg.m_message << std::endl;
-
-					// Shutting down SObjectizer.
-					so_environment().stop();
-				} );
-}
-
-void
-a_hello_t::so_evt_start()
-{
-	std::unique_ptr< msg_hello > msg( new msg_hello );
-	msg->m_message = "Hello, world! This is SObjectizer v.5.";
-
-	// Sent hello message.
-	so_direct_mbox()->deliver_message( std::move(msg) );
-}
 
 int
 main( int, char ** )
