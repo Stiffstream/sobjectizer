@@ -100,7 +100,7 @@ public :
 	}
 
 private :
-	// Signal about next turn start.
+	// Signal about start of the next turn.
 	struct msg_next_turn : public so_5::rt::signal_t {};
 
 	// Generator name.
