@@ -1,0 +1,98 @@
+/*!
+
+\page so_5_5_3__adhoc_agent_direct_mbox so-5.5.3: Direct mboxes of ad-hoc agents 
+
+Until v.5.5.3 there was no way to access and use ad-hoc agent's direct mbox. It
+was necessary to create and use ordinary multi-producer/multi-consumer mbox.
+Something like this:
+
+\code
+auto coop = env.create_coop( so_5::autoname );
+
+// An mbox for the first ad-hoc agent.
+auto first_mbox = env.create_local_mbox();
+// An mbox for the second ad-hoc agent.
+auto second_mbox = env.create_local_mbox();
+
+// Creation of ad-hoc agents.
+coop->define_agent()
+  .on_start(
+    [second_mbox]() { so_5::send< msg_initiate_work >(second_mbox); } )
+  .event< msg_work_done >( first_mbox,
+    [second_mbox]()
+    { so_5::send< msg_do_more_work >(second_mbox); } );
+coop->define_agent()
+  .event< msg_initiate_work >( second_mbox,
+    [first_mbox]() {
+      ... // Some processing.
+      // Sending acknowledgement.
+      so_5::send< msg_work_done >(first_mbox);
+    } )
+  .event< msg_do_more_work >( second_mbox,
+    [first_mbox]() {
+      ... // Some processing.
+      // Sending acknowledgement.
+      so_5::send< msg_work_done >(first_mbox);
+    } );
+\endcode
+
+But the multi-producers/multi-consumers mboxes are no so efficient as
+multi-producers/single-consumer mboxes. So if two ad-hoc agents use very
+intensive message exchange this exchange will be less efficient as in the case
+of ordinary agents with usage of theirs direct mboxes.
+
+It was a flaw in the ad-hoc agent implementation: ad-hoc agents have direct
+mboxes like ordinary agents, because any agent in SObjectizer has its own
+direct mbox which is created automatically by SObjectizer Environment. But
+direct mboxes are accessible via API of ordinary agents. Ad-hoc agents have no
+such API. Because of that direct mboxes of ad-hoc agents were unaccessible
+until v.5.5.3.
+
+Since v.5.5.3 an access to ad-hoc agent's direct mbox can be obtained. Ad-hoc
+creation method (agent_coop_t::define_agent()) returns special proxy for ad-hoc
+agent construction. This proxy now has method direct_mbox() which can be used
+for access to the direct mbox.
+
+Construction of ad-hoc agents can now be splitted into two steps: getting the
+proxy and defining ad-hoc agent's events via stored proxy:
+
+\code
+auto coop = env.create_coop( so_5::autoname );
+
+// A proxy for the first ad-hoc agent.
+auto first = coop.define_agent();
+// An proxy for the second ad-hoc agent.
+auto second_mbox = env.define_agent();
+
+// At this point two agents are created but no one of them have any useful events.
+
+// Definition for the first agent.
+first
+  .on_start(
+    [second]() { so_5::send< msg_initiate_work >(second.direct_mbox()); } )
+  .event< msg_work_done >( first.direct_mbox(),
+    [second]()
+    { so_5::send< msg_do_more_work >(second.direct_mbox()); } );
+// Definition for the second agent.
+second
+  .event< msg_initiate_work >( second.direct_mbox(),
+    [first]() {
+      ... // Some processing.
+      // Sending acknowledgement.
+      so_5::send< msg_work_done >(first.direct_mbox());
+    } )
+  .event< msg_do_more_work >( second.direct_mbox(),
+    [first]() {
+      ... // Some processing.
+      // Sending acknowledgement.
+      so_5::send< msg_work_done >(first.direct_mbox());
+    } );
+\endcode
+
+\note The agent definition proxy will stay valid until cooperation with the
+corresponding ad-hoc agent destroyed. 
+
+*/
+
+// vim:ft=cpp
+

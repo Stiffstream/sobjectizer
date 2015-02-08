@@ -10,6 +10,7 @@
 
 	A possibility to get ad-hoc agent's direct mbox added via
 	so_5::rt::adhoc_agent_definition_proxy_t::direct_mbox() method.
+	See \ref so_5_5_3__adhoc_agent_direct_mbox for more details.
 
 	A free function so_5::rt::create_child_coop() has been added for
 	simplification of creation of child cooperations.
@@ -17,6 +18,7 @@
 	A method for tuning subscription handling mechanism has been
 	added (via so_5::rt::agent_t::tuning_options() and
 	so_5::rt::agent_tuning_options_t data structure).
+	See \ref so_5_5_3__subscr_storage_selection for more details.
 
 	Several new samples have been added
 	(collector_performer_pair, collector_many_performers,

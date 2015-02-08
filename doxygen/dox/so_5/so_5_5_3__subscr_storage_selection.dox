@@ -1,0 +1,115 @@
+/*!
+
+\page so_5_5_3__subscr_storage_selection so-5.5.3: Subscription storage type selection
+
+There are some places in the SObjectizer where there is no "one right
+implementation" which will give the best possible results for all scenarios.
+Version 5.5.3 introduces an approach for tuning agents and underlying data
+structures/algorithm for user-specific scenarios. The first step is support for
+various type of *subscription storages*.
+
+Subscription storage is a data structure for storing and manipulating
+information about an agent's subscriptions. Every agent has its own private
+subscription storage. When an agent creates subscription like:
+
+\code
+void some_agent::so_define_agent()
+{
+  so_default_state().event( &some_agent::evt_do_some_work );
+}
+\endcode
+
+this subscription is stored in the agent's subscription storage. When agent
+receives a messages the handler for that message will be searched in this
+storage.
+
+The problem is selection of the appropriate data structure for that storage.
+
+When an agent uses small amount of subscription (like one or two subscriptions)
+then a very simple vector-based implementation will be the most efficient. When
+an agent uses several dozens subscriptions then vector-based implementation
+becomes inefficient and map-based storage will be more appropriate. But when an
+agent uses several hundreds or even thousands of subscriptions then
+hash-table-based implementation will be more efficient.
+
+Since v.5.5.3 a user can specify which subscription storage should be used for
+an agent.
+
+Do do so it is necessary to specify tuning_options-object to constructor of
+base class:
+
+\code
+using namespace so_5::rt;
+
+class my_agent : public agent_t
+{
+public :
+  my_agent( environment_t & env )
+    : agent_t( env, tuning_options() )
+  {}
+  ...
+};
+\endcode
+
+The new static method so_5::rt::agent_t::tuning_options() creates an
+so_5::rt::agent_tuning_options_t object with default values. This values can be
+changed by calling so_5::rt::agent_tuning_options_t's methods.
+
+For example to change type of subscription storage it is necessary to call
+so_5::rt::agent_tuning_options_t::subscription_storage_factory() method:
+
+\code
+using namespace so_5::rt;
+
+class my_agent : public agent_t
+{
+public :
+  my_agent( environment_t & env )
+    : agent_t( env,
+        tuning_options().subscription_storage_factory(
+          vector_based_subscription_storage(4) ) )
+  {}
+  ...
+};
+\endcode
+
+There are several implementations of subscription storage:
+
+- vector-based implementation. Uses std::vector and simple linear search.
+  Very efficient on small numbers of subscriptions. Function
+  so_5::rt::vector_based_subscription_storage_factory() creates factory for
+  this type of the storage;
+- map-based implementation. Uses std::map and is very efficient when count of
+  subscriptions is greater than 10-20 and less than 100-200. Function
+  so_5::rt::map_based_subscription_storage_factory() creates factory for this
+  type of the storage;
+- hash-table-based implementation. Uses std::unordered_map and is most
+  efficient when count of subscription is exceed several hundreds. Function
+  so_5::rt::hash_table_based_subscription_storage_factory() creates factory for
+  this type of the storage;
+- adaptive storage. Uses two storage objects. The first one is used when the
+  count of subscriptions is small. The second is used when the count of
+  subscription exceeds some threshold. This storage dynamically changes
+  implementations -- switches from small storage to the big one when new
+  subscriptions are created and switches back when subscriptions are erased. By
+  default adaptive storage uses vector-based storage as small one, and
+  map-based storage as big one. But this can be changed at the moment of
+  storage creation. The adaptive storage is created by
+  so_5::rt::adaptive_subscription_storage_factory() functions.
+
+By default all agents use adaptive subscription storage. It means that if an
+agent creates very few subscriptions it will use very small and very fast
+vector-based storage. But if count of subscription grows then agent will switch
+to more expensive but more appropriate for big amount of subscriptions
+map-based storage.
+
+But if user knows what count of subscriptions an actor will use then an
+appropriate storage can be created once and never switches from one
+implementation to another.
+
+\note The type of subscription storage can be specified only once during agent creation. After creation the subscription storage cannot be changed.
+ 
+*/
+
+// vim:ft=cpp
+
