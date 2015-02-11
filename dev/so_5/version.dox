@@ -22,7 +22,7 @@
 
 	Several new samples have been added
 	(collector_performer_pair, collector_many_performers,
-	simple_message_deadline).
+	simple_message_deadline, ping_pong_with_owner).
 
 \section so_5__5_2 5.5.2 "Jangi-Tau"
 
