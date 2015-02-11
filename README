@@ -26,33 +26,33 @@ Install Ruby and then install Mxx_ru via RubyGems command:
 
 SObjectizer can be obtained from Subversion repository on SourceForge:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.2 so-5.5.2
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.3 so-5.5.3
 
 To build SObjectizer:
 
-  cd so-5.5.2/dev
+  cd so-5.5.3/dev
   ruby build.rb
 
 Or to build SObjectizer with all tests and samples:
 
-  cd so-5.5.2/dev
+  cd so-5.5.3/dev
   ruby build_all.rb
 
 Please note that under Linux it could be necessary to define LD_LIBRARY_PATH
 environment variable. And the actual build command sequence under Linux could
 be as follows:
 
-  cd so-5.5.2/dev
+  cd so-5.5.3/dev
   export LD_LIBRARY_PATH=.
   ruby build_all.rb
 
 To build html-format documentation for SObjectizer the Doxygen tool is
 necessary. If it is installed then:
 
-  cd so-5.5.2/doxygen
+  cd so-5.5.3/doxygen
   doxygen
 
-Generated html-files will be located in so-5.5.2/dev/doc/html.
+Generated html-files will be located in so-5.5.3/dev/doc/html.
 
 Building via CMake
 ==================
@@ -67,8 +67,8 @@ dev/cmake/CmakeQuickHowto.txt
 
 To get and build SObjectizer under Linux in command line run:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.2 so-5.5.2
-  cd so-5.5.2
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.3 so-5.5.3
+  cd so-5.5.3
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files ../dev
@@ -91,7 +91,7 @@ CMake build system currently supports this options:
 
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
-  cd so-5.5.2
+  cd so-5.5.3
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev

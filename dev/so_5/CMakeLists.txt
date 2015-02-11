@@ -27,7 +27,11 @@ set(SO_5_SRC exception.cpp
 	rt/so_layer.cpp
 	rt/coop_listener.cpp
 
-	rt/impl/subscription_storage.cpp
+	rt/impl/subscription_storage_iface.cpp
+	rt/impl/subscr_storage_vector_based.cpp
+	rt/impl/subscr_storage_map_based.cpp
+	rt/impl/subscr_storage_hash_table_based.cpp
+	rt/impl/subscr_storage_adaptive.cpp
 	rt/impl/process_unhandled_exception.cpp
 	rt/impl/local_mbox.cpp
 	rt/impl/named_local_mbox.cpp

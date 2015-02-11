@@ -10,7 +10,7 @@ cmake & Linux
   # first download so sources by svn
   # avalable tags and branches You can see in repository
   # http://sourceforge.net/p/sobjectizer/repo/HEAD/tree/
-  # cmake build supported after version 5.5.2 (this have partial cmake support)
+  # cmake build supported after version 5.5.3 (this have partial cmake support)
   svn export http://svn.code.sf.net/p/sobjectizer/repo/branches/so_5 so_5
   cd so_5
   mkdir cmake_build
@@ -54,7 +54,7 @@ To build SObjectizer under Windows by MS Visual Studio 2013 from command line Yo
 need console with properly configured compiler environment variables via vcvarsall.bat
 (I start it from "Start->All Programms->Visuil Studio 2013->Tools")
 
-  cd so-5.5.2
+  cd so-5.5.3
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev
