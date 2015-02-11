@@ -220,10 +220,20 @@ deregistration_processor_t::collect_coops()
 			}
 			else
 			{
-				SO_5_THROW_EXCEPTION(
-						rc_unexpected_error,
-						f->second + ": cooperation not registered, but "
-							"declared as child for: '" + f->first + "'" );
+				// Child cooperation is not found in list of
+				// registered cooperation.
+				// It is not an error if the child cooperation is
+				// in deregistration procedure right now.
+				auto it_dereg = m_core.m_deregistered_coop.find( f->second );
+				if( it_dereg == m_core.m_deregistered_coop.end() )
+				{
+					// This is an error: cooperation is not registered
+					// and is not in deregistration phase.
+					SO_5_THROW_EXCEPTION(
+							rc_unexpected_error,
+							f->second + ": cooperation not registered, but "
+								"declared as child for: '" + f->first + "'" );
+				}
 			}
 		}
 	}
