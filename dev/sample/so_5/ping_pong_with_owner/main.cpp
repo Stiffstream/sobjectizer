@@ -5,7 +5,7 @@
 #include <so_5/all.hpp>
 
 // Ping signal.
-// Signal is a special kind of message without actual data.
+// Signal is a special type of message which has no actual data.
 // Sending of signals is like sending only atoms in Erlang.
 struct ping : public so_5::rt::signal_t {};
 
@@ -13,12 +13,12 @@ struct ping : public so_5::rt::signal_t {};
 struct pong : public so_5::rt::signal_t {};
 
 // Message with result of pinger/ponger run.
-// Unlike signal message must have actual data.
+// Unlike signal message it must have actual data.
 struct run_result : public so_5::rt::message_t
 {
 	std::string m_result;
 
-	// Messages usually have constructor for
+	// Messages usually have a constructor for
 	// simplification of message construction.
 	run_result( std::string result )
 		:	m_result( std::move( result ) )
@@ -64,13 +64,13 @@ public :
 	}
 
 	// This method is automatically called by SObjectizer
-	// just after successful deregistration of agent.
+	// just after successful agent's deregistration.
 	virtual void so_evt_finish() override {
 		// Sending result message by corresponding function.
 		so_5::send< run_result >(
 			// Receiver of the message.
 			m_parent,
-			// This will be forwarded to run_result's constructor.
+			// This string will be forwarded to run_result's constructor.
 			"pongs: " + std::to_string( m_pongs ) );
 	}
 
@@ -132,20 +132,20 @@ public :
 		// child cooperation must be deregistered.
 		so_default_state().event< stop >( [this] {
 				so_environment().deregister_coop(
-					// Name of cooperation for deregistration.
+					// Cooperation name for deregistration.
 					"pinger_ponger",
-					// The reason of deregistration,
-					// this value means that deregistration is caused
+					// The reason of deregistration.
+					// This value means that deregistration is caused
 					// by application logic.
 					so_5::rt::dereg_reason::normal );
 			} );
 
-		// NOTE: type of message is automatically deduced from
+		// NOTE: message type is automatically deduced from
 		// event handlers signatures.
 
-		// First result will be received in default state.
+		// The first result will be received in default state.
 		so_default_state().event( &parent::evt_first_result );
-		// But the second one will be received in next state.
+		// But the second one will be received in the next state.
 		st_first_result_got.event( &parent::evt_second_result );
 	}
 
@@ -161,7 +161,7 @@ public :
 		auto coop = so_5::rt::create_child_coop(
 				// Parent of the new cooperation.
 				*this,
-				// Name of cooperation.
+				// Cooperation name.
 				"pinger_ponger",
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
@@ -200,7 +200,7 @@ private :
 	void evt_first_result( const run_result & evt ) {
 		m_results = evt.m_result + "; ";
 
-		// State of agent must be changed.
+		// Agent's state must be changed.
 		this >>= st_first_result_got;
 	}
 
