@@ -586,7 +586,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::rt::event_queue_t *
 		bind_agent_with_inidividual_fifo(
 			so_5::rt::agent_ref_t agent,
-			const params_t & params )
+			const params_t & /*params*/ )
 			{
 				agent_queue_ref_t queue = make_new_agent_queue();
 
@@ -604,7 +604,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::rt::event_queue_t *
 		bind_agent_with_cooperation_fifo(
 			so_5::rt::agent_ref_t agent,
-			const params_t & params )
+			const params_t & /*params*/ )
 			{
 				auto it = m_cooperations.find( agent->so_coop_name() );
 				if( it == m_cooperations.end() )

@@ -397,7 +397,7 @@ void
 storage_t::debug_dump( std::ostream & to ) const
 	{
 		for( const auto & v : m_map )
-			std::cout << "{" << v.first.m_mbox_id << ", "
+			to << "{" << v.first.m_mbox_id << ", "
 					<< v.first.m_msg_type.name() << ", "
 					<< v.first.m_state->query_name() << "}"
 					<< std::endl;

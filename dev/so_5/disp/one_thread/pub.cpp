@@ -97,8 +97,8 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::rt::environment_t & /*env*/,
+			so_5::rt::agent_ref_t /*agent_ref*/ )
 		{
 		}
 

@@ -19,6 +19,7 @@ message_t::message_t()
 }
 
 message_t::message_t( const message_t & )
+	:	atomic_refcounted_t()
 {
 }
 

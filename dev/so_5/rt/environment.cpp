@@ -301,7 +301,7 @@ environment_t::create_coop(
 
 agent_coop_unique_ptr_t
 environment_t::create_coop(
-	autoname_indicator_t indicator(),
+	autoname_indicator_t (*)(),
 	disp_binder_unique_ptr_t disp_binder )
 {
 	auto counter = ++(m_impl->m_autoname_counter);

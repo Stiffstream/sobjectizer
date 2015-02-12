@@ -282,7 +282,7 @@ void
 storage_t::debug_dump( std::ostream & to ) const
 	{
 		for( const auto & e : m_events )
-			std::cout << "{" << e.m_mbox->id() << ", "
+			to << "{" << e.m_mbox->id() << ", "
 					<< e.m_msg_type.name() << ", "
 					<< e.m_state->query_name() << "}"
 					<< std::endl;

@@ -38,7 +38,7 @@ mpsc_mbox_t::~mpsc_mbox_t()
 
 void
 mpsc_mbox_t::subscribe_event_handler(
-	const std::type_index & type_wrapper,
+	const std::type_index & /*type_wrapper*/,
 	agent_t * subscriber )
 {
 	if( subscriber != m_single_consumer )
@@ -49,8 +49,8 @@ mpsc_mbox_t::subscribe_event_handler(
 
 void
 mpsc_mbox_t::unsubscribe_event_handlers(
-	const std::type_index & type_wrapper,
-	agent_t * subscriber )
+	const std::type_index & /*type_wrapper*/,
+	agent_t * /*subscriber*/ )
 {
 	// Nothing to do.
 }
