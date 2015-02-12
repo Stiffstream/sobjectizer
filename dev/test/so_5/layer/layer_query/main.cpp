@@ -226,7 +226,7 @@ UT_UNIT_TEST( check_many_layers )
 
 
 int
-main( int, char ** )
+main()
 {
 	UT_RUN_UNIT_TEST( check_all_exist );
 	UT_RUN_UNIT_TEST( check_1_2_exist );

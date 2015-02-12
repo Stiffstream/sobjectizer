@@ -43,8 +43,8 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 
 		virtual void
 		deliver_message(
-			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & message_ref ) const
+			const std::type_index &,
+			const so_5::rt::message_ref_t & ) const
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -61,16 +61,16 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 
 		virtual void
 		subscribe_event_handler(
-			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber )
+			const std::type_index &,
+			so_5::rt::agent_t * )
 			{
 				// DO NOTHING FOR THAT TEST
 			}
 
 		virtual void
 		unsubscribe_event_handlers(
-			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber )
+			const std::type_index &,
+			so_5::rt::agent_t * )
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -174,7 +174,7 @@ init(
 	}
 
 int
-main( int, char ** )
+main()
 	{
 		try
 			{

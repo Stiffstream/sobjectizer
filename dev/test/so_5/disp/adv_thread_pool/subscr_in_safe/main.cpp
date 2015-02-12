@@ -153,7 +153,7 @@ run_sobjectizer()
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

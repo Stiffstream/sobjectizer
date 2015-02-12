@@ -72,7 +72,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > & msg )
+	const so_5::rt::event_data_t< test_message > & )
 {
 	++m_message_rec_cnt;
 }
@@ -150,7 +150,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

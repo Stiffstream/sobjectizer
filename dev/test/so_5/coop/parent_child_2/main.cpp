@@ -153,8 +153,8 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::environment_t & env,
-			const std::string & coop_name )
+			so_5::rt::environment_t &,
+			const std::string & )
 		{
 			++m_active_coops;
 		}
@@ -215,7 +215,7 @@ class test_env_t
 };
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

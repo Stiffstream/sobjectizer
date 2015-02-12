@@ -81,7 +81,7 @@ class a_shutdowner_t
 			}
 
 		void
-		svc_shutdown( const so_5::rt::event_data_t< msg_shutdown > & evt )
+		svc_shutdown( const so_5::rt::event_data_t< msg_shutdown > & )
 			{
 				so_environment().stop();
 			}
@@ -161,7 +161,7 @@ init(
 	}
 
 int
-main( int, char ** )
+main()
 	{
 		try
 			{

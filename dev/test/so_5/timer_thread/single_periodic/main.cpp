@@ -84,7 +84,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > & msg )
+	const so_5::rt::event_data_t< test_message > & )
 {
 	if( m_test_evt_count == ++m_evt_count )
 	{
@@ -98,7 +98,7 @@ test_agent_t::evt_test(
 }
 void
 test_agent_t::evt_stop(
-	const so_5::rt::event_data_t< stop_message > & msg )
+	const so_5::rt::event_data_t< stop_message > & )
 {
 	so_environment().stop();
 }
@@ -110,7 +110,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

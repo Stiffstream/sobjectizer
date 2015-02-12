@@ -56,7 +56,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_delayed_message( const so_5::rt::event_data_t< msg_test > & evt )
+		evt_delayed_message( const so_5::rt::event_data_t< msg_test > & )
 		{
 			m_message_counter += 1;
 		}
@@ -97,7 +97,7 @@ struct test_env_t
 };
 
 int
-main( int argc, char ** argv )
+main()
 {
 	try
 	{

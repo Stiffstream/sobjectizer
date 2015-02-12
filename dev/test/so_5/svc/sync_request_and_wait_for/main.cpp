@@ -98,7 +98,7 @@ class a_convert_service_t
 
 		std::string
 		svc_back_call_convert(
-			const so_5::rt::event_data_t< msg_back_call_convert > & evt )
+			const so_5::rt::event_data_t< msg_back_call_convert > & )
 			{
 				m_back_call_mbox->run_one()
 						.wait_forever().sync_get< msg_back_call >();
@@ -354,7 +354,7 @@ init(
 	}
 
 int
-main( int, char ** )
+main()
 	{
 		try
 			{

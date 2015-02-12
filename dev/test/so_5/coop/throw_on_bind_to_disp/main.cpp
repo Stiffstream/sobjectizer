@@ -114,8 +114,8 @@ class throwing_disp_binder_t
 
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::rt::environment_t &,
+			so_5::rt::agent_ref_t )
 		{
 			throw std::runtime_error(
 				"throwing while binding agent to disp" );
@@ -123,8 +123,8 @@ class throwing_disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::rt::environment_t &,
+			so_5::rt::agent_ref_t )
 		{
 		}
 
@@ -177,7 +177,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

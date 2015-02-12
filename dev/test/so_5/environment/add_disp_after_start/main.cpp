@@ -100,7 +100,7 @@ class a_parent_t : public so_5::rt::agent_t
 };
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

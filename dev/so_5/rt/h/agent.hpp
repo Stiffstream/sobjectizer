@@ -771,7 +771,7 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
 			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
@@ -792,7 +792,7 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			void (AGENT::*pfn)( const MESSAGE & ) )
+			void (AGENT::*)( const MESSAGE & ) )
 		{
 			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
@@ -843,7 +843,7 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
-			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
 			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
@@ -863,7 +863,7 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
-			void (AGENT::*pfn)( const MESSAGE & ) )
+			void (AGENT::*)( const MESSAGE & ) )
 		{
 			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
@@ -913,7 +913,7 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
 			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}

@@ -147,7 +147,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::environment_t & env,
+			so_5::rt::environment_t &,
 			const std::string & coop_name )
 		{
 			std::cout << "registered: " << coop_name << std::endl;
@@ -240,7 +240,7 @@ class test_env_t
 };
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

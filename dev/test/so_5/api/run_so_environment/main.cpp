@@ -99,7 +99,7 @@ UT_UNIT_TEST( launch_on_object )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	UT_RUN_UNIT_TEST( launch_with_free_function_pointer )
 	UT_RUN_UNIT_TEST( launch_with_parameter )

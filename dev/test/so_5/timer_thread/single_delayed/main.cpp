@@ -76,7 +76,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

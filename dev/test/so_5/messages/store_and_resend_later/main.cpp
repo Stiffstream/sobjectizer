@@ -259,7 +259,7 @@ struct test_env_t
 };
 
 int
-main( int argc, char ** argv )
+main()
 {
 	try
 	{

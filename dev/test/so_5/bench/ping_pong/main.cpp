@@ -117,7 +117,7 @@ class a_pinger_t
 
 		void
 		evt_pong(
-			const so_5::rt::event_data_t< msg_data > & cmd )
+			const so_5::rt::event_data_t< msg_data > & )
 			{
 				++m_requests_sent;
 				if( m_requests_sent < m_cfg.m_request_count )
@@ -176,7 +176,7 @@ class a_ponger_t
 
 		void
 		evt_ping(
-			const so_5::rt::event_data_t< msg_data > & cmd )
+			const so_5::rt::event_data_t< msg_data > & )
 			{
 				m_pinger_mbox->deliver_signal< msg_data >();
 			}

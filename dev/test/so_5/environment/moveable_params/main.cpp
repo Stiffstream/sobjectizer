@@ -23,7 +23,7 @@ UT_UNIT_TEST( environment_params )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	UT_RUN_UNIT_TEST( environment_params )
 

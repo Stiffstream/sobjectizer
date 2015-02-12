@@ -342,7 +342,7 @@ do_test()
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

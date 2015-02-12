@@ -86,7 +86,7 @@ class a_parent_t
 
 		void
 		evt_child_created(
-			const so_5::rt::msg_coop_registered & evt )
+			const so_5::rt::msg_coop_registered & )
 		{
 			if( m_state != state_t::awaiting_creation )
 				throw std::runtime_error( "expected awaiting_creation state!" );
@@ -99,7 +99,7 @@ class a_parent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::rt::msg_coop_deregistered & evt )
+			const so_5::rt::msg_coop_deregistered & )
 		{
 			if( m_state != state_t::awaiting_destroying )
 				throw std::runtime_error( "msg_coop_deregistered when "

@@ -80,7 +80,7 @@ controller()
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

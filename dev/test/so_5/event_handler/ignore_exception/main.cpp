@@ -36,7 +36,7 @@ class a_test_t
 		}
 
 		void
-		evt_signal( const so_5::rt::event_data_t< msg_test_signal > & evt )
+		evt_signal( const so_5::rt::event_data_t< msg_test_signal > & )
 		{
 			if( m_counter < m_max_attempts )
 			{
@@ -69,7 +69,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

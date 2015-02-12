@@ -34,7 +34,7 @@ class test_agent_t
 		virtual void
 		so_evt_start();
 
-		static int
+		static std::size_t
 		agents_cout()
 		{
 			return 10;
@@ -107,7 +107,7 @@ push_group(
 	const std::string & group_name,
 	so_5::rt::environment_t & env )
 {
-	for( int i = 0; i < test_agent_t::agents_cout(); ++i )
+	for( std::size_t i = 0; i < test_agent_t::agents_cout(); ++i )
 	{
 		coop.add_agent(
 			new test_agent_t( env ),
@@ -133,7 +133,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

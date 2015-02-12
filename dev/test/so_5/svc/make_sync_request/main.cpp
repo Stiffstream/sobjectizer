@@ -87,7 +87,7 @@ class a_complex_service_t
 			}
 
 		void
-		svc( const so_5::rt::event_data_t< msg_complex_svc > & evt )
+		svc( const so_5::rt::event_data_t< msg_complex_svc > & )
 			{
 			}
 
@@ -147,7 +147,7 @@ init(
 	}
 
 int
-main( int, char ** )
+main()
 	{
 		try
 			{

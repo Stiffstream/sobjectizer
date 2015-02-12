@@ -184,7 +184,7 @@ UT_UNIT_TEST( check_exceptions )
 }
 
 int
-main( int, char ** )
+main()
 {
 	UT_RUN_UNIT_TEST( check_errors );
 	UT_RUN_UNIT_TEST( check_exceptions );

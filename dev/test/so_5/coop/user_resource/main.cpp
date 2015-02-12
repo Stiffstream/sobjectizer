@@ -127,7 +127,7 @@ class a_test_starter_t : public so_5::rt::agent_t
 		void
 		evt_child_destroyed(
 			const so_5::rt::event_data_t<
-				so_5::rt::msg_coop_deregistered > & evt )
+				so_5::rt::msg_coop_deregistered > & )
 		{
 			so_environment().stop();
 		}
@@ -182,7 +182,7 @@ class test_env_t
 };
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

@@ -52,7 +52,7 @@ class TestData
 	private:
 		static const int kCacheLineSize = 64;
 		static const int kSize = 64;
-		typedef std::uint64_t T;
+		typedef std::int64_t T;
 		M & mtx_;
 		char pad_[kCacheLineSize];
 		T data_[kSize];

@@ -244,7 +244,7 @@ UT_UNIT_TEST( service_handler )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	UT_RUN_UNIT_TEST( no_handlers )
 	UT_RUN_UNIT_TEST( event_handler )

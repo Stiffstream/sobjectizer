@@ -168,7 +168,7 @@ init(
 	}
 
 int
-main( int, char ** )
+main()
 	{
 		try
 			{

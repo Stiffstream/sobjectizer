@@ -91,9 +91,9 @@ test_agent_sender_t::so_evt_start()
 
 void
 test_agent_sender_t::evt_send_messages(
-	const so_5::rt::event_data_t< send_message_signal > & msg )
+	const so_5::rt::event_data_t< send_message_signal > & )
 {
-	for( int i = 0; i < g_send_at_once; ++i )
+	for( unsigned int i = 0; i < g_send_at_once; ++i )
 	{
 		m_mbox_receiver->deliver_message( new test_message() );
 	}
@@ -187,7 +187,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char * argv[] )
+main()
 {
 	try
 	{

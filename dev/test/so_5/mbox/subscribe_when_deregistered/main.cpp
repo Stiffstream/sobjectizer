@@ -171,16 +171,16 @@ class listener_t : public so_5::rt::coop_listener_t
 	public :
 		virtual void
 		on_registered(
-			so_5::rt::environment_t & so_env,
-			const std::string & coop_name )
+			so_5::rt::environment_t &,
+			const std::string & )
 		{
 			g_stage_monitors.notify_about_registration();
 		}
 
 		virtual void
 		on_deregistered(
-			so_5::rt::environment_t & so_env,
-			const std::string & coop_name,
+			so_5::rt::environment_t &,
+			const std::string &,
 			const so_5::rt::coop_dereg_reason_t &)
 		{
 			g_stage_monitors.notify_about_deregistration();
@@ -188,7 +188,7 @@ class listener_t : public so_5::rt::coop_listener_t
 };
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

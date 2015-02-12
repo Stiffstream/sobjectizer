@@ -91,7 +91,7 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 }
 
 int
-main( int, char ** )
+main()
 {
 	UT_RUN_UNIT_TEST( check_layer_lifecircle_op_calls );
 
