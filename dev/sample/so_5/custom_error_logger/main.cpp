@@ -11,7 +11,7 @@
 // A cooperation notificator which will not throw exceptions.
 void
 normal_coop_reg_notificator(
-	so_5::rt::environment_t & env,
+	so_5::rt::environment_t &,
 	const std::string & coop_name )
 {
 	std::cout << "cooperation registered: " << coop_name << std::endl;
@@ -20,7 +20,7 @@ normal_coop_reg_notificator(
 // A cooperation notificator which will throw exception.
 void
 invalid_coop_reg_notificator(
-	so_5::rt::environment_t & env,
+	so_5::rt::environment_t &,
 	const std::string & coop_name )
 {
 	throw std::runtime_error(
@@ -95,7 +95,7 @@ public :
 };
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

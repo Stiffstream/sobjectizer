@@ -197,7 +197,7 @@ my_agent_t::my_another_event_handler(
 
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

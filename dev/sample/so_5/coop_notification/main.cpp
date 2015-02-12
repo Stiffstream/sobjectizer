@@ -113,7 +113,7 @@ class a_parent_t
 };
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

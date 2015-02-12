@@ -100,7 +100,7 @@ class a_manager_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_hardwork_checked( const msg_hardwork_checked & evt )
+		evt_hardwork_checked( const msg_hardwork_checked & )
 		{
 			++m_processed;
 

@@ -1961,7 +1961,7 @@ subscription_bind_t::event(
 template< class MESSAGE, class LAMBDA >
 inline subscription_bind_t &
 subscription_bind_t::event(
-	signal_indicator_t< MESSAGE > indicator(),
+	signal_indicator_t< MESSAGE > (*)(),
 	LAMBDA lambda,
 	thread_safety_t thread_safety )
 {

@@ -8,7 +8,7 @@
 #include <so_5/all.hpp>
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

@@ -26,9 +26,9 @@ class a_hello_t : public so_5::rt::agent_t
 	public:
 		a_hello_t( so_5::rt::environment_t & env )
 			:	so_5::rt::agent_t( env )
-			,	m_evt_count( 0 )
 			,	m_shutdowner_mbox(
 					so_environment().create_local_mbox( "shutdown" ) )
+			,	m_evt_count( 0 )
 		{}
 
 		// Definition of an agent for SObjectizer.
@@ -155,7 +155,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

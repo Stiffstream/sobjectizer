@@ -97,7 +97,7 @@ a_hello_t::show_message( const std::string & what )
 }
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{

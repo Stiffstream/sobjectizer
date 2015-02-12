@@ -148,7 +148,7 @@ init( so_5::rt::environment_t & env )
 }
 
 int
-main( int, char ** argv )
+main()
 {
 	try
 	{

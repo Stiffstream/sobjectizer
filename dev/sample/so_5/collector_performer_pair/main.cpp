@@ -327,7 +327,7 @@ private :
 	}
 
 	void
-	process_request( const application_request & request )
+	process_request( const application_request & )
 	{
 		TRACE() << "PER(" << m_name << ") start processing; thread="
 				<< so_5::query_current_thread_id() << std::endl;

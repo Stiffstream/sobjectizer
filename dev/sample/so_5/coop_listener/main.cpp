@@ -46,7 +46,7 @@ class coop_listener_impl_t
 		// A reaction to the cooperation registration.
 		virtual void
 		on_registered(
-			so_5::rt::environment_t & so_env,
+			so_5::rt::environment_t &,
 			const std::string & coop_name ) override
 		{
 			std::cout << "coop_listener: register coop '"
@@ -56,7 +56,7 @@ class coop_listener_impl_t
 		// A reaction to the cooperation deregistration.
 		virtual void
 		on_deregistered(
-			so_5::rt::environment_t & so_env,
+			so_5::rt::environment_t &,
 			const std::string & coop_name,
 			const so_5::rt::coop_dereg_reason_t & reason ) override
 		{
@@ -67,7 +67,7 @@ class coop_listener_impl_t
 };
 
 int
-main( int, char ** )
+main()
 {
 	try
 	{
