@@ -34,4 +34,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/collector_performer_pair/prj.rb'
 	required_prj 'sample/so_5/collector_many_performers/prj.rb'
 	required_prj 'sample/so_5/simple_message_deadline/prj.rb'
+	required_prj 'sample/so_5/watchdog_pimpl/prj.rb'
 }
