@@ -14,18 +14,16 @@ class watchdog_t;
 class a_watchdog_t;
 class a_watchdog_impl_t;
 
-
 // The RAII idiom operation watchdog helper.
 class operation_watchdog_t
 {
-		operation_watchdog_t( const operation_watchdog_t & );
-		void
-		operator = ( const operation_watchdog_t & );
+		operation_watchdog_t( const operation_watchdog_t & ) = delete;
+		void operator=( const operation_watchdog_t & ) = delete;
 
 	public:
 		operation_watchdog_t(
 			const watchdog_t & watchdog,
-			const std::string & operation_tag,
+			std::string operation_tag,
 			const std::chrono::steady_clock::duration & timeout );
 
 		~operation_watchdog_t();
@@ -36,7 +34,7 @@ class operation_watchdog_t
 };
 
 // Watchdog bind.
-// Is incleded to watched agents and
+// Intended to be part of watched agents and
 // gives interface for controlling running operations.
 class watchdog_t
 {
@@ -59,18 +57,13 @@ class watchdog_t
 };
 
 // Watchdog agent.
-class  a_watchdog_t
-	:
-		public so_5::rt::agent_t
+class  a_watchdog_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_watchdog_t(
 			so_5::rt::environment_t & env,
 			const std::chrono::steady_clock::duration & check_interval =
 				std::chrono::seconds( 1 ) );
-
 		virtual ~a_watchdog_t();
 
 		virtual void
@@ -84,5 +77,5 @@ class  a_watchdog_t
 		create_watchdog() const;
 
 	private:
-		std::unique_ptr< a_watchdog_impl_t > m_watchdog_impl;
+		std::unique_ptr< a_watchdog_impl_t > m_impl;
 };
