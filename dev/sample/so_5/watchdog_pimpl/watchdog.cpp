@@ -1,10 +1,10 @@
 #include "watchdog.hpp"
 
-// Useful short typename.
-using op_id_t = unsigned long long;
-
 namespace
 {
+
+// Useful short typename.
+using op_id_t = unsigned long long;
 
 // Message to start watching operation.
 struct msg_start : public so_5::rt::message_t
@@ -51,45 +51,18 @@ struct msg_timeout : public so_5::rt::message_t
 //
 
 operation_watchdog_t::operation_watchdog_t(
-	const watchdog_t & watchdog,
+	a_watchdog_t * watchdog_agent,
 	std::string tag,
 	const std::chrono::steady_clock::duration & timeout )
-	:	m_watchdog( watchdog )
+	:	m_watchdog_agent( watchdog_agent )
 	,	m_tag( std::move( tag ) )
 {
-	m_watchdog.start( m_tag, timeout );
+	so_5::send_to_agent< msg_start >( *m_watchdog_agent, m_tag, timeout );
 }
 
 operation_watchdog_t::~operation_watchdog_t()
 {
-	m_watchdog.stop( m_tag );
-}
-
-//
-// watchdog_t
-//
-
-watchdog_t::watchdog_t( const so_5::rt::mbox_t & mbox )
-	:	m_mbox( mbox )
-{
-}
-
-watchdog_t::~watchdog_t()
-{
-}
-
-void
-watchdog_t::start(
-	const std::string & tag,
-	const std::chrono::steady_clock::duration & timeout ) const
-{
-	so_5::send< msg_start >( m_mbox, tag, timeout );
-}
-
-void
-watchdog_t::stop( const std::string & tag ) const
-{
-	so_5::send< msg_stop >( m_mbox, tag );
+	so_5::send_to_agent< msg_stop >( *m_watchdog_agent, m_tag );
 }
 
 // Private implementation of watchdog agent.
@@ -150,18 +123,28 @@ a_watchdog_impl_t::handle( const msg_start & m )
 	auto it = m_operations.find( m.m_tag );
 	if( it == m_operations.end() )
 	{
-		auto id = m_id_base + 1;
+		// This instance of an operation must have unique ID.
+		auto id = ++m_id_base;
+		// Create a delayed message for the operation timeout.
+		//
+		// We use a trick here.
+		//
+		// Because send_delayed doesn't return timer_id we use
+		// send_periodic but with zero-valued period argument.
+		// As result we will have a delayed message but with
+		// the associated timer_id.
 		auto timer = so_5::send_periodic_to_agent< msg_timeout >(
 				m_watchdog_agent,
 				m.m_timeout, std::chrono::steady_clock::duration::zero(),
 				m.m_tag, id );
 
+		// Information of the operation must be stored to be found
+		// later during processing msg_stop or msg_timeout.
 		m_operations.emplace(
 				operation_map_t::value_type{
 						m.m_tag,
 						details_t{ id, timer }
 				} );
-		m_id_base = id;
 	}
 	else
 	{
@@ -182,6 +165,12 @@ a_watchdog_impl_t::handle( const msg_timeout & m )
 {
 	auto it = m_operations.find( m.m_tag );
 	if( it != m_operations.end() )
+		// Additional checking.
+		// There could be a situation when delayed message has been
+		// sent just before the handling of msg_stop and a new msg_start
+		// with the same operation tag.
+		// In this case the operation map will contain information about
+		// operation with the tag but with different ID.
 		if( it->second.m_id == m.m_id )
 		{
 			std::cerr << "Operation with tag {" << m.m_tag << "} timedout."
@@ -215,11 +204,5 @@ a_watchdog_t::so_define_agent()
 		.event([&]( const msg_start & m ){ m_impl->handle( m ); } )
 		.event([&]( const msg_stop & m ){ m_impl->handle( m ); } )
 		.event([&]( const msg_timeout & m ){ m_impl->handle( m ); } );
-}
-
-watchdog_t
-a_watchdog_t::create_watchdog() const
-{
-	return watchdog_t( so_direct_mbox() );
 }
 
