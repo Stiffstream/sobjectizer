@@ -22,9 +22,6 @@ struct cfg_t
 
 	// Operation watchdog timeout.
 	steady_clock::duration m_op_timeout = milliseconds( 2500 );
-
-	// Check timedout operation interval.
-	steady_clock::duration m_check_interval = seconds( 1 );
 };
 
 cfg_t
@@ -59,14 +56,6 @@ try_parse_cmdline( int argc, char ** argv )
 
 			result.m_op_timeout = milliseconds( atoi( *current ) );
 		}
-		else if( is_arg( *current, "-i", "--check-interval" ) )
-		{
-			++current;
-			if( current == last )
-				throw runtime_error( "-i requires argument" );
-
-			result.m_check_interval = milliseconds( atoi( *current ) );
-		}
 		else
 		{
 			cout << "usage:\n"
@@ -74,7 +63,6 @@ try_parse_cmdline( int argc, char ** argv )
 					"\noptions:\n"
 					"-o, --operation-duration    Operation duration.\n"
 					"-t, --operation-timeout     Operation timeout.\n"
-					"-i, --check-interval        Timedout operations check interval.\n"
 					<< endl;
 
 			throw runtime_error(
@@ -97,7 +85,6 @@ show_cfg(
 	cout << "Configuration:\n"
 		"operation duration: " << ms( cfg.m_op_duration ) << " ms.\n"
 		"operation timeout:  " << ms( cfg.m_op_timeout ) << " ms.\n"
-		"check interval:     " << ms( cfg.m_check_interval ) << " ms."
 		<< endl;
 }
 
@@ -108,7 +95,7 @@ init( cfg_t cfg, so_5::rt::environment_t & env )
 	auto coop = env.create_coop( "coop" );
 
 	auto watchdog_agent = coop->add_agent(
-			new a_watchdog_t( env, cfg.m_check_interval ),
+			new a_watchdog_t( env ),
 			// Watchdog must run in a separate thread.
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 

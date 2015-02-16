@@ -1,33 +1,47 @@
 #include "watchdog.hpp"
 
-namespace /* anonymous */
-{
+// Useful short typename.
+using op_id_t = unsigned long long;
 
-// Signal for periodic check of watched operations.
-struct msg_check : public so_5::rt::signal_t {};
+namespace
+{
 
 // Message to start watching operation.
-struct msg_start_watch : public so_5::rt::message_t
+struct msg_start : public so_5::rt::message_t
 {
-	msg_start_watch(
-		std::string operation_tag,
+	msg_start(
+		std::string tag,
 		const std::chrono::steady_clock::duration & timeout )
-		:	m_operation_tag( std::move( operation_tag ) )
+		:	m_tag( std::move( tag ) )
 		,	m_timeout( timeout )
 	{}
 
-	const std::string m_operation_tag;
+	const std::string m_tag;
 	const std::chrono::steady_clock::duration m_timeout;
 };
 
 // Message to stop watching operation.
-struct msg_stop_watch : public so_5::rt::message_t
+struct msg_stop : public so_5::rt::message_t
 {
-	msg_stop_watch( std::string operation_tag )
-		:	m_operation_tag( std::move( operation_tag ) )
+	msg_stop( std::string tag )
+		:	m_tag( std::move( tag ) )
 	{}
 
-	const std::string m_operation_tag;
+	const std::string m_tag;
+};
+
+// Message to inform about operation timeout.
+struct msg_timeout : public so_5::rt::message_t
+{
+	msg_timeout(
+		std::string tag,
+		op_id_t id )
+		:	m_tag( std::move( tag ) )
+		,	m_id( id )
+	{}
+
+	const std::string m_tag;
+	op_id_t m_id;
 };
 
 } /* namespace anonymous */
@@ -38,17 +52,17 @@ struct msg_stop_watch : public so_5::rt::message_t
 
 operation_watchdog_t::operation_watchdog_t(
 	const watchdog_t & watchdog,
-	std::string operation_tag,
+	std::string tag,
 	const std::chrono::steady_clock::duration & timeout )
 	:	m_watchdog( watchdog )
-	,	m_operation_tag( std::move( operation_tag ) )
+	,	m_tag( std::move( tag ) )
 {
-	m_watchdog.start_watch_operation( m_operation_tag, timeout );
+	m_watchdog.start( m_tag, timeout );
 }
 
 operation_watchdog_t::~operation_watchdog_t()
 {
-	m_watchdog.stop_watch_operation( m_operation_tag );
+	m_watchdog.stop( m_tag );
 }
 
 //
@@ -65,108 +79,117 @@ watchdog_t::~watchdog_t()
 }
 
 void
-watchdog_t::start_watch_operation(
-	const std::string & operation_tag,
+watchdog_t::start(
+	const std::string & tag,
 	const std::chrono::steady_clock::duration & timeout ) const
 {
-	so_5::send< msg_start_watch >( m_mbox,
-			operation_tag, timeout );
+	so_5::send< msg_start >( m_mbox, tag, timeout );
 }
 
 void
-watchdog_t::stop_watch_operation( const std::string & operation_tag ) const
+watchdog_t::stop( const std::string & tag ) const
 {
-	so_5::send< msg_stop_watch >( m_mbox, operation_tag );
+	so_5::send< msg_stop >( m_mbox, tag );
 }
 
 // Private implementation of watchdog agent.
 class a_watchdog_impl_t
 {
 	public:
-		a_watchdog_impl_t(
-			const std::chrono::steady_clock::duration & check_interval )
-			:	m_check_interval( check_interval )
-		{}
-
-		void
-		evt_start( so_5::rt::agent_t & agent );
-
-		// Check timedout operations.
-		void
-		check();
+		a_watchdog_impl_t( so_5::rt::agent_t & a_watchdog );
 
 		//
 		// Message handlers.
 		//
 
 		void
-		handle( const msg_start_watch & m );
+		handle( const msg_start & m );
 
 		void
-		handle( const msg_stop_watch & m );
+		handle( const msg_stop & m );
+
+		void
+		handle( const msg_timeout & m );
 
 	private:
-		const std::chrono::steady_clock::duration m_check_interval;
-		so_5::timer_id_t m_check_timer;
+		// An agent for delayed messages.
+		so_5::rt::agent_t & m_watchdog_agent;
+
+		// This counter will be used for ID generation.
+		op_id_t m_id_base = 0;
+
+		// Information about one specific operation.
+		struct details_t
+		{
+			details_t(
+				op_id_t id,
+				so_5::timer_id_t timer )
+				:	m_id( id )
+				,	m_timer( std::move( timer ) )
+			{}
+
+			op_id_t m_id;
+			so_5::timer_id_t m_timer;
+		};
+
+		// Type of map from operation tag name to operation details.
+		using operation_map_t = std::map< std::string, details_t >;
 
 		// Info about watched operations.
-		using operation_map_t =
-				std::map< std::string, std::chrono::steady_clock::time_point >;
-		operation_map_t m_watched_operations;
+		operation_map_t m_operations;
 };
 
-void
-a_watchdog_impl_t::evt_start( so_5::rt::agent_t & agent )
-{
-	m_check_timer = so_5::send_periodic_to_agent< msg_check >(
-			agent,
-			m_check_interval,
-			m_check_interval );
-}
+a_watchdog_impl_t::a_watchdog_impl_t(
+	so_5::rt::agent_t & a_watchdog )
+	:	m_watchdog_agent( a_watchdog )
+{}
 
 void
-a_watchdog_impl_t::check()
+a_watchdog_impl_t::handle( const msg_start & m )
 {
-	bool abort_needed = false;
-
-	const auto now = std::chrono::steady_clock::now();
-
-	for( const auto & op : m_watched_operations )
+	auto it = m_operations.find( m.m_tag );
+	if( it == m_operations.end() )
 	{
-		if( now > op.second )
-		{
-			std::cerr << "Operation with tag {" << op.first << "} timedout.";
-			abort_needed = true;
-		}
+		auto id = m_id_base + 1;
+		auto timer = so_5::send_periodic_to_agent< msg_timeout >(
+				m_watchdog_agent,
+				m.m_timeout, std::chrono::steady_clock::duration::zero(),
+				m.m_tag, id );
+
+		m_operations.emplace(
+				operation_map_t::value_type{
+						m.m_tag,
+						details_t{ id, timer }
+				} );
+		m_id_base = id;
 	}
-
-	if( abort_needed )
+	else
 	{
-		std::cerr << "Watchdog calls application to abort.";
-		std::abort();
-	}
-}
-
-void
-a_watchdog_impl_t::handle( const msg_start_watch & m )
-{
-	auto r = m_watched_operations.emplace(
-			operation_map_t::value_type(
-					m.m_operation_tag,
-					std::chrono::steady_clock::now() + m.m_timeout ) );
-
-	if( !r.second )
-	{
-		std::cerr << "Operation with tag {" << m.m_operation_tag << "} "
+		std::cerr << "Operation with tag {" << m.m_tag << "} "
 				"is already watched. "
 				"Note that duplicate operation will be unwatched.";
 	}
 }
 
 void
-a_watchdog_impl_t::handle( const msg_stop_watch & m )
+a_watchdog_impl_t::handle( const msg_stop & m )
 {
-	m_watched_operations.erase( m.m_operation_tag );
+	m_operations.erase( m.m_tag );
+}
+
+void
+a_watchdog_impl_t::handle( const msg_timeout & m )
+{
+	auto it = m_operations.find( m.m_tag );
+	if( it != m_operations.end() )
+		if( it->second.m_id == m.m_id )
+		{
+			std::cerr << "Operation with tag {" << m.m_tag << "} timedout."
+					<< std::endl
+					<< "Watchdog calls application to abort."
+					<< std::endl;
+			std::abort();
+		}
 }
 
 //
@@ -174,10 +197,9 @@ a_watchdog_impl_t::handle( const msg_stop_watch & m )
 //
 
 a_watchdog_t::a_watchdog_t(
-	so_5::rt::environment_t & env,
-	const std::chrono::steady_clock::duration & check_interval )
+	so_5::rt::environment_t & env )
 	:	so_5::rt::agent_t( env )
-	,	m_impl( new a_watchdog_impl_t( check_interval ) )
+	,	m_impl( new a_watchdog_impl_t( *self_ptr() ) )
 {}
 
 a_watchdog_t::~a_watchdog_t()
@@ -189,16 +211,10 @@ a_watchdog_t::so_define_agent()
 	// Implement all internal event logic using lamda-handlers.
 
 	// Each event is delegated to impl.
-	so_subscribe_self()
-		.event< msg_check >( [&]{ m_impl->check(); } )
-		.event([&]( const msg_start_watch & m ){ m_impl->handle( m ); } )
-		.event([&]( const msg_stop_watch & m ){ m_impl->handle( m ); } );
-}
-
-void
-a_watchdog_t::so_evt_start()
-{
-	m_impl->evt_start( *this );
+	so_default_state()
+		.event([&]( const msg_start & m ){ m_impl->handle( m ); } )
+		.event([&]( const msg_stop & m ){ m_impl->handle( m ); } )
+		.event([&]( const msg_timeout & m ){ m_impl->handle( m ); } );
 }
 
 watchdog_t
