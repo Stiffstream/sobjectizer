@@ -14,114 +14,58 @@
 using namespace std;
 using namespace std::chrono;
 
-// Sample configuration.
-struct cfg_t
-{
-	// Virtual operation duration.
-	steady_clock::duration m_op_duration = milliseconds( 2015 );
-
-	// Operation watchdog timeout.
-	steady_clock::duration m_op_timeout = milliseconds( 2500 );
-};
-
-cfg_t
-try_parse_cmdline( int argc, char ** argv )
-{
-	auto is_arg =
-		[]( const char * value, const char * v1, const char * v2 ){
-			return 0 == strcmp( value, v1 ) ||
-					0 == strcmp( value, v2 );
-		};
-
-	cfg_t result;
-
-	char ** current = argv + 1;
-	char ** last = argv + argc;
-
-	while( current != last )
-	{
-		if( is_arg( *current, "-o", "--operation-duration" ) )
-		{
-			++current;
-			if( current == last )
-				throw runtime_error( "-o requires argument" );
-
-			result.m_op_duration = milliseconds( atoi( *current ) );
-		}
-		else if( is_arg( *current, "-t", "--operation-timeout" ) )
-		{
-			++current;
-			if( current == last )
-				throw runtime_error( "-t requires argument" );
-
-			result.m_op_timeout = milliseconds( atoi( *current ) );
-		}
-		else
-		{
-			cout << "usage:\n"
-					"sample.so_5.watch_dog_pimpl <options>\n"
-					"\noptions:\n"
-					"-o, --operation-duration    Operation duration.\n"
-					"-t, --operation-timeout     Operation timeout.\n"
-					<< endl;
-
-			throw runtime_error(
-				string( "unknown argument: " ) + *current );
-		}
-
-		++current;
-	}
-
-	return result;
-}
-
 void
-show_cfg(
-	const cfg_t & cfg )
-{
-	auto ms = []( steady_clock::duration d ) {
-			return duration_cast< milliseconds >( d ).count();
-		};
-	cout << "Configuration:\n"
-		"operation duration: " << ms( cfg.m_op_duration ) << " ms.\n"
-		"operation timeout:  " << ms( cfg.m_op_timeout ) << " ms.\n"
-		<< endl;
-}
-
-void
-init( cfg_t cfg, so_5::rt::environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	// Creating a cooperation.
-	auto coop = env.create_coop( "coop" );
-
-	auto watchdog_agent = coop->add_agent(
-			new a_watchdog_t( env ),
-			// Watchdog must run in a separate thread.
+	// Every agent should work on its own thread.
+	auto coop = env.create_coop(
+			so_5::autoname,
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-	auto watchdog = watchdog_agent->create_watchdog();
+	auto watchdog =
+			coop->add_agent( new a_watchdog_t( env ) )->create_watchdog();
 
-	// Agent which imitates some long-running application logic.
+	// The first agent which performs some long-running operations.
 	coop->define_agent()
-		.on_start(
-			[&env, watchdog, cfg ]()
+		.on_start( [&env, watchdog]
 			{
-				cout << "Start long operation..." << endl;
+				const string tag = "One";
+				const auto timeout = milliseconds( 400 );
+				const auto delta = milliseconds( 10 );
 
+				for( int i = 0; i != 100; ++i )
 				{
-					// Perfom watched operation.
-					operation_watchdog_t op(
-						watchdog,
-						"Long operation",
-						cfg.m_op_timeout );
+					cout << tag + "(" + to_string(i) + "): started\n" << flush;
 
-					this_thread::sleep_for( cfg.m_op_duration );
+					{
+						operation_watchdog_t op( watchdog, tag, timeout );
+						this_thread::sleep_for( timeout - delta );
+					}
+
+					cout << tag + "(" + to_string(i) + "): finished\n" << flush;
 				}
-
-				cout << "Finish long operation..." << endl;
 
 				// Shutting down SObjectizer.
 				env.stop();
+			} );
+
+	// The second agent which performs another long-running operation.
+	// This agent must cause abort of application.
+	coop->define_agent()
+		.on_start( [&env, watchdog]
+			{
+				const string tag = "Two";
+				const auto timeout = milliseconds( 1500 );
+
+				cout << tag + ": started\n" << flush;
+
+				{
+					operation_watchdog_t op( watchdog, tag, timeout );
+					this_thread::sleep_for( timeout + timeout );
+				}
+
+				cout << tag + ": finished\n" << flush;
 			} );
 
 	// Registering the cooperation.
@@ -129,20 +73,14 @@ init( cfg_t cfg, so_5::rt::environment_t & env )
 }
 
 int
-main( int argc, char ** argv )
+main()
 {
-	using namespace std::placeholders;
-
 	try
 	{
-		auto cfg = try_parse_cmdline( argc, argv );
-
-		show_cfg( cfg );
-
 		// Create SO Environment objects and run SO Run-Time inside it.
 		so_5::launch(
 			// SO Environment initialization routine.
-			bind( &init, cfg, _1 ),
+			&init,
 			// SO Environment tuning routine.
 			[]( so_5::rt::environment_params_t & p )
 			{
