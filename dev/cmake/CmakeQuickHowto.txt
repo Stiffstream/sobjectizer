@@ -4,13 +4,13 @@ CMake Quick HowTo
 NOTE. This way of building is not used by SObjectizer developers. The projects
 files for CMake are contributed by users.
 
-cmake & Linux
-==============
+cmake & Linux/FreeBSD
+=====================
 
   # first download so sources by svn
   # avalable tags and branches You can see in repository
   # http://sourceforge.net/p/sobjectizer/repo/HEAD/tree/
-  # cmake build supported after version 5.5.3 (this have partial cmake support)
+  # cmake build supported after version 5.5.2
   svn export http://svn.code.sf.net/p/sobjectizer/repo/branches/so_5 so_5
   cd so_5
   mkdir cmake_build
