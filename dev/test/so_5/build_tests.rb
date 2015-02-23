@@ -33,6 +33,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/disp/adv_thread_pool/build_tests.rb" )
 
+	required_prj( "test/so_5/disp/private_dispatchers/build_tests.rb" )
+
 	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/exception_reaction_inheritance/prj.ut.rb" )

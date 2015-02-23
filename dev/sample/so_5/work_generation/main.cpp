@@ -397,27 +397,26 @@ create_processing_coops( so_5::rt::environment_t & env )
 
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 
+	// Private dispatcher for receivers.
+	auto receiver_disp = so_5::disp::thread_pool::create_private_disp( 2 );
+	// And private dispatcher for processors.
+	auto processor_disp = so_5::disp::active_obj::create_private_disp();
+
 	int i = 0;
 	for( auto c : capacities )
 	{
 		auto coop = env.create_coop( so_5::autoname );
 
-		auto receiver = std::unique_ptr< a_receiver_t >(
-				new a_receiver_t( env, "r" + std::to_string(i), c ) );
+		auto receiver = coop->make_agent_with_binder< a_receiver_t >(
+				receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
+				"r" + std::to_string(i), c );
 
-		auto receiver_mbox = receiver->so_direct_mbox();
+		const auto receiver_mbox = receiver->so_direct_mbox();
 		result.push_back( receiver_mbox );
 
-		auto processor = std::unique_ptr< a_processor_t >(
-				new a_processor_t( env, "p" + std::to_string(i), receiver_mbox ) );
-
-		coop->add_agent( std::move( receiver ),
-				so_5::disp::thread_pool::create_disp_binder(
-						"receivers",
-						so_5::disp::thread_pool::params_t() ) );
-
-		coop->add_agent( std::move( processor ),
-				so_5::disp::active_obj::create_disp_binder( "processors" ) );
+		coop->make_agent_with_binder< a_processor_t >(
+				processor_disp->binder(),
+				"p" + std::to_string(i), receiver_mbox );
 
 		env.register_coop( std::move( coop ) );
 
@@ -432,22 +431,23 @@ init( so_5::rt::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
+	// A private dispatcher for generators cooperation.
+	auto generators_disp = so_5::disp::thread_pool::create_private_disp( 3 );
 	auto coop = env.create_coop( so_5::autoname,
-			so_5::disp::thread_pool::create_disp_binder(
-					"generators",
+			generators_disp->binder(
 					[]( so_5::disp::thread_pool::params_t & p ) {
 						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
 					} ) );
 
 	for( int i = 0; i != 3; ++i )
 	{
-		auto agent = std::unique_ptr< a_generator_t >( 
-				new a_generator_t( env, "g" + std::to_string(i), receivers ) );
-		coop->add_agent( std::move( agent ) );
+		coop->make_agent< a_generator_t >( "g" + std::to_string(i), receivers );
 	}
 
+	// Registration of generator will start example.
 	env.register_coop( std::move( coop ) );
 
+	// Taking some time for the agents.
 	std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
 	env.stop();
 }
@@ -456,15 +456,7 @@ int main()
 {
 	try
 	{
-		so_5::launch( init,
-				[]( so_5::rt::environment_params_t & params ) {
-					params.add_named_dispatcher( "generators",
-							so_5::disp::thread_pool::create_disp( 3 ) );
-					params.add_named_dispatcher( "receivers",
-							so_5::disp::thread_pool::create_disp( 2 ) );
-					params.add_named_dispatcher( "processors",
-							so_5::disp::active_obj::create_disp() );
-				} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

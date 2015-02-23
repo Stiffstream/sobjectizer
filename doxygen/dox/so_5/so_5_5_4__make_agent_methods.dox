@@ -1,0 +1,68 @@
+/*!
+
+\page so_5_5_4__make_agent_methods so-5.5.4: New make_agent methods
+
+The creation of agent instances was one of the few places where usage of
+<tt>operator new()</tt> was necessary. The agents creation could look like:
+
+\code
+// With unique_ptr...
+std::unique_ptr< my_agent > a{ new my_agent{ env, params } };
+
+// Or with unique_ptr, but different way...
+auto a = std::unique_ptr< my_agent >{ new my_agent{ env, params } };
+
+// Or directly during adding agent to a coop.
+coop->add_agent( new my_agent{ env, params } );
+\endcode
+
+This approach of agent creation was inherited from the times when advanced
+C++11 features like variadic templates and rvalue references were not supported
+in all major C++ compilers at the required quality level. But times have
+changed. Now SObjectizer-5.5 actively uses variadic templates and doesn't
+support old compilers without this very important C++11 feature. Because of
+that a new, more convenient way for agent creation has been introduced in
+version 5.5.4.
+
+Just compare:
+
+\code
+// The pre-5.5.4 way:
+auto a = std::unique_ptr< my_agent >{ new my_agent{ env, params } };
+
+// The 5.5.4 way:
+auto a = env.make_agent< my_agent >( params );
+\endcode
+
+The same <tt>make_agent</tt> has been added to <tt>so_5::rt::agent_coop_t</tt> class:
+
+\code
+// The pre-5.5.4 way:
+auto a = std::unique_ptr< my_agent >{ new my_agent{ env, params } };
+coop->add_agent( std::move( a ) );
+coop->add_agent( new your_agent{ env, different_params } );
+
+// The 5.5.4 way:
+auto a = env.make_agent< my_agent >( params );
+coop->add_agent( std::move( a ) );
+coop->make_agent< your_agent >( different_params );
+\endcode
+
+There is also <tt>so_5::rt::agent_coop_t::make_agent_with_binder()</tt> method for the
+case when new agent should be bound to the specific dispatcher:
+
+\code
+auto disp = so_5::disp::active_obj::create_private_disp();
+coop->make_agent_with_binder< my_agent >( disp->binder(), params );
+coop->make_agent_with_binder< your_agent >( disp->binder(), different_params );
+\endcode
+
+**Attention!** Please note that new <tt>make_agent</tt> and
+<tt>make_agent_with_binder</tt> methods require that the first argument of
+agent's constructor must be a reference to <tt>so_5::rt::environment_t</tt>
+object.
+
+*/
+
+// vim:ft=cpp
+

@@ -152,10 +152,7 @@ class a_runner_t : public so_5::rt::agent_t
 						so_5::autoname,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-				coop->add_agent(
-						new a_vector_summator_t(
-								so_environment(),
-								m_summator_mbox ) );
+				coop->make_agent< a_vector_summator_t >( m_summator_mbox );
 
 				so_environment().register_coop( std::move( coop ) );
 			}
@@ -201,7 +198,7 @@ main( int argc, char ** argv )
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ) );
 
-							coop->add_agent( new a_runner_t( env, ITERATIONS ) );
+							coop->make_agent< a_runner_t >( ITERATIONS );
 
 							env.register_coop( std::move( coop ) );
 						},

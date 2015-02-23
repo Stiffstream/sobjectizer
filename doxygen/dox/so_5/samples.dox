@@ -130,4 +130,16 @@
  * \example so_5/simple_message_deadline/main.cpp
  */
 
+/*!
+ * \example so_5/private_dispatcher_hello/main.cpp
+ */
+
+/*!
+ * \example so_5/private_dispatcher_restarts/main.cpp
+ */
+
+/*!
+ * \example so_5/private_dispatcher_for_children/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

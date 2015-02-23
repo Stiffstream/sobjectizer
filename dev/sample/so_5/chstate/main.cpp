@@ -190,7 +190,7 @@ state_monitor_t g_state_monitor( "nondestroyable_listener" );
 void
 init( so_5::rt::environment_t & env )
 {
-	std::unique_ptr< a_state_swither_t > ag( new a_state_swither_t( env ) );
+	auto ag = env.make_agent< a_state_swither_t >();
 
 	// Adding the state listener. Its lifetime is not controlled by the agent.
 	ag->so_add_nondestroyable_listener( g_state_monitor );

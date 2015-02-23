@@ -172,8 +172,7 @@ class a_parent_t : public so_5::rt::agent_t
 					*this, so_5::autoname );
 
 			// Adding agents to the cooperation.
-			child_coop->add_agent(
-					new a_child_t( so_environment(), so_direct_mbox(), id ) );
+			child_coop->make_agent< a_child_t >( so_direct_mbox(), id );
 
 			// Initiate child's work.
 			so_environment().register_coop( std::move( child_coop ) ); 
@@ -191,7 +190,8 @@ main()
 		so_5::launch( []( so_5::rt::environment_t & env )
 			{
 				// Registering the parent cooperation.
-				env.register_agent_as_coop( "coop", new a_parent_t( env ) );
+				env.register_agent_as_coop( "coop",
+						env.make_agent< a_parent_t >() );
 
 				// Give some time to the agents.
 				std::this_thread::sleep_for( std::chrono::seconds( 3 ) );

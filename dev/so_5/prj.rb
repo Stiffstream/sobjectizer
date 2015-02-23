@@ -62,14 +62,14 @@ MxxRu::Cpp::dll_target {
 
 			cpp_source 'process_unhandled_exception.cpp'
 
-			cpp_source( 'local_mbox.cpp' )
-			cpp_source( 'named_local_mbox.cpp' )
-			cpp_source( 'mpsc_mbox.cpp' )
-			cpp_source( 'mbox_core.cpp' )
-			cpp_source( 'agent_core.cpp' )
-			cpp_source( 'disp_core.cpp' )
-			cpp_source( 'layer_core.cpp' )
-			cpp_source( 'state_listener_controller.cpp' )
+			cpp_source 'local_mbox.cpp'
+			cpp_source 'named_local_mbox.cpp'
+			cpp_source 'mpsc_mbox.cpp'
+			cpp_source 'mbox_core.cpp'
+			cpp_source 'agent_core.cpp'
+			cpp_source 'disp_repository.cpp'
+			cpp_source 'layer_core.cpp'
+			cpp_source 'state_listener_controller.cpp'
 
 			sources_root( 'coop_dereg' ){
 				cpp_source( 'coop_dereg_executor_thread.cpp' )

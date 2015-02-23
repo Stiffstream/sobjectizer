@@ -344,21 +344,16 @@ create_coop( so_5::rt::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
+	auto disp = create_private_disp( 3 );
 	auto c = env.create_coop( so_5::autoname,
-			create_disp_binder( "thread_pool",
-				[]( params_t & p ) { p.fifo( fifo_t::individual ); } ) );
+			disp->binder( params_t{}.fifo( fifo_t::individual ) ) );
 
-	std::unique_ptr< a_collector_t > collector{ new a_collector_t{ env } };
-	std::unique_ptr< a_performer_t > performer{
-			new a_performer_t{ env, collector->so_direct_mbox() } };
+	auto collector = c->make_agent< a_collector_t >();
+	auto performer = c->make_agent< a_performer_t >(
+			collector->so_direct_mbox() );
 	collector->set_performer_mbox( performer->so_direct_mbox() );
 
-	std::unique_ptr< a_generator_t > generator{
-			new a_generator_t{ env, collector->so_direct_mbox() } };
-
-	c->add_agent( std::move( collector ) );
-	c->add_agent( std::move( performer ) );
-	c->add_agent( std::move( generator ) );
+	c->make_agent< a_generator_t >( collector->so_direct_mbox() );
 
 	env.register_coop( std::move( c ) );
 }
@@ -368,13 +363,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			create_coop,
-			[]( so_5::rt::environment_params_t & params )
-			{
-				params.add_named_dispatcher( "thread_pool",
-						so_5::disp::thread_pool::create_disp( 3 ) );
-			} );
+		so_5::launch( &create_coop );
 
 		return 0;
 	}

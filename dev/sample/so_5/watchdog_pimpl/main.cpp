@@ -21,9 +21,9 @@ init( so_5::rt::environment_t & env )
 	// Every agent should work on its own thread.
 	auto coop = env.create_coop(
 			so_5::autoname,
-			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+			so_5::disp::active_obj::create_private_disp()->binder() );
 
-	auto watchdog = coop->add_agent( new a_watchdog_t( env ) );
+	auto watchdog = coop->make_agent< a_watchdog_t >();
 
 	// The first agent which performs some long-running operations.
 	coop->define_agent()
@@ -83,13 +83,7 @@ main()
 			// SO Environment tuning routine.
 			[]( so_5::rt::environment_params_t & p )
 			{
-				// A dispatcher with active objects necessary
-				// to run agents on different threads.
-				p.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-
-				// A precise timer will be useful for this example.
+				// A more precise timer will be useful for this example.
 				p.timer_thread( so_5::timer_heap_factory() );
 			});
 	}

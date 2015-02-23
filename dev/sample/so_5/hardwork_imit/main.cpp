@@ -142,13 +142,11 @@ create_test_coop(
 	auto worker = c->define_agent();
 	auto checker = c->define_agent();
 
-	auto a_manager = c->add_agent(
-			new a_manager_t(
-					env,
-					worker.direct_mbox(),
-					checker.direct_mbox(),
-					requests,
-					milliseconds ) );
+	auto a_manager = c->make_agent< a_manager_t >(
+			worker.direct_mbox(),
+			checker.direct_mbox(),
+			requests,
+			milliseconds );
 
 	worker.event( worker.direct_mbox(),
 				[a_manager]( const msg_do_hardwork & evt )

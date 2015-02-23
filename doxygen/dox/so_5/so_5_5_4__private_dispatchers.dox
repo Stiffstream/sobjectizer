@@ -1,0 +1,112 @@
+/*!
+
+\page so_5_5_4__private_dispatchers so-5.5.4: Private dispatchers
+
+From the very beginning of SObjectizer-4 and SObjectizer-5 dispatchers could be
+added only before the start of SObjectizer Run-Time. There was no a possibility
+to add new dispatcher when SObjectizer Run-Time is running.
+
+The situation is slightly changed in v.5.4.0 where
+<tt>add_dispatcher_if_not_exist()</tt> method was added to
+so_5::rt::environment_t class. It added the possibility to introduce
+new dispatcher instance when it necessary. But there was not a way to remove a
+dispatcher which is no more used by anyone.
+
+This problem has been solved in v.5.5.4 by introducing a new conception --
+ <i>private dispatcher</i>.
+
+Private dispatcher is an instance of dispatcher that has no name and accessible
+only by a special handle for it. While there is a handle, there is the
+dispatcher. When all handles are destroyed the dispatcher is destroyed too.
+
+Private dispatcher handle is in fact a smart intrusive pointer. So the concept
+of private dispatcher handles should be natural to the C++ programmers because
+it is a form of resources management via ordinary smart pointers.
+
+Since v.5.5.4 every dispatcher type defines the following things:
+
+- an abstract type <tt>private_dispatcher_t</tt> with one or several
+  <tt>binder()</tt> methods for creating binders to the private dispatcher of
+  that type;
+- a handle type <tt>private_dispatcher_handle_t</tt> which can be seen as
+  a smart pointer for <tt>private_dispatcher_t</tt> (and in fact is);
+- a function <tt>%create_private_disp()</tt> for creating an instance of the
+  private dispatcher.
+
+So there are so_5::disp::one_thread::private_dispatcher_t,
+so_5::disp::one_thread::private_dispatcher_handle_t,
+so_5::disp::one_thread::create_private_disp(). There also are
+so_5::disp::active_obj::private_dispatcher_t,
+so_5::disp::active_obj::private_dispatcher_handle_t,
+so_5::disp::active_obj::create_private_disp() and so on.
+
+There is an example of usage of private dispatcher of various types:
+
+\code
+std::vector< so_5::rt::mbox_t >
+create_processing_coops( so_5::rt::environment_t & env )
+{
+	std::vector< so_5::rt::mbox_t > result;
+
+	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
+
+	// Private dispatcher for receivers.
+	auto receiver_disp = so_5::disp::thread_pool::create_private_disp( 2 );
+	// And private dispatcher for processors.
+	auto processor_disp = so_5::disp::active_obj::create_private_disp();
+
+	int i = 0;
+	for( auto c : capacities )
+	{
+		auto coop = env.create_coop( so_5::autoname );
+
+		auto receiver = coop->make_agent_with_binder< a_receiver_t >(
+				receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
+				"r" + std::to_string(i), c );
+
+		const auto receiver_mbox = receiver->so_direct_mbox();
+		result.push_back( receiver_mbox );
+
+		coop->make_agent_with_binder< a_processor_t >(
+				processor_disp->binder(),
+				"p" + std::to_string(i), receiver_mbox );
+
+		env.register_coop( std::move( coop ) );
+
+		++i;
+	}
+
+	return result;
+}
+
+void
+init( so_5::rt::environment_t & env )
+{
+	auto receivers = create_processing_coops( env );
+
+	// A private dispatcher for generators cooperation.
+	auto generators_disp = so_5::disp::thread_pool::create_private_disp( 3 );
+	auto coop = env.create_coop( so_5::autoname,
+			generators_disp->binder(
+					[]( so_5::disp::thread_pool::params_t & p ) {
+						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
+					} ) );
+
+	for( int i = 0; i != 3; ++i )
+	{
+		coop->make_agent< a_generator_t >( "g" + std::to_string(i), receivers );
+	}
+
+	// Registration of generator will start example.
+	env.register_coop( std::move( coop ) );
+
+	// Taking some time for the agents.
+	std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
+	env.stop();
+}
+\endcode
+
+*/
+
+// vim:ft=cpp
+

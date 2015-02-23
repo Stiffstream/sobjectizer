@@ -7,8 +7,7 @@
 	\brief A definition of utility class for work with dispatchers.
 */
 
-#if !defined( _SO_5__RT__IMPL__DISP_CORE_HPP_ )
-#define _SO_5__RT__IMPL__DISP_CORE_HPP_
+#pragma once
 
 #include <mutex>
 
@@ -30,18 +29,18 @@ namespace impl
 {
 
 //
-// disp_core_t
+// disp_repository_t
 //
 
 //! A utility class for work with dispatchers.
-class disp_core_t
+class disp_repository_t
 {
 	public:
-		disp_core_t(
+		disp_repository_t(
 			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
-		virtual ~disp_core_t();
+		virtual ~disp_repository_t();
 
 		//! Get the default dispatcher.
 		dispatcher_t &
@@ -149,5 +148,3 @@ class disp_core_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif

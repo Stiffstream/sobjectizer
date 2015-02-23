@@ -1201,6 +1201,39 @@ class SO_5_TYPE environment_t
 		error_logger() const;
 
 		/*!
+		 * \since v.5.5.4
+		 * \brief Helper method for simplification of agents creation.
+		 *
+		 * \note Creates an instance of agent of type \a AGENT by using
+		 * environment_t::make_agent() template function and adds it to
+		 * the cooperation. Uses the fact that most agent types use reference
+		 * to the environment object as the first argument.
+		 *
+		 * \return unique pointer to the new agent.
+		 *
+		 * \tparam AGENT type of agent to be created.
+		 * \tparam ARGS type of parameters list for agent constructor.
+		 *
+		 * \par Usage sample:
+		 \code
+		 so_5::rt::environment_t & env = ...;
+		 // For the case of constructor like my_agent(environmen_t&).
+		 auto a1 = env.make_agent< my_agent >(); 
+		 // For the case of constructor like your_agent(environment_t&, std::string).
+		 auto a2 = env.make_agent< your_agent >( "hello" );
+		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
+		 auto a3 = env.make_agent< their_agent >( "bye", a2->so_direct_mbox() );
+		 \endcode
+		 */
+		template< class AGENT, typename... ARGS >
+		std::unique_ptr< AGENT >
+		make_agent( ARGS &&... args )
+		{
+			return std::unique_ptr< AGENT >(
+					new AGENT( *this, std::forward<ARGS>(args)... ) );
+		}
+
+		/*!
 		 * \name Methods for internal use inside SObjectizer.
 		 * \{
 		 */

@@ -109,6 +109,49 @@ default_thread_pool_size()
 	}
 
 //
+// private_dispatcher_t
+//
+
+/*!
+ * \since v.5.5.4
+ * \brief An interface for %thread_pool private dispatcher.
+ */
+class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
+	{
+	public :
+		virtual ~private_dispatcher_t();
+
+		//! Create a binder for that private dispatcher.
+		virtual so_5::rt::disp_binder_unique_ptr_t
+		binder(
+			//! Binding parameters for the agent.
+			const params_t & params ) = 0;
+
+		//! Create a binder for that private dispatcher.
+		/*!
+		 * This method allows parameters tuning via lambda-function
+		 * or other functional objects.
+		 */
+		inline so_5::rt::disp_binder_unique_ptr_t
+		binder(
+			//! Function for the parameters tuning.
+			std::function< void(params_t &) > params_setter )
+			{
+				params_t p;
+				params_setter( p );
+
+				return this->binder( p );
+			}
+	};
+
+/*!
+ * \since v.5.5.4
+ * \brief A handle for the %thread_pool private dispatcher.
+ */
+using private_dispatcher_handle_t =
+	so_5::intrusive_ptr_t< private_dispatcher_t >;
+
+//
 // create_disp
 //
 /*!
@@ -133,6 +176,52 @@ inline so_5::rt::dispatcher_unique_ptr_t
 create_disp()
 	{
 		return create_disp( default_thread_pool_size() );
+	}
+
+//
+// create_private_disp
+//
+/*!
+ * \since v.5.5.4
+ * \brief Create a private %thread_pool dispatcher.
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::thread_pool::create_private_disp( 16 );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private thread_pool dispatcher.
+	private_disp->binder( so_5::disp::thread_pool::params_t{} ) );
+\endcode
+ */
+SO_5_FUNC private_dispatcher_handle_t
+create_private_disp(
+	//! Count of working threads.
+	std::size_t thread_count );
+
+//
+// create_private_disp
+//
+/*!
+ * \since v.5.5.4
+ * \brief Create a private %thread_pool dispatcher with the default
+ * count of working threads.
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::thread_pool::create_private_disp();
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private thread_pool dispatcher.
+	private_disp->binder( so_5::disp::thread_pool::params_t{} ) );
+\endcode
+ */
+inline private_dispatcher_handle_t
+create_private_disp()
+	{
+		return create_private_disp( default_thread_pool_size() );
 	}
 
 //

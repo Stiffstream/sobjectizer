@@ -7,7 +7,7 @@
 
 #include <so_5/h/ret_code.hpp>
 
-#include <so_5/rt/impl/h/disp_core.hpp>
+#include <so_5/rt/impl/h/disp_repository.hpp>
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
@@ -21,10 +21,10 @@ namespace impl
 {
 
 //
-// disp_core_t
+// disp_repository_t
 //
 
-disp_core_t::disp_core_t(
+disp_repository_t::disp_repository_t(
 	named_dispatcher_map_t named_dispatcher_map,
 	event_exception_logger_unique_ptr_t logger )
 	:
@@ -35,18 +35,18 @@ disp_core_t::disp_core_t(
 {
 }
 
-disp_core_t::~disp_core_t()
+disp_repository_t::~disp_repository_t()
 {
 }
 
 dispatcher_t &
-disp_core_t::query_default_dispatcher()
+disp_repository_t::query_default_dispatcher()
 {
 	return *m_default_dispatcher;
 }
 
 dispatcher_ref_t
-disp_core_t::query_named_dispatcher(
+disp_repository_t::query_named_dispatcher(
 	const std::string & disp_name )
 {
 	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
@@ -65,7 +65,7 @@ disp_core_t::query_named_dispatcher(
 }
 
 dispatcher_ref_t
-disp_core_t::add_dispatcher_if_not_exists(
+disp_repository_t::add_dispatcher_if_not_exists(
 	const std::string & disp_name,
 	std::function< dispatcher_unique_ptr_t() > disp_factory )
 {
@@ -73,7 +73,7 @@ disp_core_t::add_dispatcher_if_not_exists(
 	if( state_t::started != m_state )
 		SO_5_THROW_EXCEPTION(
 				rc_disp_cannot_be_added,
-				"new dispatcher cannot be added when disp_core "
+				"new dispatcher cannot be added when disp_repository "
 				"state if not 'started'" );
 
 	named_dispatcher_map_t::iterator it =
@@ -101,7 +101,7 @@ disp_core_t::add_dispatcher_if_not_exists(
 }
 
 void
-disp_core_t::start()
+disp_repository_t::start()
 {
 	std::lock_guard< default_rw_spinlock_t > lock( m_lock );
 	if( state_t::not_started == m_state )
@@ -121,7 +121,7 @@ disp_core_t::start()
 }
 
 void
-disp_core_t::finish()
+disp_repository_t::finish()
 {
 	{
 		std::lock_guard< default_rw_spinlock_t > lock( m_lock );
@@ -143,7 +143,7 @@ disp_core_t::finish()
 }
 
 void
-disp_core_t::install_exception_logger(
+disp_repository_t::install_exception_logger(
 	event_exception_logger_unique_ptr_t logger )
 {
 	if( nullptr != logger.get() )
@@ -159,7 +159,7 @@ disp_core_t::install_exception_logger(
 }
 
 void
-disp_core_t::call_exception_logger(
+disp_repository_t::call_exception_logger(
 	const std::exception & event_exception,
 	const std::string & coop_name )
 {
@@ -169,7 +169,7 @@ disp_core_t::call_exception_logger(
 }
 
 void
-disp_core_t::send_shutdown_signal()
+disp_repository_t::send_shutdown_signal()
 {
 	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
 	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();
@@ -183,7 +183,7 @@ disp_core_t::send_shutdown_signal()
 }
 
 void
-disp_core_t::wait_for_full_shutdown()
+disp_repository_t::wait_for_full_shutdown()
 {
 	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
 	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();

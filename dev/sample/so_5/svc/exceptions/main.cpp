@@ -99,10 +99,10 @@ init(
 	{
 		auto coop = env.create_coop(
 				"test_coop",
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_5::disp::active_obj::create_private_disp()->binder() );
 
-		auto a_service = coop->add_agent( new a_convert_service_t( env ) );
-		coop->add_agent( new a_client_t( env, a_service->so_direct_mbox() ) );
+		auto a_service = coop->make_agent< a_convert_service_t >();
+		coop->make_agent< a_client_t >( a_service->so_direct_mbox() );
 
 		env.register_coop( std::move( coop ) );
 	}
@@ -112,13 +112,7 @@ main()
 	{
 		try
 			{
-				so_5::launch(
-					&init,
-					[]( so_5::rt::environment_params_t & p ) {
-						p.add_named_dispatcher(
-							"active_obj",
-							so_5::disp::active_obj::create_disp() );
-					} );
+				so_5::launch( &init );
 			}
 		catch( const std::exception & ex )
 			{

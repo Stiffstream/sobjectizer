@@ -600,6 +600,79 @@ class SO_5_TYPE agent_coop_t
 				return m_env;
 			}
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper method for simplification of agents creation.
+		 *
+		 * \note Creates an instance of agent of type \a AGENT and adds it to
+		 * the cooperation.
+		 *
+		 * \return pointer to the new agent.
+		 *
+		 * \tparam AGENT type of agent to be created.
+		 * \tparam ARGS type of parameters list for agent constructor.
+		 *
+		 * \par Usage sample:
+		 \code
+		 so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 // For the case of constructor like my_agent(environmen_t&).
+		 coop->make_agent< my_agent >(); 
+		 // For the case of constructor like your_agent(environment_t&, std::string).
+		 auto ya = coop->make_agent< your_agent >( "hello" );
+		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
+		 coop->make_agent< their_agent >( "bye", ya->so_direct_mbox() );
+		 \endcode
+		 */
+		template< class AGENT, typename... ARGS >
+		AGENT *
+		make_agent( ARGS &&... args )
+		{
+			auto a = std::unique_ptr< AGENT >(
+					new AGENT( environment(), std::forward<ARGS>(args)... ) );
+
+			return this->add_agent( std::move( a ) );
+		}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper method for simplification of agents creation and
+		 * binding to the specified dispatcher.
+		 *
+		 * \note Creates an instance of agent of type \a AGENT and adds it to
+		 * the cooperation with the specified binder.
+		 *
+		 * \return pointer to the new agent.
+		 *
+		 * \tparam AGENT type of agent to be created.
+		 * \tparam ARGS type of parameters list for agent constructor.
+		 *
+		 * \par Usage sample:
+		 \code
+		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
+		 		so_5::disp::one_thread::create_private_disp();
+		 so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 // For the case of constructor like my_agent(environmen_t&).
+		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
+		 // For the case of constructor like your_agent(environment_t&, std::string).
+		 auto ya = coop->make_agent_with_binder< your_agent >( disp->binder(), "hello" );
+		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
+		 coop->make_agent_with_binder< their_agent >( disp->binder(), "bye", ya->so_direct_mbox() );
+		 \endcode
+		 */
+		template< class AGENT, typename... ARGS >
+		AGENT *
+		make_agent_with_binder(
+			//! A dispatcher binder for the new agent.
+			so_5::rt::disp_binder_unique_ptr_t binder,
+			//! Arguments to be passed to the agent's constructor.
+			ARGS &&... args )
+		{
+			auto a = std::unique_ptr< AGENT >(
+					new AGENT( environment(), std::forward<ARGS>(args)... ) );
+
+			return this->add_agent( std::move( a ), std::move( binder ) );
+		}
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t

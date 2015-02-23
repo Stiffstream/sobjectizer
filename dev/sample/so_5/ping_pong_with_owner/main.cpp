@@ -150,28 +150,22 @@ public :
 	}
 
 	virtual void so_evt_start() {
-		// Child cooperation will use active_obj dispatcher.
-		// So pinger and ponger will work on the different
-		// working threads.
-		so_environment().add_dispatcher_if_not_exists(
-			"active_obj",
-			&so_5::disp::active_obj::create_disp );
-
 		// Creation of child cooperation with pinger and ponger.
 		auto coop = so_5::rt::create_child_coop(
 				// Parent of the new cooperation.
 				*this,
 				// Cooperation name.
 				"pinger_ponger",
+				// Child cooperation will use active_obj dispatcher.
+				// So pinger and ponger will work on the different
+				// working threads.
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
-				so_5::disp::active_obj::create_disp_binder("active_obj") );
+				so_5::disp::active_obj::create_private_disp()->binder() );
 
 		// Filling the child cooperation.
-		auto a_pinger = coop->add_agent(
-				new pinger( so_environment(), so_direct_mbox() ) );
-		auto a_ponger = coop->add_agent(
-				new ponger( so_environment(), so_direct_mbox() ) );
+		auto a_pinger = coop->make_agent< pinger >( so_direct_mbox() );
+		auto a_ponger = coop->make_agent< ponger >( so_direct_mbox() );
 
 		a_pinger->set_ponger_mbox( a_ponger->so_direct_mbox() );
 		a_ponger->set_pinger_mbox( a_pinger->so_direct_mbox() );

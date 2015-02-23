@@ -353,6 +353,9 @@ create_processing_coops( so_5::rt::environment_t & env )
 
 	const std::size_t concurrent_slots = 5;
 
+	// There must be a dedicated dispatcher for collectors.
+	auto collector_disp = so_5::disp::thread_pool::create_private_disp( 2 );
+
 	int i = 0;
 	for( auto c : capacities )
 	{
@@ -360,39 +363,18 @@ create_processing_coops( so_5::rt::environment_t & env )
 
 		// There must be a dedicated dispatcher for performer from
 		// that cooperation.
-		auto disp_name = "performers_" + std::to_string(i);
-		env.add_dispatcher_if_not_exists( disp_name,
-			[concurrent_slots]{
-				return so_5::disp::adv_thread_pool::create_disp(
-						concurrent_slots );
-			} );
+		auto performer_disp = so_5::disp::adv_thread_pool::create_private_disp(
+				concurrent_slots );
 
-		auto collector = std::unique_ptr< a_collector_t >(
-				new a_collector_t(
-						env,
-						"r" + std::to_string(i),
-						c,
-						concurrent_slots ) );
+		auto collector = coop->make_agent< a_collector_t >(
+				"r" + std::to_string(i), c, concurrent_slots );
 
 		auto collector_mbox = collector->so_direct_mbox();
 		result.push_back( collector_mbox );
 
-		auto performer = std::unique_ptr< a_performer_t >(
-				new a_performer_t(
-						env,
-						"p" + std::to_string(i),
-						collector_mbox ) );
+		auto performer = coop->make_agent< a_performer_t >(
+				"p" + std::to_string(i), collector_mbox );
 		collector->set_performer_mbox( performer->so_direct_mbox() );
-
-		coop->add_agent( std::move( collector ),
-				so_5::disp::thread_pool::create_disp_binder(
-						"receivers",
-						so_5::disp::thread_pool::params_t() ) );
-
-		coop->add_agent( std::move( performer ),
-				so_5::disp::adv_thread_pool::create_disp_binder(
-						disp_name,
-						so_5::disp::adv_thread_pool::params_t() ) );
 
 		env.register_coop( std::move( coop ) );
 
@@ -407,22 +389,24 @@ init( so_5::rt::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
-	auto coop = env.create_coop( so_5::autoname,
-			so_5::disp::thread_pool::create_disp_binder(
-					"generators",
+	// A private dispatcher for generators cooperation.
+	auto generators_disp = so_5::disp::thread_pool::create_private_disp( 3 );
+	auto coop = env.create_coop(
+			so_5::autoname,
+			generators_disp->binder(
 					[]( so_5::disp::thread_pool::params_t & p ) {
 						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
 					} ) );
 
 	for( int i = 0; i != 3; ++i )
 	{
-		auto agent = std::unique_ptr< a_generator_t >( 
-				new a_generator_t( env, "g" + std::to_string(i), receivers ) );
-		coop->add_agent( std::move( agent ) );
+		coop->make_agent< a_generator_t >( "g" + std::to_string(i), receivers );
 	}
 
+	// Registration of generator will start example.
 	env.register_coop( std::move( coop ) );
 
+	// Taking some time for the agents.
 	std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
 	env.stop();
 }
@@ -431,13 +415,7 @@ int main()
 {
 	try
 	{
-		so_5::launch( init,
-				[]( so_5::rt::environment_params_t & params ) {
-					params.add_named_dispatcher( "generators",
-							so_5::disp::thread_pool::create_disp( 3 ) );
-					params.add_named_dispatcher( "receivers",
-							so_5::disp::thread_pool::create_disp( 2 ) );
-				} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

@@ -248,22 +248,17 @@ init(
 			{ BLUE, RED, YELLOW, BLUE };
 
 		auto coop = env.create_coop( "chameneos",
-				so_5::disp::active_obj::create_disp_binder(
-						"active_obj" ) );
+				so_5::disp::active_obj::create_private_disp()->binder() );
 
-		auto a_meeting_place = coop->add_agent(
-				new a_meeting_place_t(
-						env,
-						CREATURE_COUNT,
-						meetings ) );
+		auto a_meeting_place = coop->make_agent< a_meeting_place_t >(
+				CREATURE_COUNT,
+				meetings );
 		
 		for( std::size_t i = 0; i != CREATURE_COUNT; ++i )
 			{
-				coop->add_agent(
-						new a_creature_t(
-								env,
-								a_meeting_place->so_direct_mbox(),
-								creature_colors[ i ] ) );
+				coop->make_agent< a_creature_t >(
+						a_meeting_place->so_direct_mbox(),
+						creature_colors[ i ] );
 			}
 
 		env.register_coop( std::move( coop ) );
@@ -278,11 +273,6 @@ main( int argc, char ** argv )
 				[argc, argv]( so_5::rt::environment_t & env ) {
 					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
 					init( env, meetings );
-				},
-				[]( so_5::rt::environment_params_t & p ) {
-					p.add_named_dispatcher(
-							"active_obj",
-							so_5::disp::active_obj::create_disp() );
 				} );
 	}
 	catch( const std::exception & ex )

@@ -200,14 +200,13 @@ init( so_5::rt::environment_t & env )
 
 	std::vector< so_5::rt::agent_t * > forks( count, nullptr );
 	for( std::size_t i = 0; i != count; ++i )
-		forks[ i ] = coop->add_agent( new a_fork_t( env ) );
+		forks[ i ] = coop->make_agent< a_fork_t >();
 
 	for( std::size_t i = 0; i != count; ++i )
-		coop->add_agent(
-			new a_philosopher_t( env,
+		coop->make_agent< a_philosopher_t >(
 				std::to_string( i ),
 				forks[ i ]->so_direct_mbox(),
-				forks[ (i + 1) % count ]->so_direct_mbox() ) );
+				forks[ (i + 1) % count ]->so_direct_mbox() );
 
 	env.register_coop( std::move( coop ) );
 

@@ -69,7 +69,7 @@ main()
 				auto coop = env.create_coop( "ping_pong" );
 
 				// Pinger.
-				coop->add_agent( new a_pinger_t( env, mbox, 100000 ) );
+				coop->make_agent< a_pinger_t >( mbox, 100000 );
 
 				// Ponger agent.
 				coop->define_agent().event< msg_ping >(

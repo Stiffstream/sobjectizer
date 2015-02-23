@@ -100,10 +100,7 @@ class a_parent_t
 			coop->set_exception_reaction(
 					so_5::rt::deregister_coop_on_exception );
 
-			coop->add_agent(
-					new a_child_t(
-							so_environment(),
-							m_counter < m_max_counter ) );
+			coop->make_agent< a_child_t >( m_counter < m_max_counter );
 
 			std::cout << "registering coop: " << coop->query_coop_name()
 					<< std::endl;
@@ -122,7 +119,8 @@ main()
 			[]( so_5::rt::environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.register_agent_as_coop( "parent", new a_parent_t( env ) );
+				env.register_agent_as_coop( "parent",
+						env.make_agent< a_parent_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

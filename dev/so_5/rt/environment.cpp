@@ -8,7 +8,7 @@
 
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
-#include <so_5/rt/impl/h/disp_core.hpp>
+#include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 namespace so_5
@@ -157,8 +157,8 @@ struct environment_t::internals_t
 	//! An utility for agents/cooperations.
 	impl::agent_core_t m_agent_core;
 
-	//! An utility for dispatchers.
-	impl::disp_core_t m_disp_core;
+	//! A repository of dispatchers.
+	impl::disp_repository_t m_dispatchers;
 
 	//! An utility for layers.
 	impl::layer_core_t m_layer_core;
@@ -195,7 +195,7 @@ struct environment_t::internals_t
 		,	m_agent_core(
 				env,
 				params.so5__giveout_coop_listener() )
-		,	m_disp_core(
+		,	m_dispatchers(
 				params.so5__giveout_named_dispatcher_map(),
 				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
@@ -247,14 +247,14 @@ environment_t::create_local_mbox(
 dispatcher_t &
 environment_t::query_default_dispatcher()
 {
-	return m_impl->m_disp_core.query_default_dispatcher();
+	return m_impl->m_dispatchers.query_default_dispatcher();
 }
 
 dispatcher_ref_t
 environment_t::query_named_dispatcher(
 	const std::string & disp_name )
 {
-	return m_impl->m_disp_core.query_named_dispatcher( disp_name );
+	return m_impl->m_dispatchers.query_named_dispatcher( disp_name );
 }
 
 dispatcher_ref_t
@@ -262,7 +262,7 @@ environment_t::add_dispatcher_if_not_exists(
 	const std::string & disp_name,
 	std::function< dispatcher_unique_ptr_t() > disp_factory )
 {
-	return m_impl->m_disp_core.add_dispatcher_if_not_exists(
+	return m_impl->m_dispatchers.add_dispatcher_if_not_exists(
 			disp_name,
 			disp_factory );
 }
@@ -271,7 +271,7 @@ void
 environment_t::install_exception_logger(
 	event_exception_logger_unique_ptr_t logger )
 {
-	m_impl->m_disp_core.install_exception_logger( std::move( logger ) );
+	m_impl->m_dispatchers.install_exception_logger( std::move( logger ) );
 }
 
 agent_coop_unique_ptr_t
@@ -408,7 +408,7 @@ environment_t::call_exception_logger(
 	const std::exception & event_exception,
 	const std::string & coop_name )
 {
-	m_impl->m_disp_core.call_exception_logger( event_exception, coop_name );
+	m_impl->m_dispatchers.call_exception_logger( event_exception, coop_name );
 }
 
 exception_reaction_t
@@ -466,8 +466,8 @@ environment_t::impl__run_dispatcher_and_go_further()
 {
 	impl__do_run_stage(
 			"run_dispatcher",
-			[this] { m_impl->m_disp_core.start(); },
-			[this] { m_impl->m_disp_core.finish(); },
+			[this] { m_impl->m_dispatchers.start(); },
+			[this] { m_impl->m_dispatchers.finish(); },
 			[this] { impl__run_timer_and_go_further(); } );
 }
 

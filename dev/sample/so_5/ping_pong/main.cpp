@@ -104,7 +104,7 @@ run_sample(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
+						so_5::disp::active_obj::create_private_disp()->binder() :
 						so_5::rt::create_default_disp_binder() );
 
 				// Pinger agent.
@@ -126,13 +126,6 @@ run_sample(
 						[mbox]() { so_5::send< msg_pong >( mbox ); } );
 
 				env.register_coop( std::move( coop ) );
-			},
-			[&cfg]( so_5::rt::environment_params_t & p )
-			{
-				if( cfg.m_active_objects )
-					// Special dispatcher is necessary for agents.
-					p.add_named_dispatcher( "active_obj",
-						so_5::disp::active_obj::create_disp() );
 			} );
 	}
 

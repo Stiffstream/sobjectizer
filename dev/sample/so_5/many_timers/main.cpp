@@ -190,25 +190,20 @@ run_sobjectizer( const cfg_t & cfg )
 		// Initialization actions.
 		[&cfg]( so_5::rt::environment_t & env )
 		{
+			// Active object dispatcher is necessary.
 			auto coop = env.create_coop( "main",
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_5::disp::active_obj::create_private_disp()->binder() );
 
-			auto a_receiver = coop->add_agent(
-				new a_receiver_t( env, cfg.m_messages ) );
+			auto a_receiver = coop->make_agent< a_receiver_t >( cfg.m_messages );
 
-			coop->add_agent(
-				new a_sender_t( env, a_receiver->so_direct_mbox(),
-					cfg.m_messages, cfg.m_delay ) );
+			coop->make_agent< a_sender_t >(
+					a_receiver->so_direct_mbox(), cfg.m_messages, cfg.m_delay );
 
 			env.register_coop( std::move( coop ) );
 		},
 		// Parameter tuning actions.
 		[&cfg]( so_5::rt::environment_params_t & params )
 		{
-			// Active object dispatcher is necessary.
-			params.add_named_dispatcher( "active_obj",
-				so_5::disp::active_obj::create_disp() );
-
 			// Appropriate timer thread must be used.
 			so_5::timer_thread_factory_t timer = so_5::timer_wheel_factory();
 			if( cfg.m_timer_type == cfg_t::timer_type_t::list )

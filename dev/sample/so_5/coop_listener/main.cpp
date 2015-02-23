@@ -28,7 +28,7 @@ void
 init( so_5::rt::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.register_agent_as_coop( "coop", new a_hello_t( env ) );
+	env.register_agent_as_coop( "coop", env.make_agent< a_hello_t >() );
 
 	// Stopping SObjectizer.
 	env.stop();

@@ -2,6 +2,16 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_4 5.5.4
+
+	A new conception of *private dispatchers* has been introduced.
+	See \ref so_5_5_4__private_dispatchers for more details.
+
+	Methods so_5::rt::environment_t::make_agent(),
+	so_5::rt::agent_coop_t::make_agent() and
+	so_5::rt::agent_coop_t::make_agent_with_binder() have been
+	introduced. See \ref so_5_5_4__make_agent_methods for more details.
+
 \section so_5__5_3 5.5.3 "Pik Pushkin"
 
 	Support for CMake expanded also to the SObjectizer's tests.

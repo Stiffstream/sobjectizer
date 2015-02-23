@@ -38,7 +38,7 @@ set(SO_5_SRC exception.cpp
 	rt/impl/mpsc_mbox.cpp
 	rt/impl/mbox_core.cpp
 	rt/impl/agent_core.cpp
-	rt/impl/disp_core.cpp
+	rt/impl/disp_repository.cpp
 	rt/impl/layer_core.cpp
 	rt/impl/state_listener_controller.cpp
 

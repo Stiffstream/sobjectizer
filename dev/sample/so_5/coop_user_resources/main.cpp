@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <sstream>
+#include <string>
 
 // Main SObjectizer header file.
 #include <so_5/all.hpp>
@@ -135,15 +135,9 @@ class a_parent_t
 
 			for( size_t i = 0; i != m_child_count; ++i )
 			{
-				std::ostringstream s;
-				s << "a_child_" << i+1;
-
-				coop->add_agent(
-						new a_child_t(
-								so_environment(),
-								s.str(),
-								so_direct_mbox(),
-								m_logger ) );
+				coop->make_agent< a_child_t >(
+						"a_child_" + std::to_string(i+1),
+						so_direct_mbox(), m_logger );
 			}
 
 			so_environment().register_coop( std::move( coop ) );
@@ -156,7 +150,7 @@ init( so_5::rt::environment_t & env )
 {
 	auto coop = env.create_coop( "parent" );
 	auto logger = coop->take_under_control( new logger_t() );
-	coop->add_agent( new a_parent_t( env, *logger, 2 ) );
+	coop->make_agent< a_parent_t >( *logger, 2 );
 
 	env.register_coop( std::move( coop ) );
 }
