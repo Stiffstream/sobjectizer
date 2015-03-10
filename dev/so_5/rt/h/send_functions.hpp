@@ -119,7 +119,7 @@ send( const so_5::rt::mbox_t & to )
 	{
 		so_5::rt::impl::instantiator_and_sender_t<
 				MESSAGE,
-				std::is_base_of< so_5::rt::signal_t, MESSAGE >::value > helper;
+				so_5::rt::is_signal< MESSAGE >::value > helper;
 
 		helper.send( to );
 	}
@@ -231,7 +231,7 @@ send_delayed(
 	{
 		so_5::rt::impl::instantiator_and_sender_t<
 				MESSAGE,
-				std::is_base_of< so_5::rt::signal_t, MESSAGE >::value > helper;
+				so_5::rt::is_signal< MESSAGE >::value > helper;
 
 		helper.send_delayed( env, to, pause );
 	}
@@ -373,7 +373,7 @@ send_periodic(
 	{
 		so_5::rt::impl::instantiator_and_sender_t<
 				MESSAGE,
-				std::is_base_of< so_5::rt::signal_t, MESSAGE >::value > helper;
+				so_5::rt::is_signal< MESSAGE >::value > helper;
 
 		return helper.send_periodic( env, to, pause, period );
 	}

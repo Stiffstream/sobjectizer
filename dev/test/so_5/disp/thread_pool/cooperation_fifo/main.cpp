@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include <so_5/all.hpp>
+#include <so_5/h/spinlocks.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 #include <various_helpers_1/benchmark_helpers.hpp>

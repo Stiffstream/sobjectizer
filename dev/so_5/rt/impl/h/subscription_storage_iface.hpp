@@ -140,6 +140,7 @@ class subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
+			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) = 0;

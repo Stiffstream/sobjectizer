@@ -142,4 +142,8 @@
  * \example so_5/private_dispatcher_for_children/main.cpp
  */
 
+/*!
+ * \example so_5/redirect_and_transform/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

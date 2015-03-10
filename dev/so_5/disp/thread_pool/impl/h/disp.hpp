@@ -90,11 +90,14 @@ class agent_queue_t : public so_5::rt::event_queue_t
 		virtual void
 		push( so_5::rt::execution_demand_t demand )
 			{
+				std::unique_ptr< demand_t > tail_demand{
+						new demand_t( std::move( demand ) ) };
+
 				std::lock_guard< spinlock_t > lock( m_lock );
 
 				bool was_empty = (nullptr == m_head.m_next);
 
-				m_tail->m_next = new demand_t( std::move( demand ) );
+				m_tail->m_next = tail_demand.release();
 				m_tail = m_tail->m_next;
 
 				if( was_empty )

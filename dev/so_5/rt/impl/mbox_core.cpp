@@ -57,13 +57,22 @@ mbox_core_t::create_local_mbox(
 mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
+	const so_5::rt::message_limit::impl::info_storage_t * limits_storage,
 	event_queue_proxy_ref_t event_queue )
 {
-	return mbox_t(
-			new mpsc_mbox_t(
-					++m_mbox_id_counter,
-					single_consumer,
-					std::move( event_queue ) ) );
+	if( limits_storage )
+		return mbox_t(
+				new limitful_mpsc_mbox_t(
+						++m_mbox_id_counter,
+						single_consumer,
+						*limits_storage,
+						std::move( event_queue ) ) );
+	else
+		return mbox_t(
+				new limitless_mpsc_mbox_t(
+						++m_mbox_id_counter,
+						single_consumer,
+						std::move( event_queue ) ) );
 }
 
 void

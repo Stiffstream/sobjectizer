@@ -58,6 +58,8 @@ struct execution_demand_t
 {
 	//! Receiver of demand.
 	agent_t * m_receiver;
+	//! Optional message limit for that message.
+	const message_limit::control_block_t * m_limit;
 	//! ID of mbox.
 	mbox_id_t m_mbox_id;
 	//! Type of the message.
@@ -70,6 +72,7 @@ struct execution_demand_t
 	//! Default constructor.
 	execution_demand_t()
 		:	m_receiver( nullptr )
+		,	m_limit( nullptr )
 		,	m_mbox_id( 0 )
 		,	m_msg_type( typeid(void) )
 		,	m_demand_handler( nullptr )
@@ -77,11 +80,13 @@ struct execution_demand_t
 
 	execution_demand_t(
 		agent_t * receiver,
+		const message_limit::control_block_t * limit,
 		mbox_id_t mbox_id,
 		std::type_index msg_type,
 		message_ref_t message_ref,
 		demand_handler_pfn_t demand_handler )
 		:	m_receiver( receiver )
+		,	m_limit( limit )
 		,	m_mbox_id( mbox_id )
 		,	m_msg_type( msg_type )
 		,	m_message_ref( std::move( message_ref ) )
@@ -101,28 +106,31 @@ class execution_hint_t
 {
 public :
 	//! Type of function for calling event handler directly.
-	typedef std::function< void( current_thread_id_t ) > direct_func_t;
+	using direct_func_t = std::function<
+				void( execution_demand_t &, current_thread_id_t ) >;
 
 	//! Initializing constructor.
 	execution_hint_t(
+		execution_demand_t & demand,
 		direct_func_t direct_func,
 		thread_safety_t thread_safety )
-		:	m_direct_func( std::move( direct_func ) )
+		:	m_demand( demand )
+		,	m_direct_func( std::move( direct_func ) )
 		,	m_thread_safety( thread_safety )
 		{}
-
-	//! Is event handler defined for the demand?
-	operator bool() const
-		{
-			return static_cast< bool >(m_direct_func);
-		}
 
 	//! Call event handler directly.
 	void
 	exec( current_thread_id_t working_thread_id ) const
 		{
-			m_direct_func( is_thread_safe() ?
-					null_current_thread_id() : working_thread_id );
+			// If message limit is defined then message count
+			// must be decremented.
+			message_limit::control_block_t::decrement( m_demand.m_limit );
+
+			// Now demand can be handled.
+			if( m_direct_func )
+				m_direct_func( m_demand, is_thread_safe() ?
+						null_current_thread_id() : working_thread_id );
 		}
 
 	//! Is thread safe handler?
@@ -134,28 +142,43 @@ public :
 
 	//! Create execution_hint object for the case when
 	//! event handler not found.
+	/*!
+	 * This hint is necessary only for decrementing the counter of
+	 * messages if message limit is used for the message to be processed.
+	 */
 	static execution_hint_t
-	create_empty_execution_hint()
+	create_empty_execution_hint( execution_demand_t & demand )
 		{
-std::cout << "create_empty_execution_hint" << std::endl;
-			return execution_hint_t();
+			return execution_hint_t( demand );
 		}
 
 private :
+	//! A reference to demand for which that hint has been created.
+	execution_demand_t & m_demand;
+
 	//! Function for call event handler directly.
 	direct_func_t m_direct_func;
 
 	//! Thread safety for event handler.
 	thread_safety_t m_thread_safety;
 
-	//! Default constructor.
-	/*!
-	 * Useful when event handler for the demand not found.
-	 */
-	execution_hint_t()
-		:	m_direct_func()
+	//! A special constructor for the case when there is no
+	//! handler for message.
+	execution_hint_t( execution_demand_t & demand )
+		:	m_demand( demand )
+		,	m_direct_func()
 		,	m_thread_safety( thread_safe )
 		{}
+
+// Only for the unit-testing purposes!
+#if defined( SO_5__EXECUTION_HINT__UNIT_TEST )
+public :
+	//! Is event handler defined for the demand?
+	operator bool() const
+		{
+			return static_cast< bool >(m_direct_func);
+		}
+#endif
 };
 
 } /* namespace rt */

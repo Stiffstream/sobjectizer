@@ -159,6 +159,20 @@ const int rc_interception_handler_match_error = 46;
  * \brief An attempt to create illegal subscription to mpsc_mbox.
  */
 const int rc_illegal_subscriber_for_mpsc_mbox = 47;
+
+/*!
+ * \since v.5.5.4
+ * \brief An attempt to create subscription to message without
+ * predefined limit for that message type.
+ */
+const int rc_message_has_no_limit_defined = 48;
+
+/*!
+ * \since v.5.5.4
+ * \brief An attempt to define several limits for one message type.
+ */
+const int rc_several_limits_for_one_message_type = 49;
+
 //! \}
 
 //! \name Error codes for mboxes.
@@ -224,6 +238,12 @@ mbox.get_one< std::string >().wait_forever().sync_get<msg_query_state>();
 \endcode
  */
 const int rc_msg_service_request_bad_cast = 87;
+
+/*!
+ * \since v.5.5.4.
+ * \brief Unable to transform service request as part of overlimit reaction.
+ */
+const int rc_svc_request_cannot_be_transfomred_on_overlimit = 88;
 
 //! \}
 

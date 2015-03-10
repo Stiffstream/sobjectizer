@@ -14,9 +14,13 @@
 #include <so_5/h/exception.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
 
+#include <so_5/rt/h/agent_ref_fwd.hpp>
+
 #include <type_traits>
 #include <typeindex>
+#include <functional>
 #include <future>
+#include <atomic>
 
 namespace so_5
 {
@@ -83,6 +87,33 @@ class SO_5_TYPE signal_t
 };
 
 //
+// is_signal
+//
+/*!
+ * \since v.5.5.4
+ * \brief A helper class for checking that message is a signal.
+ */
+template< class T >
+struct is_signal
+	{
+		enum { value = std::is_base_of< signal_t, T >::value };
+	};
+
+//
+// is_message
+//
+/*!
+ * \since v.5.5.4
+ * \brief A helper class for checking that message is a message.
+ */
+template< class T >
+struct is_message
+	{
+		enum { value = (std::is_base_of< message_t, T >::value &&
+				!is_signal< T >::value) };
+	};
+
+//
 // ensure_not_signal
 //
 /*!
@@ -94,10 +125,7 @@ template< class MSG >
 void
 ensure_not_signal()
 {
-	static_assert( !std::is_base_of< signal_t, MSG >::value,
-			"signal_t instance cannot be used in place of"
-			" message_t instance" );
-	static_assert( std::is_base_of< message_t, MSG >::value,
+	static_assert( is_message< MSG >::value,
 			"message class must be derived from the message_t" );
 }
 
@@ -140,9 +168,53 @@ template< class MSG >
 void
 ensure_signal()
 {
-	static_assert( std::is_base_of< signal_t, MSG >::value,
+	static_assert( is_signal< MSG >::value,
 			"expected a type derived from the signal_t" );
 }
+
+namespace details
+{
+
+template< bool is_signal, typename MSG >
+struct make_message_instance_impl
+	{
+		template< typename... ARGS >
+		static std::unique_ptr< MSG >
+		make( ARGS &&... args )
+			{
+				ensure_not_signal< MSG >();
+
+				return std::unique_ptr< MSG >(
+						new MSG( std::forward< ARGS >(args)... ) );
+			}
+	};
+
+template< typename MSG >
+struct make_message_instance_impl< true, MSG >
+	{
+		static std::unique_ptr< MSG >
+		make()
+			{
+				ensure_signal< MSG >();
+
+				return std::unique_ptr< MSG >();
+			}
+	};
+
+/*!
+ * \since v.5.5.4
+ * \brief A helper for allocate instance of a message.
+ */
+template< typename MSG, typename... ARGS >
+std::unique_ptr< MSG >
+make_message_instance( ARGS &&... args )
+	{
+		return make_message_instance_impl<
+						is_signal< MSG >::value, MSG
+				>::make( std::forward< ARGS >( args )... );
+	}
+
+} /* namespace details */
 
 //
 // msg_service_request_base_t
@@ -159,6 +231,31 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		//! Setup exception information to underlying promise/future objects.
 		virtual void
 		set_exception( std::exception_ptr ex ) = 0;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper wrapper for handling exceptions during
+		 * service request dispatching.
+		 */
+		template< class LAMBDA >
+		static void
+		dispatch_wrapper(
+			const message_ref_t & what,
+			LAMBDA handler )
+		{
+			try
+			{
+				handler();
+			}
+			catch( ... )
+			{
+				msg_service_request_base_t & svc_request =
+						*(dynamic_cast< msg_service_request_base_t * >(
+								what.get() ));
+
+				svc_request.set_exception( std::current_exception() );
+			}
+		}
 };
 
 //
@@ -216,6 +313,130 @@ enum class invocation_type_t : int
 		 */
 		service_request
 	};
+
+namespace message_limit
+{
+
+struct control_block_t;
+
+/*!
+ * \since v.5.5.4
+ * \brief Description of context for overlimit action.
+ */
+struct overlimit_context_t
+	{
+		//! Receiver of the message or service request.
+		const agent_t & m_receiver;
+
+		//! Control block for message limit.
+		const control_block_t & m_limit;
+
+		//! Is it message delivery or service request delivery.
+		invocation_type_t m_event_type;
+
+		//! The current deep of overlimit reaction recursion.
+		const unsigned int m_reaction_deep;
+
+		//! Type of message to be delivered.
+		const std::type_index & m_msg_type;
+
+		//! A message or service request to be delivered.
+		const message_ref_t & m_message;
+
+		//! Initializing constructor.
+		inline
+		overlimit_context_t(
+			const agent_t & receiver,
+			const control_block_t & limit,
+			invocation_type_t event_type,
+			unsigned int reaction_deep,
+			const std::type_index & msg_type,
+			const message_ref_t & message )
+			:	m_receiver( receiver )
+			,	m_limit( limit )
+			,	m_event_type( event_type )
+			,	m_reaction_deep( reaction_deep )
+			,	m_msg_type( msg_type )
+			,	m_message( message )
+			{}
+	};
+
+//
+// action_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A type for reaction of message overlimit.
+ */
+using action_t = std::function< void(const overlimit_context_t&) >;
+
+//
+// control_block_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A control block for one message limit.
+ */
+struct control_block_t
+	{
+		//! Limit value.
+		unsigned int m_limit;
+
+		//! The current count of the messages of that type.
+		mutable std::atomic_uint m_count;
+
+		//! Limit overflow reaction.
+		action_t m_action;
+
+		//! Initializing constructor.
+		control_block_t(
+			unsigned int limit,
+			action_t action )
+			:	m_limit( limit )
+			,	m_action( std::move( action ) )
+			{
+				m_count = 0;
+			}
+
+		//! Copy constructor.
+		control_block_t(
+			const control_block_t & o )
+			:	m_limit( o.m_limit )
+			,	m_action( o.m_action )
+			{
+				m_count.store(
+						o.m_count.load( std::memory_order_acquire ),
+						std::memory_order_release );
+			}
+
+		//! Copy operator.
+		control_block_t &
+		operator=( const control_block_t & o )
+			{
+				m_limit = o.m_limit;
+				m_count.store(
+						o.m_count.load( std::memory_order_acquire ),
+						std::memory_order_release );
+				m_action = o.m_action;
+
+				return *this;
+			}
+
+		//! A special indicator about absence of control_block.
+		inline static const control_block_t *
+		none() { return nullptr; }
+
+		//! A safe decrement of message count with respect to absence of limit
+		//! for a message.
+		inline static void
+		decrement( const control_block_t * limit )
+			{
+				if( limit )
+					--(limit->m_count);
+			}
+	};
+
+} /* namespace message_limit */
 
 } /* namespace rt */
 

@@ -205,6 +205,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
+			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) override;
@@ -282,6 +283,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox_ref,
 	const std::type_index & type_index,
+	const message_limit::control_block_t * limit,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
@@ -317,7 +319,7 @@ storage_t::create_event_subscription(
 			// Mbox must create subscription.
 			try
 			{
-				mbox_ref->subscribe_event_handler( type_index, owner() );
+				mbox_ref->subscribe_event_handler( type_index, limit, owner() );
 			}
 			catch( ... )
 			{

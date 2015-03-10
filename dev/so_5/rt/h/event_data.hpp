@@ -13,8 +13,6 @@
 
 #include <so_5/rt/h/message.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-
 #include <type_traits>
 
 namespace so_5
@@ -22,8 +20,6 @@ namespace so_5
 
 namespace rt
 {
-
-class abstract_message_box_t;
 
 //! Template for the message incapsulation.
 /*!

@@ -8,15 +8,15 @@
 	\brief A proxy for event_queue pointer.
 */
 
-#if !defined( _SO_5__RT__EVENT_QUEUE_PROXY_HPP_ )
-#define _SO_5__RT__EVENT_QUEUE_PROXY_HPP_
+#pragma once
 
-#include <mutex>
-
-#include <so_5/h/spinlocks.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/rt/h/event_queue.hpp>
+
+#include <mutex>
+#include <deque>
+#include <memory>
 
 namespace so_5
 {
@@ -33,60 +33,63 @@ class event_queue_proxy_t : private atomic_refcounted_t
 		friend class intrusive_ptr_t< event_queue_proxy_t >;
 
 	public :
-		event_queue_proxy_t()
-			{
-				m_queue_ptr = nullptr;
-			}
-
 		//! Switch to the specified queue.
-		inline void
-		switch_to( event_queue_t & queue )
-			{
-				setup_queue_ptr( &queue );
-			}
+		void
+		switch_to_actual_queue(
+			//! Actual queue.
+			event_queue_t & actual_queue,
+			//! Agent for which that queue is set.
+			agent_t * agent,
+			//! Demand handler for so_evt_start event.
+			demand_handler_pfn_t start_demand_handler );
 
 		//! Shutdown proxy object.
 		/*!
 		 * \return last value of event_queue pointer.
 		 */
-		inline event_queue_t *
-		shutdown()
-			{
-				return setup_queue_ptr( nullptr );
-			}
+		event_queue_t *
+		shutdown();
 
 		//! Enqueue new event to the queue.
-		inline void
-		push( execution_demand_t demand )
-			{
-				read_lock_guard_t< default_rw_spinlock_t > l( m_lock );
-
-				event_queue_t * q = m_queue_ptr.load( std::memory_order_consume );
-				if( q )
-					q->push( std::move( demand ) );
-			}
+		void
+		push( execution_demand_t demand );
 
 	private :
 		//! Object's lock.
-		default_rw_spinlock_t m_lock;
+		std::mutex m_lock;
 
 		//! A pointer to the actual event_queue.
 		/*!
 		 * nullptr value means that event_queue is shut down.
 		 */
-		std::atomic< event_queue_t * > m_queue_ptr;
+		event_queue_t * m_actual_queue = nullptr;
 
-		//! Setup a pointer to queue.
-		inline event_queue_t *
-		setup_queue_ptr( event_queue_t * queue )
+		//! Enumeration of possible queue statuses.
+		enum class status_t
 			{
-				std::lock_guard< default_rw_spinlock_t > l( m_lock );
+				//! Queue not started yet.
+				not_started,
+				//! Queue started and pointed to the actual queue.
+				started,
+				//! Shutdowned, all new demands must be thrown out.
+				stopped
+			};
+		//! Status of the queue.
+		status_t m_status = status_t::not_started;
 
-				auto r = m_queue_ptr.load( std::memory_order_consume );
-				m_queue_ptr.store( queue, std::memory_order_release );
+		//! Type of the temporary queue.
+		using temporary_queue_t = std::deque< execution_demand_t >;
 
-				return r;
-			}
+		//! Temporary queue.
+		/*!
+		 * Created only when necessary and removed when proxy is switched
+		 * to the actual event_queue.
+		 */
+		std::unique_ptr< temporary_queue_t > m_tmp_queue;
+
+		//! Move all content of temporary queue to the actual queue.
+		void
+		move_tmp_queue_to_actual_queue();
 	};
 
 /*!
@@ -99,6 +102,4 @@ typedef intrusive_ptr_t< event_queue_proxy_t >
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

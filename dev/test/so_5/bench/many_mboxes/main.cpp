@@ -169,10 +169,7 @@ class a_worker_t
 		a_worker_t(
 			so_5::rt::environment_t & env,
 			so_5::rt::subscription_storage_factory_t subscr_storage_factory )
-			:	so_5::rt::agent_t(
-					env,
-					tuning_options().subscription_storage_factory(
-							subscr_storage_factory ) )
+			:	so_5::rt::agent_t( env + subscr_storage_factory )
 			,	m_signals_received( 0 )
 			{
 			}
@@ -199,10 +196,7 @@ class a_sender_t
 			std::size_t iterations,
 			const std::vector< so_5::rt::mbox_t > & mboxes,
 			const std::vector< a_worker_t * > & workers )
-			:	so_5::rt::agent_t(
-					env,
-					tuning_options().subscription_storage_factory(
-							subscr_storage_factory ) )
+			:	so_5::rt::agent_t( env + subscr_storage_factory )
 			,	m_common_mbox( common_mbox )
 			,	m_iterations_left( iterations )
 			,	m_mboxes( mboxes )
@@ -275,10 +269,7 @@ class a_starter_stopper_t
 			so_5::rt::environment_t & env,
 			so_5::rt::subscription_storage_factory_t subscr_storage_factory,
 			const cfg_t & cfg )
-			:	so_5::rt::agent_t(
-					env,
-					tuning_options().subscription_storage_factory(
-							subscr_storage_factory ) )
+			:	so_5::rt::agent_t( env + subscr_storage_factory )
 			,	m_subscr_storage_factory( subscr_storage_factory )
 			,	m_common_mbox( env.create_local_mbox() )
 			,	m_cfg( cfg )

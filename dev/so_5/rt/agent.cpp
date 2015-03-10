@@ -9,6 +9,7 @@
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
 
 #include <sstream>
 #include <cstdlib>
@@ -152,17 +153,26 @@ agent_t::agent_t(
 agent_t::agent_t(
 	environment_t & env,
 	agent_tuning_options_t options )
+	:	agent_t( context_t{ env, std::move( options ) } )
+{
+}
+
+agent_t::agent_t(
+	context_t ctx )
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions(
-			options.query_subscription_storage_factory()( self_ptr() ) )
-	,	m_env( env )
+			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
+	,	m_message_limits(
+			message_limit::impl::info_storage_t::create_if_necessary(
+				ctx.options().giveout_message_limits() ) )
+	,	m_env( ctx.env() )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
-	,	m_tmp_event_queue( m_mutex )
 	,	m_direct_mbox(
-			env.so5__create_mpsc_mbox(
+			ctx.env().so5__create_mpsc_mbox(
 				self_ptr(),
+				m_message_limits.get(),
 				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
@@ -170,7 +180,6 @@ agent_t::agent_t(
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
 {
-	m_event_queue_proxy->switch_to( m_tmp_event_queue );
 }
 
 agent_t::~agent_t()
@@ -297,7 +306,7 @@ agent_t::so_was_defined() const
 }
 
 environment_t &
-agent_t::so_environment()
+agent_t::so_environment() const
 {
 	return m_env;
 }
@@ -310,31 +319,10 @@ agent_t::so_bind_to_dispatcher(
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
 
-	m_tmp_event_queue.switch_to_actual_queue(
+	m_event_queue_proxy->switch_to_actual_queue(
 			queue,
 			this,
 			&agent_t::demand_handler_on_start );
-
-	// Proxy must be switched on unblocked agent.
-	// Otherwise there could be a deadlock when direct mbox is used.
-	// Scenario:
-	//
-	// T1:
-	//  - is trying to send message to the agent;
-	//  - event_queue_proxy spinlock is locked in 'reader' mode;
-	//  - tmp_queue.push is called;
-	//  - tmp_queue.push is trying to acquire agent's mutex;
-	// T2:
-	//  - is trying to bind agent to the dispatcher;
-	//  - tmp_queue.switch_to_actual_queue is called;
-	//  - agent's mutex is acquired;
-	//  - an attempt to switch proxy to actual queue is performed;
-	//  - is trying to acquire proxy's spinlock if 'writer' mode.
-	//
-	// Becuase of that m_event_queue_proxy->switch_to is now called
-	// outside of m_tmp_event_queue.switch_to_actual_queue().
-	//
-	m_event_queue_proxy->switch_to( queue );
 }
 
 execution_hint_t
@@ -359,26 +347,32 @@ agent_t::so_create_execution_hint(
 				{
 					if( handler )
 						return execution_hint_t(
-								[&d, handler]( current_thread_id_t thread_id ) {
+								d,
+								[handler](
+										execution_demand_t & demand,
+										current_thread_id_t thread_id ) {
 									process_message(
 											thread_id,
-											d,
+											demand,
 											handler->m_method );
 								},
 								handler->m_thread_safety );
 					else
 						// Handler not found.
-						return execution_hint_t::create_empty_execution_hint();
+						return execution_hint_t::create_empty_execution_hint( d );
 				}
 			else
 				// There must be a special hint for service requests
 				// because absence of service handler processed by
 				// different way than absence of event handler.
 				return execution_hint_t(
-						[&d, handler]( current_thread_id_t thread_id ) {
+						d,
+						[handler](
+								execution_demand_t & demand,
+								current_thread_id_t thread_id ) {
 							process_service_request(
 									thread_id,
-									d,
+									demand,
 									std::make_pair( true, handler ) );
 						},
 						handler ? handler->m_thread_safety :
@@ -390,8 +384,10 @@ agent_t::so_create_execution_hint(
 	else
 		// This is demand_handler_on_start or demand_handler_on_finish.
 		return execution_hint_t(
-				[&d]( current_thread_id_t thread_id ) {
-						d.m_demand_handler( thread_id, d );
+				d,
+				[]( execution_demand_t & demand,
+					current_thread_id_t thread_id ) {
+					demand.m_demand_handler( thread_id, demand );
 				},
 				not_thread_safe );
 }
@@ -432,13 +428,14 @@ agent_t::shutdown_agent()
 	// the agent, but all the subscriptions remains. They will be destroyed
 	// at the very end of agent's lifetime.
 
-	// e must shutdown proxy object. And only then
+	// We must shutdown proxy object. And only then
 	// the last demand will be sent to the agent.
 	auto q = m_event_queue_proxy->shutdown();
 	if( q )
 		q->push(
 				execution_demand_t(
 						this,
+						message_limit::control_block_t::none(),
 						0,
 						typeid(void),
 						message_ref_t(),
@@ -456,35 +453,10 @@ agent_t::shutdown_agent()
 	}
 }
 
-namespace
-{
-	template< class S >
-	bool is_known_mbox_msg_pair(
-		S & s,
-		typename S::iterator it )
-	{
-		if( it != s.begin() )
-		{
-			typename S::iterator prev = it;
-			++prev;
-			if( it->first.is_same_mbox_msg_pair( prev->first ) )
-				return true;
-		}
-
-		typename S::iterator next = it;
-		++next;
-		if( next != s.end() )
-			return it->first.is_same_mbox_msg_pair( next->first );
-
-		return false;
-	}
-
-} /* namespace anonymous */
-
 void
 agent_t::create_event_subscription(
 	const mbox_t & mbox_ref,
-	std::type_index type_index,
+	std::type_index msg_type,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
@@ -499,7 +471,32 @@ agent_t::create_event_subscription(
 		return;
 
 	m_subscriptions->create_event_subscription(
-			mbox_ref, type_index, target_state, method, thread_safety );
+			mbox_ref,
+			msg_type,
+			detect_limit_for_message_type( msg_type ),
+			target_state,
+			method,
+			thread_safety );
+}
+
+const message_limit::control_block_t *
+agent_t::detect_limit_for_message_type(
+	const std::type_index & msg_type ) const
+{
+	const message_limit::control_block_t * result = nullptr;
+
+	if( m_message_limits )
+	{
+		result = m_message_limits->find( msg_type );
+		if( !result )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_message_has_no_limit_defined,
+					std::string( "an attempt to subscribe to message type without "
+					"predefined limit for that type, type: " ) +
+					msg_type.name() );
+	}
+
+	return result;
 }
 
 void
@@ -534,6 +531,7 @@ agent_t::do_drop_subscription_for_all_states(
 
 void
 agent_t::push_event(
+	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,
 	const message_ref_t & message )
@@ -541,6 +539,7 @@ agent_t::push_event(
 	m_event_queue_proxy->push(
 			execution_demand_t(
 				this,
+				limit,
 				mbox_id,
 				msg_type,
 				message,
@@ -549,6 +548,7 @@ agent_t::push_event(
 
 void
 agent_t::push_service_request(
+	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,
 	const message_ref_t & message )
@@ -556,6 +556,7 @@ agent_t::push_service_request(
 	m_event_queue_proxy->push(
 			execution_demand_t(
 					this,
+					limit,
 					mbox_id,
 					msg_type,
 					message,
@@ -626,6 +627,8 @@ agent_t::demand_handler_on_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	message_limit::control_block_t::decrement( d.m_limit );
+
 	auto handler = d.m_receiver->m_subscriptions->find_handler(
 			d.m_mbox_id,
 			d.m_msg_type, 
@@ -645,6 +648,8 @@ agent_t::service_request_handler_on_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	message_limit::control_block_t::decrement( d.m_limit );
+
 	static const impl::event_handler_data_t * const null_handler_data = nullptr;
 
 	process_service_request(

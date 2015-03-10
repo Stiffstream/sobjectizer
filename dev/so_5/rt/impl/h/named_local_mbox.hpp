@@ -54,19 +54,10 @@ class named_local_mbox_t
 		virtual mbox_id_t
 		id() const override;
 
-		void
-		deliver_message(
-			const std::type_index & type_wrapper,
-			const message_ref_t & message_ref ) const override;
-
-		virtual void
-		deliver_service_request(
-			const std::type_index & type_index,
-			const message_ref_t & svc_request_ref ) const override;
-
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
+			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override;
 
 		virtual void
@@ -79,6 +70,18 @@ class named_local_mbox_t
 
 		virtual mbox_type_t
 		type() const override;
+
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
 
 	private:
 		//! Mbox name.

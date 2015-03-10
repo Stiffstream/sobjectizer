@@ -31,18 +31,21 @@ MxxRu::Cpp::dll_target {
 
 		cpp_source( 'message.cpp' )
 
+		cpp_source 'message_limit.cpp'
+
 		cpp_source( 'mbox.cpp' )
 
-		cpp_source( 'event_queue.cpp' )
-		cpp_source( 'temporary_event_queue.cpp' )
-		cpp_source( 'event_exception_logger.cpp' )
+		cpp_source 'event_queue.cpp'
+		cpp_source 'event_queue_proxy.cpp'
 
-		cpp_source( 'agent.cpp' )
-		cpp_source( 'agent_state_listener.cpp' )
+		cpp_source 'event_exception_logger.cpp'
+
+		cpp_source 'agent.cpp'
+		cpp_source 'agent_state_listener.cpp'
 		cpp_source 'adhoc_agent_wrapper.cpp'
 
-		cpp_source( 'agent_coop.cpp' )
-		cpp_source( 'agent_coop_notifications.cpp' )
+		cpp_source 'agent_coop.cpp'
+		cpp_source 'agent_coop_notifications.cpp'
 
 		cpp_source 'environment.cpp'
 

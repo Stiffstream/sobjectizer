@@ -29,17 +29,6 @@ namespace so_5
 namespace rt
 {
 
-namespace impl
-{
-
-class message_consumer_link_t;
-class named_local_mbox_t;
-
-} /* namespace impl */
-
-class agent_t;
-class environment_t;
-
 template< class RESULT >
 class service_invoke_proxy_t;
 
@@ -373,28 +362,42 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		//! Deliver message for all subscribers.
 		/*!
 		 * \note This method is public since v.5.4.0.
+		 *
+		 * \note This is a just a wrapper for do_deliver_message
+		 * since v.5.5.4.
 		 */
-		virtual void
+		inline void
 		deliver_message(
-			const std::type_index & type_index,
-			const message_ref_t & message_ref ) const = 0;
+			const std::type_index & msg_type,
+			const message_ref_t & message ) const
+			{
+				this->do_deliver_message( msg_type, message, 1 );
+			}
 
 		/*!
 		 * \since v.5.3.0.
 		 * \brief Deliver service request.
+		 *
+		 * \note This is a just a wrapper for do_deliver_service_request
+		 * since v.5.5.4.
 		 */
-		virtual void
+		inline void
 		deliver_service_request(
 			//! This is type_index for service PARAM type.
-			const std::type_index & type_index,
+			const std::type_index & msg_type,
 			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
-			const message_ref_t & svc_request_ref ) const = 0;
+			const message_ref_t & message ) const
+			{
+				this->do_deliver_service_request( msg_type, message, 1 );
+			}
 
 		//! Add the message handler.
 		virtual void
 		subscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
+			//! Optional message limit for that message type.
+			const message_limit::control_block_t * limit,
 			//! Agent-subcriber.
 			agent_t * subscriber ) = 0;
 
@@ -431,6 +434,33 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Deliver message for all subscribers with respect to message
+		 * limits.
+		 */
+		virtual void
+		do_deliver_message(
+			//! Type of the message to deliver.
+			const std::type_index & msg_type,
+			//! A message instance to be delivered.
+			const message_ref_t & message,
+			//! Current deep of overlimit reaction recursion.
+			unsigned int overlimit_reaction_deep ) const = 0;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Deliver service request.
+		 */
+		virtual void
+		do_deliver_service_request(
+			//! This is type_index for service PARAM type.
+			const std::type_index & msg_type,
+			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
+			const message_ref_t & message,
+			//! Current deep of overlimit reaction recursion.
+			unsigned int overlimit_reaction_deep ) const = 0;
 };
 
 template< class MESSAGE >

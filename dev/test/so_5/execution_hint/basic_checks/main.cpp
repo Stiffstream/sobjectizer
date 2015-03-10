@@ -1,6 +1,7 @@
 /*
  * Test for basic operations with execution hints.
  */
+#define SO_5__EXECUTION_HINT__UNIT_TEST
 
 #include <utest_helper_1/h/helper.hpp>
 
@@ -70,6 +71,7 @@ UT_UNIT_TEST( no_handlers )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
@@ -83,6 +85,7 @@ UT_UNIT_TEST( no_handlers )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
@@ -96,6 +99,7 @@ UT_UNIT_TEST( no_handlers )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
@@ -109,6 +113,7 @@ UT_UNIT_TEST( no_handlers )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
@@ -139,6 +144,7 @@ UT_UNIT_TEST( event_handler )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				agent.so_direct_mbox()->id(),
 				typeid(msg_signal),
 				message_ref_t(),
@@ -159,6 +165,7 @@ UT_UNIT_TEST( event_handler )
 	{
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				agent.so_direct_mbox()->id(),
 				typeid(msg_thread_safe_signal),
 				message_ref_t(),
@@ -196,6 +203,7 @@ UT_UNIT_TEST( service_handler )
 
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				agent.so_direct_mbox()->id(),
 				typeid(msg_get_status),
 				msg,
@@ -226,6 +234,7 @@ UT_UNIT_TEST( service_handler )
 
 		execution_demand_t demand(
 				&agent,
+				message_limit::control_block_t::none(),
 				agent.so_direct_mbox()->id(),
 				typeid(msg_get_status),
 				msg,

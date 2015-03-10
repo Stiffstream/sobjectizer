@@ -23,12 +23,13 @@
 
 #include <so_5/h/exception.hpp>
 
+#include <so_5/details/h/lambda_traits.hpp>
+
 #include <so_5/rt/h/agent_ref_fwd.hpp>
-#include <so_5/rt/h/agent_tuning_options.hpp>
+#include <so_5/rt/h/agent_context.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
-#include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
 
@@ -414,8 +415,8 @@ class subscription_bind_t
 	would be prohibited after agent registration.
 */
 class SO_5_TYPE agent_t
-	:
-		private atomic_refcounted_t
+	:	private atomic_refcounted_t
+	,	public message_limit::message_limit_methods_mixin_t
 {
 		friend class subscription_bind_t;
 		friend class intrusive_ptr_t< agent_t >;
@@ -425,6 +426,12 @@ class SO_5_TYPE agent_t
 		friend class so_5::rt::impl::mpsc_mbox_t;
 
 	public:
+		/*!
+		 * \since v.5.5.4
+		 * \brief Short alias for agent_context.
+		 */
+		using context_t = so_5::rt::agent_context_t;
+
 		//! Constructor.
 		/*!
 			Agent must be bound to the SObjectizer Environment during
@@ -456,6 +463,37 @@ class SO_5_TYPE agent_t
 		agent_t(
 			environment_t & env,
 			agent_tuning_options_t tuning_options );
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Constructor which simplifies agent construction with
+		 * or without agent's tuning options.
+		 *
+		 * \par Usage sample:
+		 * \code
+		 class my_agent : public so_5::rt::agent_t
+		 {
+		 public :
+		 	my_agent( context_t ctx )
+				:	so_5::rt::agent( ctx + limit_then_drop< get_status >(1) )
+				{}
+			...
+		 };
+		 class my_more_specific_agent : public my_agent
+		 {
+		 public :
+		 	my_more_specific_agent( context_t ctx )
+				:	my_agent( ctx + limit_then_drop< reconfigure >(1) )
+				{}
+		 };
+
+		 // Then somewhere in the code:
+		 auto coop = env.create_coop( so_5::autoname );
+		 auto a = coop->make_agent< my_agent >();
+		 auto b = coop->make_agent< my_more_specific_agent >();
+		 * \endcode
+		 */
+		agent_t( context_t ctx );
 
 		virtual ~agent_t();
 
@@ -634,11 +672,12 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
+			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
 			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_event( mbox_id, msg_type, message );
+			agent.push_event( limit, mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -648,11 +687,12 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_service_request(
 			agent_t & agent,
+			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
 			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_service_request( mbox_id, msg_type, message );
+			agent.push_service_request( limit, mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -1106,7 +1146,7 @@ class SO_5_TYPE agent_t
 			\endcode
 		*/
 		environment_t &
-		so_environment();
+		so_environment() const;
 
 		/*!
 		 * \since v.5.4.0
@@ -1210,12 +1250,6 @@ class SO_5_TYPE agent_t
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
 
-		/*!
-		 * \since v.5.4.0
-		 * \brief A mutex for protecting that agent.
-		 */
-		std::mutex m_mutex;
-
 		//! Agent definition flag.
 		/*!
 		 * Set to true after a successful return from the so_define_agent().
@@ -1232,6 +1266,21 @@ class SO_5_TYPE agent_t
 		 */
 		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Run-time information for message limits.
+		 *
+		 * Created only of message limits are described in agent's
+		 * tuning options.
+		 *
+		 * \attention This attribute must be initialized before the
+		 * \a m_direct_mbox attribute. It is because the value of
+		 * \a m_message_limits is used in \a m_direct_mbox creation.
+		 * Because of that \a m_message_limits is declared before
+		 * \a m_direct_mbox.
+		 */
+		std::unique_ptr< message_limit::impl::info_storage_t > m_message_limits;
+
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
 
@@ -1239,22 +1288,12 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief Event queue proxy.
 		 *
-		 * After creation of agent it is pointed to m_tmp_event_queue.
-		 *
 		 * After binding to the dispatcher is it pointed to the actual
 		 * event queue.
 		 *
 		 * After shutdown it is closed.
 		 */
 		event_queue_proxy_ref_t m_event_queue_proxy;
-
-		/*!
-		 * \since v.5.4.0
-		 * \brief Temporary event queue.
-		 *
-		 * This queue is used while agent is not bound to the dispatcher.
-		 */
-		temporary_event_queue_t m_tmp_event_queue;
 
 		/*!
 		 * \since v.5.4.0
@@ -1334,6 +1373,19 @@ class SO_5_TYPE agent_t
 			thread_safety_t thread_safety );
 
 		/*!
+		 * \since v.5.5.4
+		 * \brief Detect limit for that message type.
+		 *
+		 * \return nullptr if message limits are not used.
+		 *
+		 * \throw exception_t if message limits are used but the limit
+		 * for that message type is not found.
+		 */
+		const message_limit::control_block_t *
+		detect_limit_for_message_type(
+			const std::type_index & msg_type ) const;
+
+		/*!
 		 * \since v.5.2.3
 		 * \brief Remove subscription for the state specified.
 		 */
@@ -1368,6 +1420,8 @@ class SO_5_TYPE agent_t
 		//! Push event into the event queue.
 		void
 		push_event(
+			//! Optional message limit.
+			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.
@@ -1381,6 +1435,8 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		push_service_request(
+			//! Optional message limit.
+			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.
@@ -1597,63 +1653,7 @@ get_actual_service_request_pointer(
 namespace promise_result_setting_details
 {
 
-template< typename M >
-struct message_type_only
-	{
-		typedef typename std::remove_cv<
-				typename std::remove_reference< M >::type >::type type;
-	};
-
-template< typename L >
-struct lambda_traits
-	: 	public lambda_traits< decltype(&L::operator()) >
-	{};
-
-template< class L, class R, class M >
-struct lambda_traits< R (L::*)(M) const >
-	{
-		typedef R result_type;
-		typedef typename message_type_only< M >::type argument_type;
-
-		static R call_with_arg( L l, M m )
-			{
-				return l(m);
-			}
-	};
-
-template< class L, class R, class M >
-struct lambda_traits< R (L::*)(M) >
-	{
-		typedef R result_type;
-		typedef typename message_type_only< M >::type argument_type;
-
-		static R call_with_arg( L l, M m )
-			{
-				return l(m);
-			}
-	};
-
-template< class L, class R >
-struct lambda_traits< R (L::*)() const >
-	{
-		typedef R result_type;
-
-		static R call_without_arg( L l )
-			{
-				return l();
-			}
-	};
-
-template< class L, class R >
-struct lambda_traits< R (L::*)() >
-	{
-		typedef R result_type;
-
-		static R call_without_arg( L l )
-			{
-				return l();
-			}
-	};
+using namespace so_5::details::lambda_traits;
 
 template< class RESULT >
 struct result_setter_t
@@ -1697,7 +1697,7 @@ struct result_setter_t
 			LAMBDA l,
 			const PARAM & msg )
 			{
-				to.set_value( lambda_traits< LAMBDA >::call_with_arg( l, msg ) );
+				to.set_value( traits< LAMBDA >::call_with_arg( l, msg ) );
 			}
 
 		template< class LAMBDA >
@@ -1706,7 +1706,7 @@ struct result_setter_t
 			std::promise< RESULT > & to,
 			LAMBDA l )
 			{
-				to.set_value( lambda_traits< LAMBDA >::call_without_arg( l ) );
+				to.set_value( traits< LAMBDA >::call_without_arg( l ) );
 			}
 	};
 
@@ -1755,7 +1755,7 @@ struct result_setter_t< void >
 			LAMBDA l,
 			const PARAM & msg )
 			{
-				lambda_traits< LAMBDA >::call_with_arg( l, msg );
+				traits< LAMBDA >::call_with_arg( l, msg );
 				to.set_value();
 			}
 
@@ -1765,7 +1765,7 @@ struct result_setter_t< void >
 			std::promise< void > & to,
 			LAMBDA l )
 			{
-				lambda_traits< LAMBDA >::call_without_arg( l );
+				traits< LAMBDA >::call_without_arg( l );
 				to.set_value();
 			}
 	};
@@ -1920,7 +1920,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 	using namespace promise_result_setting_details;
 
-	typedef lambda_traits< LAMBDA > TRAITS;
+	typedef traits< LAMBDA > TRAITS;
 	typedef typename TRAITS::result_type RESULT;
 	typedef typename TRAITS::argument_type MESSAGE;
 
@@ -1970,7 +1970,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 	using namespace promise_result_setting_details;
 
-	typedef lambda_traits< LAMBDA > TRAITS;
+	typedef traits< LAMBDA > TRAITS;
 	typedef typename TRAITS::result_type RESULT;
 
 	auto method = [lambda](

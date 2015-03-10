@@ -16,6 +16,7 @@
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/message_limit.hpp>
 
 namespace so_5
 {
@@ -27,22 +28,25 @@ namespace impl
 {
 
 //
-// mpsc_mbox_t
+// limitless_mpsc_mbox_t
 //
 
 /*!
  * \since v.5.4.0
  * \brief A multi-producer/single-consumer mbox definition.
+ *
+ * \note Since v.5.5.4 is used for implementation of direct mboxes
+ * without controling message limits.
  */
-class mpsc_mbox_t : public abstract_message_box_t
+class limitless_mpsc_mbox_t : public abstract_message_box_t
 {
 	public:
-		explicit mpsc_mbox_t(
+		limitless_mpsc_mbox_t(
 			mbox_id_t id,
 			agent_t * single_consumer,
 			event_queue_proxy_ref_t event_queue );
 
-		virtual ~mpsc_mbox_t();
+		virtual ~limitless_mpsc_mbox_t();
 
 		virtual mbox_id_t
 		id() const override
@@ -50,19 +54,10 @@ class mpsc_mbox_t : public abstract_message_box_t
 				return m_id;
 			}
 
-		void
-		deliver_message(
-			const std::type_index & msg_type,
-			const message_ref_t & message_ref ) const override;
-
-		virtual void
-		deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & svc_request_ref ) const override;
-
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
+			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override;
 
 		virtual void
@@ -79,7 +74,19 @@ class mpsc_mbox_t : public abstract_message_box_t
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
-	private:
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+	protected :
 		/*!
 		 * \brief ID of this mbox.
 		 */
@@ -90,6 +97,47 @@ class mpsc_mbox_t : public abstract_message_box_t
 
 		//! Event queue for the single consumer.
 		event_queue_proxy_ref_t m_event_queue;
+};
+
+//
+// limitful_mpsc_mbox_t
+//
+
+/*!
+ * \since v.5.5.4
+ * \brief A multi-producer/single-consumer mbox with message limit
+ * control.
+ *
+ * \attention Stores a reference to message limits storage. Because of that
+ * this reference must remains correct till the end of the mbox's lifetime.
+ */
+class limitful_mpsc_mbox_t : public limitless_mpsc_mbox_t
+{
+	public:
+		limitful_mpsc_mbox_t(
+			mbox_id_t id,
+			agent_t * single_consumer,
+			//! This reference must remains correct till the end of
+			//! the mbox's lifetime.
+			const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
+			event_queue_proxy_ref_t event_queue );
+
+		virtual ~limitful_mpsc_mbox_t();
+
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+	private :
+		const so_5::rt::message_limit::impl::info_storage_t & m_limits;
 };
 
 } /* namespace impl */

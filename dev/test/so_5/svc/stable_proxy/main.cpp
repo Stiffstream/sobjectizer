@@ -42,26 +42,30 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 			}
 
 		virtual void
-		deliver_message(
+		do_deliver_message(
 			const std::type_index &,
-			const so_5::rt::message_ref_t & ) const
+			const so_5::rt::message_ref_t &,
+			unsigned int ) const override
 			{
 				// DO NOTHING FOR THAT TEST
 			}
 
 		virtual void
-		deliver_service_request(
+		do_deliver_service_request(
 			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & svc_request_ref ) const
+			const so_5::rt::message_ref_t & svc_request_ref,
+			unsigned int overlimit_reaction_deep ) const override
 			{
-				m_actual_mbox->deliver_service_request(
+				m_actual_mbox->do_deliver_service_request(
 						type_index,
-						svc_request_ref );
+						svc_request_ref,
+						overlimit_reaction_deep );
 			}
 
 		virtual void
 		subscribe_event_handler(
 			const std::type_index &,
+			const so_5::rt::message_limit::control_block_t *,
 			so_5::rt::agent_t * )
 			{
 				// DO NOTHING FOR THAT TEST
