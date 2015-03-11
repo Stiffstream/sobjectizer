@@ -3,34 +3,15 @@
  * transformation for processing of message peaks.
  */
 
-#include <iostream>
-#include <random>
-#include <deque>
 #include <chrono>
-#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <deque>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 #include <so_5/all.hpp>
-
-// Helper class with fatilities to random numbers generation.
-class random_generator_mixin_t
-{
-public :
-	random_generator_mixin_t()
-	{
-		m_random_engine.seed( std::hash<decltype(this)>()(this) );
-	}
-
-	int
-	random( int l, int h )
-	{
-		return std::uniform_int_distribution<>( l, h )( m_random_engine );
-	}
-
-private :
-	// Engine for random values generation.
-	std::default_random_engine m_random_engine;
-};
 
 // A request to be processed.
 struct request : public so_5::rt::message_t
@@ -120,8 +101,7 @@ private :
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::rt::agent_t,
-	private random_generator_mixin_t
+class a_generator_t : public so_5::rt::agent_t
 {
 public :
 	a_generator_t(
@@ -187,20 +167,11 @@ private :
 	// Last generated ID for request.
 	int m_last_id;
 
-	// Type of map from request ID to the request.
-	typedef std::map< int, request_smart_ptr_t > request_map_t;
-
-	// Request which were send but the replies form them are not received yet.
-	request_map_t m_active_requests;
-
 	void
 	evt_next_turn()
 	{
-		// Create new requests if there is a room in active_requests.
-		try_create_new_requests( 7u );
-
-		// Active requests must be sent (for the first time or repeated).
-		send_active_requests();
+		// Create and send new requests.
+		generate_new_requests( random( 5, 8 ) );
 
 		// Wait for next turn and process replies.
 		so_5::send_delayed_to_agent< msg_next_turn >( *this, m_turn_pause );
@@ -212,33 +183,27 @@ private :
 		so_5::send< log_message >( m_logger,
 				m_name + ": reply received(" + std::to_string( evt.m_id ) +
 				"), processed:" + std::to_string( evt.m_processed ) );
-
-		// Remove request only if it was successfully processed.
-		// If not it will be resent on the next turn.
-		if( evt.m_processed )
-			m_active_requests.erase( evt.m_id );
 	}
 
 	void
-	try_create_new_requests( unsigned int requests )
+	generate_new_requests( int requests )
 	{
-		while( m_active_requests.size() < requests )
+		for(; requests > 0; --requests )
 		{
 			auto id = ++m_last_id;
-			m_active_requests[ id ] = request_smart_ptr_t(
-					new request( so_direct_mbox(), id, random( 30, 100 ) ) );
+
+			so_5::send< log_message >( m_logger,
+					m_name + ": sending request(" + std::to_string( id ) + ")" );
+
+			so_5::send< request >( m_performer,
+					so_direct_mbox(), id, random( 30, 100 ) );
 		}
 	}
 
-	void
-	send_active_requests()
+	static int
+	random( int l, int h )
 	{
-		for( auto & r : m_active_requests )
-		{
-			so_5::send< log_message >( m_logger,
-					m_name + ": sending request(" + std::to_string( r.first ) + ")" );
-			m_performer->deliver_message( r.second );
-		}
+		return l + (std::rand() % (h-l));
 	}
 };
 
@@ -256,6 +221,7 @@ public :
 	a_performer_t(
 		context_t ctx,
 		std::string name,
+		float slowdown,
 		last_performer,
 		so_5::rt::mbox_t logger )
 		:	so_5::rt::agent_t( ctx
@@ -268,6 +234,7 @@ public :
 								evt.m_id, false );
 					} ) )
 		,	m_name( std::move( name ) )
+		,	m_slowdown( slowdown )
 		,	m_logger( std::move( logger ) )
 	{}
 
@@ -275,6 +242,7 @@ public :
 	a_performer_t(
 		context_t ctx,
 		std::string name,
+		float slowdown,
 		next_performer next,
 		so_5::rt::mbox_t logger )
 		:	so_5::rt::agent_t( ctx
@@ -284,6 +252,7 @@ public :
 				+ limit_then_redirect< request >( 3,
 					[next] { return next.m_target; } ) )
 		,	m_name( std::move( name ) )
+		,	m_slowdown( slowdown )
 		,	m_logger( std::move( logger ) )
 	{}
 
@@ -295,19 +264,24 @@ public :
 
 private :
 	const std::string m_name;
+	const float m_slowdown;
 	const so_5::rt::mbox_t m_logger;
 
 	void
 	evt_request( const request & evt )
 	{
+		// Processing time is depend on speed of the performer.
+		auto processing_time = static_cast< int >(
+				m_slowdown * evt.m_payload );
+
 		so_5::send< log_message >( m_logger,
 				m_name + ": processing request(" +
 				std::to_string( evt.m_id ) + ") for " +
-				std::to_string( evt.m_payload ) + "ms" );
+				std::to_string( processing_time ) + "ms" );
 
 		// Imitation of some intensive processing.
 		std::this_thread::sleep_for(
-				std::chrono::milliseconds( evt.m_payload ) );
+				std::chrono::milliseconds( processing_time ) );
 
 		// Generator must receive a reply for the request.
 		so_5::send< reply >( evt.m_reply_to, evt.m_id, true );
@@ -317,6 +291,8 @@ private :
 void
 init( so_5::rt::environment_t & env )
 {
+	std::srand( std::time(nullptr) );
+
 	auto coop = env.create_coop( so_5::autoname );
 
 	// Logger will work on the default dispatcher.
@@ -332,16 +308,19 @@ init( so_5::rt::environment_t & env )
 	auto p3 = coop->make_agent_with_binder< a_performer_t >(
 			performer_disp->binder( performer_binding_params ),
 			"p3",
+			1.4, // Each performer in chain is slower then previous.
 			a_performer_t::last_performer{},
 			logger->so_direct_mbox() );
 	auto p2 = coop->make_agent_with_binder< a_performer_t >(
 			performer_disp->binder( performer_binding_params ),
 			"p2",
+			1.2, // Each performer in chain is slower then previous.
 			a_performer_t::next_performer{ p3->so_direct_mbox() },
 			logger->so_direct_mbox() );
 	auto p1 = coop->make_agent_with_binder< a_performer_t >(
 			performer_disp->binder( performer_binding_params ),
 			"p1",
+			1.0, // The first performer is the fastest one.
 			a_performer_t::next_performer{ p2->so_direct_mbox() },
 			logger->so_direct_mbox() );
 
