@@ -126,7 +126,7 @@ class a_generator_t : public so_5::rt::agent_t,
 public :
 	a_generator_t(
 		// Environment to work in.
-		so_5::rt::environment_t & env,
+		context_t ctx,
 		// Name of generator.
 		std::string name,
 		// Starting value for request ID generation.
@@ -135,10 +135,10 @@ public :
 		so_5::rt::mbox_t performer,
 		// Address of logger.
 		so_5::rt::mbox_t logger )
-		:	so_5::rt::agent_t( env
-				  // Expect no more than just one next_turn signal.
+		:	so_5::rt::agent_t( ctx
+				// Expect no more than just one next_turn signal.
 				+ limit_then_drop< msg_next_turn >( 1 )
-				  // Limit the quantity of non-processed replies in the queue.
+				// Limit the quantity of non-processed replies in the queue.
 				+ limit_then_transform( 10,
 					// All replies which do not fit to message queue
 					// will be transformed to log_messages and sent

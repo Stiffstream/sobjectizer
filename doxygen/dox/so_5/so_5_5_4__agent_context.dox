@@ -1,0 +1,157 @@
+/*!
+
+\page so_5_5_4__agent_context so-5.5.4: Another constructor for agent_t with context_t argument
+
+Since v.5.5.3 there is a possibility to tune agent options. For example, if it
+is required to change subscription storage for an agent it could be written as:
+
+\code
+class my_agent_with_many_subscriptions : public so_5::rt::agent_t
+{
+public :
+    my_agent_with_many_subscriptions(
+        so_5::rt::environment_t & env,
+        some_agent_specific_params params )
+        :    so_5::rt::agent_t(
+                // Passing env to the parent.
+                env,
+                // Passing agent options to the parent.
+                tuning_options().subscription_storage_factory(
+                    so_5::rt::hash_table_based_subscription_factory() ) )
+        ,    ...
+    {...}
+    ...
+};
+\endcode
+
+But what if we want to create a derived class from
+`my_agent_with_many_subscriptions` and specify additional agent's options in
+the constructor of the derived class? How can we do that?
+
+The only way for that in v.5.5.3 was the definition of another constructor for
+base class. That constructor must receive so_5::rt::agent_tuning_options_t
+object:
+
+\code
+// Our base class.
+class my_agent_with_many_subscriptions : public so_5::rt::agent_t
+{
+public :
+    // Constructor for the case when there are no additional options.
+    my_agent_with_many_subscriptions(
+        so_5::rt::environment_t & env,
+        some_agent_specific_params params )
+        :   // Delegate work to different constructor.
+            my_agent_with_many_subscriptions(
+                env,
+                // Default tuning options.
+                tuning_options(),
+                // Other arguments...
+                params )
+    {}
+
+    // Constructor for the case when there are some additional options.
+    my_agent_with_many_subscriptions(
+        so_5::rt::environment_t & env,
+        so_5::rt::agent_tuning_options_t options,
+        some_agent_specific_params params )
+        :    so_5::rt::agent_t(
+                // Passing env to the parent.
+                env,
+                // Passing agent options to the parent.
+                options.subscription_storage_factory(
+                    so_5::rt::hash_table_based_subscription_factory() ) )
+        ,    ...
+    {...}
+    ...
+};
+
+// Our derived class.
+class my_agent_with_limits : public my_agent_with_many_subscriptions
+{
+public :
+    my_agent_with_limits(
+        so_5::rt::environment_t & env,
+        some_agent_specific_params params )
+        :   my_agent_with_many_subscriptions(
+                env,
+                // Our part of agent options.
+                tuning_options().message_limits(
+                    limit_then_drop< request_one >( 100 ),
+                    limit_then_drop< request_two >( 100 ),
+                    ... ),
+                params )
+        {...}
+    ...
+};
+\endcode
+
+But this approach requires definition of yet another constructor for an agent.
+And yet another constructor of agent of derived class and so on. And the
+definition of another constructor in base class is not always possible if that
+class is coming from 3rd-party library and we don't want to patch the library
+source code.
+
+Version 5.5.4 provides the solution for that problem.
+
+Since v.5.5.4 it is possible to define agent's constructors which accept
+argument of the type `so_5::rt::agent_t::context_t` (which is an alias for
+`so_5::rt::agent_context_t`). This type can be seen as a pair of
+reference to SObjectizer Environment object and so_5::rt::agent_tuning_option_t
+object.  The context_t instance can be used instead of environment_t reference.
+It allows to write like this:
+
+\code
+// Our base class.
+class my_agent_with_many_subscriptions : public so_5::rt::agent_t
+{
+public :
+    // Constructor for both cases: either there are additional options or not.
+    my_agent_with_many_subscriptions(
+        context_t ctx,
+        some_agent_specific_params params )
+        :   // Delegate work to different constructor.
+            my_agent_with_many_subscriptions(
+                // Tune our agent by adding appropriate factory.
+                ctx + so_5::rt::hash_table_based_subscription_factory() ) )
+        ,    ...
+    {...}
+    ...
+};
+
+// Our derived class.
+class my_agent_with_limits : public my_agent_with_many_subscriptions
+{
+public :
+    my_agent_with_limits(
+        context_t ctx,
+        some_agent_specific_params params )
+        :   my_agent_with_many_subscriptions(
+                // Our part of agent options.
+                ctx + limit_then_drop< request_one >( 100 )
+                    + limit_then_drop< request_two >( 100 )
+                    + ...,
+                params )
+        {...}
+    ...
+};
+\endcode
+
+Please note two important features of `context_t`:
+
+- because this type is defined inside `so_5::rt::agent_t` it is possible to use
+  short form (e.g. `context_t` instead of `so_5::rt::agent_t::context_t` or
+  `so_5::rt::agent_context_t`) inside any class derived from
+  `so_5::rt::agent_t`;
+- helper methods like `agent_coop_t::make()` and `environment_t::make()` will
+  work with agent classes for those the first argument of a constructor has
+  type `context_t`. It is because `context_t` is implicitly constructed from
+  reference to `environment_t`.
+
+Because of that the usage of `context_t` instead `environment_t` is recommended
+since v.5.5.4.
+
+*/
+
+// vim:ft=cpp
+
