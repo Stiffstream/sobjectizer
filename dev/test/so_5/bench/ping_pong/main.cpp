@@ -13,17 +13,13 @@ using namespace std::chrono;
 
 struct	cfg_t
 {
-	unsigned int	m_request_count;
+	unsigned int	m_request_count = 1000;
 
-	bool	m_active_objects;
+	bool	m_active_objects = false;
 
-	bool	m_direct_mboxes;
+	bool	m_direct_mboxes = false;
 
-	cfg_t()
-		:	m_request_count( 1000 )
-		,	m_active_objects( false )
-		,	m_direct_mboxes( false )
-		{}
+	bool	m_message_limits = false;
 };
 
 cfg_t
@@ -45,6 +41,7 @@ try_parse_cmdline(
 							"-a, --active-objects agents should be active objects\n"
 							"-r, --requests       count of requests to send\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
+							"-l, --message-limits use message limits for agents\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -53,6 +50,8 @@ try_parse_cmdline(
 				tmp_cfg.m_active_objects = true;
 			else if( is_arg( *current, "-d", "--direct-mboxes" ) )
 				tmp_cfg.m_direct_mboxes = true;
+			else if( is_arg( *current, "-l", "--message-limits" ) )
+				tmp_cfg.m_message_limits = true;
 			else if( is_arg( *current, "-r", "--requests" ) )
 				mandatory_arg_to_value(
 						tmp_cfg.m_request_count, ++current, last,
@@ -80,10 +79,10 @@ class a_pinger_t
 	
 	public :
 		a_pinger_t(
-			so_5::rt::environment_t & env,
+			context_t ctx,
 			const cfg_t & cfg,
 			measure_result_t & measure_result )
-			:	base_type_t( env )
+			:	base_type_t( prepare_context( ctx, cfg ) )
 			,	m_cfg( cfg )
 			,	m_measure_result( measure_result )
 			,	m_requests_sent( 0 )
@@ -143,6 +142,15 @@ class a_pinger_t
 			{
 				m_ponger_mbox->deliver_signal< msg_data >();
 			}
+
+		static context_t
+		prepare_context( context_t ctx, const cfg_t & cfg )
+			{
+				if( cfg.m_message_limits )
+					return ctx + limit_then_abort< msg_data >( 1 );
+				else
+					return ctx;
+			}
 	};
 
 class a_ponger_t
@@ -152,8 +160,9 @@ class a_ponger_t
 	
 	public :
 		a_ponger_t(
-			so_5::rt::environment_t & env )
-			:	base_type_t( env )
+			context_t ctx,
+			const cfg_t & cfg )
+			:	base_type_t( prepare_context( ctx, cfg ) )
 			{}
 
 		void
@@ -184,6 +193,15 @@ class a_ponger_t
 	private :
 		so_5::rt::mbox_t m_self_mbox;
 		so_5::rt::mbox_t m_pinger_mbox;
+
+		static context_t
+		prepare_context( context_t ctx, const cfg_t & cfg )
+			{
+				if( cfg.m_message_limits )
+					return ctx + limit_then_abort< msg_data >( 1 );
+				else
+					return ctx;
+			}
 	};
 
 void
@@ -193,6 +211,7 @@ show_cfg(
 		std::cout << "Configuration: "
 			<< "active objects: " << ( cfg.m_active_objects ? "yes" : "no" )
 			<< ", direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
+			<< ", limits: " << ( cfg.m_message_limits ? "yes" : "no" )
 			<< ", requests: " << cfg.m_request_count
 			<< std::endl;
 	}
@@ -235,8 +254,8 @@ class test_env_t
 
 				auto coop = env.create_coop( "test", std::move(binder) );
 
-				auto a_pinger = new a_pinger_t( env, m_cfg, m_result );
-				auto a_ponger = new a_ponger_t( env );
+				auto a_pinger = coop->make_agent< a_pinger_t >( m_cfg, m_result );
+				auto a_ponger = coop->make_agent< a_ponger_t >( m_cfg );
 
 				auto pinger_mbox = m_cfg.m_direct_mboxes ?
 						a_pinger->so_direct_mbox() : env.create_local_mbox();
@@ -248,9 +267,6 @@ class test_env_t
 
 				a_ponger->set_self_mbox( ponger_mbox );
 				a_ponger->set_pinger_mbox( pinger_mbox );
-
-				coop->add_agent( a_pinger );
-				coop->add_agent( a_ponger );
 
 				env.register_coop( std::move( coop ) );
 			}
