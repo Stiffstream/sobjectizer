@@ -1,7 +1,8 @@
-SObjectizer is a framework for agent-oriented programming in C++. From one
-side, SObjectizer is a set of rules and principles for designing programms in
-agent-oriented style. On other side SObjectizer provides set of C++ classes for
-implementing agents.
+SObjectizer is a framework for agent-oriented programming in C++ (like Theron 
+or C++ Actor Framework (CAF) for C++ and Akka for Java). From one side, 
+SObjectizer is a set of rules and principles for designing programms in
+agent-oriented style. On other side SObjectizer provides set of C++ classes 
+for agents implementation.
 
 Obtaining and building
 ======================
