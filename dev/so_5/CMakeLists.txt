@@ -6,15 +6,17 @@ if(WIN32)
 endif()
 
 set(SO_5_SRC exception.cpp
+	exception.cpp
 	current_thread_id.cpp
 	atomic_refcounted.cpp
 	error_logger.cpp
 	timers.cpp
 	rt/nonempty_name.cpp
 	rt/message.cpp
+	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/event_queue.cpp
-	rt/temporary_event_queue.cpp
+	rt/event_queue_proxy.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
 	rt/agent_state_listener.cpp
