@@ -74,10 +74,10 @@ class storage_t : public subscription_storage_t
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
-			const state_t & current_state ) const;
+			const state_t & current_state ) const override;
 
 		void
-		debug_dump( std::ostream & to ) const;
+		debug_dump( std::ostream & to ) const override;
 
 		void
 		drop_content() override;

@@ -678,6 +678,9 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::wait_for_service_invoke_pro
 	,	m_timeout( timeout )
 	{}
 
+/*!
+ * \brief Helper functions for implementation of %wait_for_service_invoke_proxy_t class.
+ */
 namespace wait_for_service_invoke_proxy_details
 {
 	template< class RESULT, class DURATION, class FUTURE >

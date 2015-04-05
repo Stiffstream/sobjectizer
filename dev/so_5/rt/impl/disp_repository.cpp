@@ -11,6 +11,8 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -25,9 +27,11 @@ namespace impl
 //
 
 disp_repository_t::disp_repository_t(
+	environment_t & env,
 	named_dispatcher_map_t named_dispatcher_map,
 	event_exception_logger_unique_ptr_t logger )
 	:
+		m_env( env ),
 		m_default_dispatcher( so_5::disp::one_thread::create_disp() ),
 		m_named_dispatcher_map( std::move( named_dispatcher_map ) ),
 		m_event_exception_logger( std::move( logger ) ),
@@ -87,15 +91,12 @@ disp_repository_t::add_dispatcher_if_not_exists(
 	dispatcher_ref_t new_dispatcher = disp_factory();
 	auto insert_result = m_named_dispatcher_map.emplace(
 			disp_name, new_dispatcher );
-	try
-	{
-		new_dispatcher->start();
-	}
-	catch( ... )
-	{
-		m_named_dispatcher_map.erase( insert_result.first );
-		throw;
-	}
+	so_5::details::do_with_rollback_on_exception(
+		[&] {
+			new_dispatcher->set_data_sources_name_base( disp_name );
+			new_dispatcher->start( m_env );
+		},
+		[&] { m_named_dispatcher_map.erase( insert_result.first ); } );
 
 	return new_dispatcher;
 }
@@ -106,14 +107,16 @@ disp_repository_t::start()
 	std::lock_guard< default_rw_spinlock_t > lock( m_lock );
 	if( state_t::not_started == m_state )
 	{
-		m_default_dispatcher->start();
+		m_default_dispatcher->set_data_sources_name_base( "DEFAULT" );
+		m_default_dispatcher->start( m_env );
 
 		auto it = m_named_dispatcher_map.begin();
 		auto it_end = m_named_dispatcher_map.end();
 
 		for( ; it != it_end; ++it )
 		{
-			it->second->start();
+			it->second->set_data_sources_name_base( it->first );
+			it->second->start( m_env );
 		}
 
 		m_state = state_t::started;

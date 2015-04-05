@@ -9,9 +9,18 @@
 #include <algorithm>
 
 #include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/h/send_functions.hpp>
+
+#include <so_5/details/h/rollback_on_exception.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
+#include <so_5/rt/stats/h/messages.hpp>
+#include <so_5/rt/stats/h/std_names.hpp>
 
 namespace so_5
 {
@@ -24,6 +33,9 @@ namespace active_group
 
 namespace impl
 {
+
+namespace work_thread = so_5::disp::reuse::work_thread;
+namespace stats = so_5::rt::stats;
 
 namespace
 {
@@ -56,18 +68,18 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
-
-		//! Launch the dispatcher.
 		virtual void
-		start();
+		start( so_5::rt::environment_t & env ) override;
 
-		//! Send a signal about shutdown to the dispatcher.
 		virtual void
-		shutdown();
+		shutdown() override;
 
-		//! Wait for the full stop of the dispatcher.
 		virtual void
-		wait();
+		wait() override;
+
+		virtual void
+		set_data_sources_name_base(
+			const std::string & name_base ) override;
 		//! \}
 
 		/*!
@@ -95,20 +107,21 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		release_thread_for_group( const std::string & group_name );
 
 	private:
+		friend class disp_data_source_t;
+
 		//! Auxiliary class for the working agent counting.
 		struct thread_with_refcounter_t
-		{
-			thread_with_refcounter_t(
-				so_5::disp::reuse::work_thread::work_thread_shptr_t thread,
-				unsigned int user_agent )
-				:
-					m_thread( std::move( thread ) ),
-					m_user_agent( user_agent)
-			{}
+			{
+				thread_with_refcounter_t(
+					work_thread::work_thread_shptr_t thread,
+					unsigned int user_agent )
+					:	m_thread( std::move( thread ) )
+					,	m_user_agent( user_agent)
+					{}
 
-			so_5::disp::reuse::work_thread::work_thread_shptr_t m_thread;
-			unsigned int m_user_agent;
-		};
+				work_thread::work_thread_shptr_t m_thread;
+				unsigned int m_user_agent;
+			};
 
 		//! Typedef for mapping from group names to a single thread
 		//! dispatcher.
@@ -116,6 +129,90 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				std::string,
 				thread_with_refcounter_t >
 			active_group_map_t;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Data source for run-time monitoring of whole dispatcher.
+		 */
+		class disp_data_source_t : public stats::manually_registered_source_t
+			{
+				//! Dispatcher to work with.
+				dispatcher_t & m_dispatcher;
+
+				//! Basic prefix for data sources.
+				stats::prefix_t m_base_prefix;
+
+			public :
+				disp_data_source_t( dispatcher_t & disp )
+					:	m_dispatcher( disp )
+					{}
+
+				virtual void
+				distribute( const so_5::rt::mbox_t & mbox )
+					{
+						std::lock_guard< std::mutex > lock{ m_dispatcher.m_lock };
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								stats::suffix_disp_active_group_count(),
+								m_dispatcher.m_groups.size() );
+
+						std::size_t agent_count = 0;
+						for( const auto & p : m_dispatcher.m_groups )
+							{
+								distribute_value_for_work_thread(
+										mbox,
+										p.first,
+										p.second );
+
+								agent_count += p.second.m_user_agent;
+							}
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								stats::suffix_agent_count(),
+								agent_count );
+					}
+
+				void
+				set_data_sources_name_base(
+					const std::string & name_base )
+					{
+						using namespace so_5::disp::reuse;
+
+						m_base_prefix = make_disp_prefix(
+								"ag", // ao -- active_groups
+								name_base,
+								&m_dispatcher );
+					}
+
+			private:
+				void
+				distribute_value_for_work_thread(
+					const so_5::rt::mbox_t & mbox,
+					const std::string & group_name,
+					const thread_with_refcounter_t & wt )
+					{
+						std::ostringstream ss;
+						ss << m_base_prefix.c_str() << "/wt-" << group_name;
+
+						const stats::prefix_t prefix{ ss.str() };
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								prefix,
+								stats::suffix_agent_count(),
+								wt.m_user_agent );
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								prefix,
+								stats::suffix_work_thread_queue_size(),
+								wt.m_thread->demands_count() );
+					}
+			};
 
 		//! A map of dispatchers for active groups.
 		active_group_map_t m_groups;
@@ -125,6 +222,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		//! This object lock.
 		std::mutex m_lock;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Data source for run-time monitoring.
+		 */
+		disp_data_source_t m_data_source;
 
 		/*!
 		 * \since v.5.5.4
@@ -139,127 +242,148 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::disp::reuse::work_thread::work_thread_shptr_t
 		search_and_try_remove_group_from_map(
 			const std::string & group_name );
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Just a helper method for getting reference to itself.
+		 */
+		dispatcher_t &
+		self()
+			{
+				return *this;
+			}
 };
 
 dispatcher_t::dispatcher_t()
-{
-}
+	:	m_data_source( self() )
+	{
+	}
 
 void
-dispatcher_t::start()
-{
-	std::lock_guard< std::mutex > lock( m_lock );
-	m_shutdown_started = false;
-}
+dispatcher_t::start( so_5::rt::environment_t & env )
+	{
+		std::lock_guard< std::mutex > lock( m_lock );
+
+		m_data_source.start( env.stats_repository() );
+
+		so_5::details::do_with_rollback_on_exception(
+			[this] { m_shutdown_started = false; },
+			[this] { m_data_source.stop(); } );
+	}
 
 template< class T >
 void
 call_shutdown( T & v )
-{
-	v.second.m_thread->shutdown();
-}
+	{
+		v.second.m_thread->shutdown();
+	}
 
 void
 dispatcher_t::shutdown()
-{
-	std::lock_guard< std::mutex > lock( m_lock );
+	{
+		std::lock_guard< std::mutex > lock( m_lock );
 
-	// Starting shutdown process.
-	// New groups will not be created. But old groups remain.
-	m_shutdown_started = true;
+		// Starting shutdown process.
+		// New groups will not be created. But old groups remain.
+		m_shutdown_started = true;
 
-	std::for_each(
-		m_groups.begin(),
-		m_groups.end(),
-		call_shutdown< active_group_map_t::value_type > );
-}
+		std::for_each(
+			m_groups.begin(),
+			m_groups.end(),
+			call_shutdown< active_group_map_t::value_type > );
+	}
 
 template< class T >
 void
 call_wait( T & v )
-{
-	v.second.m_thread->wait();
-}
+	{
+		v.second.m_thread->wait();
+	}
 
 void
 dispatcher_t::wait()
-{
-	std::for_each(
-		m_groups.begin(),
-		m_groups.end(),
-		call_wait< active_group_map_t::value_type > );
-}
+	{
+		std::for_each(
+			m_groups.begin(),
+			m_groups.end(),
+			call_wait< active_group_map_t::value_type > );
+
+		m_data_source.stop();
+	}
+
+void
+dispatcher_t::set_data_sources_name_base(
+	const std::string & name_base )
+	{
+		m_data_source.set_data_sources_name_base( name_base );
+	}
 
 so_5::rt::event_queue_t *
 dispatcher_t::query_thread_for_group( const std::string & group_name )
-{
-	std::lock_guard< std::mutex > lock( m_lock );
-
-	if( m_shutdown_started )
-		throw so_5::exception_t(
-			"shutdown was initiated",
-			rc_disp_create_failed );
-
-	auto it = m_groups.find( group_name );
-
-	// If there is a thread for an active group it should be returned.
-	if( m_groups.end() != it )
 	{
-		++(it->second.m_user_agent);
-		return it->second.m_thread->get_agent_binding();
+		std::lock_guard< std::mutex > lock( m_lock );
+
+		if( m_shutdown_started )
+			throw so_5::exception_t(
+				"shutdown was initiated",
+				rc_disp_create_failed );
+
+		auto it = m_groups.find( group_name );
+
+		// If there is a thread for an active group it should be returned.
+		if( m_groups.end() != it )
+			{
+				++(it->second.m_user_agent);
+				return it->second.m_thread->get_agent_binding();
+			}
+
+		// New thread should be created.
+		using namespace so_5::disp::reuse::work_thread;
+
+		work_thread_shptr_t thread( new work_thread_t() );
+		thread->start();
+
+		so_5::details::do_with_rollback_on_exception(
+				[&] {
+					m_groups.insert(
+							active_group_map_t::value_type(
+									group_name,
+									thread_with_refcounter_t( thread, 1 ) ) );
+				},
+				[&thread] { shutdown_and_wait( *thread ); } );
+
+		return thread->get_agent_binding();
 	}
-
-	// New thread should be created.
-	using namespace so_5::disp::reuse::work_thread;
-
-	work_thread_shptr_t thread( new work_thread_t() );
-	thread->start();
-
-	try
-	{
-		m_groups.insert(
-				active_group_map_t::value_type(
-						group_name,
-						thread_with_refcounter_t( thread, 1 ) ) );
-	}
-	catch( ... )
-	{
-		shutdown_and_wait( *thread );
-		throw;
-	}
-
-	return thread->get_agent_binding();
-}
 
 void
 dispatcher_t::release_thread_for_group( const std::string & group_name )
-{
-	auto thread = search_and_try_remove_group_from_map( group_name );
-	if( thread )
-		shutdown_and_wait( *thread );
-}
+	{
+		auto thread = search_and_try_remove_group_from_map( group_name );
+		if( thread )
+			shutdown_and_wait( *thread );
+	}
 
 so_5::disp::reuse::work_thread::work_thread_shptr_t
 dispatcher_t::search_and_try_remove_group_from_map(
 	const std::string & group_name )
-{
-	so_5::disp::reuse::work_thread::work_thread_shptr_t result;
-
-	std::lock_guard< std::mutex > lock( m_lock );
-
-	if( !m_shutdown_started )
 	{
-		auto it = m_groups.find( group_name );
+		so_5::disp::reuse::work_thread::work_thread_shptr_t result;
 
-		if( m_groups.end() != it && 0 == --(it->second.m_user_agent) )
-		{
-			result = it->second.m_thread;
-			m_groups.erase( it );
-		}
+		std::lock_guard< std::mutex > lock( m_lock );
+
+		if( !m_shutdown_started )
+			{
+				auto it = m_groups.find( group_name );
+
+				if( m_groups.end() != it && 0 == --(it->second.m_user_agent) )
+					{
+						result = it->second.m_thread;
+						m_groups.erase( it );
+					}
+			}
+
+		return result;
 	}
-
-	return result;
-}
 
 //
 // binding_actions_t
@@ -282,21 +406,17 @@ class binding_actions_t
 			{
 				auto ctx = disp.query_thread_for_group( m_group_name );
 
-				try
-				{
-					so_5::rt::disp_binding_activator_t activator =
-						[agent, ctx]() {
-							agent->so_bind_to_dispatcher( *ctx );
-						};
-
-					return activator;
-				}
-				catch( ... )
-				{
-					// Dispatcher for the agent should be removed.
-					disp.release_thread_for_group( m_group_name );
-					throw;
-				}
+				return so_5::details::do_with_rollback_on_exception(
+						[&] {
+							return so_5::rt::disp_binding_activator_t {
+								[agent, ctx]() {
+									agent->so_bind_to_dispatcher( *ctx );
+								} };
+						},
+						[&] {
+							// Dispatcher for the agent should be removed.
+							disp.release_thread_for_group( m_group_name );
+						} );
 			}
 
 		void
@@ -336,7 +456,7 @@ class disp_binder_t
 				using so_5::rt::disp_binding_activator_t;
 				using namespace so_5::disp::reuse;
 
-				return do_with_dispatcher< disp_binding_activator_t, dispatcher_t >(
+				return do_with_dispatcher< dispatcher_t >(
 					env,
 					m_disp_name,
 					[this, agent]( dispatcher_t & disp )
@@ -353,7 +473,7 @@ class disp_binder_t
 			{
 				using namespace so_5::disp::reuse;
 
-				do_with_dispatcher< void, dispatcher_t >( env, m_disp_name,
+				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
 					[this]( dispatcher_t & disp )
 					{
 						do_unbind( disp );
@@ -430,10 +550,16 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		/*!
 		 * Constructor creates a dispatcher instance and launces it.
 		 */
-		real_private_dispatcher_t()
+		real_private_dispatcher_t(
+			//! SObjectizer Environment to work in.
+			so_5::rt::environment_t & env,
+			//! Value for creating names of data sources for
+			//! run-time monitoring.
+			const std::string & data_sources_name_base )
 			:	m_disp( new dispatcher_t() )
 			{
-				m_disp->start();
+				m_disp->set_data_sources_name_base( data_sources_name_base );
+				m_disp->start( env );
 			}
 
 		/*!
@@ -479,10 +605,13 @@ create_disp()
 // create_private_disp
 //
 SO_5_FUNC private_dispatcher_handle_t
-create_private_disp()
+create_private_disp(
+	so_5::rt::environment_t & env,
+	const std::string & data_sources_name_base )
 	{
 		return private_dispatcher_handle_t(
-				new impl::real_private_dispatcher_t() );
+				new impl::real_private_dispatcher_t(
+						env, data_sources_name_base ) );
 	}
 
 //

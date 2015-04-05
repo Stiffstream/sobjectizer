@@ -41,7 +41,7 @@ class local_mbox_t : public abstract_message_box_t
 		virtual ~local_mbox_t();
 
 		virtual mbox_id_t
-		id() const
+		id() const override
 			{
 				return m_id;
 			}

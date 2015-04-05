@@ -22,4 +22,7 @@
 
 #include <so_5/h/chrono_helpers.hpp>
 
+#include <so_5/rt/stats/h/std_names.hpp>
+#include <so_5/rt/stats/h/messages.hpp>
+
 #endif

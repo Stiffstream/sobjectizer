@@ -175,7 +175,10 @@ create_disp()
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( 16 );
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp(
+	env,
+	16,
+	"req_processors" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -185,8 +188,37 @@ auto coop = env.create_coop( so_5::autoname,
  */
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
 	//! Count of working threads.
-	std::size_t thread_count );
+	std::size_t thread_count,
+	//! Value for creating names of data sources for
+	//! run-time monitoring.
+	const std::string & data_sources_name_base );
+
+/*!
+ * \since v.5.5.4
+ * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env, 16 );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private adv_thread_pool dispatcher.
+	private_disp->binder( so_5::disp::adv_thread_pool::params_t{} ) );
+\endcode
+ */
+inline private_dispatcher_handle_t
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
+	//! Count of working threads.
+	std::size_t thread_count )
+	{
+		return create_private_disp( env, thread_count, std::string() );
+	}
 
 //
 // create_private_disp
@@ -198,7 +230,7 @@ create_private_disp(
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::adv_thread_pool::create_private_disp();
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -207,9 +239,14 @@ auto coop = env.create_coop( so_5::autoname,
 \endcode
  */
 inline private_dispatcher_handle_t
-create_private_disp()
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env )
 	{
-		return create_private_disp( default_thread_pool_size() );
+		return create_private_disp(
+				env,
+				default_thread_pool_size(),
+				std::string() );
 	}
 
 //

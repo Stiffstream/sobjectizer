@@ -32,6 +32,9 @@
 
 #include <so_5/h/timers.hpp>
 
+#include <so_5/rt/stats/h/controller.hpp>
+#include <so_5/rt/stats/h/repository.hpp>
+
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
 	#pragma warning(disable: 4251)
@@ -1221,7 +1224,7 @@ class SO_5_TYPE environment_t
 		 auto a1 = env.make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
 		 auto a2 = env.make_agent< your_agent >( "hello" );
-		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
+		 // For the case of constructor like their_agent(environment_t&, std::string, mbox_t).
 		 auto a3 = env.make_agent< their_agent >( "bye", a2->so_direct_mbox() );
 		 \endcode
 		 */
@@ -1232,6 +1235,20 @@ class SO_5_TYPE environment_t
 			return std::unique_ptr< AGENT >(
 					new AGENT( *this, std::forward<ARGS>(args)... ) );
 		}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Access to controller of run-time monitoring.
+		 */
+		stats::controller_t &
+		stats_controller();
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Access to repository of data sources for run-time monitoring.
+		 */
+		stats::repository_t &
+		stats_repository();
 
 		/*!
 		 * \name Methods for internal use inside SObjectizer.
@@ -1321,6 +1338,14 @@ class SO_5_TYPE environment_t
 		 * \name Implementation details related to run/stop functionality.
 		 * \{
 		 */
+		/*!
+		 * \since v.5.5.4
+		 * \brief Run controller for run-time monitoring
+		 * and call next run stage.
+		 */
+		void
+		impl__run_stats_controller_and_go_further();
+
 		/*!
 		 * \brief Run layers and call next run stage.
 		 */

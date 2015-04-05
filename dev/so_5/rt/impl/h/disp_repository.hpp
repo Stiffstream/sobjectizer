@@ -37,6 +37,7 @@ class disp_repository_t
 {
 	public:
 		disp_repository_t(
+			environment_t & env,
 			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
@@ -90,6 +91,12 @@ class disp_repository_t
 			const std::string & coop_name );
 
 	private:
+		/*!
+		 * \since v.5.5.4
+		 * \brief SObjectizer Environment to work in.
+		 */
+		environment_t & m_env;
+
 		//! Default dispatcher.
 		dispatcher_unique_ptr_t m_default_dispatcher;
 

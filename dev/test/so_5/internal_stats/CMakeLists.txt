@@ -1,0 +1,6 @@
+add_subdirectory(simple_turn_on)
+add_subdirectory(simple_coop_count)
+add_subdirectory(simple_named_mbox_count)
+add_subdirectory(simple_timer_thread)
+
+add_subdirectory(all_dispatchers)

@@ -61,7 +61,9 @@ create_disp();
  *
  * \par Usage sample
 \code
-auto one_thread_disp = so_5::disp::one_thread::create_private_disp();
+auto one_thread_disp = so_5::disp::one_thread::create_private_disp(
+	env,
+	"file_handler" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -70,7 +72,32 @@ auto coop = env.create_coop( so_5::autoname,
 \endcode
  */
 SO_5_FUNC private_dispatcher_handle_t
-create_private_disp();
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
+	//! Value for creating names of data sources for
+	//! run-time monitoring.
+	const std::string & data_sources_name_base );
+
+/*!
+ * \since v.5.5.4
+ * \brief Create a private %one_thread dispatcher.
+ *
+ * \par Usage sample
+\code
+auto one_thread_disp = so_5::disp::one_thread::create_private_disp( env );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private one_thread dispatcher.
+	one_thread_disp->binder() );
+\endcode
+ */
+inline private_dispatcher_handle_t
+create_private_disp( so_5::rt::environment_t & env )
+	{
+		return create_private_disp( env, std::string() );
+	}
 
 //! Create a dispatcher binder object.
 SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t

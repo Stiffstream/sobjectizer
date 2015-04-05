@@ -109,6 +109,14 @@ demand_queue_t::clear()
 	m_demands.clear();
 }
 
+std::size_t
+demand_queue_t::demands_count()
+{
+	queue_lock_guard_t lock( m_lock );
+
+	return m_demands.size();
+}
+
 //
 // work_thread_t
 //
@@ -149,6 +157,13 @@ work_thread_t::get_agent_binding()
 	return &event_queue();
 }
 
+std::size_t
+work_thread_t::demands_count()
+{
+	return m_demands_count.load( std::memory_order_acquire ) +
+			m_queue.demands_count();
+}
+
 void
 work_thread_t::body()
 {
@@ -178,6 +193,11 @@ inline void
 work_thread_t::serve_demands_block(
 	demand_container_t & demands )
 {
+	// Because demands count will be requested from different
+	// thread we need to set up demands counter and decrement it
+	// after processing of every demand.
+	m_demands_count.store( demands.size(), std::memory_order_release );
+
 	while( !demands.empty() )
 	{
 		auto & demand = demands.front();
@@ -185,6 +205,7 @@ work_thread_t::serve_demands_block(
 		(*demand.m_demand_handler)( m_thread_id, demand );
 
 		demands.pop_front();
+		--m_demands_count;
 	}
 }
 

@@ -92,6 +92,14 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
+mbox_core_stats_t
+mbox_core_t::query_stats()
+{
+	std::lock_guard< std::mutex > lock{ m_dictionary_lock };
+
+	return mbox_core_stats_t{ m_named_mboxes_dictionary.size() };
+}
+
 mbox_t
 mbox_core_t::create_named_mbox(
 	const nonempty_name_t & nonempty_name,

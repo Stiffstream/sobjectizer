@@ -226,6 +226,17 @@ class actual_thread_t : public timer_thread_t
 						} );
 			}
 
+		virtual timer_thread_stats_t
+		query_stats() override
+			{
+				auto d = m_thread->get_timer_quantities();
+
+				return timer_thread_stats_t{
+						d.m_single_shot_count,
+						d.m_periodic_count
+					};
+			}
+
 	private :
 		std::unique_ptr< TIMER_THREAD > m_thread;
 	};

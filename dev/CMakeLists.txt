@@ -4,7 +4,7 @@ option(BUILD_ALL      "Enable building examples and tests [default: OFF]" OFF)
 option(BUILD_EXAMPLES "Enable building examples [default: OFF]"           OFF)
 option(BUILD_TESTS    "Enable building tests    [default: OFF]"           OFF)
 
-set(SO_5_VERSION 5.5.3)
+set(SO_5_VERSION 5.5.4)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" 
      OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"

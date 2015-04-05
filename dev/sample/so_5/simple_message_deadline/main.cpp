@@ -344,7 +344,7 @@ create_coop( so_5::rt::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
-	auto disp = create_private_disp( 3 );
+	auto disp = create_private_disp( env, 3 );
 	auto c = env.create_coop( so_5::autoname,
 			disp->binder( params_t{}.fifo( fifo_t::individual ) ) );
 

@@ -8,6 +8,8 @@
 
 #include <so_5/rt/h/environment.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -272,10 +274,10 @@ deregistration_processor_t::initiate_abort_on_exception(
 agent_core_t::agent_core_t(
 	environment_t & so_environment,
 	coop_listener_unique_ptr_t coop_listener )
-	:
-		m_so_environment( so_environment ),
-		m_deregistration_started( false ),
-		m_coop_listener( std::move( coop_listener ) )
+	:	m_so_environment( so_environment )
+	,	m_deregistration_started( false )
+	,	m_total_agent_count{ 0 }
+	,	m_coop_listener( std::move( coop_listener ) )
 {
 }
 
@@ -413,14 +415,14 @@ bool
 agent_core_t::final_deregister_coop(
 	const std::string coop_name )
 {
-	info_for_dereg_notification_t notification_info;
+	final_remove_result_t remove_result;
 
 	bool need_signal_dereg_finished;
 	bool ret_value = false;
 	{
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
-		notification_info = finaly_remove_cooperation_info( coop_name );
+		remove_result = finaly_remove_cooperation_info( coop_name );
 
 		// If we are inside shutdown process and this is the last
 		// cooperation then a special flag should be set.
@@ -431,12 +433,15 @@ agent_core_t::final_deregister_coop(
 				!m_deregistered_coop.empty();
 	}
 
+	// Cooperation must be destroyed.
+	remove_result.m_coop.reset();
+
 	if( need_signal_dereg_finished )
 		m_deregistration_finished_cond.notify_one();
 
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
-			notification_info );
+			remove_result.m_notifications );
 
 	return ret_value;
 }
@@ -473,11 +478,9 @@ agent_core_t::deregister_all_coop()
 {
 	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
-	for( auto it = m_registered_coop.begin(), it_end = m_registered_coop.end();
-			it != it_end;
-			++it )
+	for( auto & info : m_registered_coop )
 		agent_coop_private_iface_t::do_deregistration_specific_actions(
-				*(it->second),
+				*(info.second),
 				coop_dereg_reason_t( dereg_reason::shutdown ) );
 			
 	m_deregistered_coop.insert(
@@ -506,6 +509,18 @@ environment_t &
 agent_core_t::environment()
 {
 	return m_so_environment;
+}
+
+agent_core_stats_t
+agent_core_t::query_stats()
+{
+	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
+
+	return agent_core_stats_t{
+			m_registered_coop.size(),
+			m_deregistered_coop.size(),
+			m_total_agent_count
+		};
 }
 
 void
@@ -550,19 +565,20 @@ agent_core_t::next_coop_reg_step__update_registered_coop_map(
 	agent_coop_t * parent_coop_ptr )
 {
 	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
+	m_total_agent_count += coop_ref->query_agent_count();
 
 	// In case of error cooperation info should be removed
 	// from m_registered_coop.
-	try
-	{
-		next_coop_reg_step__parent_child_relation( coop_ref, parent_coop_ptr );
-	}
-	catch( const std::exception & )
-	{
-		m_registered_coop.erase( coop_ref->query_coop_name() );
-
-		throw;
-	}
+	so_5::details::do_with_rollback_on_exception(
+		[&] {
+			next_coop_reg_step__parent_child_relation(
+					coop_ref,
+					parent_coop_ptr );
+		},
+		[&] {
+			m_total_agent_count -= coop_ref->query_agent_count();
+			m_registered_coop.erase( coop_ref->query_coop_name() );
+		} );
 }
 
 void
@@ -570,45 +586,43 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 	const agent_coop_ref_t & coop_ref,
 	agent_coop_t * parent_coop_ptr )
 {
+	auto do_actions = [&] {
+			coop_ref->do_registration_specific_actions( parent_coop_ptr );
+		};
+
 	if( parent_coop_ptr )
 	{
-		m_parent_child_relations.insert(
-			parent_child_coop_names_t(
+		const parent_child_coop_names_t names{
 				parent_coop_ptr->query_coop_name(),
-				coop_ref->query_coop_name() ) );
-	}
+				coop_ref->query_coop_name() };
 
-	// In case of error cooperation relation info should be removed
-	// from m_parent_child_relations.
-	try
-	{
-		coop_ref->do_registration_specific_actions( parent_coop_ptr );
-	}
-	catch( const std::exception & )
-	{
-		if( parent_coop_ptr )
-		{
-			m_parent_child_relations.erase(
-				parent_child_coop_names_t(
-					parent_coop_ptr->query_coop_name(),
-					coop_ref->query_coop_name() ) );
-		}
+		m_parent_child_relations.insert( names );
 
-		throw;
+		// In case of error cooperation relation info should be removed
+		// from m_parent_child_relations.
+		so_5::details::do_with_rollback_on_exception(
+			[&] { do_actions(); },
+			[&] { m_parent_child_relations.erase( names ); } );
 	}
+	else
+		// It is a very simple case. There is no need for additional
+		// actions and rollback on exceptions.
+		do_actions();
 }
 
-agent_core_t::info_for_dereg_notification_t
+agent_core_t::final_remove_result_t
 agent_core_t::finaly_remove_cooperation_info(
 	const std::string & coop_name )
 {
-	info_for_dereg_notification_t ret_value;
-
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
 	{
+		agent_coop_ref_t removed_coop = it->second;
+		m_deregistered_coop.erase( it );
+		m_total_agent_count -= removed_coop->query_agent_count();
+
 		agent_coop_t * parent =
-				agent_coop_private_iface_t::parent_coop_ptr( *(it->second) );
+				agent_coop_private_iface_t::parent_coop_ptr( *removed_coop );
 		if( parent )
 		{
 			m_parent_child_relations.erase(
@@ -619,16 +633,16 @@ agent_core_t::finaly_remove_cooperation_info(
 			agent_coop_t::decrement_usage_count( *parent );
 		}
 
-		ret_value = info_for_dereg_notification_t(
-				agent_coop_private_iface_t::dereg_reason(
-						*(it->second) ),
-				agent_coop_private_iface_t::dereg_notificators(
-						*(it->second) ) );
-
-		m_deregistered_coop.erase( it );
+		return final_remove_result_t{
+				removed_coop,
+				info_for_dereg_notification_t{
+						agent_coop_private_iface_t::dereg_reason(
+								*removed_coop ),
+						agent_coop_private_iface_t::dereg_notificators(
+								*removed_coop ) } };
 	}
-
-	return ret_value;
+	else
+		return final_remove_result_t{};
 }
 
 void

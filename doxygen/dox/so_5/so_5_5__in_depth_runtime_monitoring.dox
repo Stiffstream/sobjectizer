@@ -1,0 +1,415 @@
+/*!
+
+\page so_5_5__in_depth_runtime_monitoring so-5.5 In Depth - Run-Time Monitoring
+
+\tableofcontents
+
+\section so_5_5__in_depth_runtime_monitoring__purpose Purpose
+
+Until v.5.5.4 SObjectizer Run-Time was a "black-box". There was no possibility
+to look inside it and ask for some run-time statistics. How many agents are
+registered? How many demands in an event queue? How many delayed messages
+waiting? There were no answers to those questions.
+
+That was not a problem for most cases because application level monitoring is
+much more useful than low-level monitoring of SObjectizer's internals. For
+example the collecting statistics about time spent on DB-related operation can
+give you more precise information about problems in your doman-specific code
+than quantity of delayed messages in SObjectizer's timer thread.
+
+But it is a big plus if a framework like SObjectizer can provide some kind of
+run-time statistics. It could be used for debugging purposes for example. Or
+for collecting statistics by the tools like
+[statsd](https://github.com/etsy/statsd/) and
+[graphite](http://graphite.readthedocs.org/en/latest/index.html) and
+viewing/analyzing it conjunctions with other information about your
+application.
+
+Because of that a very simple mechanism for collecting and distributing of
+run-time monitoring information is implemented in v.5.5.4. Please note that it
+is a very first step in implementation of full-fledged run-time monitoring
+solution for SObjectizer. Version 5.5.4 provides basic statistics about
+SObjectizer's internals. There are some plans for extending such functionality
+in the future versions. 
+
+\section so_5_5__in_depth_runtime_monitoring__working_principles Working Principles
+
+There are several new concepts related to run-time monitoring in v.5.5.4:
+
+- *data-source*. This is an object which holds or can obtain some information
+ about some part of SObjectizer's internals. Data-source can distribute that
+ information in the form of an ordinary message which is send to the special
+ mbox;
+- *stats_controller*. This is an object which knows about all data-sources and
+ tells them to distribute the information they hold.
+
+The stats_controller and data-sources are created by SObjectizer automatically,
+there is no need to do that manually.
+
+The stats_controller can be turned on or off. By default it is turned off. In
+that mode no run-time information collected nor distributed. It means there is
+no any performance penalty when stats_controller doesn't work.
+
+If the stats_controller is turned on it works on separate thread. This thread
+is created when the stats_controller is turned on and terminated when the
+stats_controller is turned off.
+
+The stats_controller sleeps for some time. Then wakes up and tells every
+data-source object to distribute the information they currently have. The
+distribution if performed on the thread of stats_controller. When distribution
+finishes the stats_controller is going to sleep again.
+
+The time the stats_controller sleeps can be adjusted. By default
+stats_controller distributes run-time statistics every 2 seconds. But is can be
+changed by so_5::rt::stats::controller_t::set_distribution_period() method.
+
+Every instance of SObjectizer Environment has its own stats_controller
+instance. This instance can be accessed via
+so_5::rt::environment_t::stats_controller() method. For example:
+
+\code
+void run_time_stats_listener::so_evt_start() override {
+  // Run-time information must be updated every 0.5 second.
+  so_environment().stats_controller().set_distribution_period(
+    std::chrono::milliseconds( 500 ) );
+  // Turning the run-time monitoring on.
+  so_environment().stats_controller().turn_on();
+  ...
+}
+\endcode
+
+Data-sources distribute their values by ordinary messages. Types of that
+messages are defined in so_5::rt::stats::messages namespace. Those messages are
+sent to mbox which can be obtained by so_5::rt::stats::controller_t::mbox()
+method.
+
+There is only one message type in so_5::rt::stats::messages namespace in
+v.5.5.4: it is a template so_5::rt::stats::messages::quantity. This message
+is used to spread information about quantities of something (like quantity of
+registered cooperations/agents, quantity of single-shot or periodic timer
+messages, quantity of working threads for a dispatcher, size of an event
+queue and so on). 
+
+Only so_5::rt::stats::messages::quantity<std::size_t> type is used in v.5.5.4
+for all types of run-time statistics. Other message types could be introduced
+in future versions.
+
+\subsection so_5_5__in_depth_runtime_monitoring__working_principles__data_source_naming Data-Source Naming Scheme
+
+Data-sources have unique names. Every name is built from two parts: prefix and
+suffix. Concatenation of prefix and suffix makes unique name for data-source.
+
+Prefix is a size-limited null-terminated string. Prefix defines group of
+related data-sources. For example all data-sources related to a particular
+dispatcher instance will have the same prefix.
+
+Suffix is a constant pointer to immutable null-terminated string. Suffix
+identified data-source inside a group of related data-sources.
+
+For example here are some full names of data-sources:
+
+\verbatim
+mbox_repository/named_mbox.count: 0
+coop_repository/coop.reg.count: 2
+coop_repository/coop.dereg.count: 0
+coop_repository/agent.count: 41
+timer_thread/single_shot.count: 1
+timer_thread/periodic.count: 0
+disp/ot/DEFAULT/agent.count: 6
+disp/ot/DEFAULT/wt-0/demands.count: 23
+disp/ot/0x3be520/agent.count: 5
+disp/ot/0x3be520/wt-0/demands.count: 19
+disp/ao/0x24911b0/agent.count: 5
+\endverbatim
+
+Substrings like `mbox_repository`, `disp/ot/DEFAULT` and `disp/ao/0x24911b0`
+are prefixes. Substring like `/named_mbox.count`, `/agent.count` and
+`demands.count` are suffixes.
+
+A name of data-source is included in every message with actual data from that
+data-source. For example the so_5::rt::stats::messages::quantity is defined as:
+
+\code
+template< typename T >
+struct quantity : public message_t
+	{
+		prefix_t m_prefix;
+		suffix_t m_suffix;
+
+		T m_value;
+
+		quantity(
+			const prefix_t & prefix,
+			const suffix_t & suffix,
+			T value );
+	};
+\endcode
+
+Where quantity::m_prefix and quantity::m_suffix are parts of data-source name.
+
+There are some predefined prefixes. They could be obtained by functions like
+so_5::rt::stats::prefix_coop_repository() and
+so_5::rt::stats::prefix_timer_thread(). But all the prefixes for
+dispatcher-related data-sources are generated at run-time.
+
+All suffixes are predefined. They could be obtained by functions like
+so_5::rt::stats::suffix_coop_reg_count() and
+so_5::rt::stats::suffix_disp_thread_count().
+
+\section so_5_5__in_depth_runtime_monitoring__how_to_use How to Use
+
+To receive run-time monitoring information it is necessary to do the two things:
+
+1. Create subscription to the appropriate message from the appropriate mbox.
+2. Turn the stats_controller on.
+
+Those can be done like this:
+
+\code
+class my_run_time_stats_listener : public so_5::rt::agent_t
+{
+public :
+    my_run_time_stats_listener( context_t ctx )
+        :    so_5::rt::agent_t( ctx )
+    {}
+
+    virtual void so_define_agent() override
+    {
+        so_default_state().event(
+            so_environment().stats_controller().mbox(),
+            &my_run_time_stats_listener::evt_quantity );
+    }
+
+    virtual void so_evt_start() override
+    {
+        so_environment().stats_controller().turn_on();
+    }
+
+private :
+    void evt_quantity( const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+    {
+        // Just show to standard output.
+        std::cout << evt.m_prefix << evt.m_suffix << ": " << evt.m_value << std::endl;
+    }
+};
+\endcode
+
+Please note that SObjectizer doesn't provide any ready-to-use tools for working
+with run-time statistics. If you want to store it anywhere you must write the
+appropriated code by youself.
+
+Please note also that there is no possibility to narrow a stream of monitoring
+information. If you create subscription to `quantity` message you will receive
+messages of that type from all data-sources. And if you want to narrow the
+stream you must filter those messages in your event:
+
+\code
+void timer_thread_stats_listener::evt_timer_quantities(
+    const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+{
+    // Ignore messages unrelated to timer thread.
+    if( so_5::rt::stats::prefix_timer_thread() != evt.m_prefix )
+        return;
+    ... // Processing of related to timer thread messages.
+}
+\endcode
+
+\section so_5_5__in_depth_runtime_monitoring__in_v5_5_4 Run-Time Monitoring in v.5.5.4
+
+There are several predefined data-sources in SObjectizer Environment. And there
+are some data-sources for every dispatcher and every dispatcher's working
+thread. This section briefly describes those data-sources.
+
+\subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__agent_repo Count of Agents and Cooperations
+
+There are three data-sources related to agents and cooperations repository.
+They all have prefix defined by so_5::rt::stats::prefix_coop_repository()
+function but the suffixes for data-source are different:
+
+- data-source with suffix so_5::rt::stats::suffix_coop_reg_count() informs
+about quantity of registered cooperations;
+- data-source with suffix so_5::rt::stats::suffix_coop_dereg_count() informs
+about quantity of cooperations which are in deregistration stage now;
+- data-source with suffix so_5::rt::stats::suffix_agent_count() informs about
+quantity of registered agents (this is a total quantity of agents in registered
+cooperations and in the cooperations which are in deregisteration stage). 
+
+\subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__mbox_repo Count of Named Mboxes
+
+There is one data-source that informs about the current quantity of named
+mboxes. This data-source has prefix so_5::rt::stats::prefix_mbox_repository()
+and suffix so_5::rt::stats::suffix_named_mbox_count().
+
+\subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__timer_thread Count of Delayed and Periodic Message
+
+There are two data-sources related to timer thread. They have prefix
+so_5::rt::stats::prefix_timer_thread() and one of the following suffixes:
+
+- so_5::rt::stats::suffix_timer_single_shot_count(). This data-source informs
+about quantity of delayed messages;
+- so_5::rt::stats::suffix_timer_periodic_count(). This data-source informs
+about quantity of periodic messages.
+
+\subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp Information from Dispatchers
+
+Every dispatcher creates several data-sources. Those data sources can be
+grouped in several groups. Every group will have its own prefix.
+
+There is common rules for creation of prefixes for dispatchers' data-sources:
+
+- every prefix starts with `disp`;
+- then will be abbreviated type of dispatcher:
+    - `/ot` -- for one_thread dispatcher;
+    - `/ao` -- for active_obj dispatcher;
+    - `/ag` -- for active_group dispatcher;
+    - `/tp` -- for thread_pool dispatcher;
+    - `/atp` -- for adv_thread_pool dispatcher;
+- then will be identification for dispatcher instance. It could be part of dispatcher name (for the case when name if specified for the dispatcher) or hex representation of address of dispatcher object.
+
+For example:
+
+\verbatim
+disp/ot/DEFAULT/agent.count
+disp/ot/DEFAULT/wt-0/demands.count
+disp/ot/0x3be520/agent.count
+disp/ot/0x3be520/wt-0/demands.count
+disp/ao/0x24911b0/agent.count
+disp/ao/0x24911b0/wt-0x2491260/demands.count
+disp/ag/0x2495930/group.count
+disp/ag/0x2495930/wt-group#1/agent.count
+disp/ot/stats_listener/wt-0/demands.count
+disp/tp/workers/aq/0x53acf0/demands.count
+\endverbatim 
+
+<i>Note.</i> If a dispatcher has been added to the environment as named
+dispatcher its name will be used for creation of data-source prefixes. A name
+for private dispatcher can be specified by using the appropriate
+`create_private_disp` function.
+
+\subsubsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp__one_thread one_thread Dispatcher Run-Time Statistics
+
+one_thread dispatcher creates two data-sources:
+
+- one with prefix like `disp/ot/<DISP-ID>` and suffix
+so_5::rt::stats::suffix_agent_count(). It informs quantity of agents bound to
+that dispatcher;
+- another with prefix like `disp/ot/<DISP-ID>/wt-0` and suffix
+so_5::rt::stats::suffix_work_thread_queue_size(). It informs event queue
+length.
+
+Example:
+
+\verbatim
+disp/ot/DEFAULT/agent.count: 6
+disp/ot/DEFAULT/wt-0/demands.count: 23
+disp/ot/0x3be520/agent.count: 5
+disp/ot/0x3be520/wt-0/demands.count: 19
+\endverbatim
+
+\subsubsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp__active_obj active_obj Dispatcher Run-Time Statistics
+
+active_obj dispatcher creates two types of data-sources:
+
+- with prefix like `disp/ao/<DISP-ID>` and suffix
+so_5::rt::stats::suffix_agent_count(). It informs quantity of agents bound to
+that dispatcher. This data-source is created always, even if there is no agents
+bound to the dispatcher;
+- with prefix like `disp/ao/<DISP-ID>/wt-<THREAD>` and suffix
+so_5::rt::stats::suffix_work_thread_queue_size(). It informs event queue length
+for a working thread (e.g. for one agent bound to the dispatcher).
+
+Example:
+
+\verbatim
+disp/ao/0x24911b0/agent.count: 5
+disp/ao/0x24911b0/wt-0x2491260/demands.count: 2
+disp/ao/0x24911b0/wt-0x2491d30/demands.count: 4
+disp/ao/0x24911b0/wt-0x24931f0/demands.count: 2
+disp/ao/0x24911b0/wt-0x24934b0/demands.count: 2
+disp/ao/0x24911b0/wt-0x24955c0/demands.count: 0
+\endverbatim
+
+\subsubsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp__active_group active_group Dispatcher Run-Time Statistics
+
+active_group dispatcher creates several data-sources:
+
+- with prefix like `disp/ag/<DISP-ID>` and suffix
+so_5::rt::stats::suffix_disp_active_group_count(). It informs quantity of
+active groups handled by that dispatcher. This data-source is created always,
+even if there is no agents bound to the dispatcher;
+- two types of data-sources are created for every active group. Each of them
+has prefix like `disp/ag/<DISP-ID>/wt-<GROUP>` and one of the suffixes:
+	 - so_5::rt::stats::suffix_agent_count(). It informs quantity of agents in
+	 that active group;
+	 - so_5::rt::stats::suffix_work_thread_queue_size. It informs event queue
+	 length for a working thread (e.g. for that active group).
+
+Example:
+
+\verbatim
+disp/ag/0x2495930/group.count: 5
+disp/ag/0x2495930/wt-db_handler/agent.count: 3
+disp/ag/0x2495930/wt-db_handler/demands.count: 4
+disp/ag/0x2495930/wt-logger/agent.count: 1
+disp/ag/0x2495930/wt-logger/demands.count: 0
+\endverbatim
+
+\subsubsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp__thread_pool thread_pool/adv_thread_pool Dispatchers Run-Time Statistics
+
+thread_pool/adv_thread_pool dispatchers create several data-sources:
+
+- with prefix like `disp/tp/<DISP-ID>` and suffix
+so_5::rt::stats::suffix_disp_thread_count(). It informs about working thread
+count for the dispatcher;
+- with prefix like `disp/tp/<DISP-ID>` and suffix
+so_5::rt::stats::suffix_agent_count(). It informs about the quantity of agents
+bound to that dispatcher;
+- two types of data-sources are created for every FIFO queue. If FIFO queue is
+created for a cooperation then the corresponding data-sources will have prefix
+like `disp/tp/<DISP-ID>/cq/<COOP>`. If FIFO queue is created for an individual
+agent then the corresponding data-sources will have prefix like
+`disp/tp/<DISP-ID>/aq/<AGENT-PTR>`. The suffix for those data-sources can be
+one of the following:
+	 - so_5::rt::stats::suffix_agent_count(). It informs quantity of agents
+	 bound to that event queue;
+	 - so_5::rt::stats::suffix_work_thread_queue_size. It informs event queue
+	 length.
+
+<i>Note.</i> For adv_thred_pool dispatcher all prefixes will start from
+`disp/atp`.
+
+Example:
+
+\verbatim
+disp/tp/0x24974b0/threads.count: 4
+disp/tp/0x24974b0/agent.count: 5
+disp/tp/0x24974b0/cq/db_ops/agent.count: 5
+disp/tp/0x24974b0/cq/db_ops/demands.count: 9
+disp/tp/0x2499ab0/threads.count: 4
+disp/tp/0x2499ab0/agent.count: 5
+disp/tp/0x2499ab0/aq/0x2495670/agent.count: 1
+disp/tp/0x2499ab0/aq/0x2495670/demands.count: 4
+disp/tp/0x2499ab0/aq/0x2495880/agent.count: 1
+disp/tp/0x2499ab0/aq/0x2495880/demands.count: 1
+disp/tp/0x2499ab0/aq/0x2495ca0/agent.count: 1
+disp/tp/0x2499ab0/aq/0x2495ca0/demands.count: 0
+disp/tp/0x2499ab0/aq/0x2495d50/agent.count: 1
+disp/tp/0x2499ab0/aq/0x2495d50/demands.count: 1
+disp/tp/0x2499ab0/aq/0x24962d0/agent.count: 1
+disp/tp/0x2499ab0/aq/0x24962d0/demands.count: 2
+disp/atp/0x24a3c10/threads.count: 4
+disp/atp/0x24a3c10/agent.count: 5
+disp/atp/0x24a3c10/cq/crypto_ops/agent.count: 5
+disp/atp/0x24a3c10/cq/crypto_ops/demands.count: 15
+disp/atp/0x24971a0/threads.count: 4
+disp/atp/0x24971a0/agent.count: 2
+disp/atp/0x24971a0/aq/0x24a7e10/agent.count: 1
+disp/atp/0x24971a0/aq/0x24a7e10/demands.count: 4
+disp/atp/0x24971a0/aq/0x24a8a70/agent.count: 1
+disp/atp/0x24971a0/aq/0x24a8a70/demands.count: 4
+\endverbatim
+
+*/
+
+// vim:ft=cpp
+

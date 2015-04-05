@@ -37,6 +37,19 @@ namespace impl
 class mbox_core_ref_t;
 
 //
+// mbox_core_stats_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Statistics from mbox_core for run-time monitoring.
+ */
+struct mbox_core_stats_t
+	{
+		//! Count of named mboxes.
+		std::size_t m_named_mbox_count;
+	};
+
+//
 // mbox_core_t
 //
 
@@ -100,6 +113,13 @@ class mbox_core_t
 		destroy_mbox(
 			//! Mbox name.
 			const std::string & name );
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get statistics for run-time monitoring.
+		 */
+		mbox_core_stats_t
+		query_stats();
 
 	private:
 		//! Named mbox map's lock.

@@ -16,11 +16,14 @@
 #include <memory>
 #include <map>
 #include <iostream>
+#include <atomic>
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
+
+#include <so_5/disp/thread_pool/impl/h/common_implementation.hpp>
 
 namespace so_5
 {
@@ -50,8 +53,12 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \since v.5.4.0
  * \brief Event queue for the agent (or cooperation).
  */
-class agent_queue_t : public so_5::rt::event_queue_t
+class agent_queue_t
+	:	public so_5::rt::event_queue_t
+	,	private so_5::atomic_refcounted_t
 	{
+		friend class so_5::intrusive_ptr_t< agent_queue_t >;
+
 	private :
 		//! Actual demand in event queue.
 		struct demand_t : public so_5::rt::execution_demand_t
@@ -73,10 +80,9 @@ class agent_queue_t : public so_5::rt::event_queue_t
 		agent_queue_t(
 			//! Dispatcher queue to work with.
 			dispatcher_queue_t & disp_queue,
-			//! Maximum count of demands to be processed at once.
-			std::size_t max_demands_at_once )
+			const params_t & params )
 			:	m_disp_queue( disp_queue )
-			,	m_max_demands_at_once( max_demands_at_once )
+			,	m_max_demands_at_once( params.query_max_demands_at_once() )
 			,	m_tail( &m_head )
 			{}
 
@@ -99,6 +105,8 @@ class agent_queue_t : public so_5::rt::event_queue_t
 
 				m_tail->m_next = tail_demand.release();
 				m_tail = m_tail->m_next;
+
+				++m_size;
 
 				if( was_empty )
 					m_disp_queue.schedule( this );
@@ -169,6 +177,16 @@ class agent_queue_t : public so_5::rt::event_queue_t
 					}
 			}
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the current size of the queue.
+		 */
+		std::size_t
+		size() const
+			{
+				return m_size.load( std::memory_order_acquire );
+			}
+
 	private :
 		//! Dispatcher queue for scheduling processing of events from
 		//! this queue.
@@ -192,6 +210,12 @@ class agent_queue_t : public so_5::rt::event_queue_t
 		 */
 		demand_t * m_tail;
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Current size of the queue.
+		 */
+		std::atomic< std::size_t > m_size = { 0 };
+
 		//! Helper method for deleting queue's head object.
 		inline void
 		delete_head()
@@ -199,18 +223,11 @@ class agent_queue_t : public so_5::rt::event_queue_t
 				auto to_be_deleted = m_head.m_next;
 				m_head.m_next = m_head.m_next->m_next;
 
+				--m_size;
+
 				delete to_be_deleted;
 			}
 	};
-
-//
-// agent_queue_shptr_t
-//
-/*!
- * \since v.5.4.0
- * \brief A typedef of std::shared_ptr for agent_queue.
- */
-typedef std::shared_ptr< agent_queue_t > agent_queue_shptr_t;
 
 //
 // work_thread_t
@@ -294,239 +311,48 @@ class work_thread_t
 	};
 
 //
+// adaptation_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Adaptation of common implementation of thread-pool-like dispatcher
+ * to the specific of this thread-pool dispatcher.
+ */
+struct adaptation_t
+	{
+		static const char *
+		dispatcher_type_name()
+			{
+				return "tp"; // thread_pool.
+			}
+
+		static bool
+		is_individual_fifo( const params_t & params )
+			{
+				return fifo_t::individual == params.query_fifo();
+			}
+
+		static void
+		wait_for_queue_emptyness( agent_queue_t & queue )
+			{
+				queue.wait_for_emptyness();
+			}
+	};
+
+//
 // dispatcher_t
 //
 /*!
  * \since v.5.4.0
- * \brief An implementation of thread pool dispatcher.
+ * \brief Actual type of this thread-pool dispatcher.
  */
-class dispatcher_t : public so_5::rt::dispatcher_t
-	{
-	private :
-		//! Data for one cooperation.
-		struct cooperation_data_t
-			{
-				//! Event queue for the cooperation.
-				agent_queue_shptr_t m_queue;
-
-				//! Count of agents form that cooperation.
-				/*!
-				 * When this counter is zero then cooperation data
-				 * must be destroyed.
-				 */
-				std::size_t m_agents;
-
-				cooperation_data_t(
-					agent_queue_shptr_t queue,
-					std::size_t agents )
-					:	m_queue( std::move( queue ) )
-					,	m_agents( agents )
-					{}
-			};
-
-		//! Map from cooperation name to the cooperation data.
-		typedef std::map< std::string, cooperation_data_t >
-				cooperation_map_t;
-
-		//! Data for one agent.
-		struct agent_data_t
-			{
-				//! Event queue for the agent.
-				/*!
-				 * It could be individual queue or queue for the whole
-				 * cooperation (to which agent is belonging).
-				 */
-				agent_queue_shptr_t m_queue;
-
-				//! Cooperation FIFO flag.
-				/*!
-				 * Set to 'true' if agent is used cooperation FIFO.
-				 */
-				bool m_cooperation_fifo;
-
-				agent_data_t(
-					agent_queue_shptr_t queue,
-					bool cooperation_fifo )
-					:	m_queue( std::move( queue ) )
-					,	m_cooperation_fifo( cooperation_fifo )
-					{}
-			};
-
-		//! Map from agent pointer to the agent data.
-		typedef std::map< so_5::rt::agent_t *, agent_data_t >
-				agent_map_t;
-
-	public :
-		dispatcher_t( const dispatcher_t & ) = delete;
-		dispatcher_t & operator=( const dispatcher_t & ) = delete;
-
-		//! Constructor.
-		dispatcher_t(
-			std::size_t thread_count )
-			:	m_thread_count( thread_count )
-			{
-				m_threads.reserve( thread_count );
-
-				for( std::size_t i = 0; i != m_thread_count; ++i )
-					m_threads.emplace_back( std::unique_ptr< work_thread_t >(
-								new work_thread_t( m_queue ) ) );
-			}
-
-		virtual void
-		start()
-			{
-				for( auto & t : m_threads )
-					t->start();
-			}
-
-		virtual void
-		shutdown()
-			{
-				m_queue.shutdown();
-			}
-
-		virtual void
-		wait()
-			{
-				for( auto & t : m_threads )
-					t->join();
-			}
-
-		//! Bind agent to the dispatcher.
-		so_5::rt::event_queue_t *
-		bind_agent(
-			so_5::rt::agent_ref_t agent,
-			const params_t & params )
-			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
-				if( fifo_t::individual == params.query_fifo() )
-					return bind_agent_with_inidividual_fifo(
-							std::move( agent ), params );
-
-				return bind_agent_with_cooperation_fifo(
-						std::move( agent ), params );
-			}
-
-		//! Unbind agent from the dispatcher.
-		void
-		unbind_agent(
-			so_5::rt::agent_ref_t agent )
-			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
-				auto it = m_agents.find( agent.get() );
-				if( it != m_agents.end() )
-					{
-						if( it->second.m_cooperation_fifo )
-							{
-								auto it_coop = m_cooperations.find(
-										agent->so_coop_name() );
-								if( it_coop != m_cooperations.end() &&
-										0 == --(it_coop->second.m_agents) )
-									{
-										// agent_queue object can be destroyed
-										// only when it is empty.
-										it_coop->second.m_queue->wait_for_emptyness();
-
-										m_cooperations.erase( it_coop );
-									}
-							}
-						else
-							// agent_queue object can be destroyed
-							// only when it is empty.
-							it->second.m_queue->wait_for_emptyness();
-
-						m_agents.erase( it );
-					}
-			}
-
-	private :
-		//! Queue for active agent's queues.
-		dispatcher_queue_t m_queue;
-
-		//! Count of working threads.
-		const std::size_t m_thread_count;
-
-		//! Pool of work threads.
-		std::vector< std::unique_ptr< work_thread_t > > m_threads;
-
-		//! Object's lock.
-		spinlock_t m_lock;
-
-		//! Information about cooperations.
-		/*!
-		 * Information to this map is added only if an agent is
-		 * using cooperation FIFO mechanism.
-		 */
-		cooperation_map_t m_cooperations;
-
-		//! Information of agents.
-		agent_map_t m_agents;
-
-		//! Creation event queue for an agent with individual FIFO.
-		so_5::rt::event_queue_t *
-		bind_agent_with_inidividual_fifo(
-			so_5::rt::agent_ref_t agent,
-			const params_t & params )
-			{
-				agent_queue_shptr_t queue = make_new_agent_queue( params );
-
-				m_agents.emplace( agent.get(),
-						agent_data_t( queue, false ) );
-
-				return queue.get();
-			}
-
-		//! Creation event queue for an agent with individual FIFO.
-		/*!
-		 * If the data for the agent's cooperation is not created yet
-		 * it will be created.
-		 */
-		so_5::rt::event_queue_t *
-		bind_agent_with_cooperation_fifo(
-			so_5::rt::agent_ref_t agent,
-			const params_t & params )
-			{
-				auto it = m_cooperations.find( agent->so_coop_name() );
-				if( it == m_cooperations.end() )
-					it = m_cooperations.emplace(
-							agent->so_coop_name(),
-							cooperation_data_t(
-									make_new_agent_queue( params ),
-									1 ) )
-							.first;
-				else
-					it->second.m_agents += 1;
-
-				try
-					{
-						m_agents.emplace( agent.get(),
-								agent_data_t( it->second.m_queue, true ) );
-					}
-				catch( ... )
-					{
-						// Rollback m_cooperations modification.
-						if( 0 == --(it->second.m_agents) )
-							m_cooperations.erase( it );
-						throw;
-					}
-
-				return it->second.m_queue.get();
-
-			}
-
-		//! Helper method for creating event queue for agents/cooperations.
-		agent_queue_shptr_t
-		make_new_agent_queue(
-			const params_t & params )
-			{
-				return agent_queue_shptr_t(
-						new agent_queue_t(
-								m_queue,
-								params.query_max_demands_at_once() ) );
-			}
-	};
+using dispatcher_t =
+		common_implementation::dispatcher_t<
+				work_thread_t,
+				dispatcher_queue_t,
+				agent_queue_t,
+				params_t,
+				adaptation_t >;
 
 } /* namespace impl */
 

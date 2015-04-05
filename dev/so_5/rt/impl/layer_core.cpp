@@ -7,6 +7,8 @@
 
 #include <so_5/rt/impl/h/layer_core.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -123,22 +125,19 @@ layer_core_t::start()
 
 	for(; it != it_end; ++it )
 	{
-		try
-		{
-			it->m_layer->start();
-		}
-		catch( const std::exception & )
-		{
-			so_layer_list_t::iterator it_stoper = m_default_layers.begin();
-			for(; it_stoper != it; ++it_stoper )
-				it_stoper->m_layer->shutdown();
+		so_5::details::do_with_rollback_on_exception(
+			[&] { it->m_layer->start(); },
+			[&] {
+				std::for_each(
+					m_default_layers.begin(),
+					it,
+					[]( typed_layer_ref_t & l ) { l.m_layer->shutdown(); } );
 
-			for(it_stoper = m_default_layers.begin();
-					it_stoper != it; ++it_stoper )
-				it_stoper->m_layer->wait();
-
-			throw;
-		}
+				std::for_each(
+					m_default_layers.begin(),
+					it,
+					[]( typed_layer_ref_t & l ) { l.m_layer->wait(); } );
+			} );
 	}
 }
 

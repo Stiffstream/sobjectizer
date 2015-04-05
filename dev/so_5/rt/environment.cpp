@@ -11,6 +11,13 @@
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
+#include <so_5/rt/stats/impl/h/std_controller.hpp>
+#include <so_5/rt/stats/impl/h/ds_mbox_core_stats.hpp>
+#include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
+#include <so_5/rt/stats/impl/h/ds_timer_thread_stats.hpp>
+
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -131,6 +138,32 @@ create_appropriate_timer_thread(
 		return create_timer_heap_thread( std::move( error_logger ) );
 }
 
+/*!
+ * \since v.5.5.4
+ * \brief A bunch of data sources for core objects.
+ */
+class core_data_sources_t
+	{
+	public :
+		core_data_sources_t(
+			so_5::rt::stats::repository_t & ds_repository,
+			so_5::rt::impl::mbox_core_t & mbox_repository,
+			so_5::rt::impl::agent_core_t & coop_repository,
+			so_5::timer_thread_t & timer_thread )
+			:	m_mbox_repository( ds_repository, mbox_repository )
+			,	m_coop_repository( ds_repository, coop_repository )
+			,	m_timer_thread( ds_repository, timer_thread )
+			{}
+
+	private :
+		//! Data source for mboxes repository.
+		so_5::rt::stats::impl::ds_mbox_core_stats_t m_mbox_repository;
+		//! Data source for cooperations repository.
+		so_5::rt::stats::impl::ds_agent_core_stats_t m_coop_repository;
+		//! Data source for timer thread.
+		so_5::rt::stats::impl::ds_timer_thread_stats_t m_timer_thread;
+	};
+
 } /* namespace anonymous */
 
 //
@@ -186,6 +219,22 @@ struct environment_t::internals_t
 	 */
 	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
 
+	/*!
+	 * \since v.5.5.4
+	 * \brief A controller for run-time monitoring.
+	 */
+	stats::impl::std_controller_t m_stats_controller;
+
+	/*!
+	 * \since v.5.5.4
+	 * \brief Data sources for core objects.
+	 *
+	 * \attention This instance must be created after m_stats_controller
+	 * and destroyed before it. Because of that m_core_data_sources declared
+	 * after m_stats_controller and after all corresponding objects.
+	 */
+	core_data_sources_t m_core_data_sources;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -196,6 +245,7 @@ struct environment_t::internals_t
 				env,
 				params.so5__giveout_coop_listener() )
 		,	m_dispatchers(
+				env,
 				params.so5__giveout_named_dispatcher_map(),
 				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
@@ -207,6 +257,15 @@ struct environment_t::internals_t
 						params.so5__giveout_timer_thread_factory() ) )
 		,	m_exception_reaction( params.exception_reaction() )
 		,	m_autoshutdown_disabled( params.autoshutdown_disabled() )
+		,	m_stats_controller(
+				// A special mbox for distributing monitoring information
+				// must be created and passed to stats_controller.
+				m_mbox_core->create_local_mbox() )
+		,	m_core_data_sources(
+				m_stats_controller,
+				*m_mbox_core,
+				m_agent_core,
+				*m_timer_thread )
 	{}
 };
 
@@ -380,7 +439,7 @@ environment_t::run()
 {
 	try
 	{
-		impl__run_layers_and_go_further();
+		impl__run_stats_controller_and_go_further();
 	}
 	catch( const so_5::exception_t & )
 	{
@@ -423,6 +482,18 @@ environment_t::error_logger() const
 	return *(m_impl->m_error_logger);
 }
 
+stats::controller_t &
+environment_t::stats_controller()
+{
+	return m_impl->m_stats_controller;
+}
+
+stats::repository_t &
+environment_t::stats_repository()
+{
+	return m_impl->m_stats_controller;
+}
+
 mbox_t
 environment_t::so5__create_mpsc_mbox(
 	agent_t * single_consumer,
@@ -451,6 +522,18 @@ environment_t::so5__final_deregister_coop(
 
 	if( !any_cooperation_alive && !m_impl->m_autoshutdown_disabled )
 		stop();
+}
+
+void
+environment_t::impl__run_stats_controller_and_go_further()
+{
+	impl__do_run_stage(
+			"run_stats_controller",
+			[this] {
+				/* there is no need to turn_on controller automatically */
+			},
+			[this] { m_impl->m_stats_controller.turn_off(); },
+			[this] { impl__run_layers_and_go_further(); } );
 }
 
 void
@@ -531,30 +614,29 @@ namespace autoshutdown_guard
 void
 environment_t::impl__run_user_supplied_init_and_wait_for_stop()
 {
-	try
-	{
-		// init method must be protected from autoshutdown feature.
-		autoshutdown_guard::register_init_guard_cooperation(
-				*this,
-				m_impl->m_autoshutdown_disabled );
+	so_5::details::do_with_rollback_on_exception(
+		[this]
+		{
+			// init method must be protected from autoshutdown feature.
+			autoshutdown_guard::register_init_guard_cooperation(
+					*this,
+					m_impl->m_autoshutdown_disabled );
 
-		// Initilizing environment.
-		init();
+			// Initilizing environment.
+			init();
 
-		// Protection is no more needed.
-		autoshutdown_guard::deregistr_init_guard_cooperation(
-				*this,
-				m_impl->m_autoshutdown_disabled );
+			// Protection is no more needed.
+			autoshutdown_guard::deregistr_init_guard_cooperation(
+					*this,
+					m_impl->m_autoshutdown_disabled );
 
-		m_impl->m_agent_core.wait_for_start_deregistration();
-	}
-	catch( const std::exception & )
-	{
-		stop();
-		m_impl->m_agent_core.wait_for_start_deregistration();
-
-		throw;
-	}
+			m_impl->m_agent_core.wait_for_start_deregistration();
+		},
+		[this]
+		{
+			stop();
+			m_impl->m_agent_core.wait_for_start_deregistration();
+		} );
 }
 
 void

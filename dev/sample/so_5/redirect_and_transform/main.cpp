@@ -300,7 +300,7 @@ init( so_5::rt::environment_t & env )
 
 	// Chain of performers.
 	// Must work on dedicated thread_pool dispatcher.
-	auto performer_disp = so_5::disp::thread_pool::create_private_disp( 3 );
+	auto performer_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	auto performer_binding_params = so_5::disp::thread_pool::params_t{}
 			.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
@@ -325,7 +325,7 @@ init( so_5::rt::environment_t & env )
 			logger->so_direct_mbox() );
 
 	// Generators will work on dedicated thread_pool dispatcher.
-	auto generator_disp = so_5::disp::thread_pool::create_private_disp( 2 );
+	auto generator_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
 	auto generator_binding_params = so_5::disp::thread_pool::params_t{}
 			.fifo( so_5::disp::thread_pool::fifo_t::individual );
 

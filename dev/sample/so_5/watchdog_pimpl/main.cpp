@@ -21,7 +21,7 @@ init( so_5::rt::environment_t & env )
 	// Every agent should work on its own thread.
 	auto coop = env.create_coop(
 			so_5::autoname,
-			so_5::disp::active_obj::create_private_disp()->binder() );
+			so_5::disp::active_obj::create_private_disp( env )->binder() );
 
 	auto watchdog = coop->make_agent< a_watchdog_t >();
 

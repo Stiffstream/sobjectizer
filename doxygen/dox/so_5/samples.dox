@@ -146,4 +146,8 @@
  * \example so_5/redirect_and_transform/main.cpp
  */
 
+/*!
+ * \example so_5/queue_size_stats/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

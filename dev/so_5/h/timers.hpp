@@ -104,13 +104,29 @@ namespace timer_thread
 {
 	/*!
 	 * \deprecated
-	 * \brief Synonym for timed_id.
+	 * \brief Synonym for timer_id.
 	 *
 	 * Saved for compatibility with previous versions.
 	 */
 	using timer_id_ref_t = timer_id_t;
 
 } /* namespace timer_thread */
+
+//
+// timer_thread_stats_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Statistics for run-time monitoring.
+ */
+struct timer_thread_stats_t
+{
+	//! Quantity of single-shot timers.
+	std::size_t m_single_shot_count;
+
+	//! Quantity of periodic timers.
+	std::size_t m_periodic_count;
+};
 
 //
 // timer_thread_t
@@ -182,6 +198,13 @@ class SO_5_TYPE timer_thread_t
 			//! Period for message repetition.
 			//! Zero value means single shot delivery.
 			std::chrono::steady_clock::duration period ) = 0;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get statistics for run-time monitoring.
+		 */
+		virtual timer_thread_stats_t
+		query_stats() = 0;
 	};
 
 //! Auxiliary typedef for timer_thread autopointer.
@@ -307,7 +330,7 @@ timer_wheel_factory(
 inline timer_thread_factory_t
 timer_heap_factory()
 	{
-		// Use this trick because create_timer_wheel_thread is overloaded.
+		// Use this trick because create_timer_heap_thread is overloaded.
 		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t ) =
 				create_timer_heap_thread;
 		return f;
@@ -322,7 +345,7 @@ timer_heap_factory(
 	//! Initial capacity of heap array.
 	std::size_t initial_heap_capacity )
 	{
-		// Use this trick because create_timer_wheel_thread is overloaded.
+		// Use this trick because create_timer_heap_thread is overloaded.
 		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t, std::size_t ) =
 				create_timer_heap_thread;
 

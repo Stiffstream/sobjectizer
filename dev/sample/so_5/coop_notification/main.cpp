@@ -56,7 +56,7 @@ class a_parent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			register_child_coop();
 		}

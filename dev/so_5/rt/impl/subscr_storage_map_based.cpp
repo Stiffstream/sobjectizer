@@ -14,6 +14,8 @@
 #include <iterator>
 #include <map>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -242,19 +244,16 @@ storage_t::create_event_subscription(
 				// then new subscription in the mbox must be created.
 				if( !is_known_mbox_msg_pair( m_events, ins_result.first ) )
 					{
-						try
-							{
+						so_5::details::do_with_rollback_on_exception(
+							[&] {
 								mbox->subscribe_event_handler(
 										msg_type,
 										limit,
 										owner() );
-							}
-						catch( ... )
-							{
-								// Rollback agent's subscription.
+							},
+							[&] {
 								m_events.erase( ins_result.first );
-								throw;
-							}
+							} );
 					}
 			}
 	}

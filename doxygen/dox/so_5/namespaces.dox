@@ -18,6 +18,41 @@ namespace so_5
 	} /* namespace so_5::api */
 
 	/*!
+	 * \since v.5.5.4
+	 * \brief Some reusable and low-level classes/functions which can
+	 * be used in public header files.
+	 */
+	namespace details {
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper templates for detection of lambda-type traits.
+		 */
+		namespace lambda_traits {
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Internal implementation details.
+			 */
+			namespace impl {
+
+			} /* namespace impl */
+
+		} /* namespace lambda_traits */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Implementation details for implementation of rollback on
+		 * exception helper.
+		 */
+		namespace rollback_on_exception_details {
+		} /* namespace rollback_on_exception_details */
+
+
+	} /* namespace details */
+
+
+	/*!
 	 * \brief Event dispatchers.
 	 */
 	namespace disp
@@ -51,6 +86,21 @@ namespace so_5
 		} /* namespace active_obj */
 
 		/*!
+		 * \brief Advanced thread pool dispatcher.
+		 */
+		namespace adv_thread_pool {
+
+			/*!
+			 * \brief Internal implementation details of advanced thread pool dispatcher.
+			 */
+			namespace impl {
+
+			} /* namespace impl */
+
+		} /* namespace adv_thread_pool */
+
+
+		/*!
 		 * \brief Dispatcher with single working thread.
 		 */
 		namespace one_thread
@@ -74,6 +124,28 @@ namespace so_5
 		namespace reuse
 		{
 			/*!
+			 * \since v.5.5.4
+			 * \brief Helpers for manipulation with standard C++ I/O streams.
+			 */
+			namespace ios_helpers {
+			} /* namespace ios_helpers */
+
+			/*!
+			 * \brief Implementation of various types of locks to be used
+			 * inside dispatchers.
+			 */
+			namespace locks {
+			} /* namespace locks */
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Helper tools for implementation of run-time monitoring
+			 * for thread-pool-like dispatchers.
+			 */
+			namespace thread_pool_stats {
+			} /* namespace thread_pool_stats */
+
+			/*!
 			 * \brief Implemetation details of dispatcher's working thread.
 			 */
 			namespace work_thread
@@ -82,7 +154,34 @@ namespace so_5
 
 		} /* namespace reuse */
 
+		/*!
+		 * \brief Thread pool dispatcher.
+		 */
+		namespace thread_pool {
+
+			/*!
+			 * \brief Reusable implementation of some thread pool dispatcher
+			 * functionality which can be used in other thread-pool-like dispatchers.
+			 */
+			namespace common_implementation {
+			} /* namespace common_implementation */
+
+			/*!
+			 * \brief Internal implementation details of thread pool dispatcher.
+			 */
+			namespace impl {
+
+			} /* namespace impl */
+
+		} /* namespace thread_pool */
+
 	} /* namespace disp */
+
+	/*!
+	 * \brief Implementation details of error_logging facility.
+	 */
+	namespace log_msg_details {
+	} /* namespace log_msg_details */
 
 	/*!
 	 * \brief All code related to implementation of SObjectizer run-time.
@@ -94,6 +193,13 @@ namespace so_5
 		 */
 		namespace impl
 		{
+			/*!
+			 * \brief Implementation details related to cooperations and
+			 * agents repository.
+			 */
+			namespace agent_core_details {
+			} /* namespace agent_core_details */
+
 			/*!
 			 * \brief Details of cooperation deregistration implementation
 			 */
@@ -110,6 +216,54 @@ namespace so_5
 		namespace dereg_reason
 		{
 		} /* namespace dereg_reason */
+
+		/*!
+		 * \brief Some low-level implemetation details which can be used
+		 * in public header files.
+		 */
+		namespace details {
+		} /* namespace details */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief All stuff related to message limits.
+		 */
+		namespace message_limit {
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Internal implementation of message limits related stuff.
+			 */
+			namespace impl {
+
+			} /* namespace impl */
+
+		} /* namespace message_limit */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief All stuff related to run-time monitoring and statistics.
+		 */
+		namespace stats {
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Internal implementation of run-time monitoring
+			 * and statistics related stuff.
+			 */
+			namespace impl {
+
+			} /* namespace impl */
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Declarations of messages used by run-time monitoring
+			 * and statistics.
+			 */
+			namespace messages {
+			} /* namespace messages */
+
+		} /* namespace stats */
 
 	} /* namespace rt */
 
@@ -133,13 +287,6 @@ namespace so_5
 		} /* namespace ace_timer_queue_adapter */
 
 	} /* namespace timer_thread */
-
-	/*!
-	 * \brief Various utility code.
-	 */
-	namespace util
-	{
-	} /* namespace util */
 
 	/*!
 	 * \since v.5.5.0

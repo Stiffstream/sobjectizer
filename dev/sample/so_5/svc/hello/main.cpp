@@ -122,7 +122,7 @@ init(
 	{
 		auto coop = env.create_coop(
 				"test_coop",
-				so_5::disp::active_obj::create_private_disp()->binder() );
+				so_5::disp::active_obj::create_private_disp( env )->binder() );
 
 		auto svc_mbox = env.create_local_mbox();
 

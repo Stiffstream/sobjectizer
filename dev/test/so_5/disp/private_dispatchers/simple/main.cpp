@@ -68,11 +68,11 @@ make_hello_string( const char * who )
 void
 init( so_5::rt::environment_t & env )
 {
-	auto one_thread = so_5::disp::one_thread::create_private_disp();
-	auto active_obj = so_5::disp::active_obj::create_private_disp();
-	auto active_group = so_5::disp::active_group::create_private_disp();
-	auto thread_pool = so_5::disp::thread_pool::create_private_disp( 3 );
-	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( 10 );
+	auto one_thread = so_5::disp::one_thread::create_private_disp( env );
+	auto active_obj = so_5::disp::active_obj::create_private_disp( env );
+	auto active_group = so_5::disp::active_group::create_private_disp( env );
+	auto thread_pool = so_5::disp::thread_pool::create_private_disp( env, 3 );
+	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( env, 10 );
 
 	auto start_mbox = env.create_local_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );

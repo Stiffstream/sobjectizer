@@ -369,7 +369,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 
 	// There must be a dedicated dispatcher for collectors.
-	auto collector_disp = create_private_disp( 2 );
+	auto collector_disp = create_private_disp( env, 2 );
 
 	const std::size_t concurrent_performers = 5;
 
@@ -383,7 +383,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 
 		// There must be a dedicated dispatcher for performer from
 		// that cooperation.
-		auto performer_disp = create_private_disp( concurrent_performers );
+		auto performer_disp = create_private_disp( env, concurrent_performers );
 
 		auto collector = coop->make_agent_with_binder< a_collector_t >(
 				collector_disp->binder( params_t{} ),
@@ -414,7 +414,7 @@ init( so_5::rt::environment_t & env )
 	auto receivers = create_processing_coops( env );
 
 	// A private dispatcher for generators cooperation.
-	auto generators_disp = so_5::disp::thread_pool::create_private_disp( 3 );
+	auto generators_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	auto coop = env.create_coop( so_5::autoname,
 			generators_disp->binder(
 					[]( so_5::disp::thread_pool::params_t & p ) {

@@ -98,11 +98,11 @@ class dispatcher_t
 		}
 
 		virtual void
-		start()
+		start( so_5::rt::environment_t & /*env*/ ) override
 		{}
 
 		virtual void
-		shutdown()
+		shutdown() override
 		{
 			if( !m_agents.empty() )
 			{
@@ -113,7 +113,7 @@ class dispatcher_t
 		}
 
 		virtual void
-		wait()
+		wait() override
 		{}
 
 		void

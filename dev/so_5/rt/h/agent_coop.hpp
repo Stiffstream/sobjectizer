@@ -673,6 +673,16 @@ class SO_5_TYPE agent_coop_t
 			return this->add_agent( std::move( a ), std::move( binder ) );
 		}
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get agent count in the cooperation.
+		 */
+		std::size_t
+		query_agent_count() const
+		{
+			return m_agent_array.size();
+		}
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t

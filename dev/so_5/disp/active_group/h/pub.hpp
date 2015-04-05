@@ -63,7 +63,9 @@ create_disp();
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_group::create_private_disp();
+auto private_disp = so_5::disp::active_group::create_private_disp(
+	env,
+	"long_req_handlers" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -72,7 +74,34 @@ auto coop = env.create_coop( so_5::autoname,
 \endcode
  */
 SO_5_FUNC private_dispatcher_handle_t
-create_private_disp();
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
+	//! Value for creating names of data sources for
+	//! run-time monitoring.
+	const std::string & data_sources_name_base );
+
+/*!
+ * \since v.5.5.4
+ * \brief Create a private %active_group dispatcher.
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::active_group::create_private_disp( env );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private active_group dispatcher.
+	private_disp->binder( "passive_objects" ) );
+\endcode
+ */
+inline private_dispatcher_handle_t
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env )
+	{
+		return create_private_disp( env, std::string() );
+	}
 
 //! Creates the dispatcher binder.
 SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t

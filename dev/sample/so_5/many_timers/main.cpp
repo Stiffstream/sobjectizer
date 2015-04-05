@@ -192,7 +192,7 @@ run_sobjectizer( const cfg_t & cfg )
 		{
 			// Active object dispatcher is necessary.
 			auto coop = env.create_coop( "main",
-				so_5::disp::active_obj::create_private_disp()->binder() );
+				so_5::disp::active_obj::create_private_disp( env )->binder() );
 
 			auto a_receiver = coop->make_agent< a_receiver_t >( cfg.m_messages );
 

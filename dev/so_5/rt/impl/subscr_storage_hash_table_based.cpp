@@ -14,6 +14,8 @@
 #include <map>
 #include <unordered_map>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -300,34 +302,27 @@ storage_t::create_event_subscription(
 				"agent is already subscribed to message, " +
 				make_subscription_description( mbox_ref, type_index, target_state ) );
 
-		try
-			{
+		so_5::details::do_with_rollback_on_exception(
+			[&] {
 				m_hash_table.emplace( &(insertion_result.first->first),
 						event_handler_data_t( method, thread_safety ) );
-			}
-		catch( ... )
-			{
-				// Rollback agent's subscription.
-				m_map.erase( insertion_result.first );
-				throw;
-			}
+			},
+			[&] { m_map.erase( insertion_result.first ); } );
 
 		auto mbox_msg_known = is_known_mbox_msg_pair(
 				m_map, insertion_result.first );
 		if( !mbox_msg_known )
 		{
 			// Mbox must create subscription.
-			try
-			{
-				mbox_ref->subscribe_event_handler( type_index, limit, owner() );
-			}
-			catch( ... )
-			{
-				// Rollback agent's subscription.
-				m_hash_table.erase( &(insertion_result.first->first) );
-				m_map.erase( insertion_result.first );
-				throw;
-			}
+			so_5::details::do_with_rollback_on_exception(
+				[&] {
+					mbox_ref->subscribe_event_handler(
+							type_index, limit, owner() );
+				},
+				[&] {
+					m_hash_table.erase( &(insertion_result.first->first) );
+					m_map.erase( insertion_result.first );
+				} );
 		}
 	}
 

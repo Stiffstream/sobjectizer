@@ -248,7 +248,7 @@ init(
 			{ BLUE, RED, YELLOW, BLUE };
 
 		auto coop = env.create_coop( "chameneos",
-				so_5::disp::active_obj::create_private_disp()->binder() );
+				so_5::disp::active_obj::create_private_disp( env )->binder() );
 
 		auto a_meeting_place = coop->make_agent< a_meeting_place_t >(
 				CREATURE_COUNT,

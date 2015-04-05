@@ -129,7 +129,8 @@ private :
 	create_first_child_coop()
 	{
 		// The private dispatcher for the family of child cooperations.
-		auto disp = so_5::disp::active_obj::create_private_disp();
+		auto disp = so_5::disp::active_obj::create_private_disp(
+				so_environment() );
 		auto coop = so_5::rt::create_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,

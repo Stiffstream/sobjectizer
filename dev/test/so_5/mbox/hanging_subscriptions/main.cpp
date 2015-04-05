@@ -26,7 +26,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 			}
 
 		virtual so_5::mbox_id_t
-		id() const
+		id() const override
 			{
 				return m_actual_mbox->id();
 			}
@@ -57,7 +57,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		subscribe_event_handler(
 			const std::type_index & type_index,
 			const so_5::rt::message_limit::control_block_t * limit,
-			so_5::rt::agent_t * subscriber )
+			so_5::rt::agent_t * subscriber ) override
 			{
 				++subscriptions;
 				m_actual_mbox->subscribe_event_handler( type_index, limit, subscriber );
@@ -66,14 +66,14 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber )
+			so_5::rt::agent_t * subscriber ) override
 			{
 				++unsubscriptions;
 				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
 			}
 
 		virtual std::string
-		query_name() const { return m_actual_mbox->query_name(); }
+		query_name() const override { return m_actual_mbox->query_name(); }
 
 		virtual so_5::rt::mbox_type_t
 		type() const override

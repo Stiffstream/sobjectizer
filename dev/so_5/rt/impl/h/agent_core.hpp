@@ -7,8 +7,7 @@
 	\brief A class for a part of the agent/environment functionality.
 */
 
-#if !defined( _SO_5__RT__IMPL__AGENT_CORE_HPP_ )
-#define _SO_5__RT__IMPL__AGENT_CORE_HPP_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -24,6 +23,8 @@
 #include <so_5/rt/h/coop_listener.hpp>
 
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
 
 namespace so_5
 {
@@ -84,6 +85,29 @@ class agent_coop_private_iface_t
 			return coop.dereg_reason();
 		}
 };
+
+//
+// agent_core_stats_t
+//
+/*!
+ * \since 5.5.4
+ * \brief Statistical data for run-time monitoring.
+ */
+struct agent_core_stats_t
+	{
+		//! Count of registered cooperations.
+		std::size_t m_registered_coop_count;
+		//! Count of cooperations in the deregistration state.
+		std::size_t m_deregistered_coop_count;
+
+		//! Count of registered agents.
+		/*!
+		 * This quantity includes quantity of agents in registered
+		 * cooperations as well as quantity of agents in cooperations
+		 * in the deregistration state.
+		 */
+		std::size_t m_total_agent_count;
+	};
 
 //
 // agent_core_t
@@ -183,6 +207,13 @@ class agent_core_t
 		environment_t &
 		environment();
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the current statistic for run-time monitoring.
+		 */
+		agent_core_stats_t
+		query_stats();
+
 	private:
 		//! Typedef for map from cooperation name to the cooperation.
 		typedef std::map<
@@ -227,6 +258,12 @@ class agent_core_t
 			{}
 
 			info_for_dereg_notification_t(
+				const info_for_dereg_notification_t & info )
+				:	m_reason( info.m_reason )
+				,	m_notificators( info.m_notificators )
+			{}
+
+			info_for_dereg_notification_t(
 				info_for_dereg_notification_t && info )
 				:	m_reason( std::move( info.m_reason ) )
 				,	m_notificators( std::move( info.m_notificators ) )
@@ -246,6 +283,69 @@ class agent_core_t
 				m_notificators.swap( o.m_notificators );
 			}
 		};
+		
+		/*!
+		 * \since v.5.5.4
+		 * \brief Result of final remove of a cooperation from
+		 * map of deregistered cooperations.
+		 *
+		 * \note It is necessary to destroy agent_coop object when
+		 * agent_core_t is unlocked. It agent_coop is destroyed when
+		 * agent_core_t is locked then there is a possibility for a deadlock:
+		 * - run-time monitoring thread can wait on agent_core_t mutex
+		 *   (but the lock of run-time monitoring thread is acquired);
+		 * - private dispatcher for cooperation can be destroyed and its
+		 *   data sources will wait on the mutex of run-time monitoring thread.
+		 */
+		struct final_remove_result_t
+			{
+				//! Cooperation to be destroyed.
+				agent_coop_ref_t m_coop;
+				//! Deregistration notifications.
+				info_for_dereg_notification_t m_notifications;
+
+				//! Empty constructor.
+				final_remove_result_t()
+					{}
+
+				//! Initializing constructor.
+				final_remove_result_t(
+					agent_coop_ref_t coop,
+					info_for_dereg_notification_t notifications )
+					:	m_coop( std::move( coop ) )
+					,	m_notifications( std::move( notifications ) )
+					{}
+
+				//! Copy constructor.
+				final_remove_result_t(
+					const final_remove_result_t & o )
+					:	m_coop( o.m_coop )
+					,	m_notifications( o.m_notifications )
+					{}
+
+				//! Move constructor.
+				final_remove_result_t(
+					final_remove_result_t && o )
+					:	m_coop( std::move( o.m_coop ) )
+					,	m_notifications( std::move( o.m_notifications ) )
+					{}
+
+				//! Copy operator.
+				final_remove_result_t &
+				operator=( final_remove_result_t o )
+					{
+						o.swap( *this );
+						return *this;
+					}
+
+				//! Swap operation.
+				void
+				swap( final_remove_result_t & o )
+					{
+						m_coop.swap( o.m_coop );
+						m_notifications.swap( o.m_notifications );
+					}
+			};
 
 		//! SObjectizer Environment to work with.
 		environment_t & m_so_environment;
@@ -267,6 +367,12 @@ class agent_core_t
 
 		//! Map of cooperations being deregistered.
 		coop_map_t m_deregistered_coop;
+
+		//! Total count of agents.
+		/*!
+		 * \since v.5.5.4
+		 */
+		std::size_t m_total_agent_count;
 
 		//! Cooperation deregistration thread.
 		coop_dereg::coop_dereg_executor_thread_t m_coop_dereg_executor;
@@ -340,7 +446,7 @@ class agent_core_t
 		 *
 		 * Information about cooperation is removed from m_deregistered_coop.
 		 */
-		info_for_dereg_notification_t
+		final_remove_result_t
 		finaly_remove_cooperation_info(
 			const std::string & coop_name );
 
@@ -370,5 +476,3 @@ class agent_core_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif

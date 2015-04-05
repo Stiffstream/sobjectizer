@@ -149,7 +149,7 @@ public :
 		st_first_result_got.event( &parent::evt_second_result );
 	}
 
-	virtual void so_evt_start() {
+	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
 		auto coop = so_5::rt::create_child_coop(
 				// Parent of the new cooperation.
@@ -161,7 +161,8 @@ public :
 				// working threads.
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
-				so_5::disp::active_obj::create_private_disp()->binder() );
+				so_5::disp::active_obj::create_private_disp(
+						so_environment() )->binder() );
 
 		// Filling the child cooperation.
 		auto a_pinger = coop->make_agent< pinger >( so_direct_mbox() );
