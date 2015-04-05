@@ -48,13 +48,7 @@ public :
 		// Lifetime will be incremented for next pair.
 		std::chrono::milliseconds lifetime{ 100 };
 
-		std::vector< std::pair< std::string, std::string > > values{
-				{ "first", "value for first" },
-				{ "second", "value for second" },
-				{ "third", "value for third" },
-				{ "forth", "value for forth" } };
-
-		for( const auto & kv : values )
+		for( const auto & kv : m_values )
 		{
 			so_5::send< msg_register_pair >( m_storage_mbox,
 					kv.first,
