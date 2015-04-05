@@ -282,24 +282,13 @@ namespace so_5
 	} /* namespace rt */
 
 	/*!
-	 * \brief All details related to timers and timer events.
+	 * \deprecated
+	 * \brief Old timer thread related stuff.
+	 *
+	 * This namespace is kept for compatibility with previous versions.
 	 */
 	namespace timer_thread
 	{
-		/*!
-		 * \brief All code related to implementation of timer via ACE.
-		 */
-		namespace ace_timer_queue_adapter
-		{
-			/*!
-			 * \brief Details of timer implemetation via ACE.
-			 */
-			namespace impl
-			{
-			} /* namespace impl */
-
-		} /* namespace ace_timer_queue_adapter */
-
 	} /* namespace timer_thread */
 
 	/*!
