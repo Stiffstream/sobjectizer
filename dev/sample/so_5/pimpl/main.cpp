@@ -17,10 +17,10 @@
 // Due to expiration of key-value lifetimes the agents should receive
 // negative responses for its requests from time to time.
 //
-class a_main_t : public so_5::rt::agent_t
+class a_consumer_t : public so_5::rt::agent_t
 {
 public :
-	a_main_t(
+	a_consumer_t(
 		// Environment to work in.
 		so_5::rt::environment_t & env,
 		// Mbox of key-value-storage.
@@ -38,7 +38,7 @@ public :
 	so_define_agent() override
 	{
 		// Just one signal must be handled by main agent.
-		so_default_state().event< msg_next_turn >( &a_main_t::evt_next_turn );
+		so_default_state().event< msg_next_turn >( &a_consumer_t::evt_next_turn );
 	}
 
 	virtual void
@@ -70,6 +70,7 @@ private :
 
 	// Values to be placed into storage.
 	std::vector< std::pair< std::string, std::string > > m_values;
+
 	// Next interation of requests loop.
 	void
 	evt_next_turn()
@@ -124,7 +125,7 @@ main()
 						so_5::disp::active_obj::create_private_disp( env )->binder() );
 				auto storage = coop->make_agent< a_key_value_storage_t >();
 
-				coop->make_agent< a_main_t >( storage->so_direct_mbox() );
+				coop->make_agent< a_consumer_t >( storage->so_direct_mbox() );
 
 				env.register_coop( std::move( coop ) );
 			} );

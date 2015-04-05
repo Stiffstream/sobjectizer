@@ -49,7 +49,7 @@ public :
 };
 
 // An agent for implementing key-value-storage.
-// The real implementation is hided by PImpl idiom.
+// The real implementation is hidden by PImpl idiom.
 class a_key_value_storage_t : public so_5::rt::agent_t
 {
 public :
