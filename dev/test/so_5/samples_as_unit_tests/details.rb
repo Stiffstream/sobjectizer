@@ -1,7 +1,7 @@
 require 'mxx_ru/binary_unittest'
 
 def setup_sample_as_unit_test(sample_name = nil)
-  ut_name = File.basename( /^(.+):\d/.match( caller(1,1)[0] )[1] )
+  ut_name = File.basename( /^(.+):\d/.match( caller(1)[0] )[1] )
   sample_name = File.basename( ut_name, '.ut.rb' ) unless sample_name
 
   MxxRu::setup_target(
