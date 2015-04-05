@@ -263,6 +263,20 @@ namespace so_5
 			namespace messages {
 			} /* namespace messages */
 
+			/*!
+			 * \since v.5.5.4
+			 * \brief Predefined prefixes of data-sources.
+			 */
+			namespace prefixes {
+			} /* namespace prefixes */
+
+			/*!
+			 * \since v.5.5.4
+			 * \brief Predefined suffixes of data-sources.
+			 */
+			namespace suffixes {
+			} /* namespace suffixes */
+
 		} /* namespace stats */
 
 	} /* namespace rt */

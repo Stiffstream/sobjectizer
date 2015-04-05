@@ -66,9 +66,9 @@ class a_test_t : public so_5::rt::agent_t
 						<< evt.m_suffix.c_str()
 						<< ": " << evt.m_value << std::endl;
 
-				if( stats::prefix_timer_thread() == evt.m_prefix )
+				if( stats::prefixes::timer_thread() == evt.m_prefix )
 					{
-						if( stats::suffix_timer_single_shot_count() == evt.m_suffix )
+						if( stats::suffixes::timer_single_shot_count() == evt.m_suffix )
 							{
 								if( 2 != evt.m_value )
 									throw std::runtime_error( "unexpected count of "
@@ -77,7 +77,7 @@ class a_test_t : public so_5::rt::agent_t
 								else
 									++m_actual_values;
 							}
-						else if( stats::suffix_timer_periodic_count() == evt.m_suffix )
+						else if( stats::suffixes::timer_periodic_count() == evt.m_suffix )
 							{
 								if( 3 != evt.m_value )
 									throw std::runtime_error( "unexpected count of "

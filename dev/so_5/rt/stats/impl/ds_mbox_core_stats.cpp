@@ -40,8 +40,8 @@ ds_mbox_core_stats_t::distribute(
 		auto stats = m_what.query_stats();
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_mbox_repository(),
-				suffix_named_mbox_count(),
+				prefixes::mbox_repository(),
+				suffixes::named_mbox_count(),
 				stats.m_named_mbox_count );
 	}
 

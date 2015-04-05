@@ -215,13 +215,13 @@ class data_source_t : public stats::manually_registered_source_t
 				so_5::send< stats::messages::quantity< std::size_t > >(
 						mbox,
 						m_prefix,
-						stats::suffix_disp_thread_count(),
+						stats::suffixes::disp_thread_count(),
 						collector.thread_count() );
 
 				so_5::send< stats::messages::quantity< std::size_t > >(
 						mbox,
 						m_prefix,
-						stats::suffix_agent_count(),
+						stats::suffixes::agent_count(),
 						collector.agent_count() );
 
 				collector.for_each_queue(
@@ -229,13 +229,13 @@ class data_source_t : public stats::manually_registered_source_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								queue.m_prefix,
-								stats::suffix_agent_count(),
+								stats::suffixes::agent_count(),
 								queue.m_agent_count );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								queue.m_prefix,
-								stats::suffix_work_thread_queue_size(),
+								stats::suffixes::work_thread_queue_size(),
 								queue.m_queue_size );
 					} );
 			}

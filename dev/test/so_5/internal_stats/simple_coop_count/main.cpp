@@ -51,9 +51,9 @@ class a_test_t : public so_5::rt::agent_t
 						<< evt.m_suffix.c_str()
 						<< ": " << evt.m_value << std::endl;
 
-				if( stats::prefix_coop_repository() == evt.m_prefix )
+				if( stats::prefixes::coop_repository() == evt.m_prefix )
 					{
-						if( stats::suffix_coop_reg_count() == evt.m_suffix )
+						if( stats::suffixes::coop_reg_count() == evt.m_suffix )
 							{
 								// Count of registered cooperations could be
 								// 12 or 11 (it depends of deregistration of
@@ -65,7 +65,7 @@ class a_test_t : public so_5::rt::agent_t
 								else
 									++m_actual_values;
 							}
-						else if( stats::suffix_coop_dereg_count() == evt.m_suffix )
+						else if( stats::suffixes::coop_dereg_count() == evt.m_suffix )
 							{
 								// Count of registered cooperations could be
 								// 0 or 1 (it depends of deregistration of
@@ -77,7 +77,7 @@ class a_test_t : public so_5::rt::agent_t
 								else
 									++m_actual_values;
 							}
-						else if( stats::suffix_agent_count() == evt.m_suffix )
+						else if( stats::suffixes::agent_count() == evt.m_suffix )
 							{
 								// Count of registered agents could be
 								// 11 or 12 (it depends of deregistration of

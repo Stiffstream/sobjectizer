@@ -40,18 +40,18 @@ ds_agent_core_stats_t::distribute(
 		auto stats = m_what.query_stats();
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_coop_repository(),
-				suffix_coop_reg_count(),
+				prefixes::coop_repository(),
+				suffixes::coop_reg_count(),
 				stats.m_registered_coop_count );
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_coop_repository(),
-				suffix_coop_dereg_count(),
+				prefixes::coop_repository(),
+				suffixes::coop_dereg_count(),
 				stats.m_deregistered_coop_count );
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_coop_repository(),
-				suffix_agent_count(),
+				prefixes::coop_repository(),
+				suffixes::agent_count(),
 				stats.m_total_agent_count );
 	}
 

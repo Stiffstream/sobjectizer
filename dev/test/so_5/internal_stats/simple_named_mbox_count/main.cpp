@@ -56,9 +56,9 @@ class a_test_t : public so_5::rt::agent_t
 						<< evt.m_suffix.c_str()
 						<< ": " << evt.m_value << std::endl;
 
-				if( stats::prefix_mbox_repository() == evt.m_prefix )
+				if( stats::prefixes::mbox_repository() == evt.m_prefix )
 					{
-						if( stats::suffix_named_mbox_count() == evt.m_suffix )
+						if( stats::suffixes::named_mbox_count() == evt.m_suffix )
 							{
 								if( 3 != evt.m_value )
 									throw std::runtime_error( "unexpected count of "

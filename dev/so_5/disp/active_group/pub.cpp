@@ -155,7 +155,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								m_base_prefix,
-								stats::suffix_disp_active_group_count(),
+								stats::suffixes::disp_active_group_count(),
 								m_dispatcher.m_groups.size() );
 
 						std::size_t agent_count = 0;
@@ -172,7 +172,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								m_base_prefix,
-								stats::suffix_agent_count(),
+								stats::suffixes::agent_count(),
 								agent_count );
 					}
 
@@ -203,13 +203,13 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								prefix,
-								stats::suffix_agent_count(),
+								stats::suffixes::agent_count(),
 								wt.m_user_agent );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								prefix,
-								stats::suffix_work_thread_queue_size(),
+								stats::suffixes::work_thread_queue_size(),
 								wt.m_thread->demands_count() );
 					}
 			};

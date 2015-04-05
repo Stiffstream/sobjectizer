@@ -40,13 +40,13 @@ ds_timer_thread_stats_t::distribute(
 		auto stats = m_what.query_stats();
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_timer_thread(),
-				suffix_timer_single_shot_count(),
+				prefixes::timer_thread(),
+				suffixes::timer_single_shot_count(),
 				stats.m_single_shot_count );
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefix_timer_thread(),
-				suffix_timer_periodic_count(),
+				prefixes::timer_thread(),
+				suffixes::timer_periodic_count(),
 				stats.m_periodic_count );
 	}
 

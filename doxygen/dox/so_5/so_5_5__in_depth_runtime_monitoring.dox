@@ -147,14 +147,11 @@ struct quantity : public message_t
 
 Where quantity::m_prefix and quantity::m_suffix are parts of data-source name.
 
-There are some predefined prefixes. They could be obtained by functions like
-so_5::rt::stats::prefix_coop_repository() and
-so_5::rt::stats::prefix_timer_thread(). But all the prefixes for
+There are some predefined prefixes. They could be obtained by functions defined in so_5::rt::stats::prefixes namespace. But all the prefixes for
 dispatcher-related data-sources are generated at run-time.
 
-All suffixes are predefined. They could be obtained by functions like
-so_5::rt::stats::suffix_coop_reg_count() and
-so_5::rt::stats::suffix_disp_thread_count().
+All suffixes are predefined. They could be obtained by functions defined in
+so_5::rt::stats::suffixes namespace.
 
 \section so_5_5__in_depth_runtime_monitoring__how_to_use How to Use
 
@@ -208,7 +205,7 @@ void timer_thread_stats_listener::evt_timer_quantities(
     const so_5::rt::stats::messages::quantity< std::size_t > & evt )
 {
     // Ignore messages unrelated to timer thread.
-    if( so_5::rt::stats::prefix_timer_thread() != evt.m_prefix )
+    if( so_5::rt::stats::prefixes::timer_thread() != evt.m_prefix )
         return;
     ... // Processing of related to timer thread messages.
 }
@@ -223,31 +220,31 @@ thread. This section briefly describes those data-sources.
 \subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__agent_repo Count of Agents and Cooperations
 
 There are three data-sources related to agents and cooperations repository.
-They all have prefix defined by so_5::rt::stats::prefix_coop_repository()
+They all have prefix defined by so_5::rt::stats::prefixes::coop_repository()
 function but the suffixes for data-source are different:
 
-- data-source with suffix so_5::rt::stats::suffix_coop_reg_count() informs
+- data-source with suffix so_5::rt::stats::suffixes::coop_reg_count() informs
 about quantity of registered cooperations;
-- data-source with suffix so_5::rt::stats::suffix_coop_dereg_count() informs
+- data-source with suffix so_5::rt::stats::suffixes::coop_dereg_count() informs
 about quantity of cooperations which are in deregistration stage now;
-- data-source with suffix so_5::rt::stats::suffix_agent_count() informs about
+- data-source with suffix so_5::rt::stats::suffixes::agent_count() informs about
 quantity of registered agents (this is a total quantity of agents in registered
 cooperations and in the cooperations which are in deregisteration stage). 
 
 \subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__mbox_repo Count of Named Mboxes
 
 There is one data-source that informs about the current quantity of named
-mboxes. This data-source has prefix so_5::rt::stats::prefix_mbox_repository()
-and suffix so_5::rt::stats::suffix_named_mbox_count().
+mboxes. This data-source has prefix so_5::rt::stats::prefixes::mbox_repository()
+and suffix so_5::rt::stats::suffixes::named_mbox_count().
 
 \subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__timer_thread Count of Delayed and Periodic Message
 
 There are two data-sources related to timer thread. They have prefix
-so_5::rt::stats::prefix_timer_thread() and one of the following suffixes:
+so_5::rt::stats::prefixes::timer_thread() and one of the following suffixes:
 
-- so_5::rt::stats::suffix_timer_single_shot_count(). This data-source informs
+- so_5::rt::stats::suffixes::timer_single_shot_count(). This data-source informs
 about quantity of delayed messages;
-- so_5::rt::stats::suffix_timer_periodic_count(). This data-source informs
+- so_5::rt::stats::suffixes::timer_periodic_count(). This data-source informs
 about quantity of periodic messages.
 
 \subsection so_5_5__in_depth_runtime_monitoring__in_v5_5_4__disp Information from Dispatchers
@@ -291,10 +288,10 @@ for private dispatcher can be specified by using the appropriate
 one_thread dispatcher creates two data-sources:
 
 - one with prefix like `disp/ot/<DISP-ID>` and suffix
-so_5::rt::stats::suffix_agent_count(). It informs quantity of agents bound to
+so_5::rt::stats::suffixes::agent_count(). It informs quantity of agents bound to
 that dispatcher;
 - another with prefix like `disp/ot/<DISP-ID>/wt-0` and suffix
-so_5::rt::stats::suffix_work_thread_queue_size(). It informs event queue
+so_5::rt::stats::suffixes::work_thread_queue_size(). It informs event queue
 length.
 
 Example:
@@ -311,11 +308,11 @@ disp/ot/0x3be520/wt-0/demands.count: 19
 active_obj dispatcher creates two types of data-sources:
 
 - with prefix like `disp/ao/<DISP-ID>` and suffix
-so_5::rt::stats::suffix_agent_count(). It informs quantity of agents bound to
+so_5::rt::stats::suffixes::agent_count(). It informs quantity of agents bound to
 that dispatcher. This data-source is created always, even if there is no agents
 bound to the dispatcher;
 - with prefix like `disp/ao/<DISP-ID>/wt-<THREAD>` and suffix
-so_5::rt::stats::suffix_work_thread_queue_size(). It informs event queue length
+so_5::rt::stats::suffixes::work_thread_queue_size(). It informs event queue length
 for a working thread (e.g. for one agent bound to the dispatcher).
 
 Example:
@@ -334,14 +331,14 @@ disp/ao/0x24911b0/wt-0x24955c0/demands.count: 0
 active_group dispatcher creates several data-sources:
 
 - with prefix like `disp/ag/<DISP-ID>` and suffix
-so_5::rt::stats::suffix_disp_active_group_count(). It informs quantity of
+so_5::rt::stats::suffixes::disp_active_group_count(). It informs quantity of
 active groups handled by that dispatcher. This data-source is created always,
 even if there is no agents bound to the dispatcher;
 - two types of data-sources are created for every active group. Each of them
 has prefix like `disp/ag/<DISP-ID>/wt-<GROUP>` and one of the suffixes:
-	 - so_5::rt::stats::suffix_agent_count(). It informs quantity of agents in
+	 - so_5::rt::stats::suffixes::agent_count(). It informs quantity of agents in
 	 that active group;
-	 - so_5::rt::stats::suffix_work_thread_queue_size. It informs event queue
+	 - so_5::rt::stats::suffixes::work_thread_queue_size. It informs event queue
 	 length for a working thread (e.g. for that active group).
 
 Example:
@@ -359,10 +356,10 @@ disp/ag/0x2495930/wt-logger/demands.count: 0
 thread_pool/adv_thread_pool dispatchers create several data-sources:
 
 - with prefix like `disp/tp/<DISP-ID>` and suffix
-so_5::rt::stats::suffix_disp_thread_count(). It informs about working thread
+so_5::rt::stats::suffixes::disp_thread_count(). It informs about working thread
 count for the dispatcher;
 - with prefix like `disp/tp/<DISP-ID>` and suffix
-so_5::rt::stats::suffix_agent_count(). It informs about the quantity of agents
+so_5::rt::stats::suffixes::agent_count(). It informs about the quantity of agents
 bound to that dispatcher;
 - two types of data-sources are created for every FIFO queue. If FIFO queue is
 created for a cooperation then the corresponding data-sources will have prefix
@@ -370,9 +367,9 @@ like `disp/tp/<DISP-ID>/cq/<COOP>`. If FIFO queue is created for an individual
 agent then the corresponding data-sources will have prefix like
 `disp/tp/<DISP-ID>/aq/<AGENT-PTR>`. The suffix for those data-sources can be
 one of the following:
-	 - so_5::rt::stats::suffix_agent_count(). It informs quantity of agents
+	 - so_5::rt::stats::suffixes::agent_count(). It informs quantity of agents
 	 bound to that event queue;
-	 - so_5::rt::stats::suffix_work_thread_queue_size. It informs event queue
+	 - so_5::rt::stats::suffixes::work_thread_queue_size. It informs event queue
 	 length.
 
 <i>Note.</i> For adv_thred_pool dispatcher all prefixes will start from

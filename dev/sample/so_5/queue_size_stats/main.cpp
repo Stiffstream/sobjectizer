@@ -107,7 +107,7 @@ private :
 		const so_5::rt::stats::messages::quantity< std::size_t > & evt )
 	{
 		// Process only messages related to dispatcher's queue sizes.
-		if( so_5::rt::stats::suffix_work_thread_queue_size() == evt.m_suffix )
+		if( so_5::rt::stats::suffixes::work_thread_queue_size() == evt.m_suffix )
 		{
 			std::ostringstream ss;
 

@@ -20,10 +20,7 @@ namespace rt {
 
 namespace stats {
 
-/*!
- * \name Prefixes
- * \{
- */
+namespace prefixes {
 
 /*!
  * \since v.5.5.4
@@ -31,36 +28,32 @@ namespace stats {
  * agents repository.
  */
 SO_5_FUNC prefix_t
-prefix_coop_repository();
+coop_repository();
 
 /*!
  * \since v.5.5.4
  * \brief Prefix of data sources with statistics for mboxes repository.
  */
 SO_5_FUNC prefix_t
-prefix_mbox_repository();
+mbox_repository();
 
 /*!
  * \since v.5.5.4
  * \brief Prefix of data sources with statistics for timer thread.
  */
 SO_5_FUNC prefix_t
-prefix_timer_thread();
-/*!
- * \}
- */
+timer_thread();
 
-/*!
- * \name Suffixes
- * \{
- */
+} /* namespace prefixes */
+
+namespace suffixes {
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of registered cooperations.
  */
 SO_5_FUNC suffix_t
-suffix_coop_reg_count();
+coop_reg_count();
 
 /*!
  * \since v.5.5.4
@@ -68,21 +61,21 @@ suffix_coop_reg_count();
  * deregistration state.
  */
 SO_5_FUNC suffix_t
-suffix_coop_dereg_count();
+coop_dereg_count();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of named mboxes.
  */
 SO_5_FUNC suffix_t
-suffix_named_mbox_count();
+named_mbox_count();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of agents bound to some entity.
  */
 SO_5_FUNC suffix_t
-suffix_agent_count();
+agent_count();
 
 /*!
  * \since v.5.5.4
@@ -90,39 +83,37 @@ suffix_agent_count();
  * an active_group dispatcher.
  */
 SO_5_FUNC suffix_t
-suffix_disp_active_group_count();
+disp_active_group_count();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of demands in a working thread event queue.
  */
 SO_5_FUNC suffix_t
-suffix_work_thread_queue_size();
+work_thread_queue_size();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of work threads for dispatcher.
  */
 SO_5_FUNC suffix_t
-suffix_disp_thread_count();
+disp_thread_count();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of single-shot timers.
  */
 SO_5_FUNC suffix_t
-suffix_timer_single_shot_count();
+timer_single_shot_count();
 
 /*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of periodic timers.
  */
 SO_5_FUNC suffix_t
-suffix_timer_periodic_count();
+timer_periodic_count();
 
-/*!
- * \}
- */
+} /* namespace suffixes */
 
 } /* namespace stats */
 
