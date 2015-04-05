@@ -23,6 +23,10 @@
 	so_5::rt::agent_coop_t::make_agent_with_binder() have been
 	introduced. See \ref so_5_5_4__make_agent_methods for more details.
 
+	Switching to timertt-1.1.1.
+
+	Switching to utest_helpers-1.0.2.
+
 \section so_5__5_3 5.5.3 "Pik Pushkin"
 
 	Support for CMake expanded also to the SObjectizer's tests.
