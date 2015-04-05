@@ -25,6 +25,10 @@ Install Ruby and then install Mxx_ru via RubyGems command:
 
   gem install Mxx_ru
 
+If you already have Mxx_ru installed please update to at least version 1.6.4:
+
+  gem update Mxx_ru
+
 SObjectizer can be obtained from Subversion repository on SourceForge:
 
   svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.4 so-5.5.4
