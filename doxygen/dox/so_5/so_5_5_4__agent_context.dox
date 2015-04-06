@@ -113,7 +113,7 @@ public :
         :   // We can simply pass new context to the base class.
             so_5::rt::agent_t( 
                 // Tune our agent by adding appropriate factory.
-                ctx + so_5::rt::hash_table_based_subscription_factory() ) )
+                ctx + so_5::rt::hash_table_based_subscription_factory() )
         ,    ...
     {...}
     ...
