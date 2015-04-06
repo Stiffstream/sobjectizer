@@ -367,14 +367,17 @@ create_processing_coops( so_5::rt::environment_t & env )
 				env,
 				concurrent_slots );
 
-		auto collector = coop->make_agent< a_collector_t >(
+		auto collector = coop->make_agent_with_binder< a_collector_t >(
+				collector_disp->binder( so_5::disp::thread_pool::params_t{} ),
 				"r" + std::to_string(i), c, concurrent_slots );
 
 		auto collector_mbox = collector->so_direct_mbox();
 		result.push_back( collector_mbox );
 
-		auto performer = coop->make_agent< a_performer_t >(
+		auto performer = coop->make_agent_with_binder< a_performer_t >(
+				performer_disp->binder( so_5::disp::adv_thread_pool::params_t{} ),
 				"p" + std::to_string(i), collector_mbox );
+
 		collector->set_performer_mbox( performer->so_direct_mbox() );
 
 		env.register_coop( std::move( coop ) );
