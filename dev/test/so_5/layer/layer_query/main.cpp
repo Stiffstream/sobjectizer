@@ -60,7 +60,8 @@ class test_environment_t
 							.add_layer(
 								std::unique_ptr< test_layer_t< 2 > >( tl2 ) )
 							.add_layer(
-								std::unique_ptr< test_layer_t< 3 > >( tl3 ) ) ) )
+								std::unique_ptr< test_layer_t< 3 > >( tl3 ) )
+							.disable_autoshutdown() ) )
 		{}
 
 		virtual ~test_environment_t(){}

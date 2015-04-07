@@ -54,7 +54,7 @@ class test_environment_t
 			test_layer_t< 2 > * tl2,
 			test_layer_t< 3 > * tl3 )
 			:
-				base_type_t( so_5::rt::environment_params_t() ),
+				base_type_t( get_params() ),
 				m_tl1( tl1 ),
 				m_tl2( tl2 ),
 				m_tl3( tl3 )
@@ -79,6 +79,14 @@ class test_environment_t
 		std::unique_ptr< test_layer_t< 1 > > m_tl1;
 		std::unique_ptr< test_layer_t< 2 > > m_tl2;
 		std::unique_ptr< test_layer_t< 3 > > m_tl3;
+
+		static so_5::rt::environment_params_t
+		get_params()
+		{
+			so_5::rt::environment_params_t params;
+			params.disable_autoshutdown();
+			return params;
+		}
 };
 
 void

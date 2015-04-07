@@ -76,7 +76,8 @@ class so_environment_error_checker_t
 				base_type_t(
 					std::move(
 						so_5::rt::environment_params_t()
-							.add_layer( new test_layer_t< 0 > ) ) )
+							.add_layer( new test_layer_t< 0 >() )
+							.disable_autoshutdown() ) )
 		{}
 
 		virtual ~so_environment_error_checker_t(){}
