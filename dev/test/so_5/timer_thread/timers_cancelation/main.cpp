@@ -5,8 +5,11 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 #include <so_5/all.hpp>
+
+#include <various_helpers_1/ensure.hpp>
 
 struct msg_test : public so_5::rt::message_t
 	{
@@ -19,14 +22,9 @@ struct msg_test : public so_5::rt::message_t
 void
 ensure_counter_value( int counter, int expected_value )
 	{
-		if( counter != expected_value )
-			{
-				std::ostringstream ss;
-				ss << "unexpected counter value: " << counter
-						<< ", expected value: " << expected_value;
-
-				throw std::runtime_error( ss.str() );
-			}
+		ensure( counter == expected_value,
+				"actual(" + std::to_string(counter) + ") != expected(" +
+				std::to_string(expected_value) + ")" );
 	}
 
 class a_test_t : public so_5::rt::agent_t

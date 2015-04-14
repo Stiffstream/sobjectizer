@@ -10,6 +10,7 @@
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/benchmark_helpers.hpp>
+#include <various_helpers_1/ensure.hpp>
 
 struct msg_tick : public so_5::rt::signal_t {};
 
@@ -102,10 +103,6 @@ main( int argc, char ** argv )
 
 		if( 3 == argc )
 		{
-			auto ensure = []( bool p, const char * msg ) {
-				if( !p ) throw std::invalid_argument( msg );
-			};
-
 			max_states = std::atoi( argv[1] );
 			ensure( max_states > 0, "max_states must be >= 1" );
 
