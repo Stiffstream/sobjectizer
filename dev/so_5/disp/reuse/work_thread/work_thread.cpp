@@ -121,6 +121,10 @@ demand_queue_t::demands_count()
 //
 // work_thread_t
 //
+work_thread_t::work_thread_t()
+{
+	m_continue_work = WORK_THREAD_STOP;
+}
 
 void
 work_thread_t::start()

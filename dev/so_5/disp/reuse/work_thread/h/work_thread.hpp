@@ -146,6 +146,8 @@ class demand_queue_t : public so_5::rt::event_queue_t
 class work_thread_t
 {
 	public:
+		work_thread_t();
+
 		//! Start the working thread.
 		void
 		start();
