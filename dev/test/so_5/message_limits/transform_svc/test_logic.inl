@@ -111,21 +111,29 @@ do_test(
 	const std::string & test_name,
 	std::function< void(a_test_t &) > test_tuner )
 {
-	run_with_time_limit(
-		[test_tuner]()
-		{
-			so_5::launch(
-					[test_tuner]( so_5::rt::environment_t & env )
-					{
-						auto coop = env.create_coop( so_5::autoname );
-						auto agent = coop->make_agent< a_test_t >();
+	try
+	{
+		run_with_time_limit(
+			[test_tuner]()
+			{
+				so_5::launch(
+						[test_tuner]( so_5::rt::environment_t & env )
+						{
+							auto coop = env.create_coop( so_5::autoname );
+							auto agent = coop->make_agent< a_test_t >();
 
-						test_tuner( *agent );
+							test_tuner( *agent );
 
-						env.register_coop( std::move( coop ) );
-					} );
-		},
-		4,
-		test_name );
+							env.register_coop( std::move( coop ) );
+						} );
+			},
+			4,
+			test_name );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		std::abort();
+	}
 }
 

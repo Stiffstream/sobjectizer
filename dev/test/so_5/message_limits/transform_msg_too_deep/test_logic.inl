@@ -148,25 +148,33 @@ do_test(
 	const std::string & test_name,
 	std::function< void(a_manager_t &, a_worker_t &) > test_tuner )
 {
-	run_with_time_limit(
-		[test_tuner]()
-		{
-			so_5::launch(
-					[test_tuner]( so_5::rt::environment_t & env )
-					{
-						auto coop = env.create_coop( so_5::autoname );
-						
-						auto manager = coop->make_agent< a_manager_t >(
-								"[one][one]" );
+	try
+	{
+		run_with_time_limit(
+			[test_tuner]()
+			{
+				so_5::launch(
+						[test_tuner]( so_5::rt::environment_t & env )
+						{
+							auto coop = env.create_coop( so_5::autoname );
+							
+							auto manager = coop->make_agent< a_manager_t >(
+									"[one][one]" );
 
-						auto worker = coop->make_agent< a_worker_t >( "[one]" );
+							auto worker = coop->make_agent< a_worker_t >( "[one]" );
 
-						test_tuner( *manager, *worker  );
+							test_tuner( *manager, *worker  );
 
-						env.register_coop( std::move( coop ) );
-					} );
-		},
-		4,
-		test_name );
+							env.register_coop( std::move( coop ) );
+						} );
+			},
+			4,
+			test_name );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		std::abort();
+	}
 }
 

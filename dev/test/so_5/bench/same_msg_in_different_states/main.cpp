@@ -102,8 +102,15 @@ main( int argc, char ** argv )
 
 		if( 3 == argc )
 		{
+			auto ensure = []( bool p, const char * msg ) {
+				if( !p ) throw std::invalid_argument( msg );
+			};
+
 			max_states = std::atoi( argv[1] );
+			ensure( max_states > 0, "max_states must be >= 1" );
+
 			tick_count = std::atoi( argv[2] );
+			ensure( tick_count > 0, "tick_count must be >= 1" );
 		}
 
 		for( std::size_t states = 1; states <= max_states; states *= 2 )

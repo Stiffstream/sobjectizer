@@ -89,21 +89,36 @@ init(
 		env.register_coop( std::move( coop ) );
 	}
 
+void
+print_usage()
+{
+	std::cout << "Usage: parallel_sent_to_same_mbox <agent_count> <send_count>\n\n"
+			"<agent_count> and <send_count> must not be 0"
+			<< std::endl;
+}
+
+struct cmd_line_exception : public std::invalid_argument
+{
+	cmd_line_exception( const char * what )
+		:	std::invalid_argument( what )
+	{}
+};
+
 int
 main( int argc, char ** argv )
 {
-	if( 3 != argc )
-	{
-		std::cout << "Usage:\n\n"
-			"parallel_sent_to_same_mbox <agent_count> <send_count>"
-			<< std::endl;
-		return 1;
-	}
-
 	try
 	{
+		auto ensure_args_validity = []( bool p, const char * msg ) {
+			if( !p ) throw cmd_line_exception( msg );
+		};
+		ensure_args_validity( 3 == argc, "wrong number of arguments" );
+
 		const unsigned int agent_count = std::atoi( argv[1] );
+		ensure_args_validity( agent_count != 0, "agent_count must not be 0" );
+
 		const unsigned int send_count = std::atoi( argv[2] );
+		ensure_args_validity( send_count != 0, "send_count must not be 0" );
 
 		benchmarker_t benchmark;
 		benchmark.start();
@@ -122,6 +137,13 @@ main( int argc, char ** argv )
 		benchmark.finish_and_show_stats(
 				static_cast< unsigned long long >(agent_count) * send_count,
 				"sends" );
+	}
+	catch( const cmd_line_exception & ex )
+	{
+		std::cerr << "Command line argument(s) error: " << ex.what()
+				<< "\n\n" << std::flush;
+		print_usage();
+		return 1;
 	}
 	catch( const std::exception & ex )
 	{
