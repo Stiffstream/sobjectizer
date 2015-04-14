@@ -27,6 +27,7 @@ namespace work_thread
 // demand_queue
 //
 demand_queue_t::demand_queue_t()
+	:	m_in_service( false )
 {
 }
 

@@ -156,7 +156,7 @@ class a_meeting_place_t
 		int m_total_meetings;
 
 		so_5::rt::mbox_t m_first_creature_mbox;
-		color_t m_first_creature_color;
+		color_t m_first_creature_color = { FADED };
 	};
 
 class a_creature_t

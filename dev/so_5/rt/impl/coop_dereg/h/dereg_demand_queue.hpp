@@ -86,7 +86,7 @@ class dereg_demand_queue_t
 		 * Value true means that the queue is in a working state.
 		 * Value false serves as the shutdown flag.
 		 */
-		bool m_in_service;
+		bool m_in_service = { false };
 };
 
 } /* namespace coop_dereg */

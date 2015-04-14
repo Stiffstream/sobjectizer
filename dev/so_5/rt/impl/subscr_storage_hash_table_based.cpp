@@ -44,7 +44,8 @@ struct key_t
 
 	//! Default constructor.
 	inline key_t()
-		:	m_msg_type( typeid(void) )
+		:	m_mbox_id( null_mbox_id() )
+		,	m_msg_type( typeid(void) )
 		,	m_state( nullptr )
 		{}
 

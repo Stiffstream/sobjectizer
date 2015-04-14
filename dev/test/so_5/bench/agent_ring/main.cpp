@@ -8,6 +8,7 @@
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/cmd_line_args_helpers.hpp>
+#include <various_helpers_1/benchmark_helpers.hpp>
 
 using namespace std::chrono;
 
@@ -168,7 +169,7 @@ show_result(
 		double price = total_msec / total_msg_count / 1000.0;
 		double throughtput = 1 / price;
 
-		std::cout.precision( 10 );
+		benchmarks_details::precision_settings_t precision{ std::cout, 10 };
 		std::cout <<
 			"total time: " << total_msec / 1000.0 << 
 			", messages sent: " << total_msg_count <<

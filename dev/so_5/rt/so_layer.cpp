@@ -13,6 +13,7 @@ namespace rt
 {
 
 so_layer_t::so_layer_t()
+	:	m_env( nullptr )
 {
 }
 
@@ -38,20 +39,20 @@ so_layer_t::wait()
 environment_t &
 so_layer_t::so_environment()
 {
-	if( nullptr == m_so_environment )
+	if( nullptr == m_env )
 	{
 		throw so_5::exception_t(
 			"so_environment isn't bound to this layer",
 			rc_layer_not_binded_to_so_env );
 	}
 
-	return *m_so_environment;
+	return *m_env;
 }
 
 void
 so_layer_t::bind_to_environment( environment_t * env )
 {
-	m_so_environment = env;
+	m_env = env;
 }
 
 } /* namespace rt */

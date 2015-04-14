@@ -218,7 +218,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		active_group_map_t m_groups;
 
 		//! Shutdown of the indication flag.
-		bool m_shutdown_started;
+		bool m_shutdown_started = { false };
 
 		//! This object lock.
 		std::mutex m_lock;
@@ -267,7 +267,12 @@ dispatcher_t::start( so_5::rt::environment_t & env )
 		m_data_source.start( env.stats_repository() );
 
 		so_5::details::do_with_rollback_on_exception(
-			[this] { m_shutdown_started = false; },
+			[this] {
+				// do_with_rollback_on_exception is used in this simple case
+				// just for simplification of extension of that block
+				// in the future.
+				m_shutdown_started = false;
+			},
 			[this] { m_data_source.stop(); } );
 	}
 

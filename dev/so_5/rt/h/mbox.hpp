@@ -722,8 +722,6 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 
 		return wait_for_service_invoke_proxy_details::wait_and_return
 				<RESULT, DURATION, decltype(f) >( m_timeout, f );
-		
-		return f.get();
 	}
 
 template< class RESULT, class DURATION >

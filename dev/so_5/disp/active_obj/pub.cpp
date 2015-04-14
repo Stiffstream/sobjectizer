@@ -170,7 +170,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		agent_thread_map_t m_agent_threads;
 
 		//! Shutdown flag.
-		bool m_shutdown_started;
+		bool m_shutdown_started = { false };
 
 		//! This object lock.
 		std::mutex m_lock;

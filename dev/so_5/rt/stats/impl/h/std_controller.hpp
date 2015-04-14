@@ -87,7 +87,7 @@ class std_controller_t
 		/*!
 		 * It is set to true in turn_off().
 		 */
-		bool m_shutdown_initiated;
+		bool m_shutdown_initiated = { false };
 
 		/*!
 		 * \name Data sources-related part of controller's data.

@@ -2033,8 +2033,6 @@ state_t::event( ARGS&&... args ) const
 	return this->subscribe_message_handler(
 			m_target_agent->so_direct_mbox(),
 			std::forward< ARGS >(args)... );
-
-	return *this;
 }
 
 template< typename... ARGS >

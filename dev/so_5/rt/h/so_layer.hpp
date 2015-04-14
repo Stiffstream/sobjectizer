@@ -88,7 +88,7 @@ class SO_5_TYPE so_layer_t
 		 * Pointer has the actual value only after binding 
 		 * to the SObjectizer Environment.
 		 */
-		environment_t * m_so_environment;
+		environment_t * m_env;
 };
 
 //! Typedef for the layer's autopointer.

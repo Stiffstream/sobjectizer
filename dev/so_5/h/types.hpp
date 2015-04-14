@@ -27,6 +27,16 @@ typedef std::atomic_ulong atomic_flag_t;
 typedef unsigned long long mbox_id_t;
 
 /*!
+ * \since v.5.5.4.1
+ * \brief Default value for null mbox_id.
+ */
+inline mbox_id_t
+null_mbox_id()
+	{
+		return 0ull;
+	}
+
+/*!
  * \since v.5.4.0
  * \brief Thread safety indicator.
  */
