@@ -70,6 +70,8 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/mbox/mpsc_mbox_stress/prj.rb" )
 	required_prj( "test/so_5/mbox/hanging_subscriptions/prj.ut.rb" )
 
+	required_prj( "test/so_5/ad_hoc_agents/build_tests.rb" )
+
 	required_prj( "test/so_5/message_limits/build_tests.rb" )
 
 	required_prj( "test/so_5/layer/build_tests.rb" )

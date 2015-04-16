@@ -67,6 +67,8 @@ add_subdirectory(mbox/mpsc_mbox_illegal_subscriber)
 add_subdirectory(mbox/mpsc_mbox_stress)
 add_subdirectory(mbox/hanging_subscriptions)
 
+add_subdirectory(ad_hoc_agents)
+
 add_subdirectory(message_limits)
 
 add_subdirectory(layer/layer_init)

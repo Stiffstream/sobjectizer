@@ -60,7 +60,12 @@ adhoc_agent_wrapper_t::so_evt_finish()
 exception_reaction_t
 adhoc_agent_wrapper_t::so_exception_reaction() const
 	{
-		return m_exception_reaction;
+		if( exception_reaction_t::inherit_exception_reaction !=
+				m_exception_reaction )
+			return m_exception_reaction;
+		else
+			// Let's basic implementation handle this case.
+			return agent_t::so_exception_reaction();
 	}
 
 } /* namespace rt */
