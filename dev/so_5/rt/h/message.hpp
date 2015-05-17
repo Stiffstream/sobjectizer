@@ -233,13 +233,6 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		set_exception( std::exception_ptr ex ) = 0;
 
 		/*!
-		 * \since v.5.5.5
-		 * \brief Access to param of service_request.
-		 */
-		virtual const message_t &
-		query_param() const SO_5_NOEXCEPT = 0;
-
-		/*!
 		 * \since v.5.5.4
 		 * \brief Helper wrapper for handling exceptions during
 		 * service request dispatching.
@@ -295,15 +288,9 @@ struct msg_service_request_t : public msg_service_request_base_t
 			{}
 
 		virtual void
-		set_exception( std::exception_ptr what ) override
+		set_exception( std::exception_ptr what )
 			{
 				m_promise.set_exception( what );
-			}
-
-		virtual const message_t &
-		query_param() const SO_5_NOEXCEPT override
-			{
-				return *m_param;
 			}
 	};
 

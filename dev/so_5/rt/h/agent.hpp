@@ -22,10 +22,8 @@
 #include <so_5/h/atomic_refcounted.hpp>
 
 #include <so_5/h/exception.hpp>
-#include <so_5/h/error_logger.hpp>
 
 #include <so_5/details/h/lambda_traits.hpp>
-#include <so_5/details/h/rollback_on_exception.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/agent_context.hpp>
@@ -93,8 +91,6 @@ class state_listener_controller_t;
 class mpsc_mbox_t;
 
 struct event_handler_data_t;
-
-class delivery_filter_storage_t;
 
 } /* namespace impl */
 
@@ -1198,76 +1194,6 @@ class SO_5_TYPE agent_t
 		void
 		so_deregister_agent_coop_normally();
 
-		/*!
-		 * \name Methods for dealing with message delivery filters.
-		 * \{
-		 */
-		/*!
-		 * \since v.5.5.5
-		 * \brief Set a delivery filter.
-		 *
-		 * \tparam MESSAGE type of message to be filtered.
-		 */
-		template< typename MESSAGE >
-		void
-		so_set_delivery_filter(
-			//! Message box from which message is expected.
-			//! This must be MPMC-mbox.
-			const mbox_t & mbox,
-			//! Delivery filter instance.
-			delivery_filter_unique_ptr_t filter )
-			{
-				ensure_not_signal< MESSAGE >();
-
-				do_set_delivery_filter( mbox, typeid(MESSAGE), std::move(filter) );
-			}
-
-		/*!
-		 * \since v.5.5.5
-		 * \brief Set a delivery filter.
-		 *
-		 * \tparam LAMBDA type of lambda-function or functional object which
-		 * must be used as message filter.
-		 *
-		 * \par Usage sample:
-		 \code
-		 void my_agent::so_define_agent() {
-		 	so_set_delivery_filter( temp_sensor,
-				[]( const current_temperature & msg ) {
-					return !is_normal_temperature( msg );
-				} );
-			...
-		 }
-		 \endcode
-		 */
-		template< typename LAMBDA >
-		void
-		so_set_delivery_filter(
-			//! Message box from which message is expected.
-			//! This must be MPMC-mbox.
-			const mbox_t & mbox,
-			//! Delivery filter as lambda-function or functional object.
-			LAMBDA && lambda );
-
-		/*!
-		 * \since v.5.5.5
-		 * \brief Drop a delivery filter.
-		 *
-		 * \tparam MESSAGE type of message filtered.
-		 */
-		template< typename MESSAGE >
-		void
-		so_drop_delivery_filter(
-			//! Message box to which delivery filter was set.
-			//! This must be MPMC-mbox.
-			const mbox_t & mbox ) SO_5_NOEXCEPT
-			{
-				do_drop_delivery_filter( mbox, typeid(MESSAGE) );
-			}
-		/*!
-		 * \}
-		 */
-
 	protected :
 		/*!
 		 * \name Helpers for state object creation.
@@ -1389,14 +1315,6 @@ class SO_5_TYPE agent_t
 
 		//! Is the cooperation deregistration in progress?
 		bool m_is_coop_deregistered;
-
-		/*!
-		 * \since v.5.5.5
-		 * \brief Delivery filters for that agents.
-		 *
-		 * \note Storage is created only when necessary.
-		 */
-		std::unique_ptr< impl::delivery_filter_storage_t > m_delivery_filters;
 
 		//! Make an agent reference.
 		/*!
@@ -1637,105 +1555,7 @@ class SO_5_TYPE agent_t
 		void
 		ensure_operation_is_on_working_thread(
 			const char * operation_name ) const;
-
-		/*!
-		 * \since v.5.5.0
-		 * \brief Drops all delivery filters.
-		 */
-		void
-		drop_all_delivery_filters() SO_5_NOEXCEPT;
-
-		/*!
-		 * \since v.5.5.5
-		 * \brief Set a delivery filter.
-		 */
-		void
-		do_set_delivery_filter(
-			const mbox_t & mbox,
-			const std::type_index & msg_type,
-			delivery_filter_unique_ptr_t filter );
-
-		/*!
-		 * \since v.5.5.5
-		 * \brief Drop a delivery filter.
-		 */
-		void
-		do_drop_delivery_filter(
-			const mbox_t & mbox,
-			const std::type_index & msg_type ) SO_5_NOEXCEPT;
 };
-
-/*!
- * \since v.5.5.5
- * \brief Template-based implementations of delivery filters.
- */
-namespace delivery_filter_templates
-{
-
-/*!
- * \since v.5.5.5
- * \brief An implementation of delivery filter represented by lambda-function
- * like object.
- *
- * \tparam LAMBDA type of lambda-function or functional object.
- */
-template< typename LAMBDA, typename MESSAGE >
-class lambda_as_filter_t : public delivery_filter_t
-	{
-		LAMBDA m_filter;
-
-	public :
-		lambda_as_filter_t( LAMBDA && filter )
-			:	m_filter( std::forward< LAMBDA >( filter ) )
-			{}
-
-		virtual bool
-		check(
-			const agent_t & receiver,
-			const message_t & msg ) const SO_5_NOEXCEPT override
-			{
-				return so_5::details::do_with_rollback_on_exception(
-					[&] {
-						return m_filter(
-								dynamic_cast< const MESSAGE & >( msg ) );
-					},
-					[&] {
-						SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
-							serr << "An exception from delivery filter "
-								"for message type "
-								<< typeid(MESSAGE).name()
-								<< ". Application will be aborted"
-								<< std::endl;
-						}
-
-						std::abort();
-					} );
-			}
-	};
-
-} /* namespace delivery_filter_templates */
-
-template< typename LAMBDA >
-void
-agent_t::so_set_delivery_filter(
-	const mbox_t & mbox,
-	LAMBDA && lambda )
-	{
-		using namespace so_5::details::lambda_traits;
-		using namespace delivery_filter_templates;
-
-		using message_type = typename argument_type_if_lambda< LAMBDA >::type;
-
-		ensure_not_signal< message_type >();
-
-		do_set_delivery_filter(
-				mbox,
-				typeid(message_type),
-				delivery_filter_unique_ptr_t{ 
-					new lambda_as_filter_t< LAMBDA, message_type >(
-							std::move( lambda ) )
-				} );
-	}
 
 //
 // subscription_bind_t implementation

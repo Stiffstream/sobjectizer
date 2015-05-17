@@ -2,19 +2,6 @@
 
 \page so_5__version so_5: Version History
 
-\section so_5__5_5 5.5.5
-
-	A mechanism of message delivery filters is introduced.
-	See \ref so_5_5__in_depth_message_delivery_filters for more details.
-
-	New templates so_5::rt::tuple_as_message_t, so_5::rt::mtag and
-	so_5::rt::typed_mtag added. See \ref so_5_5_5__tuple_as_message for more
-	details.
-
-	New helpers so_5::rt::environment_t::introduce_coop() and
-	so_5::rt::introduce_child_coop(). See \ref so_5_5_5__introduce_coop
-	for more details.
-
 \section so_5__5_4 5.5.4 "Koshtan-Tau"
 
 	A possibility to receive run-time statistics from SObjectizer's internals

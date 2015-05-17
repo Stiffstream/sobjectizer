@@ -10,7 +10,6 @@
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
-#include <so_5/rt/impl/h/delivery_filter_storage.hpp>
 
 #include <sstream>
 #include <cstdlib>
@@ -187,7 +186,6 @@ agent_t::~agent_t()
 {
 	// Sometimes it is possible that agent is destroyed without
 	// correct deregistration from SO Environment.
-	drop_all_delivery_filters();
 	m_subscriptions.reset();
 
 	m_event_queue_proxy->shutdown();
@@ -743,45 +741,6 @@ agent_t::ensure_operation_is_on_working_thread(
 				so_5::rc_operation_enabled_only_on_agent_working_thread,
 				s.str() );
 	}
-}
-
-void
-agent_t::drop_all_delivery_filters() SO_5_NOEXCEPT
-{
-	if( m_delivery_filters )
-	{
-		m_delivery_filters->drop_all( *this );
-		m_delivery_filters.reset();
-	}
-}
-
-void
-agent_t::do_set_delivery_filter(
-	const mbox_t & mbox,
-	const std::type_index & msg_type,
-	delivery_filter_unique_ptr_t filter )
-{
-	ensure_operation_is_on_working_thread( "set_delivery_filter" );
-
-	if( !m_delivery_filters )
-		m_delivery_filters.reset( new impl::delivery_filter_storage_t() );
-
-	m_delivery_filters->set_delivery_filter(
-			mbox,
-			msg_type,
-			std::move(filter),
-			*this );
-}
-
-void
-agent_t::do_drop_delivery_filter(
-	const mbox_t & mbox,
-	const std::type_index & msg_type ) SO_5_NOEXCEPT
-{
-	ensure_operation_is_on_working_thread( "set_delivery_filter" );
-
-	if( m_delivery_filters )
-		m_delivery_filters->drop_delivery_filter( mbox, msg_type, *this );
 }
 
 } /* namespace rt */

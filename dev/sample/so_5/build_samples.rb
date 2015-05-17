@@ -40,5 +40,4 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/private_dispatcher_for_children/prj.rb'
 	required_prj 'sample/so_5/redirect_and_transform/prj.rb'
 	required_prj 'sample/so_5/queue_size_stats/prj.rb'
-	required_prj 'sample/so_5/delivery_filters/prj.rb'
 }

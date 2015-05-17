@@ -10,15 +10,6 @@ namespace so_5
 namespace rt
 {
 
-//
-// delivery_filter_t
-//
-delivery_filter_t::~delivery_filter_t()
-	{}
-
-//
-// abstract_message_box_t
-//
 abstract_message_box_t::abstract_message_box_t()
 {
 }

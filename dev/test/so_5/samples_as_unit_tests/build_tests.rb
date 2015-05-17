@@ -22,5 +22,5 @@ MxxRu::Cpp::composite_target {
   required_prj "#{path}/subscriptions.ut.rb"
   required_prj "#{path}/svc_exceptions.ut.rb"
   required_prj "#{path}/svc_hello.ut.rb"
-  required_prj "#{path}/delivery_filters.ut.rb"
+
 }

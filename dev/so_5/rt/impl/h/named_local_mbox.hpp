@@ -83,17 +83,6 @@ class named_local_mbox_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override;
 
-		virtual void
-		set_delivery_filter(
-			const std::type_index & msg_type,
-			const delivery_filter_t & filter,
-			agent_t & subscriber ) override;
-
-		virtual void
-		drop_delivery_filter(
-			const std::type_index & msg_type,
-			agent_t & subscriber ) SO_5_NOEXCEPT override;
-
 	private:
 		//! Mbox name.
 		const std::string m_name;
