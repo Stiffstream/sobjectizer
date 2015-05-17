@@ -30,9 +30,6 @@ namespace chrono_helpers
 	 * \brief Translation from std::chrono::duration to millisecons.
 	 * \deprecated Obsolete in v.5.5.0
 	 */
-	SO_5_DEPRECATED_ATTR("new versions of environment_t::schedule_timer and "
-			"environment_t::single_timer can handle this type of arguments "
-			"directly")
 	template< class REP, class PERIOD >
 	inline unsigned int
 	to_ms( const std::chrono::duration< REP, PERIOD > & d )

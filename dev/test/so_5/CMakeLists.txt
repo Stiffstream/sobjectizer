@@ -39,6 +39,7 @@ add_subdirectory(event_handler/exception_reaction_inheritance)
 add_subdirectory(messages/three_messages)
 add_subdirectory(messages/resend_message)
 add_subdirectory(messages/store_and_resend_later)
+add_subdirectory(messages/tuple_as_message)
 
 add_subdirectory(state/change_state)
 
@@ -57,15 +58,9 @@ add_subdirectory(coop/parent_child_2)
 add_subdirectory(coop/parent_child_3)
 add_subdirectory(coop/parent_child_4)
 add_subdirectory(coop/user_resource)
+add_subdirectory(coop/introduce_coop)
 
-add_subdirectory(mbox/subscribe_when_deregistered)
-add_subdirectory(mbox/drop_subscription)
-add_subdirectory(mbox/drop_subscr_when_demand_in_queue)
-add_subdirectory(mbox/adaptive_subscr_storage)
-add_subdirectory(mbox/mpsc_mbox)
-add_subdirectory(mbox/mpsc_mbox_illegal_subscriber)
-add_subdirectory(mbox/mpsc_mbox_stress)
-add_subdirectory(mbox/hanging_subscriptions)
+add_subdirectory(mbox)
 
 add_subdirectory(ad_hoc_agents)
 

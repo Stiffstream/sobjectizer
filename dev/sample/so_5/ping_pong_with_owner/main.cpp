@@ -151,7 +151,7 @@ public :
 
 	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
-		auto coop = so_5::rt::create_child_coop(
+		so_5::rt::introduce_child_coop(
 				// Parent of the new cooperation.
 				*this,
 				// Cooperation name.
@@ -162,17 +162,16 @@ public :
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
 				so_5::disp::active_obj::create_private_disp(
-						so_environment() )->binder() );
+						so_environment() )->binder(),
+				// Lambda for tuning cooperation object.
+				[this]( so_5::rt::agent_coop_t & coop ) {
+					// Filling the child cooperation.
+					auto a_pinger = coop.make_agent< pinger >( so_direct_mbox() );
+					auto a_ponger = coop.make_agent< ponger >( so_direct_mbox() );
 
-		// Filling the child cooperation.
-		auto a_pinger = coop->make_agent< pinger >( so_direct_mbox() );
-		auto a_ponger = coop->make_agent< ponger >( so_direct_mbox() );
-
-		a_pinger->set_ponger_mbox( a_ponger->so_direct_mbox() );
-		a_ponger->set_pinger_mbox( a_pinger->so_direct_mbox() );
-
-		// Cooperation registration.
-		so_environment().register_coop( std::move( coop ) );
+					a_pinger->set_ponger_mbox( a_ponger->so_direct_mbox() );
+					a_ponger->set_pinger_mbox( a_pinger->so_direct_mbox() );
+				} );
 
 		// Limit the pinger/ponger exchange time.
 		so_5::send_delayed_to_agent< stop >(
@@ -228,7 +227,7 @@ int main()
 					// automatically by SO Environment.
 					so_5::autoname,
 					// The single agent in the cooperation.
-					new parent( env ) );
+					env.make_agent< parent >() );
 			} );
 	}
 	catch( const std::exception & x )

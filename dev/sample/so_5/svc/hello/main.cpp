@@ -120,19 +120,18 @@ void
 init(
 	so_5::rt::environment_t & env )
 	{
-		auto coop = env.create_coop(
-				"test_coop",
-				so_5::disp::active_obj::create_private_disp( env )->binder() );
+		env.introduce_coop(
+				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				[&env]( so_5::rt::agent_coop_t & coop )
+				{
+					auto svc_mbox = env.create_local_mbox();
 
-		auto svc_mbox = env.create_local_mbox();
+					define_hello_service( coop, svc_mbox );
+					define_convert_service( coop, svc_mbox );
+					define_shutdown_service( coop, svc_mbox );
 
-		define_hello_service( *coop, svc_mbox );
-		define_convert_service( *coop, svc_mbox );
-		define_shutdown_service( *coop, svc_mbox );
-
-		coop->make_agent< a_client_t >( svc_mbox );
-
-		env.register_coop( std::move( coop ) );
+					coop.make_agent< a_client_t >( svc_mbox );
+				} );
 	}
 
 int

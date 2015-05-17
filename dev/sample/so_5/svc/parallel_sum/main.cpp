@@ -54,19 +54,17 @@ class a_vector_summator_t : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
-				auto coop = so_5::rt::create_child_coop(
+				so_5::rt::introduce_child_coop(
 						*this,
-						so_5::autoname,
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
-
-				coop->define_agent()
-					.event(
-						m_part_summator_mbox,
-						[]( const msg_sum_part & part ) {
-							return std::accumulate( part.m_begin, part.m_end, 0 );
+						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
+						[&]( so_5::rt::agent_coop_t & coop )
+						{
+							coop.define_agent().event(
+								m_part_summator_mbox,
+								[]( const msg_sum_part & part ) {
+									return std::accumulate( part.m_begin, part.m_end, 0 );
+								} );
 						} );
-
-				so_environment().register_coop( std::move( coop ) );
 			}
 
 		int
@@ -147,14 +145,12 @@ class a_runner_t : public so_5::rt::agent_t
 		void
 		create_summator_coop()
 			{
-				auto coop = so_5::rt::create_child_coop(
-						*this,
-						so_5::autoname,
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
-
-				coop->make_agent< a_vector_summator_t >( m_summator_mbox );
-
-				so_environment().register_coop( std::move( coop ) );
+				so_5::rt::introduce_child_coop(
+					*this,
+					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
+					[this]( so_5::rt::agent_coop_t & coop ) {
+						coop.make_agent< a_vector_summator_t >( m_summator_mbox );
+					} );
 			}
 
 		void
@@ -193,14 +189,12 @@ main( int argc, char ** argv )
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
-							auto coop = env.create_coop(
-									"test_coop",
+							env.introduce_coop(
 									so_5::disp::active_obj::create_disp_binder(
-											"active_obj" ) );
-
-							coop->make_agent< a_runner_t >( ITERATIONS );
-
-							env.register_coop( std::move( coop ) );
+											"active_obj" ),
+									[&]( so_5::rt::agent_coop_t & coop ) {
+										coop.make_agent< a_runner_t >( ITERATIONS );
+									} );
 						},
 						[]( so_5::rt::environment_params_t & p ) {
 							p.add_named_dispatcher(

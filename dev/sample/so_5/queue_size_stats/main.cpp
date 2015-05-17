@@ -82,6 +82,18 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		using namespace so_5::rt::stats;
+
+		// Set up a filter for messages with run-time monitoring information.
+		so_set_delivery_filter(
+			// Message box to which delivery filter must be set.
+			so_environment().stats_controller().mbox(),
+			// Delivery predicate.
+			[]( const messages::quantity< std::size_t > & msg ) {
+				// Process only messages related to dispatcher's queue sizes.
+				return suffixes::work_thread_queue_size() == msg.m_suffix;
+			} );
+
 		// We must receive messages from run-time monitor.
 		so_default_state().event(
 				// This is mbox to that run-time statistic will be sent.
@@ -106,15 +118,11 @@ private :
 	evt_quantity(
 		const so_5::rt::stats::messages::quantity< std::size_t > & evt )
 	{
-		// Process only messages related to dispatcher's queue sizes.
-		if( so_5::rt::stats::suffixes::work_thread_queue_size() == evt.m_suffix )
-		{
-			std::ostringstream ss;
+		std::ostringstream ss;
 
-			ss << "stats: '" << evt.m_prefix << evt.m_suffix << "': " << evt.m_value;
+		ss << "stats: '" << evt.m_prefix << evt.m_suffix << "': " << evt.m_value;
 
-			so_5::send< log_message >( m_logger, ss.str() );
-		}
+		so_5::send< log_message >( m_logger, ss.str() );
 	}
 };
 
@@ -218,45 +226,43 @@ init( so_5::rt::environment_t & env )
 {
 	std::srand( std::time(nullptr) );
 
-	auto coop = env.create_coop( so_5::autoname );
+	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+		// Logger will work on the default dispatcher.
+		auto logger = coop.make_agent< a_logger_t >();
 
-	// Logger will work on the default dispatcher.
-	auto logger = coop->make_agent< a_logger_t >();
+		// Run-time stats listener will work on a dedicated
+		// one-thread dispatcher.
+		coop.make_agent_with_binder< a_stats_listener_t >(
+				so_5::disp::one_thread::create_private_disp(
+						env, "stats_listener" )->binder(),
+				logger->so_direct_mbox() );
 
-	// Run-time stats listener will work on a dedicated
-	// one-thread dispatcher.
-	coop->make_agent_with_binder< a_stats_listener_t >(
-			so_5::disp::one_thread::create_private_disp(
-					env, "stats_listener" )->binder(),
-			logger->so_direct_mbox() );
+		// Bunch of workers.
+		// Must work on dedicated thread_pool dispatcher.
+		auto worker_disp = so_5::disp::thread_pool::create_private_disp(
+				env,
+				3, // Count of working threads.
+				"workers" ); // Name of dispatcher (for convience of monitoring).
+		const auto worker_binding_params = so_5::disp::thread_pool::params_t{}
+				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
-	// Bunch of workers.
-	// Must work on dedicated thread_pool dispatcher.
-	auto worker_disp = so_5::disp::thread_pool::create_private_disp(
-			env,
-			3, // Count of working threads.
-			"workers" ); // Name of dispatcher (for convience of monitoring).
-	const auto worker_binding_params = so_5::disp::thread_pool::params_t{}
-			.fifo( so_5::disp::thread_pool::fifo_t::individual );
+		std::vector< so_5::rt::mbox_t > workers;
+		for( int i = 0; i != 5; ++i )
+		{
+			auto w = coop.make_agent_with_binder< a_worker_t >(
+					worker_disp->binder( worker_binding_params ) );
+			workers.push_back( w->so_direct_mbox() );
+		}
 
-	std::vector< so_5::rt::mbox_t > workers;
-	for( int i = 0; i != 5; ++i )
-	{
-		auto w = coop->make_agent_with_binder< a_worker_t >(
-				worker_disp->binder( worker_binding_params ) );
-		workers.push_back( w->so_direct_mbox() );
-	}
+		// Generators will work on dedicated active_obj dispatcher.
+		auto generator_disp = so_5::disp::active_obj::create_private_disp(
+				env, "generator" );
 
-	// Generators will work on dedicated active_obj dispatcher.
-	auto generator_disp = so_5::disp::active_obj::create_private_disp(
-			env, "generator" );
-
-	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder(),
-			logger->so_direct_mbox(),
-			std::move( workers ) );
-
-	env.register_coop( std::move( coop ) );
+		coop.make_agent_with_binder< a_generator_t >(
+				generator_disp->binder(),
+				logger->so_direct_mbox(),
+				std::move( workers ) );
+	});
 
 	// Take some time to work.
 	std::this_thread::sleep_for( std::chrono::seconds(50) );

@@ -47,23 +47,22 @@ public :
 	void
 	so_evt_start() override
 	{
-		auto coop = so_5::rt::create_child_coop( *this, "child" );
+		using namespace so_5::rt;
 
-		// Add necessary cooperation notificators for coop.
-		coop->add_reg_notificator(
-				so_5::rt::make_coop_reg_notificator( so_direct_mbox() ) );
-		coop->add_reg_notificator( normal_coop_reg_notificator );
-		coop->add_reg_notificator( invalid_coop_reg_notificator );
+		introduce_child_coop( *this, "child", [this]( agent_coop_t & coop ) {
+			// Add necessary cooperation notificators for coop.
+			coop.add_reg_notificator(
+					make_coop_reg_notificator( so_direct_mbox() ) );
+			coop.add_reg_notificator( normal_coop_reg_notificator );
+			coop.add_reg_notificator( invalid_coop_reg_notificator );
 
-		// A cooperation agent.
-		coop->define_agent()
-			.on_start( []() { std::cout << "Child started!" << std::endl; } );
+			// A cooperation agent.
+			coop.define_agent()
+				.on_start( []() { std::cout << "Child started!" << std::endl; } );
 
-		std::cout << "registering coop: " << coop->query_coop_name()
-				<< std::endl;
-
-		// Registering cooperation.
-		so_environment().register_coop( std::move( coop ) );
+			std::cout << "registering coop: " << coop.query_coop_name()
+					<< std::endl;
+		});
 	}
 
 	void

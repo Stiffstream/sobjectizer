@@ -91,21 +91,23 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			auto coop = so_5::rt::create_child_coop( *this, "child" );
+			using namespace so_5::rt;
 
-			coop->add_reg_notificator(
-					so_5::rt::make_coop_reg_notificator( so_direct_mbox() ) );
-			coop->add_dereg_notificator(
-					so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
-			coop->set_exception_reaction(
-					so_5::rt::deregister_coop_on_exception );
+			introduce_child_coop( *this, "child",
+				[this]( agent_coop_t & coop )
+				{
+					coop.add_reg_notificator(
+							make_coop_reg_notificator( so_direct_mbox() ) );
+					coop.add_dereg_notificator(
+							make_coop_dereg_notificator( so_direct_mbox() ) );
+					coop.set_exception_reaction(
+							deregister_coop_on_exception );
 
-			coop->make_agent< a_child_t >( m_counter < m_max_counter );
+					coop.make_agent< a_child_t >( m_counter < m_max_counter );
 
-			std::cout << "registering coop: " << coop->query_coop_name()
-					<< std::endl;
-
-			so_environment().register_coop( std::move( coop ) );
+					std::cout << "registering coop: " << coop.query_coop_name()
+							<< std::endl;
+				} );
 		}
 };
 

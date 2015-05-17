@@ -152,21 +152,19 @@ private :
 void
 init( so_5::rt::environment_t & env )
 {
-	const std::size_t count = 5;
+	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		const std::size_t count = 5;
 
-	auto coop = env.create_coop( "dining_philosophers" );
+		std::vector< so_5::rt::agent_t * > forks( count, nullptr );
+		for( std::size_t i = 0; i != count; ++i )
+			forks[ i ] = coop.make_agent< a_fork_t >();
 
-	std::vector< so_5::rt::agent_t * > forks( count, nullptr );
-	for( std::size_t i = 0; i != count; ++i )
-		forks[ i ] = coop->make_agent< a_fork_t >();
-
-	for( std::size_t i = 0; i != count; ++i )
-		coop->make_agent< a_philosopher_t >(
-				std::to_string( i ),
-				forks[ i ]->so_direct_mbox(),
-				forks[ (i + 1) % count ]->so_direct_mbox() );
-
-	env.register_coop( std::move( coop ) );
+		for( std::size_t i = 0; i != count; ++i )
+			coop.make_agent< a_philosopher_t >(
+					std::to_string( i ),
+					forks[ i ]->so_direct_mbox(),
+					forks[ (i + 1) % count ]->so_direct_mbox() );
+	});
 
 	std::this_thread::sleep_for( std::chrono::seconds(20) );
 	env.stop();

@@ -12,8 +12,8 @@
 class a_hello_t : public so_5::rt::agent_t
 {
 	public:
-		a_hello_t( so_5::rt::environment_t & env )
-			: so_5::rt::agent_t( env )
+		a_hello_t( context_t ctx )
+			: so_5::rt::agent_t( ctx )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -37,7 +37,7 @@ main()
 	try
 	{
 		so_5::launch( []( so_5::rt::environment_t & env ) {
-				env.register_agent_as_coop( "coop", new a_hello_t( env ) );
+				env.register_agent_as_coop( "coop", env.make_agent< a_hello_t >() );
 			} );
 
 	}

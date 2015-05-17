@@ -120,14 +120,14 @@ main()
 		so_5::launch( []( so_5::rt::environment_t & env )
 			{
 				// All agents of example must be active agents.
-				auto coop = env.create_coop( so_5::autoname,
-						// Agents will be bound to private active_obj dispatcher.
-						so_5::disp::active_obj::create_private_disp( env )->binder() );
-				auto storage = coop->make_agent< a_key_value_storage_t >();
+				env.introduce_coop(
+					// Agents will be bound to private active_obj dispatcher.
+					so_5::disp::active_obj::create_private_disp( env )->binder(),
+					[]( so_5::rt::agent_coop_t & coop ) {
+						auto storage = coop.make_agent< a_key_value_storage_t >();
 
-				coop->make_agent< a_consumer_t >( storage->so_direct_mbox() );
-
-				env.register_coop( std::move( coop ) );
+						coop.make_agent< a_consumer_t >( storage->so_direct_mbox() );
+					});
 			} );
 
 		return 0;

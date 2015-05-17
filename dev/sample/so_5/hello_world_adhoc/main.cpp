@@ -10,39 +10,34 @@
 int
 main()
 {
+	using namespace std;
+	using namespace so_5::rt;
+
 	try
 	{
-		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+		so_5::launch( []( environment_t & env )
 			{
-				// Creating a cooperation.
-				auto coop = env.create_coop( "coop" );
+				// Creating and registering a cooperation.
+				env.introduce_coop( [&env]( agent_coop_t & coop ) {
+					// Adding agent to the cooperation.
+					coop.define_agent()
+						// A reaction to start of work in SObjectizer.
+						.on_start( [&env] {
+								cout << "Hello, world! This is SObjectizer v.5." << endl;
 
-				// Adding agent to the cooperation.
-				coop->define_agent()
-					// A reaction to start of work in SObjectizer.
-					.on_start(
-						[&env]() {
-							std::cout << "Hello, world! This is SObjectizer v.5."
-									<< std::endl;
-
-							// Shutting down SObjectizer.
-							env.stop();
-						} )
-					// A reaction to finish of work in SObjectizer.
-					.on_finish(
-						[]() {
-							std::cout << "Bye! This was SObjectizer v.5."
-									<< std::endl;
-						} );
-
-				// Registering the cooperation.
-				env.register_coop( std::move( coop ) );
+								// Shutting down SObjectizer.
+								env.stop();
+							} )
+						// A reaction to finish of work in SObjectizer.
+						.on_finish( [] {
+								cout << "Bye! This was SObjectizer v.5." << endl;
+							} );
+				});
 			} );
 	}
-	catch( const std::exception & ex )
+	catch( const exception & ex )
 	{
-		std::cerr << "Error: " << ex.what() << std::endl;
+		cerr << "Error: " << ex.what() << endl;
 		return 1;
 	}
 

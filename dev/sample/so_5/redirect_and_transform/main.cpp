@@ -293,56 +293,54 @@ init( so_5::rt::environment_t & env )
 {
 	std::srand( std::time(nullptr) );
 
-	auto coop = env.create_coop( so_5::autoname );
+	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+		// Logger will work on the default dispatcher.
+		auto logger = coop.make_agent< a_logger_t >();
 
-	// Logger will work on the default dispatcher.
-	auto logger = coop->make_agent< a_logger_t >();
+		// Chain of performers.
+		// Must work on dedicated thread_pool dispatcher.
+		auto performer_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
+		auto performer_binding_params = so_5::disp::thread_pool::params_t{}
+				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
-	// Chain of performers.
-	// Must work on dedicated thread_pool dispatcher.
-	auto performer_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
-	auto performer_binding_params = so_5::disp::thread_pool::params_t{}
-			.fifo( so_5::disp::thread_pool::fifo_t::individual );
+		// Start chain from the last agent.
+		auto p3 = coop.make_agent_with_binder< a_performer_t >(
+				performer_disp->binder( performer_binding_params ),
+				"p3",
+				1.4, // Each performer in chain is slower then previous.
+				a_performer_t::last_performer{},
+				logger->so_direct_mbox() );
+		auto p2 = coop.make_agent_with_binder< a_performer_t >(
+				performer_disp->binder( performer_binding_params ),
+				"p2",
+				1.2, // Each performer in chain is slower then previous.
+				a_performer_t::next_performer{ p3->so_direct_mbox() },
+				logger->so_direct_mbox() );
+		auto p1 = coop.make_agent_with_binder< a_performer_t >(
+				performer_disp->binder( performer_binding_params ),
+				"p1",
+				1.0, // The first performer is the fastest one.
+				a_performer_t::next_performer{ p2->so_direct_mbox() },
+				logger->so_direct_mbox() );
 
-	// Start chain from the last agent.
-	auto p3 = coop->make_agent_with_binder< a_performer_t >(
-			performer_disp->binder( performer_binding_params ),
-			"p3",
-			1.4, // Each performer in chain is slower then previous.
-			a_performer_t::last_performer{},
-			logger->so_direct_mbox() );
-	auto p2 = coop->make_agent_with_binder< a_performer_t >(
-			performer_disp->binder( performer_binding_params ),
-			"p2",
-			1.2, // Each performer in chain is slower then previous.
-			a_performer_t::next_performer{ p3->so_direct_mbox() },
-			logger->so_direct_mbox() );
-	auto p1 = coop->make_agent_with_binder< a_performer_t >(
-			performer_disp->binder( performer_binding_params ),
-			"p1",
-			1.0, // The first performer is the fastest one.
-			a_performer_t::next_performer{ p2->so_direct_mbox() },
-			logger->so_direct_mbox() );
+		// Generators will work on dedicated thread_pool dispatcher.
+		auto generator_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
+		auto generator_binding_params = so_5::disp::thread_pool::params_t{}
+				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
-	// Generators will work on dedicated thread_pool dispatcher.
-	auto generator_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
-	auto generator_binding_params = so_5::disp::thread_pool::params_t{}
-			.fifo( so_5::disp::thread_pool::fifo_t::individual );
-
-	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder( generator_binding_params ),
-			"g1",
-			0,
-			p1->so_direct_mbox(),
-			logger->so_direct_mbox() );
-	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder( generator_binding_params ),
-			"g2",
-			1000000,
-			p1->so_direct_mbox(),
-			logger->so_direct_mbox() );
-
-	env.register_coop( std::move( coop ) );
+		coop.make_agent_with_binder< a_generator_t >(
+				generator_disp->binder( generator_binding_params ),
+				"g1",
+				0,
+				p1->so_direct_mbox(),
+				logger->so_direct_mbox() );
+		coop.make_agent_with_binder< a_generator_t >(
+				generator_disp->binder( generator_binding_params ),
+				"g2",
+				1000000,
+				p1->so_direct_mbox(),
+				logger->so_direct_mbox() );
+	});
 
 	// Take some time to work.
 	std::this_thread::sleep_for( std::chrono::seconds(5) );

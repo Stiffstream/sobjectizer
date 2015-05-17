@@ -135,35 +135,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename... ARGS >
 		const state_t &
-		event( mbox_t & from, ARGS&&... args ) const;
-
-		/*!
-		 * \since v.5.5.1
-		 * \brief Helper for subscription of event handler in this state.
-		 *
-		 * \note This method must be used for messages which are
-		 * sent to \a from message-box.
-		 *
-		 * \par Usage example
-			\code
-			class my_agent : public so_5::rt::agent_t
-			{
-				const so_5::rt::state_t st_normal = so_make_state();
-			public :
-				...
-				virtual void so_define_agent() override {
-					st_normal.event( m_owner, [=]( const msg_reconfig & evt ) { ... } );
-					st_normal.event( m_owner, &my_agent::evt_shutdown );
-					...
-				}
-			private :
-				const so_5::rt::mbox_t m_owner;
-			};
-			\endcode
-		 */
-		template< typename... ARGS >
-		const state_t &
-		event( const mbox_t & from, ARGS&&... args ) const;
+		event( mbox_t from, ARGS&&... args ) const;
 
 		/*!
 		 * \since v.5.5.1
@@ -219,36 +191,7 @@ class SO_5_TYPE state_t
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
-		event( mbox_t & from, ARGS&&... args ) const;
-
-		/*!
-		 * \since v.5.5.1
-		 * \brief Helper for subscription of event handler in this state.
-		 *
-		 * \note This method must be used for signal subscriptions.
-		 * \note This method must be used for messages which are
-		 * sent to \a from message-box.
-		 *
-		 * \par Usage example
-			\code
-			class my_agent : public so_5::rt::agent_t
-			{
-				const so_5::rt::state_t st_normal = so_make_state();
-			public :
-				...
-				virtual void so_define_agent() override {
-					st_normal.event< msg_reconfig >( m_owner, [=] { ... } );
-					st_normal.event< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
-					...
-				}
-			private :
-				const so_5::rt::mbox_t m_owner;
-			};
-			\endcode
-		 */
-		template< typename SIGNAL, typename... ARGS >
-		const state_t &
-		event( const mbox_t & from, ARGS&&... args ) const;
+		event( mbox_t from, ARGS&&... args ) const;
 
 	private:
 		//! Owner of this state.

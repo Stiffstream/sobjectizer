@@ -291,7 +291,6 @@ namespace rt
 {
 
 // For compatibility with previous versions.
-SO_5_DEPRECATED_ATTR("Use so_5::intrusive_ptr_t instead")
 /*!
  * \deprecated Obsolete in v.5.5.1. Use so_5::intrusive_ptr_t instead.
  */

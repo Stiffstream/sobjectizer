@@ -97,14 +97,12 @@ void
 init(
 	so_5::rt::environment_t & env )
 	{
-		auto coop = env.create_coop(
-				"test_coop",
-				so_5::disp::active_obj::create_private_disp( env )->binder() );
-
-		auto a_service = coop->make_agent< a_convert_service_t >();
-		coop->make_agent< a_client_t >( a_service->so_direct_mbox() );
-
-		env.register_coop( std::move( coop ) );
+		env.introduce_coop(
+				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				[]( so_5::rt::agent_coop_t & coop ) {
+					auto a_service = coop.make_agent< a_convert_service_t >();
+					coop.make_agent< a_client_t >( a_service->so_direct_mbox() );
+				} );
 	}
 
 int

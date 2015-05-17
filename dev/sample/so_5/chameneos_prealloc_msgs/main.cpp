@@ -258,24 +258,24 @@ init(
 	so_5::rt::environment_t & env,
 	int meetings )
 	{
-		color_t creature_colors[ CREATURE_COUNT ] =
-			{ BLUE, RED, YELLOW, BLUE };
+		env.introduce_coop( "chameneos",
+				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				[meetings]( so_5::rt::agent_coop_t & coop )
+				{
+					color_t creature_colors[ CREATURE_COUNT ] =
+						{ BLUE, RED, YELLOW, BLUE };
 
-		auto coop = env.create_coop( "chameneos",
-				so_5::disp::active_obj::create_private_disp( env )->binder() );
-
-		auto a_meeting_place = coop->make_agent< a_meeting_place_t >(
-				CREATURE_COUNT,
-				meetings );
-		
-		for( std::size_t i = 0; i != CREATURE_COUNT; ++i )
-			{
-				coop->make_agent< a_creature_t >(
-						a_meeting_place->so_direct_mbox(),
-						creature_colors[ i ] );
-			}
-
-		env.register_coop( std::move( coop ) );
+					auto a_meeting_place = coop.make_agent< a_meeting_place_t >(
+							CREATURE_COUNT,
+							meetings );
+					
+					for( std::size_t i = 0; i != CREATURE_COUNT; ++i )
+						{
+							coop.make_agent< a_creature_t >(
+									a_meeting_place->so_direct_mbox(),
+									creature_colors[ i ] );
+						}
+				} );
 	}
 
 int

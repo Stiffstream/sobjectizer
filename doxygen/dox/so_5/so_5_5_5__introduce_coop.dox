@@ -1,0 +1,141 @@
+/*!
+
+\page so_5_5_5__introduce_coop so-5.5.5: introduce_coop and introduce_child_coop helpers
+
+Version 5.5.5 introduces two useful helpers for simplification of cooperation
+creation:
+
+- so_5::rt::environment_t::introduce_coop() template method and
+- so_5::rt::introduce_child_coop() template function.
+
+Just for comparison of new cooperation creation and registration:
+
+\code
+// Old approach (before v.5.5.5):
+auto coop = env.create_coop( so_5::autoname );
+coop->make_agent< first_agent >( some_params() );
+coop->make_agent< second_agent >( some_params() );
+env.register_coop( std::move( coop ) );
+
+// New approach (since v.5.5.5, in C++11):
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+  coop.make_agent< first_agent >( some_params() );
+  coop.make_agent< second_agent >( some_params() );
+} );
+
+// New approach (since v.5.5.5, in C++14):
+env.introduce_coop( []( auto & coop ) {
+  coop.make_agent< first_agent >( some_params() );
+  coop.make_agent< second_agent >( some_params() );
+} );
+\endcode
+
+Similar comparison for creation of a child cooperation:
+
+\code
+// Old approach (before v.5.5.5):
+void parent_coop::so_evt_start() override
+{
+  auto coop = so_5::rt::create_child_coop( *this, so_5::autoname );
+  coop->make_agent< first_agent >( some_params() );
+  coop->make_agent< second_agent >( some_params() );
+  env.register_coop( std::move( coop ) );
+}
+
+// New approach (since v.5.5.5, in C++11):
+void parent_coop::so_evt_start() override
+{
+  so_5::rt::introduce_child_coop( *this, [this]( so_5::rt::agent_coop_t & coop ) {
+    coop.make_agent< first_agent >( some_params() );
+    coop.make_agent< second_agent >( some_params() );
+  } );
+}
+
+// New approach (since v.5.5.5, in C++14):
+void parent_coop::so_evt_start() override
+{
+  so_5::rt::introduce_child_coop( *this, [this]( auto & coop ) {
+    coop.make_agent< first_agent >( some_params() );
+    coop.make_agent< second_agent >( some_params() );
+  } );
+}
+\endcode
+
+New `introduce_coop` and `introduce_child_coop` are just thing wrappers around `create_coop` and `create_child_coop`. Because of that new method/function accepts all combination of parameters appropriate for create_coop/create_child_coop. It means that it is possible to write:
+
+\code
+// Automatic generation of cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+env.introduce_coop( so_5::autoname, []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Explicitly specified cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+env.introduce_coop( "db_workers", []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Automatic generation of cooperation name.
+// Explicitly specified main dispatcher.
+env.introduce_coop( so_5::autoname,
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Explicitly specified cooperation name.
+// Explicitly specified main dispatcher.
+env.introduce_coop( "logger",
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+\endcode
+
+But the usage of `so_5::autoname` could be omitted:
+
+\code
+// Automatic generation of cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Automatic generation of cooperation name.
+// Explicitly specified main dispatcher.
+env.introduce_coop(
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+\endcode
+
+The same rules are for `introduce_child_coop`:
+
+\code
+// Automatic generation of cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+so_5::rt::introduce_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Automatic generation of cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+so_5::rt::introduce_child_coop( *this, so_5::autoname,
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Explicitly specified cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+so_5::rt::introduce_child_coop( *this, "db_workers",
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Automatic generation of cooperation name.
+// Default dispatcher as a main dispatcher for cooperation.
+so_5::rt::introduce_child_coop( *this,
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Automatic generation of cooperation name.
+// Explicitly specified main dispatcher.
+so_5::rt::introduce_child_coop( *this, so_5::autoname,
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+
+// Explicitly specified cooperation name.
+// Explicitly specified main dispatcher.
+so_5::rt::introduce_child_coop( *this, "logger",
+  so_5::disp::one_thread::create_private_disp()->binder(),
+  []( so_5::rt::agent_coop_t & coop ) {...} );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

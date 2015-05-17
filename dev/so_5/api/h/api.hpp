@@ -123,7 +123,6 @@ main( int argc, char * argv[] )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -174,7 +173,6 @@ main( int argc, char * argv[] )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -226,7 +224,6 @@ main( int argc, char * argv[] )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 inline void
 run_so_environment(
 	//! Initialization routine.
@@ -306,7 +303,6 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class INIT, class PARAM_TYPE >
 void
 run_so_environment_with_parameter(
@@ -397,8 +393,6 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class INIT, class PARAM_TYPE >
 void
 run_so_environment_with_parameter(
@@ -491,7 +485,6 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class OBJECT, class METHOD >
 void
 run_so_environment_on_object(
@@ -517,7 +510,6 @@ run_so_environment_on_object(
 /*!
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-SO_5_DEPRECATED_ATTR("use so_5::launch() instead")
 template< class OBJECT, class METHOD >
 void
 run_so_environment_on_object(

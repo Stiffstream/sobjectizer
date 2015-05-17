@@ -59,25 +59,19 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			[]( so_5::rt::environment_t & env )
-			{
-				// Mbox for agent's interaction.
-				auto mbox = env.create_local_mbox();
+		so_5::launch( []( so_5::rt::environment_t & env ) {
+				env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+					// Mbox for agent's interaction.
+					auto mbox = env.create_local_mbox();
 
-				// Agent's cooperation.
-				auto coop = env.create_coop( "ping_pong" );
+					// Pinger.
+					coop.make_agent< a_pinger_t >( mbox, 100000 );
 
-				// Pinger.
-				coop->make_agent< a_pinger_t >( mbox, 100000 );
-
-				// Ponger agent.
-				coop->define_agent().event< msg_ping >(
-						mbox, [mbox]() { so_5::send< msg_pong >( mbox ); } );
-
-				// Register the cooperation.
-				env.register_coop( std::move( coop ) );
-			} );
+					// Ponger agent.
+					coop.define_agent().event< msg_ping >(
+							mbox, [mbox]() { so_5::send< msg_pong >( mbox ); } );
+				});
+			});
 
 		return 0;
 	}

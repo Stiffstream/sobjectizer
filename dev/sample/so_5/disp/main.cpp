@@ -79,54 +79,51 @@ create_agent_name( const std::string & base, int i )
 void
 init( so_5::rt::environment_t & env )
 {
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
+	// Creating and registering a cooperation.
+	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+		// Adding agents which will work on the default dispatcher.
+		for( int i = 0; i < 4; ++i )
+		{
+			coop.make_agent< a_disp_user_t >(
+				create_agent_name( "default_disp", i+1 ) );
+		}
 
-	// Adding agents which will work on the default dispatcher.
-	for( int i = 0; i < 4; ++i )
-	{
-		coop->make_agent< a_disp_user_t >(
-			create_agent_name( "default_disp", i+1 ) );
-	}
+		// Adding agents which will work on the dispatcher 
+		// with name 'single_thread'.
+		for( int i = 0; i < 3; ++i )
+		{
+			coop.make_agent_with_binder< a_disp_user_t >(
+				so_5::disp::one_thread::create_disp_binder( "single_thread" ),
+				create_agent_name( "single_thread", i+1 ) );
+		}
 
-	// Adding agents which will work on the dispatcher 
-	// with name 'single_thread'.
-	for( int i = 0; i < 3; ++i )
-	{
-		coop->make_agent_with_binder< a_disp_user_t >(
-			so_5::disp::one_thread::create_disp_binder( "single_thread" ),
-			create_agent_name( "single_thread", i+1 ) );
-	}
+		// Adding agents which will work on the dispatcher with active groups
+		// named as 'active_group'. Agents will be bound to a group 'A'.
+		for( int i = 0; i < 2; ++i )
+		{
+			coop.make_agent_with_binder< a_disp_user_t >(
+				so_5::disp::active_group::create_disp_binder( "active_group", "A" ),
+				create_agent_name( "active_group_A", i+1 ) );
+		}
 
-	// Adding agents which will work on the dispatcher with active groups
-	// named as 'active_group'. Agents will be bound to a group 'A'.
-	for( int i = 0; i < 2; ++i )
-	{
-		coop->make_agent_with_binder< a_disp_user_t >(
-			so_5::disp::active_group::create_disp_binder( "active_group", "A" ),
-			create_agent_name( "active_group_A", i+1 ) );
-	}
+		// Adding agents which will work on the dispatcher with active groups
+		// named as 'active_group'. Agents will be bound to a group 'B'.
+		for( int i = 0; i < 2; ++i )
+		{
+			coop.make_agent_with_binder< a_disp_user_t >(
+				so_5::disp::active_group::create_disp_binder( "active_group", "B" ),
+				create_agent_name( "active_group_B", i+1 ) );
+		}
 
-	// Adding agents which will work on the dispatcher with active groups
-	// named as 'active_group'. Agents will be bound to a group 'B'.
-	for( int i = 0; i < 2; ++i )
-	{
-		coop->make_agent_with_binder< a_disp_user_t >(
-			so_5::disp::active_group::create_disp_binder( "active_group", "B" ),
-			create_agent_name( "active_group_B", i+1 ) );
-	}
-
-	// Adding agents which will work on the dispatcher for active objects.
-	// This dispatcher will have name 'active_obj'.
-	for( int i = 0; i < 4; ++i )
-	{
-		coop->make_agent_with_binder< a_disp_user_t >(
-			so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-			create_agent_name( "active_obj", i+1 ) );
-	}
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
+		// Adding agents which will work on the dispatcher for active objects.
+		// This dispatcher will have name 'active_obj'.
+		for( int i = 0; i < 4; ++i )
+		{
+			coop.make_agent_with_binder< a_disp_user_t >(
+				so_5::disp::active_obj::create_disp_binder( "active_obj" ),
+				create_agent_name( "active_obj", i+1 ) );
+		}
+	});
 
 	// Stopping SObjectizer.
 	env.stop();

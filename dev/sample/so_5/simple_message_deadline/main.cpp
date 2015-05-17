@@ -340,22 +340,21 @@ private :
 };
 
 void
-create_coop( so_5::rt::environment_t & env )
+init( so_5::rt::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
-	auto disp = create_private_disp( env, 3 );
-	auto c = env.create_coop( so_5::autoname,
-			disp->binder( params_t{}.fifo( fifo_t::individual ) ) );
+	env.introduce_coop(
+		create_private_disp( env, 3 )->binder(
+				params_t{}.fifo( fifo_t::individual ) ),
+		[]( so_5::rt::agent_coop_t & c ) {
+			auto collector = c.make_agent< a_collector_t >();
+			auto performer = c.make_agent< a_performer_t >(
+					collector->so_direct_mbox() );
+			collector->set_performer_mbox( performer->so_direct_mbox() );
 
-	auto collector = c->make_agent< a_collector_t >();
-	auto performer = c->make_agent< a_performer_t >(
-			collector->so_direct_mbox() );
-	collector->set_performer_mbox( performer->so_direct_mbox() );
-
-	c->make_agent< a_generator_t >( collector->so_direct_mbox() );
-
-	env.register_coop( std::move( c ) );
+			c.make_agent< a_generator_t >( collector->so_direct_mbox() );
+		});
 }
 
 int
@@ -363,7 +362,7 @@ main()
 {
 	try
 	{
-		so_5::launch( &create_coop );
+		so_5::launch( &init );
 
 		return 0;
 	}

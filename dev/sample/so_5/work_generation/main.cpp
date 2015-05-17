@@ -405,20 +405,18 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		auto coop = env.create_coop( so_5::autoname );
+		env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+			auto receiver = coop.make_agent_with_binder< a_receiver_t >(
+					receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
+					"r" + std::to_string(i), c );
 
-		auto receiver = coop->make_agent_with_binder< a_receiver_t >(
-				receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
-				"r" + std::to_string(i), c );
+			const auto receiver_mbox = receiver->so_direct_mbox();
+			result.push_back( receiver_mbox );
 
-		const auto receiver_mbox = receiver->so_direct_mbox();
-		result.push_back( receiver_mbox );
-
-		coop->make_agent_with_binder< a_processor_t >(
-				processor_disp->binder(),
-				"p" + std::to_string(i), receiver_mbox );
-
-		env.register_coop( std::move( coop ) );
+			coop.make_agent_with_binder< a_processor_t >(
+					processor_disp->binder(),
+					"p" + std::to_string(i), receiver_mbox );
+		} );
 
 		++i;
 	}
@@ -431,21 +429,17 @@ init( so_5::rt::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
+	using namespace so_5::disp::thread_pool;
+
 	// A private dispatcher for generators cooperation.
-	auto generators_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
-	auto coop = env.create_coop( so_5::autoname,
-			generators_disp->binder(
-					[]( so_5::disp::thread_pool::params_t & p ) {
-						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
-					} ) );
-
-	for( int i = 0; i != 3; ++i )
-	{
-		coop->make_agent< a_generator_t >( "g" + std::to_string(i), receivers );
-	}
-
-	// Registration of generator will start example.
-	env.register_coop( std::move( coop ) );
+	auto generators_disp = create_private_disp( env, 3 );
+	env.introduce_coop(
+			generators_disp->binder( params_t{}.fifo( fifo_t::individual ) ),
+			[&receivers]( so_5::rt::agent_coop_t & coop ) {
+				for( int i = 0; i != 3; ++i )
+					coop.make_agent< a_generator_t >(
+							"g" + std::to_string(i), receivers );
+			} );
 
 	// Taking some time for the agents.
 	std::this_thread::sleep_for( std::chrono::seconds( 10 ) );

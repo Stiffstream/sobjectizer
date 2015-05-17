@@ -26,11 +26,16 @@
 		#define SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED
 	#endif
 
+	// Visual C++ 2013 doesn't support defaults for move-constructors
+	// and move-operators.
+	#define SO_5_NO_DEFAULTS_FOR_MOVE_CONSTRUCTOR
+
 #endif
 
-#if __cplusplus > 201103L
-	#define SO_5_DEPRECATED_ATTR(msg) [[deprecated(msg)]]
+#if !(__cplusplus >= 201103L)
+	// There is no noexcept keyword
+	#define SO_5_NOEXCEPT
 #else
-	#define SO_5_DEPRECATED_ATTR(msg)
+	#define SO_5_NOEXCEPT noexcept
 #endif
 

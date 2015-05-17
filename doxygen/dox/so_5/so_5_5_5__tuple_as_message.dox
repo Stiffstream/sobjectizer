@@ -1,0 +1,185 @@
+/*!
+
+\page so_5_5_5__tuple_as_message so-5.5.5: tuple_as_message
+
+Every message type in SObjectizer must be represented by a separate C++
+structure or class. It meant that there should be a dedicated C++ `struct` or
+`class` for a message type. Something like:
+
+\code
+using namespace so_5::rt;
+
+struct msg_process_line : public message_t {
+  const std::string m_line;
+  msg_process_line(std::string line)
+    : m_line(std::move(line))
+  {}
+};
+struct msg_value_found : public message_t {
+  const std::string m_worker_id;
+  const std::string m_value;
+  msg_value_found(std::string worker_id, std::string value)
+    : m_worker_id(std::move(worker_id))
+    , m_value(std::move(value))
+  {}
+};
+struct msg_value_not_found : public message_t {
+  const std::string m_worker_id;
+  msg_value_not_found(std::string worker_id)
+    : m_worker_id(std::move(worker_id))
+  {}
+};
+struct msg_load_next : public message_t {
+  const std::string m_worker_id;
+  msg_load_next(std::string worker_id)
+    : m_worker_id(std::move(worker_id))
+  {}
+};
+struct msg_line_loaded : public message_t {
+  const std::string m_worker_id;
+  const std::string m_line;
+  msg_value_found(std::string worker_id, std::string line)
+    : m_worker_id(std::move(worker_id))
+    , m_line(std::move(line))
+  {}
+\endcode
+
+This approach has significant advantages for big and long-term projects. Just
+because every message can be documented. It's easy to find every place where a
+message is used. Message's members are easily distinguishable:
+
+\code
+void manager::evt_line_loaded(const msg_line_loaded & evt) {
+  m_scheduled_lines[evt.m_worker_id] = evt.m_line;
+  send_line_to_processor(evt.m_worker_id, evt.m_line);
+} 
+\endcode
+
+And because message's members have unique names it is easy to refactor message
+or message processing code in the future.
+
+Because of that the definition of message types as dedicated C++
+structs/classes is the recommended way for programming with SObjectizer.
+
+But there are situations where writing a lot of code with message definitions
+is just an overkill. For example in small test, samples or quick-and-dirty
+proof-of-concept applications. Sometimes it is hard to explain why a user
+should write 20 lines of messages definitions for write-and-forget test program
+with 10 lines of business logic inside.
+
+To simplify writing of very small programs with SObjectizer a new template
+class so_5::rt::tuple_as_message_t was introduced in v.5.5.5. It allows to
+declare `std::tuple` as message. It fact, the tuple_as_message_t inherits from
+std::tuple. So an instance of tuple_as_message_t is just an instance of
+std::tuple.
+
+With tuple_as_message_t it is possible to write like this:
+
+\code
+// Declaration of message type:
+using msg_line_loaded = so_5::rt::tuple_as_message_t< some_tag, std::string, std::string >;
+...
+// Usage of tuple message type:
+void manager::evt_line_loaded(const msg_line_loaded & evt) {
+  m_scheduled_lines[std::get<0>(evt)] = std::get<1>(evt);
+  send_line_to_processor(std::get<0>(evt), std::get<1>(evt));
+} 
+\endcode
+
+The tuple_as_message_t receives at least one template parameter: a unique type
+tag. This tag is necessary to distinguish different messages with the same
+fields list. For example in that case:
+
+\code
+void manager::evt_line_loaded(const tuple_as_message<tag1, string, string> & evt );
+void manager::evt_result_found(const tuple_as_message<tag2, string, string> & evt );
+\endcode
+
+To distinguish between evt_line_loaded and evt_result_found, it is necessary to
+specify different tag1 and tag2 types.
+
+There are several ways to do that:
+
+A user can define its own type tags, like:
+
+\code
+struct line_loaded_tag {};
+struct result_found_tag {};
+
+using msg_line_loaded = so_5::rt::tuple_as_message_t< line_loaded_tag, ...>;
+using msg_value_found = so_5::rt::tuple_as_message_t< result_found_tag, ...>;
+\endcode
+
+But this way can be boring. In the most cases more easiest way is to use
+so_5::rt::mtag template:
+
+\code
+using msg_line_loaded = so_5::rt::tuple_as_message_t< so_5::rt::mtag<0>, ...>;
+using msg_value_found = so_5::rt::tuple_as_message_t< so_5::rt::mtag<1>, ...>;
+\endcode
+
+There could be situations where messages must be defined in different modules.
+It is dangerous to use `mtag` because there could be overlaps in numbers. Let's
+see:
+
+\code
+// One module.
+namespace processor {
+
+using msg_value_found = so_5::rt::tuple_as_message_t< so_5::rt::mtag<0>, ...>;
+using msg_value_not_found = so_5::rt::tuple_as_message_t< so_5::rt::mtag<1>, ...>;
+...
+}
+
+// Another module.
+namespace loader {
+
+using msg_line_loaded = so_5::rt::tuple_as_message_t< so_5::rt::mtag<0>, ...>;
+using msg_load_next = so_5::rt::tuple_as_message_t< so_5::rt::mtag<1>, ...>;
+...
+}
+\endcode
+
+If `processor::msg_value_found` and `loader::msg_line_loaded` have the same
+parameter list then SObjectizer will see them as one type and this could be a
+problem. Type so_5::rt::typed_mtag could be used to solve it:
+
+\code
+// One module.
+namespace processor {
+
+struct tag {};
+using msg_value_found = so_5::rt::tuple_as_message_t< so_5::rt::typed_mtag<tag, 0>, ...>;
+using msg_value_not_found = so_5::rt::tuple_as_message_t< so_5::rt::typed_mtag<tag, 1>, ...>;
+...
+}
+
+// Another module.
+namespace loader {
+
+struct tag {};
+using msg_line_loaded = so_5::rt::tuple_as_message_t< so_5::rt::typed_mtag<tag, 0>, ...>;
+using msg_load_next = so_5::rt::tuple_as_message_t< so_5::rt::typed_mtag<tag, 1>, ...>;
+...
+}
+\endcode
+
+Usage of tuple_as_message_t allows to rewrite messages from the very first
+example like this:
+
+\code
+using namespace so_5::rt;
+
+using msg_process_line = tuple_as_message_t< mtag<0>, std::string >;
+using msg_value_found = tuple_as_message_t< mtag<1>, std::string, std::string >;
+using msg_value_not_found = tuple_as_message_t< mtag<2>, std::string >;
+using msg_load_next = tuple_as_message_t< mtag<3>, std::string >;
+using msg_line_loaded = tuple_as_message_t< mtag<4>, std::string, std::string >;
+\endcode
+
+**Please note that this way of defining messages could be very dangerous and error prone if used in a projects with large code base.**
+
+*/
+
+// vim:ft=cpp
+

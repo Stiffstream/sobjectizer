@@ -104,6 +104,24 @@ limitless_mpsc_mbox_t::do_deliver_service_request(
 		} );
 }
 
+void
+limitless_mpsc_mbox_t::set_delivery_filter(
+	const std::type_index & /*msg_type*/,
+	const delivery_filter_t & /*filter*/,
+	agent_t & /*subscriber*/ )
+{
+	SO_5_THROW_EXCEPTION(
+			rc_delivery_filter_cannot_be_used_on_mpsc_mbox,
+			"set_delivery_filter is called for MPSC-mbox" );
+}
+
+void
+limitless_mpsc_mbox_t::drop_delivery_filter(
+	const std::type_index & /*msg_type*/,
+	agent_t & /*subscriber*/ ) SO_5_NOEXCEPT
+{
+}
+
 //
 // limitful_mpsc_mbox_t
 //

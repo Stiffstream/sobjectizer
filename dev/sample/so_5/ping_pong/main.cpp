@@ -98,34 +98,34 @@ run_sample(
 				struct msg_ping : public so_5::rt::signal_t {};
 				struct msg_pong : public so_5::rt::signal_t {};
 
-				auto mbox = env.create_local_mbox();
-
-				auto coop = env.create_coop( "ping_pong",
+				env.introduce_coop(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?
 						so_5::disp::active_obj::create_private_disp( env )->binder() :
-						so_5::rt::create_default_disp_binder() );
-
-				// Pinger agent.
-				coop->define_agent()
-					.on_start( [mbox]() { so_5::send< msg_ping >( mbox ); } )
-					.event< msg_pong >( mbox,
-						[&pings_left, &env, mbox]()
+						so_5::rt::create_default_disp_binder(),
+						[&]( so_5::rt::agent_coop_t & coop )
 						{
-							if( pings_left ) --pings_left;
-							if( pings_left )
-								so_5::send< msg_ping >( mbox );
-							else
-								env.stop();
+							auto mbox = env.create_local_mbox();
+
+							// Pinger agent.
+							coop.define_agent()
+								.on_start( [mbox]() { so_5::send< msg_ping >( mbox ); } )
+								.event< msg_pong >( mbox,
+									[&pings_left, &env, mbox]()
+									{
+										if( pings_left ) --pings_left;
+										if( pings_left )
+											so_5::send< msg_ping >( mbox );
+										else
+											env.stop();
+									} );
+
+							// Ponger agent.
+							coop.define_agent()
+								.event< msg_ping >( mbox,
+									[mbox]() { so_5::send< msg_pong >( mbox ); } );
 						} );
-
-				// Ponger agent.
-				coop->define_agent()
-					.event< msg_ping >( mbox,
-						[mbox]() { so_5::send< msg_pong >( mbox ); } );
-
-				env.register_coop( std::move( coop ) );
 			} );
 	}
 

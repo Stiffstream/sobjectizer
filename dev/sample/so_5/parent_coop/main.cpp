@@ -168,14 +168,11 @@ class a_parent_t : public so_5::rt::agent_t
 			std::cout << "Parent: starting a child to do task " << id << std::endl;
 
 			// Creating a child cooperation.
-			auto child_coop = so_5::rt::create_child_coop(
-					*this, so_5::autoname );
-
-			// Adding agents to the cooperation.
-			child_coop->make_agent< a_child_t >( so_direct_mbox(), id );
-
-			// Initiate child's work.
-			so_environment().register_coop( std::move( child_coop ) ); 
+			so_5::rt::introduce_child_coop( *this, so_5::autoname,
+				[&]( so_5::rt::agent_coop_t & coop ) {
+					// Adding agents to the cooperation.
+					coop.make_agent< a_child_t >( so_direct_mbox(), id );
+				} );
 		}
 
 		// Agent mbox.

@@ -119,16 +119,13 @@ a_hello_t::evt_hello_to_you(
 void
 init( so_5::rt::environment_t & env )
 {
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
-
-	// Adding agents to the cooperation.
-	coop->add_agent( new a_hello_t( env, "alpha" ) );
-	coop->add_agent( new a_hello_t( env, "beta" ) );
-	coop->add_agent( new a_hello_t( env, "gamma" ) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
+	// Creating and registering a cooperation.
+	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		// Adding agents to the cooperation.
+		coop.make_agent< a_hello_t >( "alpha" );
+		coop.make_agent< a_hello_t >( "beta" );
+		coop.make_agent< a_hello_t >( "gamma" );
+	} );
 
 	// Give some time to agents.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );

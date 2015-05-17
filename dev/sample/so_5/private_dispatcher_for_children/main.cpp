@@ -74,20 +74,19 @@ private :
 	void
 	create_child_coop()
 	{
-		auto coop = so_5::rt::create_child_coop(
+		so_5::rt::introduce_child_coop(
 				*this,
 				// Name will be generated automatically.
 				so_5::autoname,
 				// The same dispatcher will be used for child cooperation.
-				m_dispatcher->binder() );
-
-		coop->make_agent< a_child_t >(
-				m_coordinator,
-				m_dispatcher,
-				m_generation + 1,
-				m_max_generation );
-
-		so_environment().register_coop( std::move( coop ) );
+				m_dispatcher->binder(),
+				[this]( so_5::rt::agent_coop_t & coop ) {
+					coop.make_agent< a_child_t >(
+							m_coordinator,
+							m_dispatcher,
+							m_generation + 1,
+							m_max_generation );
+				} );
 	}
 };
 
@@ -131,18 +130,17 @@ private :
 		// The private dispatcher for the family of child cooperations.
 		auto disp = so_5::disp::active_obj::create_private_disp(
 				so_environment() );
-		auto coop = so_5::rt::create_child_coop(
+		so_5::rt::introduce_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// the private dispatcher.
-				disp->binder() );
-
-		coop->make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
-
-		so_environment().register_coop( std::move( coop ) );
+				disp->binder(),
+				[&]( so_5::rt::agent_coop_t & coop ) {
+					coop.make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
+				} );
 	}
 };
 

@@ -1,0 +1,6 @@
+add_subdirectory(simple)
+add_subdirectory(filter_no_subscriptions)
+add_subdirectory(filter_on_mpsc_mbox)
+add_subdirectory(dereg_subscriber)
+add_subdirectory(set_unset)
+add_subdirectory(simple_svc)

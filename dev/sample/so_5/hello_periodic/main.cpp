@@ -125,15 +125,12 @@ create_hello_coop( so_5::rt::environment_t & env )
 void
 create_shutdowner_coop( so_5::rt::environment_t & env )
 {
-	// Mbox for shutdowner agent.
-	auto mbox = env.create_local_mbox( "shutdown" );
+	env.introduce_coop( "shutdowner", [&env]( so_5::rt::agent_coop_t & coop ) {
+		// Mbox for shutdowner agent.
+		auto mbox = env.create_local_mbox( "shutdown" );
 
-	// Cooperation for shutdowner.
-	auto coop = env.create_coop( "shutdowner" );
-	
-	// Shutdowner agent.
-	coop->define_agent()
-		.event< msg_stop_signal >( mbox,
+		// Shutdowner agent.
+		coop.define_agent().event< msg_stop_signal >( mbox,
 			[&env, mbox]() {
 				time_t t = time( 0 );
 				std::cout << asctime( localtime( &t ) )
@@ -142,8 +139,7 @@ create_shutdowner_coop( so_5::rt::environment_t & env )
 				// Shutting down SObjectizer.
 				env.stop();
 			} );
-
-	env.register_coop( std::move( coop ) );
+	});
 }
 
 // The SObjectizer Environment initialization.

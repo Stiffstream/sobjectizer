@@ -191,15 +191,14 @@ run_sobjectizer( const cfg_t & cfg )
 		[&cfg]( so_5::rt::environment_t & env )
 		{
 			// Active object dispatcher is necessary.
-			auto coop = env.create_coop( "main",
-				so_5::disp::active_obj::create_private_disp( env )->binder() );
+			env.introduce_coop(
+				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				[&cfg]( so_5::rt::agent_coop_t & coop ) {
+					auto a_receiver = coop.make_agent< a_receiver_t >( cfg.m_messages );
 
-			auto a_receiver = coop->make_agent< a_receiver_t >( cfg.m_messages );
-
-			coop->make_agent< a_sender_t >(
-					a_receiver->so_direct_mbox(), cfg.m_messages, cfg.m_delay );
-
-			env.register_coop( std::move( coop ) );
+					coop.make_agent< a_sender_t >(
+							a_receiver->so_direct_mbox(), cfg.m_messages, cfg.m_delay );
+				});
 		},
 		// Parameter tuning actions.
 		[&cfg]( so_5::rt::environment_params_t & params )
