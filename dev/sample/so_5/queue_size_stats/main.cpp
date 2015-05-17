@@ -82,6 +82,18 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		using namespace so_5::rt::stats;
+
+		// Set up a filter for messages with run-time monitoring information.
+		so_set_delivery_filter(
+			// Message box to which delivery filter must be set.
+			so_environment().stats_controller().mbox(),
+			// Delivery predicate.
+			[]( const messages::quantity< std::size_t > & msg ) {
+				// Process only messages related to dispatcher's queue sizes.
+				return suffixes::work_thread_queue_size() == msg.m_suffix;
+			} );
+
 		// We must receive messages from run-time monitor.
 		so_default_state().event(
 				// This is mbox to that run-time statistic will be sent.
@@ -106,15 +118,11 @@ private :
 	evt_quantity(
 		const so_5::rt::stats::messages::quantity< std::size_t > & evt )
 	{
-		// Process only messages related to dispatcher's queue sizes.
-		if( so_5::rt::stats::suffixes::work_thread_queue_size() == evt.m_suffix )
-		{
-			std::ostringstream ss;
+		std::ostringstream ss;
 
-			ss << "stats: '" << evt.m_prefix << evt.m_suffix << "': " << evt.m_value;
+		ss << "stats: '" << evt.m_prefix << evt.m_suffix << "': " << evt.m_value;
 
-			so_5::send< log_message >( m_logger, ss.str() );
-		}
+		so_5::send< log_message >( m_logger, ss.str() );
 	}
 };
 

@@ -58,14 +58,7 @@ add_subdirectory(coop/parent_child_3)
 add_subdirectory(coop/parent_child_4)
 add_subdirectory(coop/user_resource)
 
-add_subdirectory(mbox/subscribe_when_deregistered)
-add_subdirectory(mbox/drop_subscription)
-add_subdirectory(mbox/drop_subscr_when_demand_in_queue)
-add_subdirectory(mbox/adaptive_subscr_storage)
-add_subdirectory(mbox/mpsc_mbox)
-add_subdirectory(mbox/mpsc_mbox_illegal_subscriber)
-add_subdirectory(mbox/mpsc_mbox_stress)
-add_subdirectory(mbox/hanging_subscriptions)
+add_subdirectory(mbox)
 
 add_subdirectory(ad_hoc_agents)
 

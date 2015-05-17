@@ -86,6 +86,25 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override;
 
+		/*!
+		 * \attention Will throw an exception because delivery
+		 * filter is not applicable to MPSC-mboxes.
+		 */
+		virtual void
+		set_delivery_filter(
+			const std::type_index & msg_type,
+			const delivery_filter_t & filter,
+			agent_t & subscriber ) override;
+
+		/*!
+		 * \attention Will throw an exception because delivery
+		 * filter is not applicable to MPSC-mboxes.
+		 */
+		virtual void
+		drop_delivery_filter(
+			const std::type_index & msg_type,
+			agent_t & subscriber ) SO_5_NOEXCEPT override;
+
 	protected :
 		/*!
 		 * \brief ID of this mbox.

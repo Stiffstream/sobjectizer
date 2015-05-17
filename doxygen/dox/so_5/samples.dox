@@ -150,4 +150,8 @@
  * \example so_5/queue_size_stats/main.cpp
  */
 
+/*!
+ * \example so_5/delivery_filters/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

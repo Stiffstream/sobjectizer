@@ -88,6 +88,23 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 				return m_actual_mbox->type();
 			}
 
+		virtual void
+		set_delivery_filter(
+			const std::type_index & msg_type,
+			const so_5::rt::delivery_filter_t & filter,
+			so_5::rt::agent_t & subscriber ) override
+			{
+				m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
+			}
+
+		virtual void
+		drop_delivery_filter(
+			const std::type_index & msg_type,
+			so_5::rt::agent_t & subscriber ) SO_5_NOEXCEPT override
+			{
+				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
+			}
+
 		static so_5::rt::mbox_t
 		create( so_5::rt::environment_t & env )
 			{

@@ -245,6 +245,12 @@ const int rc_msg_service_request_bad_cast = 87;
  */
 const int rc_svc_request_cannot_be_transfomred_on_overlimit = 88;
 
+/*!
+ * \since v.5.5.5
+ * \brief Delivery filter is not applicable to MPSC-mboxes.
+ */
+const int rc_delivery_filter_cannot_be_used_on_mpsc_mbox = 89;
+
 //! \}
 
 //! \name Error codes for delayed or repeated events.

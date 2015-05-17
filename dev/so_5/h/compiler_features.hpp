@@ -34,3 +34,10 @@
 	#define SO_5_DEPRECATED_ATTR(msg)
 #endif
 
+#if !(__cplusplus >= 201103L)
+	// There is no noexcept keyword
+	#define SO_5_NOEXCEPT
+#else
+	#define SO_5_NOEXCEPT noexcept
+#endif
+

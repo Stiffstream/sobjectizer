@@ -89,6 +89,23 @@ named_local_mbox_t::do_deliver_service_request(
 			msg_type, message, overlimit_reaction_deep );
 }
 
+void
+named_local_mbox_t::set_delivery_filter(
+	const std::type_index & msg_type,
+	const delivery_filter_t & filter,
+	agent_t & subscriber )
+{
+	m_mbox->set_delivery_filter( msg_type, filter, subscriber );
+}
+
+void
+named_local_mbox_t::drop_delivery_filter(
+	const std::type_index & msg_type,
+	agent_t & subscriber ) SO_5_NOEXCEPT
+{
+	m_mbox->drop_delivery_filter( msg_type, subscriber );
+}
+
 } /* namespace impl */
 
 } /* namespace rt */

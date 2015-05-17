@@ -240,6 +240,41 @@ class service_invoke_proxy_t
 	};
 
 //
+// delivery_filter_t
+//
+/*!
+ * \since v.5.5.5
+ * \brief An interface of delivery filter object.
+ */
+class SO_5_TYPE delivery_filter_t
+	{
+	public :
+		virtual ~delivery_filter_t();
+
+		//! Checker for a message instance.
+		/*!
+		 * \retval true message must be delivered to a receiver.
+		 * \retval false message must be descarded.
+		 */
+		virtual bool
+		check(
+			//! Receiver of the message.
+			const agent_t & receiver,
+			//! Message itself.
+			const message_t & msg ) const SO_5_NOEXCEPT = 0;
+	};
+
+//
+// delivery_filter_unique_ptr_t
+//
+/*!
+ * \since v.5.5.5
+ * \brief An alias of unique_ptr for delivery_filter.
+ */
+using delivery_filter_unique_ptr_t =
+	std::unique_ptr< delivery_filter_t >;
+
+//
 // mbox_type_t
 //
 /*!
@@ -461,6 +496,40 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
 			unsigned int overlimit_reaction_deep ) const = 0;
+
+		/*!
+		 * \name Methods for working with delivery filters.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.5
+		 * \brief Set a delivery filter for message type and subscriber.
+		 *
+		 * \note If there already is a delivery filter for that
+		 * (msg_type,subscriber) pair then old delivery filter will
+		 * be replaced by new one.
+		 */
+		virtual void
+		set_delivery_filter(
+			//! Message type to be filtered.
+			const std::type_index & msg_type,
+			//! Filter to be set.
+			//! A caller must guaranted the validity of this reference.
+			const delivery_filter_t & filter,
+			//! A subscriber for the message.
+			agent_t & subscriber ) = 0;
+
+		/*!
+		 * \since v.5.5.5
+		 * \brief Removes delivery filter for message type and subscriber.
+		 */
+		virtual void
+		drop_delivery_filter(
+			const std::type_index & msg_type,
+			agent_t & subscriber ) SO_5_NOEXCEPT = 0;
+		/*!
+		 * \}
+		 */
 };
 
 template< class MESSAGE >
