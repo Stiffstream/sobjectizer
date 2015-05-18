@@ -116,6 +116,7 @@ class agent_tuning_options_t
 namespace std
 {
 
+template<>
 inline void
 swap(
 	so_5::rt::agent_tuning_options_t & a,

@@ -186,6 +186,7 @@ operator+(
 namespace std
 {
 
+template<>
 inline void
 swap(
 	so_5::rt::agent_context_t & a,
