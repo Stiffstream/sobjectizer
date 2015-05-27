@@ -16,7 +16,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU"
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# message("Using MSVC compiler")
 else ()
-    message(FATAL_ERROR "Your C++ compiler does not supported.\nPlease mail me on san@masterspline.net Your compiler ID '${CMAKE_CXX_COMPILER_ID}' and this error message.")
+    message(FATAL_ERROR "Your C++ compiler not supported.\nPlease mail me on san@masterspline.net Your compiler ID '${CMAKE_CXX_COMPILER_ID}' and this error message.")
 endif ()
 
 include_directories( ${CMAKE_CURRENT_LIST_DIR} )
