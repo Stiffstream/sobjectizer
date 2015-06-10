@@ -26,6 +26,7 @@
 
 #include <so_5/details/h/lambda_traits.hpp>
 #include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/h/abort_on_fatal_error.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/agent_context.hpp>
@@ -1696,19 +1697,18 @@ class lambda_as_filter_t : public delivery_filter_t
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {
-						return m_filter(
-								dynamic_cast< const MESSAGE & >( msg ) );
+						return m_filter( dynamic_cast< const MESSAGE & >( msg ) );
 					},
 					[&] {
-						SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
-							serr << "An exception from delivery filter "
-								"for message type "
-								<< typeid(MESSAGE).name()
-								<< ". Application will be aborted"
-								<< std::endl;
-						}
-
-						std::abort();
+						so_5::details::abort_on_fatal_error( [&] {
+							SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
+								serr << "An exception from delivery filter "
+									"for message type "
+									<< typeid(MESSAGE).name()
+									<< ". Application will be aborted"
+									<< std::endl;
+							}
+						} );
 					} );
 			}
 	};

@@ -10,6 +10,8 @@
 
 #include <so_5/h/timers.hpp>
 
+#include <so_5/details/h/abort_on_fatal_error.hpp>
+
 #include <timertt/all.hpp>
 
 namespace so_5
@@ -280,13 +282,13 @@ exception_handler_for_timertt_t
 create_exception_handler_for_timertt( error_logger_shptr_t logger )
 	{
 		return [logger]( const std::exception & x ) {
-			SO_5_LOG_ERROR( *logger, stream ) {
-				stream << "exception has been thrown and caught inside "
-						"timer_thread, application will be aborted. "
-						"Exception: " << x.what();
-			}
-
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( *logger, stream ) {
+					stream << "exception has been thrown and caught inside "
+							"timer_thread, application will be aborted. "
+							"Exception: " << x.what();
+				}
+			} );
 		};
 	}
 

@@ -7,6 +7,8 @@ MxxRu::Cpp::composite_target {
 		required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
 	end
 
+	required_prj 'test/so_5/details/build_tests.rb'
+
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 	required_prj 'test/so_5/environment/autoshutdown/prj.ut.rb'
 	required_prj 'test/so_5/environment/autoshutdown_in_init/prj.ut.rb'

@@ -12,6 +12,8 @@
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
 #include <so_5/rt/impl/h/delivery_filter_storage.hpp>
 
+#include <so_5/details/h/abort_on_fatal_error.hpp>
+
 #include <sstream>
 #include <cstdlib>
 
@@ -443,16 +445,15 @@ agent_t::shutdown_agent()
 						message_ref_t(),
 						&agent_t::demand_handler_on_finish ) );
 	else
-	{
-		SO_5_LOG_ERROR( so_environment(), log_stream )
-		{
-			log_stream << "Unexpected error: m_event_queue_proxy->shutdown() "
-				"returns nullptr. Unable to push demand_handler_on_finish for "
-				"the agent (" << this << "). Application will be aborted"
-				<< std::endl;
-			std::abort();
-		}
-	}
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{
+				log_stream << "Unexpected error: m_event_queue_proxy->shutdown() "
+					"returns nullptr. Unable to push demand_handler_on_finish for "
+					"the agent (" << this << "). Application will be aborted"
+					<< std::endl;
+			}
+		} );
 }
 
 void

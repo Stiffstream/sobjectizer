@@ -12,7 +12,7 @@
 
 #include <so_5/rt/h/environment.hpp>
 
-#include <cstdlib>
+#include <so_5/details/h/abort_on_fatal_error.hpp>
 
 namespace so_5
 {
@@ -53,14 +53,14 @@ event_queue_proxy_t::switch_to_actual_queue(
 			}
 		catch( const std::exception & x )
 			{
-				SO_5_LOG_ERROR( agent->so_environment(), log_stream ) {
-					log_stream << "Exception during transferring events from "
-							"temporary to the actual event queue. "
-							"Work cannot be continued. "
-							"Exception: " << x.what();
-				}
-
-				std::abort();
+				so_5::details::abort_on_fatal_error( [&] {
+					SO_5_LOG_ERROR( agent->so_environment(), log_stream ) {
+						log_stream << "Exception during transferring events from "
+								"temporary to the actual event queue. "
+								"Work cannot be continued. "
+								"Exception: " << x.what();
+					}
+				} );
 			}
 
 		m_status = status_t::started;

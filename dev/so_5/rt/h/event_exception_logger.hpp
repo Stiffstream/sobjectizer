@@ -48,13 +48,15 @@ class SO_5_TYPE event_exception_logger_t
 
 		/*!
 		 * \brief Log the exception caught.
-		*/
+		 *
+		 * \attention This method will be marked as noexcept in v.5.6.0
+		 */
 		virtual void
 		log_exception(
 			//! Exception caught.
 			const std::exception & event_exception,
 			//! Name of cooperation to which agent is belong.
-			const std::string & coop_name ) = 0;
+			const std::string & coop_name ) /* SO_5_NOEXCEPT */ = 0;
 
 		/*!
 		 * \brief Installation hook.
@@ -63,11 +65,14 @@ class SO_5_TYPE event_exception_logger_t
 		 * the old logger.
 		 *
 		 * Default implementation simply erases the old logger.
+		 *
+		 * \attention This method will be marked as noexcept in v.5.6.0
 		 */
 		virtual void
 		on_install(
 			//! Old logger.
-			event_exception_logger_unique_ptr_t previous_logger );
+			event_exception_logger_unique_ptr_t previous_logger ) /* SO_5_NOEXCEPT */;
+
 };
 
 //

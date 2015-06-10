@@ -14,6 +14,8 @@
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/ret_code.hpp>
 
+#include <so_5/details/h/abort_on_fatal_error.hpp>
+
 #include <sstream>
 
 namespace so_5
@@ -38,14 +40,15 @@ SO_5_FUNC
 void
 abort_app_reaction( const overlimit_context_t & ctx )
 	{
-		SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
-			logger
-				<< "message limit exceeded, application will be aborted. "
-				<< " msg_type: " << ctx.m_msg_type.name()
-				<< ", limit: " << ctx.m_limit.m_limit
-				<< ", agent: " << &(ctx.m_receiver)
-				<< std::endl;
-		std::abort();
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
+				logger
+					<< "message limit exceeded, application will be aborted. "
+					<< " msg_type: " << ctx.m_msg_type.name()
+					<< ", limit: " << ctx.m_limit.m_limit
+					<< ", agent: " << &(ctx.m_receiver)
+					<< std::endl;
+		} );
 	}
 
 SO_5_FUNC

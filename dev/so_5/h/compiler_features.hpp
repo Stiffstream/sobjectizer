@@ -37,5 +37,6 @@
 	#define SO_5_NOEXCEPT
 #else
 	#define SO_5_NOEXCEPT noexcept
+	#define SO_5_HAVE_NOEXCEPT 1
 #endif
 

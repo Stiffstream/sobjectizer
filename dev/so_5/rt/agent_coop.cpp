@@ -3,7 +3,6 @@
 */
 
 #include <exception>
-#include <cstdlib>
 
 #include <so_5/h/exception.hpp>
 
@@ -12,6 +11,8 @@
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/h/agent_coop.hpp>
+
+#include <so_5/details/h/abort_on_fatal_error.hpp>
 
 namespace so_5
 {
@@ -339,13 +340,13 @@ agent_coop_t::bind_agents_to_disp()
 	}
 	catch( const std::exception & x )
 	{
-		SO_5_LOG_ERROR( m_env, log_stream ) {
-			log_stream << "an exception on the second stage of "
-					"agents to dispatcher binding; cooperation: "
-					<< m_coop_name << ", exception: " << x.what();
-		}
-
-		std::abort();
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( m_env, log_stream ) {
+				log_stream << "an exception on the second stage of "
+						"agents to dispatcher binding; cooperation: "
+						<< m_coop_name << ", exception: " << x.what();
+			}
+		} );
 	}
 }
 
@@ -372,13 +373,13 @@ agent_coop_t::shutdown_all_agents()
 	}
 	catch( const std::exception & x )
 	{
-		SO_5_LOG_ERROR( m_env, log_stream ) {
-			log_stream << "Exception during shutting cooperation agents down. "
-					"Work cannot be continued. Cooperation: '"
-					<< m_coop_name << "'. Exception: " << x.what();
-		}
-
-		std::abort();
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( m_env, log_stream ) {
+				log_stream << "Exception during shutting cooperation agents down. "
+						"Work cannot be continued. Cooperation: '"
+						<< m_coop_name << "'. Exception: " << x.what();
+			}
+		} ); 
 	}
 }
 

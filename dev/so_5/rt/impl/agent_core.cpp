@@ -9,6 +9,7 @@
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/h/abort_on_fatal_error.hpp>
 
 namespace so_5
 {
@@ -258,15 +259,15 @@ void
 deregistration_processor_t::initiate_abort_on_exception(
 	const std::exception & x )
 {
-	SO_5_LOG_ERROR( m_core.environment(), log_stream )
-	{
-		log_stream << "Exception during cooperation deregistration. "
-				"Work cannot be continued. Cooperation: '"
-				<< m_root_coop_name << "'. Exception: '"
-				<< x.what() << "'";
-	}
-
-	std::abort();
+	so_5::details::abort_on_fatal_error( [&] {
+		SO_5_LOG_ERROR( m_core.environment(), log_stream )
+		{
+			log_stream << "Exception during cooperation deregistration. "
+					"Work cannot be continued. Cooperation: '"
+					<< m_root_coop_name << "'. Exception: '"
+					<< x.what() << "'";
+		}
+	} );
 }
 
 } /* namespace agent_core_details */

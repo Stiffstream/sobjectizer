@@ -10,9 +10,9 @@
 
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 
-#include <cstdlib>
-
 #include <so_5/rt/h/environment.hpp>
+
+#include <so_5/details/h/abort_on_fatal_error.hpp>
 
 namespace so_5 {
 
@@ -43,15 +43,15 @@ switch_agent_to_special_state_and_deregister_coop(
 		}
 		catch( const std::exception & x )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "An exception '" << x.what()
-						<< "' during deregistring cooperation '"
-						<< coop_name << "' on unhandled exception"
-						"processing. Application will be aborted.";
-			}
-
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "An exception '" << x.what()
+							<< "' during deregistring cooperation '"
+							<< coop_name << "' on unhandled exception"
+							"processing. Application will be aborted.";
+				}
+			} );
 		}
 	}
 
@@ -74,14 +74,14 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
 		}
 		catch( const std::exception & x )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "An exception '" << x.what()
-						<< "' during shutting down SObjectizer on unhandled "
-						"exception processing. Application will be aborted.";
-			}
-
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "An exception '" << x.what()
+							<< "' during shutting down SObjectizer on unhandled "
+							"exception processing. Application will be aborted.";
+				}
+			} );
 		}
 	}
 
@@ -106,16 +106,16 @@ log_unhandled_exception(
 		}
 		catch( const std::exception & x )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				 log_stream << "An exception '" << x.what()
-					 	<< "' during logging unhandled exception '"
-						<< ex_to_log.what() << "' from cooperation '"
-						<< a_exception_producer.so_coop_name()
-						<< "'. Application will be aborted.";
-			}
-
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					 log_stream << "An exception '" << x.what()
+							<< "' during logging unhandled exception '"
+							<< ex_to_log.what() << "' from cooperation '"
+							<< a_exception_producer.so_coop_name()
+							<< "'. Application will be aborted.";
+				}
+			} );
 		}
 	}
 
@@ -137,31 +137,33 @@ process_unhandled_exception(
 				so_5::rt::ignore_exception != reaction &&
 				so_5::rt::abort_on_exception != reaction )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "Illegal exception_reaction code "
-						"for the multithreadded agent: "
-						<< static_cast< int >(reaction) << ". "
-						"The only allowed exception_reaction for "
-						"such kind of agents are ignore_exception or "
-						"abort_on_exception. "
-						"Application will be aborted. "
-						"Unhandled exception '" << ex.what()
-						<< "' from cooperation '"
-						<< a_exception_producer.so_coop_name() << "'";
-			}
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "Illegal exception_reaction code "
+							"for the multithreadded agent: "
+							<< static_cast< int >(reaction) << ". "
+							"The only allowed exception_reaction for "
+							"such kind of agents are ignore_exception or "
+							"abort_on_exception. "
+							"Application will be aborted. "
+							"Unhandled exception '" << ex.what()
+							<< "' from cooperation '"
+							<< a_exception_producer.so_coop_name() << "'";
+				}
+			} );
 		}
 
 		if( so_5::rt::abort_on_exception == reaction )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "Application will be aborted due to unhandled "
-						"exception '" << ex.what() << "' from cooperation '"
-						<< a_exception_producer.so_coop_name() << "'";
-			}
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "Application will be aborted due to unhandled "
+							"exception '" << ex.what() << "' from cooperation '"
+							<< a_exception_producer.so_coop_name() << "'";
+				}
+			} );
 		}
 		else if( so_5::rt::shutdown_sobjectizer_on_exception == reaction )
 		{
@@ -200,16 +202,16 @@ process_unhandled_exception(
 		}
 		else
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "Unknown exception_reaction code: "
-						<< static_cast< int >(reaction)
-						<< ". Application will be aborted. Unhandled exception '"
-						<< ex.what() << "' from cooperation '"
-						<< a_exception_producer.so_coop_name() << "'";
-			}
-
-			std::abort();
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "Unknown exception_reaction code: "
+							<< static_cast< int >(reaction)
+							<< ". Application will be aborted. Unhandled exception '"
+							<< ex.what() << "' from cooperation '"
+							<< a_exception_producer.so_coop_name() << "'";
+				}
+			} );
 		}
 	}
 

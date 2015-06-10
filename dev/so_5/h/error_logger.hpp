@@ -36,6 +36,9 @@ class SO_5_TYPE error_logger_t
 		virtual ~error_logger_t();
 
 		//! A method for logging message.
+		/*!
+		 * \attention This method will be marked as noexcept in v.5.6.0
+		 */
 		virtual void
 		log(
 			//! Source file name.
@@ -43,7 +46,7 @@ class SO_5_TYPE error_logger_t
 			//! Line number inside source file.
 			unsigned int line,
 			//! Text to log.
-			const std::string & message ) = 0;
+			const std::string & message ) /* SO_5_NOEXCEPT */ = 0;
 	};
 
 //

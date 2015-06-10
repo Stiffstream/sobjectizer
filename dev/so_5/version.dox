@@ -2,6 +2,16 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_6 5.5.6
+
+	A small refactoring of SObjectizer-5 to guarantee that `std::abort` will be
+	called when appropriate event in presence of exceptions during error
+	logging.
+
+	A new description is added to Doxygen-generated documentation: \ref so_5_5__in_depth_exceptions.
+
+	A new example make_pipeline is added.
+
 \section so_5__5_5 5.5.5
 
 	A mechanism of message delivery filters is introduced.
