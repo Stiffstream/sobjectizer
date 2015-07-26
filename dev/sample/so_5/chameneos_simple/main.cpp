@@ -237,7 +237,7 @@ class a_creature_t
 			}
 	};
 
-const std::size_t CREATURE_COUNT = 4;
+const int CREATURE_COUNT = 4;
 
 void
 init(
@@ -255,7 +255,7 @@ init(
 							CREATURE_COUNT,
 							meetings );
 					
-					for( std::size_t i = 0; i != CREATURE_COUNT; ++i )
+					for( int i = 0; i != CREATURE_COUNT; ++i )
 						{
 							coop.make_agent< a_creature_t >(
 									a_meeting_place->so_direct_mbox(),

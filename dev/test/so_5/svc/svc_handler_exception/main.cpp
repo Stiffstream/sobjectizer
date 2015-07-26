@@ -132,7 +132,7 @@ class a_client_t
 
 						std::abort();
 					}
-				catch( const test_exception_ex_t & x )
+				catch( const test_exception_ex_t & )
 					{}
 
 				m_svc_mbox->run_one().wait_forever().sync_get< msg_shutdown >();

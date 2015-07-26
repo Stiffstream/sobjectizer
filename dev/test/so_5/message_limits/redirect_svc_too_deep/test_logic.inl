@@ -80,7 +80,7 @@ public :
 					responses += m_r3.get();
 					throw std::runtime_error( "Exception from SObjectizer expected!" );
 				}
-				catch( const std::future_error & x )
+				catch( const std::future_error & )
 				{
 					// This is an expected exception.
 				}

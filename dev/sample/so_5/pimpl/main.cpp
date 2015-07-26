@@ -94,7 +94,7 @@ private :
 
 				values_found += 1;
 			}
-			catch( const key_not_found_exception & ex )
+			catch( const key_not_found_exception & )
 			{
 				std::cout << "value '" << kv.first << "' IS NOT FOUND"
 						<< std::endl;

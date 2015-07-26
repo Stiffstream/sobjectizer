@@ -18,6 +18,11 @@ namespace so_5 {
 
 namespace rt {
 
+#if defined( _MSC_VER ) && (_MSC_VER <= 1800)
+	#pragma warning(push)
+	#pragma warning(disable: 4520)
+#endif
+
 /*!
  * \since v.5.5.5
  * \brief A template which allows to use tuples as messages.
@@ -114,6 +119,10 @@ struct tuple_as_message_t
 		:	base_tuple_type( std::forward< UTYPES >( args )... )
 	{}
 };
+
+#if defined( _MSC_VER ) && (_MSC_VER <= 1800)
+	#pragma warning(pop)
+#endif
 
 //
 // mtag

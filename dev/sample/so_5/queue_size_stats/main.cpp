@@ -224,7 +224,7 @@ public :
 void
 init( so_5::rt::environment_t & env )
 {
-	std::srand( std::time(nullptr) );
+	std::srand( static_cast< unsigned int >(std::time(nullptr)) );
 
 	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
 		// Logger will work on the default dispatcher.

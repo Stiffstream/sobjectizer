@@ -11,6 +11,10 @@
  * State switching is fixed by a state listener.
  */
 
+#if defined( _MSC_VER )
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <iostream>
 #include <time.h>
 

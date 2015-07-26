@@ -31,7 +31,7 @@ class random_generator_mixin_t
 public :
 	random_generator_mixin_t()
 	{
-		m_random_engine.seed( std::hash<decltype(this)>()(this) );
+		m_random_engine.seed();
 	}
 
 	int
@@ -149,7 +149,7 @@ private :
 		auto it = workers.begin();
 		if( workers.size() > 1 )
 			// There are more then one live workers. Select one randomly.
-			std::advance( it, random( 0, workers.size() - 1 ) );
+			std::advance( it, random( 0, static_cast< int >(workers.size()) - 1 ) );
 
 		// Prepare request.
 		auto request = std::unique_ptr< application_request >(

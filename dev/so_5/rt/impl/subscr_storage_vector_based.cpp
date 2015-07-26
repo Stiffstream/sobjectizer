@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <iterator>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

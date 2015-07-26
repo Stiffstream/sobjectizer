@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <map>
 #include <unordered_map>
+#include <iterator>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

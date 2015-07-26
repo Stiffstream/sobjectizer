@@ -7,14 +7,18 @@
 	\brief The base class for the object with a reference counting definition.
 */
 
-#if !defined( _SO_5__RT__ATOMIC_REFCOUNTED_HPP_ )
-#define _SO_5__RT__ATOMIC_REFCOUNTED_HPP_
+#pragma once
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 #include <so_5/h/compiler_features.hpp>
 
 #include <type_traits>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -301,5 +305,6 @@ using smart_atomic_reference_t = intrusive_ptr_t< T >;
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
-

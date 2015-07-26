@@ -159,7 +159,7 @@ show_result(
 	const cfg_t & cfg,
 	const measure_result_t & result )
 	{
-		double total_msec =
+		auto total_msec =
 				duration_cast< milliseconds >( result.m_finish_time -
 						result.m_start_time ).count();
 

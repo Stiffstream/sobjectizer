@@ -44,7 +44,7 @@ struct reply : public so_5::rt::message_t
 	// Was request processed successfully?
 	bool m_processed;
 
-	reply( int id, int processed )
+	reply( int id, bool processed )
 		:	m_id( id )
 		,	m_processed( processed )
 	{}
@@ -291,7 +291,7 @@ private :
 void
 init( so_5::rt::environment_t & env )
 {
-	std::srand( std::time(nullptr) );
+	std::srand( static_cast< unsigned int >(std::time(nullptr)) );
 
 	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
 		// Logger will work on the default dispatcher.
@@ -307,19 +307,19 @@ init( so_5::rt::environment_t & env )
 		auto p3 = coop.make_agent_with_binder< a_performer_t >(
 				performer_disp->binder( performer_binding_params ),
 				"p3",
-				1.4, // Each performer in chain is slower then previous.
+				1.4f, // Each performer in chain is slower then previous.
 				a_performer_t::last_performer{},
 				logger->so_direct_mbox() );
 		auto p2 = coop.make_agent_with_binder< a_performer_t >(
 				performer_disp->binder( performer_binding_params ),
 				"p2",
-				1.2, // Each performer in chain is slower then previous.
+				1.2f, // Each performer in chain is slower then previous.
 				a_performer_t::next_performer{ p3->so_direct_mbox() },
 				logger->so_direct_mbox() );
 		auto p1 = coop.make_agent_with_binder< a_performer_t >(
 				performer_disp->binder( performer_binding_params ),
 				"p1",
-				1.0, // The first performer is the fastest one.
+				1.0f, // The first performer is the fastest one.
 				a_performer_t::next_performer{ p2->so_direct_mbox() },
 				logger->so_direct_mbox() );
 

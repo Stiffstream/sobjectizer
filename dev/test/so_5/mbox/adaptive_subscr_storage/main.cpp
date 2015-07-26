@@ -344,7 +344,7 @@ do_test()
 		std::cout << "checking factory: " << f.first << " -> " << std::flush;
 
 		run_with_time_limit(
-			[f] {
+			[&f] {
 				for( int i = 0; i != 10; ++i )
 					so_5::launch(
 						[&]( so_5::rt::environment_t & env )
