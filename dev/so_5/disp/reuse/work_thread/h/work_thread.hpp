@@ -48,6 +48,12 @@ using queue_unique_lock_t =
 using queue_lock_guard_t =
 		so_5::disp::reuse::locks::combined_queue_lock_guard_t;
 
+//! Typedef for atomic demands counter.
+/*!
+ * \since v.5.5.7
+ */
+using demands_counter_t = std::atomic< std::size_t >;
+
 //
 // demand_queue_t
 //
@@ -91,11 +97,18 @@ class demand_queue_t : public so_5::rt::event_queue_t
 			will sleep until:
 			- the new demand is put in the queue;
 			- a shutdown signal.
+
+			\note Since v.5.5.7 this method also updates external demands
+			counter. This update is performed under queue's lock.
+			It should prevent errors when run-time monitor can get wrong
+			quantity of demands.
 		*/
 		int
 		pop(
 			/*! Receiver for extracted demands. */
-			demand_container_t & queue_item );
+			demand_container_t & queue_item,
+			/*! External demands counter to be updated. */
+			demands_counter_t & external_counter );
 
 		//! Start demands processing.
 		void
@@ -112,9 +125,13 @@ class demand_queue_t : public so_5::rt::event_queue_t
 		/*!
 		 * \since v.5.5.4
 		 * \brief Get the count of demands in the queue.
+		 *
+		 * \note Since v.5.5.7 this method also uses external demands
+		 * counter. Addition of demands quantity inside demands queue and
+		 * the value of external counter is performed under the queue lock.
 		 */
 		std::size_t
-		demands_count();
+		demands_count( const demands_counter_t & external_counter );
 
 	private:
 		//! Demand queue.
@@ -233,7 +250,7 @@ class work_thread_t
 		 *
 		 * \note Will be used for run-time monitoring.
 		 */
-		std::atomic< std::size_t > m_demands_count = { 0 };
+		demands_counter_t m_demands_count = { 0 };
 };
 
 /*!

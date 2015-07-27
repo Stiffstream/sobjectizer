@@ -59,7 +59,8 @@ demand_queue_t::push(
 
 int
 demand_queue_t::pop(
-	demand_container_t & demands )
+	demand_container_t & demands,
+	demands_counter_t & external_counter )
 {
 	queue_unique_lock_t lock( m_lock );
 	while( true )
@@ -67,6 +68,10 @@ demand_queue_t::pop(
 		if( m_in_service && !m_demands.empty() )
 		{
 			demands.swap( m_demands );
+
+			// It's time to update external counter.
+			external_counter.store( demands.size(), std::memory_order_release );
+
 			break;
 		}
 		else if( !m_in_service )
@@ -111,11 +116,11 @@ demand_queue_t::clear()
 }
 
 std::size_t
-demand_queue_t::demands_count()
+demand_queue_t::demands_count( const demands_counter_t & external_counter )
 {
 	queue_lock_guard_t lock( m_lock );
 
-	return m_demands.size();
+	return m_demands.size() + external_counter.load( std::memory_order_acquire );
 }
 
 //
@@ -165,8 +170,7 @@ work_thread_t::get_agent_binding()
 std::size_t
 work_thread_t::demands_count()
 {
-	return m_demands_count.load( std::memory_order_acquire ) +
-			m_queue.demands_count();
+	return m_queue.demands_count( m_demands_count );
 }
 
 void
@@ -186,7 +190,7 @@ work_thread_t::body()
 		// If the local queue is empty then we should try
 		// to get new demands.
 		if( demands.empty() )
-			result = m_queue.pop( demands );
+			result = m_queue.pop( demands, m_demands_count );
 
 		// Serve demands if any.
 		if( demand_queue_t::demand_extracted == result )
@@ -198,11 +202,6 @@ inline void
 work_thread_t::serve_demands_block(
 	demand_container_t & demands )
 {
-	// Because demands count will be requested from different
-	// thread we need to set up demands counter and decrement it
-	// after processing of every demand.
-	m_demands_count.store( demands.size(), std::memory_order_release );
-
 	while( !demands.empty() )
 	{
 		auto & demand = demands.front();

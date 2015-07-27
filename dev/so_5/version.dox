@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7 5.5.7
+
+	Support for Visual C++ 14.0 (Visual Studio 2015) added.
+
+	A small fix for collecting runtime monitoring info in so_5::disp::reuse::work_thread.
+
 \section so_5__5_6 5.5.6
 
 	A small refactoring of SObjectizer-5 to guarantee that `std::abort` will be
