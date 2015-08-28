@@ -17,8 +17,18 @@
 #include <vector>
 #include <mutex>
 #include <tuple>
+#include <random>
 
 #include <so_5/all.hpp>
+
+// Helper function to generate a random integer in the specified range.
+unsigned int
+random_value( unsigned int left, unsigned int right )
+	{
+		std::random_device rd;
+		std::mt19937 gen{ rd() };
+		return std::uniform_int_distribution< unsigned int >{left, right}(gen);
+	}
 
 struct msg_take : public so_5::rt::message_t
 {
@@ -187,7 +197,7 @@ private :
 	static std::chrono::milliseconds
 	random_pause()
 	{
-		return std::chrono::milliseconds( 250 + (std::rand() % 250) );
+		return std::chrono::milliseconds( 250 + random_value( 0, 250 ) );
 	}
 };
 

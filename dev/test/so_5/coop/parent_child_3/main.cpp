@@ -150,6 +150,8 @@ class test_coop_listener_t
 			so_5::rt::environment_t &,
 			const std::string & coop_name )
 		{
+			std::lock_guard< std::mutex > lock{ m_lock };
+
 			std::cout << "registered: " << coop_name << std::endl;
 
 			if( STARTER_COOP_NAME != coop_name )
@@ -166,20 +168,28 @@ class test_coop_listener_t
 			const std::string & coop_name,
 			const so_5::rt::coop_dereg_reason_t & reason )
 		{
-			std::cout << "deregistered: " << coop_name
-					<< ", reason: " << reason.reason() << std::endl;
-
-			if( STARTER_COOP_NAME != coop_name )
+			bool need_stop = false;
 			{
-				m_data.m_deinit_sequence.insert(
-						m_data.m_deinit_sequence.begin(),
-						coop_name );
+				std::lock_guard< std::mutex > lock{ m_lock };
 
-				--m_active_coops;
+				std::cout << "deregistered: " << coop_name
+						<< ", reason: " << reason.reason() << std::endl;
 
-				if( !m_active_coops )
-					env.stop();
+				if( STARTER_COOP_NAME != coop_name )
+				{
+					m_data.m_deinit_sequence.insert(
+							m_data.m_deinit_sequence.begin(),
+							coop_name );
+
+					--m_active_coops;
+
+					if( !m_active_coops )
+						need_stop = true;
+				}
 			}
+
+			if( need_stop )
+				env.stop();
 		}
 
 		static so_5::rt::coop_listener_unique_ptr_t
@@ -190,6 +200,8 @@ class test_coop_listener_t
 		}
 
 	private :
+		std::mutex m_lock;
+
 		init_deinit_data_t & m_data;
 
 		int m_active_coops;

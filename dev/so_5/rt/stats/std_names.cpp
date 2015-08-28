@@ -98,6 +98,12 @@ timer_periodic_count()
 		IMPL_SUFFIX( "/periodic.count" )
 	}
 
+SO_5_FUNC suffix_t
+demand_quote()
+	{
+		IMPL_SUFFIX( "/demands.quote" )
+	}
+
 #undef IMPL_SUFFIX
 
 } /* namespace suffixes */

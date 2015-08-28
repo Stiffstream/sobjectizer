@@ -1,0 +1,37 @@
+/*!
+
+\page so_5_5_8__simple_ad_hoc_agent_subscribe so-5.5.8: Simpification of ad-hoc agents subscription  
+
+Since v.5.5.8 a reference to ad-hoc agent proxy can be used for subscription to
+ad-hoc agent's direct mbox. For example:
+
+\code
+// v.5.5.8 code:
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+  auto a = coop.define_agent();
+  a.event< some_signal >( a, [] {
+    ... // Some event processing code.
+  } );
+  a.event( a, []( const some_message & msg ) {
+    ... // Some event processing code.
+  } );
+  ...
+} );
+
+// Pre v.5.5.8 code:
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+  auto a = coop.define_agent();
+  a.event< some_signal >( a.direct_mbox(), [] {
+    ... // Some event processing code.
+  } );
+  a.event( a.direct_mbox(), []( const some_message & msg ) {
+    ... // Some event processing code.
+  } );
+  ...
+} );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

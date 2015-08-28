@@ -1,0 +1,43 @@
+/*!
+
+\page so_5_5_8__new_limit_then_abort so-5.5.8: New variant of limit_then_abort
+
+Method so_5::rt::agent_t::limit_then_abort allow to specify message limit with
+very tough overlimit reaction -- application abortion. But there was an
+inconvenience in limit_then_abort usage: it was hard to detect what
+message/signal caused the abortion. To simplify this task a new variant of
+limit_then_abort was introduced in v.5.5.8. This variant allows to set an
+action to be preformed before calling std::abort(). This action can be used,
+for example, for logging:
+
+\code
+class my_agent : public so_5::rt::agent_t
+{
+public :
+  my_agent( context_t ctx )
+    : so_5::rt::agent_t( ctx +
+      // Specifying limit for a message and pre-abort action.
+      limit_then_abort< request >( 10,
+        // Pre-abort action as lambda.
+        []( const so_5::rt::agent_t & agent, const request & req ) {
+          std::cerr << "Overlimit of requests for: "
+            << (dynamic_cast< const my_agent & >(agent)).query_name()
+            << ", request ID: " << req.query_id() << std::endl;
+        } ) )
+  ...
+  const std::string & query_name() const { ... }
+};
+\endcode
+
+That variant of limit_then_abort can be used for messages (as in example abort) and for signals. But for signals pre-abort action must have different format:
+
+\code
+return_type action(const so_5::rt::agent_t &);
+\endcode
+
+\attention Pre-abort actions must be noexcept-functions or lambda.
+
+*/
+
+// vim:ft=cpp
+

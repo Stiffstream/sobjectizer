@@ -22,7 +22,6 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
-#include <so_5/rt/h/event_queue_proxy.hpp>
 #include <so_5/rt/h/message_limit.hpp>
 
 namespace so_5
@@ -101,9 +100,7 @@ class mbox_core_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage,
-			//! Event queue proxy for the consumer.
-			event_queue_proxy_ref_t event_queue );
+			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Remove a reference to the named mbox.
 		/*!

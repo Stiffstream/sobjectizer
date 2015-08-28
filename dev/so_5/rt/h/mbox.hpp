@@ -49,6 +49,14 @@ class infinite_wait_service_invoke_proxy_t
 		//! Make synchronous service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a signal.
+		 *
+		 * \tparam PARAM type of signal to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_forever().sync_get< status_signal >();
+		 * \endcode
 		 */
 		template< class PARAM >
 		RESULT
@@ -57,6 +65,17 @@ class infinite_wait_service_invoke_proxy_t
 		//! Make synchronous service request call with parameter.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+			{
+				const so_5::rt::mbox_t & dest = ...;
+				std::string result = dest.get_one< std::string >().wait_forever().sync_get( req.make_reference() );
+			}
+		 * \endcode
 		 */
 		template< class PARAM >
 		RESULT
@@ -65,6 +84,14 @@ class infinite_wait_service_invoke_proxy_t
 		//! Make synchronous service request call with parameter.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_forever().sync_get( std::make_unique< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM >
 		RESULT
@@ -73,6 +100,15 @@ class infinite_wait_service_invoke_proxy_t
 		//! Make synchronous service request call with parameter.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_forever().sync_get( new request(...) );
+			\endcode
+		 *
 		 */
 		template< class PARAM >
 		RESULT
@@ -81,6 +117,15 @@ class infinite_wait_service_invoke_proxy_t
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam ARGS types of PARAM's constructor arguments.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM, typename... ARGS >
 		RESULT
@@ -111,6 +156,14 @@ class wait_for_service_invoke_proxy_t
 		/*!
 		 * This method should be used for the case where PARAM is a signal.
 		 *
+		 * \tparam PARAM type of signal to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get< status_signal >();
+		 * \endcode
+		 *
 		 * \throw so_5::exception_t with error code
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
@@ -123,6 +176,17 @@ class wait_for_service_invoke_proxy_t
 		//! wait timeout.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+			{
+				const so_5::rt::mbox_t & dest = ...;
+				std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( req.make_reference() );
+			}
+		 * \endcode
 		 *
 		 * \throw so_5::exception_t with error code
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
@@ -137,6 +201,14 @@ class wait_for_service_invoke_proxy_t
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( std::make_unique< request >(...) );
+		 * \endcode
+		 *
 		 * \throw so_5::exception_t with error code
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
@@ -150,6 +222,14 @@ class wait_for_service_invoke_proxy_t
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( new request(...) );
+			\endcode
+		 *
 		 * \throw so_5::exception_t with error code
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
@@ -161,6 +241,19 @@ class wait_for_service_invoke_proxy_t
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam ARGS types of PARAM's constructor arguments.
+		 *
+		 * \par Usage example:
+		 	\code
+			const so_5::rt::mbox_t & dest = ...;
+			std::string result = dest.get_one< std::string >().wait_for(timeout).make_sync_get< request >(...) );
+		 	\endcode
+		 *
+		 * \throw so_5::exception_t with error code
+		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
+		 * after timeout.
 		 */
 		template< class PARAM, typename... ARGS >
 		RESULT
@@ -185,6 +278,14 @@ class service_invoke_proxy_t
 		//! Make asynchronous service request.
 		/*!
 		 * This method should be used for the cases where PARAM is a signal.
+		 *
+		 * \tparam PARAM type of signal to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result = dest.get_one< std::string >().async< status_signal >();
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -193,6 +294,17 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+			{
+				const so_5::rt::mbox_t & dest = ...;
+				std::future< std::string > result = dest.get_one< std::string >().async( req.make_reference() );
+			}
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -201,6 +313,14 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result = dest.get_one< std::string >().async( std::make_unique< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -209,6 +329,14 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result = dest.get_one< std::string >().async( new request(...) );
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -216,11 +344,55 @@ class service_invoke_proxy_t
 
 		//! Make another proxy for time-unlimited synchronous
 		//! service request calls.
+		/*!
+		 * This method is used as second part of method chain for
+		 * synchronous interaction. It must be used if service request
+		 * initiator want to wait response of infinite amount of time.
+		 *
+		 * The call to wait_forever if equivalent of:
+		 * \code
+		 	std::future< Resp > f = mbox.get_one< Resp >().make_async< Req >(...);
+			Resp r = f.get();
+		 * \endcode
+		 *
+		 * It means that return conditions for wait_forever() are the same
+		 * as return conditions for underlying call to std::future::get().
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+		 	std::string r = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
+		 * \endcode
+		 */
 		infinite_wait_service_invoke_proxy_t< RESULT >
 		wait_forever() const;
 
 		//! Make another proxy for time-limited synchronous
 		//! service requests calls.
+		/*!
+		 * This method is used as second part of method chain for
+		 * synchronous interaction. It must be used if service request
+		 * initiator want to wait response no more than specified amount
+		 * of time.
+		 *
+		 * The call to wait_for if equivalent of:
+		 * \code
+		 	std::future< Resp > f = mbox.get_one< Resp >().make_async< Req >(...);
+			auto wait_result = f.wait_for( timeout );
+			if( std::future_status::ready != wait_result )
+				throw some_exception();
+			Resp r = f.get();
+		 * \endcode
+		 *
+		 * It means that return conditions for wait_for() are the same
+		 * as return conditions for underlying call to std::future::wait_for().
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+		 	std::string r = dest.get_one< std::string >().wait_for(std::chrono::milliseconds(50)).make_sync_get< request >(...);
+		 * \endcode
+		 */
 		template< class DURATION >
 		wait_for_service_invoke_proxy_t< RESULT, DURATION >
 		wait_for(
@@ -230,6 +402,15 @@ class service_invoke_proxy_t
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam ARGS types of PARAM's constructor arguments.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result = dest.get_one< std::string >().make_async< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM, typename... ARGS >
 		std::future< RESULT >
@@ -374,6 +555,43 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		/*!
 		 * \since v.5.3.0
 		 * \brief Create a special proxy for service request invocation.
+		 *
+		 * \tparam RESULT type of result to be received as result of
+		 * service request.
+		 *
+		 * \note That method starts methods call chain for synchonous
+		 * agents interaction. Next method should be either
+		 * wait_forever()/wait_for() or async()/make_async().
+		 *
+		 * \par Usage examples
+		 * \code
+		 	// Make synchronous call and acquire result as a future object.
+			const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result =
+					dest.get_one< std::string >().make_async< request >(...);
+
+			// Or if request object is already created:
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			...
+			std::future< std::string > result =
+					dest.get_one< std::string >().async( std::move( request ) );
+
+			// Make synchronous call, wait for result indefinitely.
+			std::string result =
+					dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
+			// Or...
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			std::string result =
+					dest.get_one< std::string >().wait_forever().sync_get( std::move( request ) );
+
+			// Make synchronous call, wait no more than 50ms.
+			std::string result =
+					dest.get_one< std::string >().wait_for( std::chrono::milliseconds(50) ).make_sync_get< request >(...);
+			// Or...
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			std::string result =
+					dest.get_one< std::string >().wait_for( std::chrono::milliseconds(50) ).sync_get( std::move( request ) );
+		 * \endcode
 		 */
 		template< class RESULT >
 		inline service_invoke_proxy_t< RESULT >
@@ -387,6 +605,14 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		 * \since v.5.3.0
 		 * \brief Create a special proxy for service request invocation
 		 * where return type is void.
+		 *
+		 * \tparam RESULT type of result to be received as result of
+		 * service request.
+		 *
+		 * \note This method could useful for waiting a completion of
+		 * some message processing by destination agent.
+		 *
+		 * \sa get_one().
 		 */
 		inline service_invoke_proxy_t< void >
 		run_one()

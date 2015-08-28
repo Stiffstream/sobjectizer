@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <random>
 
 #include <so_5/all.hpp>
 
@@ -193,9 +194,11 @@ private :
 	}
 
 	static unsigned int
-	random( int l, int h )
+	random( unsigned int left, unsigned int right )
 	{
-		return static_cast< unsigned int >( l + (std::rand() % (h-l)) );
+		std::random_device rd;
+		std::mt19937 gen{ rd() };
+		return std::uniform_int_distribution< unsigned int >{left, right}(gen);
 	}
 };
 
@@ -224,8 +227,6 @@ public :
 void
 init( so_5::rt::environment_t & env )
 {
-	std::srand( static_cast< unsigned int >(std::time(nullptr)) );
-
 	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
 		// Logger will work on the default dispatcher.
 		auto logger = coop.make_agent< a_logger_t >();

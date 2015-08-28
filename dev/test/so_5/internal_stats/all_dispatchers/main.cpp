@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <thread>
 #include <chrono>
+#include <random>
 
 #include <so_5/all.hpp>
 
@@ -118,6 +119,9 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on_thread_pool_disp_2( *coop, workers );
 				create_children_on_adv_thread_pool_disp_1( *coop, workers );
 				create_children_on_adv_thread_pool_disp_2( *coop, workers );
+				create_children_on_prio_ot_strictly_ordered_disp( *coop, workers );
+				create_children_on_prio_ot_quoted_round_robin_disp( *coop, workers );
+				create_children_on_prio_dt_one_per_prio_disp( *coop, workers );
 
 				connect_workers( workers );
 
@@ -238,6 +242,44 @@ class a_controller_t : public so_5::rt::agent_t
 						} );
 			}
 
+		void
+		create_children_on_prio_ot_strictly_ordered_disp(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				auto disp = so_5::disp::prio_one_thread::strictly_ordered::
+					create_private_disp( so_environment() );
+
+				create_children_on( coop, workers,
+						[disp] { return disp->binder(); } );
+			}
+
+		void
+		create_children_on_prio_ot_quoted_round_robin_disp(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
+
+				auto disp = create_private_disp( so_environment(), quotes_t{ 20 } );
+
+				create_children_on( coop, workers,
+						[disp] { return disp->binder(); } );
+			}
+
+		void
+		create_children_on_prio_dt_one_per_prio_disp(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
+
+				auto disp = create_private_disp( so_environment() );
+
+				create_children_on( coop, workers,
+						[disp] { return disp->binder(); } );
+			}
+
 		template< typename LAMBDA >
 		void
 		create_children_on(
@@ -279,7 +321,14 @@ class a_controller_t : public so_5::rt::agent_t
 		static std::size_t
 		random_index( std::size_t max_size )
 			{
-				return static_cast< std::size_t >( std::rand() ) % max_size;
+				if( max_size > 0 )
+				{
+					std::random_device rd;
+					std::mt19937 gen{ rd() };
+					return std::uniform_int_distribution< std::size_t >{0, max_size-1}(gen);
+				}
+				else
+					return 0;
 			}
 	};
 

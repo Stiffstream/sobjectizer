@@ -113,6 +113,15 @@ timer_single_shot_count();
 SO_5_FUNC suffix_t
 timer_periodic_count();
 
+/*!
+ * \since v.5.5.8
+ * \brief Suffix for data source with size of quote for demands processing.
+ *
+ * This suffix is used in prio_one_thread::quoted_round_robin dispatcher.
+ */
+SO_5_FUNC suffix_t
+demand_quote();
+
 } /* namespace suffixes */
 
 } /* namespace stats */

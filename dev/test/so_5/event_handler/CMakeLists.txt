@@ -1,0 +1,4 @@
+add_subdirectory(subscribe_errors)
+add_subdirectory(ignore_exception)
+add_subdirectory(exception_reaction_inheritance)
+add_subdirectory(subscribe_before_reg)

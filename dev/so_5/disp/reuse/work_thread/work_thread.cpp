@@ -206,7 +206,7 @@ work_thread_t::serve_demands_block(
 	{
 		auto & demand = demands.front();
 
-		(*demand.m_demand_handler)( m_thread_id, demand );
+		demand.call_handler( m_thread_id );
 
 		demands.pop_front();
 		--m_demands_count;

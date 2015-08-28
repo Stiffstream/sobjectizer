@@ -2,6 +2,7 @@ project(tests)
 
 if( NOT CYGWIN )
   add_subdirectory(spinlocks/llvm_inspired_test)
+  add_subdirectory(spinlocks/combined_queue_lock)
 endif()
 
 add_subdirectory(environment/moveable_params)
@@ -32,9 +33,12 @@ add_subdirectory(disp/adv_thread_pool)
 
 add_subdirectory(disp/private_dispatchers)
 
-add_subdirectory(event_handler/subscribe_errors)
-add_subdirectory(event_handler/ignore_exception)
-add_subdirectory(event_handler/exception_reaction_inheritance)
+add_subdirectory(disp/prio_ot_strictly_ordered)
+add_subdirectory(disp/prio_ot_quoted_round_robin)
+
+add_subdirectory(disp/prio_dt_one_per_prio)
+
+add_subdirectory(event_handler)
 
 add_subdirectory(messages/three_messages)
 add_subdirectory(messages/resend_message)
@@ -59,6 +63,7 @@ add_subdirectory(coop/parent_child_3)
 add_subdirectory(coop/parent_child_4)
 add_subdirectory(coop/user_resource)
 add_subdirectory(coop/introduce_coop)
+add_subdirectory(coop/create_child_coop_5_5_8)
 
 add_subdirectory(mbox)
 

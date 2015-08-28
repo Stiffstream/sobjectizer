@@ -26,11 +26,9 @@ namespace impl
 
 limitless_mpsc_mbox_t::limitless_mpsc_mbox_t(
 	mbox_id_t id,
-	agent_t * single_consumer,
-	event_queue_proxy_ref_t event_queue )
+	agent_t * single_consumer )
 	:	m_id( id )
 	,	m_single_consumer( single_consumer )
-	,	m_event_queue( std::move( event_queue ) )
 {
 }
 
@@ -75,14 +73,12 @@ limitless_mpsc_mbox_t::do_deliver_message(
 	const message_ref_t & message,
 	unsigned int ) const
 {
-	m_event_queue->push(
-			execution_demand_t(
-					m_single_consumer,
-					so_5::rt::message_limit::control_block_t::none(),
-					m_id,
-					msg_type,
-					message,
-					&agent_t::demand_handler_on_message ) );
+	agent_t::call_push_event(
+			*m_single_consumer,
+			so_5::rt::message_limit::control_block_t::none(),
+			m_id,
+			msg_type,
+			message );
 }
 
 void
@@ -93,14 +89,12 @@ limitless_mpsc_mbox_t::do_deliver_service_request(
 {
 	msg_service_request_base_t::dispatch_wrapper( message,
 		[&] {
-			m_event_queue->push(
-					execution_demand_t(
-							m_single_consumer,
-							so_5::rt::message_limit::control_block_t::none(),
-							m_id,
-							msg_type,
-							message,
-							&agent_t::service_request_handler_on_message ) );
+			agent_t::call_push_service_request(
+					*m_single_consumer,
+					so_5::rt::message_limit::control_block_t::none(),
+					m_id,
+					msg_type,
+					message );
 		} );
 }
 
@@ -129,9 +123,8 @@ limitless_mpsc_mbox_t::drop_delivery_filter(
 limitful_mpsc_mbox_t::limitful_mpsc_mbox_t(
 	mbox_id_t id,
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
-	event_queue_proxy_ref_t event_queue )
-	:	limitless_mpsc_mbox_t( id, single_consumer, std::move( event_queue ) )
+	const so_5::rt::message_limit::impl::info_storage_t & limits_storage )
+	:	limitless_mpsc_mbox_t( id, single_consumer )
 	,	m_limits( limits_storage )
 {
 }
@@ -157,14 +150,12 @@ limitful_mpsc_mbox_t::do_deliver_message(
 			message,
 			overlimit_reaction_deep,
 			[&] {
-				m_event_queue->push(
-						execution_demand_t(
-								m_single_consumer,
-								limit,
-								m_id,
-								msg_type,
-								message,
-								&agent_t::demand_handler_on_message ) );
+				agent_t::call_push_event(
+						*m_single_consumer,
+						limit,
+						m_id,
+						msg_type,
+						message );
 			} );
 }
 
@@ -187,14 +178,12 @@ limitful_mpsc_mbox_t::do_deliver_service_request(
 					message,
 					overlimit_reaction_deep,
 					[&] {
-						m_event_queue->push(
-								execution_demand_t(
-										m_single_consumer,
-										limit,
-										m_id,
-										msg_type,
-										message,
-										&agent_t::service_request_handler_on_message ) );
+						agent_t::call_push_service_request(
+								*m_single_consumer,
+								limit,
+								m_id,
+								msg_type,
+								message );
 					} );
 		} );
 }

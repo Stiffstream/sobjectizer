@@ -3,6 +3,7 @@
 */
 
 #include <exception>
+#include <algorithm>
 
 #include <so_5/h/exception.hpp>
 
@@ -11,6 +12,8 @@
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/h/agent_coop.hpp>
+
+#include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -223,6 +226,12 @@ agent_coop_t::exception_reaction() const
 }
 
 void
+agent_coop_t::deregister( int reason )
+{
+	environment().deregister_coop( query_coop_name(), reason );
+}
+
+void
 agent_coop_t::do_add_agent(
 	const agent_ref_t & agent_ref )
 {
@@ -250,6 +259,7 @@ void
 agent_coop_t::do_registration_specific_actions(
 	agent_coop_t * parent_coop )
 {
+	reorder_agents_with_respect_to_priorities();
 	bind_agents_to_coop();
 	define_all_agents();
 
@@ -271,6 +281,17 @@ agent_coop_t::do_deregistration_specific_actions(
 	m_dereg_reason = std::move( dereg_reason );
 
 	shutdown_all_agents();
+}
+
+void
+agent_coop_t::reorder_agents_with_respect_to_priorities()
+{
+	std::sort( std::begin(m_agent_array), std::end(m_agent_array),
+		[]( const agent_with_disp_binder_t & a,
+			const agent_with_disp_binder_t & b ) -> bool {
+			return impl::special_agent_ptr_compare(
+					*a.m_agent_ref, *b.m_agent_ref );
+		} );
 }
 
 void
@@ -300,6 +321,11 @@ agent_coop_t::define_all_agents()
 void
 agent_coop_t::bind_agents_to_disp()
 {
+	// All the following actions must be performed on locked m_binding_lock.
+	// It prevents evt_start event from execution until all agents will be
+	// bound to its dispatchers.
+	std::lock_guard< std::mutex > binding_lock{ m_binding_lock };
+
 	std::vector< disp_binding_activator_t > activators;
 	activators.reserve( m_agent_array.size() );
 

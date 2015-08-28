@@ -28,11 +28,11 @@ create_coop(
 	agent.on_start( [mb] {
 			send< hello >( mb, "Hello" );
 		} )
-		.event( mb, [mb]( const hello & evt ) {
+		.event( agent, [mb]( const hello & evt ) {
 			cout << "hello: " << get<0>( evt ) << endl;
 			send< repeat >( mb, 0, 3 );
 		} )
-		.event( mb, [mb]( const repeat & evt ) {
+		.event( agent, [mb]( const repeat & evt ) {
 			cout << "repetition: " << get<0>( evt ) << endl;
 			auto next = get<0>( evt ) + 1;
 			if( next < get<1>( evt ) )
@@ -40,7 +40,7 @@ create_coop(
 			else
 				send< bye >( mb, "Good", "Bye" );
 		} )
-		.event( mb, [&env]( const bye & evt ) {
+		.event( agent, [&env]( const bye & evt ) {
 			cout << "bye: " << get<0>( evt ) << " " << get<1>( evt ) << endl;
 			env.stop();
 		} );

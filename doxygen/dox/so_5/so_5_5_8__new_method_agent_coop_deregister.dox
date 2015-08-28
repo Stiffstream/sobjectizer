@@ -1,0 +1,52 @@
+/*!
+
+\page so_5_5_8__new_method_agent_coop_deregister so-5.5.8: New methods of agent_coop_t for deregistration
+
+For simplification of coop deregistration in presence of reference to
+agent_coop_t two new methods have been added in v.5.5.8.
+
+The first method, so_5::rt::agent_coop_t::deregister(), allows to specify
+reason of cooperation deregistration:
+
+\code
+so_5::rt::environment_t & env = ...;
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+    coop.define_agent()
+      .event< some_signal >( some_mbox, [&coop] {
+        ...
+        coop.deregister( so_4::rt::dereg_reason::user_defined_reason + 100 );
+      } );
+  } );
+\endcode
+
+Please note that deregister() is just a shorhand for:
+
+\code
+so_5::rt::agent_coop_t & coop = ...;
+coop.environment().deregister_coop( coop.query_coop_name(), reason );
+\endcode
+
+The second method, so_5::rt::agent_coop_t::deregister_normally(), allows to deregister coop with reason so_5::rt::dereg_reason::normal:
+
+\code
+so_5::rt::environment_t & env = ...;
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+    coop.define_agent()
+      .event< some_signal >( some_mbox, [&coop] {
+        ...
+        coop.deregister_normally();
+      } );
+  } );
+\endcode
+
+Please note that deregister_normally() is just a shorhand for:
+
+\code
+so_5::rt::agent_coop_t & coop = ...;
+coop.deregister( so_5::rt::dereg_reason::normal );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

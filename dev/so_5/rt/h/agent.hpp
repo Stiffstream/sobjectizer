@@ -9,17 +9,12 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-#include <vector>
-#include <utility>
-#include <type_traits>
-
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/h/spinlocks.hpp>
 
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
@@ -33,8 +28,15 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
-#include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
+
+#include <atomic>
+#include <map>
+#include <memory>
+#include <vector>
+#include <utility>
+#include <type_traits>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -86,9 +88,6 @@ namespace impl
 {
 
 // Forward declarations.
-class local_event_queue_t;
-class message_consumer_link_t;
-class so_environment_impl_t;
 class state_listener_controller_t;
 
 class mpsc_mbox_t;
@@ -1269,6 +1268,23 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
+		/*!
+		 * \name Dealing with priority.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.8
+		 * \brief Get the priority of the agent.
+		 */
+		priority_t
+		so_priority() const
+			{
+				return m_priority;
+			}
+		/*!
+		 * \}
+		 */
+
 	protected :
 		/*!
 		 * \name Helpers for state object creation.
@@ -1360,15 +1376,40 @@ class SO_5_TYPE agent_t
 		environment_t & m_env;
 
 		/*!
-		 * \since v.5.4.0
-		 * \brief Event queue proxy.
+		 * \since v.5.5.8
+		 * \brief Event queue operation protector.
+		 *
+		 * Initially m_event_queue is NULL. It is changed to actual value
+		 * in so_bind_to_dispatcher() method. And reset to nullptr again
+		 * in shutdown_agent().
+		 *
+		 * nullptr in m_event_queue means that methods push_event() and
+		 * push_service_request() will throw away any new demand.
+		 *
+		 * It is necessary to provide guarantee that m_event_queue will
+		 * be reset to nullptr in shutdown_agent() only if there is no
+		 * working push_event()/push_service_request() methods. To do than
+		 * default_rw_spinlock_t is used. Methods push_event() and
+		 * push_service_request() acquire it in read-mode and shutdown_agent()
+		 * acquires it in write-mode. It means that shutdown_agent() cannot
+		 * get access to m_event_queue until there is working
+		 * push_event()/push_service_request().
+		 */
+		default_rw_spinlock_t	m_event_queue_lock;
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief A pointer to event_queue.
 		 *
 		 * After binding to the dispatcher is it pointed to the actual
 		 * event queue.
 		 *
-		 * After shutdown it is closed.
+		 * After shutdown it is set to nullptr.
+		 *
+		 * \attention Access to m_event_queue value must be done only
+		 * under acquired m_event_queue_lock.
 		 */
-		event_queue_proxy_ref_t m_event_queue_proxy;
+		event_queue_t * m_event_queue;
 
 		/*!
 		 * \since v.5.4.0
@@ -1388,9 +1429,6 @@ class SO_5_TYPE agent_t
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
 
-		//! Is the cooperation deregistration in progress?
-		bool m_is_coop_deregistered;
-
 		/*!
 		 * \since v.5.5.5
 		 * \brief Delivery filters for that agents.
@@ -1398,6 +1436,12 @@ class SO_5_TYPE agent_t
 		 * \note Storage is created only when necessary.
 		 */
 		std::unique_ptr< impl::delivery_filter_storage_t > m_delivery_filters;
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Priority of the agent.
+		 */
+		const priority_t m_priority;
 
 		//! Make an agent reference.
 		/*!
@@ -1431,7 +1475,7 @@ class SO_5_TYPE agent_t
 		 * Method destroys all agent subscriptions.
 		 */
 		void
-		shutdown_agent();
+		shutdown_agent() SO_5_NOEXCEPT;
 		/*!
 		 * \}
 		 */
@@ -1545,6 +1589,14 @@ class SO_5_TYPE agent_t
 		demand_handler_on_start(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Ensures that all agents from cooperation are
+		 * bound to dispatchers.
+		 */
+		void
+		ensure_binding_finished();
 
 		/*!
 		 * \since v.5.4.0

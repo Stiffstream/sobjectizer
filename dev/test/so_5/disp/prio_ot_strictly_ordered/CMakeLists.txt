@@ -1,0 +1,5 @@
+add_subdirectory(simple)
+add_subdirectory(simple_seq1)
+add_subdirectory(simple_seq2)
+add_subdirectory(simple_seq3)
+add_subdirectory(dereg_when_queue_not_empty)

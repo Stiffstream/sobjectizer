@@ -1,0 +1,304 @@
+/*!
+
+\page so_5_5__in_depth_priority_of_agents so-5.5 In Depth - Priorities of Agents
+
+\section so_5_5__in_depth_priority_of_agents__intro Intro
+
+A new feature was introduced in v.5.5.8 -- agent’s priorities. Every agent now
+has a priority. Priority is just an optional mark for dispatchers. Some
+dispatcher can use this mark for priority-specific events scheduling, some
+dispatcher can’t.
+
+Several new dispatchers with support for agent’s priorities were added in
+v.5.5.8. They will be described below.
+
+\section so_5_5__in_depth_priority_of_agents__basics Basics
+
+Agent’s priority is represented as enumeration `so_5::priority_t`. There are
+only 8 priorities: from the lowest (so_5::priority_t::p0) to the highest
+(so_5::priority_t::p7).
+
+A priority for an agent can be specified during agent’s construction.
+
+\code
+// For ordinary agents:
+class my_agent : public so_5::rt::agent_t
+{
+public :
+  my_agent( context_t ctx, ... )
+    : so_5::rt::agent_t( ctx + so_5::priority_t::p3 )
+    ...
+};
+
+// For ad-hoc agents:
+coop.define_agent( coop.make_agent_context() + so_5::priority_t::p3 )
+...
+\endcode
+
+<b>Once agent has been constructed the priority cannot be changed.</b>
+
+There is a namespace so_5::prio with some useful helper constants and
+functions. For example instead of writing so_5::priority_t::p3 it is possible
+to write so_5::prio::p3. Or even p3 under `using namespace so_5::prio`
+construct.
+
+\section so_5_5__in_depth_priority_of_agents__disps Dispatchers With Support For Priorities
+
+Version 5.5.8 adds three new dispatchers which support agent’s priorities:
+prio_one_thread::strictly_ordered, prio_one_thread::quote_round_robin,
+prio_dedicated_threads::one_per_prio. They do priority-specific handling of
+agent’s events.
+
+Old dispatchers from previous versions (one_thread, active_obj, active_group,
+thread_pool, adv_thread_pool) do not support priorities.
+
+\subsection so_5_5__in_depth_priority_of_agents__disps__one_thread_vs_dedicated Common Threads Vs Dedicated Threads
+
+There is a principal difference in event handling with respect to agent’s
+priorities: will all events for agents with different priorities be handled on
+the same working thread or events with different priorities will be handled on
+its own, dedicated threads.
+
+Handling of events with different priorities on the context of common working
+threads allows to do several important things. At first, there is a possibility
+to strict ordering of events with respect to priorities. It means that event
+with higher priority will block events with lower priority. At second there is
+a possibility for easy sharing some data between agents with different
+priorities. Because all agents will work on the same thread there is no need
+for synchronize access to shared data.
+
+Those things are impossible when events with different priorities are handled
+on different threads.
+
+Because of that new dispatchers with priorities support are grouped into two
+group: prio_one_thread (it means that all events are processed on the same
+working thread) and prio_dedicated_thread (it means that events will
+different priorities will be processed on different threads).
+
+\subsection so_5_5__in_depth_priority_of_agents__disps__one_thread Dispatchers With Common Thread For All Priorities
+
+Group prio_one_thread consists of two dispatchers: strictly_ordered and
+quoted_round_robin.
+
+\subsubsection so_5_5__in_depth_priority_of_agents__disps__one_thread__so Dispatcher prio_one_thread::strictly_ordered
+
+<b>Working Principles</b>
+
+This dispatcher allows for events of high priority agents to block events of
+low priority agents. It means that events queue is always strictly ordered:
+events for agents with high priority are placed before events for agents with
+lower priority.
+
+For example if event queue is (e1(a7),e2(a6),e3(a4),e4(a4)), where a7 means an
+agent with priority p7, then events will be handled in exact that order. After
+handling e1 the queue will be (e2(a6),e3(a4),e4(a4)). If e5 for a5 arrived then
+the queue will become (e2(a6),e5(a5),e3(a4),e4(a4)).
+
+It means that chronological order of events will be preserved only for events
+of agents with the same priority.
+
+This dispatcher could be useful if there is a necessity of handling some
+messages before other messages. For example there could be a stream of tasks
+represented by take_job messages. There also could be a special message for
+task processor’s reconfiguration: new_config message. It could have a sense to
+handle new_config as soon as possible.
+
+This can be done by two agents which are bound to single
+prio_one_thread::strictly_ordered dispatcher. One agent will have priority p1
+and will handle new_config message. Second agent will have priority p0 and will
+handle take_job. Both agents will have common shared data (at least
+configuration parameters, may be something else). Dispatcher
+prio_one_thread::strictly_ordered guarantees that new_config will be handled as
+soon as processing of previous message finished.
+
+<b>Synopsis</b>
+
+The dispatcher is defined in so_5::disp::prio_one_thread::strictly_ordered
+namespace. There are several traditional functions for dispatcher creation.
+
+Function create_disp creates public dispatcher which should be added to list of
+named dispatchers:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::disp::prio_one_thread::strictly_ordered::create_disp_binder( "strict_prio" ),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  },
+  []( so_5::rt::environment_params_t & params ) {
+    params.add_named_dispatcher( “strict_prio",
+      so_5::disp::prio_one_thread::strictly_ordered::create_disp() );
+  ...
+  } );
+\endcode
+
+There is also create_private_disp function for creation of private instance of
+dispatcher:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(env)->binder(),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  } );
+\endcode
+
+\subsubsection so_5_5__in_depth_priority_of_agents__disps__one_thread__qrr Dispatcher prio_one_thread::quoted_round_robin
+
+<b>Working Principles</b>
+
+Dispatcher prio_one_thread::quoted_round_robin works on round-robin principle.
+It allows to specify maximum count of events to be processed consequently for
+the specified priority. After processing that count of events dispatcher
+switches to processing events of lower priority even if there are yet more
+events of higher priority to be processed.
+
+Dispatcher uses very simply working scheme: it handles no more than Q7 events
+of priority p7, then no more than Q6 events of priority p6, ..., then no more
+than Q0 events of priority p0. If an event of higher priority is arrived during
+handling a quote for lower priority no switching is performed. For example if
+dispatcher handles events of priority p5 and event of priority p7 is arrived
+the dispatcher will continue to handle events of priority p5, then events of
+priority p4 (if any), ..., then events of priority p0 (if any). And only then
+the dispatcher will start to process events of priority p7.
+
+Events inside the same priority are handled in chronological order.
+
+This working scheme means that agent’s priorities treated as agent’s weight. A
+programmer can set bigger quotes for more prioritized (more heavyweight) agents
+and that agents will receive more resources than less prioritized (less
+weighted) agents.
+
+A dispatcher of that type can be useful, for example, if there are agents which
+handles clients of different types. Some clients are VIP clients and they
+should receive first-class quality of service and there could be other clients
+with lower demands for service quality. It is possible to assign a high
+priority to agents for handling VIP-client requests and specify large quote for
+that priority. All other agents will have lower priority and smaller quote. As
+result more requests from VIP-clients will be handled but there also will be
+processing of request from other clients.
+
+<b>Synopsis</b>
+
+The dispatcher is defined in so_5::disp::prio_one_thread::quoted_round_robin
+namespace. There are several traditional functions for dispatcher creation.
+
+Quotes for priorities must be defined before creation of a dispatcher. It can
+be done via constructing and tuning of object of type
+so_5::disp::prio_one_thread::quoted_round_robin::quotes_t. For example:
+
+\code
+// Default quote for all priorities must be specified in constructor. 
+so_5::disp::prio_one_thread::quoted_round_robin::quotes_t quotes{ 10 };
+// After that a quote for a particular priority can be changed.
+quotes.set( so_5::prio::p7, 50 );
+quotes.set( so_5::prio::p5, 40 );
+...
+\endcode
+
+Construction of quotes_t object can be done during calling a function for
+dispatcher creation:
+
+\code
+so_5::disp::prio_one_thread::quoted_round_robin::create_private_disp( env,
+  so_5::disp::prio_one_thread::quoted_round_robin::quotes_t{ 10 }
+    .set( so_5::prio::p7, 50 ).set( so_5::prio::p5, 40 ) );
+\endcode
+
+Function create_disp creates public dispatcher which should be added to list of
+named dispatchers:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::disp::prio_one_thread::quoted_round_robin::create_disp_binder( "prio_rr" ),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  },
+  []( so_5::rt::environment_params_t & params ) {
+    params.add_named_dispatcher( “prio_rr",
+      so_5::disp::prio_one_thread::quoted_round_robin::create_disp(
+        so_5::disp::prio_one_thread::quoted_round_robin::quotes_t{ 20 }
+          .set( so_5::prio::p7, 45 ).set( so_5::prio::p6, 35 ).set( so_5::prio::p5, 25 ) ) );
+  ...
+  } );
+\endcode
+
+There is also create_private_disp function for creation of private instance of
+dispatcher:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::disp::prio_one_thread::quoted_round_robin::create_private_disp(
+        env,
+        so_5::disp::prio_one_thread::quoted_round_robin::quotes_t{ 20 }
+          .set( so_5::prio::p7, 45 ).set( so_5::prio::p6, 35 ).set( so_5::prio::p5, 25 )
+        )->binder(),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  } );
+\endcode
+
+\subsection so_5_5__in_depth_priority_of_agents__disps__dedicated Dispatcher With Dedicated Thread For Every Priority
+
+\subsubsection so_5_5__in_depth_priority_of_agents__disps__dedicated__opp Dispatcher prio_dedicated_threads::one_per_prio
+
+<b>Working Principles</b>
+
+This dispatcher creates a single dedicated thread for every priority. It means
+that events for agents with priority p7 will be handled on different thread
+than events for agents with, for example, priority p6.
+
+Events inside the same priority are handled in chronological order.
+
+Priority is assigned to an agent, not to a particular events. It means that all
+events of one agent have the same priority. Because of that all events of that
+agent will be handled on the same thread. In other words an agent is bound to
+its working thread once and do not moved from one thread to another.
+
+This working scheme means that agent’s priority is treated as binding to a
+particular working thread inside a dispatcher instance. It allows to bound
+agents with different requirements to different working threads.
+
+<b>Synopsis</b>
+
+The dispatcher is defined in so_5::disp::prio_dedicated_threads::one_per_prio
+namespace. There are several traditional functions for dispatcher creation.
+
+Function create_disp creates public dispatcher which should be added to list of
+named dispatchers:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::autoname,
+      so_5::disp::prio_dedicated_threads::one_per_prio::create_disp_binder( "prio_threads" ),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  },
+  []( so_5::rt::environment_params_t & params ) {
+    params.add_named_dispatcher( “prio_threads",
+      so_5::disp::prio_dedicated_threads::one_per_prio::create_disp() );
+  ...
+  } );
+\endcode
+
+There is also create_private_disp function for creation of private instance of
+dispatcher:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+    env.introduce_coop(
+      so_5::disp::prio_dedicated_threads::one_per_prio::create_private_disp(env)->binder(),
+      []( so_5::rt::agent_coop_t & coop ) { ... } );
+    ...
+  } );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

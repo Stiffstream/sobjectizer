@@ -333,7 +333,7 @@ dispatcher_t::search_and_remove_agent_from_map(
 class binding_actions_t
 	{
 	protected :
-		static so_5::rt::disp_binding_activator_t
+		so_5::rt::disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
 			so_5::rt::agent_ref_t agent )
@@ -353,7 +353,7 @@ class binding_actions_t
 						} );
 			}
 
-		static void
+		void
 		do_unbind(
 			dispatcher_t & disp,
 			so_5::rt::agent_ref_t agent )
@@ -367,51 +367,8 @@ class binding_actions_t
 //
 
 //! Agent dispatcher binder.
-class disp_binder_t
-	:	public so_5::rt::disp_binder_t
-	,	protected binding_actions_t
-	{
-	public:
-		disp_binder_t(
-			const std::string & disp_name )
-			:	m_disp_name( disp_name )
-			{}
-
-		virtual so_5::rt::disp_binding_activator_t
-		bind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				using so_5::rt::disp_binding_activator_t;
-				using namespace so_5::disp::reuse;
-
-				return do_with_dispatcher< dispatcher_t >(
-					env,
-					m_disp_name,
-					[agent]( dispatcher_t & disp )
-					{
-						return do_bind( disp, std::move( agent ) );
-					} );
-			}
-
-		virtual void
-		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				using namespace so_5::disp::reuse;
-
-				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
-					[agent]( dispatcher_t & disp )
-					{
-						do_unbind( disp, std::move( agent ) );
-					} );
-			}
-
-	private:
-		//! Name of the dispatcher to be bound to.
-		const std::string m_disp_name;
-	};
+using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
+		dispatcher_t, binding_actions_t >;
 
 //
 // private_dispatcher_binder_t
@@ -421,46 +378,11 @@ class disp_binder_t
  * \since v.5.5.4
  * \brief A binder for the private %active_obj dispatcher.
  */
-class private_dispatcher_binder_t
-	:	public so_5::rt::disp_binder_t
-	,	protected binding_actions_t
-	{
-	public:
-		explicit private_dispatcher_binder_t(
-			//! A handle for private dispatcher.
-			//! It is necessary to manage lifetime of the dispatcher instance.
-			private_dispatcher_handle_t handle,
-			//! A dispatcher instance to work with.
-			dispatcher_t & instance )
-			:	m_handle( std::move( handle ) )
-			,	m_instance( instance )
-			{}
-
-		virtual so_5::rt::disp_binding_activator_t
-		bind_agent(
-			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				return do_bind( m_instance, std::move( agent ) );
-			}
-
-		virtual void
-		unbind_agent(
-			so_5::rt::environment_t & /*env*/,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				do_unbind( m_instance, std::move( agent ) );
-			}
-
-	private:
-		//! A handle for private dispatcher.
-		/*!
-		 * It is necessary to manage lifetime of the dispatcher instance.
-		 */
-		private_dispatcher_handle_t m_handle;
-		//! A dispatcher instance to work with.
-		dispatcher_t & m_instance;
-	};
+using private_dispatcher_binder_t =
+	so_5::disp::reuse::binder_for_private_disp_template_t<
+		private_dispatcher_handle_t,
+		dispatcher_t,
+		binding_actions_t >;
 
 //
 // real_private_dispatcher_t

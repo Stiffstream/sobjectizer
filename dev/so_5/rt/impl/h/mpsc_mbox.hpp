@@ -15,7 +15,7 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/message_limit.hpp>
 
 namespace so_5
@@ -43,8 +43,7 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 	public:
 		limitless_mpsc_mbox_t(
 			mbox_id_t id,
-			agent_t * single_consumer,
-			event_queue_proxy_ref_t event_queue );
+			agent_t * single_consumer );
 
 		virtual ~limitless_mpsc_mbox_t();
 
@@ -113,9 +112,6 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 
 		//! The only consumer of this mbox's messages.
 		agent_t * m_single_consumer;
-
-		//! Event queue for the single consumer.
-		event_queue_proxy_ref_t m_event_queue;
 };
 
 //
@@ -138,8 +134,7 @@ class limitful_mpsc_mbox_t : public limitless_mpsc_mbox_t
 			agent_t * single_consumer,
 			//! This reference must remains correct till the end of
 			//! the mbox's lifetime.
-			const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
-			event_queue_proxy_ref_t event_queue );
+			const so_5::rt::message_limit::impl::info_storage_t & limits_storage );
 
 		virtual ~limitful_mpsc_mbox_t();
 

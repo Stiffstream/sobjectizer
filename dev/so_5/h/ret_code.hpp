@@ -282,6 +282,14 @@ const int rc_unable_to_start_extra_layer = 104;
 const int rc_layer_does_not_exist = 105;
 //! \}
 
+//! \name Error codes for priorities.
+//! \{
+
+//! Illegal value of quote for a priority.
+const int rc_priority_quote_illegal_value = 120;
+
+//! \}
+
 //! \name Common error codes.
 //! \{
 

@@ -9,10 +9,6 @@
 
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <functional>
-
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
@@ -22,6 +18,11 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/adhoc_agent_wrapper.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
+
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -534,6 +535,16 @@ class SO_5_TYPE agent_coop_t
 		 */
 
 		/*!
+		 * \since v.5.5.8
+		 * \brief Creation of instance of agent_context for tuning agent options.
+		 */
+		agent_context_t
+		make_agent_context() const
+			{
+				return agent_context_t( m_env );
+			}
+
+		/*!
 		 * \since v.5.3.0
 		 * \brief Start definition of ad-hoc agent with default
 		 * dispatcher binding.
@@ -554,7 +565,33 @@ class SO_5_TYPE agent_coop_t
 		inline adhoc_agent_definition_proxy_t
 		define_agent()
 			{
-				auto agent = new adhoc_agent_wrapper_t( m_env );
+				return define_agent( make_agent_context() );
+			}
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Start definition of ad-hoc agent with default
+		 * dispatcher binding and the custom agent tuning options.
+		 *
+		 * Usage sample:
+		 \code
+		 coop->define_agent( coop->make_agent_context() + so_5::prio::p7 )
+		 		// Set initial agent action.
+				.on_start( []() { std::cout << "Hello!" << std::endl; }
+				// Set last agent action.
+				.on_finish( []() { std::cout << "Bye!" << std::endl; }
+				// Subscribe to message from a mbox.
+				.event( mbox, []() { ... } );
+				// Subscribe to signal from a mbox.
+				.event( mbox, so_5::signal< SIG >, []() { ... } );
+		 \endcode
+		 */
+		inline adhoc_agent_definition_proxy_t
+		define_agent(
+			//! Agent tuning options.
+			agent_context_t ctx )
+			{
+				auto agent = new adhoc_agent_wrapper_t( std::move( ctx ) );
 				this->add_agent( agent );
 
 				return adhoc_agent_definition_proxy_t( agent );
@@ -584,12 +621,41 @@ class SO_5_TYPE agent_coop_t
 			//! A binder to the dispatcher.
 			disp_binder_unique_ptr_t binder )
 			{
-				auto agent = new adhoc_agent_wrapper_t( m_env );
+				return define_agent( make_agent_context(), std::move( binder ) );
+			}
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Start definition of ad-hoc agent with the specific
+		 * dispatcher binder and custom agent tuning options.
+		 *
+		 * Usage sample:
+		 \code
+		 coop->define_agent(
+		 		coop->make_agent_context() + so_5::prio::p7,
+		 		so_5::disp::active_obj::create_disp_binder( "active_obj" ) )
+		 		// Set initial agent action.
+				.on_start( []() { std::cout << "Hello!" << std::endl; }
+				// Set last agent action.
+				.on_finish( []() { std::cout << "Bye!" << std::endl; }
+				// Subscribe to message from a mbox.
+				.event( mbox, []() { ... } );
+				// Subscribe to signal from a mbox.
+				.event( mbox, so_5::signal< SIG >, []() { ... } );
+		 \endcode
+		 */
+		inline adhoc_agent_definition_proxy_t
+		define_agent(
+			//! Agent tuning options.
+			agent_context_t ctx,
+			//! A binder to the dispatcher.
+			disp_binder_unique_ptr_t binder )
+			{
+				auto agent = new adhoc_agent_wrapper_t( std::move( ctx ) );
 				this->add_agent( agent, std::move(binder) );
 
 				return adhoc_agent_definition_proxy_t( agent );
 			}
-
 		/*!
 		 * \since v.5.3.0
 		 * \brief Access to SO Environment for which cooperation is bound.
@@ -682,6 +748,49 @@ class SO_5_TYPE agent_coop_t
 		{
 			return m_agent_array.size();
 		}
+		
+		/*!
+		 * \since v.5.5.8
+		 * \brief Deregister the cooperation with the specified reason.
+		 *
+		 * \par Usage example:
+			\code
+			so_5::rt::environment_t & env = ...;
+			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+					coop.define_agent()
+						.event< some_signal >( some_mbox, [&coop] {
+							...
+							coop.deregister( so_4::rt::dereg_reason::user_defined_reason + 100 );
+						} );
+				} );
+			\endcode
+		 *
+		 * \note This method is just a shorthand for:
+			\code
+			so_5::rt::agent_coop_t & coop = ...;
+			coop.environment().deregister_coop( coop.query_coop_name(), reason );
+			\endcode
+		 */
+		void
+		deregister(
+			//! Reason of cooperation deregistration.
+			int reason );
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Deregistr the cooperation normally.
+		 *
+		 * \note This method is just a shorthand for:
+			\code
+			so_5::rt::agent_coop_t & coop = ...;
+			coop.deregister( so_5::rt::dereg_reason::normal );
+			\endcode
+		 */
+		inline void
+		deregister_normally()
+			{
+				this->deregister( dereg_reason::normal );
+			}
 
 	private:
 		//! Information about agent and its dispatcher binding.
@@ -792,6 +901,24 @@ class SO_5_TYPE agent_coop_t
 		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
 		/*!
+		 * \since v.5.5.8
+		 * \brief A lock for synchonization of evt_start events.
+		 *
+		 * A new way of handling coop registration was introduced
+		 * in v.5.5.8. Agents from the coop cannot start its work before
+		 * finish of main coop registration actions (expecialy before
+		 * end of such important step as binding agents to dispatchers).
+		 * But some agents could receive evt_start event before end of
+		 * agents binding step. Those agents will be stopped on this lock.
+		 *
+		 * Coop acquires this lock before agents binding step and releases
+		 * just after that. Every agent tries to acquire it during handling
+		 * of evt_start. If lock is belong to coop then an agent will be stopped
+		 * until the lock will be released.
+		 */
+		std::mutex m_binding_lock;
+		
+		/*!
 		 * \since v.5.2.3
 		 * \brief The registration status of cooperation.
 		 *
@@ -871,6 +998,17 @@ class SO_5_TYPE agent_coop_t
 		do_deregistration_specific_actions(
 			//! Deregistration reason.
 			coop_dereg_reason_t dereg_reason );
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Rearrangement of agents in agents storage with
+		 * respect to its priorities.
+		 *
+		 * This step is necessary to handle agents with high priorities
+		 * before agents with low priorities.
+		 */
+		void
+		reorder_agents_with_respect_to_priorities();
 
 		//! Bind agents to the cooperation.
 		void

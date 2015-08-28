@@ -228,7 +228,7 @@ show_result(
 
 		const unsigned int total_msg_count = cfg.m_request_count * 2;
 
-		double price = total_msec / total_msg_count / 1000.0;
+		double price = static_cast< double >( total_msec ) / total_msg_count / 1000.0;
 		double throughtput = 1 / price;
 
 		benchmarks_details::precision_settings_t precision{ std::cout, 10 };

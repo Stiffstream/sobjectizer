@@ -156,7 +156,7 @@ init( so_5::rt::environment_t & env )
 					for( int i = 0; i != 10; ++i )
 						so_5::send< msg_start >( atp_agent.direct_mbox() );
 				} )
-		.event< msg_start >( atp_agent.direct_mbox(),
+		.event< msg_start >( atp_agent,
 				[collector]() {
 					std::this_thread::sleep_for( std::chrono::seconds(1) );
 					so_5::send_to_agent< msg_hello >( *collector,

@@ -1,0 +1,41 @@
+/*!
+
+\page so_5_5_8__new_form_introduce_child_coop so-5.5.8: New form of introduce_child_coop
+
+A new form of so_5::rt::introduce_child_coop() function has been added in
+v.5.5.8. It accepts reference to agent_coop_t object instead of name of parent
+coop.
+
+This new form will be useful in the following cases:
+
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+  coop.define_agent().on_start( [&parent] {
+    so_5::rt::introduce_child_coop( parent,
+      []( so_5::rt::agent_coop_t & child ) {
+        child.make_agent< worker >();
+        ...
+      } );
+    ...
+  } );
+  ...
+} );
+\endcode
+
+\note There also a new variant of so_5::rt::create_child_coop() function:
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+  coop.define_agent().on_start( [&coop] {
+    auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
+    child->make_agent< worker >();
+    ...
+    coop.environment().register_coop( std::move( child ) );
+  } );
+  ...
+} );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

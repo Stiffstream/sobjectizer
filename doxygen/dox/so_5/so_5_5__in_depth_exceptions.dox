@@ -1,0 +1,371 @@
+/*!
+
+\page so_5_5__in_depth_exceptions so-5.5 In Depth - Exceptions
+
+\section so_5_5__in_depth_exceptions__intro Intro
+
+This article is dedicated to usage of exceptions. In particular:
+
+- why exceptions are used in SObjectizer Run-Time;
+- what exceptions are used by SObjectizer-5;
+- how SObjectizer-5.5 handles exceptions from agents;
+- how a custom exception logger could be set;
+- when and why SObjectizer can call std::abort().
+
+\section so_5_5__in_depth_exceptions__why_exceptions Why SObjectizer Run-Time Uses Exceptions
+
+Exceptions are the primary way of error reporting in SObjectizer-5.
+
+There are no methods/functions which use return codes for indication of success
+or failure. Any method/function either finishes successfully or throws an
+exception.
+
+If a user does a valid call and here are all necessary resources (like RAM, OS
+threads and so on) then there is no source for a failure. But if something goes
+wrong (like insufficient amount of RAM or inability to start yet another OS
+thread) then returning an error code as indication of failure is not a good
+idea.
+
+Heavy usage of exceptions is a consequence of experience from several years
+with SObjectizer-4 in production. Error codes were used in SObjectizer-4. And
+the main lesson learned was:
+
+<i>If an error handling could be forgotten then it will be forgotten.</i>
+
+The most unpleasant error in SObjectizer-4 was unsuccessful subscription. If a
+subscription failed but error is not handled then the work of an agent will be
+continued. But the agent will work incorrectly. And it could take a long time
+before the incorrectness will be found and fixed.
+
+The main purpose of exceptions in SObjectizer-5 is to prevent the disregard of
+errors. Ignoring error code is easier than ignoring of an exception. Because of
+that all methods/functions like creating coops or subscribing of events throw
+exceptions in the case of error.
+
+More than four years of working with SObjectizer-5 show that
+SObjectizer-related exceptions are not an issue. Just because they are thrown
+when a programmer does something wrong. It is hard to get SObjectizer-5 to
+throw an exception in normal situation. For example, if agent creates a legal
+subscription for existing mbox there is no reason for exception except the case
+of lack of memory.
+
+But in this particular case it is better to throw an exception instead of
+ñontinuation of execution without subscription made or  abortion of a whole
+application.
+
+That is why SObjectizer-5.5 uses exceptions instead of error codes.
+
+\section so_5_5__in_depth_exceptions__what_exceptions What Exceptions Are Used By SObjectizer?
+
+SObjectizer-5 doesn’t use a complex hierarchy of exception classes. There is
+only one class for representing SObjectizer-related exceptions:
+`so_5::exception_t`. It is derived from `std::runtime_error`.
+
+Method `exception_t::what()`, inherited from `std::exception`, returns textual
+description of an error.
+
+But there is `exception_t::error_code()` method which returns internal error
+code represented as int.
+
+All SObjectizer error codes are defined inside `so_5` namespace as constants
+with prefix `rc_` in their names: `rc_disp_start_failed`,
+`rc_parent_coop_not_found` and so on.
+
+So if it is necessary to catch, analyze and handle SObjectizer-related
+exception it could be done like that:
+
+\code
+try
+{
+   ... // Some action with SObjectizer.
+}
+catch( const so_5::exception_t & x )
+{
+   if( so_5::rc_named_disp_not_found == x.error_code() )
+      ... // Create named dispatcher and try again.
+   else
+      throw;
+}
+\endcode
+
+\section so_5_5__in_depth_exceptions__from_agents Exceptions From Agents
+
+There is one simple rule:
+
+<b>Normal agents should provide no-throw guarantee!</b>
+
+It means that an exception should not go out of an event-handler.
+
+It is because SObjectizer doesn’t know what to do with that exception. And
+doesn’t know the actual state of agent: is the agent in the correct state and
+could process next message or the agent’s internals are broken and no more
+messages must be delivered to the agent. 
+
+So the best way is to catch and handle all exception inside an agent’s
+event-handler.
+
+But what if an exception is going out anyway?
+
+When SObjectizer detects an exception of type `std::exception` (or derived from
+it) the following actions are performed:
+
+- the exception caught is logged by a special exception logger (more about it below);
+- virtual method `so_exception_reaction()` is called for the agent who threw the exception;
+- perform action(s) in dependence of `so_exception_reaction()` result.
+
+Virtual method so_exception_reaction() can return one of the following values:
+
+so_5::rt::abort_on_exception
+
+his value means that the whole application must be terminated immediately by calling `std::abort()`.
+
+so_5::rt::shutdown_sobjectizer_on_exception
+
+This value means that:
+
+- the agent who threw the exception will be switched to a special state (in that state it cannot handle other messages);
+- SObjectizer Environment in which the exception has been caught will be shutdowned the usual way.
+
+This value useful if agent provides basic exception guarantee (no resources leaks) and application can be shutdowned normally.
+
+so_5::rt::deregister_coop_on_exception
+
+This value means that:
+
+- the agent who threw the exception will be switched to a special state (in that state it cannot handle other messages);
+- the coop which holds the problematic agent will be deregistered.
+
+This value useful if agent provides basic exception guarantee (no resources
+leaks) and application can continue its work after deregistration of that
+coop. For example, the coop will be automatically registered again by some
+supervisor.
+
+so_5::rt::ignore_exception
+
+This value means that no more actions should be performed by SObjectizer.
+
+This value is useful if agent provides strong exception guarantee. SObjectizer
+assumes that no damage has been made and work could be safely continued.
+
+so_5::rt::inherit_exception_reaction
+
+This value means that actual exception reaction needs to be received from
+agent’s coop.
+
+SObjectizer call `exception_reaction()` method for agent’s coop. One of the
+values described above could be received. The appropriate action will be
+performed.
+
+But the value `so_5::rt::inherit_exception_reaction` could be returned by
+`agent_coop_t::exception_reaction()` method.
+
+In that case SObjectizer will call `exception_reaction()` method for the parent
+coop (if exists). And then for the parent of the parent and so on.
+
+If the top-most parent coop returns `inherit_exception_reaction` then
+`exception_reaction()` method will be called for SObjectizer Exception
+instance. That method usually returns `abort_on_exception`.
+
+By default `agent_t::so_exception_reaction()` and
+`agent_coop_t::exception_reaction()` return `inherit_exception_reaction` value.
+
+By default `environment_t::exception_reaction()` return `abort_on_exception`.
+
+So the application will be aborted in the case of an uncaught exception by
+default.
+
+A user can set appropriate exception reaction for the whole coop by
+`agent_coop_t::set_exception_reaction()` method:
+
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+   coop.set_exception_reaction( so_5::rt::deregister_coop_on_exception );
+   ...
+} );
+\endcode
+
+In that case an exception from any coop’s agent will lead to deregistration of
+the coop (but only if agent’s `so_exception_reaction()` returns
+`inherit_exception_reaction` value).
+
+An exception reaction for the whole SObjectizer Environment can be set via
+Environment’s parameters:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+      ... // Starting code.
+   },
+   []( so_5::rt::environment_params_t & params ) {
+      ... // Environment parameters tuning code.
+      // Setting the exception reaction for the whole Environment.
+      params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+   } );
+\endcode
+
+\section so_5_5__in_depth_exceptions__coop_dereg_reason Coop Dereg Reason
+
+There is a possibility to know what the reason was behind the coop
+deregistration.
+
+When a coop is deregistered a special value must be passed to
+`environment_t::deregister_coop()`. This value is a *“coop dereg reason”*.
+
+There are several predefined values which are defined as constants in
+`so_5::rt::dereg_reason` namespace:
+
+- *normal*. Coop’s deregistration is a part of application logic;
+- *shutdown*. Deregistration is a part of Environment’s shutdown process;
+- *parent_deregistration*. Coop is deregistered because its parent coop is deregistered.
+- *unhandled_exception*. Coop is deregistered because of unhandled exception.
+
+There are several additional constants but they intended for use by a
+programmer, not SObjectizer.
+
+Coop dereg reason is passed to coop dereg notificator. So a notificator can use
+this value for performing some actions. For example for restarting a
+cooperation in the case of exception:
+
+\code
+#include <iostream>
+
+#include <so_5/all.hpp>
+
+void start_coop( so_5::rt::environment_t & env )
+{
+   env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+      struct raise_exception : public so_5::rt::signal_t {};
+
+      // The single agent of the coop.
+      // Will throw an exception after one second from registration.
+      auto agent = coop.define_agent();
+      agent.on_start( [agent, &env] {
+            so_5::send_delayed< raise_exception >(
+                  env, agent.direct_mbox(), std::chrono::seconds(1) );
+     	} )
+     	.event< raise_exception >( agent.direct_mbox(), [] {
+            throw std::runtime_error( "Just a test exception" );
+     	} );
+
+      // Tell SObjectizer to deregister the coop on exception.
+      coop.set_exception_reaction( so_5::rt::deregister_coop_on_exception );
+
+      // Add notificator which will initiate reregistration of the coop.
+      coop.add_dereg_notificator(
+     	[]( so_5::rt::environment_t & env,
+            const std::string & coop_name,
+            const so_5::rt::coop_dereg_reason_t & why )
+     	{
+            std::cout << "Deregistered: " << coop_name << ", reason: "
+               << why.reason() << std::endl;
+
+            if( so_5::rt::dereg_reason::unhandled_exception == why.reason() )
+               start_coop( env );
+     	} );
+   } );
+}
+
+int main()
+{
+   so_5::launch( []( so_5::rt::environment_t & env ) {
+         // Register coop the first time.
+     	start_coop( env );
+         // Take some time to the example to work.
+     	std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
+     	env.stop();
+      } );
+}
+\endcode
+
+\section so_5_5__in_depth_exceptions__ex_logger Custom Exception Logger
+
+Every unhandled exception is logged.
+
+Default exception logger uses `std::cerr` as an output stream. A user can set
+its own custom exception logger.
+
+An exception logger must be derived from class
+`so_5::rt::event_exception_logger_t`. At least one method, `log_exception()`,
+must be overridden and implemented. It could looks like:
+
+\code
+class spd_exception_logger : public so_5::rt::event_exception_logger_t
+{
+public :
+   spd_exception_logger()
+      :  logger_( spdlog::rotating_logger_mt( "file_logger",
+               "logs/exceptions", 10*1024*1024 ) )
+   {}
+
+   virtual void log_exception(
+      const std::exception & ex,
+      const std::string & coop_name ) override
+   {
+      logger_->alert( "Unhandled exception from coop '{}': {}", coop_name, ex.what() );
+   }
+private :
+   std::shared_ptr< spdlog::logger > logger_;
+};
+\endcode
+
+There are two ways to set up a custom exception logger:
+
+The first one is usage of Environment parameters:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+      ... // Starting code.
+   },
+   []( so_5::rt::environment_params_t & params ) {
+      ... // Environment parameters tuning code.
+      // Setting the exception logger.
+      params.event_exception_logger(
+            so_5::rt::event_exception_logger_unique_ptr_t{
+                  new spd_exception_logger{} } );
+   } );
+\endcode
+
+The second one is usage of Environment’s `install_exception_logger()` method:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+      env.install_exception_logger(
+            so_5::rt::event_exception_logger_unique_ptr_t{
+                  new spd_exception_logger{} } );
+      ... // Starting code.
+   } );
+\endcode
+
+The main difference between those approaches is the ability to change exception logger on working Environment via `install_exception_logger()` method.
+
+\section so_5_5__in_depth_exceptions__when_abort_is_called When and why SObjectizer calls std::abort()?
+
+There are some situations where SObjectizer cannot throw an exception and has
+to call `std::abort()` instead.
+
+One of them is nested exceptions during handling an uncaught exception from
+some agent’s event handler. For example:
+
+- SObjectizer calls `log_exception()` method for custom exception logger;
+- `log_exception()` throws an exception;
+- SObjectizer calls `std::abort()`.
+
+Another one is related to delayed and periodic messages. If the timer thread
+can’t send a message instance then `std::abort()` will be called. It is because
+inability to send a delayed/periodic message is a violation of an important
+contract: if delayed/periodic message was successfully scheduled then it must
+be sent. There is no other way to report a violation of that contract except
+calling the `std::abort()` function.
+
+There are some other situations when SObjectizer calls `std::abort()`. They are
+related to problems during recovery from some previous errors.
+
+There is a possibility of errors during registration of some coop. An attempt
+to create another working thread in a dispatcher can fail. SObjectizer will
+revert all changes which have been made before that failure. If some exception
+is thrown during this recovery SObjectizer has no choice except to call
+`std::abort()`.
+
+*/
+
+// vim:ft=cpp
+

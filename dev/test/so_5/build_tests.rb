@@ -5,6 +5,7 @@ MxxRu::Cpp::composite_target {
 
 	if 'cygwin' != toolset.tag( 'gcc_port', 'NOTGCC' )
 		required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
+		required_prj 'test/so_5/spinlocks/combined_queue_lock/prj.ut.rb'
 	end
 
 	required_prj 'test/so_5/details/build_tests.rb'
@@ -37,9 +38,12 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/disp/private_dispatchers/build_tests.rb" )
 
-	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
-	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
-	required_prj( "test/so_5/event_handler/exception_reaction_inheritance/prj.ut.rb" )
+	required_prj( "test/so_5/disp/prio_ot_strictly_ordered/build_tests.rb" )
+	required_prj( "test/so_5/disp/prio_ot_quoted_round_robin/build_tests.rb" )
+
+	required_prj( "test/so_5/disp/prio_dt_one_per_prio/build_tests.rb" )
+
+	required_prj( "test/so_5/event_handler/build_tests.rb" )
 
 	required_prj( "test/so_5/messages/build_tests.rb" )
 

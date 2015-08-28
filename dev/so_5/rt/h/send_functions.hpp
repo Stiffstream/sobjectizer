@@ -137,6 +137,20 @@ send_to_agent( const so_5::rt::agent_t & receiver, ARGS&&... args )
 	}
 
 /*!
+ * \since v.5.5.8
+ * \brief A utility function for creating and delivering a message to
+ * the ad-hoc agent's direct mbox.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_to_agent(
+	const so_5::rt::adhoc_agent_definition_proxy_t & receiver,
+	ARGS&&... args )
+	{
+		send< MESSAGE >( receiver.direct_mbox(), std::forward<ARGS>(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for sending a signal to the agent's direct mbox.
  */
@@ -145,6 +159,17 @@ void
 send_to_agent( const so_5::rt::agent_t & receiver )
 	{
 		send< MESSAGE >( receiver.so_direct_mbox() );
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief A utility function for sending a signal to the ad-hoc agent's direct mbox.
+ */
+template< typename MESSAGE >
+void
+send_to_agent( const so_5::rt::adhoc_agent_definition_proxy_t & receiver )
+	{
+		send< MESSAGE >( receiver.direct_mbox() );
 	}
 
 /*!
@@ -216,6 +241,30 @@ send_delayed_to_agent(
 	}
 
 /*!
+ * \since v.5.5.8
+ * \brief A utility function for creating and delivering a delayed message
+ * to the ad-hoc agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
+				pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for delivering a delayed signal.
  */
@@ -273,6 +322,27 @@ send_delayed_to_agent(
 		send_delayed< MESSAGE >(
 				agent.so_environment(),
 				agent.so_direct_mbox(),
+				pause );
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief A utility function for delivering a delayed signal to
+ * the ad-hoc agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE >
+void
+send_delayed_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause )
+	{
+		send_delayed< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
 				pause );
 	}
 
@@ -356,6 +426,33 @@ send_periodic_to_agent(
 	}
 
 /*!
+ * \since v.5.5.8
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for delivering a periodic signal.
  */
@@ -423,6 +520,30 @@ send_periodic_to_agent(
 		return send_periodic< MESSAGE >(
 				agent.so_environment(),
 				agent.so_direct_mbox(),
+				pause,
+				period );
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief A utility function for delivering a periodic signal to
+ * the ad-hoc agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE >
+timer_id_t
+send_periodic_to_agent(
+	//! An agent whos environment must be used.
+	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period )
+	{
+		return send_periodic< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
 				pause,
 				period );
 	}

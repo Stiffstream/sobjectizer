@@ -4,8 +4,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <set>
 
 #include <so_5/all.hpp>
+
+#include <various_helpers_1/time_limited_execution.hpp>
 
 struct msg_child_started : public so_5::rt::signal_t {};
 
@@ -147,71 +150,46 @@ class test_coop_listener_t
 	:	public so_5::rt::coop_listener_t
 {
 	public :
-		test_coop_listener_t( int & active_coops_counter )
-			:	m_active_coops( active_coops_counter )
+		test_coop_listener_t( std::set< std::string > & names )
+			:	m_names( names )
 		{}
 
 		virtual void
 		on_registered(
 			so_5::rt::environment_t &,
-			const std::string & )
+			const std::string & coop_name ) override
 		{
-			++m_active_coops;
+			std::lock_guard< std::mutex > lock{ m_lock };
+
+			m_names.insert( coop_name );
 		}
 
 		virtual void
 		on_deregistered(
 			so_5::rt::environment_t & env,
 			const std::string & coop_name,
-			const so_5::rt::coop_dereg_reason_t &)
+			const so_5::rt::coop_dereg_reason_t &) override
 		{
-			--m_active_coops;
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				m_names.erase( coop_name );
+			}
 
 			if( "a_0_0" == coop_name )
 				env.stop();
 		}
 
 		static so_5::rt::coop_listener_unique_ptr_t
-		make( int & active_coops_counter )
+		make( std::set< std::string > & names )
 		{
 			return so_5::rt::coop_listener_unique_ptr_t(
-					new test_coop_listener_t( active_coops_counter ) );
+					new test_coop_listener_t( names ) );
 		}
 
 	private :
-		int & m_active_coops;
-};
-
-class test_env_t
-{
-	public :
-		test_env_t()
-			:	m_active_coops( 0 )
-		{
-		}
-
-		void
-		init( so_5::rt::environment_t & env )
-		{
-			create_and_register_agent( env, "", 0, 4, 0, 8 );
-		}
-
-		void
-		check_result() const
-		{
-			if( 0 != m_active_coops )
-				throw std::runtime_error(
-						"There are some not deregistered cooperations" );
-		}
-
-		int &
-		active_coops_counter()
-		{
-			return m_active_coops;
-		}
-
-	private :
-		int m_active_coops;
+		std::mutex m_lock;
+		std::set< std::string > & m_names;
 };
 
 int
@@ -219,20 +197,31 @@ main()
 {
 	try
 	{
-		test_env_t test_env;
-		so_5::launch(
-			[&]( so_5::rt::environment_t & env )
-			{
-				test_env.init( env );
-			},
-			[&]( so_5::rt::environment_params_t & params )
-			{
-				params.coop_listener(
-						test_coop_listener_t::make(
-								test_env.active_coops_counter() ) );
-			} );
+		std::set< std::string > names;
 
-		test_env.check_result();
+		run_with_time_limit( [&] {
+			so_5::launch(
+				[&]( so_5::rt::environment_t & env )
+				{
+					create_and_register_agent( env, "", 0, 4, 0, 8 );
+				},
+				[&]( so_5::rt::environment_params_t & params )
+				{
+					params.coop_listener( test_coop_listener_t::make( names ) );
+				} );
+			},
+			10,
+			"parent_child_2 test" );
+
+		if( !names.empty() )
+		{
+			for( const auto & n : names )
+				std::cout << "unregistered coop: '" << n << "'" << std::endl;
+
+			throw std::runtime_error(
+					"There are some not deregistered cooperations (" +
+					std::to_string( names.size() ) + ")" );
+		}
 	}
 	catch( const std::exception & ex )
 	{

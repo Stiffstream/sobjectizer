@@ -19,6 +19,9 @@
 #include <so_5/h/spinlocks.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/agent.hpp>
+
+#include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 
 namespace so_5
 {
@@ -168,10 +171,14 @@ class local_mbox_t : public abstract_message_box_t
 			{}
 
 			//! Comparison uses only pointer to subscriber.
+			/*!
+			 * \note Since v.5.5.8 not only agent pointer, but also
+			 * the priorities of the agents are used in comparision.
+			 */
 			bool
 			operator<( const subscriber_info_t & o ) const
 			{
-				return m_agent < o.m_agent;
+				return special_agent_ptr_compare( *m_agent, *o.m_agent );
 			}
 
 			bool

@@ -240,9 +240,6 @@ class work_thread_t
 	{
 	public :
 		//! Initializing constructor.
-		/*!
-		 * Automatically starts work thread.
-		 */
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
 			{
@@ -302,7 +299,7 @@ class work_thread_t
 					{
 						auto & d = queue.front();
 
-						(*d.m_demand_handler)( m_thread_id, d );
+						d.call_handler( m_thread_id );
 
 						++demands_processed;
 						need_continue = queue.pop( demands_processed );

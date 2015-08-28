@@ -1303,9 +1303,7 @@ class SO_5_TYPE environment_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage,
-			//! Event queue proxy for the consumer.
-			event_queue_proxy_ref_t event_queue );
+			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Notification about readiness to the deregistration.
 		void
@@ -1611,7 +1609,7 @@ environment_t::introduce_coop( ARGS &&... args )
 		so_evt_start() override
 		{
 			auto child = so_5::rt::create_child_coop( *this, so_5::autoname );
-			child->add_agent( new worker( so_environment() ) );
+			child->make_agent< worker >();
 			...
 			so_environment().register_coop( std::move( child ) );
 		}
@@ -1634,6 +1632,39 @@ create_child_coop(
 }
 
 /*!
+ * \since v.5.5.8
+ * \brief A simple way for creating child cooperation when there is
+ * a reference to the parent cooperation object.
+ *
+ * \par Usage sample
+	\code
+	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		coop.define_agent().on_start( [&coop] {
+			auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
+			child->make_agent< worker >();
+			...
+			coop.environment().register_coop( std::move( child ) );
+		} );
+		...
+	} );
+	\endcode
+ */
+template< typename... ARGS >
+agent_coop_unique_ptr_t
+create_child_coop(
+	//! Parent cooperation.
+	const agent_coop_t & parent,
+	//! Arguments for the environment_t::create_coop() method.
+	ARGS&&... args )
+{
+	auto coop = parent.environment().create_coop(
+			std::forward< ARGS >(args)... );
+	coop->set_parent_coop_name( parent.query_coop_name() );
+
+	return coop;
+}
+
+/*!
  * \since v.5.5.5
  * \brief A simple way for creating and registering child cooperation.
  *
@@ -1646,7 +1677,7 @@ create_child_coop(
 		virtual void
 		so_evt_start() override
 		{
-			so_5::rt::build_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {
+			so_5::rt::introduce_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1669,6 +1700,44 @@ introduce_child_coop(
 	details::introduce_coop_helper_t{
 			owner.so_environment(),
 			owner.so_coop_name() }.introduce( std::forward< ARGS >(args)... );
+}
+
+/*!
+ * \since v.5.5.8
+ * \brief A simple way for creating and registering child cooperation
+ * when there is a reference to parent coop.
+ *
+ * \par Usage sample
+	\code
+	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+		coop.define_agent().on_start( [&parent] {
+			so_5::rt::introduce_child_coop( parent,
+				[]( so_5::rt::agent_coop_t & child ) {
+					child.make_agent< worker >();
+					...
+				} );
+			...
+		} );
+		...
+	} );
+	\endcode
+
+ * \note This function is just a tiny wrapper around
+ * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * examples with usage of introduce_coop() please see description of
+ * that method.
+ */
+template< typename... ARGS >
+void
+introduce_child_coop(
+	//! Parent cooperation.
+	const agent_coop_t & parent,
+	//! Arguments for the environment_t::introduce_coop() method.
+	ARGS&&... args )
+{
+	details::introduce_coop_helper_t{
+			parent.environment(),
+			parent.query_coop_name() }.introduce( std::forward< ARGS >(args)... );
 }
 
 } /* namespace rt */

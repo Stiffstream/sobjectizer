@@ -108,7 +108,7 @@ class combined_queue_lock_t
 
 				m_spinlock.unlock();
 
-				m_condition.wait( mlock );
+				m_condition.wait( mlock, [this]{ return m_signaled; } );
 
 				// At this point m_signaled must be 'true'.
 

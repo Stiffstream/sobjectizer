@@ -1,0 +1,27 @@
+/*!
+
+\page so_5_5_8__make_agent_context_method so-5.5.8: New method make_agent_context for agent_coop_t 
+
+A helper class so_5::rt::agent_context_t (aka so_5::rt::agent_t::context_t) was
+introduced in v.5.5.4 (see \ref so_5_5_4__agent_context for details). Since
+then it is broadly used. Moreover the usage of context_t in agent's constructor
+is a recommended way for defining agent's constructors.
+
+But until v.5.5.8 context_t could be used only for ordinary agents. There was
+no a possibility to specify and tune context_t for ad-hoc agents. In v.5.5.8 a
+new method so_5::rt::agent_coop_t::make_agent_context() was added. It allows to
+create and tune contexts for ad-hod agents:
+
+\code
+so_5::rt::agent_coop_t & coop = ...;
+auto a = coop.define_agent( coop.make_agent_context() // Default context
+  // Add message limit.
+  + so_5::rt::limit_then_drop< request >( 10 )
+  // Add priority.
+  + so_5::prio::p7 ); // Resulting context will be passed to the constructor of underlying agent object.
+\endcode
+
+*/
+
+// vim:ft=cpp
+

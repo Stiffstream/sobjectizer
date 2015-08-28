@@ -15,7 +15,9 @@
 
 	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
 	// implementation.
-	#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
+	#if _MSC_VER < 1900
+		#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
+	#endif
 
 	#if _MSC_VER == 1700
 		// Please see details at:
@@ -32,11 +34,11 @@
 
 #endif
 
-#if !(__cplusplus >= 201103L)
-	// There is no noexcept keyword
-	#define SO_5_NOEXCEPT
-#else
+#if (__cplusplus >= 201103L) || (defined(_MSC_VER) && (_MSC_VER >= 1900)) 
 	#define SO_5_NOEXCEPT noexcept
 	#define SO_5_HAVE_NOEXCEPT 1
+#else
+	// There is no noexcept keyword
+	#define SO_5_NOEXCEPT
 #endif
 

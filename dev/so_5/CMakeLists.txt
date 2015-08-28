@@ -16,7 +16,6 @@ set(SO_5_SRC exception.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/event_queue.cpp
-	rt/event_queue_proxy.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
 	rt/agent_state_listener.cpp
@@ -62,6 +61,9 @@ set(SO_5_SRC exception.cpp
 	disp/active_group/pub.cpp
 	disp/thread_pool/pub.cpp
 	disp/adv_thread_pool/pub.cpp
+	disp/prio_one_thread/strictly_ordered/pub.cpp
+	disp/prio_one_thread/quoted_round_robin/pub.cpp
+	disp/prio_dedicated_threads/one_per_prio/pub.cpp
 )
 
 add_library(so.${SO_5_VERSION} SHARED ${SO_5_SRC})

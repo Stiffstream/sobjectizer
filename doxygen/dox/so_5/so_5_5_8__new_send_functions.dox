@@ -1,0 +1,28 @@
+/*!
+
+\page so_5_5_8__new_send_functions so-5.5.8: Simplification of usage of send-family functions with ad-hoc agents 
+
+Since v.5.5.8 there is a possibility for direct passing ad-hoc agent proxies to
+send-family functions. Just for comparision:
+
+\code
+so_5::rt::agent_coop_t & coop = ...;
+auto a = coop.define_agent(); // Ad-hoc agent created, variable 'a' is a proxy to the agent.
+
+using namespace std::chrono;
+
+// v.5.5.8 code
+so_5::send_to_agent< some_message >( a, ...);
+so_5::send_delaye_to_agent< some_message >( a, milliseconds(50), ...);
+so_5::send_periodic_to_agent< some_message >( a, milliseconds(50), milliseconds(50), ...);
+
+// Pre v.5.5.8 code
+so_5::send_to_agent< some_message >( a.direct_mbox(), ...);
+so_5::send_delaye_to_agent< some_message >( a.direct_mbox(), milliseconds(50), ...);
+so_5::send_periodic_to_agent< some_message >( a.direct_mbox(), milliseconds(50), milliseconds(50), ...);
+\endcode
+
+*/
+
+// vim:ft=cpp
+

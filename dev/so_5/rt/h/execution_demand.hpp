@@ -92,6 +92,16 @@ struct execution_demand_t
 		,	m_message_ref( std::move( message_ref ) )
 		,	m_demand_handler( demand_handler )
 		{}
+
+	/*!
+	 * \since v.5.5.8
+	 * \brief Helper method to simplify demand execution.
+	 */
+	inline void
+	call_handler( current_thread_id_t thread_id )
+		{
+			(*m_demand_handler)( thread_id, *this );
+		}
 };
 
 //

@@ -38,7 +38,7 @@ class SO_5_TYPE adhoc_agent_wrapper_t
 	:	public agent_t
 	{
 	public :
-		adhoc_agent_wrapper_t( environment_t & env );
+		adhoc_agent_wrapper_t( agent_context_t ctx );
 		virtual ~adhoc_agent_wrapper_t();
 
 		//! Set function for reaction on work start.
@@ -100,6 +100,29 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
+		 * \since v.5.5.8
+		 * \brief Subscription of event- or service-handler to message.
+		 *
+		 * \note Uses direct mbox of the ad-hoc agent.
+		 *
+		 * \par Usage sample:
+		 * \code
+		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   auto a = coop->define_agent();
+			a.event< msg_my_signal >( a, [=] { ... } );
+		 * \endcode
+		 */
+		template< class LAMBDA >
+		inline adhoc_agent_definition_proxy_t &
+		event(
+			const adhoc_agent_definition_proxy_t & self,
+			LAMBDA lambda,
+			thread_safety_t thread_safety = not_thread_safe )
+			{
+				return this->event( self.direct_mbox(), lambda, thread_safety );
+			}
+
+		/*!
 		 * Subscription of event- or service-handler to signal.
 		 */
 		template< class MESSAGE, class LAMBDA >
@@ -134,6 +157,30 @@ class adhoc_agent_definition_proxy_t
 			ARGS&&... args )
 			{
 				return this->event( mbox, signal< SIGNAL >,
+						std::forward< ARGS >(args)... );
+			}
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Subscription of event- or service-handler to signal.
+		 *
+		 * \note Uses direct mbox of the ad-hoc agent.
+		 *
+		 * \par Usage sample:
+		 * \code
+		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   auto a = coop->define_agent();
+			a.event< msg_my_signal >( a, [=] { ... } );
+		 * \endcode
+		 */
+		template< class SIGNAL, typename... ARGS >
+		inline adhoc_agent_definition_proxy_t &
+		event(
+			const adhoc_agent_definition_proxy_t & self,
+			ARGS&&... args )
+			{
+				return this->event( self.direct_mbox(),
+						signal< SIGNAL >,
 						std::forward< ARGS >(args)... );
 			}
 
@@ -186,6 +233,16 @@ class adhoc_agent_definition_proxy_t
 		direct_mbox() const
 			{
 				return m_agent->so_direct_mbox();
+			}
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Access to agent's environment.
+		 */
+		inline environment_t &
+		environment() const
+			{
+				return m_agent->so_environment();
 			}
 
 	private :

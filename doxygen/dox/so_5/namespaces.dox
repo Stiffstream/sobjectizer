@@ -175,6 +175,82 @@ namespace so_5
 
 		} /* namespace thread_pool */
 
+		/*!
+		 * \since v.5.5.8
+		 * \brief Dispatchers with dedicated threads for every priority.
+		 */
+		namespace prio_dedicated_threads
+		{
+			/*!
+			 * \since v.5.5.8
+			 * \brief Dispatcher which creates exactly one thread per priority.
+			 */
+			namespace one_per_prio {
+
+				/*!
+				 * \since v.5.5.8
+				 * \brief Implementation details for dispatcher with one thread per priority.
+				 */
+				namespace impl {
+				} /* namespace impl */
+
+			} /* namespace one_per_prio */
+
+		} /* namespace prio_dedicated_threads */
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Dispatcher with one working thread for events of all priorities.
+		 */
+		namespace prio_one_thread {
+
+			/*!
+			 * \since v.5.5.8
+			 * \brief Dispatcher which handles events of different priorities in
+			 * round-robin maner.
+			 */
+			namespace quoted_round_robin {
+
+				/*!
+				 * \since v.5.5.8
+				 * \brief Implementation details for dispatcher with round-robin
+				 * policy of handling prioritized events.
+				 */
+				namespace impl {
+
+				} /* namespace impl */
+
+			} /* namespace quoted_round_robin */
+
+			/*!
+			 * \since v.5.5.8
+			 * \brief Reusable code for dispatchers with one working thread for
+			 * events of all priorities.
+			 */
+			namespace reuse {
+
+			} /* namespace reuse */
+
+			/*!
+			 * \since v.5.5.8
+			 * \brief Dispatcher which handles events in strict order (from
+			 * highest priority to lowest).
+			 */
+			namespace strictly_ordered {
+
+				/*!
+				 * \since v.5.5.8
+				 * \brief Implementation details for dispatcher which handles
+				 * prioritized events in strict order.
+				 */
+				namespace impl {
+
+				} /* namespace impl */
+
+			} /* namespace strictly_ordered */
+
+		} /* namespace prio_one_thread */
+
 	} /* namespace disp */
 
 	/*!
@@ -298,6 +374,13 @@ namespace so_5
 	namespace timers_details
 	{
 	} /* namespace timers_details */
+
+	/*!
+	 * \since v.5.5.8
+	 * \brief Helpers for working with priorities.
+	 */
+	namespace prio {
+	} /* namespace prio */
 
 } /* namespace so_5 */
 

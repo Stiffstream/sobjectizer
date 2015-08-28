@@ -27,6 +27,21 @@ namespace details {
  *
  * \tparam L type of lambda with logging action. Note that this
  * lambda must not throws exceptions.
+ *
+ * \par Usage example
+	\code
+	if( agent_coop_t::COOP_NOT_REGISTERED == m_agent_coop->m_registration_status )
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{
+				log_stream << "Unexpected error: agent_coop has status "
+					"COOP_NOT_REGISTERED at demand_handler_on_start. "
+					"Cooperation: " << m_agent_coop->query_coop_name()
+					<< ". Application will be aborted" << std::endl;
+			}
+		} );
+	\endcode
+ *
  */
 template< typename L >
 void

@@ -331,9 +331,6 @@ class work_thread_t
 	{
 	public :
 		//! Initializing constructor.
-		/*!
-		 * Automatically starts work thread.
-		 */
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
 			{

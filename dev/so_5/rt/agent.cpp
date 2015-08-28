@@ -14,6 +14,8 @@
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
+#include <so_5/h/spinlocks.hpp>
+
 #include <sstream>
 #include <cstdlib>
 
@@ -171,17 +173,16 @@ agent_t::agent_t(
 			message_limit::impl::info_storage_t::create_if_necessary(
 				ctx.options().giveout_message_limits() ) )
 	,	m_env( ctx.env() )
-	,	m_event_queue_proxy( new event_queue_proxy_t() )
+	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
 			ctx.env().so5__create_mpsc_mbox(
 				self_ptr(),
-				m_message_limits.get(),
-				m_event_queue_proxy ) )
+				m_message_limits.get() ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
 	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( 0 )
-	,	m_is_coop_deregistered( false )
+	,	m_priority( ctx.options().query_priority() )
 {
 }
 
@@ -191,8 +192,6 @@ agent_t::~agent_t()
 	// correct deregistration from SO Environment.
 	drop_all_delivery_filters();
 	m_subscriptions.reset();
-
-	m_event_queue_proxy->shutdown();
 }
 
 void
@@ -319,14 +318,26 @@ void
 agent_t::so_bind_to_dispatcher(
 	event_queue_t & queue )
 {
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
 
-	m_event_queue_proxy->switch_to_actual_queue(
-			queue,
-			this,
-			&agent_t::demand_handler_on_start );
+	so_5::details::invoke_noexcept_code( [&] {
+			// A starting demand must be sent first.
+			queue.push(
+					execution_demand_t(
+							this,
+							message_limit::control_block_t::none(),
+							0,
+							typeid(void),
+							message_ref_t(),
+							&agent_t::demand_handler_on_start ) );
+			
+			// Only then pointer to the queue could be stored.
+			m_event_queue = &queue;
+		} );
 }
 
 execution_hint_t
@@ -391,7 +402,7 @@ agent_t::so_create_execution_hint(
 				d,
 				[]( execution_demand_t & demand,
 					current_thread_id_t thread_id ) {
-					demand.m_demand_handler( thread_id, demand );
+					demand.call_handler( thread_id );
 				},
 				not_thread_safe );
 }
@@ -421,35 +432,43 @@ agent_t::bind_to_coop(
 	agent_coop_t & coop )
 {
 	m_agent_coop = &coop;
-	m_is_coop_deregistered = false;
 }
 
 void
-agent_t::shutdown_agent()
+agent_t::shutdown_agent() SO_5_NOEXCEPT
 {
-	// Since v.5.4.0.1 shutdown is done by one simple step: shutdown
-	// of event_queue_proxy objects. No new demands will be sent to
-	// the agent, but all the subscriptions remains. They will be destroyed
-	// at the very end of agent's lifetime.
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-	// We must shutdown proxy object. And only then
-	// the last demand will be sent to the agent.
-	auto q = m_event_queue_proxy->shutdown();
-	if( q )
-		q->push(
-				execution_demand_t(
-						this,
-						message_limit::control_block_t::none(),
-						0,
-						typeid(void),
-						message_ref_t(),
-						&agent_t::demand_handler_on_finish ) );
+	// Since v.5.5.8 shutdown is done by two simple step:
+	// - remove actual value from m_event_queue;
+	// - pushing final demand to actual event queue.
+	// 
+	// No new demands will be sent to the agent, but all the subscriptions
+	// remains. They will be destroyed at the very end of agent's lifetime.
+
+	if( m_event_queue )
+	{
+		// Final event must be pushed to queue.
+		so_5::details::invoke_noexcept_code( [&] {
+				m_event_queue->push(
+						execution_demand_t(
+								this,
+								message_limit::control_block_t::none(),
+								0,
+								typeid(void),
+								message_ref_t(),
+								&agent_t::demand_handler_on_finish ) );
+			} );
+
+		// No more events will be stored to the queue.
+		m_event_queue = nullptr;
+	}
 	else
 		so_5::details::abort_on_fatal_error( [&] {
 			SO_5_LOG_ERROR( so_environment(), log_stream )
 			{
-				log_stream << "Unexpected error: m_event_queue_proxy->shutdown() "
-					"returns nullptr. Unable to push demand_handler_on_finish for "
+				log_stream << "Unexpected error: m_event_queue contains "
+					"nullptr. Unable to push demand_handler_on_finish for "
 					"the agent (" << this << "). Application will be aborted"
 					<< std::endl;
 			}
@@ -469,9 +488,6 @@ agent_t::create_event_subscription(
 	// working thread.
 
 	ensure_operation_is_on_working_thread( "create_event_subscription" );
-
-	if( m_is_coop_deregistered )
-		return;
 
 	m_subscriptions->create_event_subscription(
 			mbox_ref,
@@ -539,14 +555,17 @@ agent_t::push_event(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue_proxy->push(
-			execution_demand_t(
-				this,
-				limit,
-				mbox_id,
-				msg_type,
-				message,
-				&agent_t::demand_handler_on_message ) );
+	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
+	if( m_event_queue )
+		m_event_queue->push(
+				execution_demand_t(
+					this,
+					limit,
+					mbox_id,
+					msg_type,
+					message,
+					&agent_t::demand_handler_on_message ) );
 }
 
 void
@@ -556,14 +575,17 @@ agent_t::push_service_request(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue_proxy->push(
-			execution_demand_t(
-					this,
-					limit,
-					mbox_id,
-					msg_type,
-					message,
-					&agent_t::service_request_handler_on_message ) );
+	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
+	if( m_event_queue )
+		m_event_queue->push(
+				execution_demand_t(
+						this,
+						limit,
+						mbox_id,
+						msg_type,
+						message,
+						&agent_t::service_request_handler_on_message ) );
 }
 
 void
@@ -571,6 +593,8 @@ agent_t::demand_handler_on_start(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	d.m_receiver->ensure_binding_finished();
+
 	working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
@@ -584,6 +608,15 @@ agent_t::demand_handler_on_start(
 		impl::process_unhandled_exception(
 				working_thread_id, x, *(d.m_receiver) );
 	}
+}
+
+void
+agent_t::ensure_binding_finished()
+{
+	// Nothing more to do.
+	// Just lock coop's binding_lock. If cooperation is not finished yet
+	// it would stop the current thread.
+	std::lock_guard< std::mutex > binding_lock{ m_agent_coop->m_binding_lock };
 }
 
 demand_handler_pfn_t

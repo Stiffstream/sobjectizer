@@ -2,6 +2,25 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8 5.5.8 "Elbrus"
+
+	Pririties for agents and several new dispatchers with priorities support
+	have been added. See \ref so_5_5__in_depth_priority_of_agents for details.
+
+	Another variant of introduce_child_coop and create_child_coop for
+	simplification of child coop creation: \ref so_5_5_8__new_form_introduce_child_coop.
+
+	New methods of so_5::rt::agent_coop_t for simplification of coop
+   deregistration: \ref so_5_5_8__new_method_agent_coop_deregister.
+
+	An ability to define context object for ad-hoc agents added: \ref so_5_5_8__make_agent_context_method.
+
+	New version of send-family functions: \ref so_5_5_8__new_send_functions.
+
+	More short way for subscribing ad-hoc agents: \ref so_5_5_8__simple_ad_hoc_agent_subscribe.
+
+	A new variant of so_5::rt::agent_t::limit_then_abort() with pre-abort action: \ref so_5_5_8__new_limit_then_abort.
+
 \section so_5__5_7 5.5.7
 
 	Support for Visual C++ 14.0 (Visual Studio 2015) added.

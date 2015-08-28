@@ -12,12 +12,21 @@
 
 using namespace std::chrono;
 
+enum class dispatcher_type_t
+{
+	one_thread,
+	thread_pool,
+	prio_ot_strictly_ordered
+};
+
 struct	cfg_t
 {
 	unsigned int	m_ring_size = 50000;
 	unsigned int	m_rounds = 1000;
 
 	bool	m_direct_mboxes = false;
+
+	dispatcher_type_t m_dispatcher_type = dispatcher_type_t::one_thread;
 };
 
 cfg_t
@@ -39,6 +48,8 @@ try_parse_cmdline(
 							"-s, --ring-size      size of agent's ring\n"
 							"-r, --rounds         count of full rounds around the ring\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
+							"-D, --dispatcher     type of dispatcher to be used:\n"
+							"                     one_thread, thread_pool, prio_ot_strictly_ordered"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -53,6 +64,21 @@ try_parse_cmdline(
 				mandatory_arg_to_value(
 						tmp_cfg.m_rounds, ++current, last,
 						"-r", "count of full rounds around the ring" );
+			else if( is_arg( *current, "-D", "--dispatcher" ) )
+				{
+					std::string name;
+					mandatory_arg_to_value(
+							name, ++current, last,
+							"-D", "dispatcher type" );
+					if( "one_thread" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;
+					else if( "thread_pool" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::thread_pool;
+					else if( "prio_ot_strictly_ordered" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::prio_ot_strictly_ordered;
+					else
+						throw std::runtime_error( "unsupported dispatcher type: " + name );
+				}
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -143,6 +169,17 @@ class a_ring_member_t : public so_5::rt::agent_t
 		unsigned int m_rounds_passed = 0;
 	};
 
+const char *
+dispatcher_type_name( dispatcher_type_t t )
+	{
+		if( dispatcher_type_t::one_thread == t )
+			return "one_thread";
+		else if( dispatcher_type_t::thread_pool == t )
+			return "thread_pool";
+		else
+			return "prio_ot_strictly_ordered";
+	}
+
 void
 show_cfg(
 	const cfg_t & cfg )
@@ -151,6 +188,7 @@ show_cfg(
 			<< "ring size: " << cfg.m_ring_size
 			<< ", rounds: " << cfg.m_rounds
 			<< ", direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
+			<< ", disp: " << dispatcher_type_name( cfg.m_dispatcher_type )
 			<< std::endl;
 	}
 
@@ -166,7 +204,7 @@ show_result(
 		const unsigned long long total_msg_count =
 			static_cast< unsigned long long >( cfg.m_ring_size ) * cfg.m_rounds;
 
-		double price = total_msec / total_msg_count / 1000.0;
+		double price = static_cast< double >( total_msec ) / total_msg_count / 1000.0;
 		double throughtput = 1 / price;
 
 		benchmarks_details::precision_settings_t precision{ std::cout, 10 };
@@ -177,6 +215,25 @@ show_result(
 			", throughtput: " << throughtput << std::endl;
 	}
 
+so_5::rt::disp_binder_unique_ptr_t
+create_disp_binder(
+	so_5::rt::environment_t & env,
+	const cfg_t & cfg )
+	{
+		using namespace so_5::disp;
+
+		const auto t = cfg.m_dispatcher_type;
+		if( dispatcher_type_t::one_thread == t )
+			return one_thread::create_private_disp( env )->binder();
+		else if( dispatcher_type_t::thread_pool == t )
+			return thread_pool::create_private_disp( env )->binder(
+					[]( thread_pool::params_t & p ) {
+						p.fifo( thread_pool::fifo_t::individual );
+					} );
+		else
+			return prio_one_thread::strictly_ordered::create_private_disp( env )->binder();
+	}
+
 void
 create_coop(
 	const cfg_t & cfg,
@@ -184,38 +241,37 @@ create_coop(
 	so_5::rt::environment_t & env )
 	{
 		so_5::rt::mbox_t first_agent_mbox;
-		auto coop = env.create_coop( so_5::autoname );
 
-		{
-			std::vector< a_ring_member_t * > agents;
-			agents.reserve( cfg.m_ring_size );
+		env.introduce_coop(
+			create_disp_binder( env, cfg ),
+			[&]( so_5::rt::agent_coop_t & coop )
+			{
+				std::vector< a_ring_member_t * > agents;
+				agents.reserve( cfg.m_ring_size );
 
-			std::vector< so_5::rt::mbox_t > mboxes;
-			mboxes.reserve( cfg.m_ring_size );
+				std::vector< so_5::rt::mbox_t > mboxes;
+				mboxes.reserve( cfg.m_ring_size );
 
-			for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
-				{
-					auto member = new a_ring_member_t( env, cfg, result );
-					coop->add_agent( member );
-					agents.push_back( member );
+				for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
+					{
+						auto member = coop.make_agent< a_ring_member_t >( cfg, result );
+						agents.push_back( member );
 
-					if( cfg.m_direct_mboxes )
-						mboxes.push_back( member->so_direct_mbox() );
-					else
-						mboxes.push_back( env.create_local_mbox() );
-				}
+						if( cfg.m_direct_mboxes )
+							mboxes.push_back( member->so_direct_mbox() );
+						else
+							mboxes.push_back( env.create_local_mbox() );
+					}
 
-			for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
-				{
-					agents[ i ]->set_self_mbox( mboxes[ i ] );
-					agents[ i ]->set_next_mbox(
-							mboxes[ (i + 1) % cfg.m_ring_size ] );
-				}
+				for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
+					{
+						agents[ i ]->set_self_mbox( mboxes[ i ] );
+						agents[ i ]->set_next_mbox(
+								mboxes[ (i + 1) % cfg.m_ring_size ] );
+					}
 
-			first_agent_mbox = mboxes[ 0 ]; 
-		}
-
-		env.register_coop( std::move( coop ) );
+				first_agent_mbox = mboxes[ 0 ]; 
+			} );
 
 		so_5::send< a_ring_member_t::msg_start >( first_agent_mbox );
 	}

@@ -13,6 +13,7 @@
 #include <so_5/rt/h/mbox.hpp>
 
 #include <so_5/details/h/lambda_traits.hpp>
+#include <so_5/details/h/invoke_noexcept_code.hpp>
 
 #include <so_5/h/declspec.hpp>
 
@@ -156,6 +157,111 @@ accept_one_indicator(
 		to.emplace_back( typeid( M ),
 				indicator.m_limit,
 				[]( const overlimit_context_t & ctx ) {
+					impl::abort_app_reaction( ctx );
+				} );
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief Message limit with reaction 'abort the application' and the
+ * possibility to call additional lambda before aborting the app.
+ */
+template< typename M, typename L >
+struct log_then_abort_app_indicator_t
+	{
+		//! Max count of waiting messages.
+		const unsigned int m_limit;
+
+		//! Lambda for some last actions.
+		const L m_lambda;
+
+		//! Initializing constructor.
+		log_then_abort_app_indicator_t(
+			unsigned int limit,
+			L lambda )
+			:	m_limit( limit )
+			,	m_lambda( std::move( lambda ) )
+			{}
+	};
+
+namespace impl
+{
+
+/*!
+ * \since v.5.5.8
+ * \brief Helper class for calling pre-abort action.
+ */
+template< bool IS_MESSAGE, typename M, typename L >
+struct call_pre_abort_action_impl
+	{
+		static void
+		call( const overlimit_context_t & ctx, L action )
+			{
+				const M & m = dynamic_cast< const M & >( *ctx.m_message );
+				action( ctx.m_receiver, m );
+			}
+	};
+
+/*!
+ * \since v.5.5.8
+ * \brief Specialization for the case of signal.
+ */
+template< typename M, typename L >
+struct call_pre_abort_action_impl< false, M, L >
+	{
+		static void
+		call( const overlimit_context_t & ctx, L action )
+			{
+				action( ctx.m_receiver );
+			}
+	};
+
+/*!
+ * \since v.5.5.8
+ * \brief Helper class for calling pre-abort action.
+ *
+ * \tparam M type of message or signal
+ * \tparam L lambda function to be called before aborting app.
+ *
+ * This lambda function must no throw exceptions.
+ * For the case when M is a message type L should have prototype:
+ * \code
+	void lambda(const agent_t &, const M &);
+ * \endcode
+ * For the case when M is a signal type L should have prototype:
+ * \code
+	void lambda(const agent_t &);
+ * \endcode
+ */
+template< typename M, typename L >
+struct call_pre_abort_action
+	:	public call_pre_abort_action_impl< is_message< M >::value, M, L >
+{};
+
+} /* namespace impl */
+
+/*!
+ * \since v.5.5.8
+ * \brief Helper function for accepting log_then_abort_app_indicator and
+ * storing the corresponding description into the limits container.
+ */
+template< class M, class L >
+void
+accept_one_indicator(
+	//! Container for storing new description to.
+	description_container_t & to,
+	//! An instance of abort_app_indicator to store.
+	const log_then_abort_app_indicator_t< M, L > & indicator )
+	{
+		auto lambda = indicator.m_lambda;
+
+		to.emplace_back( typeid( M ),
+				indicator.m_limit,
+				[lambda]( const overlimit_context_t & ctx ) {
+					so_5::details::invoke_noexcept_code( [&] {
+							impl::call_pre_abort_action< M, L >::call( ctx, lambda );
+						} );
+
 					impl::abort_app_reaction( ctx );
 				} );
 	}
@@ -476,6 +582,31 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
+		 * \since v.5.5.8
+		 * \brief A helper function for creating log_then_abort_app_indicator.
+		 *
+		 * \tparam M type of message or signal
+		 * \tparam L lambda function to be called before aborting app.
+		 *
+		 * This lambda function must no throw exceptions.
+		 * For the case when M is a message type L should have prototype:
+		 * \code
+			void lambda(const agent_t &, const M &);
+		 * \endcode
+		 * For the case when M is a signal type L should have prototype:
+		 * \code
+			void lambda(const agent_t &);
+		 * \endcode
+		 */
+		template< typename M, typename L >
+		static log_then_abort_app_indicator_t< M, L >
+		limit_then_abort( unsigned int limit, L lambda )
+			{
+				return log_then_abort_app_indicator_t< M, L >{
+						limit, std::move(lambda) };
+			}
+
+		/*!
 		 * \since v.5.5.4
 		 * \brief A helper function for creating redirect_indicator.
 		 */
@@ -494,9 +625,29 @@ struct message_limit_methods_mixin_t
 		 * \since v.5.5.4
 		 * \brief A helper function for creating transform_indicator.
 		 *
-		 * Must be used for message transformation. Type of message is
-		 * detected automatically from the type of transformation lambda
-		 * argument.
+		 * \note Must be used for message transformation, signals cannot be
+		 * transformed. Type of message is detected automatically from the type
+		 * of transformation lambda argument.
+		 *
+		 * \par Usage example:
+		 * \code
+			class a_request_processor_t : public so_5::rt::agent_t
+			{
+			public :
+				a_request_processor_t( context_t ctx )
+					:	so_5::rt::agent_t( ctx 
+							// Limit count of requests in the queue.
+							// If queue is full then request must be transformed
+							// to negative reply.
+							+ limit_then_transform( 3,
+								[]( const request & evt ) {
+									return make_transformed< reply >(
+											evt.m_reply_to, evt.m_id, false );
+								} ) )
+					{...}
+				...
+			};
+		 * \endcode
 		 */
 		template<
 				typename LAMBDA,

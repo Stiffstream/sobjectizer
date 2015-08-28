@@ -497,13 +497,11 @@ environment_t::stats_repository()
 mbox_t
 environment_t::so5__create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage,
-	event_queue_proxy_ref_t event_queue )
+	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
 {
 	return m_impl->m_mbox_core->create_mpsc_mbox(
 			single_consumer,
-			limits_storage,
-			std::move( event_queue ) );
+			limits_storage );
 }
 
 void
