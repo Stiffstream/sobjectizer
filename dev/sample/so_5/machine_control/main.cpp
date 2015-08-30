@@ -234,7 +234,7 @@ private :
 	// Type of map from machine ID to machine state.
 	using machine_status_map_t = std::map< std::string, one_machine_status_t >;
 
-	// Current statues of machines.
+	// Current statuses of machines.
 	machine_status_map_t m_machine_statuses;
 
 	// Timer ID for show_dashboard periodic message.
@@ -541,7 +541,7 @@ const machine_dictionary_t & create_machines(
 	auto machine_disp = so_5::disp::one_thread::create_private_disp(
 			coop.environment() );
 
-	// Helper for creation of machine agent and adding its info into
+	// Helper for creation of machine agent and adding it info into
 	// machine dictionary.
 	auto make_machine = [&]( const std::string & name,
 			float initial, float warming_step, float cooling_step )
