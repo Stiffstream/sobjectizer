@@ -4,7 +4,21 @@ option(BUILD_ALL      "Enable building examples and tests [default: OFF]" OFF)
 option(BUILD_EXAMPLES "Enable building examples [default: OFF]"           OFF)
 option(BUILD_TESTS    "Enable building tests    [default: OFF]"           OFF)
 
-set(SO_5_VERSION 5.5.8)
+# Extract SO_5_VERSION from version.rb
+set(SO_5_VERSION "")
+
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/so_5/version.rb" 
+     _SO_5_VERSION_RB_CONTENTS 
+     REGEX "^[ \t]*VERSION[ \t]*=[ \t]*\"[0-9]+[.][0-9]+[.][0-9]+[^\"]*\"[ \t]*")
+
+set(_SO_5_VERSION_REGEX "\"([0-9.]+)\"")
+if("${_SO_5_VERSION_RB_CONTENTS}" MATCHES "^[ \t]*VERSION[ \t]*=[ \t]*${_SO_5_VERSION_REGEX}[ \t]*")
+    set(SO_5_VERSION "${CMAKE_MATCH_1}")
+else()
+    message("Failed extract version information from ${CMAKE_CURRENT_SOURCE_DIR}/so_5/version.rb")
+    message("_SO_5_VERSION_RB_CONTENTS :${_SO_5_VERSION_RB_CONTENTS}:")
+    message(FATAL_ERROR "SO_5_VERSION \"${SO_5_VERSION}\"")
+endif()
 
 if ("x${CMAKE_CXX_COMPILER_ID}" MATCHES "xGNU" 
      OR "x${CMAKE_CXX_COMPILER_ID}" MATCHES "xClang"
