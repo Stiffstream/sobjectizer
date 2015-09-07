@@ -1,0 +1,398 @@
+/*!
+
+\page so_5_5__in_depth_timers so-5.5 In Depth - Timers
+
+\section so_5_5__in_depth_timers__intro Introduction
+
+Timers are actively used in typical SObjectizer's based applications.
+
+That's why SObjectizer provides easy to use tools for dealing with timers: 
+
+- delayed messages;
+- periodic messages.
+
+A delayed message is delivered after a specified time interval since the
+message was sent.
+
+It means that if a delayed message is sent at some time point T and the delay
+is 150ms then it will be pushed to subscribers' event queues at time point
+(T+150ms).
+
+A periodic message is repeatedly delivered after a specified amount of time.
+
+It means that if a periodic message is sent at some time point T with delay of
+150ms and repetition period of 250ms then it will be pushed to subscribers'
+event queues first time at time point (T+150ms), then at time point (T+400ms),
+then at (T+650ms) and so on.
+
+A periodic message will be repeated until it canceled.
+
+\section so_5_5__in_depth_timers__delayed_msgs Delayed Messages
+
+There are three ways for sending a delayed messages.
+
+The simplest one is to use so_5::send_delayed() function.
+
+A reference to SO Environment instance is necessary for sending a delayed
+message. That's why the first argument of send_delayed() is reference to
+so_5::rt::environment_t or to so_5::rt::agent_t. In the later case SO
+Environment in which the agent is registered will be used.
+
+This is an example of sending a delayed message from ordinary agent:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+...
+  virtual void so_evt_start() override {
+    so_5::send_delayed< some_message >( *this, // For access to SO Environment.
+      dest, // Destination mbox.
+      std::chrono::milliseconds(125), // Delivery delay in ms.
+      ... ); // Arguments to be forwarded to some_message constructor.
+  }
+};
+\endcode
+
+This is an example of sending a delayed message via reference to SO Environment:
+
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+  coop.define_agent().on_start( [&coop] {
+    so_5::send_delayed< some_message >(
+      coop.environment(), // Access to SO Environment.
+      dest, // Destination mbox.
+      std::chrono::milliseconds(125), // Delivery delay in ms.
+      ... ); // Arguments to be forwarded to some_message constructor.
+   ...
+ } );
+} );
+\endcode
+
+Helper function so_5::send_delayed_to_agent() can be used to sending a
+delayed message to the direct mbox of agent-receiver.
+
+SO Environment in which the receiver is registered will be used in that case.
+
+This is an example of sending a delayed message to the direct mbox of the
+agent-receiver:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+...
+  void evt_request( const request & evt ) {
+    initiate_request_processing( evt );
+    so_5::send_delayed_to_agent< check_request >(
+      *this, // Destination for message.
+      std::chrono::milliseconds(125), // Delivery delay in ms.
+      ... ); // Arguments to be forwarded to check_request constructor.
+  }
+};
+\endcode
+
+Function so_5::send_delayed_to_agent() also accepts an ad-hoc agent proxy:
+
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+   auto a = coop.define_agent();
+   a.event( a, [a]( const request & evt ) {
+     initiate_request_processing( evt );
+     so_5::send_delayed_to_agent< check_request >(
+    	a, // Destination for message.
+    	std::chrono::milliseconds(125), // Delivery delay in ms.
+    	... ); // Arguments to be forwarded to check_request constructor.
+  } );
+} );
+\endcode
+
+The second way is to use so_5::rt::environment_t::single_timer() method:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+...
+  void evt_request( const request & evt ) {
+    initiate_request_processing( evt );
+    auto delayed_msg = std::make_unique< check_request >( ... );
+    so_environment().single_timer( std::move(delayed_msg), // Message instance.
+      so_direct_mbox(), // Destination for message.
+      std::chrono::milliseconds(125) ); // Delivery delay in ms.
+  }
+};
+\endcode
+
+Usage of single_timer() is not as easy as usage of send_delayed() or
+send_delayed_to_agent(). But single_timer() can be useful if a message
+instance is created somewhere else...
+
+This is an example of a case where single_timer() can be useful:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+...
+  void evt_request( const request & evt ) {
+    initiate_request_processing( evt );
+    so_environment().single_timer(
+      create_check_request_message( evt ), // Message instance.
+      so_direct_mbox(), // Destination for message.
+      std::chrono::milliseconds(125) ); // Delivery delay in ms.
+  }
+  std::unique_ptr< check_request > create_check_request_message(
+    const request & evt ) {
+    ... // Some complex logic.
+    return std::make_unique< check_request >( ... );
+  }
+};
+\endcode
+
+The third way is to use so_5::rt::environment_t::schedule_timer() method.
+
+Method schedule_timer() returns timer ID which can be used for timer
+cancellation.
+
+This is an example of delayed message cancellation:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+  so_5::timer_id_t m_check_timer;
+...
+  void evt_request( const request & evt ) {
+    initiate_request_processing( evt );
+    m_check_timer = so_environment().schedule_timer(
+      create_check_request_message( evt ), // Message instance.
+      so_direct_mbox(), // Destination for message.
+      std::chrono::milliseconds(125), // Delivery delay in ms.
+      std::chrono::milliseconds::zero() ); // No repetition.
+  }
+  void evt_request_processed() {
+    // There is no need for delayed message anymore.
+    m_check_timer.release(); // Cancellation of delivery.
+    ...
+  }
+  std::unique_ptr< check_request > create_check_request_message( const request & evt ) { ... }
+};
+\endcode
+
+# Periodic Messages
+
+Periodic message are repeated again and again until it will be cancelled.
+
+The same message instance is delivered every time. It means that message
+instance is not deallocated after processing. Deallocation will occur when
+message will be cancelled.
+
+There are two ways for sending a periodic message.
+
+The simplest one is to use so_5::send_periodic() function.
+
+As for delayed messages the access to SO Environment is necessary for sending a
+periodic message. That's why the first argument of send_periodic() must be a
+reference to so_5::rt::environment_t or to so_5::rt::agent_t. In the later case
+SO Environment in which the agent is registered will be used.
+
+This is an example of sending of a periodic message from ordinary agent:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+  so_5::timer_id_t m_status_timer;
+...
+  virtual void so_evt_start() override {
+    m_status_timer = so_5::send_periodic< update_status >(
+      *this, // For access to SO Environment.
+      dest, // Destination mbox.
+      std::chrono::milliseconds(125), // First delivery delay in ms.
+      std::chrono::milliseconds(250), // Repetition period in ms.
+      ... ); // Arguments to be forwarded to update_status constructor.
+  }
+};
+\endcode
+
+There is also so_5::send_periodic_to_agent() function for sending message
+to the direct mbox of the agent-receiver:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+  so_5::timer_id_t m_status_timer;
+...
+  virtual void so_evt_start() override {
+    m_status_timer = so_5::send_periodic_to_agent< update_status >(
+      *this, // Destination.
+      std::chrono::milliseconds(125), // First delivery delay in ms.
+      std::chrono::milliseconds(250), // Repetition period in ms.
+      ... ); // Arguments to be forwarded to update_status constructor.
+  }
+};
+\endcode
+
+The second way is to use so_5::rt::environment_t::schedule_timer() method:
+
+\code
+class my_agent : public so_5::rt::agent_t {
+  so_5::timer_id_t m_status_timer;
+...
+  virtual void so_evt_start() override {
+    m_status_timer = so_environment().schedule_timer(
+      create_status_message(), // Message to be sent periodically.
+      so_direct_mbox(), // Destination.
+      std::chrono::milliseconds(125), // First delivery delay in ms.
+      std::chrono::milliseconds(250) ); // Repetition period in ms.
+  }
+  std::unique_ptr< update_status > create_status_message() { ... }
+};
+\endcode
+
+<b>The most important moment in periodic messages sending - is storing the
+result value of send_periodic(), send_periodic_to_agent() and
+schedule_timer().</b>
+
+If the result value is not saved then periodic message will be cancelled
+immediately.
+
+This is because the destructor of so_5::timer_id_t does timer cancellation.
+
+The so_5::timer_id_t class works like a smart pointer.
+
+Destruction of the last timer_id_t pointed to a timer will destroy the timer
+and periodic (or delayed) message will be cancelled.
+
+That's why at least one timer_id_t object for periodic message must exist while
+message delivery is necessary.
+
+\section so_5_5__in_depth_timers__msg_cancellation Delayed and Periodic Messages Cancellation
+
+There are three ways of delayed/periodic messages cancellation.
+
+All of them use so_5::timer_id_t objects. It means that cancellation is only
+possible for messages sent via send_periodic(), send_periodic_to_agent() or
+schedule_timer().
+
+The first way is to call so_5::timer_id_t::release() method.
+
+\code
+auto id = so_5::send_periodic< Msg >(...);
+...
+id.release(); // Delivery canceled.
+\endcode
+
+<i>Please note that explicit call of so_5::timer_id_t::release() method cancels
+a message regardless of count of remaining timer_id_t objects pointed to that
+timer.</i>
+
+The second way is destruction of all timer_id_t objects pointing to the same
+timer.
+
+If so_5::timer_id_t::release() method is not called explicitly it will be
+called in the destructor of the last timer_id_t object pointing to a timer.
+This way is often used in ordinary agents:
+
+\code
+class request_processor : public so_5::rt::agent_t {
+   so_5::timer_id_t m_check_request;
+...
+   void evt_request( const request & evt ) {
+      m_check_request = so_5::send_periodic_to_agent< check_request >(
+     	*this, ...); // Timer will be cancelled automatically in
+                      // the destructor of request_processor.
+      ... 
+   }
+};
+\endcode
+
+The third way is assignment of new value to so_5::timer_id_t object.
+
+If this object was the last timer_id_t pointed to a timer then the timer will be destroyed and message will be cancelled:
+
+\code
+auto id = so_5::send_periodic< Msg >(...);
+... // Some actions.
+id = so_5::send_periodic< Sig >(...); // Cancellation of Msg.
+\endcode
+
+There is a trick moment with cancellation of delayed messages...
+
+Delayed message will be cancelled only if it is still under control of timer
+thread. If message already leaved timer thread and is waiting in event queues
+of recipients then message delivery will not be cancelled and message will be
+processed by subscribers.
+
+For example if delay was 125ms and cancelaction is initiated after 125ms after
+call to so_5::send_delayed() there is a high probability that message will be
+delivered anyway.
+
+\section so_5_5__in_depth_timers__timer_thread Timer Thread
+
+SO Environment starts a special thread for handling timers. This thread is
+known as timer thread.
+
+All timers are controlled and processed by that timer thread.
+
+Timer thread can efficiently process big amount of timers: tens and hundreds of
+millions. Even billions of timers.
+
+A user can choose a timer mechanism most appropriate for application needs.
+
+Three timer mechanisms are supported. Each has its strengths and weakness:
+
+- timer_wheel
+- timer_list
+- timer_heap
+
+\subsection so_5_5__in_depth_timers__timer_thread__timer_wheel timer_wheel Mechanism
+
+Can support very big amount of timers efficiently (tens, hundreds of millions,
+billions). It also equally efficient for delayed and periodic messages.
+
+Because of that timer_wheel mechanism should be used when the application needs
+a big number of timers.
+
+But there are some costs:
+
+- this mechanism is not very precise (there is a step of timer wheel which could be configured, but small step decrease effectiveness);
+- this mechanism consumes some resources even if there are no ready to use timers (this overhead is small but it is still here).
+
+\subsection so_5_5__in_depth_timers__timer_thread__timer_list timer_list Mechanism
+
+Works very well only if new timers will be added to the end of list of timers.
+Therefore this mechanism should be used in applications where there are many
+similar delayed messages with the same delays.
+
+This mechanism does not consume resources when there are no ready to use
+timers. It also handles timers cancellation very efficiently.
+
+\subsection so_5_5__in_depth_timers__timer_thread__timer_heap timer_heap Mechanism
+
+Has very fluent overall performance, especially on relative small amounts of
+timers (thousands, tens of thousands timers). It also does not consume
+resources if there are no ready to use timers.
+
+Because of that timer_heap mechanism is used in SO Environment by default.
+
+\subsection so_5_5__in_depth_timers__timer_thread__set_mechanism Specifying Timer Mechanism for SO Environment
+
+Timer mechanism can be specified in Environment's parameters before start of SO
+Environment:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+        // Some initialization stuff...
+    },
+    // SObjectizer Environment parameters tuning.
+    []( so_5::rt::environment_params_t & params ) {
+        // Use timer_wheel mechanism with wheel size 10000
+        // and timer step size of 5ms.
+        params.timer_thread(
+            so_5::timer_wheel_factory( 10000, 
+                std::chrono::milliseconds(5) ) );
+        ...
+    } );
+\endcode
+
+\section so_5_5__in_depth_timers__timer_thread__additional Additional Information
+
+For more information about timer mechanisms, their strengths and weakness see
+description of [Timer Template Thread (timertt)](https://sourceforge.net/p/sobjectizer/wiki/Timer%20Thread%20Template/)
+library. This library is used for implementation of delayed and periodic
+messages in SO-5.5. 
+
+
+*/
+
+// vim:ft=cpp
+
