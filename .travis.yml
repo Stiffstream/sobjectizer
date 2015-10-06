@@ -5,6 +5,16 @@ branches:
 #    - stable
 matrix:
   include:
+    - os: osx
+      osx_image: xcode6.4
+      compiler: clang
+      env: CXX_COMPILER=clang++ C_COMPILER=clang BUILD_TYPE='Release'
+
+    - os: osx
+      osx_image: xcode7
+      compiler: clang
+      env: CXX_COMPILER=clang++ C_COMPILER=clang BUILD_TYPE='Release'
+
     - os: linux
       compiler: gcc
       addons:
@@ -49,6 +59,7 @@ matrix:
 #      compiler: clang
 #      addons: *clang37
 #      env: COMPILER='ccache clang++-3.7' BUILD_TYPE='Debug'
+
     - os: linux 
       compiler: clang
       addons: &clang38
@@ -62,9 +73,15 @@ matrix:
 #      compiler: clang
 #      env: COMPILER=clang++
 
+install:
+  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]];
+    then
+      brew install cmake;
+    fi
+
 script:
-  mkdir build &&  
-  cd build &&
-  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/ &&
-  make -j3 &&
-  make test
+  - mkdir build
+  - cd build
+  - cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/
+  - make -j3
+  - make test
