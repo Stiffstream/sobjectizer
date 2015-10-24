@@ -75,14 +75,13 @@ install(
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin
-	INCLUDES DESTINATION include
 )
 
 file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 
 foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
 	if(NOT HEADER_FILE MATCHES "[\\/]impl[\\/]")
-		get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
+		get_filename_component( DIR ${HEADER_FILE} PATH )
 		install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
 	endif()
 endforeach()
