@@ -35,7 +35,8 @@ namespace rt
 	}
 	\endcode
 
-	\tparam MSG type of the message.
+	\tparam MSG type of the message. MSG must be derived from
+	so_5::rt::message_t (or from so_5::rt::signal_t).
 */
 template< class MSG >
 class event_data_t
@@ -44,7 +45,9 @@ class event_data_t
 		//! Constructor.
 		event_data_t( MSG * message_instance )
 			:	m_message_instance( message_instance )
-		{}
+		{
+			ensure_classical_message< MSG >();
+		}
 
 		//! Access to the message.
 		const MSG&

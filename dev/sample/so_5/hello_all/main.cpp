@@ -120,7 +120,7 @@ void
 init( so_5::rt::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		// Adding agents to the cooperation.
 		coop.make_agent< a_hello_t >( "alpha" );
 		coop.make_agent< a_hello_t >( "beta" );

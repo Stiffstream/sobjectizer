@@ -133,7 +133,7 @@ private :
 	// Filling the cooperation with the agents.
 	// Return the mbox of the first member in the chain.
 	so_5::rt::mbox_t
-	fill_coop( so_5::rt::agent_coop_t & coop )
+	fill_coop( so_5::rt::coop_t & coop )
 	{
 		const std::size_t agent_count = 8;
 

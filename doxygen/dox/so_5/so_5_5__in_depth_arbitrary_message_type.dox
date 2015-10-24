@@ -1,0 +1,285 @@
+/*!
+
+\page so_5_5__in_depth__arbitrary_msg_type so-5.5 In Depth - Messages of Arbitrary Types
+
+\section so_5_5__in_depth__arbitrary_msg_type__intro Introduction
+
+Prior to v.5.5.9 every message had to be represented by an instance of a class
+derived from so_5::rt::message_t. It means that if a single integer value need
+to be sent to an agent the whole dedicated class must have been defined. For
+example:
+
+\code
+enum class engine_action { turn_on, speed_up, slow_down, turn_off };
+struct msg_engine_action : public so_5::rt::message_t
+{
+	engine_action m_action;
+	msg_engine_action( engine_action action ) : m_action{ action } {}
+};
+...
+// Message sending...
+so_5::send_to_agent< msg_engine_action >( engine_agent, engine_action::turn_on );
+...
+// Message processing…
+void engine_agent::evt_engine_action( const msg_engine_action & msg )
+{
+	switch( msg.m_action )
+	{...}
+}
+\endcode
+
+Since v.5.5.9 there is a possibility to send an object of arbitrary type as a
+message. For example:
+
+\code
+enum class engine_action { turn_on, speed_up, slow_down, turn_off };
+...
+// Message sending...
+so_5::send_to_agent< engine_action >( engine_agent, engine_action::turn_on );
+...
+// Message processing...
+void engine_agent::evt_engine_action( engine_action msg )
+{
+	switch( msg )
+	{...}
+}
+\endcode
+
+\section so_5_5__in_depth__arbitrary_msg_type__how_it_works How It Works
+
+There is a very simple trick: when user calls send<T>(mbox,args) and T is not
+derived from message_t then an instance of special template type
+so_5::rt::user_type_message_t<T> is constructed and delivered as message.
+
+When an instance of so_5::rt::user_type_message_t<T> is extracted from an event
+queue and event handler for it has the signature `R(const T&)` or `R(T)` then
+this event handler is called and a reference to the content of
+user_type_message_t<T> is passed to that event handler.
+
+So it is possible to say that call to send<T>(mbox, args) where T is not
+derived from message_t is replaced by that pseudocode:
+
+\code
+// send<T>(mbox, args...):
+auto real_message = std::make_unique< user_type_message_t<T> >(args...);
+mbox->deliver_message(std::move(real_message));
+\endcode
+
+And the event handler in the form `R(const T&)` is replaced by:
+
+\code
+// R some_class::evt_handler(const T &):
+R some_class::real_evt_handler(const user_type_message_t<T> & evt) {
+  return evt_handler(evt.m_payload);
+}
+\endcode
+
+The user_type_message_t<T> itself is a very simple template:
+
+\code
+template< typename T >
+struct user_type_message_t : public message_t
+{
+	const T m_payload;
+
+	template< typename... ARGS >
+	user_type_message_t( ARGS &&... args )
+		:	m_payload( T{ std::forward< ARGS >( args )... } )
+		{}
+};
+\endcode
+
+\section so_5_5__in_depth__arbitrary_msg_type__requirements Requirements for Message Types
+
+A type T which is used as message type must be MoveConstructible or
+CopyConstructible. It is because of the way an instance of T is constructed
+inside user_type_message_t<T> type:
+
+\code
+template< typename... ARGS >
+user_type_message_t( ARGS &&... args )
+	: m_payload( T{ std::forward<ARGS>(args)... } )
+	{}
+\endcode
+
+A temporary object of type T is created from constructor arguments and then
+this object is passed to constructor of user_type_message_t::m_payload member.
+
+\section so_5_5__in_depth__arbitrary_msg_type__how_to_send How to Send Messages of Arbitrary Types
+
+Messages of arbitrary types can only be sent via send-family functions:
+
+- so_5::rt::send()
+- so_5::rt::send_to_agent()
+- so_5::rt::send_delayed()
+- so_5::rt::send_delayed_to_agent()
+- so_5::rt::send_periodic()
+- so_5::rt::send_periodic_to_agent()
+
+Methods abstract_message_mbox_t::deliver_message(),
+environment_t::single_timer() and environment_t::schedule_timer()
+cannot be used with objects of arbitrary type T.
+
+\section so_5_5__in_depth__arbitrary_msg_type__how_to_receive How to Receive Messages of Arbitrary Types
+
+Messages of arbitrary type T must be handled by non-static methods with
+signature like:
+
+\code
+R event_handler(const T & ); // (1)
+R event_handler(T); // (2)
+\endcode
+
+Or by lambda-function with signatures like:
+
+\code
+R(const T&);  // (1)
+R(T); // (2)
+\endcode
+
+But note that in the case (1) event-handler will receive a reference to the
+source message instance. In the case (2) a copy of message content will be
+passed to event handler. It can be costly if T is a heavy object.
+
+For example:
+
+\code
+struct new_config { ... };
+enum class overload_status { normal_load, high_load };
+...
+class overload_controller : public so_5::rt::agent_t
+{
+public :
+	...
+	virtual void so_define_agent() override
+	{
+		so_subscribe_self()
+			.event( &overload_controller::evt_new_config )
+			.event( [this]( overload_status status ) {
+					if( overload_status::high_load == status )
+						handle_overload();
+				} );
+		...
+}
+void evt_new_config( const new_config & cfg ) {...}
+...
+};
+\endcode
+
+<b>It is impossible to handle message of arbitrary type T by an event handler which receives const reference to event_data_t<T>.</b>
+
+\section so_5_5__in_depth__arbitrary_msg_type__syncs Synchronous Interaction via Messages of Arbitrary Types
+
+Messages of arbitrary type T can be used for synchronous agents interaction via
+methods make_async() and make_sync_get(). For example:
+
+\code
+const so_5::rt::mbox_t & converter_mbox = ...;
+auto f = converter_mbox->get_one<std::string>().make_async<int>(42);
+auto v = converter_mbox->get_one<std::string>().wait_forever().make_sync_get<int>(42);
+\endcode
+
+
+Helpers so_5::request_future() and so_5::request_value(), introduced in v.5.5.9,
+can also be used with messages of arbitrary user types:
+
+\code
+auto f = so_5::request_future< int, std::string >(converter_mbox, 42);
+auto v = so_5::request_value< int, std::string >(converter_mbox, so_5::infinite_wait, 42);
+\endcode
+
+\section so_5_5__in_depth__arbitrary_msg_type__delivery_filters Delivery Filters
+
+Delivery filters can be used for messages of arbitrary types. Delivery filter
+must be a callable object (lambda-function or function) with signatures:
+
+\code
+bool(const T&); // (1)
+bool(T); // (2)
+\endcode
+
+But note that in the case (1) filter will receive a reference to the source
+message instance. In the case (2) a copy of message content will be passed to
+filter. It can be costly if T is a heavy object.
+
+\code
+class sensor_listener : public so_5::rt::agent_t
+{
+public :
+	...
+	virtual void so_define_agent() override
+	{
+		auto mbox = so_environment().create_local_mbox("sensor");
+		so_set_delivery_filter( mbox, []( int v ) {
+				return v > -10 && v < 65;
+			} );
+
+		so_subscribe(mbox).event( &sensor_listener::evt_value );
+		...
+	}
+	...
+	void evt_value( int v )
+	{
+		...
+	}
+};
+\endcode
+
+\section so_5_5__in_depth__arbitrary_msg_type__limit_then_transform Arbitrary Message Types and limit_then_transform
+
+Messages of arbitrary type T can be handled by limit_then_transform helper
+method. But it is strongly recommended to use make_transformed for new message
+instance. For example:
+
+\code
+enum class overload_status { normal_load, high_load };
+...
+class request_processor : public so_5::rt::agent_t
+{
+public :
+	request_processor( context_t ctx )
+		: so_5::rt::agent_t( ctx +
+			limit_then_transform< std::string >( 1000,
+				[this]( const std::string & ) {
+					return make_transformed< overload_status >(
+						overload_controller_mbox,
+						overload_status::high_load );
+				} ) )
+	{...}
+	...
+};
+\endcode
+
+\section so_5_5__in_depth__arbitrary_msg_type__event_data Arbitrary Message Types and event_data_t
+
+There is a possibility to receive message of arbitrary type T via event handler
+which accepts event_data_t object. This can be done in the following form:
+
+\code
+using namespace so_5::rt;
+enum class engine_action { turn_on, speed_up, slow_down, turn_off };
+class engine_proxy : public agent_t
+{
+public :
+	virtual void so_define_agent() override
+	{
+		so_subscribe_self().event( &engine_proxy::evt_action );
+		...
+	}
+...
+private :
+	void evt_action( const event_data_t< user_type_message_t< engine_action > > & evt )
+	{
+		... // Some handling.
+		// Resending the same message instance.
+		m_another_mbox->deliver_message( evt.make_reference() );
+	}
+};
+\endcode
+
+<b>Only ordinary agents can have event handles of that type.</b>
+
+*/
+
+// vim:ft=cpp
+

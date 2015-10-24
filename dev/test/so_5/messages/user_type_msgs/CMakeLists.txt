@@ -1,0 +1,7 @@
+add_subdirectory(delivery_filters)
+add_subdirectory(event_data)
+add_subdirectory(limit_transform)
+add_subdirectory(simple_msgs)
+add_subdirectory(different_handlers)
+add_subdirectory(simple_svc)
+add_subdirectory(different_svc_handlers)

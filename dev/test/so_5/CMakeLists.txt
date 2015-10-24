@@ -13,6 +13,8 @@ add_subdirectory(environment/add_disp_after_start)
 add_subdirectory(environment/reg_coop_after_stop)
 add_subdirectory(environment/autoname_coop)
 
+add_subdirectory(wrapped_env)
+
 add_subdirectory(execution_hint/basic_checks)
 
 add_subdirectory(timer_thread/single_delayed)
@@ -40,10 +42,7 @@ add_subdirectory(disp/prio_dt_one_per_prio)
 
 add_subdirectory(event_handler)
 
-add_subdirectory(messages/three_messages)
-add_subdirectory(messages/resend_message)
-add_subdirectory(messages/store_and_resend_later)
-add_subdirectory(messages/tuple_as_message)
+add_subdirectory(messages)
 
 add_subdirectory(state/change_state)
 
@@ -66,6 +65,8 @@ add_subdirectory(coop/introduce_coop)
 add_subdirectory(coop/create_child_coop_5_5_8)
 
 add_subdirectory(mbox)
+
+add_subdirectory(msg_tracing)
 
 add_subdirectory(ad_hoc_agents)
 

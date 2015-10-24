@@ -65,7 +65,7 @@ private :
 	coop_dereg_reason_t m_root_coop_dereg_reason;
 
 	//! Cooperations to be deregistered.
-	std::vector< agent_coop_ref_t > m_coops_to_dereg;
+	std::vector< coop_ref_t > m_coops_to_dereg;
 
 	//! Names of cooperations to be deregistered.
 	std::vector< std::string > m_coops_names_to_process;
@@ -79,12 +79,12 @@ private :
 	void
 	second_stage();
 
-	agent_coop_ref_t
+	coop_ref_t
 	ensure_root_coop_exists() const;
 
 	void
 	collect_and_modity_coop_info(
-		const agent_coop_ref_t & root_coop );
+		const coop_ref_t & root_coop );
 
 	void
 	collect_coops();
@@ -123,7 +123,7 @@ deregistration_processor_t::first_stage()
 	if( m_core.m_deregistered_coop.end() ==
 			m_core.m_deregistered_coop.find( m_root_coop_name ) )
 	{
-		agent_coop_ref_t coop = ensure_root_coop_exists();
+		coop_ref_t coop = ensure_root_coop_exists();
 
 		collect_and_modity_coop_info( coop );
 	}
@@ -149,11 +149,11 @@ deregistration_processor_t::second_stage()
 			// The first item in that vector is a root cooperation.
 			// So the actual coop_dereg_reason should be used for it.
 			if( it == m_coops_to_dereg.begin() )
-				agent_coop_private_iface_t::
+				coop_private_iface_t::
 					do_deregistration_specific_actions(
 						**it, std::move( m_root_coop_dereg_reason ) );
 			else
-				agent_coop_private_iface_t::
+				coop_private_iface_t::
 					do_deregistration_specific_actions(
 						**it,
 						coop_dereg_reason_t( dereg_reason::parent_deregistration ) );
@@ -165,7 +165,7 @@ deregistration_processor_t::second_stage()
 	}
 }
 
-agent_coop_ref_t
+coop_ref_t
 deregistration_processor_t::ensure_root_coop_exists() const
 {
 	// It is an error if the cooperation is not registered.
@@ -184,7 +184,7 @@ deregistration_processor_t::ensure_root_coop_exists() const
 
 void
 deregistration_processor_t::collect_and_modity_coop_info(
-	const agent_coop_ref_t & root_coop )
+	const coop_ref_t & root_coop )
 {
 	// Exceptions must lead to abort at this deregistration stage.
 	try
@@ -316,40 +316,38 @@ namespace
 	class coop_usage_counter_guard_t
 	{
 		public :
-			coop_usage_counter_guard_t( agent_coop_t & coop )
+			coop_usage_counter_guard_t( coop_t & coop )
 				:	m_coop( coop )
 			{
-				agent_coop_t::increment_usage_count( coop );
+				coop_t::increment_usage_count( coop );
 			}
 			~coop_usage_counter_guard_t()
 			{
-				agent_coop_t::decrement_usage_count( m_coop );
+				coop_t::decrement_usage_count( m_coop );
 			}
 
 		private :
-			agent_coop_t & m_coop;
+			coop_t & m_coop;
 	};
 
 } /* namespace anonymous */
 
 void
 agent_core_t::register_coop(
-	agent_coop_unique_ptr_t agent_coop_ptr )
+	coop_unique_ptr_t coop_ptr )
 {
 	/*!
 	 * \note For some important details see
-	 * agent_coop_t::increment_usage_count().
+	 * coop_t::increment_usage_count().
 	 */
 
-	if( 0 == agent_coop_ptr.get() )
+	if( 0 == coop_ptr.get() )
 		SO_5_THROW_EXCEPTION(
 			rc_zero_ptr_to_coop,
 			"zero ptr to coop passed" );
 
 	// Cooperation object should life to the end of this routine.
-	agent_coop_ref_t coop_ref(
-			agent_coop_ptr.release(),
-			agent_coop_deleter_t() );
+	coop_ref_t coop_ref( coop_ptr.release(), coop_deleter_t() );
 
 	// Usage counter for cooperation should be incremented right now,
 	// and decremented at exit point.
@@ -370,7 +368,7 @@ agent_core_t::register_coop(
 		// Name should be unique.
 		ensure_new_coop_name_unique( coop_ref->query_coop_name() );
 		// Process parent coop.
-		agent_coop_t * parent = find_parent_coop_if_necessary( *coop_ref );
+		coop_t * parent = find_parent_coop_if_necessary( *coop_ref );
 
 		next_coop_reg_step__update_registered_coop_map(
 				coop_ref,
@@ -389,7 +387,7 @@ agent_core_t::register_coop(
 
 	do_coop_reg_notification_if_necessary(
 		coop_ref->query_coop_name(),
-		agent_coop_private_iface_t::reg_notificators( *coop_ref ) );
+		coop_private_iface_t::reg_notificators( *coop_ref ) );
 }
 
 void
@@ -407,7 +405,7 @@ agent_core_t::deregister_coop(
 
 void
 agent_core_t::ready_to_deregister_notify(
-	agent_coop_t * coop )
+	coop_t * coop )
 {
 	m_coop_dereg_executor.push_dereg_demand( coop );
 }
@@ -480,7 +478,7 @@ agent_core_t::deregister_all_coop()
 	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 	for( auto & info : m_registered_coop )
-		agent_coop_private_iface_t::do_deregistration_specific_actions(
+		coop_private_iface_t::do_deregistration_specific_actions(
 				*(info.second),
 				coop_dereg_reason_t( dereg_reason::shutdown ) );
 			
@@ -534,9 +532,9 @@ agent_core_t::ensure_new_coop_name_unique(
 	}
 }
 
-agent_coop_t *
+coop_t *
 agent_core_t::find_parent_coop_if_necessary(
-	const agent_coop_t & coop_to_be_registered ) const
+	const coop_t & coop_to_be_registered ) const
 {
 	if( coop_to_be_registered.has_parent_coop() )
 	{
@@ -559,8 +557,8 @@ agent_core_t::find_parent_coop_if_necessary(
 
 void
 agent_core_t::next_coop_reg_step__update_registered_coop_map(
-	const agent_coop_ref_t & coop_ref,
-	agent_coop_t * parent_coop_ptr )
+	const coop_ref_t & coop_ref,
+	coop_t * parent_coop_ptr )
 {
 	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
 	m_total_agent_count += coop_ref->query_agent_count();
@@ -581,8 +579,8 @@ agent_core_t::next_coop_reg_step__update_registered_coop_map(
 
 void
 agent_core_t::next_coop_reg_step__parent_child_relation(
-	const agent_coop_ref_t & coop_ref,
-	agent_coop_t * parent_coop_ptr )
+	const coop_ref_t & coop_ref,
+	coop_t * parent_coop_ptr )
 {
 	auto do_actions = [&] {
 			coop_ref->do_registration_specific_actions( parent_coop_ptr );
@@ -615,12 +613,12 @@ agent_core_t::finaly_remove_cooperation_info(
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
 	{
-		agent_coop_ref_t removed_coop = it->second;
+		coop_ref_t removed_coop = it->second;
 		m_deregistered_coop.erase( it );
 		m_total_agent_count -= removed_coop->query_agent_count();
 
-		agent_coop_t * parent =
-				agent_coop_private_iface_t::parent_coop_ptr( *removed_coop );
+		coop_t * parent =
+				coop_private_iface_t::parent_coop_ptr( *removed_coop );
 		if( parent )
 		{
 			m_parent_child_relations.erase(
@@ -628,15 +626,15 @@ agent_core_t::finaly_remove_cooperation_info(
 							parent->query_coop_name(),
 							coop_name ) );
 
-			agent_coop_t::decrement_usage_count( *parent );
+			coop_t::decrement_usage_count( *parent );
 		}
 
 		return final_remove_result_t{
 				removed_coop,
 				info_for_dereg_notification_t{
-						agent_coop_private_iface_t::dereg_reason(
+						coop_private_iface_t::dereg_reason(
 								*removed_coop ),
-						agent_coop_private_iface_t::dereg_notificators(
+						coop_private_iface_t::dereg_notificators(
 								*removed_coop ) } };
 	}
 	else

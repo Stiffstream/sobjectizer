@@ -249,7 +249,7 @@ init(
 	const std::string & server_addr )
 {
 	// Make a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+	so_5::rt::coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "test_server_application" ),
 		so_5::disp::active_obj::create_disp_binder(
 			"active_obj" ) );
@@ -339,7 +339,7 @@ init(
 	const std::string & server_addr )
 {
 	// Make a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+	so_5::rt::coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "test_server_application" ),
 		so_5::disp::active_obj::create_disp_binder(
 			"active_obj" ) );
@@ -425,7 +425,7 @@ struct client_data_t
 	init( so_5::rt::environment_t & env )
 	{
 		// Make a cooperation.
-		so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+		so_5::rt::coop_unique_ptr_t coop = env.create_coop(
 			so_5::rt::nonempty_name_t( "test_client_application" ),
 			so_5::disp::active_obj::create_disp_binder(
 				"active_obj" ) );

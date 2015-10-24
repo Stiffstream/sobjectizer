@@ -18,7 +18,7 @@ main()
 		so_5::launch( []( environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.introduce_coop( [&env]( agent_coop_t & coop ) {
+				env.introduce_coop( [&env]( coop_t & coop ) {
 					// Adding agent to the cooperation.
 					coop.define_agent()
 						// A reaction to start of work in SObjectizer.

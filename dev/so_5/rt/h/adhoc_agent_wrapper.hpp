@@ -107,7 +107,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
@@ -145,7 +145,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
 		   coop->define_agent()
 		   	.event< msg_my_signal >( mbox, [=] { ... } );
 		 * \endcode
@@ -168,7 +168,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode

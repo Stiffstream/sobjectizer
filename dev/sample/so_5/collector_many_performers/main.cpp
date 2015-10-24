@@ -101,7 +101,7 @@ public :
 	so_evt_start() override
 	{
 		// Start work cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -379,7 +379,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+		env.introduce_coop( [&]( so_5::rt::coop_t & coop ) {
 			// There must be a dedicated dispatcher for performer from
 			// that cooperation.
 			auto performer_disp = create_private_disp( env, concurrent_performers );
@@ -419,7 +419,7 @@ init( so_5::rt::environment_t & env )
 					[]( so_5::disp::thread_pool::params_t & p ) {
 						p.fifo( so_5::disp::thread_pool::fifo_t::individual );
 					} ),
-			[&receivers]( so_5::rt::agent_coop_t & coop ) {
+			[&receivers]( so_5::rt::coop_t & coop ) {
 				for( int i = 0; i != 3; ++i )
 					coop.make_agent< a_generator_t >(
 							"g" + std::to_string(i), receivers );

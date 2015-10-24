@@ -43,48 +43,54 @@ class deregistration_processor_t;
 } /* namespace agent_core_details */
 
 //
-// agent_coop_private_iface_t
+// coop_private_iface_t
 //
 /*!
  * \since v.5.2.3
  * \brief A special class for accessing private members of agent_coop.
  */
-class agent_coop_private_iface_t
+class coop_private_iface_t
 {
 	public :
 		inline static void
 		do_deregistration_specific_actions(
-			agent_coop_t & coop,
+			coop_t & coop,
 			coop_dereg_reason_t dereg_reason )
 		{
 			coop.do_deregistration_specific_actions(
 					std::move( dereg_reason ) );
 		}
 
-		inline static agent_coop_t *
-		parent_coop_ptr( const agent_coop_t & coop )
+		inline static coop_t *
+		parent_coop_ptr( const coop_t & coop )
 		{
 			return coop.parent_coop_ptr();
 		}
 
 		inline static coop_reg_notificators_container_ref_t
-		reg_notificators( const agent_coop_t & coop )
+		reg_notificators( const coop_t & coop )
 		{
 			return coop.reg_notificators();
 		}
 
 		inline static coop_dereg_notificators_container_ref_t
-		dereg_notificators( const agent_coop_t & coop )
+		dereg_notificators( const coop_t & coop )
 		{
 			return coop.dereg_notificators();
 		}
 
 		inline static coop_dereg_reason_t
-		dereg_reason( const agent_coop_t & coop )
+		dereg_reason( const coop_t & coop )
 		{
 			return coop.dereg_reason();
 		}
 };
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_private_iface_t = coop_private_iface_t;
 
 //
 // agent_core_stats_t
@@ -149,7 +155,7 @@ class agent_core_t
 		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop );
+			coop_unique_ptr_t agent_coop );
 
 		//! Deregister cooperation.
 		void
@@ -162,7 +168,7 @@ class agent_core_t
 		//! Notification about readiness of the cooperation deregistration.
 		void
 		ready_to_deregister_notify(
-			agent_coop_t * coop );
+			coop_t * coop );
 
 		//! Do final actions of the cooperation deregistration.
 		/*!
@@ -216,10 +222,7 @@ class agent_core_t
 
 	private:
 		//! Typedef for map from cooperation name to the cooperation.
-		typedef std::map<
-				std::string,
-				agent_coop_ref_t >
-			coop_map_t;
+		typedef std::map< std::string, coop_ref_t > coop_map_t;
 
 		/*!
 		 * \since v.5.2.3
@@ -300,7 +303,7 @@ class agent_core_t
 		struct final_remove_result_t
 			{
 				//! Cooperation to be destroyed.
-				agent_coop_ref_t m_coop;
+				coop_ref_t m_coop;
 				//! Deregistration notifications.
 				info_for_dereg_notification_t m_notifications;
 
@@ -310,7 +313,7 @@ class agent_core_t
 
 				//! Initializing constructor.
 				final_remove_result_t(
-					agent_coop_ref_t coop,
+					coop_ref_t coop,
 					info_for_dereg_notification_t notifications )
 					:	m_coop( std::move( coop ) )
 					,	m_notifications( std::move( notifications ) )
@@ -403,9 +406,9 @@ class agent_core_t
 		 * \retval nullptr if no parent cooperation name set. Otherwise the
 		 * pointer to parent cooperation is returned.
 		 */
-		agent_coop_t *
+		coop_t *
 		find_parent_coop_if_necessary(
-			const agent_coop_t & coop_to_be_registered ) const;
+			const coop_t & coop_to_be_registered ) const;
 
 		/*!
 		 * \since v.5.2.3
@@ -417,10 +420,10 @@ class agent_core_t
 		void
 		next_coop_reg_step__update_registered_coop_map(
 			//! Cooperation to be registered.
-			const agent_coop_ref_t & coop_ref,
+			const coop_ref_t & coop_ref,
 			//! Pointer to parent cooperation.
 			//! Equal to nullptr if \a coop has no parent.
-			agent_coop_t * parent_coop_ptr );
+			coop_t * parent_coop_ptr );
 
 		/*!
 		 * \since v.5.2.3
@@ -432,10 +435,10 @@ class agent_core_t
 		void
 		next_coop_reg_step__parent_child_relation(
 			//! Cooperation to be registered.
-			const agent_coop_ref_t & coop,
+			const coop_ref_t & coop,
 			//! Pointer to parent cooperation.
 			//! Equal to nullptr if \a coop has no parent.
-			agent_coop_t * parent_coop_ptr );
+			coop_t * parent_coop_ptr );
 
 		/*!
 		 * \since v.5.2.3

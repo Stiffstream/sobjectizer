@@ -28,6 +28,13 @@ namespace so_5
 namespace rt
 {
 
+namespace impl
+{
+
+class internal_message_iface_t;
+
+} /* namespace */
+
 //
 // message_t
 //
@@ -40,10 +47,10 @@ namespace rt
  * have an actual message data. For signals (messages without any data)
  * a signal_t class should be used as a base class.
  */
-class SO_5_TYPE message_t
-	:
-		public atomic_refcounted_t
-{
+class SO_5_TYPE message_t : public atomic_refcounted_t
+	{
+		friend class impl::internal_message_iface_t;
+
 	public:
 		message_t();
 		message_t( const message_t & );
@@ -51,7 +58,20 @@ class SO_5_TYPE message_t
 		operator = ( const message_t & );
 
 		virtual ~message_t();
-};
+
+	private :
+		/*!
+		 * \since v.5.5.9
+		 * \brief Get the pointer to the message payload.
+		 *
+		 * \note This method is necessary for message delivery tracing.
+		 * For ordinal messages it will return a pointer to the message itself.
+		 * For service requests and user-defined messages it will return
+		 * pointer to a payload object.
+		 */
+		virtual const void *
+		so5__payload_ptr() const;
+	};
 
 //
 // message_ref_t
@@ -87,6 +107,54 @@ class SO_5_TYPE signal_t
 };
 
 //
+// user_type_message_t
+//
+/*!
+ * \since v.5.5.9
+ * \brief Template class for representing object of user type as a message.
+ *
+ * \tparam T type of actual message. This type must have move- or copy
+ * constructor.
+ */
+template< typename T >
+struct user_type_message_t : public message_t
+{
+	//! Instance of user message.
+	const T m_payload;
+
+	//! Initializing constructor.
+	template< typename... ARGS >
+	user_type_message_t( ARGS &&... args )
+		:	m_payload( T{ std::forward< ARGS >( args )... } )
+		{}
+
+private :
+	virtual const void *
+	so5__payload_ptr() const override { return &m_payload; }
+};
+
+//
+// is_user_type_message
+//
+/*!
+ * \since v.5.5.9
+ * \brief A helper for detection presence of message of user type.
+ *
+ * \tparam M type to test.
+ */
+template< typename M >
+struct is_user_type_message
+	{
+		enum { value = false };
+	};
+
+template< typename M >
+struct is_user_type_message< user_type_message_t< M > >
+	{
+		enum { value = true };
+	};
+
+//
 // is_signal
 //
 /*!
@@ -100,17 +168,17 @@ struct is_signal
 	};
 
 //
-// is_message
+// is_classical_message
 //
 /*!
- * \since v.5.5.4
- * \brief A helper class for checking that message is a message.
+ * \since v.5.5.9
+ * \brief A helper class for checking that message is a classical message
+ * derived from %message_t class.
  */
 template< class T >
-struct is_message
+struct is_classical_message
 	{
-		enum { value = (std::is_base_of< message_t, T >::value &&
-				!is_signal< T >::value) };
+		enum { value = std::is_base_of< message_t, T >::value };
 	};
 
 //
@@ -125,7 +193,7 @@ template< class MSG >
 void
 ensure_not_signal()
 {
-	static_assert( is_message< MSG >::value,
+	static_assert( !is_signal< MSG >::value,
 			"message class must be derived from the message_t" );
 }
 
@@ -172,20 +240,160 @@ ensure_signal()
 			"expected a type derived from the signal_t" );
 }
 
+//
+// ensure_classical_message
+//
+/*!
+ * \since v.5.5.9
+ * \brief A special compile-time checker to guarantee that MSG is derived from
+ * %message_t.
+ *
+ * \tparam MSG type to be checked.
+ */
+template< typename MSG >
+void
+ensure_classical_message()
+	{
+		static_assert( is_classical_message< MSG >::value,
+				"expected a type derived from the message_t" );
+	}
+
+//
+// message_payload_type_impl
+//
+/*!
+ * \since v.5.5.9
+ * \brief Implementation details for %message_payload_type.
+ *
+ * \note This specialization is for cases where T is derived from message_t.
+ * In that case payload_type is the same as envelope_type.
+ */
+template< typename T, bool is_classical_message >
+struct message_payload_type_impl
+	{
+		//! Type visible to user.
+		using payload_type = T;
+		//! Type for message delivery.
+		using envelope_type = T;
+
+		//! Type ID for subscription.
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		//! Helper for extraction of pointer to payload part.
+		/*!
+		 * \note This method return non-const pointer because it is
+		 * necessary for so_5::rt::event_data_t.
+		 */
+		inline static payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< payload_type * >( msg.get() );
+			}
+
+		//! Helper for extraction of pointer to envelope part.
+		/*!
+		 * The same implementation as for extract_envelope_ptr().
+		 */
+		inline static envelope_type *
+		extract_envelope_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< envelope_type * >( msg.get() );
+			}
+
+		//! Helper for getting a const reference to payload part.
+		inline static const payload_type &
+		payload_reference( const message_t & msg )
+			{
+				return dynamic_cast< const payload_type & >( msg );
+			}
+	};
+
+/*!
+ * \since v.5.5.9
+ * \brief Implementation details for %message_payload_type.
+ *
+ * \note This specialization is for cases where T is not derived from message_t.
+ * In that case payload_type is T, but envelope_type is user_type_message_t<T>.
+ */
+template< typename T >
+struct message_payload_type_impl< T, false >
+	{
+		//! Type visible to user.
+		using payload_type = T;
+		//! Type for message delivery.
+		using envelope_type = user_type_message_t< T >;
+
+		//! Type ID for subscription.
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		//! Helper for extraction of pointer to payload part.
+		/*!
+		 * \note This method return const pointer because payload is
+		 * a const object inside user_type_message_t<T> instance.
+		 */
+		inline static const payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				auto envelope = dynamic_cast< envelope_type * >( msg.get() );
+				if( !envelope )
+					SO_5_THROW_EXCEPTION( so_5::rc_unexpected_error,
+							"nullptr for user_type_message_t<T> instance" );
+
+				return &(envelope->m_payload);
+			}
+
+		//! Helper for extraction of pointer to envelope part.
+		inline static envelope_type *
+		extract_envelope_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< envelope_type * >( msg.get() );
+			}
+
+		//! Helper for getting a const reference to payload part.
+		inline static const payload_type &
+		payload_reference( const message_t & msg )
+			{
+				auto & envelope = dynamic_cast< const envelope_type & >( msg );
+				return envelope.m_payload;
+			}
+	};
+
+//
+// message_payload_type
+//
+/*!
+ * \since v.5.5.9
+ * \brief A helper class for detection of payload type of message.
+ *
+ * \tparam T type to test.
+ */
+template< typename T >
+struct message_payload_type
+	:	public message_payload_type_impl< T, is_classical_message< T >::value >
+	{
+	};
+
+template< typename T >
+struct message_payload_type< user_type_message_t< T > >
+	:	public message_payload_type_impl< T, false >
+	{
+	};
+
 namespace details
 {
 
 template< bool is_signal, typename MSG >
 struct make_message_instance_impl
 	{
+		using E = typename message_payload_type< MSG >::envelope_type;
+
 		template< typename... ARGS >
-		static std::unique_ptr< MSG >
+		static std::unique_ptr< E >
 		make( ARGS &&... args )
 			{
 				ensure_not_signal< MSG >();
 
-				return std::unique_ptr< MSG >(
-						new MSG( std::forward< ARGS >(args)... ) );
+				return std::unique_ptr< E >( new E( std::forward< ARGS >(args)... ) );
 			}
 	};
 
@@ -206,8 +414,9 @@ struct make_message_instance_impl< true, MSG >
  * \brief A helper for allocate instance of a message.
  */
 template< typename MSG, typename... ARGS >
-std::unique_ptr< MSG >
+auto
 make_message_instance( ARGS &&... args )
+	-> std::unique_ptr< typename message_payload_type< MSG >::envelope_type >
 	{
 		return make_message_instance_impl<
 						is_signal< MSG >::value, MSG
@@ -305,6 +514,10 @@ struct msg_service_request_t : public msg_service_request_base_t
 			{
 				return *m_param;
 			}
+
+	private :
+		virtual const void *
+		so5__payload_ptr() const override { return m_param.get(); }
 	};
 
 //
@@ -332,6 +545,13 @@ namespace message_limit
 
 struct control_block_t;
 
+namespace impl
+{
+
+class action_msg_tracer_t;
+
+} /* namespace impl */
+
 /*!
  * \since v.5.5.4
  * \brief Description of context for overlimit action.
@@ -356,6 +576,16 @@ struct overlimit_context_t
 		//! A message or service request to be delivered.
 		const message_ref_t & m_message;
 
+		/*!
+		 * \since v.5.5.9
+		 * \brief An optional pointer to tracer object for
+		 * message delivery tracing.
+		 *
+		 * \note Value nullptr means that message delivery tracing
+		 * is not used.
+		 */
+		const impl::action_msg_tracer_t * m_msg_tracer;
+
 		//! Initializing constructor.
 		inline
 		overlimit_context_t(
@@ -364,13 +594,15 @@ struct overlimit_context_t
 			invocation_type_t event_type,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,
-			const message_ref_t & message )
+			const message_ref_t & message,
+			const impl::action_msg_tracer_t * msg_tracer )
 			:	m_receiver( receiver )
 			,	m_limit( limit )
 			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )
 			,	m_msg_type( msg_type )
 			,	m_message( message )
+			,	m_msg_tracer{ msg_tracer }
 			{}
 	};
 

@@ -18,6 +18,8 @@ MxxRu::Cpp::composite_target {
 	required_prj 'test/so_5/environment/reg_coop_after_stop/prj.ut.rb'
 	required_prj 'test/so_5/environment/autoname_coop/prj.ut.rb'
 
+	required_prj 'test/so_5/wrapped_env/build_tests.rb'
+
 	required_prj 'test/so_5/execution_hint/basic_checks/prj.ut.rb'
 
 	required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
@@ -52,6 +54,8 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/coop/build_tests.rb" )
 
 	required_prj( "test/so_5/mbox/build_tests.rb" )
+
+	required_prj( "test/so_5/msg_tracing/build_tests.rb" )
 
 	required_prj( "test/so_5/ad_hoc_agents/build_tests.rb" )
 

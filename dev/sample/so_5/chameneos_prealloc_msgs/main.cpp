@@ -260,7 +260,7 @@ init(
 	{
 		env.introduce_coop( "chameneos",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[meetings]( so_5::rt::agent_coop_t & coop )
+				[meetings]( so_5::rt::coop_t & coop )
 				{
 					color_t creature_colors[ CREATURE_COUNT ] =
 						{ BLUE, RED, YELLOW, BLUE };

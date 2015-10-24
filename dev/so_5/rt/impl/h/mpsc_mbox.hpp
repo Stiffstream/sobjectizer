@@ -18,6 +18,9 @@
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/message_limit.hpp>
 
+#include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
+
 namespace so_5
 {
 
@@ -28,7 +31,7 @@ namespace impl
 {
 
 //
-// limitless_mpsc_mbox_t
+// limitless_mpsc_mbox_template_t
 //
 
 /*!
@@ -37,15 +40,24 @@ namespace impl
  *
  * \note Since v.5.5.4 is used for implementation of direct mboxes
  * without controling message limits.
+ * \note Renamed from limitless_mpsc_mbox_t to limitless_mpsc_mbox_template_t
+ * in v.5.5.9.
  */
-class limitless_mpsc_mbox_t : public abstract_message_box_t
+template< typename TRACING_BASE >
+class limitless_mpsc_mbox_template_t
+	:	public abstract_message_box_t
+	,	protected TRACING_BASE
 {
 	public:
-		limitless_mpsc_mbox_t(
+		template< typename... TRACING_ARGS >
+		limitless_mpsc_mbox_template_t(
 			mbox_id_t id,
-			agent_t * single_consumer );
-
-		virtual ~limitless_mpsc_mbox_t();
+			agent_t * single_consumer,
+			TRACING_ARGS &&... tracing_args )
+			:	TRACING_BASE{ std::forward< TRACING_ARGS >( tracing_args )... }
+			,	m_id{ id }
+			,	m_single_consumer{ single_consumer }
+			{}
 
 		virtual mbox_id_t
 		id() const override
@@ -55,17 +67,33 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 
 		virtual void
 		subscribe_event_handler(
-			const std::type_index & msg_type,
-			const so_5::rt::message_limit::control_block_t * limit,
-			agent_t * subscriber ) override;
+			const std::type_index & /*msg_type*/,
+			const so_5::rt::message_limit::control_block_t * /*limit*/,
+			agent_t * subscriber ) override
+			{
+				if( subscriber != m_single_consumer )
+					SO_5_THROW_EXCEPTION(
+							rc_illegal_subscriber_for_mpsc_mbox,
+							"the only one consumer can create subscription to mpsc_mbox" );
+			}
 
 		virtual void
 		unsubscribe_event_handlers(
-			const std::type_index & msg_type,
-			agent_t * subscriber ) override;
+			const std::type_index & /*msg_type*/,
+			agent_t * /*subscriber*/ ) override
+			{
+			}
 
 		virtual std::string
-		query_name() const override;
+		query_name() const override
+			{
+				std::ostringstream s;
+				s << "<mbox:type=MPSC:id="
+						<< m_id << ":consumer=" << m_single_consumer
+						<< ">";
+
+				return s.str();
+			}
 
 		virtual mbox_type_t
 		type() const override
@@ -77,13 +105,48 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				typename TRACING_BASE::deliver_op_tracer_t tracer{
+						*this, // as TRACING_BASE
+						*this, // as abstract_message_box_t
+						"deliver_message",
+						msg_type, message, overlimit_reaction_deep };
+
+				tracer.push_to_queue( m_single_consumer );
+
+				agent_t::call_push_event(
+						*m_single_consumer,
+						so_5::rt::message_limit::control_block_t::none(),
+						m_id,
+						msg_type,
+						message );
+			}
 
 		virtual void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				typename TRACING_BASE::deliver_op_tracer_t tracer{
+						*this, // as TRACING_BASE
+						*this, // as abstract_message_box_t
+						"deliver_service_request",
+						msg_type, message, overlimit_reaction_deep };
+
+				msg_service_request_base_t::dispatch_wrapper( message,
+					[&] {
+						tracer.push_to_queue( m_single_consumer );
+
+						agent_t::call_push_service_request(
+								*m_single_consumer,
+								so_5::rt::message_limit::control_block_t::none(),
+								m_id,
+								msg_type,
+								message );
+					} );
+			}
 
 		/*!
 		 * \attention Will throw an exception because delivery
@@ -91,18 +154,20 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 		 */
 		virtual void
 		set_delivery_filter(
-			const std::type_index & msg_type,
-			const delivery_filter_t & filter,
-			agent_t & subscriber ) override;
+			const std::type_index & /*msg_type*/,
+			const delivery_filter_t & /*filter*/,
+			agent_t & /*subscriber*/ ) override
+			{
+				SO_5_THROW_EXCEPTION(
+						rc_delivery_filter_cannot_be_used_on_mpsc_mbox,
+						"set_delivery_filter is called for MPSC-mbox" );
+			}
 
-		/*!
-		 * \attention Will throw an exception because delivery
-		 * filter is not applicable to MPSC-mboxes.
-		 */
 		virtual void
 		drop_delivery_filter(
-			const std::type_index & msg_type,
-			agent_t & subscriber ) SO_5_NOEXCEPT override;
+			const std::type_index & /*msg_type*/,
+			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			{}
 
 	protected :
 		/*!
@@ -114,8 +179,22 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 		agent_t * m_single_consumer;
 };
 
+/*!
+ * \since v.5.5.9
+ * \brief Alias for limitless_mpsc_mbox without message delivery tracing.
+ */
+using limitless_mpsc_mbox_without_tracing_t =
+	limitless_mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base_t >;
+
+/*!
+ * \since v.5.5.9
+ * \brief Alias for limitless_mpsc_mbox with message delivery tracing.
+ */
+using limitless_mpsc_mbox_with_tracing_t =
+	limitless_mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base_t >;
+
 //
-// limitful_mpsc_mbox_t
+// limitful_mpsc_mbox_template_t
 //
 
 /*!
@@ -123,36 +202,127 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
  * \brief A multi-producer/single-consumer mbox with message limit
  * control.
  *
+ * \note Renamed from limitful_mpsc_mbox_t to limitful_mpsc_mbox_template_t
+ * in v.5.5.9.
+ *
  * \attention Stores a reference to message limits storage. Because of that
  * this reference must remains correct till the end of the mbox's lifetime.
+ *
  */
-class limitful_mpsc_mbox_t : public limitless_mpsc_mbox_t
+template< typename TRACING_BASE >
+class limitful_mpsc_mbox_template_t
+	:	public limitless_mpsc_mbox_template_t< TRACING_BASE >
 {
+		using base_type_t = limitless_mpsc_mbox_template_t< TRACING_BASE >;
 	public:
-		limitful_mpsc_mbox_t(
+		template< typename... TRACING_ARGS >
+		limitful_mpsc_mbox_template_t(
 			mbox_id_t id,
 			agent_t * single_consumer,
 			//! This reference must remains correct till the end of
 			//! the mbox's lifetime.
-			const so_5::rt::message_limit::impl::info_storage_t & limits_storage );
-
-		virtual ~limitful_mpsc_mbox_t();
+			const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
+			//! Optional arguments for TRACING_BASE.
+			TRACING_ARGS &&... tracing_args )
+			:	base_type_t{
+					id,
+					single_consumer,
+					std::forward< TRACING_ARGS >( tracing_args )... }
+			,	m_limits{ limits_storage }
+			{}
 
 		virtual void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				typename TRACING_BASE::deliver_op_tracer_t tracer{
+						*this, // as TRACING_BASE
+						*this, // as abstract_message_box_t
+						"deliver_message",
+						msg_type, message, overlimit_reaction_deep };
+
+				using namespace so_5::rt::message_limit::impl;
+
+				auto limit = m_limits.find( msg_type );
+
+				try_to_deliver_to_agent(
+						invocation_type_t::event,
+						*(this->m_single_consumer),
+						limit,
+						msg_type,
+						message,
+						overlimit_reaction_deep,
+						tracer.overlimit_tracer(),
+						[&] {
+							tracer.push_to_queue( this->m_single_consumer );
+
+							agent_t::call_push_event(
+									*(this->m_single_consumer),
+									limit,
+									this->m_id,
+									msg_type,
+									message );
+						} );
+			}
 
 		virtual void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				typename TRACING_BASE::deliver_op_tracer_t tracer{
+						*this, // as TRACING_BASE
+						*this, // as abstract_message_box_t
+						"deliver_service_request",
+						msg_type, message, overlimit_reaction_deep };
+
+				msg_service_request_base_t::dispatch_wrapper( message,
+					[&] {
+						using namespace so_5::rt::message_limit::impl;
+
+						auto limit = m_limits.find( msg_type );
+
+						try_to_deliver_to_agent(
+								invocation_type_t::service_request,
+								*(this->m_single_consumer),
+								limit,
+								msg_type,
+								message,
+								overlimit_reaction_deep,
+								tracer.overlimit_tracer(),
+								[&] {
+									tracer.push_to_queue( this->m_single_consumer );
+
+									agent_t::call_push_service_request(
+											*(this->m_single_consumer),
+											limit,
+											this->m_id,
+											msg_type,
+											message );
+								} );
+					} );
+			}
 
 	private :
 		const so_5::rt::message_limit::impl::info_storage_t & m_limits;
 };
+
+/*!
+ * \since v.5.5.9
+ * \brief Alias for limitful_mpsc_mbox without message delivery tracing.
+ */
+using limitful_mpsc_mbox_without_tracing_t =
+	limitful_mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base_t >;
+
+/*!
+ * \since v.5.5.9
+ * \brief Alias for limitful_mpsc_mbox with message delivery tracing.
+ */
+using limitful_mpsc_mbox_with_tracing_t =
+	limitful_mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base_t >;
 
 } /* namespace impl */
 

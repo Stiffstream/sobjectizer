@@ -1,0 +1,202 @@
+/*!
+
+\page so_5_5_9__wrapped_env so-5.5.9: New wrapped_env class
+
+\section so_5_5_9__wrapped_env__purpose Purpose
+
+A traditional way of starting SO Environment is to use so_5::launch free
+function:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {
+	... // Some app initializing code.
+} );
+\endcode
+
+This way is useful if all application logic is implemented by SObjectizer’s
+agents and there is only one SO Environment in the application. But sometimes
+it is not the case. For example if an application has to have GUI-event
+handling loop. In that case application’s main() function could look like:
+
+\code
+int main()
+{
+	... // Launching SO Environment.
+	... // Some application-specific initialization code.
+	while(!GetMessage(...))
+		ProcessMessage(...);
+	... // Stopping SO Environment.
+	... // Some application-specific deinitialization code.
+}
+\endcode
+
+Usage of so_5::launch() in such cases is not as straightforward as intended to
+be. It could look like:
+
+\code
+int main()
+{
+	so_5::rt::environment_t * env_ptr = nullptr; // To be set inside launch();
+	so_5::launch( [&]( so_5::rt::environment_t & env ) {
+		env_ptr = &env;
+		... // Some SO Environment initialization code.
+	} );
+	... // Some application-specific initialization code.
+	while(!GetMessage(...))
+		ProcessMessage(...);
+	env_ptr->stop(); // Stopping SO Environment.
+	// NOTE: there is no way to wait for a complete finish of SO Environment work!
+	... // Some application-specific deinitialization code.
+}
+\endcode
+
+It is not a simple approach and it could lead to mistakes.
+
+To simplify a development of applications with some GUI-event loops a new class
+has been added in v.5.5.9: so_5::wrapped_env_t. With that class the example
+above can be rewritten that way:
+
+\code
+int main()
+{
+	so_5::wrapped_env_t env; // Empty SO Environment will be started here.
+	env.environment().introduce_coop( []( so_5::rt::coop_t & coop ) {
+		... // Some SO Environment initialization code.
+	} );
+	... // Some application-specific initialization code.
+	while(!GetMessage(...))
+		ProcessMessage(...);
+	env.stop_then_join(); // Stopping SO Environment and wait for complete finish.
+	... // Some application-specific deinitialization code.
+}
+\endcode
+
+\section so_5_5_9__wrapped_env__work_principle  Working Principle
+
+Working principle of so_5::wrapped_env_t is very simple:
+
+- a thread is created inside a constructor of wrapped_env_t;
+- an analog of so_5::launch is called on the context of that thread;
+- pointer to actual so_5::rt::environment_t instance is stored inside wrapped_env_t;
+- this thread is stopped and joined automatically in the destructor of so_5::wrapped_env_t.
+
+This way of working guarantees that a reference to actual
+so_5::rt::environment_t instance will be valid for the whole lifetime of
+wrapped_env_t object.
+
+\note If wrapped_env_t::join() or wrapped_env_t::stop_then_join() is called
+explicitely then the helper thread will be finished before exit from
+join()/stop_then_join() methods. A reference to so_5::rt::environment_t
+instance still will be valid, but this SO Environment will be stopped and
+cannot be used later.
+
+\note There is no way to restart SO Environment controlled by wrapped_env_t
+object after call to stop() or stop_then_join() methods. If such logic is
+necessary then consider destroyment and recreation of the whole wrapped_env_t
+object:
+\code
+while( some_condition )
+{
+	so_5::wrapped_env_t env{ ... };
+	... // Some usage of SO Environment.
+	env.stop_then_join(); // SO Environment completely stopped.
+	... // Some application-specific code.
+}
+\endcode
+
+\section so_5_5_9__wrapped_env__usage_examples Usage Examples
+
+There are several constructors for so_5::wrapped_env_t. The simplest one is the
+default constructor:
+
+\code
+// No any initial actions. Only default parameters will be used.
+so_5::wrapped_env_t env;
+\endcode
+
+New coops could be added later via traditional approaches:
+
+\code
+// No any initial actions. Only default parameters will be used.
+so_5::wrapped_env_t env;
+...
+// Filling the environment with coops.
+// Via introduce_coop...
+env.environment().introduce_coop( []( so_5::rt::coop_t & coop ) {...} );
+// Via create_coop/register_coop.
+auto coop = env.environment().create_coop( so_5::autoname );
+coop->make_agent<...>(...);
+...
+env.environment().register_coop( std::move(coop) );
+\endcode
+
+There is also a constructor which receives a lambda-function or a functional
+object for doing initial actions right after start of SO Environment (just like
+in the case of so_5::launch):
+
+\code
+so_5::wrapped_env_t env{
+	// Lambda with initial actions.
+	[]( so_5::rt::environment_t & env ) {
+		... // Some initial actions like adding a new coop:
+		env.introduce_coop(...);
+	} };
+\endcode
+
+There are also two constructors which allows to tune SO Environment parameters.
+One of them receives a rvalue reference to so_5::rt::environment_params_t
+object:
+
+\code
+so_5::rt::environment_params_t prepare_params()
+{
+	so_5::rt::environment_params_t params;
+	params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+	params.timer_thread( so_5::timer_list_factory() );
+	...
+	return params;
+}
+...
+so_5::wrapped_env_t env{
+	// Initialization lambda.
+	// Can be empty if no starting actions needed.
+	[]( so_5::rt::environment_t & ) {},
+	// Parameters for SO Environment.
+	prepare_params() };
+\endcode
+
+The second receives parameters' tuner lambda or functional object:
+
+\code
+so_5::rt::environment_params_t prepare_params()
+{
+	so_5::rt::environment_params_t params;
+	params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+	params.timer_thread( so_5::timer_list_factory() );
+	...
+	return params;
+}
+...
+so_5::wrapped_env_t env{
+	// Initialization lambda.
+	// Can be empty if no starting actions needed.
+	[]( so_5::rt::environment_t & ) {},
+	// Parameters tuner for SO Environment.
+	[]( so_5::rt::environment_params_t & params ) {
+		params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+		params.timer_thread( so_5::timer_list_factory() );
+	} };
+\endcode
+
+\section so_5_5_9__wrapped_env__autoshutdown  Wrapped_env and Autoshutdown Option
+
+Class wrapped_env_t always adds disable_autoshutdown option to SO Environment
+parameters. It means that SO Environment will not be stopped after
+deregistration of the last coop. Only explicit call to wrapped_env_t::stop() or
+wrapped_ent_t::stop_then_join() stops SO Environment. SO Environment also
+automatically stopped in the wrapped_env’s destructor.
+
+*/
+
+// vim:ft=cpp
+

@@ -11,11 +11,11 @@
 
 #include <so_5/all.hpp>
 
-struct msg1{};
-struct msg2{};
-struct msg3{};
-struct msg4{};
-struct msg5{};
+struct msg1 : public so_5::rt::message_t {};
+struct msg2 : public so_5::rt::message_t {};
+struct msg3 : public so_5::rt::message_t {};
+struct msg4 : public so_5::rt::message_t {};
+struct msg5 : public so_5::rt::message_t {};
 
 class test_agent_t
 	:

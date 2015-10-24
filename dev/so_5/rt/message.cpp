@@ -32,6 +32,12 @@ message_t::operator = ( const message_t & )
 {
 }
 
+const void *
+message_t::so5__payload_ptr() const
+{
+	return this;
+}
+
 //
 // signal_t
 //

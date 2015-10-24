@@ -65,16 +65,14 @@ class a_client_t
 				std::string values_to_convert[] = {
 						"1", "2", "a1", "a2", "3", "a3", "41", "42", "43" };
 
-				auto svc = m_svc_mbox->get_one< int >().wait_for(
-						std::chrono::milliseconds( 100 ) );
-
 				for( const auto & s : values_to_convert )
 					{
 						try
 							{
 								std::cout << "converting '" << s << "'" << std::flush;
 
-								auto r = svc.sync_get( new msg_convert( s ) );
+								auto r = so_5::request_value< int, msg_convert >(
+										m_svc_mbox, std::chrono::milliseconds(100), s );
 
 								std::cout << "' -> " << r << std::endl;
 							}
@@ -99,7 +97,7 @@ init(
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
+				[]( so_5::rt::coop_t & coop ) {
 					auto a_service = coop.make_agent< a_convert_service_t >();
 					coop.make_agent< a_client_t >( a_service->so_direct_mbox() );
 				} );

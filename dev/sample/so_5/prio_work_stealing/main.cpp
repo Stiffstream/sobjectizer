@@ -173,7 +173,7 @@ class request_generator : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Will start requests generation immediately.
-				so_5::send_to_agent< produce_next >( *this );
+				so_5::send< produce_next >( *this );
 			}
 
 	private :
@@ -441,7 +441,7 @@ class request_scheduler : public so_5::rt::agent_t
 					*this,
 					so_5::disp::prio_dedicated_threads::one_per_prio::create_private_disp(
 							so_environment() )->binder(),
-					[this]( so_5::rt::agent_coop_t & coop )
+					[this]( so_5::rt::coop_t & coop )
 					{
 						so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 								create_processor_agent( coop, p );
@@ -478,7 +478,7 @@ class request_scheduler : public so_5::rt::agent_t
 
 		void
 		create_processor_agent(
-			so_5::rt::agent_coop_t & coop,
+			so_5::rt::coop_t & coop,
 			so_5::priority_t priority )
 			{
 				auto a = coop.define_agent( coop.make_agent_context() + priority
@@ -554,7 +554,7 @@ init( so_5::rt::environment_t & env )
 	{
 		// All top-level agents belong to the same coop,
 		// but work on different dispacthers.
-		env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 				auto mbox = coop.environment().create_local_mbox();
 
 				// Request scheduler and accepter stuff.

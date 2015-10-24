@@ -12,7 +12,7 @@ class msg_hello_svc : public so_5::rt::signal_t {};
 
 void
 define_hello_service(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const so_5::rt::mbox_t & self_mbox )
 	{
 		coop.define_agent().event< msg_hello_svc >( self_mbox,
@@ -32,7 +32,7 @@ struct msg_convert : public so_5::rt::message_t
 
 void
 define_convert_service(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const so_5::rt::mbox_t & self_mbox )
 	{
 		coop.define_agent().event( self_mbox,
@@ -51,7 +51,7 @@ struct msg_shutdown : public so_5::rt::signal_t {};
 
 void
 define_shutdown_service(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const so_5::rt::mbox_t & self_mbox )
 	{
 		auto & env = coop.environment();
@@ -78,18 +78,18 @@ class a_client_t
 		so_evt_start() override
 			{
 				std::cout << "hello_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.async< msg_hello_svc >().get()
+						<< so_5::request_future< std::string, msg_hello_svc >(
+								m_svc_mbox ).get()
 						<< std::endl;
 
 				std::cout << "convert_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.make_async< msg_convert >( 42 ).get()
+						<< so_5::request_future< std::string, msg_convert >(
+								m_svc_mbox, 42 ).get()
 						<< std::endl;
 
 				std::cout << "sync_convert_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.wait_forever().make_sync_get< msg_convert >( 1020 )
+						<< so_5::request_value< std::string, msg_convert >(
+								m_svc_mbox, so_5::infinite_wait, 1020 )
 						<< std::endl;
 
 				// More complex case with conversion.
@@ -122,7 +122,7 @@ init(
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[&env]( so_5::rt::agent_coop_t & coop )
+				[&env]( so_5::rt::coop_t & coop )
 				{
 					auto svc_mbox = env.create_local_mbox();
 

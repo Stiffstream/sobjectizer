@@ -119,7 +119,7 @@ my_agent_t::so_evt_start()
 	// Send siries of messages.
 
 	// Switch to first state and handle messages.
-	so_5::send_to_agent< change_state_message >( *this, FIRST_STATE );
+	so_5::send< change_state_message >( *this, FIRST_STATE );
 }
 
 void
@@ -145,13 +145,13 @@ my_agent_t::change_state_event_handler(
 				<< std::endl;
 
 			// Send serie of messages...
-			so_5::send_to_agent< my_message >( *this, 42 );
-			so_5::send_to_agent< my_another_message >( *this, "SObjectizer" );
+			so_5::send< my_message >( *this, 42 );
+			so_5::send< my_another_message >( *this, "SObjectizer" );
 
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to second.
-			so_5::send_to_agent< change_state_message >( *this, SECOND_STATE );
+			so_5::send< change_state_message >( *this, SECOND_STATE );
 		}
 		else if( SECOND_STATE == message.m_next_state )
 		{
@@ -161,14 +161,14 @@ my_agent_t::change_state_event_handler(
 				<< std::endl;
 
 			// Send serie of messages...
-			so_5::send_to_agent< my_message >( *this, -42 );
+			so_5::send< my_message >( *this, -42 );
 			// Message should not be received.
-			so_5::send_to_agent< my_another_message >( *this, "rezitcejbOS" );
+			so_5::send< my_another_message >( *this, "rezitcejbOS" );
 
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to default.
-			so_5::send_to_agent< change_state_message >( *this, DEFAULT_STATE );
+			so_5::send< change_state_message >( *this, DEFAULT_STATE );
 		}
 	}
 }

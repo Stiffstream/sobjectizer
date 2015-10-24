@@ -18,6 +18,7 @@
 #include <mutex>
 
 #include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
@@ -66,7 +67,10 @@ class mbox_core_t
 		operator = ( const mbox_core_t & );
 
 	public:
-		explicit mbox_core_t();
+		mbox_core_t(
+			//! Optional tracer for message delivery tracing.
+			//! Value nullptr means that message delivery tracing is disabled.
+			so_5::msg_tracing::tracer_t * tracer );
 		virtual ~mbox_core_t();
 
 		//! Create local anonymous mbox.
@@ -119,6 +123,14 @@ class mbox_core_t
 		query_stats();
 
 	private:
+		/*!
+		 * \since v.5.5.9
+		 * \brief Optional tracer for message delivery tracing.
+		 *
+		 * \note Value nullptr means that message delivery tracing is disabled.
+		 */
+		so_5::msg_tracing::tracer_t * const m_tracer;
+
 		//! Named mbox map's lock.
 		std::mutex m_dictionary_lock;
 

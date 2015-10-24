@@ -129,7 +129,7 @@ create_hello_coop( so_5::rt::environment_t & env )
 void
 create_shutdowner_coop( so_5::rt::environment_t & env )
 {
-	env.introduce_coop( "shutdowner", [&env]( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( "shutdowner", [&env]( so_5::rt::coop_t & coop ) {
 		// Mbox for shutdowner agent.
 		auto mbox = env.create_local_mbox( "shutdown" );
 

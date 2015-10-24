@@ -6,11 +6,14 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/environment.hpp>
 
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
+
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
 #include <so_5/rt/impl/h/delivery_filter_storage.hpp>
+#include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -167,6 +170,11 @@ agent_t::agent_t(
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_handler_finder{
+			// Actual handler finder is dependent on msg_tracing status.
+			impl::internal_env_iface_t{ ctx.env() }.is_msg_tracing_enabled() ?
+				&agent_t::handler_finder_msg_tracing_enabled :
+				&agent_t::handler_finder_msg_tracing_disabled }
 	,	m_subscriptions(
 			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
 	,	m_message_limits(
@@ -175,7 +183,7 @@ agent_t::agent_t(
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
-			ctx.env().so5__create_mpsc_mbox(
+			impl::internal_env_iface_t{ ctx.env() }.create_mpsc_mbox(
 				self_ptr(),
 				m_message_limits.get() ) )
 		// It is necessary to enable agent subscription in the
@@ -322,7 +330,7 @@ agent_t::so_bind_to_dispatcher(
 
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
-	agent_coop_t::increment_usage_count( *m_agent_coop );
+	coop_t::increment_usage_count( *m_agent_coop );
 
 	so_5::details::invoke_noexcept_code( [&] {
 			// A starting demand must be sent first.
@@ -354,10 +362,8 @@ agent_t::so_create_execution_hint(
 	if( is_message_demand || is_service_demand )
 		{
 			// Try to find handler for the demand.
-			auto handler = d.m_receiver->m_subscriptions->find_handler(
-					d.m_mbox_id,
-					d.m_msg_type, 
-					d.m_receiver->so_current_state() );
+			auto handler = d.m_receiver->m_handler_finder(
+					d, "create_execution_hint" );
 			if( is_message_demand )
 				{
 					if( handler )
@@ -428,8 +434,7 @@ agent_t::create_ref()
 }
 
 void
-agent_t::bind_to_coop(
-	agent_coop_t & coop )
+agent_t::bind_to_coop( coop_t & coop )
 {
 	m_agent_coop = &coop;
 }
@@ -649,7 +654,7 @@ agent_t::demand_handler_on_finish(
 	}
 
 	// Cooperation should receive notification about agent deregistration.
-	agent_coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
+	coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 demand_handler_pfn_t
@@ -665,10 +670,8 @@ agent_t::demand_handler_on_message(
 {
 	message_limit::control_block_t::decrement( d.m_limit );
 
-	auto handler = d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	auto handler = d.m_receiver->m_handler_finder(
+			d, "demand_handler_on_message" );
 	if( handler )
 		process_message( working_thread_id, d, handler->m_method );
 }
@@ -732,10 +735,8 @@ agent_t::process_service_request(
 			const impl::event_handler_data_t * handler =
 					handler_data.first ?
 							handler_data.second :
-							d.m_receiver->m_subscriptions->find_handler(
-									d.m_mbox_id,
-									d.m_msg_type, 
-									d.m_receiver->so_current_state() );
+							d.m_receiver->m_handler_finder(
+									d, "process_service_request" );
 			if( handler )
 			{
 				working_thread_id_sentinel_t sentinel(
@@ -816,6 +817,35 @@ agent_t::do_drop_delivery_filter(
 
 	if( m_delivery_filters )
 		m_delivery_filters->drop_delivery_filter( mbox, msg_type, *this );
+}
+
+const impl::event_handler_data_t *
+agent_t::handler_finder_msg_tracing_disabled(
+	execution_demand_t & d,
+	const char * /*context_marker*/ )
+{
+	return d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+}
+
+const impl::event_handler_data_t *
+agent_t::handler_finder_msg_tracing_enabled(
+	execution_demand_t & d,
+	const char * context_marker )
+{
+	const auto search_result = d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+
+	impl::msg_tracing_helpers::trace_event_handler_search_result(
+			d,
+			context_marker,
+			search_result );
+
+	return search_result;
 }
 
 } /* namespace rt */

@@ -351,7 +351,7 @@ init( so_5::rt::environment_t & env )
 	env.introduce_coop(
 		create_private_disp( env, 3 )->binder(
 				params_t{}.fifo( fifo_t::individual ) ),
-		[]( so_5::rt::agent_coop_t & c ) {
+		[]( so_5::rt::coop_t & c ) {
 			auto collector = c.make_agent< a_collector_t >();
 			auto performer = c.make_agent< a_performer_t >(
 					collector->so_direct_mbox() );

@@ -1,0 +1,371 @@
+/*!
+
+\page so_5_5__in_depth_msg_tracing so-5.5 In Depth - Message Delivery Tracing
+
+\section so_5_5__in_depth_msg_tracing__what_is_it What Is It?
+
+Message delivery tracing is a mechanism for showing details of the process of
+message dispatching and consuming. This mechanism is disabled by default and
+must be enabled explicitly. When enabled the message delivery tracing shows
+every important step of a message delivery.
+
+\section so_5_5__in_depth_msg_tracing__purpose Purpose
+
+The main purpose of message delivery tracing is a debugging of an application
+written on top of SObjectizer-5.
+
+There are many situations where a programmer can make a mistake during event’s
+subscriptions or message sending: there could not be a subscription for a
+message, or subscription can be made for different state, or message can be
+sent to different message box. As result a message will not be processed. But
+how to find a root of such error? Until v.5.5.9 there were no any help from
+SObjectizer in searching such mistakes.
+
+Message delivery tracing shows main stages of message delivery process. It
+makes possible to see is there an appropriate subscriber with an appropriate
+event handler? Since v.5.5.9 you can get a trace of message deliveries during
+an application run and analyze those traces.
+
+Please note that message delivery tracing has a huge performance impact.
+Because of that message delivery tracing should be enabled for testing and
+debugging purposes only. Do not enable message delivery tracing in production.
+
+\section so_5_5__in_depth_msg_tracing__usage Usage
+
+Message delivery tracing is enabled by passing an instance of
+so_5::msg_tracing::tracer_t to environment_params during the start of
+SObjectizer Environment.
+
+There are three functions those create ready to use tracer objects:
+so_5::msg_tracing::std_cout_tracer(), so_5::msg_tracing::std_cerr_tracer() and
+so_5::msg_tracing::std_clog_tracer(). They use std::cout, std::cerr and
+std::clog streams for logging traces.
+
+The easiest way of enabling message delivery tracing is the usage of one of
+those functions. For example:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {...},
+    []( so_5::rt::environment_params_t & params ) {
+        params.message_delivery_tracer( so_5::msg_tracing::std_cout_tracer() );
+    }
+} );
+\endcode
+
+Please note that message delivery tracing can be enabled only at the start of
+SObjectizer Environment and <b>can't be disabled during the work of the
+Environment</b>.
+
+\section so_5_5__in_depth_msg_tracing__features Features
+
+Message delivery tracing mechanism logs the following stages in the message
+dispatching process:
+
+- absence of subscribers for a message sent to an mbox;
+- rejection of a message for a particular subscriber (by a delivery filter);
+- pushing of a message to an event queue for a particular subscriber;
+- performing a reaction to an overlimit of message's quantity for a particular subscriber;
+- searching of event handler for a message for a particular subscriber.
+
+It is a basic set of information to find a trace of message instance route
+during delivering and handling. This set can be extended in the future versions
+of SObjectizer.
+
+\section so_5_5__in_depth_msg_tracing__how_to_read How To Read Tracing Data
+
+This section contains a short overview of the data included in message delivery
+tracing.
+
+\subsection so_5_5__in_depth_msg_tracing__how_to_read__common_cases Common Cases
+
+An output of example chstate_msg_tracing is used for showing most widespead
+cases (that example is a part of SObjectizer distribution since v.5.5.9).
+
+Every trace line contains several tags with values and short stage description.
+Tags are enclosed in square braces. Stage description is represented in
+action_name.action_desc form.
+
+The first line from output to review is:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.push_to_queue
+[msg_type=N17a_state_swither_t16greeting_messageE]
+[envelope_ptr=0x836440][payload_ptr=0x836450]
+[overlimit_deep=1][agent_ptr=0x8379f0]
+\endverbatim
+
+This line tells about pushing a message to event queue inside deliver_message
+(short description is deliver_message.push_to_queue). This action takes place
+at thread with ID 3 (tid=3). A message is sent to message box with ID 4
+(mbox_id=4). Message type is a_state_switcher_t::greeting_message (its mangled
+name is in tag msg_type).
+
+Tag with msg_ptr and payload_ptr values shows pointer to message object and
+pointer to actual payload inside that object.
+
+This message is an instance of user-type message. It is delivered as an
+envelope of so_5::rt::user_type_message_t type with an instance of
+greeting_message inside. Because of that there are two tags with pointers.
+
+The first one is a pointer to message envelope (this tag is marked as
+envelope_ptr). The second one is a pointer to message payload, e.g. to
+greeting_message instance (this tag is marked as payload_ptr).
+
+Tag overlimit_deep shows deep of overlimit actions recursion. Value 1 tells
+that there is no such recursion and this is the first attempt of message
+delivery.
+
+Tag agent_ptr shows a pointer to the receiver of the message. The message will
+be pushed to the event queue of that agent.
+
+The next line to review is:
+
+\verbatim
+[tid=2][agent_ptr=0x8379f0] demand_handler_on_message.find_handler
+[mbox_id=4][msg_type=N17a_state_swither_t16greeting_messageE]
+[envelope_ptr=0x836440][payload_ptr=0x836450]
+[state=<DEFAULT>][evt_handler=0x837fe8]
+\endverbatim
+
+This line tells about searching an event handler for a message.
+
+The search is performed on different thread (tid=2). It is because the search
+is performing on the context of agent’s working thread.
+
+A pointer to agent is in tag agent_ptr. It is easy to see that this is the same
+agent as the agent-receiver from the previous trace line. It means that message
+has been extracted from event queue and passed to the receiver to be processed.
+The receiver has done search for event handler and the result of that search is
+shown.
+
+The tags mbox_id shows ID of mbox from which the message has been received.
+
+Tags envelope_ptr and payload_ptr has the same meaning as described above.
+
+Tag state shows the name of the current state of the agent. The value
+"<DEFAULT>" means that the agent is in the default state.
+
+Tag evt_handler shows a pointer to event handler for the messages. In this case
+that pointer is not null. That means that event handler is found and the
+message will be processed.
+
+The next line to review is:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.push_to_queue
+[msg_type=N17a_state_swither_t19change_state_signalE]
+[signal]
+[overlimit_deep=1][agent_ptr=0x8379f0]
+\endverbatim
+
+This is a trace of deliver_message operation at the stage of pushing the
+message to an event queue of an agent-receiver. All tags have been described
+above but there is no envelope_ptr and payload_ptr tags, but there is a
+\[signal] tag. It is because a_state_switcher_t::change_state_signal is a
+signal. Signals are delivered without actual message objects. Because of that
+there is no envelope and there is no any payload.
+
+The next line to review is about searching the event handler for
+change_state_signal:
+
+\verbatim
+[tid=2][agent_ptr=0x8379f0] demand_handler_on_message.find_handler
+[mbox_id=4][msg_type=N17a_state_swither_t19change_state_signalE]
+[signal]
+[state=<DEFAULT>][evt_handler=0x837fa8]
+\endverbatim
+
+It is easy to see that agent is in the default state and that the event handler
+for the signal is found.
+
+The next line to review is again about dispatching an instance of
+greeting_message to an agent-receiver:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.push_to_queue
+[msg_type=N17a_state_swither_t16greeting_messageE]
+[envelope_ptr=0x836440][payload_ptr=0x836450]
+[overlimit_deep=1][agent_ptr=0x8379f0]
+\endverbatim
+
+All tags are already described above. But it is necessary to note that pointers
+to the envelope and to the payload are the same as in the very first delivery
+attempt. It is because greeting_message is a periodic message. For periodic
+messages the same message envelope is delivered again and again. 
+
+The next line shows the case when event handler for a message is not found:
+
+\verbatim
+[tid=2][agent_ptr=0x8379f0] demand_handler_on_message.find_handler 
+[mbox_id=4][msg_type=N17a_state_swither_t16greeting_messageE]
+[envelope_ptr=0x836440][payload_ptr=0x836450]
+[state=state_1][evt_handler=NONE]
+\endverbatim
+
+Tag state has value "state_1". It is the name of the current state of agent.
+And tag evt_handler has value "NONE". That value means that there is no event
+handler for greeting_message in the state "state_1". Because of that the
+message will be ignored.
+
+\subsection so_5_5__in_depth_msg_tracing__how_to_read__special_cases More Special Cases
+
+This section breifly explains rare traces which can be seen in complex message
+delivery scenarios.
+
+\subsubsection so_5_5__in_depth_msg_tracing__how_to_read__special_cases__svc_request Service Request
+
+This line is an example of trace from delivery of service request:
+
+\verbatim
+[tid=7][mbox_id=4] deliver_service_request.push_to_queue
+[msg_type=6finish]
+[envelope_ptr=0x7db460][signal]
+[overlimit_deep=1][agent_ptr=0x7d82b0]
+\endverbatim
+
+There is a slightly different description: deliver_service_request instead of
+deliver_message.
+
+Service request is delivered as an envelope of some internal SObjectizer's
+type. Actual message object (if any) is in that envelope as a payload. Because
+of that there is tag envelope_ptr. Tag signal is there because a signal is used
+as a service request. In the case of message as service request tag payload_ptr
+will be used in a trace.
+
+\subsubsection so_5_5__in_depth_msg_tracing__how_to_read__special_cases__absence Absence of Subscribers
+
+In the case when there is no subscribers for a message or service request the
+trace could look like:
+
+\verbatim
+[tid=6][mbox_id=4] deliver_service_request.no_subscribers
+[msg_type=6finish]
+[envelope_ptr=0x1be3f90][signal]
+[overlimit_deep=1]
+\endverbatim
+
+\subsubsection so_5_5__in_depth_msg_tracing__how_to_read__special_cases__rejection Rejection of a Message
+
+This line shows the case when a message is rejected by a subscriber:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.message_rejected
+[msg_type=N8a_test_t9dummy_msgE]
+[envelope_ptr=0x5b80e0][payload_ptr=0x5b80ec]
+[overlimit_deep=1][agent_ptr=0x5b72d0]
+\endverbatim
+
+Message rejection occurs if a message is blocked by a delivery filter defined
+by a subcriber.
+
+\subsubsection so_5_5__in_depth_msg_tracing__how_to_read__special_cases__overlimit Overlimit Reactions
+
+There are several examples of traces for cases of overlimit reactions.
+
+This is overlimit reaction of type 'abort the application':
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.overlimit.abort
+[msg_type=N8a_test_t9dummy_msgE]
+[envelope_ptr=0x7c9730][payload_ptr=0x7c973c]
+[overlimit_deep=1][agent_ptr=0x7c98f0]
+\endverbatim
+
+This trace is done just before aborting the application.
+
+This is overlimit reaction of type 'drop the message':
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.overlimit.drop
+[msg_type=N8a_test_t9dummy_msgE]
+[envelope_ptr=0x48a470][payload_ptr=0x48a47c]
+[overlimit_deep=1][agent_ptr=0x489f60]
+\endverbatim
+
+This is overlimit reaction of type 'redirect the message':
+
+\verbatim
+[tid=3][mbox_id=5] deliver_message.overlimit.redirect
+[msg_type=5hello][signal]
+[overlimit_deep=1][agent_ptr=0x5a6af0] ==> [mbox_id=4]
+\endverbatim
+
+A signal of type 'hello' is redirected from mbox with ID 5 to mbox with ID 4
+(destination mbox is shown in tag mbox_id after separator '==>'). The next line
+in trace shows the result of that redirection: an attempt to deliver that
+signal via mbox with ID 4 to different subscriber:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.push_to_queue 
+[msg_type=5hello][signal]
+[overlimit_deep=2][agent_ptr=0x5a69a0]
+\endverbatim
+
+Please note value 2 in overlimit_deep tag. This value means that this is next
+recursion level in overlimit processing for that signal.
+
+This is overlimit reaction of type 'transform the message':
+
+\verbatim
+[tid=3][mbox_id=5] deliver_message.overlimit.transform 
+[msg_type=5hello][envelope_ptr=0x817e50]
+[payload_ptr=0x817e5c][overlimit_deep=1][agent_ptr=0x818500] ==>
+[mbox_id=4][msg_type=3bye][envelope_ptr=0x8165f0][payload_ptr=0x816600]
+\endverbatim
+
+This line shows a transformation of message of type 'hello' from mbox with ID 5
+to a message of type 'bye' which is redirected to mbox with ID 4 (information
+about the new message is in tags after separator '==>'). As result of that
+transformation there is the next line about dispatching the new message:
+
+\verbatim
+[tid=3][mbox_id=4] deliver_message.push_to_queue 
+[msg_type=3bye]
+[envelope_ptr=0x8165f0][payload_ptr=0x816600]
+[overlimit_deep=2][agent_ptr=0x816ac0]
+\endverbatim
+
+Again a value of overlimit_deep tag shows that this is the next recursion level
+in overlimit processing of a message delivery.
+
+\section so_5_5__in_depth_msg_tracing__own_tracer Writing Own Tracer
+
+A user can write its own implementation of so_5::msg_tracing::tracer_t
+interface: it is not a hard task because tracer_t contains just one virtual
+method. For example it is easy to write something like this:
+
+\code
+class demo_file_tracer : public so_5::msg_tracing::tracer_t
+{
+private :
+    std::ofstream m_to;
+    std::mutex m_lock; // To protect in the case of traces from different threads
+    
+    std::string make_timestamp() {...} // some timestamp-related stuff
+    
+public :
+    demo_file_tracer( const char * file_name ) : m_to{ file_name } {}
+    
+    virtual void trace( const std::string & msg ) noexcept override
+    {
+        std::lock_guard< std::mutex > lock{ m_lock };
+        m_to << make_timestamp() << ": " << msg << std::endl;
+    }
+};
+\endcode
+
+This tracer can be set as message delivery tracer during the preparation to the
+start of SObjectizer Environment:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+    []( so_5::rt::environment_params_t & params ) {
+        params.message_delivery_tracer(
+            std::make_unique< demo_file_tracer >( "msg_tracing.log" ) );
+    } );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

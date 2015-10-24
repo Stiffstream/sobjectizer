@@ -86,7 +86,7 @@ create_logger_coop( so_5::rt::environment_t & env )
 	{
 		so_5::rt::mbox_t result;
 
-		env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop )
+		env.introduce_coop( [&]( so_5::rt::coop_t & coop )
 			{
 				// Logger agent.
 				auto a = coop.define_agent();
@@ -279,7 +279,7 @@ struct news_board_data
 // Agent for receiving and storing new stories to news board.
 void
 define_news_receiver_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	news_board_data & board_data,
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
@@ -327,7 +327,7 @@ define_news_receiver_agent(
 // Agent for handling requests about updates on news board.
 void
 define_news_directory_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	news_board_data & board_data,
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
@@ -373,7 +373,7 @@ define_news_directory_agent(
 // Agent for handling requests for story content.
 void
 define_story_extractor_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	news_board_data & board_data,
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
@@ -438,7 +438,7 @@ create_board_coop(
 					.set( p2, 20 ) // 20 events for news_directory.
 					.set( p3, 30 ) // 30 events for story_extractor.
 				)->binder(),
-			[&]( so_5::rt::agent_coop_t & coop )
+			[&]( so_5::rt::coop_t & coop )
 			{
 				// Lifetime of news board data will be controlled by cooperation.
 				auto board_data = coop.take_under_control( new news_board_data() );
@@ -559,7 +559,7 @@ create_publisher_coop(
 		// All publishers will work on the same working thread.
 		env.introduce_coop(
 			so_5::disp::one_thread::create_private_disp( env )->binder(),
-			[&]( so_5::rt::agent_coop_t & coop )
+			[&]( so_5::rt::coop_t & coop )
 			{
 				for( int i = 0; i != 5; ++i )
 					coop.make_agent< story_publisher >(
@@ -754,7 +754,7 @@ create_reader_coop(
 		// All readers will work on the same working thread.
 		env.introduce_coop(
 			so_5::disp::one_thread::create_private_disp( env )->binder(),
-			[&]( so_5::rt::agent_coop_t & coop )
+			[&]( so_5::rt::coop_t & coop )
 			{
 				for( int i = 0; i != 50; ++i )
 					coop.make_agent< news_reader >(

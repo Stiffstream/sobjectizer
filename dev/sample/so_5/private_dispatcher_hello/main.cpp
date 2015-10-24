@@ -90,7 +90,7 @@ private :
 
 	void
 	fill_and_register_coop(
-		so_5::rt::agent_coop_unique_ptr_t coop,
+		so_5::rt::coop_unique_ptr_t coop,
 		const std::string & agent_name_prefix )
 	{
 		// Coordinator's mbox to which hello messages must be sent.

@@ -49,7 +49,7 @@ public :
 	{
 		using namespace so_5::rt;
 
-		introduce_child_coop( *this, "child", [this]( agent_coop_t & coop ) {
+		introduce_child_coop( *this, "child", [this]( coop_t & coop ) {
 			// Add necessary cooperation notificators for coop.
 			coop.add_reg_notificator(
 					make_coop_reg_notificator( so_direct_mbox() ) );

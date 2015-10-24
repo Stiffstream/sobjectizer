@@ -54,7 +54,7 @@ To build SObjectizer under Windows by MS Visual Studio 2013 from command line Yo
 need console with properly configured compiler environment variables via vcvarsall.bat
 (I start it from "Start->All Programms->Visuil Studio 2013->Tools")
 
-  cd so-5.5.8
+  cd so-5.5.9
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev

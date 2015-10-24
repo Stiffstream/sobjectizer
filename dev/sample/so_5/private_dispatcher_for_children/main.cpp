@@ -80,7 +80,7 @@ private :
 				so_5::autoname,
 				// The same dispatcher will be used for child cooperation.
 				m_dispatcher->binder(),
-				[this]( so_5::rt::agent_coop_t & coop ) {
+				[this]( so_5::rt::coop_t & coop ) {
 					coop.make_agent< a_child_t >(
 							m_coordinator,
 							m_dispatcher,
@@ -138,7 +138,7 @@ private :
 				// The main dispatcher for the new cooperation is
 				// the private dispatcher.
 				disp->binder(),
-				[&]( so_5::rt::agent_coop_t & coop ) {
+				[&]( so_5::rt::coop_t & coop ) {
 					coop.make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
 				} );
 	}

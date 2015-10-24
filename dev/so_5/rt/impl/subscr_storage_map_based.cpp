@@ -237,24 +237,24 @@ storage_t::create_event_subscription(
 						}
 				} );
 
-		// We must handle mbox subscription only if it is not MPSC mbox.
-		if( mbox_type_t::multi_producer_single_consumer != mbox->type() )
+		// Note: since v.5.5.9 mbox subscription is initiated even if
+		// it is MPSC mboxes. It is important for the case of message
+		// delivery tracing.
+
+		// If there was no subscription for that mbox
+		// then new subscription in the mbox must be created.
+		if( !is_known_mbox_msg_pair( m_events, ins_result.first ) )
 			{
-				// If there was no subscription for that mbox
-				// then new subscription in the mbox must be created.
-				if( !is_known_mbox_msg_pair( m_events, ins_result.first ) )
-					{
-						so_5::details::do_with_rollback_on_exception(
-							[&] {
-								mbox->subscribe_event_handler(
-										msg_type,
-										limit,
-										owner() );
-							},
-							[&] {
-								m_events.erase( ins_result.first );
-							} );
-					}
+				so_5::details::do_with_rollback_on_exception(
+					[&] {
+						mbox->subscribe_event_handler(
+								msg_type,
+								limit,
+								owner() );
+					},
+					[&] {
+						m_events.erase( ins_result.first );
+					} );
 			}
 	}
 
@@ -268,12 +268,14 @@ storage_t::drop_subscription(
 				m_events, mbox->id(), msg_type, target_state );
 		if( existed_position != m_events.end() )
 			{
-				// If this is not MPSC mbox we must destroy mbox subscription
-				// in case if the agent has no more subscriptions for that
-				// mbox+msg_type pair.
+				// Note v.5.5.9 unsubscribe_event_handlers is called for
+				// mbox even if it is MPSC mbox. It is necessary for the case
+				// of message delivery tracing.
+
+				// We must destroy mbox subscription in case if the agent has no
+				// more subscriptions for that mbox+msg_type pair.
 				// Detect this while existed_position is not invalidated.
 				bool must_unsubscribe_mbox =
-						mbox_type_t::multi_producer_single_consumer != mbox->type() &&
 						!is_known_mbox_msg_pair( m_events, existed_position );
 
 				m_events.erase( existed_position );
@@ -309,9 +311,11 @@ storage_t::drop_subscription_for_all_states(
 					}
 				while( need_erase() );
 
-				// We must handle mbox subscription only if it is not MPSC mbox.
-				if( mbox_type_t::multi_producer_single_consumer != mbox->type() )
-					mbox->unsubscribe_event_handlers( msg_type, owner() );
+				// Note: since v.5.5.9 mbox unsubscription is initiated even if
+				// it is MPSC mboxes. It is important for the case of message
+				// delivery tracing.
+
+				mbox->unsubscribe_event_handlers( msg_type, owner() );
 			}
 	}
 

@@ -60,7 +60,7 @@ main()
 	try
 	{
 		so_5::launch( []( so_5::rt::environment_t & env ) {
-				env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+				env.introduce_coop( [&env]( so_5::rt::coop_t & coop ) {
 					// Mbox for agent's interaction.
 					auto mbox = env.create_local_mbox();
 

@@ -1,0 +1,6 @@
+add_subdirectory(resend_message)
+add_subdirectory(store_and_resend_later)
+add_subdirectory(three_messages)
+add_subdirectory(tuple_as_message)
+add_subdirectory(typed_mtag)
+add_subdirectory(user_type_msgs)

@@ -2,6 +2,29 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_9 5.5.9 "Cerro Zapaleri"
+
+	A possibility to trace details of message delivery process is added.
+	See \ref so_5_5__in_depth_msg_tracing for more details.
+
+	A possibility to send messages of arbitrary types is added. See \ref so_5_5__in_depth__arbitrary_msg_type for more details.
+
+	New format of event handlers is supported now. It is `R event_handler(T)`
+	for methods of agents or `R(T)` for lambda-functions. Event handlers of such
+	format are very useful with messages of arbitrary types.
+
+	New helper functions for synchronous agents interaction:
+	so_5::request_future() and so_5::request_value().
+	See \ref so_5_5_9__request_future for more details.
+
+	New format of so_5::send(). Now so_5::send() can accept const reference to
+	so_5::rt::mbox_t, so_5::rt::agent_t and
+	so_5::rt::adhoc_agent_definition_proxy_t.
+	See \ref so_5_5_9__new_send_format for more details.
+
+	New class so_5::wrapped_env_t added. See \ref so_5_5_9__wrapped_env
+	for more details.
+
 \section so_5__5_8 5.5.8 "Elbrus"
 
 	Pririties for agents and several new dispatchers with priorities support

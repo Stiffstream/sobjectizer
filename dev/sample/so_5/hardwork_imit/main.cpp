@@ -130,7 +130,7 @@ class a_manager_t : public so_5::rt::agent_t
 		std::chrono::steady_clock::time_point m_start_time;
 };
 
-so_5::rt::agent_coop_unique_ptr_t
+so_5::rt::coop_unique_ptr_t
 create_test_coop(
 	so_5::rt::environment_t & env,
 	so_5::rt::disp_binder_unique_ptr_t disp_binder,
@@ -154,8 +154,7 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					so_5::send_to_agent< msg_hardwork_done >(
-							*a_manager, evt.m_index );
+					so_5::send< msg_hardwork_done >( *a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 
@@ -165,8 +164,7 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					so_5::send_to_agent< msg_hardwork_checked >(
-							*a_manager, evt.m_index );
+					so_5::send< msg_hardwork_checked >( *a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 

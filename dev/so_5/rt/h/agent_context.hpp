@@ -89,6 +89,16 @@ class agent_context_t
 				return *m_env;
 			}
 
+		//! Access to SObjectizer Environment.
+		/*!
+		 * \since v.5.5.9
+		 */
+		environment_t &
+		environment() const
+			{
+				return *m_env;
+			}
+
 		//! Read-Write access to agent options.
 		agent_tuning_options_t &
 		options()

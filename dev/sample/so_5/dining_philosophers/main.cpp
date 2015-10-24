@@ -162,7 +162,7 @@ private :
 void
 init( so_5::rt::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		const std::size_t count = 5;
 
 		std::vector< so_5::rt::agent_t * > forks( count, nullptr );

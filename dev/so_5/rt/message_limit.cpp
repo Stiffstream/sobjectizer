@@ -9,10 +9,13 @@
 
 #include <so_5/rt/h/message_limit.hpp>
 
+#include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
+
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/ret_code.hpp>
+
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -38,9 +41,20 @@ const unsigned int max_overlimit_reaction_deep = 32;
 
 SO_5_FUNC
 void
+drop_message_reaction( const overlimit_context_t & ctx )
+	{
+		if( ctx.m_msg_tracer )
+			ctx.m_msg_tracer->reaction_drop_message( &ctx.m_receiver );
+	}
+
+SO_5_FUNC
+void
 abort_app_reaction( const overlimit_context_t & ctx )
 	{
 		so_5::details::abort_on_fatal_error( [&] {
+			if( ctx.m_msg_tracer )
+				ctx.m_msg_tracer->reaction_abort_app( &ctx.m_receiver );
+
 			SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
 				logger
 					<< "message limit exceeded, application will be aborted. "
@@ -69,16 +83,24 @@ redirect_reaction(
 						<< ", agent: " << &(ctx.m_receiver)
 						<< ", target_mbox: " << to->query_name();
 			}
-		else if( invocation_type_t::event == ctx.m_event_type )
-			to->do_deliver_message(
-					ctx.m_msg_type,
-					ctx.m_message,
-					ctx.m_reaction_deep + 1 );
-		else if( invocation_type_t::service_request == ctx.m_event_type )
-			to->do_deliver_service_request(
-					ctx.m_msg_type,
-					ctx.m_message,
-					ctx.m_reaction_deep + 1 );
+		else
+			{
+				if( ctx.m_msg_tracer )
+					ctx.m_msg_tracer->reaction_redirect_message(
+							&ctx.m_receiver,
+							to );
+
+				if( invocation_type_t::event == ctx.m_event_type )
+					to->do_deliver_message(
+							ctx.m_msg_type,
+							ctx.m_message,
+							ctx.m_reaction_deep + 1 );
+				else if( invocation_type_t::service_request == ctx.m_event_type )
+					to->do_deliver_service_request(
+							ctx.m_msg_type,
+							ctx.m_message,
+							ctx.m_reaction_deep + 1 );
+			}
 	}
 
 SO_5_FUNC
@@ -121,10 +143,19 @@ transform_reaction(
 						<< ", target_mbox: " << to->query_name();
 			}
 		else
-			to->do_deliver_message(
-					msg_type,
-					message,
-					ctx.m_reaction_deep + 1 );
+			{
+				if( ctx.m_msg_tracer )
+					ctx.m_msg_tracer->reaction_transform(
+							&ctx.m_receiver,
+							to,
+							msg_type,
+							message );
+
+				to->do_deliver_message(
+						msg_type,
+						message,
+						ctx.m_reaction_deep + 1 );
+			}
 	}
 
 } /* namespace impl */

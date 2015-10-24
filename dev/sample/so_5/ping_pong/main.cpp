@@ -104,7 +104,7 @@ run_sample(
 					cfg.m_active_objects ?
 						so_5::disp::active_obj::create_private_disp( env )->binder() :
 						so_5::rt::create_default_disp_binder(),
-						[&]( so_5::rt::agent_coop_t & coop )
+						[&]( so_5::rt::coop_t & coop )
 						{
 							auto mbox = env.create_local_mbox();
 

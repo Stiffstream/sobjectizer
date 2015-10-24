@@ -30,7 +30,7 @@ namespace details {
  *
  * \par Usage example
 	\code
-	if( agent_coop_t::COOP_NOT_REGISTERED == m_agent_coop->m_registration_status )
+	if( coop_t::COOP_NOT_REGISTERED == m_agent_coop->m_registration_status )
 		so_5::details::abort_on_fatal_error( [&] {
 			SO_5_LOG_ERROR( so_environment(), log_stream )
 			{

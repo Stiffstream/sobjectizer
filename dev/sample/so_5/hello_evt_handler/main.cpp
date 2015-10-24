@@ -38,8 +38,7 @@ class a_hello_t : public so_5::rt::agent_t
 		so_evt_start() override
 		{
 			// Send hello message.
-			so_5::send_to_agent< msg_hello >( *this,
-					"Hello, world! This is SObjectizer-5.");
+			so_5::send< msg_hello >( *this, "Hello, world! This is SObjectizer-5.");
 		}
 
 		// Hello message handler.

@@ -3,6 +3,10 @@
  */
 
 /*!
+ * \example so_5/chstate_msg_tracing/main.cpp
+ */
+
+/*!
  * \example so_5/coop_listener/main.cpp
  */
 
@@ -168,6 +172,14 @@
 
 /*!
  * \example so_5/prio_work_stealing/main.cpp
+ */
+
+/*!
+ * \example so_5/wrapped_env_demo/main.cpp
+ */
+
+/*!
+ * \example so_5/convert_lib/main.cpp
  */
 
 // vim:ft=cpp.doxygen

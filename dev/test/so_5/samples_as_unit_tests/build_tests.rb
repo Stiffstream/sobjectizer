@@ -5,6 +5,7 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/chameneos_prealloc_msgs.ut.rb"
   required_prj "#{path}/chameneos_simple.ut.rb"
+  required_prj "#{path}/chstate_msg_tracing.ut.rb"
   required_prj "#{path}/coop_listener.ut.rb"
   required_prj "#{path}/coop_notification.ut.rb"
   required_prj "#{path}/coop_user_resources.ut.rb"

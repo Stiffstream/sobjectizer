@@ -55,8 +55,7 @@ class coop_dereg_executor_thread_t
 
 		//! Push cooperation to the waiting queue.
 		void
-		push_dereg_demand(
-			agent_coop_t * coop );
+		push_dereg_demand( coop_t * coop );
 
 	protected:
 		//! Thread body.

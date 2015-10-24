@@ -40,14 +40,14 @@ namespace coop_dereg
 class dereg_demand_queue_t
 {
 	public:
-		typedef std::vector< agent_coop_t* > dereg_demand_container_t;
+		typedef std::vector< coop_t* > dereg_demand_container_t;
 
 		dereg_demand_queue_t();
 		~dereg_demand_queue_t();
 
 		//! Put cooperation into the queue.
 		void
-		push( agent_coop_t * coop );
+		push( coop_t * coop );
 
 		//! Get cooperations from the queue.
 		/*!

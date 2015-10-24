@@ -531,7 +531,7 @@ struct cooler_stopper_t
 
 // Helper for creation of machine agents.
 const machine_dictionary_t & create_machines(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const so_5::rt::mbox_t & status_distrib_mbox )
 {
 	// Data for machine dictionary.
@@ -564,7 +564,7 @@ const machine_dictionary_t & create_machines(
 }
 
 void create_machine_controllers(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const so_5::rt::mbox_t & status_distrib_mbox,
 	const machine_dictionary_t & machines )
 {
@@ -598,7 +598,7 @@ void create_machine_controllers(
 }
 
 void create_starter_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::rt::coop_t & coop,
 	const machine_dictionary_t & dict )
 {
 	// A very simple ad-hoc agent will be used as starter.
@@ -611,7 +611,7 @@ void create_starter_agent(
 		} );
 }
 
-void fill_coop( so_5::rt::agent_coop_t & coop )
+void fill_coop( so_5::rt::coop_t & coop )
 {
 	// Common mbox for information distribution.
 	auto status_distrib_mbox = coop.environment().create_local_mbox();

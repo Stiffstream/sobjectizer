@@ -62,7 +62,7 @@ public :
 		send< msg_sample >( m_mbox, 1, "subscription-and-filter" );
 
 		// Take time for processing already queued messages.
-		send_to_agent< msg_second_part >( *this );
+		send< msg_second_part >( *this );
 	}
 
 	void
@@ -101,7 +101,7 @@ public :
 		send< msg_sample >( m_mbox, 1, "only-subscription-2" );
 
 		// Example could be finished.
-		send_to_agent< msg_shutdown >( *this );
+		send< msg_shutdown >( *this );
 	}
 
 private :

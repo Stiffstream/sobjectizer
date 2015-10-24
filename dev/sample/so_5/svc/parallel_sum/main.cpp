@@ -57,7 +57,7 @@ class a_vector_summator_t : public so_5::rt::agent_t
 				so_5::rt::introduce_child_coop(
 						*this,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-						[&]( so_5::rt::agent_coop_t & coop )
+						[&]( so_5::rt::coop_t & coop )
 						{
 							coop.define_agent().event(
 								m_part_summator_mbox,
@@ -73,9 +73,9 @@ class a_vector_summator_t : public so_5::rt::agent_t
 				auto m = evt.m_vector.begin() + evt.m_vector.size() / 2;
 
 				return std::accumulate( evt.m_vector.begin(), m, 0 ) +
-						m_part_summator_mbox->get_one< int >().wait_forever()
-								.make_sync_get< msg_sum_part >(
-										m, evt.m_vector.end() );
+						so_5::request_value< int, msg_sum_part >(
+								m_part_summator_mbox, so_5::infinite_wait,
+								m, evt.m_vector.end() );
 			}
 
 	private :
@@ -148,7 +148,7 @@ class a_runner_t : public so_5::rt::agent_t
 				so_5::rt::introduce_child_coop(
 					*this,
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-					[this]( so_5::rt::agent_coop_t & coop ) {
+					[this]( so_5::rt::coop_t & coop ) {
 						coop.make_agent< a_vector_summator_t >( m_summator_mbox );
 					} );
 			}
@@ -170,9 +170,8 @@ class a_runner_t : public so_5::rt::agent_t
 
 				for( std::size_t i = 0; i != ITERATIONS; ++i )
 					{
-						m_summator_mbox->get_one< int >()
-								.wait_forever()
-								.make_sync_get< msg_sum_vector >( m_vector );
+						so_5::request_value< int, msg_sum_vector >(
+								m_summator_mbox, so_5::infinite_wait, m_vector );
 
 						indicator.update( i );
 					}
@@ -192,7 +191,7 @@ main( int argc, char ** argv )
 							env.introduce_coop(
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ),
-									[&]( so_5::rt::agent_coop_t & coop ) {
+									[&]( so_5::rt::coop_t & coop ) {
 										coop.make_agent< a_runner_t >( ITERATIONS );
 									} );
 						},

@@ -19,6 +19,7 @@
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/compiler_features.hpp>
+#include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -248,6 +249,17 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \since v.5.5.9
+		 * \brief Set message delivery tracer for the environment.
+		 */
+		environment_params_t &
+		message_delivery_tracer( so_5::msg_tracing::tracer_unique_ptr_t tracer )
+		{
+			m_message_delivery_tracer = std::move( tracer );
+			return *this;
+		}
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
@@ -291,6 +303,16 @@ class SO_5_TYPE environment_params_t
 		so5__error_logger() const
 		{
 			return m_error_logger;
+		}
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Get message delivery tracer for the environment.
+		 */
+		so_5::msg_tracing::tracer_unique_ptr_t
+		so5__giveout_message_delivery_tracer()
+		{
+			return std::move( m_message_delivery_tracer );
 		}
 		/*!
 		 * \}
@@ -344,6 +366,12 @@ class SO_5_TYPE environment_params_t
 		 * \brief Error logger for the environment.
 		 */
 		error_logger_shptr_t m_error_logger;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Tracer for message delivery.
+		 */
+		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
 };
 
 //
@@ -354,6 +382,12 @@ class SO_5_TYPE environment_params_t
  * \deprecated Obsolete in 5.5.0
  */
 typedef environment_params_t so_environment_params_t;
+
+namespace impl {
+
+class internal_env_iface_t;
+
+} /* namespace impl */
 
 //
 // environment_t
@@ -457,6 +491,8 @@ typedef environment_params_t so_environment_params_t;
  */
 class SO_5_TYPE environment_t
 {
+	friend class so_5::rt::impl::internal_env_iface_t;
+
 		//! Auxiliary methods for getting reference to itself.
 		/*!
 		 * Could be used in constructors without compiler warnings.
@@ -558,7 +594,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation with \a name. This cooperation
 		 * will use default dispatcher binders.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			const nonempty_name_t & name );
@@ -569,7 +605,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation with automatically generated name. This
 		 * cooperation will use default dispatcher binders.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			autoname_indicator_t indicator() );
 
@@ -580,8 +616,8 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::rt::agent_coop_unique_ptr_t coop = so_env.create_coop(
-				so_5::rt::nonempty_name_t( "some_coop" ),
+			so_5::rt::coop_unique_ptr_t coop = so_env.create_coop(
+				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
 					"some_active_group" ) );
@@ -593,7 +629,7 @@ class SO_5_TYPE environment_t
 				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
 			\endcode
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			const nonempty_name_t & name,
@@ -606,7 +642,7 @@ class SO_5_TYPE environment_t
 		 * \return A cooperation with automatically generated name and
 		 * \a disp_binder as the default dispatcher binder.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			autoname_indicator_t indicator(),
@@ -630,7 +666,7 @@ class SO_5_TYPE environment_t
 		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop );
+			coop_unique_ptr_t agent_coop );
 
 		/*!
 		 * \since v.5.2.1
@@ -897,10 +933,11 @@ class SO_5_TYPE environment_t
 			*/
 			std::chrono::steady_clock::duration period )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause,
@@ -928,10 +965,11 @@ class SO_5_TYPE environment_t
 			*/
 			unsigned int period_msec )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -959,7 +997,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				pause,
@@ -988,7 +1026,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1012,7 +1050,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause );
@@ -1033,10 +1071,11 @@ class SO_5_TYPE environment_t
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1057,7 +1096,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				pause );
@@ -1079,7 +1118,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1254,25 +1293,25 @@ class SO_5_TYPE environment_t
 			\code
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
-			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
-			env.introduce_coop( "main-coop", []( so_5::rt::agent_coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+			env.introduce_coop( "main-coop", []( so_5::rt::coop_t & coop ) {
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is automatically generated and
 			// dispatcher binder is specified.
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+				[]( so_5::rt::coop_t & coop ) {
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 
 			// For the case when name is explicitly defined and
@@ -1280,45 +1319,15 @@ class SO_5_TYPE environment_t
 			env.introduce_coop(
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+				[]( so_5::rt::coop_t & coop ) {
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 			\endcode
 		 */
 		template< typename... ARGS >
 		void
 		introduce_coop( ARGS &&... args );
-
-		/*!
-		 * \name Methods for internal use inside SObjectizer.
-		 * \{
-		 */
-		//! Create multi-producer/single-consumer mbox.
-		mbox_t
-		so5__create_mpsc_mbox(
-			//! The only consumer for the messages.
-			agent_t * single_consumer,
-			//! Pointer to the optional message limits storage.
-			//! If this pointer is null then the limitless MPSC-mbox will be
-			//! created. If this pointer is not null the the MPSC-mbox with limit
-			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
-
-		//! Notification about readiness to the deregistration.
-		void
-		so5__ready_to_deregister_notify(
-			//! Cooperation which is ready to be deregistered.
-			agent_coop_t * coop );
-
-		//! Do the final actions of a cooperation deregistration.
-		void
-		so5__final_deregister_coop(
-			//! Cooperation name to be deregistered.
-			const std::string & coop_name );
-		/*!
-		 * \}
-		 */
 
 	private:
 		//! Schedule timer event.
@@ -1617,7 +1626,7 @@ environment_t::introduce_coop( ARGS &&... args )
 	\endcode
  */
 template< typename... ARGS >
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 create_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
@@ -1638,7 +1647,7 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		coop.define_agent().on_start( [&coop] {
 			auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
 			child->make_agent< worker >();
@@ -1650,10 +1659,10 @@ create_child_coop(
 	\endcode
  */
 template< typename... ARGS >
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 create_child_coop(
 	//! Parent cooperation.
-	const agent_coop_t & parent,
+	const coop_t & parent,
 	//! Arguments for the environment_t::create_coop() method.
 	ARGS&&... args )
 {
@@ -1677,7 +1686,7 @@ create_child_coop(
 		virtual void
 		so_evt_start() override
 		{
-			so_5::rt::introduce_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {
+			so_5::rt::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1709,10 +1718,10 @@ introduce_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+	env.introduce_coop( []( so_5::rt::coop_t & parent ) {
 		coop.define_agent().on_start( [&parent] {
 			so_5::rt::introduce_child_coop( parent,
-				[]( so_5::rt::agent_coop_t & child ) {
+				[]( so_5::rt::coop_t & child ) {
 					child.make_agent< worker >();
 					...
 				} );
@@ -1731,7 +1740,7 @@ template< typename... ARGS >
 void
 introduce_child_coop(
 	//! Parent cooperation.
-	const agent_coop_t & parent,
+	const coop_t & parent,
 	//! Arguments for the environment_t::introduce_coop() method.
 	ARGS&&... args )
 {

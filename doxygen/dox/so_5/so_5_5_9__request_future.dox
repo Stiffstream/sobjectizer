@@ -1,0 +1,81 @@
+/*!
+
+\page so_5_5_9__request_future so-5.5.9: New helper functions request_future and request_value  
+
+A synchronous interaction between agents is a very useful mechanism for some
+situations. But usage of long method call chaings for that interaction is
+sometimes complex and confusing. For example:
+
+\code
+std::string v = converter_mbox->get_one<std::string>()
+                            .wait_forever()
+                            .make_sync_get<convert_int>(42);
+\endcode
+
+Such long method call chains are there because there was a necessity to support
+of compilers without proper implementation of C++11 variadic templates. But
+such compilers are not supported now. It means that synchronous interactions
+can be simplified.
+
+Two new helper functions have been introduced in v.5.5.9:
+
+- so_5::request_future() for making synchronous request and receive the result in form of std::future<T> without any waiting inside request_future();
+- so_5::request_value() for making synchronous request and receive the result in form of value of T with waiting inside request_value().
+
+The usage of request_future() and request_value() can be shown in comparison
+with old approach:
+
+\code
+// Old way of getting std::future<T>:
+auto f1 = converter_mbox->get_one<std::string>().make_async<convert_int>(42);
+// New way:
+auto f2 = so_5::request_future<std::string, convert_int>(converter_mbox, 42);
+
+// Old way of getting a value with infinite waiting:
+auto v1 = converter_mbox->get_one<std::string>()
+                      .wait_forever()
+                      .make_sync_get<convert_int>(42);
+// New way:
+auto v2 = so_5::request_value<std::string, convert_int>(converter_mbox, so_5::infinite_wait, 42);
+
+// Old way of getting a value with finite waiting time:
+auto v3 = converter_mbox->get_one<std::string>()
+                      .wait_for(std::chrono::milliseconds(150))
+                      .make_sync_get<convert_int>(42);
+// New way:
+auto v4 = so_5::request_value<std::string, convert_int>(converter_mbox,
+                      std::chrono::milliseconds(150), 42);
+\endcode
+
+New functions also support signals as requests:
+
+\code
+struct get_status : public so_5::rt::signal_t {};
+...
+auto f1 = so_5::request_future<std::string, get_status>(mbox);
+auto v1 = so_5::request_value<std::string, get_status>(mbox, so_5::infinite_wait);
+\endcode
+
+The first argument for request_future() and request_value() can be either a
+so_5::rt::mbox_t, a reference to so_5::rt::agent_t or a reference to ad-hoc
+agent proxy. For example:
+
+\code
+env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+   auto engine = coop.make_agent_with_binder< engine_agent >(
+      so_5::disp::one_thread::create_private_disp()->binder(), ... );
+   auto indicator = coop.define_agent( so_5::disp::one_thread::create_private_disp()->binder() );
+   ...
+   auto starter = coop.define_agent().on_start( [indicator, engine]{
+       // Synchronous signal to turn engine on.
+       so_5::request_value<void, turn_on>( *engine );
+       // Synchronous signal to show engine status.
+       so_5::request_value<void, engine_is_working >( indicator );
+   } );
+} );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

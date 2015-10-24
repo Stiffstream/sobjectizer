@@ -290,6 +290,14 @@ const int rc_priority_quote_illegal_value = 120;
 
 //! \}
 
+//! \name Error codes for SObjectizer Environment related errors.
+//! \{
+
+//! Message delivery tracing is disabled and cannot be used.
+const int rc_msg_tracing_disabled = 140;
+
+//! \}
+
 //! \name Common error codes.
 //! \{
 

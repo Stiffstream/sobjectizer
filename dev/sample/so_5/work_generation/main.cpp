@@ -95,7 +95,7 @@ public :
 	so_evt_start() override
 	{
 		// Start work cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -313,7 +313,7 @@ public :
 	so_evt_start() override
 	{
 		// Start working cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -347,7 +347,7 @@ private :
 			// There are some requests. They must be processed.
 			process_requests( requests );
 			// Start next turn immediately.
-			so_5::send_to_agent< msg_next_turn >( *this );
+			so_5::send< msg_next_turn >( *this );
 		}
 	}
 
@@ -359,10 +359,10 @@ private :
 		// as inabillity of receiver to provide request array.
 		try
 		{
-			return m_receiver->
-					get_one< std::vector< application_request > >()
-					.wait_for( std::chrono::milliseconds( 20 ) )
-					.sync_get< a_receiver_t::msg_take_requests >();
+			return so_5::request_value<
+						std::vector< application_request >,
+						a_receiver_t::msg_take_requests >
+					( m_receiver, std::chrono::milliseconds( 20 ) );
 		}
 		catch( const std::exception & x )
 		{
@@ -405,7 +405,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+		env.introduce_coop( [&]( so_5::rt::coop_t & coop ) {
 			auto receiver = coop.make_agent_with_binder< a_receiver_t >(
 					receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
 					"r" + std::to_string(i), c );
@@ -435,7 +435,7 @@ init( so_5::rt::environment_t & env )
 	auto generators_disp = create_private_disp( env, 3 );
 	env.introduce_coop(
 			generators_disp->binder( params_t{}.fifo( fifo_t::individual ) ),
-			[&receivers]( so_5::rt::agent_coop_t & coop ) {
+			[&receivers]( so_5::rt::coop_t & coop ) {
 				for( int i = 0; i != 3; ++i )
 					coop.make_agent< a_generator_t >(
 							"g" + std::to_string(i), receivers );

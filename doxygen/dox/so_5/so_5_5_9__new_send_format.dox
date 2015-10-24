@@ -1,0 +1,31 @@
+/*!
+
+\page so_5_5_9__new_send_format so-5.5.9: New format of send function
+
+Since v.5.5.9 the first argument to so_5::send() function can be either a
+reference to so_5::rt::mbox_t, a reference to so_5::rt::agent_t or a reference
+to ad-hoc definition proxy:
+
+\code
+so_5::rt::mbox_t mbox = env.create_local_mbox();
+auto engine = coop.make_agent<engine_agent>(...);
+auto indicator = coop.define_agent();
+...
+// Old way of sending message via so_5::send():
+so_5::send< get_status >(mbox);
+so_5::send< get_status >(engine->so_direct_mbox());
+so_5::send< get_status >(indicator.direct_mbox());
+
+// New way:
+so_5::send< get_status >(mbox);
+so_5::send< get_status >(*engine);
+so_5::send< get_status >(indicator);
+\endcode
+
+It means that since v.5.5.9 so_5::send() can be used instead of
+so_5::send_to_agent().
+
+*/
+
+// vim:ft=cpp
+

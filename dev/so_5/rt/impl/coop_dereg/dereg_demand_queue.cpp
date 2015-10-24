@@ -26,7 +26,7 @@ dereg_demand_queue_t::~dereg_demand_queue_t()
 }
 
 void
-dereg_demand_queue_t::push( agent_coop_t * coop )
+dereg_demand_queue_t::push( coop_t * coop )
 {
 	bool was_empty = false;
 	{

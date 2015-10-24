@@ -164,7 +164,7 @@ public :
 				so_5::disp::active_obj::create_private_disp(
 						so_environment() )->binder(),
 				// Lambda for tuning cooperation object.
-				[this]( so_5::rt::agent_coop_t & coop ) {
+				[this]( so_5::rt::coop_t & coop ) {
 					// Filling the child cooperation.
 					auto a_pinger = coop.make_agent< pinger >( so_direct_mbox() );
 					auto a_ponger = coop.make_agent< ponger >( so_direct_mbox() );

@@ -9,6 +9,7 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/hello_delay/prj.rb'
 	required_prj 'sample/so_5/hello_periodic/prj.rb'
 	required_prj 'sample/so_5/chstate/prj.rb'
+	required_prj 'sample/so_5/chstate_msg_tracing/prj.rb'
 	required_prj 'sample/so_5/disp/prj.rb'
 	required_prj 'sample/so_5/coop_listener/prj.rb'
 	required_prj 'sample/so_5/exception_logger/prj.rb'
@@ -45,4 +46,6 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/machine_control/prj.rb'
 	required_prj 'sample/so_5/news_board/prj.rb'
 	required_prj 'sample/so_5/prio_work_stealing/prj.rb'
+	required_prj 'sample/so_5/wrapped_env_demo/prj.rb'
+	required_prj 'sample/so_5/convert_lib/prj.rb'
 }

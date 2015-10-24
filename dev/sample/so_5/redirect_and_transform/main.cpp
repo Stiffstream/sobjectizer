@@ -148,7 +148,7 @@ public :
 	so_evt_start() override
 	{
 		// Start work cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -294,7 +294,7 @@ private :
 void
 init( so_5::rt::environment_t & env )
 {
-	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( [&env]( so_5::rt::coop_t & coop ) {
 		// Logger will work on the default dispatcher.
 		auto logger = coop.make_agent< a_logger_t >();
 

@@ -256,7 +256,7 @@ static const source_t src = source_t{};
 // An alias for functional object to build necessary agent for a
 // pipeline stage.
 //
-using stage_builder_t = function< mbox_t(agent_coop_t &, mbox_t) >;
+using stage_builder_t = function< mbox_t(coop_t &, mbox_t) >;
 
 //
 // Description of one pipeline stage.
@@ -433,7 +433,7 @@ operator|(
 {
 	return stage_t< IN, OUT >{
 		stage_builder_t{
-			[handler]( agent_coop_t & coop, mbox_t next_stage ) -> mbox_t
+			[handler]( coop_t & coop, mbox_t next_stage ) -> mbox_t
 			{
 				auto stage_agent = coop.make_agent< a_stage_point_t< IN, OUT > >(
 						move(handler), move(next_stage) );
@@ -454,7 +454,7 @@ operator|(
 {
 	return stage_t< IN, OUT2 >{
 		stage_builder_t{
-			[prev, next]( agent_coop_t & coop, mbox_t next_stage ) -> mbox_t
+			[prev, next]( coop_t & coop, mbox_t next_stage ) -> mbox_t
 			{
 				auto stage_agent = coop.make_agent< a_stage_point_t< OUT1, OUT2 > >(
 						move(next), move(next_stage) );
@@ -476,7 +476,7 @@ operator|(
 {
 	return stage_t< IN, void >{
 		stage_builder_t{
-			[prev, broadcasts]( agent_coop_t & coop, mbox_t ) -> mbox_t
+			[prev, broadcasts]( coop_t & coop, mbox_t ) -> mbox_t
 			{
 				vector< mbox_t > mboxes;
 				mboxes.reserve( broadcasts.m_builders.size() );

@@ -39,13 +39,13 @@ namespace impl
 {
 
 class agent_core_t;
-class agent_coop_private_iface_t;
+class coop_private_iface_t;
 class so_environment_impl_t;
 
 } /* namespace impl */
 
 class environment_t;
-class agent_coop_t;
+class coop_t;
 
 namespace dereg_reason
 {
@@ -265,19 +265,19 @@ typedef intrusive_ptr_t< coop_dereg_notificators_container_t >
  * After addition to the cooperation the cooperation takes care about
  * the agent lifetime.
  */
-class SO_5_TYPE agent_coop_t
+class SO_5_TYPE coop_t
 {
 	private :
 		friend class agent_t;
 		friend class impl::agent_core_t;
-		friend class impl::agent_coop_private_iface_t;
+		friend class impl::coop_private_iface_t;
 
-		agent_coop_t( const agent_coop_t & ) = delete;
-		agent_coop_t &
-		operator=( const agent_coop_t & ) = delete;
+		coop_t( const coop_t & ) = delete;
+		coop_t &
+		operator=( const coop_t & ) = delete;
 
 	protected :
-		virtual ~agent_coop_t();
+		virtual ~coop_t();
 
 	public:
 		/*!
@@ -285,10 +285,10 @@ class SO_5_TYPE agent_coop_t
 		 * \brief Deleter for agent_coop.
 		 */
 		static void
-		destroy( agent_coop_t * coop );
+		destroy( coop_t * coop );
 
 		//! Constructor.
-		agent_coop_t(
+		coop_t(
 			//! Cooperation name.
 			const nonempty_name_t & name,
 			//! Default dispatcher binding.
@@ -385,7 +385,7 @@ class SO_5_TYPE agent_coop_t
 		 * Informs cooperation that it is used by yet another entity.
 		 */
 		static inline void
-		increment_usage_count( agent_coop_t & coop )
+		increment_usage_count( coop_t & coop )
 		{
 			coop.increment_usage_count();
 		}
@@ -396,7 +396,7 @@ class SO_5_TYPE agent_coop_t
 		 * child cooperation work.
 		 */
 		static inline void
-		decrement_usage_count( agent_coop_t & coop )
+		decrement_usage_count( coop_t & coop )
 		{
 			coop.decrement_usage_count();
 		}
@@ -406,7 +406,7 @@ class SO_5_TYPE agent_coop_t
 		 * Initiate a final deregistration stage.
 		 */
 		static inline void
-		call_final_deregister_coop( agent_coop_t * coop )
+		call_final_deregister_coop( coop_t * coop )
 		{
 			coop->final_deregister_coop();
 		}
@@ -680,7 +680,7 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -716,7 +716,7 @@ class SO_5_TYPE agent_coop_t
 		 \code
 		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
 		 		so_5::disp::one_thread::create_private_disp();
-		 so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -756,7 +756,7 @@ class SO_5_TYPE agent_coop_t
 		 * \par Usage example:
 			\code
 			so_5::rt::environment_t & env = ...;
-			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 					coop.define_agent()
 						.event< some_signal >( some_mbox, [&coop] {
 							...
@@ -767,7 +767,7 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::agent_coop_t & coop = ...;
+			so_5::rt::coop_t & coop = ...;
 			coop.environment().deregister_coop( coop.query_coop_name(), reason );
 			\endcode
 		 */
@@ -782,7 +782,7 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::agent_coop_t & coop = ...;
+			so_5::rt::coop_t & coop = ...;
 			coop.deregister( so_5::rt::dereg_reason::normal );
 			\endcode
 		 */
@@ -867,7 +867,7 @@ class SO_5_TYPE agent_coop_t
 		 * - count of direct child cooperations;
 		 * - usage of cooperation pointer in cooperation registration routine.
 		 *
-		 * \sa agent_coop_t::increment_usage_count()
+		 * \sa coop_t::increment_usage_count()
 		 */
 		atomic_counter_t m_reference_count;
 
@@ -886,7 +886,7 @@ class SO_5_TYPE agent_coop_t
 		 * Gets the value only if there is the parent cooperation and
 		 * cooperation itself is registered successfully.
 		 */
-		agent_coop_t * m_parent_coop_ptr;
+		coop_t * m_parent_coop_ptr;
 
 		/*!
 		 * \since v.5.2.3
@@ -987,7 +987,7 @@ class SO_5_TYPE agent_coop_t
 		do_registration_specific_actions(
 			//! Pointer to the parent cooperation.
 			//! Contains nullptr if there is no parent cooperation.
-			agent_coop_t * agent_coop );
+			coop_t * agent_coop );
 
 		/*!
 		 * \since v.5.2.3
@@ -1096,7 +1096,7 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * \retval nullptr if there is no parent cooperation.
 		 */
-		agent_coop_t *
+		coop_t *
 		parent_coop_ptr() const;
 
 		/*!
@@ -1129,22 +1129,46 @@ class SO_5_TYPE agent_coop_t
 };
 
 /*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_t = coop_t;
+
+/*!
  * \since v.5.2.3
  * \brief A custom deleter for cooperation.
  */
-class agent_coop_deleter_t
+class coop_deleter_t
 {
 	public :
 		inline void
-		operator()( agent_coop_t * coop ) { agent_coop_t::destroy( coop ); }
+		operator()( coop_t * coop ) { coop_t::destroy( coop ); }
 };
 
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_deleter_t = coop_deleter_t;
+
 //! Typedef for the agent_coop autopointer.
-typedef std::unique_ptr< agent_coop_t, agent_coop_deleter_t >
-	agent_coop_unique_ptr_t;
+typedef std::unique_ptr< coop_t, coop_deleter_t >
+	coop_unique_ptr_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_unique_ptr_t = coop_unique_ptr_t;
 
 //! Typedef for the agent_coop smart pointer.
-typedef std::shared_ptr< agent_coop_t > agent_coop_ref_t;
+typedef std::shared_ptr< coop_t > coop_ref_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_ref_t = coop_ref_t;
 
 } /* namespace rt */
 

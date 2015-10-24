@@ -169,7 +169,7 @@ class a_parent_t : public so_5::rt::agent_t
 
 			// Creating a child cooperation.
 			so_5::rt::introduce_child_coop( *this, so_5::autoname,
-				[&]( so_5::rt::agent_coop_t & coop ) {
+				[&]( so_5::rt::coop_t & coop ) {
 					// Adding agents to the cooperation.
 					coop.make_agent< a_child_t >( so_direct_mbox(), id );
 				} );

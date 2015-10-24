@@ -48,16 +48,15 @@ coop_dereg_executor_thread_t::finish()
 }
 
 void
-coop_dereg_executor_thread_t::push_dereg_demand(
-	agent_coop_t * coop )
+coop_dereg_executor_thread_t::push_dereg_demand( coop_t * coop )
 {
 	m_dereg_demand_queue.push( coop );
 }
 
 void
-exec_final_coop_dereg( agent_coop_t * coop )
+exec_final_coop_dereg( coop_t * coop )
 {
-	agent_coop_t::call_final_deregister_coop( coop );
+	coop_t::call_final_deregister_coop( coop );
 }
 
 void

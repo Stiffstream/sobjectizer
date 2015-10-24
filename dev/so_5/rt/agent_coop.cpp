@@ -9,9 +9,7 @@
 
 #include <so_5/rt/h/environment.hpp>
 
-#include <so_5/rt/h/agent.hpp>
-
-#include <so_5/rt/h/agent_coop.hpp>
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
 
 #include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 
@@ -100,13 +98,13 @@ coop_dereg_notificators_container_t::call_all(
 	}
 }
 //
-// agent_coop_t
+// coop_t
 //
 
-agent_coop_t::~agent_coop_t()
+coop_t::~coop_t()
 {
 	// Initiate deleting of agents by hand to guarantee that
-	// agents will be destroyed before return from agent_coop_t
+	// agents will be destroyed before return from coop_t
 	// destructor.
 	//
 	// NOTE: because agents are stored here by smart references
@@ -119,12 +117,12 @@ agent_coop_t::~agent_coop_t()
 }
 
 void
-agent_coop_t::destroy( agent_coop_t * coop )
+coop_t::destroy( coop_t * coop )
 {
 	delete coop;
 }
 
-agent_coop_t::agent_coop_t(
+coop_t::coop_t(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
 	environment_t & env )
@@ -139,26 +137,26 @@ agent_coop_t::agent_coop_t(
 }
 
 const std::string &
-agent_coop_t::query_coop_name() const
+coop_t::query_coop_name() const
 {
 	return m_coop_name;
 }
 
 bool
-agent_coop_t::has_parent_coop() const
+coop_t::has_parent_coop() const
 {
 	return !m_parent_coop_name.empty();
 }
 
 void
-agent_coop_t::set_parent_coop_name(
+coop_t::set_parent_coop_name(
 	const nonempty_name_t & name )
 {
 	m_parent_coop_name = name.query_name();
 }
 
 const std::string &
-agent_coop_t::parent_coop_name() const
+coop_t::parent_coop_name() const
 {
 	if( !has_parent_coop() )
 		SO_5_THROW_EXCEPTION(
@@ -191,28 +189,28 @@ namespace
 } /* namespace anonymous */
 
 void
-agent_coop_t::add_reg_notificator(
+coop_t::add_reg_notificator(
 	const coop_reg_notificator_t & notificator )
 {
 	do_add_notificator_to( m_reg_notificators, notificator );
 }
 
 void
-agent_coop_t::add_dereg_notificator(
+coop_t::add_dereg_notificator(
 	const coop_dereg_notificator_t & notificator )
 {
 	do_add_notificator_to( m_dereg_notificators, notificator );
 }
 
 void
-agent_coop_t::set_exception_reaction(
+coop_t::set_exception_reaction(
 	exception_reaction_t value )
 {
 	m_exception_reaction = value;
 }
 
 exception_reaction_t
-agent_coop_t::exception_reaction() const
+coop_t::exception_reaction() const
 {
 	if( inherit_exception_reaction == m_exception_reaction )
 		{
@@ -226,13 +224,13 @@ agent_coop_t::exception_reaction() const
 }
 
 void
-agent_coop_t::deregister( int reason )
+coop_t::deregister( int reason )
 {
 	environment().deregister_coop( query_coop_name(), reason );
 }
 
 void
-agent_coop_t::do_add_agent(
+coop_t::do_add_agent(
 	const agent_ref_t & agent_ref )
 {
 	m_agent_array.push_back(
@@ -240,7 +238,7 @@ agent_coop_t::do_add_agent(
 }
 
 void
-agent_coop_t::do_add_agent(
+coop_t::do_add_agent(
 	const agent_ref_t & agent_ref,
 	disp_binder_unique_ptr_t disp_binder )
 {
@@ -256,8 +254,8 @@ agent_coop_t::do_add_agent(
 }
 
 void
-agent_coop_t::do_registration_specific_actions(
-	agent_coop_t * parent_coop )
+coop_t::do_registration_specific_actions(
+	coop_t * parent_coop )
 {
 	reorder_agents_with_respect_to_priorities();
 	bind_agents_to_coop();
@@ -275,7 +273,7 @@ agent_coop_t::do_registration_specific_actions(
 }
 
 void
-agent_coop_t::do_deregistration_specific_actions(
+coop_t::do_deregistration_specific_actions(
 	coop_dereg_reason_t dereg_reason )
 {
 	m_dereg_reason = std::move( dereg_reason );
@@ -284,7 +282,7 @@ agent_coop_t::do_deregistration_specific_actions(
 }
 
 void
-agent_coop_t::reorder_agents_with_respect_to_priorities()
+coop_t::reorder_agents_with_respect_to_priorities()
 {
 	std::sort( std::begin(m_agent_array), std::end(m_agent_array),
 		[]( const agent_with_disp_binder_t & a,
@@ -295,7 +293,7 @@ agent_coop_t::reorder_agents_with_respect_to_priorities()
 }
 
 void
-agent_coop_t::bind_agents_to_coop()
+coop_t::bind_agents_to_coop()
 {
 	agent_array_t::iterator it = m_agent_array.begin();
 	agent_array_t::iterator it_end = m_agent_array.end();
@@ -307,7 +305,7 @@ agent_coop_t::bind_agents_to_coop()
 }
 
 void
-agent_coop_t::define_all_agents()
+coop_t::define_all_agents()
 {
 	agent_array_t::iterator it = m_agent_array.begin();
 	agent_array_t::iterator it_end = m_agent_array.end();
@@ -319,7 +317,7 @@ agent_coop_t::define_all_agents()
 }
 
 void
-agent_coop_t::bind_agents_to_disp()
+coop_t::bind_agents_to_disp()
 {
 	// All the following actions must be performed on locked m_binding_lock.
 	// It prevents evt_start event from execution until all agents will be
@@ -377,7 +375,7 @@ agent_coop_t::bind_agents_to_disp()
 }
 
 inline void
-agent_coop_t::unbind_agents_from_disp(
+coop_t::unbind_agents_from_disp(
 	agent_array_t::iterator it )
 {
 	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
@@ -388,7 +386,7 @@ agent_coop_t::unbind_agents_from_disp(
 }
 
 void
-agent_coop_t::shutdown_all_agents()
+coop_t::shutdown_all_agents()
 {
 	try
 	{
@@ -410,13 +408,13 @@ agent_coop_t::shutdown_all_agents()
 }
 
 void
-agent_coop_t::increment_usage_count()
+coop_t::increment_usage_count()
 {
 	m_reference_count += 1;
 }
 
 void
-agent_coop_t::decrement_usage_count()
+coop_t::decrement_usage_count()
 {
 	// If it is the last working agent then Environment should be
 	// informed that the cooperation is ready to be deregistered.
@@ -429,39 +427,39 @@ agent_coop_t::decrement_usage_count()
 		if( COOP_REGISTERED == m_registration_status )
 		{
 			m_registration_status = COOP_DEREGISTERING;
-			m_env.so5__ready_to_deregister_notify( this );
+			impl::internal_env_iface_t{ m_env }.ready_to_deregister_notify( this );
 		}
 	}
 }
 
 void
-agent_coop_t::final_deregister_coop()
+coop_t::final_deregister_coop()
 {
 	unbind_agents_from_disp( m_agent_array.end() );
 
-	m_env.so5__final_deregister_coop( m_coop_name );
+	impl::internal_env_iface_t{ m_env }.final_deregister_coop( m_coop_name );
 }
 
-agent_coop_t *
-agent_coop_t::parent_coop_ptr() const
+coop_t *
+coop_t::parent_coop_ptr() const
 {
 	return m_parent_coop_ptr;
 }
 
 coop_reg_notificators_container_ref_t
-agent_coop_t::reg_notificators() const
+coop_t::reg_notificators() const
 {
 	return m_reg_notificators;
 }
 
 coop_dereg_notificators_container_ref_t
-agent_coop_t::dereg_notificators() const
+coop_t::dereg_notificators() const
 {
 	return m_dereg_notificators;
 }
 
 void
-agent_coop_t::delete_user_resources()
+coop_t::delete_user_resources()
 {
 	for( auto d = m_resource_deleters.begin();
 			d != m_resource_deleters.end();
@@ -470,7 +468,7 @@ agent_coop_t::delete_user_resources()
 }
 
 const coop_dereg_reason_t &
-agent_coop_t::dereg_reason() const
+coop_t::dereg_reason() const
 {
 	return m_dereg_reason;
 }

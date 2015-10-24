@@ -132,7 +132,7 @@ class a_parent_t
 		register_child_coop()
 		{
 			so_5::rt::introduce_child_coop( *this, "child",
-				[this]( so_5::rt::agent_coop_t & coop ) 
+				[this]( so_5::rt::coop_t & coop ) 
 				{
 					for( size_t i = 0; i != m_child_count; ++i )
 						coop.make_agent< a_child_t >(
@@ -146,7 +146,7 @@ class a_parent_t
 void
 init( so_5::rt::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		auto logger = coop.take_under_control( new logger_t() );
 		coop.make_agent< a_parent_t >( *logger, 2 );
 	} );
