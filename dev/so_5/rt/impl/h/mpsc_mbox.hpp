@@ -217,7 +217,9 @@ class limitful_mpsc_mbox_template_t
 	public:
 		template< typename... TRACING_ARGS >
 		limitful_mpsc_mbox_template_t(
+			//! ID of that mbox.
 			mbox_id_t id,
+			//! The owner of that mbox.
 			agent_t * single_consumer,
 			//! This reference must remains correct till the end of
 			//! the mbox's lifetime.

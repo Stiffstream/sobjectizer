@@ -80,6 +80,7 @@ class agent_queue_t
 		agent_queue_t(
 			//! Dispatcher queue to work with.
 			dispatcher_queue_t & disp_queue,
+			//! Parameters for the queue.
 			const params_t & params )
 			:	m_disp_queue( disp_queue )
 			,	m_max_demands_at_once( params.query_max_demands_at_once() )

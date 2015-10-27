@@ -9,44 +9,26 @@
 
 #include <so_5/all.hpp>
 
-struct msg_convert : public so_5::rt::message_t
+so_5::rt::mbox_t
+make_converter( so_5::rt::agent_coop_t & coop )
 	{
-		const std::string m_value;
+		auto a = coop.define_agent();
+		a.event( a, []( const std::string & value ) -> int {
+				std::istringstream s( value );
+				int result;
+				s >> result;
+				if( s.fail() )
+					throw std::invalid_argument( "unable to convert to int: '" + value + "'" );
 
-		msg_convert( const std::string & value ) : m_value( value )
-			{}
-	};
+				// A special case for timeout imitation.
+				if( 42 == result )
+					std::this_thread::sleep_for( std::chrono::milliseconds(150) );
 
-class a_convert_service_t
-	:	public so_5::rt::agent_t
-	{
-	public :
-		a_convert_service_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
-			{}
+				return result;
+			} );
 
-		virtual void
-		so_define_agent() override
-			{
-				so_subscribe_self()
-						.event( []( const msg_convert & msg ) -> int
-						{
-							std::istringstream s( msg.m_value );
-							int result;
-							s >> result;
-							if( s.fail() )
-								throw std::invalid_argument( "unable to convert to int: '" +
-										msg.m_value + "'" );
-
-							// A special case for timeout imitation.
-							if( 42 == result )
-								std::this_thread::sleep_for( std::chrono::milliseconds(150) );
-
-							return result;
-						} );
-			}
-	};
+		return a.direct_mbox();
+	}
 
 class a_client_t
 	:	public so_5::rt::agent_t
@@ -71,7 +53,7 @@ class a_client_t
 							{
 								std::cout << "converting '" << s << "'" << std::flush;
 
-								auto r = so_5::request_value< int, msg_convert >(
+								auto r = so_5::request_value< int, std::string >(
 										m_svc_mbox, std::chrono::milliseconds(100), s );
 
 								std::cout << "' -> " << r << std::endl;
@@ -91,24 +73,19 @@ class a_client_t
 		const so_5::rt::mbox_t m_svc_mbox;
 	};
 
-void
-init(
-	so_5::rt::environment_t & env )
-	{
-		env.introduce_coop(
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
-					auto a_service = coop.make_agent< a_convert_service_t >();
-					coop.make_agent< a_client_t >( a_service->so_direct_mbox() );
-				} );
-	}
-
 int
 main()
 	{
 		try
 			{
-				so_5::launch( &init );
+				so_5::launch( []( so_5::rt::environment_t & env ) {
+						env.introduce_coop(
+								so_5::disp::active_obj::create_private_disp( env )->binder(),
+								[]( so_5::rt::coop_t & coop ) {
+									auto service = make_converter( coop );
+									coop.make_agent< a_client_t >( service );
+								} );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

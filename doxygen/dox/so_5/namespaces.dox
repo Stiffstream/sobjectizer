@@ -283,6 +283,23 @@ namespace so_5
 			{
 			} /* namespace coop_dereg */
 
+			/*!
+			 * \since v.5.5.9
+			 * \brief Various helpers for message delivery tracing mechanism.
+			 */
+			namespace msg_tracing_helpers
+			{
+				/*!
+				 * \since v.5.5.9
+				 * \brief Low-level details of message delivery tracing
+				 * implementation.
+				 */
+				namespace details
+				{
+				} /* namespace details */
+
+			} /* namespace msg_tracing_helpers */
+
 		} /* namespace impl */
 
 		/*!
@@ -381,6 +398,22 @@ namespace so_5
 	 */
 	namespace prio {
 	} /* namespace prio */
+
+	/*!
+	 * \since v.5.5.9
+	 * \brief Public part of message delivery tracing mechanism.
+	 */
+	namespace msg_tracing
+	{
+		/*!
+		 * \since v.5.5.9
+		 * \brief Implementation details of message delivery tracing mechanism.
+		 */
+		namespace impl
+		{
+		} /* namespace impl */
+
+	} /* namespace msg_tracing */
 
 } /* namespace so_5 */
 

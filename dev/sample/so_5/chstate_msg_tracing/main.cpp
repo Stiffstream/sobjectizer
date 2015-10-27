@@ -11,10 +11,6 @@
  * A message delivery tracing is enabled. Trace is going to std::cout.
  */
 
-#if defined( _MSC_VER )
-	#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <iostream>
 #include <time.h>
 
@@ -60,7 +56,7 @@ public:
 
 		// Actions for other states.
 
-		// st_1: switch to st_2 only, greeting_message ignored.
+		// st_1: switch to st_2 only, greeting_message is ignored.
 		st_1
 			.event< change_state_signal >( [=] { this >>= st_2; } );
 
@@ -86,7 +82,7 @@ public:
 				} );
 	}
 
-	// Reaction to start into SObjectizer.
+	// Reaction to start inside SObjectizer.
 	virtual void
 	so_evt_start() override
 	{
@@ -120,6 +116,7 @@ main()
 				} );
 			},
 			[]( so_5::rt::environment_params_t & params ) {
+				// Turn message delivery tracing on.
 				params.message_delivery_tracer(
 						so_5::msg_tracing::std_cout_tracer() );
 			} );

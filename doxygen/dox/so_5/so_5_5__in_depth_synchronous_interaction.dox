@@ -1,0 +1,248 @@
+/*!
+
+\page so_5_5__in_depth__svc_requests so-5.5 In Depth - Synchronous Interaction
+
+\section so_5_5__in_depth__svc_requests__intro Introduction
+
+A major change was introduced in v.5.3.0 -- a possibility to synchronously
+wait for result of message processing. An agent, called service client, could
+ask another agent (called service_handler) to do something by asynchronously
+sending message to service_handler and then synchronously waiting for the
+result of that request.
+
+All parameters for service request must be defined as an ordinary message or a
+signal type:
+
+\code
+// Message for service request with parameters.
+struct msg_convert
+{
+  // String to conversion to int.
+  std::string m_value;
+};
+
+// Signal for service request without parameters.
+struct msg_get_status : public so_5::rt::signal_t {}
+\endcode
+
+Service request handler is an ordinary agent which defines its service_request
+handling methods by traditional way. The only change with previous version is
+that event handlers could return values since v.5.3.0:
+ 
+\code
+// service_handler event for msg_convert request.
+int a_my_service_t::evt_convert( const msg_convert & msg )
+	{
+		std::istringstream s( msg.m_value );
+		int result;
+		s >> result;
+		if( s.fail() )
+			throw std::invalid_argument( "unable to convert to int: '" + msg.m_value + "'" );
+
+		return result;
+	}
+
+// service_handler event for msg_get_status request.
+std::string a_my_service_t::evt_get_status()
+	{
+		return "Ready";
+	}
+\endcode
+
+Event handler methods are subscribed as usual:
+
+\code
+class a_my_service_t : public so_5::rt::agent_t 
+	{
+	public :
+		virtual void so_define_agent() override
+		{
+			so_subscribe( mbox ).event( &a_my_service_t::evt_convert );
+
+			so_subscribe( mbox ).event< msg_get_status >( &a_my_service_t::evt_get_status );
+		}
+		...
+	};
+\endcode
+
+All of these mean that there is almost no differences for service_handler: it
+always works as an ordinary agent. And all event handlers for that agent are
+invoked on agent’s working thread.
+
+All requests are delivered to service_handler’s agent as ordinary messages via
+agent’s event queue. The mechanism for event handler invocation for service
+requests is the same as for traditional asynchronous messages.
+
+To send service request it is necessary to call so_5::request_value template
+function:
+
+\code
+std::string s = so_5::request_value<std::string, msg_get_status>(processor, timeout);
+\endcode
+
+This call will send `msg_get_status` signal to the target `processor` and will
+wait for the result for `timeout`.
+
+A mbox, a reference to an agent, an ad-hoc agent proxy could be used as target
+argument for so_5::request_value() function. A caller must ensure that there is
+only one receiver of msg_get_status behind that argument.
+
+The `timeout` argument is very important.
+
+The most simple and the most dangerous way, is to wait service request result
+infinitely long:
+
+\code
+// Initiate the service request and wait for result infinitely.
+int v = so_5::request_value<int, msg_convert>(mbox, so_5::infinite_wait, "42");
+
+// Invocation of service request by a signal.
+std::string s = so_5::request_value<std::string, msg_get_status>(processor, so_5::infinite_wait);
+\endcode
+
+The second way, which is much more safer, is to wait service request result for
+the specified amount of time:
+
+\code
+// Initiate the service request and wait for 300ms.
+int v = so_5::request_value<int, msg_convert>(mbox, std::chrono::milliseconds(300), "42");
+
+// Invocation of service request by a signal and wait for 5s.
+std::string s = so_5::request_value<std::string, msg_get_status>(processor, std::chrono::seconds(5));
+\endcode
+
+There is also template function so_5::request_future() which provides the most
+complex and the most flexible way for issuing service request. It returns
+std::future object associated with service request. A user then can perform any
+operation he wish:
+
+\code
+std::future< int > v = so_5::request_future<int, msg_convert>(mbox, "42");
+std::future< std::string > s = so_5::request_future<std::string, msg_get_status>(mbox);
+
+// Do some useful stuff until conversion result get ready.
+while( true )
+{
+  ... // Do something here.
+  // Check the future status.
+  if( std::future_status::ready == v.wait_for( std::chrono::seconds(0) ) )
+	 break;
+}
+// Conversion result is ready and could be obtained without waiting.
+std::cout << "Conversion result: " << v.get() << std::endl;
+
+// Wait for get_status request infinitely.
+std::cout << "Service status: " << s.get() << std::endl;
+\endcode
+
+\section so_5_5__in_depth__svc_requests__how_it_works How Does It Work?
+
+When a service request is initiated a special envelope with service requests
+params inside is sent as ordinary message to service request processor.
+
+This envelope contains not only request params but also a std::promise object
+for the response. A value for that promise is set on processor’s side. A
+service request issuer waits on std::future object which is bound with
+std::promise from the envelope sent.
+
+It means that so_5::request_value call in form:
+
+\code
+auto r = so_5::request_value<Result,Request>(mbox, timeout, params);
+\endcode
+
+is a shorthand for something like that:
+
+\code
+// Envelope will contain Request object and std::promise<Result> object.
+auto env__ = std::make_unique<msg_service_request_t<Result,Request>>(params);
+// Get the future to wait on it.
+std::future<Result> f__ = env__.m_promise.get_future();
+// Sending the envelope with request params as async message.
+mbox->deliver_message(std::move(env__));
+// Waiting and handling the result.
+auto wait_result__ = f__.wait_for(timeout);
+if(std::future_status::ready != wait_result__)
+   throw exception_t(...);
+auto r = f__.get();
+\endcode
+
+Every service request handler in form
+
+\code
+Result event_handler(const Request & svc_req ) { ... }
+\endcode
+
+is automatically transformed to something like this:
+
+\code
+void actual_event_handler(msg_service_request_t<Result,Request> & m) {
+   try {
+      m.m_promise.set( event_handler(m.query_param()) );
+   }
+   catch(...) {
+      m.set_exception(std::current_exception());
+   }
+}
+\endcode
+
+This transformation is performed during subscription of event_handler.
+
+\section so_5_5__in_depth__svc_requests__deadlocks Deadlocks
+
+There is no any help to user from SObjectizer to avoid or to diagnose deadlocks
+when synchronous interactions are used. It is the user task to guarantee that
+service_handler and service client are working on different threads and there
+is no any complex internal interactions like: agent A1 calls A2 which calls A3
+which calls A1.
+
+It is the reason why the usage of `so_5::infinite_wait` is dangerous. If there
+is a deadlock the application will hang forever.
+
+The safest way -- is to use so_5::request_value with the reasonable timeout.
+Even if a deadlock is here it will be automatically destroyed after timeout
+expiration.
+
+\section so_5_5__in_depth__svc_requests__exceptions Exceptions
+
+There is a huge possibility of exception appearance during synchronous
+interactions.
+
+Some exceptions could be raised by SObjectizer. Those are:
+
+- the exceptions related to wrong number of actual service_handlers. When a
+	service  request is initiated by request_value/request_future function the
+	one and only one service_handler  must exist (e.g. one and only one agent
+	must be subscribed to the specified  message type from the specified
+	mbox). If there are more than one agent-subscriber or if there isn’t
+	any of them then an exception will be  raised;
+- the exceptions related to ignorance of service request. For example if
+	service_handler receives a service request but not handled it because the
+	event handler is disabled in the current agent state then an exception will
+	be raised;
+- the exceptions related to timeouts during wait for result.
+	Those exceptions are raised when so_5::request_value() function is used and
+	timeout elapsed without receiving a result of service request.
+
+In such cases SObjectizer raises object of so_5::exception_t class with the
+appropriate error_code inside.
+
+Some exceptions could be raised by event handlers itself. As in the sample of
+evt_convert event above. Those exceptions are intercepted by SObjectizer and
+then transferred to the std::future connected with the service request. It
+means that those exceptions will be reraised during std::future::get()
+invocation. So, the application exception which are went out from event
+handler will be propagated to the service client.
+
+The dialing with non-handled application exception is the main difference
+between ordinary event-handling and service_request-handling. When agent lets
+the exception go out during ordinary event handler invocation then SObjectizer
+calls agent’s so_exception_reaction() method and does appropriate actions. But
+when agent lets the exception go out during service_request handling then the
+exception is propagated to service client and so_exception_reaction() is not
+called.
+
+*/
+
+// vim:ft=cpp
+
