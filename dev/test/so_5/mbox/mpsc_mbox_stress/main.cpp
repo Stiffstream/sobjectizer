@@ -9,6 +9,8 @@
 
 #include <so_5/all.hpp>
 
+#include <various_helpers_1/time_limited_execution.hpp>
+
 struct msg_ping : public so_5::rt::signal_t {};
 struct msg_ack : public so_5::rt::signal_t {};
 
@@ -110,8 +112,13 @@ class a_parent_t
 						"msg_coop_deregistered received" );
 
 			// This action must not lead to any damages (like memory leaks).
-			for( auto & m : m_child_mboxes )
-				m->deliver_signal< msg_ping >();
+			consume_some_memory();
+			run_with_time_limit( [this] {
+					for( auto & m : m_child_mboxes )
+						m->deliver_signal< msg_ping >();
+				},
+				10,
+				"attempts to send signal to MPSC mbox of destroyed agent" );
 
 			--m_iterations_left;
 			try_start_new_iteration();
@@ -206,6 +213,18 @@ class a_parent_t
 			}
 
 			so_environment().register_coop( std::move( coop ) );
+		}
+
+		void
+		consume_some_memory()
+		{
+			std::vector< std::vector< int > > v;
+
+			v.reserve( 10 );
+			for( std::size_t i = 1; i != 10; ++i )
+			{
+				v.push_back( std::vector< int >( i*1024u, 12345 ) );
+			}
 		}
 };
 

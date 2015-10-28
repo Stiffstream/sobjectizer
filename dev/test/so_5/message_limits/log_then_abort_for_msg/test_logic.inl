@@ -49,9 +49,9 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< msg_one >( *this, 0 );
-		so_5::send_to_agent< msg_one >( *this, 1 );
-		so_5::send_to_agent< msg_one >( *this, 2 );
+		so_5::send< msg_one >( m_working_mbox, 0 );
+		so_5::send< msg_one >( m_working_mbox, 1 );
+		so_5::send< msg_one >( m_working_mbox, 2 );
 
 		so_deregister_agent_coop_normally();
 	}

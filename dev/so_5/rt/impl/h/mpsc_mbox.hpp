@@ -13,6 +13,7 @@
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
+#include <so_5/h/spinlocks.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_queue.hpp>
@@ -71,17 +72,28 @@ class limitless_mpsc_mbox_template_t
 			const so_5::rt::message_limit::control_block_t * /*limit*/,
 			agent_t * subscriber ) override
 			{
+				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
+
 				if( subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can create subscription to mpsc_mbox" );
+				++m_subscriptions_count;
 			}
 
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
-			agent_t * /*subscriber*/ ) override
+			agent_t * subscriber ) override
 			{
+				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
+
+				if( subscriber != m_single_consumer )
+					SO_5_THROW_EXCEPTION(
+							rc_illegal_subscriber_for_mpsc_mbox,
+							"the only one consumer can remove subscription to mpsc_mbox" );
+				if( m_subscriptions_count )
+					--m_subscriptions_count;
 			}
 
 		virtual std::string
@@ -113,14 +125,16 @@ class limitless_mpsc_mbox_template_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
 
-				tracer.push_to_queue( m_single_consumer );
+				this->do_delivery( tracer, [&] {
+					tracer.push_to_queue( m_single_consumer );
 
-				agent_t::call_push_event(
-						*m_single_consumer,
-						so_5::rt::message_limit::control_block_t::none(),
-						m_id,
-						msg_type,
-						message );
+					agent_t::call_push_event(
+							*m_single_consumer,
+							so_5::rt::message_limit::control_block_t::none(),
+							m_id,
+							msg_type,
+							message );
+				} );
 			}
 
 		virtual void
@@ -135,17 +149,19 @@ class limitless_mpsc_mbox_template_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
 
-				msg_service_request_base_t::dispatch_wrapper( message,
-					[&] {
-						tracer.push_to_queue( m_single_consumer );
+				this->do_delivery( tracer, [&] {
+					msg_service_request_base_t::dispatch_wrapper( message,
+						[&] {
+							tracer.push_to_queue( m_single_consumer );
 
-						agent_t::call_push_service_request(
-								*m_single_consumer,
-								so_5::rt::message_limit::control_block_t::none(),
-								m_id,
-								msg_type,
-								message );
-					} );
+							agent_t::call_push_service_request(
+									*m_single_consumer,
+									so_5::rt::message_limit::control_block_t::none(),
+									m_id,
+									msg_type,
+									message );
+						} );
+				} );
 			}
 
 		/*!
@@ -177,6 +193,43 @@ class limitless_mpsc_mbox_template_t
 
 		//! The only consumer of this mbox's messages.
 		agent_t * m_single_consumer;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Protection of object from modification.
+		 */
+		mutable default_rw_spinlock_t m_lock;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Number of active subscriptions.
+		 *
+		 * \note If zero then all attempts to deliver message or
+		 * service request will be ignored.
+		 */
+		std::size_t m_subscriptions_count = 0;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Helper method to do delivery actions under locked object.
+		 *
+		 * \tparam L lambda with actual delivery actions.
+		 */
+		template< typename L >
+		void
+		do_delivery(
+			//! Tracer object to log the case of abscense of subscriptions.
+			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			//! Lambda with actual delivery actions.
+			L l ) const
+		{
+			read_lock_guard_t< default_rw_spinlock_t > lock{ m_lock };
+
+			if( m_subscriptions_count )
+				l();
+			else
+				tracer.no_subscribers();
+		}
 };
 
 /*!
@@ -245,28 +298,30 @@ class limitful_mpsc_mbox_template_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
 
-				using namespace so_5::rt::message_limit::impl;
+				this->do_delivery( tracer, [&] {
+					using namespace so_5::rt::message_limit::impl;
 
-				auto limit = m_limits.find( msg_type );
+					auto limit = m_limits.find( msg_type );
 
-				try_to_deliver_to_agent(
-						invocation_type_t::event,
-						*(this->m_single_consumer),
-						limit,
-						msg_type,
-						message,
-						overlimit_reaction_deep,
-						tracer.overlimit_tracer(),
-						[&] {
-							tracer.push_to_queue( this->m_single_consumer );
+					try_to_deliver_to_agent(
+							invocation_type_t::event,
+							*(this->m_single_consumer),
+							limit,
+							msg_type,
+							message,
+							overlimit_reaction_deep,
+							tracer.overlimit_tracer(),
+							[&] {
+								tracer.push_to_queue( this->m_single_consumer );
 
-							agent_t::call_push_event(
-									*(this->m_single_consumer),
-									limit,
-									this->m_id,
-									msg_type,
-									message );
-						} );
+								agent_t::call_push_event(
+										*(this->m_single_consumer),
+										limit,
+										this->m_id,
+										msg_type,
+										message );
+							} );
+				} );
 			}
 
 		virtual void
@@ -281,31 +336,33 @@ class limitful_mpsc_mbox_template_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
 
-				msg_service_request_base_t::dispatch_wrapper( message,
-					[&] {
-						using namespace so_5::rt::message_limit::impl;
+				this->do_delivery( tracer, [&] {
+					msg_service_request_base_t::dispatch_wrapper( message,
+						[&] {
+							using namespace so_5::rt::message_limit::impl;
 
-						auto limit = m_limits.find( msg_type );
+							auto limit = m_limits.find( msg_type );
 
-						try_to_deliver_to_agent(
-								invocation_type_t::service_request,
-								*(this->m_single_consumer),
-								limit,
-								msg_type,
-								message,
-								overlimit_reaction_deep,
-								tracer.overlimit_tracer(),
-								[&] {
-									tracer.push_to_queue( this->m_single_consumer );
+							try_to_deliver_to_agent(
+									invocation_type_t::service_request,
+									*(this->m_single_consumer),
+									limit,
+									msg_type,
+									message,
+									overlimit_reaction_deep,
+									tracer.overlimit_tracer(),
+									[&] {
+										tracer.push_to_queue( this->m_single_consumer );
 
-									agent_t::call_push_service_request(
-											*(this->m_single_consumer),
-											limit,
-											this->m_id,
-											msg_type,
-											message );
-								} );
-					} );
+										agent_t::call_push_service_request(
+												*(this->m_single_consumer),
+												limit,
+												this->m_id,
+												msg_type,
+												message );
+									} );
+						} );
+				} );
 			}
 
 	private :

@@ -25,6 +25,10 @@
 	New class so_5::wrapped_env_t added. See \ref so_5_5_9__wrapped_env
 	for more details.
 
+	A fix for serious bug: usage of MPSC mbox after the deregistration of
+	the mbox's owner will lead to use of dangling pointer (with unpredicted
+	consequences like application crash).
+
 \section so_5__5_8 5.5.8 "Elbrus"
 
 	Pririties for agents and several new dispatchers with priorities support

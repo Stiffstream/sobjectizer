@@ -33,17 +33,16 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_one >( m_working_mbox, []{} );
+		so_default_state().event< msg_one >( m_working_mbox,
+			[this]{ so_deregister_agent_coop_normally(); } );
 	}
 
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-
-		so_deregister_agent_coop_normally();
+		so_5::send< msg_one >( m_working_mbox );
+		so_5::send< msg_one >( m_working_mbox );
+		so_5::send< msg_one >( m_working_mbox );
 	}
 
 private :
