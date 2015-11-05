@@ -263,7 +263,8 @@ struct environment_t::internals_t
 		,	m_dispatchers(
 				env,
 				params.so5__giveout_named_dispatcher_map(),
-				params.so5__giveout_event_exception_logger() )
+				params.so5__giveout_event_exception_logger(),
+				params.default_disp_params() )
 		,	m_layer_core(
 				env,
 				params.so5__layers_map() )

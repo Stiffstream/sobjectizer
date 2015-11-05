@@ -17,6 +17,7 @@ struct	cfg_t
 	unsigned int	m_request_count = 1000;
 
 	bool	m_active_objects = false;
+	bool	m_simple_lock = false;
 
 	bool	m_direct_mboxes = false;
 
@@ -43,6 +44,7 @@ try_parse_cmdline(
 							"-r, --requests       count of requests to send\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-l, --message-limits use message limits for agents\n"
+							"-s, --simple-lock    use simple lock factory for event queue\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -53,6 +55,8 @@ try_parse_cmdline(
 				tmp_cfg.m_direct_mboxes = true;
 			else if( is_arg( *current, "-l", "--message-limits" ) )
 				tmp_cfg.m_message_limits = true;
+			else if( is_arg( *current, "-s", "--simple-lock" ) )
+				tmp_cfg.m_simple_lock = true;
 			else if( is_arg( *current, "-r", "--requests" ) )
 				mandatory_arg_to_value(
 						tmp_cfg.m_request_count, ++current, last,
@@ -213,6 +217,7 @@ show_cfg(
 			<< "active objects: " << ( cfg.m_active_objects ? "yes" : "no" )
 			<< ", direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
 			<< ", limits: " << ( cfg.m_message_limits ? "yes" : "no" )
+			<< ", locks: " << ( cfg.m_simple_lock ? "simple" : "combined" )
 			<< ", requests: " << cfg.m_request_count
 			<< std::endl;
 	}
@@ -301,9 +306,18 @@ main( int argc, char ** argv )
 			[&]( so_5::rt::environment_params_t & params )
 			{
 				if( cfg.m_active_objects )
+				{
+					so_5::disp::active_obj::queue_traits::params_t queue_params;
+					if( cfg.m_simple_lock )
+						queue_params.lock_factory(
+								so_5::disp::active_obj::queue_traits::simple_lock_factory() );
+
 					params.add_named_dispatcher(
 							"active_obj",
-							so_5::disp::active_obj::create_disp() );
+							so_5::disp::active_obj::create_disp(
+									so_5::disp::active_obj::params_t{}.set_queue_params(
+											std::move(queue_params) ) ) );
+				}
 			} );
 
 		test_env.process_results();

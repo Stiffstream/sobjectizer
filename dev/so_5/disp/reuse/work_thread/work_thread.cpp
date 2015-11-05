@@ -26,8 +26,10 @@ namespace work_thread
 //
 // demand_queue
 //
-demand_queue_t::demand_queue_t()
-	:	m_in_service( false )
+demand_queue_t::demand_queue_t(
+	queue_traits::lock_unique_ptr_t lock )
+	:	m_lock{ std::move(lock) }
+	,	m_in_service( false )
 {
 }
 
@@ -40,7 +42,7 @@ void
 demand_queue_t::push(
 	so_5::rt::execution_demand_t demand )
 {
-	queue_lock_guard_t guard( m_lock );
+	queue_traits::lock_guard_t guard{ *m_lock };
 
 	if( m_in_service )
 	{
@@ -62,7 +64,7 @@ demand_queue_t::pop(
 	demand_container_t & demands,
 	demands_counter_t & external_counter )
 {
-	queue_unique_lock_t lock( m_lock );
+	queue_traits::unique_lock_t lock{ *m_lock };
 	while( true )
 	{
 		if( m_in_service && !m_demands.empty() )
@@ -90,7 +92,7 @@ demand_queue_t::pop(
 void
 demand_queue_t::start_service()
 {
-	queue_lock_guard_t lock( m_lock );
+	queue_traits::lock_guard_t lock{ *m_lock };
 
 	m_in_service = true;
 }
@@ -98,7 +100,7 @@ demand_queue_t::start_service()
 void
 demand_queue_t::stop_service()
 {
-	queue_lock_guard_t lock( m_lock );
+	queue_traits::lock_guard_t lock{ *m_lock };
 
 	m_in_service = false;
 	// If the demands queue is empty then someone is waiting
@@ -110,7 +112,7 @@ demand_queue_t::stop_service()
 void
 demand_queue_t::clear()
 {
-	queue_lock_guard_t lock( m_lock );
+	queue_traits::lock_guard_t lock{ *m_lock };
 
 	m_demands.clear();
 }
@@ -118,7 +120,7 @@ demand_queue_t::clear()
 std::size_t
 demand_queue_t::demands_count( const demands_counter_t & external_counter )
 {
-	queue_lock_guard_t lock( m_lock );
+	queue_traits::lock_guard_t lock{ *m_lock };
 
 	return m_demands.size() + external_counter.load( std::memory_order_acquire );
 }
@@ -126,7 +128,9 @@ demand_queue_t::demands_count( const demands_counter_t & external_counter )
 //
 // work_thread_t
 //
-work_thread_t::work_thread_t()
+work_thread_t::work_thread_t(
+	queue_traits::lock_factory_t queue_lock_factory )
+	:	m_queue{ queue_lock_factory() }
 {
 	m_continue_work = WORK_THREAD_STOP;
 }

@@ -126,9 +126,10 @@ main()
 				so_5::launch(
 					[&log]( so_5::rt::environment_t & env )
 					{
+						
 						env.add_dispatcher_if_not_exists(
 							"active_obj",
-							&so_5::disp::active_obj::create_disp );
+							[] { return so_5::disp::active_obj::create_disp(); } );
 
 						env.register_agent_as_coop(
 								"first",

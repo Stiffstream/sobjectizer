@@ -97,6 +97,10 @@ MxxRu::Cpp::dll_target {
 	}
 
 	sources_root( 'disp' ) {
+		sources_root( 'mpsc_queue_traits' ) {
+			cpp_source 'pub.cpp'
+		}
+
 		sources_root( 'reuse' ) {
 			sources_root( 'work_thread' ) {
 				cpp_source 'work_thread.cpp'

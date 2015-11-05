@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj.rb'
 
-	target '_unit.test.spinlocks.combined_queue_lock'
+	target '_unit.test.mpsc_queue_traits.locks'
 
 	cpp_source 'main.cpp'
 }

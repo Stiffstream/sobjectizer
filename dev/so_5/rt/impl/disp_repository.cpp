@@ -29,10 +29,13 @@ namespace impl
 disp_repository_t::disp_repository_t(
 	environment_t & env,
 	named_dispatcher_map_t named_dispatcher_map,
-	event_exception_logger_unique_ptr_t logger )
+	event_exception_logger_unique_ptr_t logger,
+	so_5::disp::one_thread::params_t default_disp_params )
 	:
 		m_env( env ),
-		m_default_dispatcher( so_5::disp::one_thread::create_disp() ),
+		m_default_dispatcher(
+				so_5::disp::one_thread::create_disp(
+						std::move(default_disp_params) ) ),
 		m_named_dispatcher_map( std::move( named_dispatcher_map ) ),
 		m_event_exception_logger( std::move( logger ) ),
 		m_state( state_t::not_started )

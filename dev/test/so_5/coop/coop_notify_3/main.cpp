@@ -126,7 +126,7 @@ main()
 			{
 				env.add_dispatcher_if_not_exists(
 						"active_obj",
-						so_5::disp::active_obj::create_disp );
+						[] { return so_5::disp::active_obj::create_disp(); } );
 				env.register_agent_as_coop(
 						"test",
 						new a_test_t( env ) );

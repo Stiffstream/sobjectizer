@@ -2,7 +2,6 @@ project(tests)
 
 if( NOT CYGWIN )
   add_subdirectory(spinlocks/llvm_inspired_test)
-  add_subdirectory(spinlocks/combined_queue_lock)
 endif()
 
 add_subdirectory(environment/moveable_params)
@@ -21,6 +20,8 @@ add_subdirectory(timer_thread/single_delayed)
 add_subdirectory(timer_thread/single_periodic)
 add_subdirectory(timer_thread/single_timer_zero_delay)
 add_subdirectory(timer_thread/timers_cancelation)
+
+add_subdirectory(mpsc_queue_traits)
 
 add_subdirectory(disp/binder/bind_to_disp_1)
 add_subdirectory(disp/binder/bind_to_disp_2)

@@ -23,9 +23,7 @@
 
 #include <so_5/rt/h/event_queue.hpp>
 
-#include <so_5/h/spinlocks.hpp>
-
-#include <so_5/disp/reuse/locks/h/locks.hpp>
+#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 
 namespace so_5
 {
@@ -42,11 +40,7 @@ namespace work_thread
 //! Typedef for demand's container.
 typedef std::deque< so_5::rt::execution_demand_t > demand_container_t;
 
-using queue_lock_t = so_5::disp::reuse::locks::combined_queue_lock_t;
-using queue_unique_lock_t =
-		so_5::disp::reuse::locks::combined_queue_unique_lock_t;
-using queue_lock_guard_t =
-		so_5::disp::reuse::locks::combined_queue_lock_guard_t;
+namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
 //! Typedef for atomic demands counter.
 /*!
@@ -68,7 +62,9 @@ using demands_counter_t = std::atomic< std::size_t >;
 class demand_queue_t : public so_5::rt::event_queue_t
 {
 	public:
-		demand_queue_t();
+		demand_queue_t(
+			//! Lock object to be used by queue.
+			queue_traits::lock_unique_ptr_t lock );
 		~demand_queue_t();
 
 		/*!
@@ -139,7 +135,7 @@ class demand_queue_t : public so_5::rt::event_queue_t
 
 		//! \name Objects for the thread safety.
 		//! \{
-		queue_lock_t m_lock;
+		queue_traits::lock_unique_ptr_t m_lock;
 		//! \}
 
 		//! Service flag.
@@ -163,7 +159,9 @@ class demand_queue_t : public so_5::rt::event_queue_t
 class work_thread_t
 {
 	public:
-		work_thread_t();
+		work_thread_t(
+			//! Factory for creation of lock object for demand queue.
+			queue_traits::lock_factory_t queue_lock_factory );
 
 		//! Start the working thread.
 		void

@@ -19,7 +19,7 @@
 
 #include <so_5/h/priority.hpp>
 
-#include <so_5/disp/reuse/locks/h/locks.hpp>
+#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 
 namespace so_5 {
 
@@ -30,6 +30,8 @@ namespace prio_one_thread {
 namespace strictly_ordered {
 
 namespace impl {
+
+namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
 //
 // demand_t
@@ -118,7 +120,10 @@ class demand_queue_t
 				std::size_t m_demands_count;
 			};
 
-		demand_queue_t()
+		demand_queue_t(
+			//! Lock to be used for queue protection.
+			queue_traits::lock_unique_ptr_t lock )
+			:	m_lock{ std::move(lock) }
 			{
 				// Every subqueue must have a valid pointer to main demand queue.
 				for( auto & q : m_priorities )
@@ -134,7 +139,7 @@ class demand_queue_t
 		void
 		stop()
 			{
-				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
+				queue_traits::lock_guard_t lock{ *m_lock };
 
 				m_shutdown = true;
 
@@ -151,7 +156,7 @@ class demand_queue_t
 		demand_unique_ptr_t
 		pop()
 			{
-				so_5::disp::reuse::locks::combined_queue_unique_lock_t lock{ m_lock };
+				queue_traits::unique_lock_t lock{ *m_lock };
 
 				while( !m_shutdown && !m_current_priority )
 					lock.wait_for_notify();
@@ -221,7 +226,7 @@ class demand_queue_t
 
 	private :
 		//! Queue lock.
-		so_5::disp::reuse::locks::combined_queue_lock_t m_lock;
+		queue_traits::lock_unique_ptr_t m_lock;
 
 		//! Shutdown flag.
 		bool m_shutdown = false;
@@ -257,7 +262,7 @@ class demand_queue_t
 			//! Demand to be pushed.
 			demand_unique_ptr_t demand )
 			{
-				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
+				queue_traits::lock_guard_t lock{ *m_lock };
 
 				add_demand_to_queue( *subqueue, std::move( demand ) );
 

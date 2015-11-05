@@ -187,7 +187,7 @@ make_dispatcher_factories(
 	if( "active_obj" == type )
 	{
 		using namespace so_5::disp::active_obj;
-		res.m_disp_factory = create_disp;
+		res.m_disp_factory = [] { return create_disp(); };
 		res.m_binder_factory = [name]() { return create_disp_binder( name ); };
 	}
 	else if( "thread_pool" == type )
@@ -216,7 +216,7 @@ make_dispatcher_factories(
 	{
 		using namespace so_5::disp::one_thread;
 
-		res.m_disp_factory = create_disp;
+		res.m_disp_factory = [] { return create_disp(); };
 		res.m_binder_factory = [name]() { return create_disp_binder( name ); };
 	}
 	else

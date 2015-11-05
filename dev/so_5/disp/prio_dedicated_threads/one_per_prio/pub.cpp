@@ -50,9 +50,18 @@ using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
 class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
-		dispatcher_t()
+		dispatcher_t( params_t params )
 			:	m_data_source{ self() }
-			{}
+			{
+				m_threads.reserve( so_5::prio::total_priorities_count );
+				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
+						auto lock_factory = params.queue_params().lock_factory();
+
+						std::unique_ptr< work_thread_t > t{
+								new work_thread_t{ std::move(lock_factory) } };
+						m_threads.push_back( std::move(t) );
+					} );
+			}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
@@ -71,7 +80,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				so_5::details::invoke_noexcept_code( [this] {
 						for( auto & t : m_threads )
-							t.shutdown();
+							t->shutdown();
 					} );
 			}
 
@@ -80,7 +89,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				so_5::details::invoke_noexcept_code( [this] {
 						for( auto & t : m_threads )
-							t.wait();
+							t->wait();
 
 						m_data_source.stop();
 					} );
@@ -101,7 +110,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::rt::event_queue_t *
 		get_agent_binding( priority_t priority )
 			{
-				return m_threads[ to_size_t( priority ) ].get_agent_binding();
+				return m_threads[ to_size_t( priority ) ]->get_agent_binding();
 			}
 
 		//! Notification about binding of yet another agent.
@@ -153,7 +162,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 										mbox,
 										p,
 										agents,
-										m_dispatcher.m_threads[ to_size_t(p) ] );
+										*(m_dispatcher.m_threads[ to_size_t(p) ]) );
 							} );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
@@ -206,7 +215,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		disp_data_source_t m_data_source;
 
 		//! Working threads for every priority.
-		work_thread_t m_threads[ so_5::prio::total_priorities_count ];
+		std::vector< std::unique_ptr< work_thread_t > > m_threads;
 
 		//! Counters for agent count for every priority.
 		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
@@ -240,11 +249,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								m_agents_per_priority[ i ].store( 0,
 										std::memory_order_release );
 
-								m_threads[ i ].start();
+								m_threads[ i ]->start();
 
 								// Thread successfully started. Pointer to it
 								// must be used on rollback.
-								started_threads[ i ] = &m_threads[ i ];
+								started_threads[ i ] = m_threads[ i ].get();
 							}
 					},
 					[&] {
@@ -343,8 +352,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			so_5::rt::environment_t & env,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
-			const std::string & data_sources_name_base )
-			:	m_disp( new dispatcher_t() )
+			const std::string & data_sources_name_base,
+			//! Parameters for the dispatcher.
+			params_t params )
+			:	m_disp( new dispatcher_t{ std::move(params) } )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -384,9 +395,10 @@ private_dispatcher_t::~private_dispatcher_t()
 // create_disp
 //
 SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
-create_disp()
+create_disp( params_t params )
 	{
-		return so_5::rt::dispatcher_unique_ptr_t( new impl::dispatcher_t() );
+		return so_5::rt::dispatcher_unique_ptr_t(
+				new impl::dispatcher_t{ std::move(params) } );
 	}
 
 //
@@ -395,11 +407,14 @@ create_disp()
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	so_5::rt::environment_t & env,
-	const std::string & data_sources_name_base )
+	const std::string & data_sources_name_base,
+	params_t params )
 	{
 		return private_dispatcher_handle_t(
-				new impl::real_private_dispatcher_t(
-						env, data_sources_name_base ) );
+				new impl::real_private_dispatcher_t{
+						env,
+						data_sources_name_base,
+						std::move(params) } );
 	}
 
 //

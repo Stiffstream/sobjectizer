@@ -46,8 +46,9 @@ namespace stats = so_5::rt::stats;
 class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
-		dispatcher_t()
-			:	m_data_source( m_work_thread, m_agents_bound )
+		dispatcher_t( params_t params )
+			:	m_work_thread{ params.queue_params().lock_factory() }
+			,	m_data_source( m_work_thread, m_agents_bound )
 			{}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
@@ -375,8 +376,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			so_5::rt::environment_t & env,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
-			const std::string & data_sources_name_base )
-			:	m_disp( new dispatcher_t() )
+			const std::string & data_sources_name_base,
+			//! Parameters for the dispatcher,
+			params_t params )
+			:	m_disp( new dispatcher_t{ std::move(params) } )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -416,9 +419,10 @@ private_dispatcher_t::~private_dispatcher_t()
 // create_disp
 //
 SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
-create_disp()
+create_disp( params_t params )
 {
-	return so_5::rt::dispatcher_unique_ptr_t( new impl::dispatcher_t );
+	return so_5::rt::dispatcher_unique_ptr_t(
+			new impl::dispatcher_t{ std::move(params) } );
 }
 
 //
@@ -427,11 +431,14 @@ create_disp()
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	so_5::rt::environment_t & env,
-	const std::string & data_sources_name_base )
+	const std::string & data_sources_name_base,
+	params_t params )
 {
 	return private_dispatcher_handle_t(
 			new impl::real_private_dispatcher_t(
-					env, data_sources_name_base ) );
+					env,
+					data_sources_name_base,
+					std::move(params) ) );
 }
 
 //

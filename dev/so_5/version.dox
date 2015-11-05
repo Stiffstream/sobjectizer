@@ -2,6 +2,21 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_10 5.5.10 "Pichu Pichu"
+
+	A possibility to tune some options for event queue added for dispatchers
+	so_5::disp::one_thread, so_5::disp::active_obj, so_5::disp::active_group,
+	so_5::disp::prio_one_thread::strictly_ordered,
+	so_5::disp::prio_one_thread::quoted_round_robin,
+	so_5::disp::prio_dedicated_threads::one_per_prio.
+	A type of event queue lock can be specified by providing appropriate
+	lock factory (such as so_5::disp::mpsc_queue_traits::combined_lock_factory()
+	and so_5::disp::mpsc_queue_traits::simple_lock_factory());
+	
+	A possibility to tune options for event queue of the default dispatcher
+	is implemented via so_5::rt::environment_params_t::default_disp_params()
+	method.
+
 \section so_5__5_9 5.5.9 "Cerro Zapaleri"
 
 	A possibility to trace details of message delivery process is added.

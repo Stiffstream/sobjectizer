@@ -58,6 +58,21 @@ namespace so_5
 	namespace disp
 	{
 		/*!
+		 * \since v.5.5.10
+		 * \brief Various stuff related to MPSC event queue implementation and tuning.
+		 */
+		namespace mpsc_queue_traits
+		{
+			/*!
+			 * \since v.5.5.10
+			 * \brief Implementation details for MPSC event queue stuff.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+		} /* namespace mpsc_queue_traits */
+
+		/*!
 		 * \brief Active groups dispatcher.
 		 */
 		namespace active_group
