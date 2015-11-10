@@ -191,7 +191,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on( coop, workers,
 						[disp] {
 								return disp->binder(
-									so_5::disp::thread_pool::params_t{} );
+									so_5::disp::thread_pool::bind_params_t{} );
 						} );
 			}
 
@@ -207,7 +207,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on( coop, workers,
 						[disp] {
 								return disp->binder(
-									params_t{}.fifo( fifo_t::individual ) );
+									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
 
@@ -222,7 +222,7 @@ class a_controller_t : public so_5::rt::agent_t
 
 				create_children_on( coop, workers,
 						[disp] {
-								return disp->binder( params_t{} );
+								return disp->binder( bind_params_t{} );
 						} );
 			}
 
@@ -238,7 +238,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on( coop, workers,
 						[disp] {
 								return disp->binder(
-									params_t{}.fifo( fifo_t::individual ) );
+									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
 

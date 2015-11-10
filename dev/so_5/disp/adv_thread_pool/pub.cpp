@@ -28,26 +28,6 @@ namespace disp
 namespace adv_thread_pool
 {
 
-//
-// params_t
-//
-params_t::params_t()
-	:	m_fifo( fifo_t::cooperation )
-	{}
-
-params_t &
-params_t::fifo( fifo_t v )
-	{
-		m_fifo = v;
-		return *this;
-	}
-
-fifo_t
-params_t::query_fifo() const
-	{
-		return m_fifo;
-	}
-
 namespace
 {
 
@@ -64,7 +44,7 @@ using namespace so_5::disp::adv_thread_pool::impl;
 class binding_actions_t
 	{
 	protected :
-		binding_actions_t( params_t params )
+		binding_actions_t( bind_params_t params )
 			:	m_params( std::move( params ) )
 			{}
 
@@ -89,7 +69,7 @@ class binding_actions_t
 			}
 
 	private :
-		const params_t m_params;
+		const bind_params_t m_params;
 	};
 
 //
@@ -132,12 +112,15 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		real_private_dispatcher_t(
 			//! SObjectizer Environment to work in.
 			so_5::rt::environment_t & env,
-			//! Count of working threads.
-			std::size_t thread_count,
+			//! Parameters for the dispatcher.
+			disp_params_t & params,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base )
-			:	m_disp( new dispatcher_t( thread_count ) )
+			:	m_disp{
+					new dispatcher_t{
+						params.thread_count(),
+						params.queue_params() } }
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -153,7 +136,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
-		binder( const params_t & params ) override
+		binder( const bind_params_t & params ) override
 			{
 				return so_5::rt::disp_binder_unique_ptr_t(
 						new private_dispatcher_binder_t(
@@ -166,6 +149,17 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		std::unique_ptr< dispatcher_t > m_disp;
 	};
 
+/*!
+ * \since v.5.5.11
+ * \brief Sets the thread count to default value if used do not
+ * specify actual thread count.
+ */
+inline void
+adjust_thread_count( disp_params_t & params )
+	{
+		if( !params.thread_count() )
+			params.thread_count( default_thread_pool_size() );
+	}
 
 } /* namespace anonymous */
 
@@ -180,13 +174,14 @@ private_dispatcher_t::~private_dispatcher_t()
 //
 SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp(
-	std::size_t thread_count )
+	disp_params_t params )
 	{
-		if( !thread_count )
-			thread_count = default_thread_pool_size();
+		adjust_thread_count( params );
 
-		return so_5::rt::dispatcher_unique_ptr_t(
-				new impl::dispatcher_t( thread_count ) );
+		return so_5::rt::dispatcher_unique_ptr_t{
+				new impl::dispatcher_t{
+						params.thread_count(),
+						params.queue_params() } };
 	}
 
 //
@@ -195,16 +190,15 @@ create_disp(
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	so_5::rt::environment_t & env,
-	std::size_t thread_count,
+	disp_params_t params,
 	const std::string & data_sources_name_base )
 	{
-		if( !thread_count )
-			thread_count = default_thread_pool_size();
+		adjust_thread_count( params );
 
 		return private_dispatcher_handle_t(
 				new real_private_dispatcher_t(
 						env,
-						thread_count,
+						params,
 						data_sources_name_base ) );
 	}
 

@@ -39,49 +39,49 @@ namespace quoted_round_robin {
 namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
 //
-// params_t
+// disp_params_t
 //
 /*!
  * \since v.5.5.10
  * \brief Parameters for a dispatcher.
  */
-class params_t
+class disp_params_t
 	{
 	public :
 		//! Default constructor.
-		params_t() {}
+		disp_params_t() {}
 		//! Copy constructor.
-		params_t( const params_t & o )
+		disp_params_t( const disp_params_t & o )
 			:	m_queue_params{ o.m_queue_params }
 			{}
 		//! Move constructor.
-		params_t( params_t && o )
+		disp_params_t( disp_params_t && o )
 			:	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( params_t & a, params_t & b )
+		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
 				swap( a.m_queue_params, b.m_queue_params );
 			}
 
 		//! Copy operator.
-		params_t & operator=( const params_t & o )
+		disp_params_t & operator=( const disp_params_t & o )
 			{
-				params_t tmp{ o };
+				disp_params_t tmp{ o };
 				swap( *this, tmp );
 				return *this;
 			}
 		//! Move operator.
-		params_t & operator=( params_t && o )
+		disp_params_t & operator=( disp_params_t && o )
 			{
-				params_t tmp{ std::move(o) };
+				disp_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
 				return *this;
 			}
 
 		//! Setter for queue parameters.
-		params_t &
-		set_queue_params( queue_traits::params_t p )
+		disp_params_t &
+		set_queue_params( queue_traits::queue_params_t p )
 			{
 				m_queue_params = std::move(p);
 				return *this;
@@ -95,14 +95,14 @@ class params_t
 			namespace prio_disp = so_5::disp::prio_one_thread::quoted_round_robin;
 			prio_disp::create_private_disp( env,
 				"my_prio_disp",
-				prio_disp::params_t{}.tune_queue_params(
-					[]( prio_disp::queue_traits::params_t & p ) {
+				prio_disp::disp_params_t{}.tune_queue_params(
+					[]( prio_disp::queue_traits::queue_params_t & p ) {
 						p.lock_factory( prio_disp::queue_traits::simple_lock_factory() );
 					} ) );
 			\endcode
 		 */
 		template< typename L >
-		params_t &
+		disp_params_t &
 		tune_queue_params( L tunner )
 			{
 				tunner( m_queue_params );
@@ -110,7 +110,7 @@ class params_t
 			}
 
 		//! Getter for queue parameters.
-		const queue_traits::params_t &
+		const queue_traits::queue_params_t &
 		queue_params() const
 			{
 				return m_queue_params;
@@ -118,8 +118,17 @@ class params_t
 
 	private :
 		//! Queue parameters.
-		queue_traits::params_t m_queue_params;
+		queue_traits::queue_params_t m_queue_params;
 	};
+
+//
+// params_t
+//
+/*!
+ * \brief Old alias for disp_params for compatibility with previous versions.
+ * \deprecated Use disp_params_t instead.
+ */
+using params_t = disp_params_t;
 
 //
 // private_dispatcher_t
@@ -155,7 +164,7 @@ create_disp(
 	//! Quotes for every priority.
 	const quotes_t & quotes,
 	//! Parameters for dispatcher.
-	params_t params );
+	disp_params_t params );
 
 //! Create a dispatcher.
 inline so_5::rt::dispatcher_unique_ptr_t
@@ -163,7 +172,7 @@ create_disp(
 	//! Quotes for every priority.
 	const quotes_t & quotes )
 	{
-		return create_disp( quotes, params_t{} );
+		return create_disp( quotes, disp_params_t{} );
 	}
 
 /*!
@@ -177,8 +186,8 @@ auto common_thread_disp = create_private_disp(
 	env,
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 	"request_processor",
-	params_t{}.tune_queue_params(
-		[]( queue_traits::params_t & p ) {
+	disp_params_t{}.tune_queue_params(
+		[]( queue_traits::queue_params_t & p ) {
 			p.lock_factory( queue_traits::simple_lock_factory() );
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
@@ -197,7 +206,7 @@ create_private_disp(
 	//! run-time monitoring.
 	const std::string & data_sources_name_base,
 	//! Parameters for the dispatcher.
-	params_t params );
+	disp_params_t params );
 
 /*!
  * \since v.5.5.8
@@ -230,7 +239,7 @@ create_private_disp(
 				env,
 				quotes,
 				data_sources_name_base,
-				params_t{} );
+				disp_params_t{} );
 	}
 
 

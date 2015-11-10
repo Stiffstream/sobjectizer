@@ -301,7 +301,7 @@ init( so_5::rt::environment_t & env )
 		// Chain of performers.
 		// Must work on dedicated thread_pool dispatcher.
 		auto performer_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
-		auto performer_binding_params = so_5::disp::thread_pool::params_t{}
+		auto performer_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 		// Start chain from the last agent.
@@ -326,7 +326,7 @@ init( so_5::rt::environment_t & env )
 
 		// Generators will work on dedicated thread_pool dispatcher.
 		auto generator_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
-		auto generator_binding_params = so_5::disp::thread_pool::params_t{}
+		auto generator_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 		coop.make_agent_with_binder< a_generator_t >(

@@ -40,7 +40,7 @@ class disp_repository_t
 			environment_t & env,
 			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger,
-			so_5::disp::one_thread::params_t default_disp_params );
+			so_5::disp::one_thread::disp_params_t default_disp_params );
 
 		virtual ~disp_repository_t();
 

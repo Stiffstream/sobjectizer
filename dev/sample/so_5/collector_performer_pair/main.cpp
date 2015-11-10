@@ -367,14 +367,14 @@ create_processing_coops( so_5::rt::environment_t & env )
 					concurrent_slots );
 
 			auto collector = coop.make_agent_with_binder< a_collector_t >(
-					collector_disp->binder( so_5::disp::thread_pool::params_t{} ),
+					collector_disp->binder( so_5::disp::thread_pool::bind_params_t{} ),
 					"r" + std::to_string(i), c, concurrent_slots );
 
 			auto collector_mbox = collector->so_direct_mbox();
 			result.push_back( collector_mbox );
 
 			auto performer = coop.make_agent_with_binder< a_performer_t >(
-					performer_disp->binder( so_5::disp::adv_thread_pool::params_t{} ),
+					performer_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ),
 					"p" + std::to_string(i), collector_mbox );
 
 			collector->set_performer_mbox( performer->so_direct_mbox() );
@@ -397,7 +397,7 @@ init( so_5::rt::environment_t & env )
 	auto generators_disp = create_private_disp( env, 3 );
 	// Registration of generator will start example.
 	env.introduce_coop(
-			generators_disp->binder( []( params_t & p ) {
+			generators_disp->binder( []( bind_params_t & p ) {
 				p.fifo( fifo_t::individual );
 			} ),
 			[&]( so_5::rt::coop_t & coop ) {

@@ -198,7 +198,7 @@ make_dispatcher_factories(
 			[name]() {
 				return create_disp_binder(
 						name,
-						[]( params_t & p ) { p.fifo( fifo_t::individual ); } );
+						[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
 			};
 	}
 	else if( "adv_thread_pool" == type )
@@ -209,7 +209,7 @@ make_dispatcher_factories(
 			[name]() {
 				return create_disp_binder(
 						name,
-						[]( params_t & p ) { p.fifo( fifo_t::individual ); } );
+						[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
 			};
 	}
 	else if( "one_thread" == type )

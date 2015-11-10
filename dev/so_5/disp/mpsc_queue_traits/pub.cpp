@@ -59,20 +59,20 @@ class combined_lock_t : public lock_t
 			{}
 
 		virtual void
-		lock() override
+		lock() SO_5_NOEXCEPT override
 			{
 				m_spinlock.lock();
 			}
 
 		virtual void
-		unlock() override
+		unlock() SO_5_NOEXCEPT override
 			{
 				m_spinlock.unlock();
 			}
 
 	protected :
 		virtual void
-		wait_for_notify() override
+		wait_for_notify() SO_5_NOEXCEPT override
 			{
 				using clock = std::chrono::high_resolution_clock;
 
@@ -120,7 +120,7 @@ class combined_lock_t : public lock_t
 		 * \attention Must be called only when object is locked.
 		 */
 		virtual void
-		notify_one() override
+		notify_one() SO_5_NOEXCEPT override
 			{
 				if( m_waiting )
 					{
@@ -156,20 +156,20 @@ class simple_lock_t : public lock_t
 	{
 	public :
 		virtual void
-		lock() override
+		lock() SO_5_NOEXCEPT override
 			{
 				m_mutex.lock();
 			}
 
 		virtual void
-		unlock() override
+		unlock() SO_5_NOEXCEPT override
 			{
 				m_mutex.unlock();
 			}
 
 	protected :
 		virtual void
-		wait_for_notify() override
+		wait_for_notify() SO_5_NOEXCEPT override
 			{
 				so_5::details::invoke_noexcept_code( [&] {
 					// Mutex already locked. We must not try to reacquire it.
@@ -183,7 +183,7 @@ class simple_lock_t : public lock_t
 			}
 
 		virtual void
-		notify_one() override
+		notify_one() SO_5_NOEXCEPT override
 			{
 				m_signaled = true;
 				m_condition.notify_one();
@@ -202,12 +202,6 @@ class simple_lock_t : public lock_t
 // combined_lock_factory
 //
 SO_5_FUNC lock_factory_t
-combined_lock_factory()
-	{
-		return combined_lock_factory( default_combined_lock_waiting_time() );
-	}
-
-SO_5_FUNC lock_factory_t
 combined_lock_factory(
 	std::chrono::high_resolution_clock::duration waiting_time )
 	{
@@ -216,6 +210,9 @@ combined_lock_factory(
 		};
 	}
 
+//
+// simple_lock_factory
+//
 SO_5_FUNC lock_factory_t
 simple_lock_factory()
 	{

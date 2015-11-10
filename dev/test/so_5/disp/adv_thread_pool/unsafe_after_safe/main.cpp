@@ -17,6 +17,10 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
+#include "../for_each_lock_factory.hpp"
+
+namespace atp_disp = so_5::disp::adv_thread_pool;
+
 const unsigned int thread_count = 4;
 
 struct msg_shutdown : public so_5::rt::signal_t {};
@@ -104,7 +108,7 @@ class a_test_t : public so_5::rt::agent_t
 };
 
 void
-run_sobjectizer()
+run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 {
 	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
@@ -112,15 +116,19 @@ run_sobjectizer()
 			env.register_agent_as_coop(
 					"test",
 					new a_test_t( env ),
-					so_5::disp::adv_thread_pool::create_disp_binder(
+					atp_disp::create_disp_binder(
 							"thread_pool",
-							so_5::disp::adv_thread_pool::params_t() ) );
+							atp_disp::bind_params_t() ) );
 		},
-		[]( so_5::rt::environment_params_t & params )
+		[&]( so_5::rt::environment_params_t & params )
 		{
+			using namespace atp_disp;
 			params.add_named_dispatcher(
 					"thread_pool",
-					so_5::disp::adv_thread_pool::create_disp( thread_count ) );
+					create_disp( disp_params_t{}
+						.thread_count( thread_count )
+						.set_queue_params( queue_traits::queue_params_t{}
+							.lock_factory( factory ) ) ) );
 		} );
 }
 
@@ -129,13 +137,15 @@ main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				run_sobjectizer();
-			},
-			5,
-			"unsafe_after_safe test" );
+		for_each_lock_factory( []( atp_disp::queue_traits::lock_factory_t factory ) {
+			run_with_time_limit(
+				[&]()
+				{
+					run_sobjectizer( factory );
+				},
+				5,
+				"unsafe_after_safe test" );
+		} );
 	}
 	catch( const std::exception & ex )
 	{

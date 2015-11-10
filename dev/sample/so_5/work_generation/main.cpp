@@ -407,7 +407,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	{
 		env.introduce_coop( [&]( so_5::rt::coop_t & coop ) {
 			auto receiver = coop.make_agent_with_binder< a_receiver_t >(
-					receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
+					receiver_disp->binder( so_5::disp::thread_pool::bind_params_t{} ),
 					"r" + std::to_string(i), c );
 
 			const auto receiver_mbox = receiver->so_direct_mbox();
@@ -434,7 +434,7 @@ init( so_5::rt::environment_t & env )
 	// A private dispatcher for generators cooperation.
 	auto generators_disp = create_private_disp( env, 3 );
 	env.introduce_coop(
-			generators_disp->binder( params_t{}.fifo( fifo_t::individual ) ),
+			generators_disp->binder( bind_params_t{}.fifo( fifo_t::individual ) ),
 			[&receivers]( so_5::rt::coop_t & coop ) {
 				for( int i = 0; i != 3; ++i )
 					coop.make_agent< a_generator_t >(

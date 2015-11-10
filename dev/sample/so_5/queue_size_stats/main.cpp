@@ -244,7 +244,7 @@ init( so_5::rt::environment_t & env )
 				env,
 				3, // Count of working threads.
 				"workers" ); // Name of dispatcher (for convience of monitoring).
-		const auto worker_binding_params = so_5::disp::thread_pool::params_t{}
+		const auto worker_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 		std::vector< so_5::rt::mbox_t > workers;

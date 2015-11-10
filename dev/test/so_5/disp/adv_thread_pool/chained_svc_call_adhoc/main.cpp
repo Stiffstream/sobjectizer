@@ -17,6 +17,10 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
+#include "../for_each_lock_factory.hpp"
+
+namespace atp_disp = so_5::disp::adv_thread_pool;
+
 const unsigned int thread_pool_size = 16;
 
 struct msg_run_test : public so_5::rt::signal_t {};
@@ -34,9 +38,9 @@ so_5::rt::agent_coop_unique_ptr_t
 create_test_coop( so_5::rt::environment_t & env )
 {
 	auto c = env.create_coop( "test",
-			so_5::disp::adv_thread_pool::create_disp_binder(
+			atp_disp::create_disp_binder(
 					"thread_pool",
-					so_5::disp::adv_thread_pool::params_t() ) );
+					atp_disp::bind_params_t() ) );
 
 	auto mbox = env.create_local_mbox();
 	auto requester = [mbox]( unsigned int number ) {
@@ -80,29 +84,42 @@ create_test_coop( so_5::rt::environment_t & env )
 	return c;
 }
 
+void
+do_test( atp_disp::queue_traits::lock_factory_t factory )
+{
+	run_with_time_limit(
+		[&]()
+		{
+			so_5::launch(
+				[]( so_5::rt::environment_t & env )
+				{
+					env.register_coop( create_test_coop( env ) );
+				},
+				[&]( so_5::rt::environment_params_t & params )
+				{
+					using namespace atp_disp;
+					params.add_named_dispatcher(
+							"thread_pool",
+							create_disp( 
+								disp_params_t{}
+									.thread_count( thread_pool_size )
+									.set_queue_params( queue_traits::queue_params_t{}
+										.lock_factory( factory ) ) )
+					);
+				} );
+		},
+		5,
+		"adv_thread_pool chained_svc_call_adhoc" );
+}
+
 int
 main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				so_5::launch(
-					[]( so_5::rt::environment_t & env )
-					{
-						env.register_coop( create_test_coop( env ) );
-					},
-					[]( so_5::rt::environment_params_t & params )
-					{
-						params.add_named_dispatcher(
-								"thread_pool",
-								so_5::disp::adv_thread_pool::create_disp( 
-										thread_pool_size ) );
-					} );
-			},
-			5,
-			"simple thread_pool dispatcher test" );
+		for_each_lock_factory( []( atp_disp::queue_traits::lock_factory_t factory ) {
+				do_test( factory );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

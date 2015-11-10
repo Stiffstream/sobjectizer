@@ -2,6 +2,19 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_11 5.5.11 "Cerro Nelly"
+
+	A possibility to tune some options for event queue added for dispatchers
+	so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
+
+	Types for parameters for dispatchers now have name disp_params_t
+	(for example so_5::disp::one_thread::disp_params_t or
+	so_5::disp::adv_thread_pool::disp_params_t).
+
+	Type for event queues' parameters now have name queue_params_t
+	(for example so_5::disp::one_thread::queue_traits::queue_params_t
+	or so_5::disp::adv_thread_pool::queue_traits::queue_params_t).
+
 \section so_5__5_10 5.5.10 "Pichu Pichu"
 
 	A possibility to tune some options for event queue added for dispatchers

@@ -333,6 +333,7 @@ class work_thread_t
 		//! Initializing constructor.
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
+			,	m_condition{ queue.allocate_condition() }
 			{
 			}
 
@@ -363,7 +364,7 @@ class work_thread_t
 		std::thread m_thread;
 
 		//! Thread alarm for long waiting.
-		dispatcher_queue_t::waiting_object_t m_waiting_object;
+		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
 		//! Thread body method.
 		void
@@ -373,7 +374,7 @@ class work_thread_t
 
 				agent_queue_t * agent_queue;
 				while( nullptr !=
-						(agent_queue = m_disp_queue->pop( m_waiting_object )) )
+						(agent_queue = m_disp_queue->pop( *m_condition )) )
 					{
 						// This guard is necessary to ensure that queue
 						// will exist until processing of queue finished.

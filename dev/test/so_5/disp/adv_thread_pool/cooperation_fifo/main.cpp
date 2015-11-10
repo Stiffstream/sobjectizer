@@ -16,6 +16,10 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
+#include "../for_each_lock_factory.hpp"
+
+namespace atp_disp = so_5::disp::adv_thread_pool;
+
 struct msg_shutdown : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
@@ -85,7 +89,7 @@ class a_shutdowner_t : public so_5::rt::agent_t
 const std::size_t thread_count = 4;
 
 void
-run_sobjectizer()
+run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 {
 	so_5::launch(
 		[&]( so_5::rt::environment_t & env )
@@ -98,11 +102,9 @@ run_sobjectizer()
 				env.register_coop( std::move( c ) );
 			}
 
-			so_5::disp::adv_thread_pool::params_t params;
+			atp_disp::bind_params_t params;
 			auto c = env.create_coop( "test_agents",
-					so_5::disp::adv_thread_pool::create_disp_binder(
-							"thread_pool",
-							params ) );
+					atp_disp::create_disp_binder( "thread_pool", params ) );
 			for( std::size_t i = 0; i != thread_count; ++i )
 			{
 				c->add_agent( new a_test_t( env, shutdowner_mbox ) );
@@ -110,11 +112,15 @@ run_sobjectizer()
 
 			env.register_coop( std::move( c ) );
 		},
-		[]( so_5::rt::environment_params_t & params )
+		[&]( so_5::rt::environment_params_t & params )
 		{
+			using namespace atp_disp;
 			params.add_named_dispatcher(
 					"thread_pool",
-					so_5::disp::adv_thread_pool::create_disp( thread_count ) );
+					create_disp( disp_params_t{}
+						.thread_count( thread_count )
+						.set_queue_params( queue_traits::queue_params_t{}
+							.lock_factory( factory ) ) ) );
 		} );
 }
 
@@ -123,13 +129,15 @@ main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				run_sobjectizer();
-			},
-			5,
-			"cooperation_fifo test" );
+		for_each_lock_factory( []( atp_disp::queue_traits::lock_factory_t factory ) {
+			run_with_time_limit(
+				[&]()
+				{
+					run_sobjectizer( factory );
+				},
+				5,
+				"cooperation_fifo test" );
+		} );
 	}
 	catch( const std::exception & ex )
 	{

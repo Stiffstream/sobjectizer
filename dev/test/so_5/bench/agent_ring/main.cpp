@@ -227,7 +227,7 @@ create_disp_binder(
 			return one_thread::create_private_disp( env )->binder();
 		else if( dispatcher_type_t::thread_pool == t )
 			return thread_pool::create_private_disp( env )->binder(
-					[]( thread_pool::params_t & p ) {
+					[]( thread_pool::bind_params_t & p ) {
 						p.fifo( thread_pool::fifo_t::individual );
 					} );
 		else

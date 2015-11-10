@@ -90,7 +90,7 @@ class agent_queue_t
 		~agent_queue_t()
 			{
 				while( m_head.m_next )
-					delete_head();
+					remove_head();
 			}
 
 		//! Push next demand to queue.
@@ -134,19 +134,24 @@ class agent_queue_t
 			//! Count of consequently processed demands from that queue.
 			std::size_t demands_processed )
 			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
-				delete_head();
-
-				if( m_head.m_next )
+				// Actual deletion of old head must be performed
+				// when m_lock will be released.
+				std::unique_ptr< demand_t > old_head;
 				{
-					if( demands_processed < m_max_demands_at_once )
-						return true;
+					std::lock_guard< spinlock_t > lock( m_lock );
+
+					old_head = remove_head();
+
+					if( m_head.m_next )
+					{
+						if( demands_processed < m_max_demands_at_once )
+							return true;
+						else
+							m_disp_queue.schedule( this );
+					}
 					else
-						m_disp_queue.schedule( this );
+						m_tail = &m_head;
 				}
-				else
-					m_tail = &m_head;
 
 				return false;
 			}
@@ -218,15 +223,15 @@ class agent_queue_t
 		std::atomic< std::size_t > m_size = { 0 };
 
 		//! Helper method for deleting queue's head object.
-		inline void
-		delete_head()
+		inline std::unique_ptr< demand_t >
+		remove_head()
 			{
-				auto to_be_deleted = m_head.m_next;
+				std::unique_ptr< demand_t > to_be_deleted{ m_head.m_next };
 				m_head.m_next = m_head.m_next->m_next;
 
 				--m_size;
 
-				delete to_be_deleted;
+				return to_be_deleted;
 			}
 	};
 
@@ -243,6 +248,7 @@ class work_thread_t
 		//! Initializing constructor.
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
+			,	m_condition{ queue.allocate_condition() }
 			{
 			}
 
@@ -273,7 +279,7 @@ class work_thread_t
 		std::thread m_thread;
 
 		//! Waiting object for long wait.
-		dispatcher_queue_t::waiting_object_t m_waiting_object;
+		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
 		//! Thread body method.
 		void
@@ -283,7 +289,7 @@ class work_thread_t
 
 				agent_queue_t * agent_queue;
 				while( nullptr !=
-						(agent_queue = m_disp_queue->pop( m_waiting_object )) )
+						(agent_queue = m_disp_queue->pop( *m_condition )) )
 					{
 						process_queue( *agent_queue );
 					}

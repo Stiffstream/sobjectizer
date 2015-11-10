@@ -21,6 +21,12 @@ enum class dispatcher_t
 		adv_thread_pool
 	};
 
+enum class lock_type_t
+	{
+		combined_lock,
+		simple_lock
+	};
+
 struct cfg_t
 	{
 		std::size_t m_cooperations = 1024;
@@ -31,6 +37,7 @@ struct cfg_t
 		bool m_individual_fifo = false;
 		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
 		std::size_t m_messages_to_send_at_start = 1;
+		lock_type_t m_lock_type = lock_type_t::combined_lock;
 	};
 
 cfg_t
@@ -57,6 +64,7 @@ try_parse_cmdline(
 							"-t, --threads           size of thread pool\n"
 							"-i, --individual-fifo   use individual FIFO for agents\n"
 							"-P, --adv-thread-pool   use adv_thread_pool dispatcher\n"
+							"-s, --simple-lock       use simple_lock_factory for MPMC queue\n"
 							"-h, --help              show this description\n"
 							<< std::endl;
 					std::exit(1);
@@ -96,6 +104,9 @@ try_parse_cmdline(
 
 			else if( is_arg( *current, "-P", "--adv-thread-pool" ) )
 					tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
+
+			else if( is_arg( *current, "-s", "--simple-lock" ) )
+					tmp_cfg.m_lock_type = lock_type_t::simple_lock;
 
 			else
 				throw std::runtime_error(
@@ -266,7 +277,7 @@ class a_contoller_t : public so_5::rt::agent_t
 			if( dispatcher_t::thread_pool == m_cfg.m_dispatcher )
 			{
 				using namespace so_5::disp::thread_pool;
-				params_t params;
+				bind_params_t params;
 				if( m_cfg.m_individual_fifo )
 					params.fifo( fifo_t::individual );
 				if( m_cfg.m_demands_at_once )
@@ -276,7 +287,7 @@ class a_contoller_t : public so_5::rt::agent_t
 			else
 			{
 				using namespace so_5::disp::adv_thread_pool;
-				params_t params;
+				bind_params_t params;
 				if( m_cfg.m_individual_fifo )
 					params.fifo( fifo_t::individual );
 				return create_disp_binder( "thread_pool", params );
@@ -308,6 +319,10 @@ show_cfg( const cfg_t & cfg )
 			<< (dispatcher_t::thread_pool == cfg.m_dispatcher ?
 					"thread_pool" : "adv_thread_pool")
 			<< std::endl;
+	std::cout << "  MPMC queue lock: "
+			<< (lock_type_t::combined_lock == cfg.m_lock_type ?
+					"combined" : "simple")
+			<< std::endl;
 
 	if( dispatcher_t::thread_pool == cfg.m_dispatcher ) 
 	{
@@ -316,7 +331,7 @@ show_cfg( const cfg_t & cfg )
 			std::cout << cfg.m_demands_at_once;
 		else
 			std::cout << "default ("
-				<< so_5::disp::thread_pool::params_t().query_max_demands_at_once()
+				<< so_5::disp::thread_pool::bind_params_t().query_max_demands_at_once()
 				<< ")";
 	}
 
@@ -334,7 +349,7 @@ show_cfg( const cfg_t & cfg )
 	{
 		std::cout << "default (";
 		if( so_5::disp::thread_pool::fifo_t::cooperation ==
-				so_5::disp::thread_pool::params_t().query_fifo() )
+				so_5::disp::thread_pool::bind_params_t().query_fifo() )
 			std::cout << "cooperation";
 		else
 			std::cout << "individual";
@@ -351,9 +366,27 @@ create_dispatcher( const cfg_t & cfg )
 			cfg.m_threads : default_thread_pool_size();
 
 	if( dispatcher_t::adv_thread_pool == cfg.m_dispatcher )
-		return so_5::disp::adv_thread_pool::create_disp( threads );
+	{
+		using namespace so_5::disp::adv_thread_pool;
+		disp_params_t params;
+		params.thread_count( threads );
+		if( lock_type_t::simple_lock == cfg.m_lock_type )
+			params.set_queue_params( queue_traits::queue_params_t{}
+					.lock_factory( queue_traits::simple_lock_factory() ) );
 
-	return so_5::disp::thread_pool::create_disp( threads );
+		return create_disp( params );
+	}
+	else
+	{
+		using namespace so_5::disp::thread_pool;
+		disp_params_t params;
+		params.thread_count( threads );
+		if( lock_type_t::simple_lock == cfg.m_lock_type )
+			params.set_queue_params( queue_traits::queue_params_t{}
+					.lock_factory( queue_traits::simple_lock_factory() ) );
+
+		return create_disp( params );
+	}
 }
 
 int

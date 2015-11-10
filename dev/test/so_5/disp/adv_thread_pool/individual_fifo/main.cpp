@@ -18,6 +18,10 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 #include <various_helpers_1/benchmark_helpers.hpp>
 
+#include "../for_each_lock_factory.hpp"
+
+namespace atp_disp = so_5::disp::adv_thread_pool;
+
 typedef std::set< so_5::current_thread_id_t > thread_id_set_t;
 
 class thread_id_collector_t
@@ -143,7 +147,9 @@ create_collectors()
 }
 
 void
-run_sobjectizer( collector_container_t & collectors )
+run_sobjectizer(
+	atp_disp::queue_traits::lock_factory_t factory,
+	collector_container_t & collectors )
 {
 	duration_meter_t duration( "running of test cooperations" );
 
@@ -161,16 +167,15 @@ run_sobjectizer( collector_container_t & collectors )
 
 			std::size_t collector_index = 0;
 
-			so_5::disp::adv_thread_pool::params_t params;
-			params.fifo( so_5::disp::adv_thread_pool::fifo_t::individual );
+			atp_disp::bind_params_t params;
+			params.fifo( atp_disp::fifo_t::individual );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
 				auto c = env.create_coop( ss.str(),
-						so_5::disp::adv_thread_pool::create_disp_binder(
-								"thread_pool", params ) );
+						atp_disp::create_disp_binder( "thread_pool", params ) );
 				for( std::size_t a = 0; a != cooperation_size;
 						++a, ++collector_index )
 				{
@@ -183,11 +188,15 @@ run_sobjectizer( collector_container_t & collectors )
 				env.register_coop( std::move( c ) );
 			}
 		},
-		[]( so_5::rt::environment_params_t & params )
+		[&]( so_5::rt::environment_params_t & params )
 		{
+			using namespace atp_disp;
 			params.add_named_dispatcher(
 					"thread_pool",
-					so_5::disp::adv_thread_pool::create_disp( thread_count ) );
+					create_disp( disp_params_t{}
+						.thread_count( thread_count )
+						.set_queue_params( queue_traits::queue_params_t{}
+							.lock_factory( factory ) ) ) );
 		} );
 }
 
@@ -221,11 +230,11 @@ analyze_results( const collector_container_t & collectors )
 }
 
 void
-run_and_check()
+run_and_check( atp_disp::queue_traits::lock_factory_t factory )
 {
 	auto collectors = create_collectors();
 
-	run_sobjectizer( collectors );
+	run_sobjectizer( factory, collectors );
 
 	analyze_results( collectors );
 }
@@ -235,13 +244,15 @@ main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				run_and_check();
-			},
-			60,
-			"individual_fifo test" );
+		for_each_lock_factory( []( atp_disp::queue_traits::lock_factory_t factory ) {
+			run_with_time_limit(
+				[&]()
+				{
+					run_and_check( factory );
+				},
+				60,
+				"individual_fifo test" );
+		} );
 	}
 	catch( const std::exception & ex )
 	{

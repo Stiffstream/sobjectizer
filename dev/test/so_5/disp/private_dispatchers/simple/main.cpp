@@ -121,7 +121,7 @@ init( so_5::rt::environment_t & env )
 							make_hello_string( "active_group-2-2" ) );
 				} );
 
-	const auto tp_params = so_5::disp::thread_pool::params_t{}
+	const auto tp_params = so_5::disp::thread_pool::bind_params_t{}
 			.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 	coop->define_agent( thread_pool->binder( tp_params ) )
@@ -146,7 +146,7 @@ init( so_5::rt::environment_t & env )
 							make_hello_string( "thread_pool-3" ) );
 				} );
 
-	const auto atp_params = so_5::disp::adv_thread_pool::params_t{}
+	const auto atp_params = so_5::disp::adv_thread_pool::bind_params_t{}
 			.fifo( so_5::disp::adv_thread_pool::fifo_t::individual );
 
 	auto atp_agent = coop->define_agent( adv_thread_pool->binder( atp_params ) );

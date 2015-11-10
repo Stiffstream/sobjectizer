@@ -62,8 +62,8 @@ using private_dispatcher_handle_t =
 	so_5::launch( &init, []( so_5::rt::environment_params_t & params ) {
 			params.add_named_dispatcher( "my_disp",
 				so_5::disp::one_thread::create_disp(
-					so_5::disp::one_thread::params_t{}.tune_queue_params(
-						[]( so_5::disp::one_thread::queue_traits::params_t & p ) {
+					so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
+						[]( so_5::disp::one_thread::queue_traits::disp_params_t & p ) {
 							p.lock_factory( so_5::disp::one_thread::queue_traits::simple_lock_factory();
 						} ) ) );
 		} );
@@ -72,13 +72,13 @@ using private_dispatcher_handle_t =
 SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
 create_disp(
 	//! Parameters for the dispatcher.
-	params_t params );
+	disp_params_t params );
 
 //! Create a dispatcher.
 inline so_5::rt::dispatcher_unique_ptr_t
 create_disp()
 	{
-		return create_disp( params_t{} );
+		return create_disp( disp_params_t{} );
 	}
 
 /*!
@@ -90,8 +90,8 @@ create_disp()
 auto one_thread_disp = so_5::disp::one_thread::create_private_disp(
 	env,
 	"file_handler",
-	so_5::disp::one_thread::params_t{}.tune_queue_params(
-		[]( so_5::disp::one_thread::queue_traits::params_t & p ) {
+	so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
+		[]( so_5::disp::one_thread::queue_traits::queue_params_t & p ) {
 			p.lock_factory( so_5::disp::one_thread::queue_traits::simple_lock_factory();
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
@@ -108,7 +108,7 @@ create_private_disp(
 	//! run-time monitoring.
 	const std::string & data_sources_name_base,
 	//! Parameters for the dispatcher.
-	params_t params );
+	disp_params_t params );
 
 /*!
  * \since v.5.5.4
@@ -133,7 +133,7 @@ create_private_disp(
 	//! run-time monitoring.
 	const std::string & data_sources_name_base )
 	{
-		return create_private_disp( env, data_sources_name_base, params_t{} );
+		return create_private_disp( env, data_sources_name_base, disp_params_t{} );
 	}
 
 /*!
@@ -153,7 +153,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline private_dispatcher_handle_t
 create_private_disp( so_5::rt::environment_t & env )
 	{
-		return create_private_disp( env, std::string(), params_t{} );
+		return create_private_disp( env, std::string(), disp_params_t{} );
 	}
 
 //! Create a dispatcher binder object.

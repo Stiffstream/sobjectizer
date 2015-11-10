@@ -88,7 +88,7 @@ class case_setter_t
 		setup_lock_factory( P params ) const
 			{
 				params.tune_queue_params(
-					[&]( so_5::disp::mpsc_queue_traits::params_t & p ) {
+					[&]( so_5::disp::mpsc_queue_traits::queue_params_t & p ) {
 						p.lock_factory( m_lock_factory );
 					} );
 
@@ -112,7 +112,7 @@ class default_disp_setter_t : public case_setter_t
 		tune_env_params( so_5::rt::environment_params_t & params ) override
 			{
 				params.default_disp_params(
-					setup_lock_factory( so_5::disp::one_thread::params_t{} ) );
+					setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
@@ -135,7 +135,7 @@ class one_thread_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"one_thread",
 					so_5::disp::one_thread::create_disp(
-						setup_lock_factory( so_5::disp::one_thread::params_t{} ) )
+						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) )
 				);
 			}
 		virtual so_5::rt::disp_binder_unique_ptr_t
@@ -158,7 +158,7 @@ class active_obj_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"active_obj",
 					so_5::disp::active_obj::create_disp(
-						setup_lock_factory( so_5::disp::active_obj::params_t{} ) )
+						setup_lock_factory( so_5::disp::active_obj::disp_params_t{} ) )
 				);
 			}
 
@@ -182,7 +182,7 @@ class active_group_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"active_group",
 					so_5::disp::active_group::create_disp(
-						setup_lock_factory( so_5::disp::active_group::params_t{} ) )
+						setup_lock_factory( so_5::disp::active_group::disp_params_t{} ) )
 				);
 			}
 
@@ -211,7 +211,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 				using namespace so_5::disp::prio_one_thread::strictly_ordered;
 				params.add_named_dispatcher(
 					"prio::strictly_ordered",
-					create_disp( setup_lock_factory( params_t{} ) )
+					create_disp( setup_lock_factory( disp_params_t{} ) )
 				);
 			}
 
@@ -236,7 +236,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 				params.add_named_dispatcher(
 					"prio::quoted_round_robin",
-					create_disp( quotes_t{ 10 }, setup_lock_factory( params_t{} ) )
+					create_disp( quotes_t{ 10 }, setup_lock_factory( disp_params_t{} ) )
 				);
 			}
 
@@ -261,7 +261,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
 				params.add_named_dispatcher(
 					"prio::one_per_prio",
-					create_disp( setup_lock_factory( params_t{} ) ) );
+					create_disp( setup_lock_factory( disp_params_t{} ) ) );
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t

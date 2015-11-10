@@ -58,6 +58,7 @@ set(SO_5_SRC exception.cpp
 	rt/stats/impl/ds_timer_thread_stats.cpp
 	
 	disp/mpsc_queue_traits/pub.cpp
+	disp/mpmc_queue_traits/pub.cpp
 	disp/reuse/work_thread/work_thread.cpp
 	disp/one_thread/pub.cpp
 	disp/active_obj/pub.cpp

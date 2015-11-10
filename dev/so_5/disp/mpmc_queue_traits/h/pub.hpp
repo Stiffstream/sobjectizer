@@ -3,9 +3,9 @@
  */
 
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \file
- * \brief Various traits for MPSC queues.
+ * \brief Various traits for MPMC queues.
  */
 
 #pragma once
@@ -21,20 +21,64 @@ namespace so_5 {
 
 namespace disp {
 
-namespace mpsc_queue_traits {
+namespace mpmc_queue_traits {
+
+//
+// condition_t
+//
+/*!
+ * \since v.5.5.11
+ * \brief An interface for somethine like condition variable for
+ * waiting on MPMC queue lock.
+ */
+class SO_5_TYPE condition_t
+	{
+	public :
+		condition_t();
+		condition_t( const condition_t & ) = delete;
+		condition_t( condition_t && ) = delete;
+		virtual ~condition_t();
+
+		/*!
+		 * \brief Waiting on condition.
+		 *
+		 * This method is intended to be used by queue's customers for
+		 * waiting on queue's pop operation.
+		 *
+		 * \attention This method will be called when parent lock object
+		 * is acquired by the current thread.
+		 */
+		virtual void
+		wait() SO_5_NOEXCEPT = 0;
+
+		/*!
+		 * \brief Notification for waiting customer.
+		 *
+		 * \attention This method will be called when parent lock object
+		 * is acquired by the current thread.
+		 */
+		virtual void
+		notify() SO_5_NOEXCEPT = 0;
+	};
+
+//
+// condition_unique_ptr_t
+//
+/*!
+ * \since v.5.5.11
+ * \brief Alias of unique_ptr for condition.
+ */
+using condition_unique_ptr_t = std::unique_ptr< condition_t >;
 
 //
 // lock_t
 //
 /*!
- * \since v.5.5.10
- * \brief An interface for lock for MPSC queue.
+ * \since v.5.5.11
+ * \brief An interface for lock for MPMC queue.
  */
 class SO_5_TYPE lock_t
 	{
-		friend class unique_lock_t;
-		friend class lock_guard_t;
-
 	public :
 		lock_t();
 		lock_t( const lock_t & ) = delete;
@@ -49,27 +93,16 @@ class SO_5_TYPE lock_t
 		virtual void
 		unlock() SO_5_NOEXCEPT = 0;
 
-	protected :
-		//! Waiting for nofication.
-		/*!
-		 * \attention Must be called only when object is locked!
-		 */
-		virtual void
-		wait_for_notify() SO_5_NOEXCEPT = 0;
-
-		//! Notify one waiting thread if it exists.
-		/*!
-		 * \attention Must be called only when object is locked.
-		 */
-		virtual void
-		notify_one() SO_5_NOEXCEPT = 0;
+		//! Create condition object for another MPMC queue's customer.
+		virtual condition_unique_ptr_t
+		allocate_condition() = 0;
 	};
 
 //
 // lock_unique_ptr_t
 //
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief An alias for unique_ptr for lock.
  */
 using lock_unique_ptr_t = std::unique_ptr< lock_t >; 
@@ -78,7 +111,7 @@ using lock_unique_ptr_t = std::unique_ptr< lock_t >;
 // lock_factory_t
 //
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Type of lock factory.
  */
 using lock_factory_t = std::function< lock_unique_ptr_t() >;
@@ -87,7 +120,7 @@ using lock_factory_t = std::function< lock_unique_ptr_t() >;
 // default_combined_lock_waiting_time
 //
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Default timeout used by combined_lock for waiting on spinlock
  * before switching to mutex-based locking scheme.
  */
@@ -98,7 +131,7 @@ default_combined_lock_waiting_time()
 	}
 
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Factory for creation of combined queue lock with the specified
  * waiting time.
  *
@@ -106,9 +139,9 @@ default_combined_lock_waiting_time()
 	\code
 	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
 		[]( so_5::rt::environment_params_t & params ) {
-			// Add another one_thread dispatcher with combined_lock for
+			// Add another thread_pool dispatcher with combined_lock for
 			// event queue protection.
-			using namespace so_5::disp::one_thread;
+			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
 				create_disp( disp_params_t{}.tune_queue_params(
@@ -129,16 +162,16 @@ combined_lock_factory(
 // combined_lock_factory
 //
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Factory for creation of combined queue lock with default waiting time.
  *
  * \par Usage example:
 	\code
 	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
 		[]( so_5::rt::environment_params_t & params ) {
-			// Add another one_thread dispatcher with combined_lock for
+			// Add another thread_pool dispatcher with combined_lock for
 			// event queue protection.
-			using namespace so_5::disp::one_thread;
+			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
 				create_disp( disp_params_t{}.tune_queue_params(
@@ -151,11 +184,12 @@ combined_lock_factory(
 inline lock_factory_t
 combined_lock_factory()
 	{
-		return combined_lock_factory( default_combined_lock_waiting_time() );
+		return combined_lock_factory(
+				default_combined_lock_waiting_time() );
 	}
 
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Factory for creation of very simple implementation based on
  * usage of mutex and condition_variable only.
  *
@@ -163,9 +197,9 @@ combined_lock_factory()
 	\code
 	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
 		[]( so_5::rt::environment_params_t & params ) {
-			// Add another one_thread dispatcher with simple_lock for
+			// Add another thread_pool dispatcher with simple_lock for
 			// event queue protection.
-			using namespace so_5::disp::one_thread;
+			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
 				create_disp( disp_params_t{}.tune_queue_params(
@@ -179,83 +213,11 @@ SO_5_FUNC lock_factory_t
 simple_lock_factory();
 
 //
-// unique_lock_t
-//
-/*!
- * \since v.5.5.10
- * \brief An analog of std::unique_lock for MPSC queue lock.
- */
-class unique_lock_t
-	{
-	public :
-		inline
-		unique_lock_t( lock_t & lock )
-			:	m_lock( lock )
-			{
-				m_lock.lock();
-			}
-
-		inline
-		~unique_lock_t()
-			{
-				m_lock.unlock();
-			}
-
-		unique_lock_t( const unique_lock_t & ) = delete;
-		unique_lock_t( unique_lock_t && ) = delete;
-
-		inline void
-		wait_for_notify()
-			{
-				m_lock.wait_for_notify();
-			}
-
-	private :
-		lock_t & m_lock;
-	};
-
-//
-// lock_guard_t
-//
-/*!
- * \since v.5.4.0
- * \brief An analog of std::lock_guard for MPSC queue lock.
- */
-class lock_guard_t
-	{
-	public :
-		inline
-		lock_guard_t(
-			lock_t & lock )
-			:	m_lock( lock )
-			{
-				m_lock.lock();
-			}
-		inline
-		~lock_guard_t()
-			{
-				m_lock.unlock();
-			}
-
-		lock_guard_t( const lock_guard_t & ) = delete;
-		lock_guard_t( lock_guard_t && ) = delete;
-
-		inline void
-		notify_one()
-			{
-				m_lock.notify_one();
-			}
-
-	private :
-		lock_t & m_lock;
-	};
-
-//
 // queue_params_t
 //
 /*!
- * \since v.5.5.10
- * \brief Container for storing parameters for MPSC queue.
+ * \since v.5.5.11
+ * \brief Container for storing parameters for MPMC queue.
  */
 class queue_params_t
 	{
@@ -315,13 +277,7 @@ class queue_params_t
 		lock_factory_t m_lock_factory;
 	};
 
-/*!
- * \brief Old alias for queue_params for compatibility.
- * \deprecated Use queue_params_t instead.
- */
-using params_t = queue_params_t;
-
-} /* namespace mpsc_queue_traits */
+} /* namespace mpmc_queue_traits */
 
 } /* namespace disp */
 

@@ -271,15 +271,15 @@ class SO_5_TYPE environment_params_t
 				[]( so_5::rt::environment_params_t & env_params ) {
 					using namespace so_5::disp::one_thread;
 					// Event queue for the default dispatcher must use mutex as lock.
-					env_params.default_disp_params( params_t{}.tune_queue_params(
-						[]( queue_traits::params_t & queue_params ) {
+					env_params.default_disp_params( disp_params_t{}.tune_queue_params(
+						[]( queue_traits::queue_params_t & queue_params ) {
 							queue_params.lock_factory( queue_traits::simple_lock_factory() );
 						} ) );
 				} );
 			\endcode
 		 */
 		environment_params_t &
-		default_disp_params( so_5::disp::one_thread::params_t params )
+		default_disp_params( so_5::disp::one_thread::disp_params_t params )
 		{
 			m_default_disp_params = std::move(params);
 			return *this;
@@ -289,7 +289,7 @@ class SO_5_TYPE environment_params_t
 		 * \since v.5.5.10
 		 * \brief Get the parameters for the default dispatcher.
 		 */
-		const so_5::disp::one_thread::params_t &
+		const so_5::disp::one_thread::disp_params_t &
 		default_disp_params() const
 		{
 			return m_default_disp_params;
@@ -414,7 +414,7 @@ class SO_5_TYPE environment_params_t
 		 * \since v.5.5.10
 		 * \brief Parameters for the default dispatcher.
 		 */
-		so_5::disp::one_thread::params_t m_default_disp_params;
+		so_5::disp::one_thread::disp_params_t m_default_disp_params;
 };
 
 //

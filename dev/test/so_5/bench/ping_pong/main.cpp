@@ -307,7 +307,7 @@ main( int argc, char ** argv )
 			{
 				if( cfg.m_active_objects )
 				{
-					so_5::disp::active_obj::queue_traits::params_t queue_params;
+					so_5::disp::active_obj::queue_traits::queue_params_t queue_params;
 					if( cfg.m_simple_lock )
 						queue_params.lock_factory(
 								so_5::disp::active_obj::queue_traits::simple_lock_factory() );
@@ -315,7 +315,7 @@ main( int argc, char ** argv )
 					params.add_named_dispatcher(
 							"active_obj",
 							so_5::disp::active_obj::create_disp(
-									so_5::disp::active_obj::params_t{}.set_queue_params(
+									so_5::disp::active_obj::disp_params_t{}.set_queue_params(
 											std::move(queue_params) ) ) );
 				}
 			} );

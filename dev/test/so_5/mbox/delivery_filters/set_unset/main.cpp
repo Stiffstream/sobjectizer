@@ -156,7 +156,7 @@ void
 init( so_5::rt::environment_t & env )
 {
 	auto disp = so_5::disp::thread_pool::create_private_disp( env );
-	const auto params = so_5::disp::thread_pool::params_t{}.
+	const auto params = so_5::disp::thread_pool::bind_params_t{}.
 			max_demands_at_once( 1 );
 
 	for( unsigned int i = 0; i != 1000u; ++i )
