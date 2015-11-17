@@ -510,12 +510,15 @@ agent_core_t::environment()
 agent_core_stats_t
 agent_core_t::query_stats()
 {
+	const auto final_dereg_coops = m_coop_dereg_executor.queue_size();
+
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
 	return agent_core_stats_t{
 			m_registered_coop.size(),
 			m_deregistered_coop.size(),
-			m_total_agent_count
+			m_total_agent_count,
+			final_dereg_coops
 		};
 }
 

@@ -49,7 +49,7 @@ try_parse_cmdline(
 							"-r, --rounds         count of full rounds around the ring\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-D, --dispatcher     type of dispatcher to be used:\n"
-							"                     one_thread, thread_pool, prio_ot_strictly_ordered"
+							"                     one_thread, thread_pool, prio_ot_strictly_ordered\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );

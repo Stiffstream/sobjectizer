@@ -57,6 +57,13 @@ class coop_dereg_executor_thread_t
 		void
 		push_dereg_demand( coop_t * coop );
 
+		/*!
+		 * \since v.5.5.12
+		 * \brief Get the length of dereg_demands queue.
+		 */
+		std::size_t
+		queue_size();
+
 	protected:
 		//! Thread body.
 		void

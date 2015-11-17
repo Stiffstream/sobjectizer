@@ -57,6 +57,12 @@ coop_dereg_count()
 	}
 
 SO_5_FUNC suffix_t
+coop_final_dereg_count()
+	{
+		IMPL_SUFFIX( "/coop.final.dereg.count" )
+	}
+
+SO_5_FUNC suffix_t
 named_mbox_count()
 	{
 		IMPL_SUFFIX( "/named_mbox.count" )

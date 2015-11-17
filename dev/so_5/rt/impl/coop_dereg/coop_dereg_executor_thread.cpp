@@ -53,6 +53,12 @@ coop_dereg_executor_thread_t::push_dereg_demand( coop_t * coop )
 	m_dereg_demand_queue.push( coop );
 }
 
+std::size_t
+coop_dereg_executor_thread_t::queue_size()
+{
+	return m_dereg_demand_queue.queue_size();
+}
+
 void
 exec_final_coop_dereg( coop_t * coop )
 {

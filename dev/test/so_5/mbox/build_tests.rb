@@ -14,5 +14,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/mpsc_mbox_stress/prj.ut.rb" )
 	required_prj( "#{path}/hanging_subscriptions/prj.ut.rb" )
 	required_prj( "#{path}/delivery_filters/build_tests.rb" )
-
+	required_prj( "#{path}/local_mbox_growth/prj.ut.rb" )
 }

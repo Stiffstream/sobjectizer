@@ -116,7 +116,7 @@ class default_disp_setter_t : public case_setter_t
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
-		binder()
+		binder() override
 			{
 				return so_5::rt::create_default_disp_binder();
 			}
@@ -382,7 +382,7 @@ do_test()
 										setter->tune_env_params( params );
 									} );
 							},
-							5,
+							25,
 							"dispatcher: " + c.m_disp_name + ", lock: " + f.m_name );
 
 					std::cout << "--- DONE ---" << std::endl;

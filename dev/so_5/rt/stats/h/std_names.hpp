@@ -64,6 +64,14 @@ SO_5_FUNC suffix_t
 coop_dereg_count();
 
 /*!
+ * \since v.5.5.12
+ * \brief Suffix for data source with count of cooperations waiting
+ * the final deregistration step and removement from coops registry.
+ */
+SO_5_FUNC suffix_t
+coop_final_dereg_count();
+
+/*!
  * \since v.5.5.4
  * \brief Suffix for data source with count of named mboxes.
  */

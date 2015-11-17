@@ -1,0 +1,157 @@
+/*!
+
+\page so_5_5_12__event_queue_lock_factories so-5.5.12: Factories for event queue locks
+
+All SObjectizer's dipatchers use two kinds of event queues:
+multi-producer/single-consumer and multi-producer/multi-consumer queues. Those
+queues require synchronization for protection of queues' data from access from
+different threads. Synchronization objects are necessary not only for data
+protection but also for notification of consumers about appearance of new
+events (a customer sleeps when event queue is empty and must be awakened on
+arrival of new event). Until v.5.5.10 combined locking scheme with spinlock and
+mutex/condition_variable was used. This locking scheme works as described
+below.
+
+There is a busy waiting part: 
+
+- event producer acquires spinlock and stores new event into the queue. Then
+  event producer releases spinlock;
+- consumer thread does an busy waiting loop. On each iteration consumer
+  acquires spinlock and checks queue. If queue is empty then consumer releases
+  spinlock and calls `std::this_thread::yield` method.
+
+Busy waiting works great when message passing is intensive. But if there are
+some pauses in generation of events then locking scheme switches to usage of
+mutex and condition variable:
+
+- consumer thread breaks busy waiting loop, acquires mutex and goes to sleep on
+  conditon variable;
+- event producer acquires spinlock and see that event queue is empty and
+  consumer is sleeping on condition variable. Producer stores new event into
+  the queue, then acquires mutex and sets up condition variable;
+- consumer thread wakes up and returns to event processing with busy waiting
+  loop for new events.
+
+There is a time limit for busy waiting. If there is no new events during some
+time then consumer thread switches from busy waiting on spinlock to ordinary
+waiting on mutex/condition_variable. This time limit was one millisecond.
+
+This scheme was implemented as combined_lock abstraction and was used in all
+dispatchers util v.5.5.10.
+
+Locking with combined_lock is efficient if application is working under the
+heavy load. But not effiecient on some specific load profiles.
+
+Lets imagine active agent which initiates several periodic messages. All
+actions are performed by that agent only on arrival of periodic messages. All
+other time agent do nothing and its working thread is sleeping on empty event
+queue.
+
+If an application uses just one such active agent the overhead cost of busy
+waiting is relative small and could be ignored. But if there are several dozens
+of such agents the overhead cost could be relative high: 3-4% of CPU usage even
+if application do nothing and all working threads just do busy waiting
+periodically. Situation could be more dramatic if there are several such
+application on the same server.
+
+To solve this problem v.5.5.10 introduces concept of lock factoris for MPSC
+queues and v.5.5.11 expands this concept for MPMC queues. An user can specify
+lock factory during the creation of a dispatcher. Dispatcher will use a lock
+created by that factory.
+
+There are two lock factories:
+
+- combined_lock_factory which creates combined_lock (described above);
+- simple_lock_factory which creates very simple lock with mutex and condition_variable without any complex schemes with busy waiting or something else.
+
+New factories can be added in the future versions of SObjectizer.
+
+combined_lock_factory is still used by default. If this locking scheme is not
+appropriate for your application it is possible to specify different locking
+factory (or to specify combined_lock_factory with different busy waiting time).
+
+To specify lock factory it is necessary to use `disp_params_t` object and the
+corresponding `create_disp` or `create_private_disp` functions for dispatcher
+creation. Since v.5.5.11 there are appropriate definitions of `disp_params_t`
+types is the dispatcher's namespaces.
+
+There are also namespaces `queue_traits` with definitions of lock factory
+functions and other queue-related stuff in dispatchers' namespaces (like
+`so_5::disp::one_thread::queue_traits` or
+`so_5::disp::prio_one_thread::strictly_ordered::queue_traits`).
+Technicaly speaking those `queue_traits` namespaces are just an alias for
+so_5::disp::mpsc_queue_traits or so_5::disp::mpmc_queue_traits namespace.
+
+Because of that the preparation of `disp_params_t` for a dispatcher look
+similar for different dispatcher types. For example that is for
+so_5::disp::one_thread dispatcher:
+
+\code
+using namespace so_5::disp::one_thread;
+auto disp = create_private_disp( env, disp_params_t{}.tune_queue_params(
+        []( queue_traits::queue_params_t & queue_params ) {
+            queue_params.lock_factory( queue_traits::simple_lock_factory() );
+        } ) );
+\endcode
+
+And this is for so_5::disp::active_obj dispatcher:
+
+\code
+using namespace so_5::disp::active_obj;
+auto disp = create_private_disp( env, disp_params_t{}.tune_queue_params(
+        []( queue_traits::disp_params_t & queue_params ) {
+            queue_params.lock_factory( queue_traits::simple_lock_factory() );
+        } ) );        
+\endcode
+
+And this is for so_5::disp::thread_pool dispatcher:
+
+\code
+using namespace so_5::disp::thread_pool;
+auto disp = create_private_disp( env, disp_params_t{}
+        .thread_count(16)
+        .set_queue_params( queue_traits::queue_params_t{}
+                .lock_factory( queue_traits::simple_lock_factory() ) ),
+         "db_operations" );
+\endcode
+
+Please note that lock_factory can be specified only at the moment of the
+creation of a dispatcher. Lock cannot be changed after the creation of a
+dispatcher.
+
+Lock factory can be specified for the default dispatcher too. That dispatcher
+is created automatically by SObjectizer Environment. To specify lock factory
+for the default dispacher it is necessary to use
+so_5::rt::environment_params_t:
+
+\code
+so_5::launch( []( so_5::rt::environment_t & env ) {...},
+    []( so_5::rt::environment_params_t & env_params ) {
+        using namespace so_5::disp::one_thread;
+        env_params.default_disp_params( disp_params_t{}.tune_queue_params(
+            []( queue_traits::queue_params_t & queue_params ) {
+                queue_params.lock_factory( queue_traits::simple_lock_factory() );
+            } ) );
+    } );
+\endcode
+
+At mentioned above the combined_lock_factory is still used by default. Default
+waiting time for busy waiting is specified by
+`default_combined_lock_waiting_time()` function. In v.5.5.10 it is one
+millisecond. It is possible to set different waiting time by using
+`combined_lock_factory(duration)` function:
+
+\code
+using namespace so_5::disp::active_group;
+auto disp = create_private_disp( env, disp_params_t{}.tune_queue_params(
+    []( queue_traits::queue_params_t & queue_params ) {
+        // Set up combined_lock with 0.5 second busy waiting time.
+        queue_params.lock_factory( queue_traits::combined_lock_factory(
+            std::chrono::milliseconds(500) ) );
+    } ) );
+\endcode
+
+*/
+
+// vim:ft=cpp
+

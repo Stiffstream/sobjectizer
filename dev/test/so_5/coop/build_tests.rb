@@ -6,6 +6,7 @@ MxxRu::Cpp::composite_target {
 	path = 'test/so_5/coop'
 
 	required_prj( "#{path}/duplicate_name/prj.ut.rb" )
+	required_prj( "#{path}/dereg_empty_coop/prj.ut.rb" )
 	required_prj( "#{path}/reg_some_and_stop_1/prj.ut.rb" )
 	required_prj( "#{path}/reg_some_and_stop_2/prj.ut.rb" )
 	required_prj( "#{path}/reg_some_and_stop_3/prj.ut.rb" )

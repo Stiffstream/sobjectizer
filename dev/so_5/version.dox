@@ -2,10 +2,23 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_12 5.5.12 "Cerro Araral"
+
+	A performance degradation for local mboxes with large amount of
+	subscribers for one message type is fixed (that degradation was accidentally
+	introduced some versions ago).
+
+	New data source for showing quantity of coops waiting for final
+	deregistration added to run-time statistics.
+
+	Small modification to output format of msg_tracing messages
+	(format of pointers doesn't depends of compiler now).
+
 \section so_5__5_11 5.5.11 "Cerro Nelly"
 
 	A possibility to tune some options for event queue added for dispatchers
 	so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
+	See \ref so_5_5_12__event_queue_lock_factories for more details.
 
 	Types for parameters for dispatchers now have name disp_params_t
 	(for example so_5::disp::one_thread::disp_params_t or

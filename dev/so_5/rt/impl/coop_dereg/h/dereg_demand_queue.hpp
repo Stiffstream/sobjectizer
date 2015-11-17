@@ -10,10 +10,11 @@
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_ )
 #define _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_
 
+#include <so_5/rt/h/agent_coop.hpp>
+
 #include <mutex>
 #include <condition_variable>
-
-#include <so_5/rt/h/agent_coop.hpp>
+#include <deque>
 
 namespace so_5
 {
@@ -40,7 +41,7 @@ namespace coop_dereg
 class dereg_demand_queue_t
 {
 	public:
-		typedef std::vector< coop_t* > dereg_demand_container_t;
+		typedef std::deque< coop_t* > dereg_demand_container_t;
 
 		dereg_demand_queue_t();
 		~dereg_demand_queue_t();
@@ -70,6 +71,13 @@ class dereg_demand_queue_t
 		 */
 		void
 		stop_service();
+
+		/*!
+		 * \since v.5.5.12
+		 * \brief Get the length of dereg_demands queue.
+		 */
+		std::size_t
+		queue_size();
 
 	private:
 		//! Waiting queue.

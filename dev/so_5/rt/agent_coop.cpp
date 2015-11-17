@@ -270,6 +270,11 @@ coop_t::do_registration_specific_actions(
 
 	// Cooperation should assume that it is registered now.
 	m_registration_status = COOP_REGISTERED;
+	// Increment reference count to reflect that cooperation is registered.
+	// This is necessary in v.5.5.12 to prevent automatic deregistration
+	// of the cooperation right after finish of registration process for
+	// empty cooperation.
+	m_reference_count += 1;
 }
 
 void
@@ -279,6 +284,11 @@ coop_t::do_deregistration_specific_actions(
 	m_dereg_reason = std::move( dereg_reason );
 
 	shutdown_all_agents();
+
+	// Reference count could decremented.
+	// If coop was an empty coop then this action initiates the whole
+	// coop deregistration.
+	decrement_usage_count();
 }
 
 void

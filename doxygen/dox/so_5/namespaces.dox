@@ -48,6 +48,12 @@ namespace so_5
 		namespace rollback_on_exception_details {
 		} /* namespace rollback_on_exception_details */
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helpers for manipulation with standard C++ I/O streams.
+		 */
+		namespace ios_helpers {
+		} /* namespace ios_helpers */
 
 	} /* namespace details */
 
@@ -162,13 +168,6 @@ namespace so_5
 		 */
 		namespace reuse
 		{
-			/*!
-			 * \since v.5.5.4
-			 * \brief Helpers for manipulation with standard C++ I/O streams.
-			 */
-			namespace ios_helpers {
-			} /* namespace ios_helpers */
-
 			/*!
 			 * \brief Implementation of various types of locks to be used
 			 * inside dispatchers.

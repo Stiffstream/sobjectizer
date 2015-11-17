@@ -20,6 +20,7 @@
 #include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
+#include <so_5/details/h/ios_helpers.hpp>
 
 #include <sstream>
 #include <tuple>
@@ -33,6 +34,8 @@ namespace impl {
 namespace msg_tracing_helpers {
 
 namespace details {
+
+using namespace so_5::details::ios_helpers;
 
 struct overlimit_deep_t
 	{
@@ -79,7 +82,7 @@ make_trace_to_1( std::ostream & s, const std::type_index & msg_type )
 inline void
 make_trace_to_1( std::ostream & s, const agent_t * agent )
 	{
-		s << "[agent_ptr=" << agent << "]";
+		s << "[agent_ptr=" << pointer{agent} << "]";
 	}
 
 inline void
@@ -93,7 +96,7 @@ make_trace_to_1( std::ostream & s, const event_handler_data_t * handler )
 	{
 		s << "[evt_handler=";
 		if( handler )
-			s << handler;
+			s << pointer{handler};
 		else
 			s << "NONE";
 		s << "]";
@@ -104,7 +107,7 @@ make_trace_to_1(
 	std::ostream & s,
 	const so_5::rt::message_limit::control_block_t * limit )
 	{
-		s << "[limit_ptr=" << limit << "]";
+		s << "[limit_ptr=" << pointer{limit} << "]";
 	}
 
 inline void
@@ -139,9 +142,9 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 		std::tie(envelope,payload) = detect_pointers();
 
 		if( envelope )
-			s << "[envelope_ptr=" << envelope << "]";
+			s << "[envelope_ptr=" << pointer{envelope} << "]";
 		if( payload )
-			s << "[payload_ptr=" << payload << "]";
+			s << "[payload_ptr=" << pointer{payload} << "]";
 		else
 			s << "[signal]";
 	}

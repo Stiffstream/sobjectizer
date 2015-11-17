@@ -90,6 +90,14 @@ dereg_demand_queue_t::stop_service()
 		m_not_empty.notify_one();
 }
 
+std::size_t
+dereg_demand_queue_t::queue_size()
+{
+	std::lock_guard< std::mutex > lock{ m_lock };
+
+	return m_demands.size();
+}
+
 } /* namespace coop_dereg */
 
 } /* namespace impl */

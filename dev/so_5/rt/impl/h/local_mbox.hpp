@@ -39,6 +39,629 @@ namespace impl
 namespace local_mbox_details
 {
 
+/*!
+ * \since v.5.5.4
+ * \brief An information block about one subscriber.
+ */
+class subscriber_info_t
+{
+	/*!
+	 * \since v.5.5.5
+	 * \brief Current status of the subscriber.
+	 */
+	enum class state_t
+	{
+		nothing,
+		only_subscriptions,
+		only_filter,
+		subscriptions_and_filter
+	};
+
+	//! Subscriber.
+	agent_t * m_agent;
+
+	//! Optional message limit for that subscriber.
+	const so_5::rt::message_limit::control_block_t * m_limit;
+
+	/*!
+	 * \since v.5.5.5
+	 * \brief Delivery filter for that message for that subscriber.
+	 */
+	const delivery_filter_t * m_filter;
+
+	/*!
+	 * \since v.5.5.5
+	 * \brief Current state of the subscriber parameters.
+	 */
+	state_t m_state;
+
+public :
+	//! Constructor for the case when info object is created only
+	//! for searching of existing subscription info.
+	subscriber_info_t( agent_t * agent )
+		:	m_agent( agent )
+		,	m_limit( nullptr )
+		,	m_filter( nullptr )
+		,	m_state( state_t::nothing )
+	{}
+
+	//! Constructor for the case when subscriber info is being
+	//! created during event subscription.
+	subscriber_info_t(
+		agent_t * agent,
+		const so_5::rt::message_limit::control_block_t * limit )
+		:	m_agent( agent )
+		,	m_limit( limit )
+		,	m_filter( nullptr )
+		,	m_state( state_t::only_subscriptions )
+	{}
+
+	//! Constructor for the case when subscriber info is being
+	//! created during event subscription.
+	subscriber_info_t(
+		agent_t * agent,
+		const delivery_filter_t * filter )
+		:	m_agent( agent )
+		,	m_limit( nullptr )
+		,	m_filter( filter )
+		,	m_state( state_t::only_filter )
+	{}
+
+	//! Comparison uses only pointer to subscriber.
+	/*!
+	 * \note Since v.5.5.8 not only agent pointer, but also
+	 * the priorities of the agents are used in comparision.
+	 */
+	bool
+	operator<( const subscriber_info_t & o ) const
+	{
+		return special_agent_ptr_compare( *m_agent, *o.m_agent );
+	}
+
+	bool
+	empty() const
+	{
+		return state_t::nothing == m_state;
+	}
+
+	agent_t &
+	subscriber_reference() const
+	{
+		return *m_agent;
+	}
+
+	agent_t *
+	subscriber_pointer() const
+	{
+		return m_agent;
+	}
+
+	const message_limit::control_block_t *
+	limit() const
+	{
+		return m_limit;
+	}
+
+	//! Set the message limit for the subscriber.
+	/*!
+	 * Setting the message limit means that there are subscriptions
+	 * for the agent.
+	 *
+	 * \note The message limit can be nullptr.
+	 */
+	void
+	set_limit( const message_limit::control_block_t * limit )
+	{
+		m_limit = limit;
+
+		m_state = ( state_t::nothing == m_state ?
+				state_t::only_subscriptions :
+				state_t::subscriptions_and_filter );
+	}
+
+	//! Drop the message limit for the subscriber.
+	/*!
+	 * Dropping the message limit means that there is no more
+	 * subscription for the agent.
+	 */
+	void
+	drop_limit()
+	{
+		m_limit = nullptr;
+
+		m_state = ( state_t::only_subscriptions == m_state ?
+				state_t::nothing : state_t::only_filter );
+	}
+
+	//! Set the delivery filter for the subscriber.
+	void
+	set_filter( const delivery_filter_t & filter )
+	{
+		m_filter = &filter;
+
+		m_state = ( state_t::nothing == m_state ?
+				state_t::only_filter :
+				state_t::subscriptions_and_filter );
+	}
+
+	//! Drop the delivery filter for the subscriber.
+	void
+	drop_filter()
+	{
+		m_filter = nullptr;
+
+		m_state = ( state_t::only_filter == m_state ?
+				state_t::nothing : state_t::only_subscriptions );
+	}
+
+	//! Must a message be delivered to the subscriber?
+	delivery_possibility_t
+	must_be_delivered(
+		const message_t & msg ) const
+	{
+		// For the case when there are actual subscriptions.
+		// We assume that will be in 99.9% cases.
+		auto need_deliver = delivery_possibility_t::must_be_delivered;
+
+		if( state_t::only_filter == m_state )
+			// Only filter, no actual subscriptions.
+			// No message delivery for that case.
+			need_deliver = delivery_possibility_t::no_subscription;
+		else if( state_t::subscriptions_and_filter == m_state )
+			// Delivery must be checked by delivery filter.
+			need_deliver = m_filter->check( subscriber_reference(), msg ) ?
+					delivery_possibility_t::must_be_delivered :
+					delivery_possibility_t::disabled_by_delivery_filter;
+
+		return need_deliver;
+	}
+};
+
+//
+// subscriber_adaptive_container_t
+//
+/*!
+ * \since v.5.5.12
+ * \brief A special container for holding subscriber_info objects.
+ *
+ * \note Uses std::vector as a storage for small amount of
+ * subscriber_infos and std::map for large amount.
+ */
+class subscriber_adaptive_container_t
+{
+	struct agent_ptr_compare_type
+		{
+			bool operator()( agent_t * a, agent_t * b ) const
+			{
+				return special_agent_ptr_compare( *a, *b );
+			}
+		};
+
+	using vector_type = std::vector< subscriber_info_t >;
+	using vector_iterator_type = vector_type::iterator;
+	using const_vector_iterator_type = vector_type::const_iterator;
+
+	using map_type = std::map< agent_t *, subscriber_info_t, agent_ptr_compare_type >;
+	using map_iterator_type = map_type::iterator;
+	using const_map_iterator_type = map_type::const_iterator;
+
+	enum class storage_type { vector, map };
+
+	// NOTE! This is just arbitrary values.
+	// There were no any benchmarks to prove that those values are useful.
+	struct size_limits
+	{
+		static const std::size_t switch_to_vector = 16;
+		static const std::size_t switch_to_map = 32;
+	};
+
+	//! The current storage type to be used by container.
+	storage_type m_storage = { storage_type::vector };
+
+	//! Container for small amount of subscriber_infos.
+	vector_type m_vector;
+	//! Container for large amount of subscriber_infos.
+	map_type m_map;
+
+public :
+	//! Iterator type.
+	class iterator
+	{
+		friend class subscriber_adaptive_container_t;
+
+		storage_type m_storage;
+		vector_iterator_type m_it_v;
+		map_iterator_type m_it_m;
+
+	public :
+		iterator( vector_iterator_type it_v )
+			:	m_storage{ storage_type::vector }
+			,	m_it_v{ std::move(it_v) }
+			{}
+		iterator( map_iterator_type it_m )
+			:	m_storage{ storage_type::map }
+			,	m_it_m{ std::move(it_m) }
+			{}
+
+		subscriber_info_t &
+		operator*()
+			{
+				if( storage_type::vector == m_storage )
+					return *m_it_v;
+				else
+					return m_it_m->second;
+			}
+
+		subscriber_info_t *
+		operator->()
+			{
+				return &**this;
+			}
+
+		iterator &
+		operator++()
+			{
+				if( storage_type::vector == m_storage )
+					++m_it_v;
+				else
+					++m_it_m;
+
+				return *this;
+			}
+
+		iterator
+		operator++(int)
+			{
+				if( storage_type::vector == m_storage )
+				{
+					iterator r{ *this };
+					++m_it_v;
+					return r;
+				}
+				else
+				{
+					iterator r{ *this };
+					++m_it_m;
+					return r;
+				}
+			}
+
+		bool
+		operator==( const iterator & o ) const
+			{
+				if( storage_type::vector == m_storage )
+					return m_it_v == o.m_it_v;
+				else
+					return m_it_m == o.m_it_m;
+			}
+
+		bool
+		operator!=( const iterator & o ) const
+			{
+				return !( *this == o );
+			}
+	};
+
+	//! Const iterator type.
+	class const_iterator
+	{
+		storage_type m_storage;
+		const_vector_iterator_type m_it_v;
+		const_map_iterator_type m_it_m;
+
+	public :
+		const_iterator( const_vector_iterator_type it_v )
+			:	m_storage{ storage_type::vector }
+			,	m_it_v{ std::move(it_v) }
+			{}
+		const_iterator( const_map_iterator_type it_m )
+			:	m_storage{ storage_type::map }
+			,	m_it_m{ std::move(it_m) }
+			{}
+
+		const subscriber_info_t &
+		operator*() const
+			{
+				if( storage_type::vector == m_storage )
+					return *m_it_v;
+				else
+					return m_it_m->second;
+			}
+
+		const subscriber_info_t *
+		operator->() const
+			{
+				return &**this;
+			}
+
+		const_iterator &
+		operator++()
+			{
+				if( storage_type::vector == m_storage )
+					++m_it_v;
+				else
+					++m_it_m;
+
+				return *this;
+			}
+
+		const_iterator
+		operator++(int)
+			{
+				if( storage_type::vector == m_storage )
+				{
+					const_iterator r{ *this };
+					++m_it_v;
+					return r;
+				}
+				else
+				{
+					const_iterator r{ *this };
+					++m_it_m;
+					return r;
+				}
+			}
+
+		bool
+		operator==( const const_iterator & o ) const
+			{
+				if( storage_type::vector == m_storage )
+					return m_it_v == o.m_it_v;
+				else
+					return m_it_m == o.m_it_m;
+			}
+
+		bool
+		operator!=( const const_iterator & o ) const
+			{
+				return !( *this == o );
+			}
+	};
+
+private :
+	//! Is vector used as a storage.
+	bool
+	is_vector() const { return storage_type::vector == m_storage; }
+
+	//! Insertion of new item to vector.
+	void
+	insert_to_vector( subscriber_info_t && item )
+		{
+			m_vector.insert(
+					std::lower_bound( m_vector.begin(), m_vector.end(), item ),
+					std::move( item ) );
+		}
+
+	//! Insertion of new item to map.
+	void
+	insert_to_map( subscriber_info_t && item )
+		{
+			agent_t * subscriber = item.subscriber_pointer();
+			m_map.emplace( subscriber, std::move( item ) );
+		}
+
+	//! Switching storage from vector to map.
+	void
+	switch_storage_to_map()
+		{
+			vector_type empty_vector;
+
+			map_type new_storage;
+			std::for_each( m_vector.begin(), m_vector.end(),
+				[&new_storage]( const subscriber_info_t & info ) {
+					new_storage.emplace( info.subscriber_pointer(), info );
+				} );
+
+			m_map.swap( new_storage );
+			m_vector.swap( empty_vector );
+			m_storage = storage_type::map;
+		}
+
+	//! Switching storage from map to vector.
+	void
+	switch_storage_to_vector()
+		{
+			// All exceptions will be ignored.
+			// It is because an exception can be thrown on staged 1-2-3,
+			// but not on stage 4.
+			try
+				{
+					// Stage 1. New containers to swap values with old containers.
+					// An exception could be thrown in the constructors.
+					map_type empty_map;
+					vector_type new_storage;
+
+					// Stage 2. Preallocate necessary space in the new vector.
+					// An exception can be thrown here.
+					new_storage.reserve( m_map.size() );
+
+					// Stage 3. Copy items from old map to the new vector.
+					// We do not expect exceptions here at v.5.5.12, but
+					// the situation can change in the future versions.
+
+					// Use the fact that items in map is already ordered.
+					std::for_each( m_map.begin(), m_map.end(),
+						[&new_storage]( const map_type::value_type & info ) {
+							new_storage.push_back( info.second );
+						} );
+
+					// Stage 4. Swapping.
+					// No exceptions expected here.
+					m_vector.swap( new_storage );
+					m_map.swap( empty_map );
+					m_storage = storage_type::vector;
+				}
+			catch(...)
+				{}
+		}
+
+	iterator
+	find_in_vector( agent_t * agent )
+		{
+			subscriber_info_t info{ agent };
+			auto pos = std::lower_bound( m_vector.begin(), m_vector.end(), info );
+			if( pos != m_vector.end() && pos->subscriber_pointer() == agent )
+				return iterator{ pos };
+			else
+				return iterator{ m_vector.end() };
+		}
+
+	iterator
+	find_in_map( agent_t * agent )
+		{
+			return iterator{ m_map.find( agent ) };
+		}
+
+public :
+	//! Default constructor.
+	subscriber_adaptive_container_t()
+		{}
+	//! Copy constructor.
+	subscriber_adaptive_container_t(
+		const subscriber_adaptive_container_t & o )
+		:	m_storage{ o.m_storage }
+		,	m_vector( o.m_vector )
+		,	m_map( o.m_map )
+		{}
+	//! Move constructor.
+	subscriber_adaptive_container_t(
+		subscriber_adaptive_container_t && o )
+		:	m_storage{ o.m_storage }
+		,	m_vector( std::move( o.m_vector ) )
+		,	m_map( std::move( o.m_map ) )
+		{
+			// Other object is now empty.
+			// It must use vector as a storage.
+			o.m_storage = storage_type::vector;
+		}
+
+	void
+	swap( subscriber_adaptive_container_t & o )
+		{
+			std::swap( m_storage, o.m_storage );
+			m_vector.swap( o.m_vector );
+			m_map.swap( o.m_map );
+		}
+
+	//! Copy operator.
+	subscriber_adaptive_container_t &
+	operator=( const subscriber_adaptive_container_t & o )
+		{
+			subscriber_adaptive_container_t tmp{ o };
+			this->swap( tmp );
+			return *this;
+		}
+
+	//! Move operator.
+	subscriber_adaptive_container_t &
+	operator=( const subscriber_adaptive_container_t && o )
+		{
+			subscriber_adaptive_container_t tmp{ std::move(o) };
+			this->swap( tmp );
+			return *this;
+		}
+
+	void
+	insert( subscriber_info_t info )
+		{
+			if( is_vector() )
+				{
+					if( m_vector.size() == size_limits::switch_to_map )
+						switch_storage_to_map();
+				}
+
+			if( is_vector() )
+				insert_to_vector( std::move( info ) );
+			else
+				insert_to_map( std::move( info ) );
+		}
+
+	template< typename... ARGS >
+	void
+	emplace( ARGS &&... args )
+		{
+			insert( subscriber_info_t{ std::forward<ARGS>( args )... } );
+		}
+
+	void
+	erase( const iterator & it )
+		{
+			if( is_vector() )
+				m_vector.erase( it.m_it_v );
+			else
+				{
+					m_map.erase( it.m_it_m );
+
+					// May be it is a time for switching to smaller storage?
+					if( m_map.size() < size_limits::switch_to_vector )
+						switch_storage_to_vector();
+				}
+		}
+
+	iterator
+	find( agent_t * agent )
+		{
+			if( is_vector() )
+				return find_in_vector( agent );
+			else
+				return find_in_map( agent );
+		}
+
+	iterator
+	begin()
+		{
+			if( is_vector() )
+				return iterator{ m_vector.begin() };
+			else
+				return iterator{ m_map.begin() };
+		}
+
+	iterator
+	end()
+		{
+			if( is_vector() )
+				return iterator{ m_vector.end() };
+			else
+				return iterator{ m_map.end() };
+		}
+
+	const_iterator
+	begin() const
+		{
+			if( is_vector() )
+				return const_iterator{ m_vector.begin() };
+			else
+				return const_iterator{ m_map.begin() };
+		}
+
+	const_iterator
+	end() const
+		{
+			if( is_vector() )
+				return const_iterator{ m_vector.end() };
+			else
+				return const_iterator{ m_map.end() };
+		}
+
+	bool
+	empty() const
+		{
+			if( is_vector() )
+				return m_vector.empty();
+			else
+				return m_map.empty();
+		}
+
+	std::size_t
+	size() const
+		{
+			if( is_vector() )
+				return m_vector.size();
+			else
+				return m_map.size();
+		}
+};
+
 //
 // data_t
 //
@@ -60,188 +683,12 @@ struct data_t
 		mutable default_rw_spinlock_t m_lock;
 
 		/*!
-		 * \since v.5.5.4
-		 * \brief An information block about one subscriber.
-		 */
-		class subscriber_info_t
-		{
-			/*!
-			 * \since v.5.5.5
-			 * \brief Current status of the subscriber.
-			 */
-			enum class state_t
-			{
-				nothing,
-				only_subscriptions,
-				only_filter,
-				subscriptions_and_filter
-			};
-
-			//! Subscriber.
-			agent_t * m_agent;
-
-			//! Optional message limit for that subscriber.
-			const so_5::rt::message_limit::control_block_t * m_limit;
-
-			/*!
-			 * \since v.5.5.5
-			 * \brief Delivery filter for that message for that subscriber.
-			 */
-			const delivery_filter_t * m_filter;
-
-			/*!
-			 * \since v.5.5.5
-			 * \brief Current state of the subscriber parameters.
-			 */
-			state_t m_state;
-
-		public :
-			//! Constructor for the case when info object is created only
-			//! for searching of existing subscription info.
-			subscriber_info_t( agent_t * agent )
-				:	m_agent( agent )
-				,	m_limit( nullptr )
-				,	m_filter( nullptr )
-				,	m_state( state_t::nothing )
-			{}
-
-			//! Constructor for the case when subscriber info is being
-			//! created during event subscription.
-			subscriber_info_t(
-				agent_t * agent,
-				const so_5::rt::message_limit::control_block_t * limit )
-				:	m_agent( agent )
-				,	m_limit( limit )
-				,	m_filter( nullptr )
-				,	m_state( state_t::only_subscriptions )
-			{}
-
-			//! Constructor for the case when subscriber info is being
-			//! created during event subscription.
-			subscriber_info_t(
-				agent_t * agent,
-				const delivery_filter_t * filter )
-				:	m_agent( agent )
-				,	m_limit( nullptr )
-				,	m_filter( filter )
-				,	m_state( state_t::only_filter )
-			{}
-
-			//! Comparison uses only pointer to subscriber.
-			/*!
-			 * \note Since v.5.5.8 not only agent pointer, but also
-			 * the priorities of the agents are used in comparision.
-			 */
-			bool
-			operator<( const subscriber_info_t & o ) const
-			{
-				return special_agent_ptr_compare( *m_agent, *o.m_agent );
-			}
-
-			bool
-			empty() const
-			{
-				return state_t::nothing == m_state;
-			}
-
-			agent_t &
-			subscriber() const
-			{
-				return *m_agent;
-			}
-
-			const message_limit::control_block_t *
-			limit() const
-			{
-				return m_limit;
-			}
-
-			//! Set the message limit for the subscriber.
-			/*!
-			 * Setting the message limit means that there are subscriptions
-			 * for the agent.
-			 *
-			 * \note The message limit can be nullptr.
-			 */
-			void
-			set_limit( const message_limit::control_block_t * limit )
-			{
-				m_limit = limit;
-
-				m_state = ( state_t::nothing == m_state ?
-						state_t::only_subscriptions :
-						state_t::subscriptions_and_filter );
-			}
-
-			//! Drop the message limit for the subscriber.
-			/*!
-			 * Dropping the message limit means that there is no more
-			 * subscription for the agent.
-			 */
-			void
-			drop_limit()
-			{
-				m_limit = nullptr;
-
-				m_state = ( state_t::only_subscriptions == m_state ?
-						state_t::nothing : state_t::only_filter );
-			}
-
-			//! Set the delivery filter for the subscriber.
-			void
-			set_filter( const delivery_filter_t & filter )
-			{
-				m_filter = &filter;
-
-				m_state = ( state_t::nothing == m_state ?
-						state_t::only_filter :
-						state_t::subscriptions_and_filter );
-			}
-
-			//! Drop the delivery filter for the subscriber.
-			void
-			drop_filter()
-			{
-				m_filter = nullptr;
-
-				m_state = ( state_t::only_filter == m_state ?
-						state_t::nothing : state_t::only_subscriptions );
-			}
-
-			//! Must a message be delivered to the subscriber?
-			delivery_possibility_t
-			must_be_delivered(
-				const message_t & msg ) const
-			{
-				// For the case when there are actual subscriptions.
-				// We assume that will be in 99.9% cases.
-				auto need_deliver = delivery_possibility_t::must_be_delivered;
-
-				if( state_t::only_filter == m_state )
-					// Only filter, no actual subscriptions.
-					// No message delivery for that case.
-					need_deliver = delivery_possibility_t::no_subscription;
-				else if( state_t::subscriptions_and_filter == m_state )
-					// Delivery must be checked by delivery filter.
-					need_deliver = m_filter->check( subscriber(), msg ) ?
-							delivery_possibility_t::must_be_delivered :
-							delivery_possibility_t::disabled_by_delivery_filter;
-
-				return need_deliver;
-			}
-		};
-
-		/*!
-		 * \since v.5.4.0
-		 * \brief Type of container with subscribers to one message type.
-		 */
-		typedef std::vector< subscriber_info_t > subscriber_container_t;
-
-		/*!
 		 * \since v.5.4.0
 		 * \brief Map from message type to subscribers.
 		 */
-		typedef std::map< std::type_index, subscriber_container_t >
+		typedef std::map<
+						std::type_index,
+						subscriber_adaptive_container_t >
 				messages_table_t;
 
 		//! Map of subscribers to messages.
@@ -289,37 +736,16 @@ class local_mbox_template_t
 			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( type_wrapper );
-				if( it == m_subscribers.end() )
-				{
-					// There isn't such message type yet.
-					subscriber_container_t container;
-					container.emplace_back( subscriber, limit );
-
-					m_subscribers.emplace( type_wrapper, std::move( container ) );
-				}
-				else
-				{
-					auto & agents = it->second;
-
-					subscriber_info_t info{ subscriber, limit };
-
-					auto pos = std::lower_bound( agents.begin(), agents.end(), info );
-					if( pos != agents.end() )
-					{
-						// This is subscriber or appopriate place for it.
-						if( &(pos->subscriber()) != subscriber )
-							agents.insert( pos, info );
-						else
-							// Agent is already in subscribers list.
-							// But its state must be updated.
-							pos->set_limit( limit );
-					}
-					else
-						agents.push_back( info );
-				}
+				insert_or_modify_subscriber(
+						type_wrapper,
+						subscriber,
+						[&] {
+							return local_mbox_details::subscriber_info_t{
+									subscriber, limit };
+						},
+						[&]( local_mbox_details::subscriber_info_t & info ) {
+							info.set_limit( limit );
+						} );
 			}
 
 		virtual void
@@ -327,26 +753,12 @@ class local_mbox_template_t
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( type_wrapper );
-				if( it != m_subscribers.end() )
-				{
-					auto & agents = it->second;
-
-					auto pos = std::lower_bound( agents.begin(), agents.end(),
-							subscriber_info_t{ subscriber } );
-					if( pos != agents.end() && &(pos->subscriber()) == subscriber )
-					{
-						// Subscriber can be removed only if there is no delivery filter.
-						pos->drop_limit();
-						if( pos->empty() )
-							agents.erase( pos );
-					}
-
-					if( agents.empty() )
-						m_subscribers.erase( it );
-				}
+				modify_and_remove_subscriber_if_needed(
+						type_wrapper,
+						subscriber,
+						[]( local_mbox_details::subscriber_info_t & info ) {
+							info.drop_limit();
+						} );
 			}
 
 		virtual std::string
@@ -408,37 +820,16 @@ class local_mbox_template_t
 			const delivery_filter_t & filter,
 			agent_t & subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( msg_type );
-				if( it == m_subscribers.end() )
-				{
-					// There isn't such message type yet.
-					subscriber_container_t container;
-					container.emplace_back( &subscriber, &filter );
-
-					m_subscribers.emplace( msg_type, std::move( container ) );
-				}
-				else
-				{
-					auto & agents = it->second;
-
-					subscriber_info_t info{ &subscriber, &filter };
-
-					auto pos = std::lower_bound( agents.begin(), agents.end(), info );
-					if( pos != agents.end() )
-					{
-						// This is subscriber or appopriate place for it.
-						if( &(pos->subscriber()) != &subscriber )
-							agents.insert( pos, info );
-						else
-							// Agent is already in subscribers list.
-							// But its state must be updated.
-							pos->set_filter( filter );
-					}
-					else
-						agents.push_back( info );
-				}
+				insert_or_modify_subscriber(
+						msg_type,
+						&subscriber,
+						[&] {
+							return local_mbox_details::subscriber_info_t{
+									&subscriber, &filter };
+						},
+						[&]( local_mbox_details::subscriber_info_t & info ) {
+							info.set_filter( filter );
+						} );
 			}
 
 		virtual void
@@ -446,21 +837,75 @@ class local_mbox_template_t
 			const std::type_index & msg_type,
 			agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
+				modify_and_remove_subscriber_if_needed(
+						msg_type,
+						&subscriber,
+						[]( local_mbox_details::subscriber_info_t & info ) {
+							info.drop_filter();
+						} );
+			}
+
+	private :
+		template< typename INFO_MAKER, typename INFO_CHANGER >
+		void
+		insert_or_modify_subscriber(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber,
+			INFO_MAKER maker,
+			INFO_CHANGER changer )
+			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
-				auto it = m_subscribers.find( msg_type );
+				auto it = m_subscribers.find( type_wrapper );
+				if( it == m_subscribers.end() )
+				{
+					// There isn't such message type yet.
+					local_mbox_details::subscriber_adaptive_container_t container;
+					container.insert( maker() );
+
+					m_subscribers.emplace( type_wrapper, std::move( container ) );
+				}
+				else
+				{
+					auto & agents = it->second;
+
+					auto pos = agents.find( subscriber );
+					if( pos != agents.end() )
+					{
+						// Agent is already in subscribers list.
+						// But its state must be updated.
+						changer( *pos );
+					}
+					else
+						// There is no subscriber in the container.
+						// It must be added.
+						agents.insert( maker() );
+				}
+			}
+
+		template< typename INFO_CHANGER >
+		void
+		modify_and_remove_subscriber_if_needed(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber,
+			INFO_CHANGER changer )
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( type_wrapper );
 				if( it != m_subscribers.end() )
 				{
 					auto & agents = it->second;
 
-					auto pos = std::lower_bound( agents.begin(), agents.end(),
-							subscriber_info_t{ &subscriber } );
-					if( pos != agents.end() && &(pos->subscriber()) == &subscriber )
+					auto pos = agents.find( subscriber );
+					if( pos != agents.end() )
 					{
-						// Subscriber can be removed only if there is no delivery filter.
-						pos->drop_filter();
+						// Subscriber is found and must be modified.
+						changer( *pos );
+
+						// If info about subscriber becomes empty after modification
+						// then subscriber info must be removed.
 						if( pos->empty() )
-							// There is no more need in that subscriber.
 							agents.erase( pos );
 					}
 
@@ -469,7 +914,6 @@ class local_mbox_template_t
 				}
 			}
 
-	private :
 		void
 		do_deliver_message_impl(
 			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
@@ -496,7 +940,7 @@ class local_mbox_template_t
 
 		void
 		do_deliver_message_to_subscriber(
-			const subscriber_info_t & agent_info,
+			const local_mbox_details::subscriber_info_t & agent_info,
 			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -511,17 +955,17 @@ class local_mbox_template_t
 
 						try_to_deliver_to_agent(
 								invocation_type_t::event,
-								agent_info.subscriber(),
+								agent_info.subscriber_reference(),
 								agent_info.limit(),
 								msg_type,
 								message,
 								overlimit_reaction_deep,
 								tracer.overlimit_tracer(),
 								[&] {
-									tracer.push_to_queue( &agent_info.subscriber() );
+									tracer.push_to_queue( agent_info.subscriber_pointer() );
 
 									agent_t::call_push_event(
-											agent_info.subscriber(),
+											agent_info.subscriber_reference(),
 											agent_info.limit(),
 											m_id,
 											msg_type,
@@ -529,7 +973,8 @@ class local_mbox_template_t
 								} );
 					}
 				else
-					tracer.message_rejected( &agent_info.subscriber(), delivery_status );
+					tracer.message_rejected(
+							agent_info.subscriber_pointer(), delivery_status );
 			}
 
 		void
@@ -563,7 +1008,7 @@ class local_mbox_template_t
 
 						do_deliver_service_request_to_subscriber(
 								tracer,
-								it->second.front(),
+								*(it->second.begin()),
 								msg_type,
 								message,
 								overlimit_reaction_deep );
@@ -573,7 +1018,7 @@ class local_mbox_template_t
 		void
 		do_deliver_service_request_to_subscriber(
 			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
-			const subscriber_info_t & agent_info,
+			const local_mbox_details::subscriber_info_t & agent_info,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -591,17 +1036,17 @@ class local_mbox_template_t
 
 						try_to_deliver_to_agent(
 								invocation_type_t::service_request,
-								agent_info.subscriber(),
+								agent_info.subscriber_reference(),
 								agent_info.limit(),
 								msg_type,
 								message,
 								overlimit_reaction_deep,
 								tracer.overlimit_tracer(),
 								[&] {
-									tracer.push_to_queue( &agent_info.subscriber() );
+									tracer.push_to_queue( agent_info.subscriber_pointer() );
 
 									agent_t::call_push_service_request(
-											agent_info.subscriber(),
+											agent_info.subscriber_reference(),
 											agent_info.limit(),
 											m_id,
 											msg_type,
@@ -611,7 +1056,7 @@ class local_mbox_template_t
 				else
 					{
 						tracer.message_rejected(
-								&agent_info.subscriber(),
+								agent_info.subscriber_pointer(),
 								delivery_status );
 
 						SO_5_THROW_EXCEPTION(

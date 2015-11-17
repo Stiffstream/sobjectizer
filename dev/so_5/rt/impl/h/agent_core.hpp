@@ -113,6 +113,12 @@ struct agent_core_stats_t
 		 * in the deregistration state.
 		 */
 		std::size_t m_total_agent_count;
+
+		/*!
+		 * \since v.5.5.12
+		 * \brief Count of coops waiting for the final deregistration.
+		 */
+		std::size_t m_final_dereg_coop_count;
 	};
 
 //

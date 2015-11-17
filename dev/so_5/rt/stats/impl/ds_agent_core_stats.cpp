@@ -53,6 +53,11 @@ ds_agent_core_stats_t::distribute(
 				prefixes::coop_repository(),
 				suffixes::agent_count(),
 				stats.m_total_agent_count );
+
+		send< messages::quantity< std::size_t > >( distribution_mbox,
+				prefixes::coop_repository(),
+				suffixes::coop_final_dereg_count(),
+				stats.m_final_dereg_coop_count );
 	}
 
 } /* namespace impl */

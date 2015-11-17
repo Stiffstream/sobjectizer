@@ -80,6 +80,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/bench/thread_pool_disp/prj.rb" 
 	required_prj "#{path}/bench/no_workload/prj.rb" 
 	required_prj "#{path}/bench/agent_ring/prj.rb" 
+	required_prj "#{path}/bench/coop_dereg/prj.rb" 
 
 	required_prj "#{path}/samples_as_unit_tests/build_tests.rb" 
 }

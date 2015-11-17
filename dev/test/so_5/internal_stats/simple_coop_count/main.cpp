@@ -89,9 +89,21 @@ class a_test_t : public so_5::rt::agent_t
 								else
 									++m_actual_values;
 							}
+						else if( stats::suffixes::coop_final_dereg_count() == evt.m_suffix )
+							{
+								// Count of coops waiting for final dereg could be
+								// 0 or 1 (it depends of deregistration of
+								// the special autoshutdown-guard cooperation).
+								if( 0 != evt.m_value && 1 != evt.m_value )
+									throw std::runtime_error( "unexpected count of "
+											"coops in final dereg state: " +
+											std::to_string( evt.m_value ) );
+								else
+									++m_actual_values;
+							}
 					}
 
-				if( 3 == m_actual_values )
+				if( 4 == m_actual_values )
 					so_deregister_agent_coop_normally();
 			}
 
