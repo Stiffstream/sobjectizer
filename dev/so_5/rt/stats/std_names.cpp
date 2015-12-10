@@ -12,8 +12,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace stats {
 
 namespace prefixes {
@@ -115,8 +113,6 @@ demand_quote()
 } /* namespace suffixes */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

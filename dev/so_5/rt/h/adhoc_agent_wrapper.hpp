@@ -22,9 +22,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 /*!
  * \since v.5.3.0
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
@@ -34,8 +31,7 @@ namespace rt
  * method. The current implementation of agents and SObjectizer Run-Time
  * allows to subscribe and unsubscribe agent in any place and at any time.
  */
-class SO_5_TYPE adhoc_agent_wrapper_t
-	:	public agent_t
+class SO_5_TYPE adhoc_agent_wrapper_t : public agent_t
 	{
 	public :
 		adhoc_agent_wrapper_t( agent_context_t ctx );
@@ -107,7 +103,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
@@ -145,7 +141,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   coop->define_agent()
 		   	.event< msg_my_signal >( mbox, [=] { ... } );
 		 * \endcode
@@ -168,7 +164,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
@@ -248,6 +244,21 @@ class adhoc_agent_definition_proxy_t
 	private :
 		adhoc_agent_wrapper_t * m_agent;
 	};
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using adhoc_agent_wrapper_t = so_5::adhoc_agent_wrapper_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::adhoc_agent_definition_proxy_t instead.
+ */
+using adhoc_agent_definition_proxy_t = so_5::adhoc_agent_definition_proxy_t;
 
 } /* namespace rt */
 

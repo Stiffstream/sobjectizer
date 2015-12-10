@@ -7,14 +7,14 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
 void
 define_receiver_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
 	so_5::priority_t priority,
-	const so_5::rt::mbox_t & common_mbox,
+	const so_5::mbox_t & common_mbox,
 	std::string & sequence )
 	{
 		coop.define_agent( coop.make_agent_context() + priority, disp.binder() )
@@ -28,9 +28,9 @@ define_receiver_agent(
 
 std::string &
 define_main_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
-	const so_5::rt::mbox_t & common_mbox )
+	const so_5::mbox_t & common_mbox )
 	{
 		auto sequence = std::make_shared< std::string >();
 
@@ -51,15 +51,15 @@ define_main_agent(
 
 void
 define_starter_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp )
 	{
 		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.on_start( [&coop, &disp] {
-				auto common_mbox = coop.environment().create_local_mbox();
+				auto common_mbox = coop.environment().create_mbox();
 
 				coop.environment().introduce_coop(
-					[&]( so_5::rt::agent_coop_t & child )
+					[&]( so_5::coop_t & child )
 					{
 						using namespace so_5::prio;
 
@@ -87,7 +87,7 @@ define_starter_agent(
 
 void
 fill_coop(
-	so_5::rt::agent_coop_t & coop )
+	so_5::coop_t & coop )
 	{
 		using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
@@ -108,7 +108,7 @@ main()
 				[]()
 				{
 					so_5::launch(
-						[]( so_5::rt::environment_t & env )
+						[]( so_5::environment_t & env )
 						{
 							env.introduce_coop( fill_coop );
 						} );

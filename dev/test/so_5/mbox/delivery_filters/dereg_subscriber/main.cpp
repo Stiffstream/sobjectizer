@@ -14,15 +14,15 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::rt::tuple_as_message_t< so_5::rt::mtag< 0 >, int >;
+using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
 
-struct finish : public so_5::rt::signal_t {};
+struct finish : public so_5::signal_t {};
 
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
 public :
-	a_child_t( context_t ctx, so_5::rt::mbox_t data_mbox )
-		:	so_5::rt::agent_t( ctx )
+	a_child_t( context_t ctx, so_5::mbox_t data_mbox )
+		:	so_5::agent_t( ctx )
 		,	m_data_mbox( data_mbox )
 	{}
 
@@ -44,22 +44,22 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_data_mbox;
+	const so_5::mbox_t m_data_mbox;
 };
 
-class a_parent_t : public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
 public :
 	a_parent_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
-		,	m_data_mbox( so_environment().create_local_mbox() )
+		:	so_5::agent_t( ctx )
+		,	m_data_mbox( so_environment().create_mbox() )
 	{}
 
 	virtual void
 	so_define_agent() override
 	{
 		so_default_state()
-			.event( [this]( const so_5::rt::msg_coop_deregistered & ) {
+			.event( [this]( const so_5::msg_coop_deregistered & ) {
 				so_5::send< data >( m_data_mbox, 0 );
 				so_5::send< data >( m_data_mbox, 1 );
 				so_5::send< data >( m_data_mbox, 2 );
@@ -74,10 +74,10 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::rt::introduce_child_coop( *this,
-			[this]( so_5::rt::agent_coop_t & coop ) {
+		so_5::introduce_child_coop( *this,
+			[this]( so_5::coop_t & coop ) {
 				coop.add_dereg_notificator(
-						so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
+						so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
 				coop.make_agent< a_child_t >( m_data_mbox );
 			} );
 
@@ -87,11 +87,11 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_data_mbox;
+	const so_5::mbox_t m_data_mbox;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( so_5::autoname,
 			env.make_agent< a_parent_t >() );

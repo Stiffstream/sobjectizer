@@ -21,15 +21,11 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
-
-#include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
+#include <so_5/rt/h/mchain.hpp>
 
 #include <so_5/rt/stats/h/repository.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -132,7 +128,7 @@ class agent_core_t
 		void
 		operator = ( const agent_core_t & );
 
-		friend class so_5::rt::impl::agent_core_details::
+		friend class so_5::impl::agent_core_details::
 				deregistration_processor_t;
 
 	public:
@@ -383,8 +379,28 @@ class agent_core_t
 		 */
 		std::size_t m_total_agent_count;
 
-		//! Cooperation deregistration thread.
-		coop_dereg::coop_dereg_executor_thread_t m_coop_dereg_executor;
+		/*!
+		 * \name Stuff for final coop deregistration.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.13
+		 * \brief Queue of coops to be finally deregistered.
+		 *
+		 * \note Actual mchain is created inside start() method.
+		 */
+		mchain_t m_final_dereg_chain;
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief A separate thread for doing the final deregistration.
+		 *
+		 * \note Actual thread is started inside start() method.
+		 */
+		std::thread m_final_dereg_thread;
+		/*!
+		 * \}
+		 */
 
 		//! Cooperation actions listener.
 		coop_listener_unique_ptr_t m_coop_listener;
@@ -481,7 +497,5 @@ class agent_core_t
 };
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

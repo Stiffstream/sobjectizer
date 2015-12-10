@@ -7,22 +7,17 @@
 	\brief Interface for the cooperation listener definition.
 */
 
-#if !defined( _SO_5__RT__COOP_LISTENER_HPP_ )
-#define _SO_5__RT__COOP_LISTENER_HPP_
+#pragma once
 
 #include <string>
 #include <memory>
 
 #include <so_5/h/declspec.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
-class coop_dereg_reason_t;
 
 //
 // coop_listener_t
@@ -69,10 +64,23 @@ class SO_5_TYPE coop_listener_t
 };
 
 //! Typedef for the coop_listener autopointer.
-typedef std::unique_ptr< coop_listener_t > coop_listener_unique_ptr_t;
+using coop_listener_unique_ptr_t = std::unique_ptr< coop_listener_t >;
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_listener_t
+ * instead.
+ */
+using coop_listener_t = so_5::coop_listener_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using coop_listener_unique_ptr_t = so_5::coop_listener_unique_ptr_t;
 
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif

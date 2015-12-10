@@ -15,11 +15,11 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_first_t : public so_5::rt::agent_t
+class a_first_t : public so_5::agent_t
 {
 	public :
-		a_first_t( so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_first_t( so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{}
 
 		virtual void
@@ -29,15 +29,15 @@ class a_first_t : public so_5::rt::agent_t
 		}
 };
 
-class a_second_t : public so_5::rt::agent_t
+class a_second_t : public so_5::agent_t
 {
-		struct msg_timer : public so_5::rt::signal_t {};
+		struct msg_timer : public so_5::signal_t {};
 
 	public :
 		a_second_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int * receiver )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_receiver( *receiver )
 		{}
 
@@ -72,7 +72,7 @@ main()
 			[&actual]()
 			{
 				so_5::launch(
-					[&actual]( so_5::rt::environment_t & env )
+					[&actual]( so_5::environment_t & env )
 					{
 						env.register_agent_as_coop( "first", new a_first_t( env ) );
 

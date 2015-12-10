@@ -12,13 +12,13 @@
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -66,13 +66,13 @@ test_agent_t::so_evt_start()
 
 class test_agent_finisher_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_finisher_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -88,9 +88,9 @@ class test_agent_finisher_t
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
 	for( std::size_t i = 0; i < test_agent_t::agents_cout(); ++i )
@@ -113,7 +113,7 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"active_obj",

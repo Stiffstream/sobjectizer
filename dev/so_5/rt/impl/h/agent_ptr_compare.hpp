@@ -14,8 +14,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 /*!
@@ -36,8 +34,6 @@ special_agent_ptr_compare( const agent_t & a, const agent_t & b )
 	}
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

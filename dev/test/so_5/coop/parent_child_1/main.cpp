@@ -7,28 +7,28 @@
 
 #include <so_5/all.hpp>
 
-struct msg_child_started : public so_5::rt::signal_t {};
+struct msg_child_started : public so_5::signal_t {};
 
 void
 create_and_register_agent(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	int ordinal,
 	int max_deep );
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int ordinal,
 			int max_deep )
 			:	base_type_t( env )
 			,	m_ordinal( ordinal )
 			,	m_max_deep( max_deep )
 			,	m_self_mbox(
-					env.create_local_mbox( mbox_name( ordinal ) ) )
+					env.create_mbox( mbox_name( ordinal ) ) )
 		{
 		}
 
@@ -57,14 +57,14 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_child_started(
-			const so_5::rt::event_data_t< msg_child_started > & )
+			const so_5::event_data_t< msg_child_started > & )
 		{
 			if( m_ordinal )
 				notify_parent();
 			else
 				so_environment().deregister_coop(
 						so_coop_name(),
-						so_5::rt::dereg_reason::normal );
+						so_5::dereg_reason::normal );
 		}
 
 	private :
@@ -72,7 +72,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		const int m_max_deep;
 
-		so_5::rt::mbox_t m_self_mbox;
+		so_5::mbox_t m_self_mbox;
 
 		static std::string
 		mbox_name( int ordinal )
@@ -85,7 +85,7 @@ class a_test_t : public so_5::rt::agent_t
 		void
 		notify_parent()
 		{
-			so_environment().create_local_mbox( mbox_name( m_ordinal - 1 ) )->
+			so_environment().create_mbox( mbox_name( m_ordinal - 1 ) )->
 					deliver_signal< msg_child_started >();
 		}
 };
@@ -100,11 +100,11 @@ create_coop_name( int ordinal )
 
 void
 create_and_register_agent(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	int ordinal,
 	int max_deep )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+	so_5::coop_unique_ptr_t coop = env.create_coop(
 			create_coop_name( ordinal ) );
 	if( ordinal )
 		coop->set_parent_coop_name( create_coop_name( ordinal - 1 ) );
@@ -114,12 +114,12 @@ create_and_register_agent(
 	env.register_coop( std::move( coop ) );
 }
 
-class a_test_starter_t : public so_5::rt::agent_t
+class a_test_starter_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
+	typedef so_5::agent_t base_type_t;
 
 	public :
-		a_test_starter_t( so_5::rt::environment_t & env )
+		a_test_starter_t( so_5::environment_t & env )
 			:	base_type_t( env )
 		{}
 
@@ -139,7 +139,7 @@ struct init_deinit_data_t
 };
 
 class test_coop_listener_t
-	:	public so_5::rt::coop_listener_t
+	:	public so_5::coop_listener_t
 {
 	public :
 		test_coop_listener_t( init_deinit_data_t & data )
@@ -149,7 +149,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::environment_t &,
+			so_5::environment_t &,
 			const std::string & coop_name )
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
@@ -166,9 +166,9 @@ class test_coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & coop_name,
-			const so_5::rt::coop_dereg_reason_t & reason )
+			const so_5::coop_dereg_reason_t & reason )
 		{
 			bool need_stop = false;
 			{
@@ -194,10 +194,10 @@ class test_coop_listener_t
 				env.stop();
 		}
 
-		static so_5::rt::coop_listener_unique_ptr_t
+		static so_5::coop_listener_unique_ptr_t
 		make( init_deinit_data_t & data )
 		{
-			return so_5::rt::coop_listener_unique_ptr_t(
+			return so_5::coop_listener_unique_ptr_t(
 					new test_coop_listener_t( data ) );
 		}
 
@@ -227,13 +227,13 @@ class test_env_t
 {
 	public :
 		void
-		init( so_5::rt::environment_t & env )
+		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					STARTER_COOP_NAME, new a_test_starter_t( env ) );
 		}
 
-		so_5::rt::coop_listener_unique_ptr_t
+		so_5::coop_listener_unique_ptr_t
 		make_listener()
 		{
 			return test_coop_listener_t::make( m_data );
@@ -260,11 +260,11 @@ main()
 	{
 		test_env_t test_env;
 		so_5::launch(
-				[&test_env]( so_5::rt::environment_t & env )
+				[&test_env]( so_5::environment_t & env )
 				{
 					test_env.init( env );
 				},
-				[&test_env]( so_5::rt::environment_params_t & params )
+				[&test_env]( so_5::environment_params_t & params )
 				{
 					params.coop_listener( test_env.make_listener() );
 					params.disable_autoshutdown();

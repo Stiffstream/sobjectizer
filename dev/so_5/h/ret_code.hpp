@@ -7,8 +7,7 @@
 	\brief Error codes.
 */
 
-#if !defined( _SO_5__RET_CODE_HPP_ )
-#define _SO_5__RET_CODE_HPP_
+#pragma once
 
 #include <so_5/h/declspec.hpp>
 
@@ -230,7 +229,7 @@ const int rc_svc_result_not_received_yet = 86;
 \code
 // Actual service type.
 int a_some_svc_t::evt_query_state(
-	const so_5::rt::event_data_t< msg_query_state > & )
+	const so_5::event_data_t< msg_query_state > & )
 	{ ... }
 
 // Service request call with wrong return type.
@@ -298,6 +297,30 @@ const int rc_msg_tracing_disabled = 140;
 
 //! \}
 
+//! \name Error codes for message chains.
+//! \{
+
+//! Attempt to get message from empty message queue.
+const int rc_msg_chain_is_empty = 160;
+
+//! Attempt to push a message to full message queue.
+const int rc_msg_chain_is_full = 161;
+
+//! Attempt to make subscription for message chain.
+const int rc_msg_chain_doesnt_support_subscriptions = 162;
+
+//! Attempt to set delivery_filter for message chain.
+const int rc_msg_chain_doesnt_support_delivery_filters = 163;
+
+//! Attempt to added a message to full message chain when
+//! throw_exception overflow reaction is used.
+const int rc_msg_chain_overflow = 164;
+
+//! Attempt to define several handlers for one msg_type.
+const int rc_several_handlers_for_one_message_type = 165;
+
+//! \}
+
 //! \name Common error codes.
 //! \{
 
@@ -310,4 +333,3 @@ const int rc_unexpected_error = 0xFFFFFF;
 
 } /* namespace so_5 */
 
-#endif

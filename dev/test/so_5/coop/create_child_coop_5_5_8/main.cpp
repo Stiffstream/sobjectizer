@@ -8,15 +8,15 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	struct msg_started : public so_5::rt::signal_t {};
+	struct msg_started : public so_5::signal_t {};
 
 	// First cooperation.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+	env.introduce_coop( []( so_5::coop_t & parent ) {
 			auto a = parent.define_agent();
 			a.on_start( [&parent, a] {
-					auto child = so_5::rt::create_child_coop( parent, so_5::autoname );
+					auto child = so_5::create_child_coop( parent, so_5::autoname );
 					child->define_agent().on_start( [a] {
 						so_5::send< msg_started >( a.direct_mbox() );
 					} );
@@ -26,11 +26,11 @@ init( so_5::rt::environment_t & env )
 		} );
 
 	// Second cooperation.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+	env.introduce_coop( []( so_5::coop_t & parent ) {
 			auto a = parent.define_agent();
 			a.on_start( [&parent, a] {
-					so_5::rt::introduce_child_coop( parent,
-						[a]( so_5::rt::agent_coop_t & child ) {
+					so_5::introduce_child_coop( parent,
+						[a]( so_5::coop_t & child ) {
 							child.define_agent().on_start( [a] {
 								so_5::send< msg_started >( a.direct_mbox() );
 							} );

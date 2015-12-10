@@ -14,17 +14,17 @@
 
 so_5::atomic_counter_t g_agents_count;
 
-struct some_message : public so_5::rt::signal_t {};
+struct some_message : public so_5::signal_t {};
 
 class a_ordinary_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		a_ordinary_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{
@@ -51,7 +51,7 @@ class a_ordinary_t
 
 		void
 		some_handler(
-			const so_5::rt::event_data_t< some_message > & );
+			const so_5::event_data_t< some_message > & );
 };
 
 void
@@ -64,7 +64,7 @@ a_ordinary_t::so_evt_start()
 
 void
 a_ordinary_t::some_handler(
-	const so_5::rt::event_data_t< some_message > & )
+	const so_5::event_data_t< some_message > & )
 {
 	// This method should not be called.
 	std::cerr << "error: a_ordinary_t::some_handler called.";
@@ -72,7 +72,7 @@ a_ordinary_t::some_handler(
 }
 
 class dispatcher_t
-	:	public so_5::rt::dispatcher_t
+	:	public so_5::dispatcher_t
 {
 	public :
 		dispatcher_t()
@@ -98,7 +98,7 @@ class dispatcher_t
 		}
 
 		virtual void
-		start( so_5::rt::environment_t & /*env*/ ) override
+		start( so_5::environment_t & /*env*/ ) override
 		{}
 
 		virtual void
@@ -117,14 +117,14 @@ class dispatcher_t
 		{}
 
 		void
-		bind_agent( so_5::rt::agent_ref_t agent )
+		bind_agent( so_5::agent_ref_t agent )
 		{
 			m_agents.emplace_back( std::move( agent ) );
 			++m_bind_calls;
 		}
 
 		void
-		unbind_agent( so_5::rt::agent_ref_t agent )
+		unbind_agent( so_5::agent_ref_t agent )
 		{
 			if( m_agents.empty() )
 			{
@@ -145,7 +145,7 @@ class dispatcher_t
 		}
 
 	private :
-		std::vector< so_5::rt::agent_ref_t > m_agents;
+		std::vector< so_5::agent_ref_t > m_agents;
 
 		unsigned int m_bind_calls;
 		unsigned int m_unbind_calls;
@@ -153,16 +153,16 @@ class dispatcher_t
 
 class throwing_disp_binder_t
 	:
-		public so_5::rt::disp_binder_t
+		public so_5::disp_binder_t
 {
 	public:
 		throwing_disp_binder_t() : m_agents_bound( 0 ) {}
 		virtual ~throwing_disp_binder_t() {}
 
-		virtual so_5::rt::disp_binding_activator_t
+		virtual so_5::disp_binding_activator_t
 		bind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::environment_t & env,
+			so_5::agent_ref_t agent_ref )
 		{
 			auto & disp = dynamic_cast< dispatcher_t & >(
 					*env.query_named_dispatcher( "test" ).get() );
@@ -180,8 +180,8 @@ class throwing_disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::environment_t & env,
+			so_5::agent_ref_t agent_ref )
 		{
 			auto & disp = dynamic_cast< dispatcher_t & >(
 					*env.query_named_dispatcher( "test" ).get() );
@@ -194,10 +194,10 @@ class throwing_disp_binder_t
 
 void
 reg_coop(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "test_coop",
-			so_5::rt::disp_binder_unique_ptr_t(
+	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
+			so_5::disp_binder_unique_ptr_t(
 					new throwing_disp_binder_t() )  );
 
 	coop->add_agent( new a_ordinary_t( env ) );
@@ -219,7 +219,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	reg_coop( env );
 
@@ -233,11 +233,11 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"test",
-					so_5::rt::dispatcher_unique_ptr_t( new dispatcher_t() ) );
+					so_5::dispatcher_unique_ptr_t( new dispatcher_t() ) );
 			} );
 
 		if( 0 != g_agents_count )

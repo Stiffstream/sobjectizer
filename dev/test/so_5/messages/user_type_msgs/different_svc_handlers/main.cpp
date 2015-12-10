@@ -18,11 +18,11 @@ struct msg2
 	std::string m_b;
 };
 
-class a_service_t : public so_5::rt::agent_t
+class a_service_t : public so_5::agent_t
 {
 public :
 	a_service_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	virtual void
@@ -66,11 +66,11 @@ private :
 	}
 };
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
-	a_test_t( context_t ctx, so_5::rt::mbox_t service )
-		:	so_5::rt::agent_t( ctx )
+	a_test_t( context_t ctx, so_5::mbox_t service )
+		:	so_5::agent_t( ctx )
 		,	m_service( std::move( service ) )
 	{}
 
@@ -101,13 +101,13 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_service;
+	const so_5::mbox_t m_service;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			using namespace so_5::disp::one_thread;
 
 			auto service = coop.make_agent_with_binder< a_service_t >(

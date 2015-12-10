@@ -7,29 +7,29 @@
 
 #include <so_5/all.hpp>
 
-struct msg_child_deregistered : public so_5::rt::signal_t {};
+struct msg_child_deregistered : public so_5::signal_t {};
 
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:	base_type_t( env )
 		{
 		}
 };
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
+	typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:	base_type_t( env )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 			,	m_cycle( 0 )
 		{}
 
@@ -52,7 +52,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_coop_registered(
-			const so_5::rt::event_data_t< so_5::rt::msg_coop_registered > & evt )
+			const so_5::event_data_t< so_5::msg_coop_registered > & evt )
 		{
 			std::cout << "registered: " << evt->m_coop_name << std::endl;
 
@@ -60,12 +60,12 @@ class a_test_t : public so_5::rt::agent_t
 
 			so_environment().deregister_coop(
 					evt->m_coop_name,
-					so_5::rt::dereg_reason::normal );
+					so_5::dereg_reason::normal );
 		}
 
 		void
 		evt_coop_deregistered(
-			const so_5::rt::event_data_t< so_5::rt::msg_coop_deregistered > & evt )
+			const so_5::event_data_t< so_5::msg_coop_deregistered > & evt )
 		{
 			std::cout << "deregistered: " << evt->m_coop_name << std::endl;
 
@@ -81,12 +81,12 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_mbox;
+		const so_5::mbox_t m_mbox;
 
 		int m_cycle;
 
-		so_5::rt::state_t st_wait_registration = so_make_state();
-		so_5::rt::state_t st_wait_deregistration = so_make_state();
+		so_5::state_t st_wait_registration = so_make_state();
+		so_5::state_t st_wait_deregistration = so_make_state();
 
 		void
 		create_next_coop()
@@ -97,9 +97,9 @@ class a_test_t : public so_5::rt::agent_t
 
 			child_coop->set_parent_coop_name( so_coop_name() );
 			child_coop->add_reg_notificator(
-					so_5::rt::make_coop_reg_notificator( m_mbox ) );
+					so_5::make_coop_reg_notificator( m_mbox ) );
 			child_coop->add_dereg_notificator(
-					so_5::rt::make_coop_dereg_notificator( m_mbox ) );
+					so_5::make_coop_dereg_notificator( m_mbox ) );
 
 			child_coop->add_agent( new a_child_t( so_environment() ) );
 
@@ -122,7 +122,7 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				env.add_dispatcher_if_not_exists(
 						"active_obj",

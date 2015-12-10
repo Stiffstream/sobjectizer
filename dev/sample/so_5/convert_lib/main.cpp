@@ -121,9 +121,9 @@ extern "C" int create_converter( converter ** handle_receiver )
 		std::unique_ptr< so_5::wrapped_env_t > env{ new so_5::wrapped_env_t{} };
 
 		// A single coop with conversion agent must be added into Environment.
-		env->environment().introduce_coop( [&]( so_5::rt::coop_t & coop ) {
+		env->environment().introduce_coop( [&]( so_5::coop_t & coop ) {
 			// Mbox for conversion messages.
-			auto mbox = coop.environment().create_local_mbox( "converter" );
+			auto mbox = coop.environment().create_mbox( "converter" );
 			// Converter agent.
 			coop.define_agent().event( mbox, []( const std::string & v ) -> int {
 					std::istringstream s{ v };
@@ -158,7 +158,7 @@ extern "C" int convert_value(
 		// Do a synchronous request to mbox with fixed name.
 		// An exception will be throw in the case of an error.
 		*receiver = so_5::request_value< int, std::string >(
-			env->environment().create_local_mbox( "converter" ),
+			env->environment().create_mbox( "converter" ),
 			so_5::infinite_wait,
 			source_value );
 	}

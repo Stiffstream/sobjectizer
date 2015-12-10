@@ -15,7 +15,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_child_info : public so_5::rt::message_t
+struct msg_child_info : public so_5::message_t
 {
 	so_5::current_thread_id_t m_thread_id;
 
@@ -24,13 +24,13 @@ struct msg_child_info : public so_5::rt::message_t
 		{}
 };
 
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
 	public:
 		a_child_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & parent_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & parent_mbox )
+			:	so_5::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
 		{}
 
@@ -44,16 +44,16 @@ class a_child_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_parent_mbox;
+		const so_5::mbox_t m_parent_mbox;
 };
 
-class a_parent_t : public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
 	public :
 		a_parent_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & dispatcher_name )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_dispatcher_name( dispatcher_name )
 		{}
 
@@ -108,7 +108,7 @@ main()
 			[]()
 			{
 				so_5::launch(
-					[]( so_5::rt::environment_t & env )
+					[]( so_5::environment_t & env )
 					{
 						for( int i = 0; i < 32; ++i )
 						{

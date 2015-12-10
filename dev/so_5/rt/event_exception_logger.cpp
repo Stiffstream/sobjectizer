@@ -9,9 +9,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // event_exception_logger_t
 //
@@ -68,7 +65,5 @@ create_std_event_exception_logger()
 	return event_exception_logger_unique_ptr_t(
 		new std_event_exception_logger_t );
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */

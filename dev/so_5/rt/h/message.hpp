@@ -7,8 +7,7 @@
 	\brief A base class for the agent messages definition.
 */
 
-#if !defined( _SO_5__RT__MESSAGE_HPP_ )
-#define _SO_5__RT__MESSAGE_HPP_
+#pragma once
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
@@ -24,16 +23,6 @@
 
 namespace so_5
 {
-
-namespace rt
-{
-
-namespace impl
-{
-
-class internal_message_iface_t;
-
-} /* namespace */
 
 //
 // message_t
@@ -282,7 +271,7 @@ struct message_payload_type_impl
 		//! Helper for extraction of pointer to payload part.
 		/*!
 		 * \note This method return non-const pointer because it is
-		 * necessary for so_5::rt::event_data_t.
+		 * necessary for so_5::event_data_t.
 		 */
 		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )
@@ -683,9 +672,134 @@ struct control_block_t
 
 } /* namespace message_limit */
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::message_t instead.
+ */
+using message_t = so_5::message_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::message_ref_t
+ * instead.
+ */
+using message_ref_t = so_5::message_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::signal_t
+ * instead.
+ */
+using signal_t = so_5::signal_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::user_type_message_t
+ * instead.
+ */
+template< typename T >
+using user_type_message_t = so_5::user_type_message_t< T >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::is_user_type_message
+ * instead.
+ */
+template< typename M >
+using is_user_type_message = so_5::is_user_type_message< M >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::is_signal instead.
+ */
+template< class T >
+using is_signal = so_5::is_signal< T >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::is_classical_message
+ * instead.
+ */
+template< class T >
+using is_classical_message = so_5::is_classical_message< T >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_not_signal
+ * instead.
+ */
+template< class MSG >
+void ensure_not_signal() { so_5::ensure_not_signal< MSG >(); }
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::ensure_message_with_actual_data instead.
+ */
+template< class MSG >
+void ensure_message_with_actual_data( const MSG * m ) {
+	so_5::ensure_message_with_actual_data( m );
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_signal instead.
+ */
+template< class MSG >
+void ensure_signal() { so_5::ensure_signal< MSG >(); }
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_classical_message
+ * instead.
+ */
+template< typename MSG >
+void ensure_classical_message() {
+	so_5::ensure_classical_message< MSG >();
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::message_payload_type
+ * instead.
+ */
+template< typename T >
+using message_payload_type = so_5::message_payload_type< T >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::msg_service_request_base_t
+ * instead.
+ */
+using msg_service_request_base_t = so_5::msg_service_request_base_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::msg_service_request_t
+ * instead.
+ */
+template< class RESULT, class PARAM >
+using msg_service_request_t = so_5::msg_service_request_t< RESULT, PARAM >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::invocation_type_t
+ * instead.
+ */
+using invocation_type_t = so_5::invocation_type_t;
+
+namespace message_limit
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::message_limit::overlimit_context_t instead.
+ */
+using overlimit_context_t = so_5::message_limit::overlimit_context_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::message_limit::action_t
+ * instead.
+ */
+using action_t = so_5::message_limit::action_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::message_limit::control_block_t instead.
+ */
+using control_block_t = so_5::message_limit::control_block_t;
+
+} /* namespace message_limit */
+
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

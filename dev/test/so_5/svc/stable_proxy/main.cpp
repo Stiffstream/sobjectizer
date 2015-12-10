@@ -11,16 +11,16 @@
 
 #include "../a_time_sentinel.hpp"
 
-class test_mbox_t : public so_5::rt::abstract_message_box_t
+class test_mbox_t : public so_5::abstract_message_box_t
 	{
 	private :
-		const so_5::rt::mbox_t m_actual_mbox;
+		const so_5::mbox_t m_actual_mbox;
 
 	public :
 		static bool test_passed;
 
-		test_mbox_t( so_5::rt::environment_t & env )
-			:	m_actual_mbox( env.create_local_mbox() )
+		test_mbox_t( so_5::environment_t & env )
+			:	m_actual_mbox( env.create_mbox() )
 			{
 				std::cout << "test_mbox_t::ctor()" << std::endl;
 			}
@@ -44,7 +44,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		do_deliver_message(
 			const std::type_index &,
-			const so_5::rt::message_ref_t &,
+			const so_5::message_ref_t &,
 			unsigned int ) const override
 			{
 				// DO NOTHING FOR THAT TEST
@@ -53,7 +53,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		do_deliver_service_request(
 			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & svc_request_ref,
+			const so_5::message_ref_t & svc_request_ref,
 			unsigned int overlimit_reaction_deep ) const override
 			{
 				m_actual_mbox->do_deliver_service_request(
@@ -65,8 +65,8 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index &,
-			const so_5::rt::message_limit::control_block_t *,
-			so_5::rt::agent_t * ) override
+			const so_5::message_limit::control_block_t *,
+			so_5::agent_t * ) override
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -74,7 +74,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index &,
-			so_5::rt::agent_t * ) override
+			so_5::agent_t * ) override
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -82,7 +82,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual std::string
 		query_name() const override { return m_actual_mbox->query_name(); }
 
-		virtual so_5::rt::mbox_type_t
+		virtual so_5::mbox_type_t
 		type() const override
 			{
 				return m_actual_mbox->type();
@@ -91,8 +91,8 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		set_delivery_filter(
 			const std::type_index & msg_type,
-			const so_5::rt::delivery_filter_t & filter,
-			so_5::rt::agent_t & subscriber ) override
+			const so_5::delivery_filter_t & filter,
+			so_5::agent_t & subscriber ) override
 			{
 				m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 			}
@@ -100,21 +100,21 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			so_5::rt::agent_t & subscriber ) SO_5_NOEXCEPT override
+			so_5::agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 			}
 
-		static so_5::rt::mbox_t
-		create( so_5::rt::environment_t & env )
+		static so_5::mbox_t
+		create( so_5::environment_t & env )
 			{
-				return so_5::rt::mbox_t( new test_mbox_t( env ) );
+				return so_5::mbox_t( new test_mbox_t( env ) );
 			}
 	};
 
 bool test_mbox_t::test_passed = false;
 
-struct msg_convert : public so_5::rt::message_t
+struct msg_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -122,15 +122,15 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
-typedef decltype( (static_cast< so_5::rt::abstract_message_box_t * >(nullptr))->get_one< std::string >().wait_forever() ) proxy_t;
+typedef decltype( (static_cast< so_5::abstract_message_box_t * >(nullptr))->get_one< std::string >().wait_forever() ) proxy_t;
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 			// In ordinal case the mbox will be destroyed immediatelly
 			// after a_client_t constructor finished.
 			// But because smart reference to mbox is stored inside proxy
@@ -180,7 +180,7 @@ class a_client_t
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
 		test_mbox_t::test_passed = false;
 
@@ -201,7 +201,7 @@ main()
 			{
 				so_5::launch(
 					&init,
-					[]( so_5::rt::environment_params_t & p ) {
+					[]( so_5::environment_params_t & p ) {
 						p.add_named_dispatcher(
 							"active_obj",
 							so_5::disp::active_obj::create_disp() );

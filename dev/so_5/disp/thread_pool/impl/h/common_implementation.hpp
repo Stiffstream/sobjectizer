@@ -28,7 +28,7 @@ namespace thread_pool {
 
 namespace common_implementation {
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
@@ -45,7 +45,7 @@ template<
 	typename PARAMS,
 	typename ADAPTATIONS >
 class dispatcher_t
-	:	public so_5::rt::dispatcher_t
+	:	public so_5::dispatcher_t
 	,	public tp_stats::stats_supplier_t
 	{
 	private :
@@ -132,7 +132,7 @@ class dispatcher_t
 				agent_data_t(
 					agent_queue_ref_t queue,
 					const stats::prefix_t & data_source_name_prefix,
-					const so_5::rt::agent_t * agent_ptr )
+					const agent_t * agent_ptr )
 					:	m_queue( std::move( queue ) )
 					,	m_queue_desc(
 							tp_stats::make_queue_desc_holder(
@@ -165,7 +165,7 @@ class dispatcher_t
 			};
 
 		//! Map from agent pointer to the agent data.
-		typedef std::map< so_5::rt::agent_t *, agent_data_t >
+		typedef std::map< agent_t *, agent_data_t >
 				agent_map_t;
 
 	public :
@@ -190,7 +190,7 @@ class dispatcher_t
 			}
 
 		virtual void
-		start( so_5::rt::environment_t & env ) override
+		start( environment_t & env ) override
 			{
 				m_data_source.start( env.stats_repository() );
 
@@ -224,9 +224,9 @@ class dispatcher_t
 			}
 
 		//! Bind agent to the dispatcher.
-		so_5::rt::event_queue_t *
+		event_queue_t *
 		bind_agent(
-			so_5::rt::agent_ref_t agent,
+			agent_ref_t agent,
 			const PARAMS & params )
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
@@ -242,7 +242,7 @@ class dispatcher_t
 		//! Unbind agent from the dispatcher.
 		void
 		unbind_agent(
-			so_5::rt::agent_ref_t agent )
+			agent_ref_t agent )
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
 
@@ -304,9 +304,9 @@ class dispatcher_t
 		tp_stats::data_source_t m_data_source;
 
 		//! Creation event queue for an agent with individual FIFO.
-		so_5::rt::event_queue_t *
+		event_queue_t *
 		bind_agent_with_inidividual_fifo(
-			so_5::rt::agent_ref_t agent,
+			agent_ref_t agent,
 			const PARAMS & params )
 			{
 				auto queue = make_new_agent_queue( params );
@@ -326,9 +326,9 @@ class dispatcher_t
 		 * If the data for the agent's cooperation is not created yet
 		 * it will be created.
 		 */
-		so_5::rt::event_queue_t *
+		event_queue_t *
 		bind_agent_with_cooperation_fifo(
-			so_5::rt::agent_ref_t agent,
+			agent_ref_t agent,
 			const PARAMS & params )
 			{
 				auto it = m_cooperations.find( agent->so_coop_name() );

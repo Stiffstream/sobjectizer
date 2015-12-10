@@ -142,7 +142,7 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 		virtual ~private_dispatcher_t();
 
 		//! Create a binder for that private dispatcher.
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual disp_binder_unique_ptr_t
 		binder() = 0;
 	};
 
@@ -157,13 +157,13 @@ using private_dispatcher_handle_t =
  * \since v.5.5.10
  * \brief Create an instance of dispatcher to be used as named dispatcher.
  */
-SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
+SO_5_FUNC dispatcher_unique_ptr_t
 create_disp(
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
 //! Create a dispatcher.
-inline so_5::rt::dispatcher_unique_ptr_t
+inline dispatcher_unique_ptr_t
 create_disp()
 	{
 		return create_disp( disp_params_t{} );
@@ -192,7 +192,7 @@ auto coop = env.create_coop( so_5::autoname,
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
 	const std::string & data_sources_name_base,
@@ -217,7 +217,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
 	const std::string & data_sources_name_base )
@@ -241,13 +241,13 @@ auto coop = env.create_coop( so_5::autoname,
 \endcode
  */
 inline private_dispatcher_handle_t
-create_private_disp( so_5::rt::environment_t & env )
+create_private_disp( environment_t & env )
 	{
 		return create_private_disp( env, std::string() );
 	}
 
 //! Create a dispatcher binder object.
-SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
+SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher to be bound to.
 	const std::string & disp_name );

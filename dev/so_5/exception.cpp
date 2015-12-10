@@ -40,7 +40,7 @@ exception_t::error_code() const
 	return m_error_code;
 }
 
-void
+void 
 exception_t::raise(
 	const char * file_name,
 	unsigned int line_number,

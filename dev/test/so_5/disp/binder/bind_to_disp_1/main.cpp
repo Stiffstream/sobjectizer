@@ -20,7 +20,7 @@ const unsigned int g_send_session_count = 100;
 
 struct test_message
 	:
-		public so_5::rt::message_t
+		public so_5::message_t
 {
 	test_message(): m_is_last( false ) {}
 	virtual ~test_message() {}
@@ -30,25 +30,25 @@ struct test_message
 
 // A signal to start sending.
 struct send_message_signal
-	: public so_5::rt::signal_t
+	: public so_5::signal_t
 {};
 
 class test_agent_sender_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 
 		test_agent_sender_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & mbox )
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
 			:
 				base_type_t( env ),
 				m_send_session_complited( 0 ),
 				m_mbox_receiver( mbox ),
-				m_notification_mbox( so_environment().create_local_mbox() )
+				m_notification_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_sender_t()
@@ -62,7 +62,7 @@ class test_agent_sender_t
 
 		void
 		evt_send_messages(
-			const so_5::rt::event_data_t< send_message_signal > &
+			const so_5::event_data_t< send_message_signal > &
 				msg );
 
 	private:
@@ -70,10 +70,10 @@ class test_agent_sender_t
 		unsigned int m_send_session_complited;
 
 		// Receiver mbox.
-		so_5::rt::mbox_t m_mbox_receiver;
+		so_5::mbox_t m_mbox_receiver;
 
 		// Self mbox.
-		so_5::rt::mbox_t m_notification_mbox;
+		so_5::mbox_t m_notification_mbox;
 };
 
 void
@@ -91,7 +91,7 @@ test_agent_sender_t::so_evt_start()
 
 void
 test_agent_sender_t::evt_send_messages(
-	const so_5::rt::event_data_t< send_message_signal > & )
+	const so_5::event_data_t< send_message_signal > & )
 {
 	for( unsigned int i = 0; i < g_send_at_once; ++i )
 	{
@@ -116,14 +116,14 @@ test_agent_sender_t::evt_send_messages(
 
 class test_agent_receiver_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_receiver_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & mbox )
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
 			:
 				base_type_t( env ),
 				m_source_mbox( mbox )
@@ -141,12 +141,12 @@ class test_agent_receiver_t
 
 		void
 		evt_test(
-			const so_5::rt::event_data_t< test_message > &
+			const so_5::event_data_t< test_message > &
 				msg );
 
 	private:
 		// A source of messages.
-		so_5::rt::mbox_t m_source_mbox;
+		so_5::mbox_t m_source_mbox;
 };
 
 void
@@ -158,7 +158,7 @@ test_agent_receiver_t::so_define_agent()
 
 void
 test_agent_receiver_t::evt_test(
-	const so_5::rt::event_data_t< test_message > & msg )
+	const so_5::event_data_t< test_message > & msg )
 {
 	// Stop if this is the last message.
 	if( msg->m_is_last )
@@ -166,11 +166,11 @@ test_agent_receiver_t::evt_test(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	so_5::rt::mbox_t mbox = env.create_local_mbox();
+	so_5::mbox_t mbox = env.create_mbox();
 
-	so_5::rt::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(
@@ -193,7 +193,7 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params ) {
+			[]( so_5::environment_params_t & params ) {
 					params.add_named_dispatcher(
 						"sender_disp",
 						so_5::disp::one_thread::create_disp() );

@@ -7,8 +7,7 @@
 	\brief A class for the agent state definition.
 */
 
-#if !defined( _SO_5__RT__STATE_HPP_ )
-#define _SO_5__RT__STATE_HPP_
+#pragma once
 
 #include <string>
 #include <map>
@@ -18,11 +17,9 @@
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
+#include <so_5/rt/h/fwd.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 #if defined( SO_5_MSVC )
@@ -30,15 +27,12 @@ namespace rt
 	#pragma warning(disable: 4251)
 #endif
 
-class state_t;
-class agent_t;
-
 //
 // state_t
 //
 
 //! Class for the representing agent state.
-class SO_5_TYPE state_t
+class SO_5_TYPE state_t final
 {
 		state_t( const state_t & ) = delete;
 		state_t & operator =( const state_t & ) = delete;
@@ -63,7 +57,7 @@ class SO_5_TYPE state_t
 		 */
 		state_t( state_t && other );
 
-		virtual ~state_t();
+		~state_t();
 
 		bool
 		operator == ( const state_t & state ) const;
@@ -92,9 +86,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -118,9 +112,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -129,7 +123,7 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_t m_owner;
+				so_5::mbox_t m_owner;
 			};
 			\endcode
 		 */
@@ -147,9 +141,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -174,9 +168,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -185,7 +179,7 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_t m_owner;
+				so_5::mbox_t m_owner;
 			};
 			\endcode
 		 */
@@ -228,8 +222,15 @@ class SO_5_TYPE state_t
 	#pragma warning(pop)
 #endif
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::state_t instead.
+ */
+using state_t = so_5::state_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
 
-#endif

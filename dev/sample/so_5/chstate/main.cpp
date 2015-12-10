@@ -22,10 +22,10 @@
 #include <so_5/all.hpp>
 
 // Periodic message.
-class msg_periodic : public so_5::rt::signal_t {};
+class msg_periodic : public so_5::signal_t {};
 
 // State listener for fixing state changes.
-class state_monitor_t : public so_5::rt::agent_state_listener_t
+class state_monitor_t : public so_5::agent_state_listener_t
 {
 	const std::string m_type_hint;
 
@@ -34,10 +34,9 @@ class state_monitor_t : public so_5::rt::agent_state_listener_t
 			:	m_type_hint( type_hint )
 		{}
 
-		virtual void
-		changed(
-			so_5::rt::agent_t &,
-			const so_5::rt::state_t & state ) override
+		virtual void changed(
+			so_5::agent_t &,
+			const so_5::state_t & state ) override
 		{
 			std::cout << m_type_hint << " agent changed state to "
 				<< state.query_name()
@@ -46,49 +45,42 @@ class state_monitor_t : public so_5::rt::agent_state_listener_t
 };
 
 // A sample agent class.
-class a_state_swither_t : public so_5::rt::agent_t
+class a_state_swither_t : public so_5::agent_t
 {
 		// Agent states.
-		so_5::rt::state_t st_1 = so_make_state( "state_1" );
-		so_5::rt::state_t st_2 = so_make_state( "state_2" );
-		so_5::rt::state_t st_3 = so_make_state( "state_3" );
-		so_5::rt::state_t st_shutdown = so_make_state( "shutdown" );
+		const state_t st_1 = so_make_state( "state_1" );
+		const state_t st_2 = so_make_state( "state_2" );
+		const state_t st_3 = so_make_state( "state_3" );
+		const state_t st_shutdown = so_make_state( "shutdown" );
 
 	public:
-		a_state_swither_t( so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_state_swither_t( context_t ctx )
+			:	so_5::agent_t{ ctx }
 		{}
 
 		virtual ~a_state_swither_t()
 		{}
 
 		// Definition of the agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// Reaction to start into SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override;
 
 		// Message handler for the default state.
-		void
-		evt_handler_default();
+		void evt_handler_default();
 
 		// Message handler for the state_1.
-		void
-		evt_handler_1();
+		void evt_handler_1();
 
 		// Message handler for the state_2.
-		void
-		evt_handler_2();
+		void evt_handler_2();
 
 		// Message handler for the state_3.
-		void
-		evt_handler_3();
+		void evt_handler_3();
 
 		// Message handler for the shutdown_state.
-		void
-		evt_handler_shutdown();
+		void evt_handler_shutdown();
 
 	private:
 		// Timer event id.
@@ -97,40 +89,40 @@ class a_state_swither_t : public so_5::rt::agent_t
 		so_5::timer_id_t m_timer_id;
 
 		// Helper method for showing that event handler is called.
-		void
-		show_event_invocation( const char * event_name );
+		void show_event_invocation( const char * event_name );
 };
 
-void
-a_state_swither_t::so_define_agent()
+void a_state_swither_t::so_define_agent()
 {
 	// Message subsription.
-	so_default_state()
+	so_subscribe_self()
 		.event< msg_periodic >( &a_state_swither_t::evt_handler_default );
 
-	st_1.event< msg_periodic >( &a_state_swither_t::evt_handler_1 );
+	so_subscribe_self().in( st_1 )
+		.event< msg_periodic >( &a_state_swither_t::evt_handler_1 );
 
-	st_2.event< msg_periodic >( &a_state_swither_t::evt_handler_2 );
+	so_subscribe_self().in( st_2 )
+		.event< msg_periodic >( &a_state_swither_t::evt_handler_2 );
 
-	st_3.event< msg_periodic >( &a_state_swither_t::evt_handler_3 );
+	so_subscribe_self().in( st_3 )
+		.event< msg_periodic >( &a_state_swither_t::evt_handler_3 );
 
-	st_shutdown.event< msg_periodic >( &a_state_swither_t::evt_handler_shutdown );
+	so_subscribe_self().in( st_shutdown )
+		.event< msg_periodic >( &a_state_swither_t::evt_handler_shutdown );
 }
 
-void
-a_state_swither_t::so_evt_start()
+void a_state_swither_t::so_evt_start()
 {
 	show_event_invocation( "so_evt_start()" );
 
 	// Periodic message should be initiated.
-	m_timer_id = so_environment().schedule_timer< msg_periodic >(
-			so_direct_mbox(),
+	m_timer_id = so_5::send_periodic< msg_periodic >(
+			*this,
 			std::chrono::seconds( 1 ),
 			std::chrono::seconds( 1 ) );
 }
 
-void
-a_state_swither_t::evt_handler_default()
+void a_state_swither_t::evt_handler_default()
 {
 	show_event_invocation( "evt_handler_default" );
 
@@ -138,8 +130,7 @@ a_state_swither_t::evt_handler_default()
 	so_change_state( st_1 );
 }
 
-void
-a_state_swither_t::evt_handler_1()
+void a_state_swither_t::evt_handler_1()
 {
 	show_event_invocation( "evt_handler_1" );
 
@@ -147,8 +138,7 @@ a_state_swither_t::evt_handler_1()
 	so_change_state( st_2 );
 }
 
-void
-a_state_swither_t::evt_handler_2()
+void a_state_swither_t::evt_handler_2()
 {
 	show_event_invocation( "evt_handler_2" );
 
@@ -156,8 +146,7 @@ a_state_swither_t::evt_handler_2()
 	so_change_state( st_3 );
 }
 
-void
-a_state_swither_t::evt_handler_3()
+void a_state_swither_t::evt_handler_3()
 {
 	show_event_invocation( "evt_handler_3" );
 
@@ -165,8 +154,7 @@ a_state_swither_t::evt_handler_3()
 	so_change_state( st_shutdown );
 }
 
-void
-a_state_swither_t::evt_handler_shutdown()
+void a_state_swither_t::evt_handler_shutdown()
 {
 	show_event_invocation( "evt_handler_3" );
 
@@ -178,8 +166,7 @@ a_state_swither_t::evt_handler_shutdown()
 	so_environment().stop();
 }
 
-void
-a_state_swither_t::show_event_invocation( const char * event_name )
+void a_state_swither_t::show_event_invocation( const char * event_name )
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )
@@ -191,8 +178,7 @@ a_state_swither_t::show_event_invocation( const char * event_name )
 state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::rt::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	auto ag = env.make_agent< a_state_swither_t >();
 
@@ -202,15 +188,14 @@ init( so_5::rt::environment_t & env )
 	// Adding another state listener.
 	// Its lifetime is controlled by the agent.
 	ag->so_add_destroyable_listener(
-		so_5::rt::agent_state_listener_unique_ptr_t(
+		so_5::agent_state_listener_unique_ptr_t(
 			new state_monitor_t( "destroyable_listener" ) ) );
 
 	// Creating and registering a cooperation.
 	env.register_agent_as_coop( "coop", std::move(ag) );
 }
 
-int
-main()
+int main()
 {
 	try
 	{

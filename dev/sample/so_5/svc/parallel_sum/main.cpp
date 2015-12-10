@@ -12,7 +12,7 @@
 
 typedef std::vector< int > vector_t;
 
-struct msg_sum_part : public so_5::rt::message_t
+struct msg_sum_part : public so_5::message_t
 	{
 		vector_t::const_iterator m_begin;
 		vector_t::const_iterator m_end;
@@ -25,7 +25,7 @@ struct msg_sum_part : public so_5::rt::message_t
 			{}
 	};
 
-struct msg_sum_vector : public so_5::rt::message_t
+struct msg_sum_vector : public so_5::message_t
 	{
 		const vector_t & m_vector;
 
@@ -33,15 +33,15 @@ struct msg_sum_vector : public so_5::rt::message_t
 			{}
 	};
 
-class a_vector_summator_t : public so_5::rt::agent_t
+class a_vector_summator_t : public so_5::agent_t
 	{
 	public :
 		a_vector_summator_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & self_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & self_mbox )
+			:	so_5::agent_t( env )
 			,	m_self_mbox( self_mbox )
-			,	m_part_summator_mbox( env.create_local_mbox() )
+			,	m_part_summator_mbox( env.create_mbox() )
 			{}
 
 		virtual void
@@ -54,10 +54,10 @@ class a_vector_summator_t : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
-				so_5::rt::introduce_child_coop(
+				so_5::introduce_child_coop(
 						*this,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-						[&]( so_5::rt::coop_t & coop )
+						[&]( so_5::coop_t & coop )
 						{
 							coop.define_agent().event(
 								m_part_summator_mbox,
@@ -79,8 +79,8 @@ class a_vector_summator_t : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
-		const so_5::rt::mbox_t m_part_summator_mbox;
+		const so_5::mbox_t m_self_mbox;
+		const so_5::mbox_t m_part_summator_mbox;
 	};
 
 class progress_indicator_t
@@ -113,15 +113,15 @@ class progress_indicator_t
 		int m_percents;
 	};
 
-class a_runner_t : public so_5::rt::agent_t
+class a_runner_t : public so_5::agent_t
 	{
 	public :
 		a_runner_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::size_t iterations )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	ITERATIONS( iterations )
-			,	m_summator_mbox( env.create_local_mbox() )
+			,	m_summator_mbox( env.create_mbox() )
 			{}
 
 		virtual void
@@ -138,17 +138,17 @@ class a_runner_t : public so_5::rt::agent_t
 	private :
 		const std::size_t ITERATIONS;
 
-		const so_5::rt::mbox_t m_summator_mbox;
+		const so_5::mbox_t m_summator_mbox;
 
 		vector_t m_vector;
 
 		void
 		create_summator_coop()
 			{
-				so_5::rt::introduce_child_coop(
+				so_5::introduce_child_coop(
 					*this,
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-					[this]( so_5::rt::coop_t & coop ) {
+					[this]( so_5::coop_t & coop ) {
 						coop.make_agent< a_vector_summator_t >( m_summator_mbox );
 					} );
 			}
@@ -184,18 +184,18 @@ main( int argc, char ** argv )
 		try
 			{
 				so_5::launch(
-						[argc, argv]( so_5::rt::environment_t & env ) {
+						[argc, argv]( so_5::environment_t & env ) {
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
 							env.introduce_coop(
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ),
-									[&]( so_5::rt::coop_t & coop ) {
+									[&]( so_5::coop_t & coop ) {
 										coop.make_agent< a_runner_t >( ITERATIONS );
 									} );
 						},
-						[]( so_5::rt::environment_params_t & p ) {
+						[]( so_5::environment_params_t & p ) {
 							p.add_named_dispatcher(
 								"active_obj",
 								so_5::disp::active_obj::create_disp() );

@@ -9,7 +9,7 @@
 
 #include <so_5/all.hpp>
 
-struct msg_do_hardwork : public so_5::rt::message_t
+struct msg_do_hardwork : public so_5::message_t
 {
 	unsigned int m_index;
 	unsigned int m_milliseconds;
@@ -22,7 +22,7 @@ struct msg_do_hardwork : public so_5::rt::message_t
 	{}
 };
 
-struct msg_hardwork_done : public so_5::rt::message_t
+struct msg_hardwork_done : public so_5::message_t
 {
 	unsigned int m_index;
 
@@ -31,7 +31,7 @@ struct msg_hardwork_done : public so_5::rt::message_t
 	{}
 };
 
-struct msg_check_hardwork : public so_5::rt::message_t
+struct msg_check_hardwork : public so_5::message_t
 {
 	unsigned int m_index;
 	unsigned int m_milliseconds;
@@ -44,7 +44,7 @@ struct msg_check_hardwork : public so_5::rt::message_t
 	{}
 };
 
-struct msg_hardwork_checked : public so_5::rt::message_t
+struct msg_hardwork_checked : public so_5::message_t
 {
 	unsigned int m_index;
 
@@ -54,16 +54,16 @@ struct msg_hardwork_checked : public so_5::rt::message_t
 	{}
 };
 
-class a_manager_t : public so_5::rt::agent_t
+class a_manager_t : public so_5::agent_t
 {
 	public :
 		a_manager_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & worker_mbox,
-			const so_5::rt::mbox_t & checker_mbox,
+			so_5::environment_t & env,
+			const so_5::mbox_t & worker_mbox,
+			const so_5::mbox_t & checker_mbox,
 			unsigned int requests,
 			unsigned int milliseconds )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_worker_mbox( worker_mbox )
 			,	m_checker_mbox( checker_mbox )
 			,	m_requests( requests )
@@ -119,8 +119,8 @@ class a_manager_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_worker_mbox;
-		const so_5::rt::mbox_t m_checker_mbox;
+		const so_5::mbox_t m_worker_mbox;
+		const so_5::mbox_t m_checker_mbox;
 
 		const unsigned int m_requests;
 		unsigned int m_processed = 0;
@@ -130,10 +130,10 @@ class a_manager_t : public so_5::rt::agent_t
 		std::chrono::steady_clock::time_point m_start_time;
 };
 
-so_5::rt::coop_unique_ptr_t
+so_5::coop_unique_ptr_t
 create_test_coop(
-	so_5::rt::environment_t & env,
-	so_5::rt::disp_binder_unique_ptr_t disp_binder,
+	so_5::environment_t & env,
+	so_5::disp_binder_unique_ptr_t disp_binder,
 	unsigned int requests,
 	unsigned int milliseconds )
 {
@@ -173,8 +173,8 @@ create_test_coop(
 
 struct dispatcher_factories_t
 {
-	std::function< so_5::rt::dispatcher_unique_ptr_t() > m_disp_factory;
-	std::function< so_5::rt::disp_binder_unique_ptr_t() > m_binder_factory;
+	std::function< so_5::dispatcher_unique_ptr_t() > m_disp_factory;
+	std::function< so_5::disp_binder_unique_ptr_t() > m_binder_factory;
 };
 
 dispatcher_factories_t
@@ -252,9 +252,9 @@ parse_params( int argc, char ** argv )
 		};
 
 	if( 2 < argc )
-		r.m_requests = std::atoi( argv[ 2 ] );
+		r.m_requests = static_cast< unsigned int >( std::atoi( argv[ 2 ] ) );
 	if( 3 < argc )
-		r.m_milliseconds = std::atoi( argv[ 3 ] );
+		r.m_milliseconds = static_cast< unsigned int >( std::atoi( argv[ 3 ] ) );
 
 	std::cout << "Config:\n"
 		"\t" "dispatcher: " << argv[ 1 ] << "\n"
@@ -271,7 +271,7 @@ int main( int argc, char ** argv )
 		const config_t config = parse_params( argc, argv );
 
 		so_5::launch(
-			[config]( so_5::rt::environment_t & env )
+			[config]( so_5::environment_t & env )
 			{
 				env.register_coop(
 						create_test_coop(
@@ -280,7 +280,7 @@ int main( int argc, char ** argv )
 								config.m_requests,
 								config.m_milliseconds ) );
 			},
-			[config]( so_5::rt::environment_params_t & params )
+			[config]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 						config_t::dispatcher_name,

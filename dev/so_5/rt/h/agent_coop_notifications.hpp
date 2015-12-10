@@ -21,9 +21,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // msg_coop_registered
 //
@@ -81,6 +78,45 @@ SO_5_FUNC coop_dereg_notificator_t
 make_coop_dereg_notificator(
 	//! A mbox to which msg_coop_deregistered will be sent.
 	const mbox_t & mbox );
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::msg_coop_registered
+ * instead.
+ */
+using msg_coop_registered = so_5::msg_coop_registered;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::msg_coop_deregistered
+ * instead.
+ */
+using msg_coop_deregistered = so_5::msg_coop_deregistered;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::make_coop_reg_notificator
+ * instead.
+ */
+inline so_5::coop_reg_notificator_t
+make_coop_reg_notificator(
+	//! A mbox to which msg_coop_registered will be sent.
+	const mbox_t & mbox )
+	{
+		return so_5::make_coop_reg_notificator( mbox );
+	}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::make_coop_dereg_notificator
+ * instead.
+ */
+inline coop_dereg_notificator_t
+make_coop_dereg_notificator(
+	//! A mbox to which msg_coop_deregistered will be sent.
+	const mbox_t & mbox )
+	{
+		return so_5::make_coop_dereg_notificator( mbox );
+	}
 
 } /* namespace rt */
 

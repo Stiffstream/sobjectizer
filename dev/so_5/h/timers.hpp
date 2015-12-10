@@ -172,9 +172,9 @@ class SO_5_TYPE timer_thread_t
 			//! Type of message to be sheduled.
 			const std::type_index & type_index,
 			//! Mbox for message delivery.
-			const so_5::rt::mbox_t & mbox,
+			const mbox_t & mbox,
 			//! Message to be sent.
-			const so_5::rt::message_ref_t & msg,
+			const message_ref_t & msg,
 			//! Pause before first message delivery.
 			std::chrono::steady_clock::duration pause,
 			//! Period for message repetition.
@@ -190,9 +190,9 @@ class SO_5_TYPE timer_thread_t
 			//! Type of message to be sheduled.
 			const std::type_index & type_index,
 			//! Mbox for message delivery.
-			const so_5::rt::mbox_t & mbox,
+			const mbox_t & mbox,
 			//! Message to be sent.
-			const so_5::rt::message_ref_t & msg,
+			const message_ref_t & msg,
 			//! Pause before first message delivery.
 			std::chrono::steady_clock::duration pause,
 			//! Period for message repetition.

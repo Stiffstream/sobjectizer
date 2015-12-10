@@ -16,14 +16,14 @@
 
 #include "../for_each_lock_factory.hpp"
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{}
 
 		virtual void
@@ -53,7 +53,7 @@ do_test()
 		run_with_time_limit( [&]()
 			{
 				so_5::launch(
-					[&]( so_5::rt::environment_t & env )
+					[&]( so_5::environment_t & env )
 					{
 						auto disp = create_private_disp( env,
 								disp_params_t{}

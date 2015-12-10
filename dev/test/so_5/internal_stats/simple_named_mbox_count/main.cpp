@@ -15,14 +15,14 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
 	public :
 		a_test_t( context_t ctx )
-			:	so_5::rt::agent_t( ctx )
-			,	m_m1( so_environment().create_local_mbox( "m1" ) )
-			,	m_m2( so_environment().create_local_mbox( "m2" ) )
-			,	m_m3( so_environment().create_local_mbox( "m3" ) )
+			:	so_5::agent_t( ctx )
+			,	m_m1( so_environment().create_mbox( "m1" ) )
+			,	m_m2( so_environment().create_mbox( "m2" ) )
+			,	m_m3( so_environment().create_mbox( "m3" ) )
 			{}
 
 		virtual void
@@ -40,17 +40,17 @@ class a_test_t : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_m1;
-		const so_5::rt::mbox_t m_m2;
-		const so_5::rt::mbox_t m_m3;
+		const so_5::mbox_t m_m1;
+		const so_5::mbox_t m_m2;
+		const so_5::mbox_t m_m3;
 
 		unsigned int m_actual_values = { 0 };
 
 		void
 		evt_monitor_quantity(
-			const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+			const so_5::stats::messages::quantity< std::size_t > & evt )
 			{
-				namespace stats = so_5::rt::stats;
+				namespace stats = so_5::stats;
 
 				std::cout << evt.m_prefix.c_str()
 						<< evt.m_suffix.c_str()
@@ -75,7 +75,7 @@ class a_test_t : public so_5::rt::agent_t
 	};
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( so_5::autoname,
 				env.make_agent< a_test_t >() );

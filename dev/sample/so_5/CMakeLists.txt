@@ -48,4 +48,5 @@ add_subdirectory(news_board)
 add_subdirectory(prio_work_stealing)
 add_subdirectory(wrapped_env_demo)
 add_subdirectory(convert_lib)
-
+add_subdirectory(mchain_svc_req)
+add_subdirectory(wrapped_env_demo_2)

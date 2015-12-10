@@ -1,0 +1,38 @@
+/*!
+
+\page so_5_5_13__timed_send_deprecated so-5.5.13: Deprecation of send_delayed_to_agent and send_periodic_to_agent
+
+Functions `so_5::send_delayed_to_agent()` and `so_5::send_periodic_to_agent()`
+are deprecated and will be removed in v.5.6.0. New version of
+`so_5::send_delayed()` and `so_5::send_periodic()` which receve a reference to
+`so_5::agent_t` and `so_5::adhoc_agent_definition_proxy_t` must be used
+instead.
+
+Two old forms of send_delayed/send_periodic functions which receive a
+referent to an agent and destination mbox are deprecated also. It means that
+the following code will not work in v.5.6.0:
+
+\code
+void some_agent::some_event() {
+	...
+	so_5::send_delayed< notify >( *this, m_target_mbox, pause, ... );
+	so_5::send_periodic< retry >( *this, m_target_mbox, pause, period, ... );
+	...
+}
+\endcode
+
+Such code must be rewritten this way:
+
+\code
+void some_agent::some_event() {
+	...
+	so_5::send_delayed< notify >( so_environment(), m_target_mbox, pause, ... );
+	so_5::send_periodic< retry >( so_environment(), m_target_mbox, pause, period, ... );
+	...
+}
+\endcode
+
+*/
+
+// vim:ft=cpp
+

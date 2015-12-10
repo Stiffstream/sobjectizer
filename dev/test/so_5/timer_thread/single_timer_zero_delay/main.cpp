@@ -8,26 +8,26 @@
 
 #include <so_5/all.hpp>
 
-struct msg_test : public so_5::rt::message_t
+struct msg_test : public so_5::message_t
 {};
 
-struct msg_do_resend : public so_5::rt::signal_t
+struct msg_do_resend : public so_5::signal_t
 {};
 
-struct msg_stop : public so_5::rt::signal_t
+struct msg_stop : public so_5::signal_t
 {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int & message_counter )
 			:	base_type_t( env )
 			,	m_message_counter( message_counter )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{
 		}
 
@@ -56,20 +56,20 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_delayed_message( const so_5::rt::event_data_t< msg_test > & )
+		evt_delayed_message( const so_5::event_data_t< msg_test > & )
 		{
 			m_message_counter += 1;
 		}
 
 		void
-		evt_do_resend( const so_5::rt::event_data_t< msg_do_resend > & )
+		evt_do_resend( const so_5::event_data_t< msg_do_resend > & )
 		{
 			so_environment().single_timer(
 					std::unique_ptr< msg_test >( new msg_test() ), m_mbox, 0 );
 		}
 
 		void
-		evt_stop( const so_5::rt::event_data_t< msg_stop > & )
+		evt_stop( const so_5::event_data_t< msg_stop > & )
 		{
 			so_environment().stop();
 		}
@@ -77,7 +77,7 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		int & m_message_counter;
 
-		so_5::rt::mbox_t m_mbox;
+		so_5::mbox_t m_mbox;
 };
 
 struct test_env_t
@@ -89,7 +89,7 @@ struct test_env_t
 	{}
 
 	void
-	init( so_5::rt::environment_t & env )
+	init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( "test_coop",
 				new a_test_t( env, m_message_counter ) );
@@ -104,7 +104,7 @@ main()
 		test_env_t test_env;
 
 		so_5::launch(
-			[&]( so_5::rt::environment_t & env )
+			[&]( so_5::environment_t & env )
 			{
 				test_env.init( env );
 			} );

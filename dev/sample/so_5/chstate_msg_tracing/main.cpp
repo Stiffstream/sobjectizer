@@ -18,10 +18,10 @@
 #include <so_5/all.hpp>
 
 // A sample agent class.
-class a_state_swither_t : public so_5::rt::agent_t
+class a_state_swither_t : public so_5::agent_t
 {
 	// Signal for changing agent state.
-	struct change_state_signal : public so_5::rt::signal_t {};
+	struct change_state_signal : public so_5::signal_t {};
 
 	// Demo message for showing different handlers in different states.
 	struct greeting_message
@@ -30,13 +30,13 @@ class a_state_swither_t : public so_5::rt::agent_t
 	};
 
 	// Agent states.
-	so_5::rt::state_t st_1 = so_make_state( "state_1" );
-	so_5::rt::state_t st_2 = so_make_state( "state_2" );
-	so_5::rt::state_t st_3 = so_make_state( "state_3" );
-	so_5::rt::state_t st_shutdown = so_make_state( "shutdown" );
+	const state_t st_1 = so_make_state( "state_1" );
+	const state_t st_2 = so_make_state( "state_2" );
+	const state_t st_3 = so_make_state( "state_3" );
+	const state_t st_shutdown = so_make_state( "shutdown" );
 
 public:
-	a_state_swither_t( context_t ctx ) : so_5::rt::agent_t{ ctx }
+	a_state_swither_t( context_t ctx ) : so_5::agent_t{ ctx }
 	{}
 
 	virtual ~a_state_swither_t()
@@ -86,12 +86,12 @@ public:
 	virtual void
 	so_evt_start() override
 	{
-		m_greeting_timer_id = so_5::send_periodic_to_agent< greeting_message >(
+		m_greeting_timer_id = so_5::send_periodic< greeting_message >(
 				*this,
 				std::chrono::milliseconds{ 50 },
 				std::chrono::milliseconds{ 100 },
 				"Hello, World!" );
-		m_change_timer_id = so_5::send_periodic_to_agent< change_state_signal >(
+		m_change_timer_id = so_5::send_periodic< change_state_signal >(
 				*this,
 				std::chrono::milliseconds{ 80 },
 				std::chrono::milliseconds{ 100 } );
@@ -110,12 +110,12 @@ main()
 {
 	try
 	{
-		so_5::launch( []( so_5::rt::environment_t & env ) {
-				env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		so_5::launch( []( so_5::environment_t & env ) {
+				env.introduce_coop( []( so_5::coop_t & coop ) {
 					coop.make_agent< a_state_swither_t >();
 				} );
 			},
-			[]( so_5::rt::environment_params_t & params ) {
+			[]( so_5::environment_params_t & params ) {
 				// Turn message delivery tracing on.
 				params.message_delivery_tracer(
 						so_5::msg_tracing::std_cout_tracer() );

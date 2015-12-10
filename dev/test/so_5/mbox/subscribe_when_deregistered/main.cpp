@@ -11,24 +11,24 @@
 
 #include <so_5/all.hpp>
 
-struct msg1 : public so_5::rt::message_t {};
-struct msg2 : public so_5::rt::message_t {};
-struct msg3 : public so_5::rt::message_t {};
-struct msg4 : public so_5::rt::message_t {};
-struct msg5 : public so_5::rt::message_t {};
+struct msg1 : public so_5::message_t {};
+struct msg2 : public so_5::message_t {};
+struct msg3 : public so_5::message_t {};
+struct msg4 : public so_5::message_t {};
+struct msg5 : public so_5::message_t {};
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_mbox( so_environment().create_local_mbox() )
+				m_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_t()
@@ -42,7 +42,7 @@ class test_agent_t
 
 #define ABORT_HANDLER( handler, msg ) \
 	void\
-	handler ( const so_5::rt::event_data_t< msg > & ) \
+	handler ( const so_5::event_data_t< msg > & ) \
 	{\
 		std::cerr << "Error: " #msg " handler called..." << std::endl; \
 		std::abort(); \
@@ -55,7 +55,7 @@ class test_agent_t
 
 	private:
 		// Mbox for subscription.
-		so_5::rt::mbox_t m_mbox;
+		so_5::mbox_t m_mbox;
 };
 
 
@@ -138,11 +138,11 @@ stage_monitors_t g_stage_monitors;
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
 	for( int i = 0; i < 8; ++i )
 	{
-		so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+		so_5::coop_unique_ptr_t coop = env.create_coop(
 			"test_coop",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
@@ -160,18 +160,18 @@ init(
 
 		env.deregister_coop(
 				"test_coop",
-				so_5::rt::dereg_reason::normal );
+				so_5::dereg_reason::normal );
 		g_stage_monitors.wait_for_deregistration();
 	}
 	env.stop();
 }
 
-class listener_t : public so_5::rt::coop_listener_t
+class listener_t : public so_5::coop_listener_t
 {
 	public :
 		virtual void
 		on_registered(
-			so_5::rt::environment_t &,
+			so_5::environment_t &,
 			const std::string & )
 		{
 			g_stage_monitors.notify_about_registration();
@@ -179,9 +179,9 @@ class listener_t : public so_5::rt::coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::environment_t &,
+			so_5::environment_t &,
 			const std::string &,
-			const so_5::rt::coop_dereg_reason_t &)
+			const so_5::coop_dereg_reason_t &)
 		{
 			g_stage_monitors.notify_about_deregistration();
 		}
@@ -194,13 +194,13 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 						"active_obj",
 						so_5::disp::active_obj::create_disp() );
 				params.coop_listener(
-						so_5::rt::coop_listener_unique_ptr_t( new listener_t() ) );
+						so_5::coop_listener_unique_ptr_t( new listener_t() ) );
 			} );
 	}
 	catch( const std::exception & ex )

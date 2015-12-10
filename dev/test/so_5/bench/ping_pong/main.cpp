@@ -75,12 +75,12 @@ struct	measure_result_t
 	steady_clock::time_point	m_finish_time;
 };
 
-struct msg_data : public so_5::rt::signal_t {};
+struct msg_data : public so_5::signal_t {};
 
 class a_pinger_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 	
 	public :
 		a_pinger_t(
@@ -94,13 +94,13 @@ class a_pinger_t
 			{}
 
 		void
-		set_self_mbox( const so_5::rt::mbox_t & mbox )
+		set_self_mbox( const so_5::mbox_t & mbox )
 			{
 				m_self_mbox = mbox;
 			}
 
 		void
-		set_ponger_mbox( const so_5::rt::mbox_t & mbox )
+		set_ponger_mbox( const so_5::mbox_t & mbox )
 			{
 				m_ponger_mbox = mbox;
 			}
@@ -121,7 +121,7 @@ class a_pinger_t
 
 		void
 		evt_pong(
-			const so_5::rt::event_data_t< msg_data > & )
+			const so_5::event_data_t< msg_data > & )
 			{
 				++m_requests_sent;
 				if( m_requests_sent < m_cfg.m_request_count )
@@ -134,8 +134,8 @@ class a_pinger_t
 			}
 
 	private :
-		so_5::rt::mbox_t m_self_mbox;
-		so_5::rt::mbox_t m_ponger_mbox;
+		so_5::mbox_t m_self_mbox;
+		so_5::mbox_t m_ponger_mbox;
 
 		const cfg_t m_cfg;
 		measure_result_t & m_measure_result;
@@ -159,9 +159,9 @@ class a_pinger_t
 	};
 
 class a_ponger_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 	
 	public :
 		a_ponger_t(
@@ -171,13 +171,13 @@ class a_ponger_t
 			{}
 
 		void
-		set_self_mbox( const so_5::rt::mbox_t & mbox )
+		set_self_mbox( const so_5::mbox_t & mbox )
 			{
 				m_self_mbox = mbox;
 			}
 
 		void
-		set_pinger_mbox( const so_5::rt::mbox_t & mbox )
+		set_pinger_mbox( const so_5::mbox_t & mbox )
 			{
 				m_pinger_mbox = mbox;
 			}
@@ -190,14 +190,14 @@ class a_ponger_t
 
 		void
 		evt_ping(
-			const so_5::rt::event_data_t< msg_data > & )
+			const so_5::event_data_t< msg_data > & )
 			{
 				m_pinger_mbox->deliver_signal< msg_data >();
 			}
 
 	private :
-		so_5::rt::mbox_t m_self_mbox;
-		so_5::rt::mbox_t m_pinger_mbox;
+		so_5::mbox_t m_self_mbox;
+		so_5::mbox_t m_pinger_mbox;
 
 		static context_t
 		prepare_context( context_t ctx, const cfg_t & cfg )
@@ -252,11 +252,11 @@ class test_env_t
 			{}
 
 		void
-		init( so_5::rt::environment_t & env )
+		init( so_5::environment_t & env )
 			{
 				auto binder = ( m_cfg.m_active_objects ?
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
-						so_5::rt::create_default_disp_binder() );
+						so_5::create_default_disp_binder() );
 
 				auto coop = env.create_coop( "test", std::move(binder) );
 
@@ -264,9 +264,9 @@ class test_env_t
 				auto a_ponger = coop->make_agent< a_ponger_t >( m_cfg );
 
 				auto pinger_mbox = m_cfg.m_direct_mboxes ?
-						a_pinger->so_direct_mbox() : env.create_local_mbox();
+						a_pinger->so_direct_mbox() : env.create_mbox();
 				auto ponger_mbox = m_cfg.m_direct_mboxes ?
-						a_ponger->so_direct_mbox() : env.create_local_mbox();
+						a_ponger->so_direct_mbox() : env.create_mbox();
 
 				a_pinger->set_self_mbox( pinger_mbox );
 				a_pinger->set_ponger_mbox( ponger_mbox );
@@ -299,11 +299,11 @@ main( int argc, char ** argv )
 		test_env_t test_env( cfg );
 
 		so_5::launch(
-			[&]( so_5::rt::environment_t & env )
+			[&]( so_5::environment_t & env )
 			{
 				test_env.init( env );
 			},
-			[&]( so_5::rt::environment_params_t & params )
+			[&]( so_5::environment_params_t & params )
 			{
 				if( cfg.m_active_objects )
 				{

@@ -14,9 +14,9 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_start : public so_5::rt::signal_t {};
+struct msg_start : public so_5::signal_t {};
 
-struct msg_hello : public so_5::rt::message_t
+struct msg_hello : public so_5::message_t
 {
 	std::string m_who;
 
@@ -24,18 +24,18 @@ struct msg_hello : public so_5::rt::message_t
 	{}
 };
 
-class a_collector_t : public so_5::rt::agent_t
+class a_collector_t : public so_5::agent_t
 {
 private :
-	const so_5::rt::mbox_t m_start_mbox;
+	const so_5::mbox_t m_start_mbox;
 	unsigned int m_remaining;	
 
 public :
 	a_collector_t(
-		so_5::rt::environment_t & env,
-		const so_5::rt::mbox_t & start_mbox,
+		so_5::environment_t & env,
+		const so_5::mbox_t & start_mbox,
 		unsigned int messages_to_receive )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_start_mbox( start_mbox )
 		,	m_remaining( messages_to_receive )
 	{}
@@ -66,7 +66,7 @@ make_hello_string( const char * who )
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto one_thread = so_5::disp::one_thread::create_private_disp( env );
 	auto active_obj = so_5::disp::active_obj::create_private_disp( env );
@@ -74,7 +74,7 @@ init( so_5::rt::environment_t & env )
 	auto thread_pool = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( env, 10 );
 
-	auto start_mbox = env.create_local_mbox( "start" );
+	auto start_mbox = env.create_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
 	
 	auto collector = coop->make_agent< a_collector_t >( start_mbox, 9 + 10 );

@@ -14,17 +14,17 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::rt::tuple_as_message_t< so_5::rt::mtag< 0 >, int >;
+using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
 
-struct next : public so_5::rt::signal_t {};
-struct finish : public so_5::rt::signal_t {};
+struct next : public so_5::signal_t {};
+struct finish : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
-		,	m_data_mbox( so_environment().create_local_mbox() )
+		:	so_5::agent_t( ctx )
+		,	m_data_mbox( so_environment().create_mbox() )
 	{}
 
 	virtual void
@@ -120,15 +120,15 @@ public :
 	}
 
 private :
-	const so_5::rt::state_t st_1 = so_make_state();
-	const so_5::rt::state_t st_2 = so_make_state();
-	const so_5::rt::state_t st_3 = so_make_state();
-	const so_5::rt::state_t st_4 = so_make_state();
-	const so_5::rt::state_t st_5 = so_make_state();
-	const so_5::rt::state_t st_6 = so_make_state();
-	const so_5::rt::state_t st_7 = so_make_state();
+	const so_5::state_t st_1 = so_make_state();
+	const so_5::state_t st_2 = so_make_state();
+	const so_5::state_t st_3 = so_make_state();
+	const so_5::state_t st_4 = so_make_state();
+	const so_5::state_t st_5 = so_make_state();
+	const so_5::state_t st_6 = so_make_state();
+	const so_5::state_t st_7 = so_make_state();
 
-	const so_5::rt::mbox_t m_data_mbox;
+	const so_5::mbox_t m_data_mbox;
 
 	std::string m_accumulator;
 
@@ -153,7 +153,7 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto disp = so_5::disp::thread_pool::create_private_disp( env );
 	const auto params = so_5::disp::thread_pool::bind_params_t{}.

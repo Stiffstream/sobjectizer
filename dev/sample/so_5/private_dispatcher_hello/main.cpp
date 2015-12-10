@@ -8,7 +8,7 @@
 #include <so_5/all.hpp>
 
 // A hello message to be sent to coordinator.
-struct msg_hello : public so_5::rt::message_t
+struct msg_hello : public so_5::message_t
 {
 	std::string m_text;
 
@@ -20,11 +20,11 @@ struct msg_hello : public so_5::rt::message_t
 // Works on the default dispatcher.
 // Receives messages from children agents.
 // Finishes sample when all messages are received.
-class a_coordinator_t : public so_5::rt::agent_t
+class a_coordinator_t : public so_5::agent_t
 {
 public :
-	a_coordinator_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_coordinator_t( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	virtual void
@@ -58,7 +58,7 @@ private :
 		// The first cooperation will use one_thread dispatcher.
 		auto disp = so_5::disp::one_thread::create_private_disp(
 				so_environment() );
-		auto coop = so_5::rt::create_child_coop(
+		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.
@@ -76,7 +76,7 @@ private :
 		// The second cooperation will use active_obj dispatcher.
 		auto disp = so_5::disp::active_obj::create_private_disp(
 				so_environment() );
-		auto coop = so_5::rt::create_child_coop(
+		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.
@@ -90,7 +90,7 @@ private :
 
 	void
 	fill_and_register_coop(
-		so_5::rt::coop_unique_ptr_t coop,
+		so_5::coop_unique_ptr_t coop,
 		const std::string & agent_name_prefix )
 	{
 		// Coordinator's mbox to which hello messages must be sent.
@@ -124,7 +124,7 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env ) {
+			[]( so_5::environment_t & env ) {
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,

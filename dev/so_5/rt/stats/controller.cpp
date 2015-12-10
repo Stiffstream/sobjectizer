@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -23,8 +20,6 @@ controller_t::~controller_t()
 	{}
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

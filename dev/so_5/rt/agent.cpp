@@ -25,9 +25,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace
 {
 
@@ -119,6 +116,12 @@ state_t::query_name() const
 
 namespace {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+#endif
+
 /*!
  * \since v.5.4.0
  * \brief A special object for the state in which agent is awaiting
@@ -128,6 +131,10 @@ namespace {
  */
 const state_t awaiting_deregistration_state(
 		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } /* namespace anonymous */
 
@@ -423,7 +430,7 @@ agent_t::so_deregister_agent_coop( int dereg_reason )
 void
 agent_t::so_deregister_agent_coop_normally()
 {
-	so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
+	so_deregister_agent_coop( dereg_reason::normal );
 }
 
 agent_ref_t
@@ -730,8 +737,9 @@ agent_t::process_service_request(
 	execution_demand_t & d,
 	std::pair< bool, const impl::event_handler_data_t * > handler_data )
 {
-	try
-		{
+	msg_service_request_base_t::dispatch_wrapper(
+		d.m_message_ref,
+		[&] {
 			const impl::event_handler_data_t * handler =
 					handler_data.first ?
 							handler_data.second :
@@ -751,14 +759,7 @@ agent_t::process_service_request(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "
 								"the current agent state" );
-		}
-	catch( ... )
-		{
-			auto & svc_request =
-					*(dynamic_cast< msg_service_request_base_t * >(
-							d.m_message_ref.get() ));
-			svc_request.set_exception( std::current_exception() );
-		}
+		} );
 }
 
 void
@@ -847,8 +848,6 @@ agent_t::handler_finder_msg_tracing_enabled(
 
 	return search_result;
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

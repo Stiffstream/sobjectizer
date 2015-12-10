@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -33,8 +30,6 @@ subscription_storage_t::owner() const
 	}
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

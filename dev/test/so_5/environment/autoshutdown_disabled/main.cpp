@@ -16,19 +16,19 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 
 std::atomic_uint agents_destroyed = ATOMIC_VAR_INIT( 0 );
-std::atomic< so_5::rt::environment_t * > environment =
+std::atomic< so_5::environment_t * > environment =
 	ATOMIC_VAR_INIT( nullptr );
 
 const unsigned int agents_count = 1024;
 
-struct msg_tick : public so_5::rt::signal_t {};
+struct msg_tick : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{}
 		~a_test_t()
 		{
@@ -90,7 +90,7 @@ main()
 				std::thread controller_thread( &controller );
 
 				so_5::launch(
-					[]( so_5::rt::environment_t & env )
+					[]( so_5::environment_t & env )
 					{
 						std::cout << "Starting agents..." << std::endl;
 
@@ -105,7 +105,7 @@ main()
 								ss.str(), new a_test_t( env ) );
 						}
 					},
-					[]( so_5::rt::environment_params_t & params )
+					[]( so_5::environment_params_t & params )
 					{
 						params.disable_autoshutdown();
 					} );

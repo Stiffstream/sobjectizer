@@ -14,20 +14,20 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_ping : public so_5::rt::signal_t {};
-struct msg_pong : public so_5::rt::signal_t {};
+struct msg_ping : public so_5::signal_t {};
+struct msg_pong : public so_5::signal_t {};
 
-struct msg_finish : public so_5::rt::signal_t {};
+struct msg_finish : public so_5::signal_t {};
 
-class a_sender_t : public so_5::rt::agent_t
+class a_sender_t : public so_5::agent_t
 {
 public :
 	a_sender_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	void
-	set_receiver( const so_5::rt::mbox_t & mbox )
+	set_receiver( const so_5::mbox_t & mbox )
 	{
 		m_receiver = mbox;
 	}
@@ -68,7 +68,7 @@ public :
 	}
 
 private :
-	so_5::rt::mbox_t m_receiver;
+	so_5::mbox_t m_receiver;
 
 	unsigned int m_series_sent = 0;
 	unsigned int m_pongs = 0;
@@ -84,13 +84,13 @@ private :
 	}
 };
 
-class a_receiver_t : public so_5::rt::agent_t
+class a_receiver_t : public so_5::agent_t
 {
 public :
 	a_receiver_t(
 		context_t ctx,
-		so_5::rt::mbox_t sender )
-		:	so_5::rt::agent_t( ctx + limit_then_drop< msg_ping >( 2 ) )
+		so_5::mbox_t sender )
+		:	so_5::agent_t( ctx + limit_then_drop< msg_ping >( 2 ) )
 		,	m_sender( std::move( sender ) )
 	{}
 
@@ -102,11 +102,11 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_sender;
+	const so_5::mbox_t m_sender;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( so_5::autoname );
 	auto sender = coop->make_agent< a_sender_t >();

@@ -32,21 +32,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
-namespace impl
-{
-
-class agent_core_t;
-class coop_private_iface_t;
-class so_environment_impl_t;
-
-} /* namespace impl */
-
-class environment_t;
-class coop_t;
-
 namespace dereg_reason
 {
 
@@ -126,7 +111,7 @@ class coop_dereg_reason_t
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name );
 \endcode
@@ -190,11 +175,11 @@ typedef intrusive_ptr_t< coop_reg_notificators_container_t >
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name,
 	// Reason of deregistration.
-	const so_5::rt::coop_dereg_reason_t & reason );
+	const so_5::coop_dereg_reason_t & reason );
 \endcode
  */
 typedef std::function<
@@ -680,7 +665,7 @@ class SO_5_TYPE coop_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -716,7 +701,7 @@ class SO_5_TYPE coop_t
 		 \code
 		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
 		 		so_5::disp::one_thread::create_private_disp();
-		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -729,7 +714,7 @@ class SO_5_TYPE coop_t
 		AGENT *
 		make_agent_with_binder(
 			//! A dispatcher binder for the new agent.
-			so_5::rt::disp_binder_unique_ptr_t binder,
+			so_5::disp_binder_unique_ptr_t binder,
 			//! Arguments to be passed to the agent's constructor.
 			ARGS &&... args )
 		{
@@ -755,19 +740,19 @@ class SO_5_TYPE coop_t
 		 *
 		 * \par Usage example:
 			\code
-			so_5::rt::environment_t & env = ...;
-			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+			so_5::environment_t & env = ...;
+			env.introduce_coop( []( so_5::coop_t & coop ) {
 					coop.define_agent()
 						.event< some_signal >( some_mbox, [&coop] {
 							...
-							coop.deregister( so_4::rt::dereg_reason::user_defined_reason + 100 );
+							coop.deregister( so_4::dereg_reason::user_defined_reason + 100 );
 						} );
 				} );
 			\endcode
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::coop_t & coop = ...;
+			so_5::coop_t & coop = ...;
 			coop.environment().deregister_coop( coop.query_coop_name(), reason );
 			\endcode
 		 */
@@ -782,8 +767,8 @@ class SO_5_TYPE coop_t
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::coop_t & coop = ...;
-			coop.deregister( so_5::rt::dereg_reason::normal );
+			so_5::coop_t & coop = ...;
+			coop.deregister( so_5::dereg_reason::normal );
 			\endcode
 		 */
 		inline void
@@ -1129,12 +1114,6 @@ class SO_5_TYPE coop_t
 };
 
 /*!
- * \since v.5.5.9
- * \brief A typedef for compatibility with previous versions.
- */
-using agent_coop_t = coop_t;
-
-/*!
  * \since v.5.2.3
  * \brief A custom deleter for cooperation.
  */
@@ -1145,30 +1124,158 @@ class coop_deleter_t
 		operator()( coop_t * coop ) { coop_t::destroy( coop ); }
 };
 
-/*!
- * \since v.5.5.9
- * \brief A typedef for compatibility with previous versions.
- */
-using agent_coop_deleter_t = coop_deleter_t;
-
 //! Typedef for the agent_coop autopointer.
 typedef std::unique_ptr< coop_t, coop_deleter_t >
 	coop_unique_ptr_t;
 
-/*!
- * \since v.5.5.9
- * \brief A typedef for compatibility with previous versions.
- */
-using agent_coop_unique_ptr_t = coop_unique_ptr_t;
-
 //! Typedef for the agent_coop smart pointer.
 typedef std::shared_ptr< coop_t > coop_ref_t;
 
+namespace rt
+{
+
+namespace dereg_reason
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dereg_reason::normal
+ * instead.
+ */
+const int normal = so_5::dereg_reason::normal;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dereg_reason::shutdown
+ * instead.
+ */
+const int shutdown = so_5::dereg_reason::shutdown;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::dereg_reason::parent_deregistration instead.
+ */
+const int parent_deregistration = so_5::dereg_reason::parent_deregistration;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::dereg_reason::unhandled_exception instead.
+ */
+const int unhandled_exception = so_5::dereg_reason::unhandled_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dereg_reason::unknown_error
+ * instead.
+ */
+const int unknown_error = so_5::dereg_reason::unknown_error;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dereg_reason::undefined
+ * instead.
+ */
+const int undefined = so_5::dereg_reason::undefined;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::dereg_reason::user_defined_reason instead.
+ */
+const int user_defined_reason = so_5::dereg_reason::user_defined_reason;
+/*!
+ * \}
+ */
+
+} /* namespace dereg_reason */
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_dereg_reason_t
+ * instead.
+ */
+using coop_dereg_reason_t = so_5::coop_dereg_reason_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_reg_notificator_t
+ * instead.
+ */
+using coop_reg_notificator_t = so_5::coop_reg_notificator_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::coop_reg_notificators_container_t instead.
+ */
+using coop_reg_notificators_container_t = so_5::coop_reg_notificators_container_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::coop_reg_notificators_container_ref_t instead.
+ */
+using coop_reg_notificators_container_ref_t = so_5::coop_reg_notificators_container_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_dereg_notificator_t
+ * instead.
+ */
+using coop_dereg_notificator_t = so_5::coop_dereg_notificator_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::coop_dereg_notificators_container_t instead.
+ */
+using coop_dereg_notificators_container_t = so_5::coop_dereg_notificators_container_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::coop_dereg_notificators_container_ref_t instead.
+ */
+using coop_dereg_notificators_container_ref_t = so_5::coop_dereg_notificators_container_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_t instead.
+ */
+using coop_t = so_5::coop_t;
+
 /*!
  * \since v.5.5.9
  * \brief A typedef for compatibility with previous versions.
+ * \deprecated Will be removed in v.5.6.0.
  */
-using agent_coop_ref_t = coop_ref_t;
+using agent_coop_t = so_5::coop_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_deleter_t
+ * instead.
+ */
+using coop_deleter_t = so_5::coop_deleter_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ * \deprecated Will be removed in v.5.6.0.
+ */
+using agent_coop_deleter_t = so_5::coop_deleter_t;
+
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_unique_ptr_t
+ * instead.
+ */
+using coop_unique_ptr_t = so_5::coop_unique_ptr_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ * \deprecated Will be removed in v.5.6.0.
+ */
+using agent_coop_unique_ptr_t = coop_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::coop_ref_t instead.
+ */
+using coop_ref_t = so_5::coop_ref_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ * \deprecated Will be removed in v.5.6.0.
+ */
+using agent_coop_ref_t = so_5::coop_ref_t;
 
 } /* namespace rt */
 

@@ -18,11 +18,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
-class agent_t;
-
 namespace impl
 {
 
@@ -149,19 +144,19 @@ adaptive_subscription_storage_factory(
  * for 0..10 subscriptions. The seconds will be used for 11..100 subscriptions.
  * And the third for 100+ subscriptions:
 \code
-so_5::rt::adaptive_subscription_storage_factory(
+so_5::adaptive_subscription_storage_factory(
 	// First threshold for switching from the first storage to the second.
 	10,
 	// First storage -- simple vector-based.
-	so_5::rt::vector_based_subscription_storage_factory(10),
+	so_5::vector_based_subscription_storage_factory(10),
 	// There will be another adaptive storage.
-	so_5::rt::adaptive_subscription_storage_factory(
+	so_5::adaptive_subscription_storage_factory(
 		// Second threshold for switching from the second storage to the third.
 		100,
 		// Second storage.
-		so_5::rt::map_based_subscription_storage_factory(),
+		so_5::map_based_subscription_storage_factory(),
 		// Third storage.
-		so_5::rt::hash_table_based_subscription_storage_factory() ) );
+		so_5::hash_table_based_subscription_storage_factory() ) );
 \endcode
  *
  *
@@ -180,6 +175,80 @@ adaptive_subscription_storage_factory(
 	const subscription_storage_factory_t & small_storage_factory,
 	//! A factory for creating large storage.
 	const subscription_storage_factory_t & large_storage_factory );
+
+namespace rt 
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::subscription_storage_factory_t instead.
+ */
+using subscription_storage_factory_t = so_5::subscription_storage_factory_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::default_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+default_subscription_storage_factory() {
+	return so_5::default_subscription_storage_factory();
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::hash_table_based_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+hash_table_based_subscription_storage_factory() {
+	return so_5::hash_table_based_subscription_storage_factory();
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::vector_based_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+vector_based_subscription_storage_factory(
+	std::size_t initial_capacity )
+{
+	return so_5::vector_based_subscription_storage_factory( initial_capacity );
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::map_based_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+map_based_subscription_storage_factory() {
+	return so_5::map_based_subscription_storage_factory();
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::adaptive_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+adaptive_subscription_storage_factory(
+	std::size_t threshold )
+{
+	return so_5::adaptive_subscription_storage_factory( threshold );
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::adaptive_subscription_storage_factory() instead.
+ */
+inline subscription_storage_factory_t
+adaptive_subscription_storage_factory(
+	std::size_t threshold,
+	const subscription_storage_factory_t & small_storage_factory,
+	const subscription_storage_factory_t & large_storage_factory )
+{
+	return so_5::adaptive_subscription_storage_factory(
+			threshold,
+			small_storage_factory,
+			large_storage_factory );
+}
 
 } /* namespace rt */
 

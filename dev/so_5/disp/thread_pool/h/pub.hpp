@@ -255,7 +255,7 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 		virtual ~private_dispatcher_t();
 
 		//! Create a binder for that private dispatcher.
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual disp_binder_unique_ptr_t
 		binder(
 			//! Binding parameters for the agent.
 			const bind_params_t & params ) = 0;
@@ -266,7 +266,7 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 		 * or other functional objects.
 		 */
 		template< typename SETTER >
-		inline so_5::rt::disp_binder_unique_ptr_t
+		inline disp_binder_unique_ptr_t
 		binder(
 			//! Function for the parameters tuning.
 			SETTER params_setter )
@@ -294,8 +294,8 @@ using private_dispatcher_handle_t =
  *
  * \par Usage sample
 \code
-so_5::launch( []( so_5::rt::environment_t & env ) {...},
-	[]( so_5::rt::environment_params_t & env_params ) {
+so_5::launch( []( so_5::environment_t & env ) {...},
+	[]( so_5::environment_params_t & env_params ) {
 		using namespace so_5::disp::thread_pool;
 		env_params.add_named_dispatcher( create_disp( 
 			disp_params_t{}
@@ -306,7 +306,7 @@ so_5::launch( []( so_5::rt::environment_t & env ) {...},
 	} );
 \endcode
  */
-SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
+SO_5_FUNC dispatcher_unique_ptr_t
 create_disp(
 	//! Parameters for the dispatcher.
 	disp_params_t params );
@@ -318,7 +318,7 @@ create_disp(
  * \since v.5.4.0
  * \brief Create thread pool dispatcher.
  */
-inline so_5::rt::dispatcher_unique_ptr_t
+inline dispatcher_unique_ptr_t
 create_disp(
 	//! Count of working threads.
 	std::size_t thread_count )
@@ -335,7 +335,7 @@ create_disp(
  *
  * Size of pool is detected automatically.
  */
-inline so_5::rt::dispatcher_unique_ptr_t
+inline dispatcher_unique_ptr_t
 create_disp()
 	{
 		return create_disp( default_thread_pool_size() );
@@ -368,7 +368,7 @@ auto coop = env.create_coop( so_5::autoname,
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Parameters for the dispatcher.
 	disp_params_t disp_params,
 	//! Value for creating names of data sources for
@@ -397,7 +397,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Count of working threads.
 	std::size_t thread_count,
 	//! Value for creating names of data sources for
@@ -427,7 +427,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Count of working threads.
 	std::size_t thread_count )
 	{
@@ -455,7 +455,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env )
+	environment_t & env )
 	{
 		return create_private_disp(
 				env,
@@ -470,7 +470,7 @@ create_private_disp(
  * \since v.5.4.0
  * \brief Create dispatcher binder for thread pool dispatcher.
  */
-SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
+SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher.
 	std::string disp_name,
@@ -491,7 +491,7 @@ create_disp_binder( "tpool",
 \endcode
  */
 template< typename SETTER >
-inline so_5::rt::disp_binder_unique_ptr_t
+inline disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher.
 	std::string disp_name,

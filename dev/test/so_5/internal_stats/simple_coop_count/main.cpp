@@ -15,11 +15,11 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
 	public :
 		a_test_t( context_t ctx )
-			:	so_5::rt::agent_t( ctx )
+			:	so_5::agent_t( ctx )
 			{}
 
 		virtual void
@@ -43,9 +43,9 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_monitor_quantity(
-			const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+			const so_5::stats::messages::quantity< std::size_t > & evt )
 			{
-				namespace stats = so_5::rt::stats;
+				namespace stats = so_5::stats;
 
 				std::cout << evt.m_prefix.c_str()
 						<< evt.m_suffix.c_str()
@@ -112,7 +112,7 @@ class a_test_t : public so_5::rt::agent_t
 			{
 				for( int i = 0; i != 10; ++i )
 					{
-						auto coop = so_5::rt::create_child_coop(
+						auto coop = so_5::create_child_coop(
 								*this, so_5::autoname );
 						coop->define_agent();
 
@@ -122,7 +122,7 @@ class a_test_t : public so_5::rt::agent_t
 	};
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( so_5::autoname,
 				env.make_agent< a_test_t >() );

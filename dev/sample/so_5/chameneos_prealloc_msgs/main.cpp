@@ -43,7 +43,7 @@ enum color_t
 		FADED = 3
 	};
 
-struct msg_meeting_result : public so_5::rt::message_t
+struct msg_meeting_result : public so_5::message_t
 	{
 		color_t m_color;
 
@@ -55,15 +55,15 @@ struct msg_meeting_result : public so_5::rt::message_t
 typedef so_5::intrusive_ptr_t< msg_meeting_result >
 	msg_meeting_result_smart_ref_t;
 
-struct msg_meeting_request : public so_5::rt::message_t
+struct msg_meeting_request : public so_5::message_t
 	{
-		so_5::rt::mbox_t m_who;
+		so_5::mbox_t m_who;
 		color_t m_color;
 
 		msg_meeting_result_smart_ref_t m_result_message;
 
 		msg_meeting_request(
-			const so_5::rt::mbox_t & who,
+			const so_5::mbox_t & who,
 			color_t color,
 			msg_meeting_result_smart_ref_t result_message )
 			:	m_who( who )
@@ -75,9 +75,9 @@ struct msg_meeting_request : public so_5::rt::message_t
 typedef so_5::intrusive_ptr_t< msg_meeting_request >
 	msg_meeting_request_smart_ref_t;
 
-struct msg_shutdown_request : public so_5::rt::signal_t {};
+struct msg_shutdown_request : public so_5::signal_t {};
 
-struct msg_shutdown_ack : public so_5::rt::message_t
+struct msg_shutdown_ack : public so_5::message_t
 	{
 		int m_creatures_met;
 
@@ -87,14 +87,14 @@ struct msg_shutdown_ack : public so_5::rt::message_t
 	};
 
 class a_meeting_place_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_meeting_place_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int creatures,
 			int meetings )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_creatures_alive( creatures )	
 			,	m_remaining_meetings( meetings )
 			,	m_total_meetings( 0 )
@@ -115,7 +115,7 @@ class a_meeting_place_t
 
 		void
 		evt_first_creature(
-			const so_5::rt::event_data_t< msg_meeting_request > & evt )
+			const so_5::event_data_t< msg_meeting_request > & evt )
 			{
 				if( m_remaining_meetings )
 				{
@@ -161,8 +161,8 @@ class a_meeting_place_t
 			}
 
 	private :
-		so_5::rt::state_t st_empty = so_make_state( "empty" );
-		so_5::rt::state_t st_one_creature_inside =
+		const state_t st_empty = so_make_state( "empty" );
+		const state_t st_one_creature_inside =
 				so_make_state( "one_creature_inside" );
 
 		int m_creatures_alive;
@@ -173,14 +173,14 @@ class a_meeting_place_t
 	};
 
 class a_creature_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_creature_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & meeting_place_mbox,
+			so_5::environment_t & env,
+			const so_5::mbox_t & meeting_place_mbox,
 			color_t color )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_meeting_place_mbox( meeting_place_mbox )
 			,	m_meeting_counter( 0 )
 			,	m_response_message( new msg_meeting_result( color ) )
@@ -226,7 +226,7 @@ class a_creature_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_meeting_place_mbox;
+		const so_5::mbox_t m_meeting_place_mbox;
 
 		int m_meeting_counter;
 
@@ -244,7 +244,7 @@ class a_creature_t
 						return other == BLUE ? YELLOW : BLUE;
 					case YELLOW:
 						return other == BLUE ? RED : BLUE;
-					default:
+					case FADED:
 						break;
 					}
 				return m_request_message->m_color;
@@ -255,12 +255,12 @@ const int CREATURE_COUNT = 4;
 
 void
 init(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	int meetings )
 	{
 		env.introduce_coop( "chameneos",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[meetings]( so_5::rt::coop_t & coop )
+				[meetings]( so_5::coop_t & coop )
 				{
 					color_t creature_colors[ CREATURE_COUNT ] =
 						{ BLUE, RED, YELLOW, BLUE };
@@ -284,7 +284,7 @@ main( int argc, char ** argv )
 	try
 	{
 		so_5::launch(
-				[argc, argv]( so_5::rt::environment_t & env ) {
+				[argc, argv]( so_5::environment_t & env ) {
 					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
 					init( env, meetings );
 				} );

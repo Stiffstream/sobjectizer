@@ -7,8 +7,7 @@
 	\brief Working thread for dispatchers.
 */
 
-#if !defined( _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_ )
-#define _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_
+#pragma once
 
 #include <atomic>
 #include <condition_variable>
@@ -38,7 +37,7 @@ namespace work_thread
 {
 
 //! Typedef for demand's container.
-typedef std::deque< so_5::rt::execution_demand_t > demand_container_t;
+typedef std::deque< execution_demand_t > demand_container_t;
 
 namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
@@ -59,7 +58,7 @@ using demands_counter_t = std::atomic< std::size_t >;
 	demand_queue_t is thread safe and is intended to be used by 
 	several concurrent threads.
 */
-class demand_queue_t : public so_5::rt::event_queue_t
+class demand_queue_t : public event_queue_t
 {
 	public:
 		demand_queue_t(
@@ -73,7 +72,7 @@ class demand_queue_t : public so_5::rt::event_queue_t
 		 */
 		virtual void
 		push(
-			so_5::rt::execution_demand_t demand );
+			execution_demand_t demand );
 		/*!
 		 * \}
 		 */
@@ -183,14 +182,14 @@ class work_thread_t
 		 * \since v.5.4.0
 		 * \brief Get the underlying event_queue object.
 		 */
-		so_5::rt::event_queue_t &
+		event_queue_t &
 		event_queue();
 
 		/*!
 		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		so_5::rt::event_queue_t *
+		event_queue_t *
 		get_agent_binding();
 
 		/*!
@@ -264,6 +263,4 @@ typedef std::shared_ptr< work_thread_t > work_thread_shptr_t;
 } /* namespace disp */
 
 } /* namespace so_5 */
-
-#endif
 

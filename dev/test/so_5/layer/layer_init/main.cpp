@@ -16,7 +16,7 @@
 
 class test_layer_t
 	:
-		public so_5::rt::so_layer_t
+		public so_5::layer_t
 {
 	private:
 		int m_op_seq_counter;
@@ -73,7 +73,7 @@ test_layer_t::check_calls()
 
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.stop();
 }
@@ -82,7 +82,7 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 {
 	so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_layer( new test_layer_t );
 			} );

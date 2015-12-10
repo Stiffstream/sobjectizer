@@ -24,9 +24,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace message_limit
 {
 
@@ -161,8 +158,6 @@ transform_reaction(
 } /* namespace impl */
 
 } /* namespace message_limit */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

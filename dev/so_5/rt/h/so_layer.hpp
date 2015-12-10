@@ -7,8 +7,7 @@
 	\brief An addition layer for the SObjectizer Environment definition.
 */
 
-#if !defined( _SO_5__RT__SO_LAYER_HPP_ )
-#define _SO_5__RT__SO_LAYER_HPP_
+#pragma once
 
 #include <memory>
 #include <map>
@@ -17,35 +16,22 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
-
-namespace impl
-{
-
-class layer_core_t;
-
-} /* namespace impl */
-
 
 //
 // so_layer_t
 //
 
 //! An interface of the additional SObjectizer Environment layer.
-/*!
-*/
-class SO_5_TYPE so_layer_t
+class SO_5_TYPE layer_t
 {
 		friend class impl::layer_core_t;
 	public:
-		so_layer_t();
-		virtual ~so_layer_t();
+		layer_t();
+		virtual ~layer_t();
 
 
 		//! Start hook.
@@ -92,17 +78,40 @@ class SO_5_TYPE so_layer_t
 };
 
 //! Typedef for the layer's autopointer.
-typedef std::unique_ptr< so_layer_t > so_layer_unique_ptr_t;
+using layer_unique_ptr_t = std::unique_ptr< layer_t >;
 
 //! Typedef for the layer's smart pointer.
-typedef std::shared_ptr< so_layer_t > so_layer_ref_t;
+using layer_ref_t = std::shared_ptr< layer_t >;
 
 //! Typedef for the map from a layer typeid to the layer.
-typedef std::map< std::type_index, so_layer_ref_t > so_layer_map_t;
+using layer_map_t = std::map< std::type_index, layer_ref_t >;
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::layer_t instead.
+ */
+using so_layer_t = so_5::layer_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::layer_unique_ptr_t
+ * instead.
+ */
+using so_layer_unique_ptr_t = so_5::layer_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::layer_ref_t instead.
+ */
+using so_layer_ref_t = so_5::layer_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::layer_map_t
+ * instead.
+ */
+using so_layer_map_t = so_5::layer_map_t;
 
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

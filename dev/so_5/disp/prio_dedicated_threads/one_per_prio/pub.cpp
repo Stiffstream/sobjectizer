@@ -36,7 +36,7 @@ namespace one_per_prio {
 
 namespace impl {
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
 
 //
@@ -47,7 +47,7 @@ using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
  * \brief An actual implementation of dispatcher with dedicated thread
  * for every priority.
  */
-class dispatcher_t : public so_5::rt::dispatcher_t
+class dispatcher_t : public so_5::dispatcher_t
 	{
 	public:
 		dispatcher_t( disp_params_t params )
@@ -63,10 +63,10 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					} );
 			}
 
-		//! \name Implementation of so_5::rt::dispatcher methods.
+		//! \name Implementation of dispatcher methods.
 		//! \{
 		virtual void
-		start( so_5::rt::environment_t & env ) override
+		start( environment_t & env ) override
 			{
 				m_data_source.start( env.stats_repository() );
 
@@ -107,7 +107,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		so_5::rt::event_queue_t *
+		event_queue_t *
 		get_agent_binding( priority_t priority )
 			{
 				return m_threads[ to_size_t( priority ) ]->get_agent_binding();
@@ -130,6 +130,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	private:
 		friend class disp_data_source_t;
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 		/*!
 		 * \since v.5.5.8
 		 * \brief Data source for run-time monitoring of whole dispatcher.
@@ -148,7 +153,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					{}
 
 				virtual void
-				distribute( const so_5::rt::mbox_t & mbox ) override
+				distribute( const mbox_t & mbox ) override
 					{
 						std::size_t agents_count = 0;
 
@@ -187,7 +192,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			private:
 				void
 				distribute_value_for_work_thread(
-					const so_5::rt::mbox_t & mbox,
+					const mbox_t & mbox,
 					priority_t priority,
 					std::size_t agents_count,
 					work_thread_t & wt )
@@ -210,6 +215,10 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								agents_count );
 					}
 			};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 		//! Data source for run-time monitoring.
 		disp_data_source_t m_data_source;
@@ -284,10 +293,10 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 class binding_actions_mixin_t
 	{
 	protected :
-		so_5::rt::disp_binding_activator_t
+		disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t agent )
+			agent_ref_t agent )
 			{
 				auto result = [agent, &disp]() {
 					agent->so_bind_to_dispatcher(
@@ -303,7 +312,7 @@ class binding_actions_mixin_t
 		void
 		do_unbind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t agent )
+			agent_ref_t agent )
 			{
 				// Dispatcher must know about yet another agent unbound.
 				disp.agent_unbound( agent->so_priority() );
@@ -349,7 +358,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		 */
 		real_private_dispatcher_t(
 			//! SObjectizer Environment to work in.
-			so_5::rt::environment_t & env,
+			environment_t & env,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base,
@@ -370,10 +379,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 				m_disp->wait();
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual disp_binder_unique_ptr_t
 		binder() override
 			{
-				return so_5::rt::disp_binder_unique_ptr_t(
+				return disp_binder_unique_ptr_t(
 						new private_dispatcher_binder_t(
 								private_dispatcher_handle_t( this ), *m_disp ) );
 			}
@@ -394,10 +403,10 @@ private_dispatcher_t::~private_dispatcher_t()
 //
 // create_disp
 //
-SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
+SO_5_FUNC dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return so_5::rt::dispatcher_unique_ptr_t(
+		return dispatcher_unique_ptr_t(
 				new impl::dispatcher_t{ std::move(params) } );
 	}
 
@@ -406,7 +415,7 @@ create_disp( disp_params_t params )
 //
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	const std::string & data_sources_name_base,
 	disp_params_t params )
 	{
@@ -420,11 +429,11 @@ create_private_disp(
 //
 // create_disp_binder
 //
-SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
+SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	const std::string & disp_name )
 	{
-		return so_5::rt::disp_binder_unique_ptr_t( 
+		return disp_binder_unique_ptr_t( 
 			new impl::disp_binder_t( disp_name ) );
 	}
 

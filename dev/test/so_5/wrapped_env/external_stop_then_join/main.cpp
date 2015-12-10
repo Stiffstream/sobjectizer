@@ -15,18 +15,18 @@ main()
 			[]()
 			{
 				so_5::wrapped_env_t env{
-					[]( so_5::rt::environment_t & env ) {
-						env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-							struct hello_sig : public so_5::rt::signal_t {};
+					[]( so_5::environment_t & env ) {
+						env.introduce_coop( []( so_5::coop_t & coop ) {
+							struct hello_sig : public so_5::signal_t {};
 
 							auto a = coop.define_agent();
 							a.on_start( [a] {
-									so_5::send_delayed_to_agent< hello_sig >( a,
+									so_5::send_delayed< hello_sig >( a,
 											std::chrono::milliseconds( 25 ) );
 								} );
 							a.event< hello_sig >( a, [a] {
 									std::cout << "Hello for agent" << std::endl;
-									so_5::send_delayed_to_agent< hello_sig >( a,
+									so_5::send_delayed< hello_sig >( a,
 											std::chrono::milliseconds( 100 ) );
 								} );
 						} );

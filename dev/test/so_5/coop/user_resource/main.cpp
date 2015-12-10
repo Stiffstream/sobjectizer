@@ -31,13 +31,13 @@ struct resource_t
 	}
 };
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			resource_t & resource )
 			:	base_type_t( env )
 			,	m_resource( resource )
@@ -53,7 +53,7 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			so_environment().deregister_coop(
 					so_coop_name(),
-					so_5::rt::dereg_reason::normal );
+					so_5::dereg_reason::normal );
 		}
 
 	private :
@@ -61,14 +61,14 @@ class a_test_t : public so_5::rt::agent_t
 };
 
 class test_agent_coop_t
-	:	public so_5::rt::agent_coop_t
+	:	public so_5::coop_t
 {
-	typedef so_5::rt::agent_coop_t base_type_t;
+	typedef so_5::coop_t base_type_t;
 	public :
 		test_agent_coop_t(
-			const so_5::rt::nonempty_name_t & name,
-			so_5::rt::disp_binder_unique_ptr_t coop_disp_binder,
-			so_5::rt::environment_t & env,
+			const so_5::nonempty_name_t & name,
+			so_5::disp_binder_unique_ptr_t coop_disp_binder,
+			so_5::environment_t & env,
 			sequence_holder_t & sequence )
 			:	base_type_t( name, std::move(coop_disp_binder), env )
 			,	m_sequence( sequence )
@@ -84,17 +84,17 @@ class test_agent_coop_t
 		sequence_holder_t & m_sequence;
 };
 
-class a_test_starter_t : public so_5::rt::agent_t
+class a_test_starter_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
+	typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_starter_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			sequence_holder_t & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 		{}
 
 		void
@@ -107,15 +107,15 @@ class a_test_starter_t : public so_5::rt::agent_t
 		void
 		so_evt_start()
 		{
-			so_5::rt::agent_coop_unique_ptr_t coop(
+			so_5::coop_unique_ptr_t coop(
 					new test_agent_coop_t(
 							"child_coop",
-							so_5::rt::create_default_disp_binder(),
+							so_5::create_default_disp_binder(),
 							so_environment(),
 							m_sequence ) );
 			coop->set_parent_coop_name( so_coop_name() );
 			coop->add_dereg_notificator(
-					so_5::rt::make_coop_dereg_notificator( m_self_mbox ) );
+					so_5::make_coop_dereg_notificator( m_self_mbox ) );
 
 			resource_t * r = coop->take_under_control(
 					new resource_t( m_sequence ) );
@@ -126,8 +126,8 @@ class a_test_starter_t : public so_5::rt::agent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::rt::event_data_t<
-				so_5::rt::msg_coop_deregistered > & )
+			const so_5::event_data_t<
+				so_5::msg_coop_deregistered > & )
 		{
 			so_environment().stop();
 		}
@@ -135,7 +135,7 @@ class a_test_starter_t : public so_5::rt::agent_t
 	private :
 		sequence_holder_t & m_sequence;
 
-		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::mbox_t m_self_mbox;
 };
 
 std::string
@@ -156,7 +156,7 @@ class test_env_t
 {
 	public :
 		void
-		init( so_5::rt::environment_t & env )
+		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"starter", new a_test_starter_t( env, m_sequence ) );
@@ -188,7 +188,7 @@ main()
 	{
 		test_env_t test_env;
 		so_5::launch(
-			[&]( so_5::rt::environment_t & env ) {
+			[&]( so_5::environment_t & env ) {
 				test_env.init( env );
 			} );
 

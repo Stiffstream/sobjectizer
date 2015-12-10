@@ -1,5 +1,5 @@
 /*
- * Test for so_5::rt::tuple_as_message_t.
+ * Test for so_5::tuple_as_message_t.
  */
 
 #include <iostream>
@@ -12,10 +12,9 @@
 		
 void
 create_coop(
-	so_5::rt::agent_coop_t & coop )
+	so_5::coop_t & coop )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 	using namespace std;
 
 	using hello = tuple_as_message_t< mtag< 0 >, string >;
@@ -54,7 +53,7 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				so_5::launch( []( so_5::rt::environment_t & env )
+				so_5::launch( []( so_5::environment_t & env )
 					{
 						env.introduce_coop( create_coop );
 					} );

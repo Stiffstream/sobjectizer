@@ -10,24 +10,24 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_child_started : public so_5::rt::signal_t {};
+struct msg_child_started : public so_5::signal_t {};
 
 void
 create_and_register_agent(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
 	int max_children,
 	int level,
 	int max_deep );
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & self_name,
 			const std::string & parent_coop_name,
 			int max_children,
@@ -40,7 +40,7 @@ class a_test_t : public so_5::rt::agent_t
 			,	m_level( level )
 			,	m_max_deep( max_deep )
 			,	m_started_children( 0 )
-			,	m_self_mbox( env.create_local_mbox( self_name ) )
+			,	m_self_mbox( env.create_mbox( self_name ) )
 		{
 		}
 
@@ -71,7 +71,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_child_started(
-			const so_5::rt::event_data_t< msg_child_started > & )
+			const so_5::event_data_t< msg_child_started > & )
 		{
 			m_started_children += 1;
 			if( m_started_children == m_max_children )
@@ -81,7 +81,7 @@ class a_test_t : public so_5::rt::agent_t
 				else
 					so_environment().deregister_coop(
 							so_coop_name(),
-							so_5::rt::dereg_reason::normal );
+							so_5::dereg_reason::normal );
 			}
 		}
 
@@ -97,12 +97,12 @@ class a_test_t : public so_5::rt::agent_t
 
 		int m_started_children;
 
-		so_5::rt::mbox_t m_self_mbox;
+		so_5::mbox_t m_self_mbox;
 
 		void
 		notify_parent()
 		{
-			so_environment().create_local_mbox( m_parent_coop_name )->
+			so_environment().create_mbox( m_parent_coop_name )->
 					deliver_signal< msg_child_started >();
 		}
 };
@@ -122,14 +122,14 @@ create_coop_name(
 
 void
 create_and_register_agent(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
 	int max_children,
 	int level,
 	int max_deep )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+	so_5::coop_unique_ptr_t coop = env.create_coop(
 			create_coop_name( parent_coop_name, level, ordinal ) );
 	if( level )
 		coop->set_parent_coop_name( parent_coop_name );
@@ -147,7 +147,7 @@ create_and_register_agent(
 }
 
 class test_coop_listener_t
-	:	public so_5::rt::coop_listener_t
+	:	public so_5::coop_listener_t
 {
 	public :
 		test_coop_listener_t( std::set< std::string > & names )
@@ -156,7 +156,7 @@ class test_coop_listener_t
 
 		virtual void
 		on_registered(
-			so_5::rt::environment_t &,
+			so_5::environment_t &,
 			const std::string & coop_name ) override
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
@@ -166,9 +166,9 @@ class test_coop_listener_t
 
 		virtual void
 		on_deregistered(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & coop_name,
-			const so_5::rt::coop_dereg_reason_t &) override
+			const so_5::coop_dereg_reason_t &) override
 		{
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
@@ -180,10 +180,10 @@ class test_coop_listener_t
 				env.stop();
 		}
 
-		static so_5::rt::coop_listener_unique_ptr_t
+		static so_5::coop_listener_unique_ptr_t
 		make( std::set< std::string > & names )
 		{
-			return so_5::rt::coop_listener_unique_ptr_t(
+			return so_5::coop_listener_unique_ptr_t(
 					new test_coop_listener_t( names ) );
 		}
 
@@ -201,11 +201,11 @@ main()
 
 		run_with_time_limit( [&] {
 			so_5::launch(
-				[&]( so_5::rt::environment_t & env )
+				[&]( so_5::environment_t & env )
 				{
 					create_and_register_agent( env, "", 0, 4, 0, 8 );
 				},
-				[&]( so_5::rt::environment_params_t & params )
+				[&]( so_5::environment_params_t & params )
 				{
 					params.coop_listener( test_coop_listener_t::make( names ) );
 				} );

@@ -11,7 +11,7 @@
 
 #include <various_helpers_1/ensure.hpp>
 
-struct msg_test : public so_5::rt::message_t
+struct msg_test : public so_5::message_t
 	{
 		int & m_counter;
 
@@ -27,13 +27,13 @@ ensure_counter_value( int counter, int expected_value )
 				std::to_string(expected_value) + ")" );
 	}
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int & message_counter )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_message_counter( message_counter )
 			{
 			}
@@ -94,11 +94,11 @@ do_test( so_5::timer_thread_factory_t factory )
 		int counter = 0;
 
 		so_5::launch(
-			[&counter]( so_5::rt::environment_t & env ) {
+			[&counter]( so_5::environment_t & env ) {
 				env.register_agent_as_coop(
 						"test", new a_test_t( env, counter ) );
 			},
-			[&factory]( so_5::rt::environment_params_t & params ) {
+			[&factory]( so_5::environment_params_t & params ) {
 				params.timer_thread( factory );
 			} );
 

@@ -15,17 +15,17 @@
 #include <so_5/all.hpp>
 
 // A request to be processed.
-struct request : public so_5::rt::message_t
+struct request : public so_5::message_t
 {
 	// Return address.
-	so_5::rt::mbox_t m_reply_to;
+	so_5::mbox_t m_reply_to;
 	// Request ID.
 	int m_id;
 	// Some payload.
 	int m_payload;
 
 	request(
-		so_5::rt::mbox_t reply_to,
+		so_5::mbox_t reply_to,
 		int id,
 		int payload )
 		:	m_reply_to( std::move( reply_to ) )
@@ -38,7 +38,7 @@ struct request : public so_5::rt::message_t
 typedef so_5::intrusive_ptr_t< request > request_smart_ptr_t;
 
 // A reply to processed request.
-struct reply : public so_5::rt::message_t
+struct reply : public so_5::message_t
 {
 	// Request ID.
 	int m_id;
@@ -52,7 +52,7 @@ struct reply : public so_5::rt::message_t
 };
 
 // Message for logger.
-struct log_message : public so_5::rt::message_t
+struct log_message : public so_5::message_t
 {
 	// Text to be logged.
 	std::string m_what;
@@ -63,11 +63,11 @@ struct log_message : public so_5::rt::message_t
 };
 
 // Logger agent.
-class a_logger_t : public so_5::rt::agent_t
+class a_logger_t : public so_5::agent_t
 {
 public :
 	a_logger_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx
+		:	so_5::agent_t( ctx
 				// Limit the count of messages.
 				// Because we can't lost log messages the overlimit
 				// must lead to application crash.
@@ -102,7 +102,7 @@ private :
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::rt::agent_t
+class a_generator_t : public so_5::agent_t
 {
 public :
 	a_generator_t(
@@ -113,10 +113,10 @@ public :
 		// Starting value for request ID generation.
 		int id_starting_point,
 		// Address of message processor.
-		so_5::rt::mbox_t performer,
+		so_5::mbox_t performer,
 		// Address of logger.
-		so_5::rt::mbox_t logger )
-		:	so_5::rt::agent_t( ctx
+		so_5::mbox_t logger )
+		:	so_5::agent_t( ctx
 				// Expect no more than just one next_turn signal.
 				+ limit_then_drop< msg_next_turn >( 1 )
 				// Limit the quantity of non-processed replies in the queue.
@@ -153,14 +153,14 @@ public :
 
 private :
 	// Signal about start of the next turn.
-	struct msg_next_turn : public so_5::rt::signal_t {};
+	struct msg_next_turn : public so_5::signal_t {};
 
 	// Generator name.
 	const std::string m_name;
 	// Performer for the requests processing.
-	const so_5::rt::mbox_t m_performer;
+	const so_5::mbox_t m_performer;
 	// Logger.
-	const so_5::rt::mbox_t m_logger;
+	const so_5::mbox_t m_logger;
 
 	// Pause between working turns.
 	const std::chrono::milliseconds m_turn_pause;
@@ -175,7 +175,7 @@ private :
 		generate_new_requests( random( 5, 8 ) );
 
 		// Wait for next turn and process replies.
-		so_5::send_delayed_to_agent< msg_next_turn >( *this, m_turn_pause );
+		so_5::send_delayed< msg_next_turn >( *this, m_turn_pause );
 	}
 
 	void
@@ -211,11 +211,11 @@ private :
 };
 
 // Performer agent.
-class a_performer_t : public so_5::rt::agent_t
+class a_performer_t : public so_5::agent_t
 {
 public :
 	// A special indicator that agent must work with anotner performer.
-	struct next_performer { so_5::rt::mbox_t m_target; };
+	struct next_performer { so_5::mbox_t m_target; };
 
 	// A special indicator that agent is last in the chain.
 	struct last_performer {};
@@ -226,8 +226,8 @@ public :
 		std::string name,
 		float slowdown,
 		last_performer,
-		so_5::rt::mbox_t logger )
-		:	so_5::rt::agent_t( ctx
+		so_5::mbox_t logger )
+		:	so_5::agent_t( ctx
 				// Limit count of requests in the queue.
 				// If queue is full then request must be transformed
 				// to negative reply.
@@ -247,8 +247,8 @@ public :
 		std::string name,
 		float slowdown,
 		next_performer next,
-		so_5::rt::mbox_t logger )
-		:	so_5::rt::agent_t( ctx
+		so_5::mbox_t logger )
+		:	so_5::agent_t( ctx
 				// Limit count of requests in the queue.
 				// If queue is full then request must be redirected to the
 				// next performer in the chain.
@@ -268,7 +268,7 @@ public :
 private :
 	const std::string m_name;
 	const float m_slowdown;
-	const so_5::rt::mbox_t m_logger;
+	const so_5::mbox_t m_logger;
 
 	void
 	evt_request( const request & evt )
@@ -292,9 +292,9 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( [&env]( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 		// Logger will work on the default dispatcher.
 		auto logger = coop.make_agent< a_logger_t >();
 

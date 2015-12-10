@@ -54,14 +54,14 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \brief Event queue for the agent (or cooperation).
  */
 class agent_queue_t
-	:	public so_5::rt::event_queue_t
+	:	public event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
 		friend class so_5::intrusive_ptr_t< agent_queue_t >;
 
 	private :
 		//! Actual demand in event queue.
-		struct demand_t : public so_5::rt::execution_demand_t
+		struct demand_t : public execution_demand_t
 			{
 				//! Next item in queue.
 				demand_t * m_next;
@@ -69,8 +69,8 @@ class agent_queue_t
 				demand_t()
 					:	m_next( nullptr )
 					{}
-				demand_t( so_5::rt::execution_demand_t && original )
-					:	so_5::rt::execution_demand_t( std::move( original ) )
+				demand_t( execution_demand_t && original )
+					:	execution_demand_t( std::move( original ) )
 					,	m_next( nullptr )
 					{}
 			};
@@ -95,7 +95,7 @@ class agent_queue_t
 
 		//! Push next demand to queue.
 		virtual void
-		push( so_5::rt::execution_demand_t demand )
+		push( execution_demand_t demand )
 			{
 				std::unique_ptr< demand_t > tail_demand{
 						new demand_t( std::move( demand ) ) };
@@ -117,7 +117,7 @@ class agent_queue_t
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
-		so_5::rt::execution_demand_t &
+		execution_demand_t &
 		front()
 			{
 				return *(m_head.m_next);

@@ -61,7 +61,8 @@ try_parse_cmdline(
 						if( current == last )
 							throw std::runtime_error( "-r requires argument" );
 
-						result.m_request_count = std::atoi( *current );
+						result.m_request_count = static_cast< unsigned int >(
+								std::atoi( *current ) );
 					}
 				else
 					{
@@ -92,21 +93,21 @@ run_sample(
 		unsigned int pings_left = cfg.m_request_count;
 
 		so_5::launch(
-			[&pings_left, &cfg]( so_5::rt::environment_t & env )
+			[&pings_left, &cfg]( so_5::environment_t & env )
 			{
 				// Types of signals for the agents.
-				struct msg_ping : public so_5::rt::signal_t {};
-				struct msg_pong : public so_5::rt::signal_t {};
+				struct msg_ping : public so_5::signal_t {};
+				struct msg_pong : public so_5::signal_t {};
 
 				env.introduce_coop(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?
 						so_5::disp::active_obj::create_private_disp( env )->binder() :
-						so_5::rt::create_default_disp_binder(),
-						[&]( so_5::rt::coop_t & coop )
+						so_5::create_default_disp_binder(),
+						[&]( so_5::coop_t & coop )
 						{
-							auto mbox = env.create_local_mbox();
+							auto mbox = env.create_mbox();
 
 							// Pinger agent.
 							coop.define_agent()

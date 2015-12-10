@@ -18,9 +18,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // coop_reg_notificators_container_t
 //
@@ -482,8 +479,6 @@ coop_t::dereg_reason() const
 {
 	return m_dereg_reason;
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -10,15 +10,12 @@
 
 #pragma once
 
+#include <so_5/rt/h/fwd.hpp>
+
 #include <so_5/rt/h/agent_tuning_options.hpp>
 
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
 
 /*
  * NOTE: copy and move constructors and copy operator is implemented
@@ -143,7 +140,7 @@ operator+(
 	subscription_storage_factory_t factory )
 	{
 		ctx.options().subscription_storage_factory( std::move( factory ) );
-		return std::move( ctx );
+		return ctx;
 	}
 
 template< class M >
@@ -153,7 +150,7 @@ operator+(
 	message_limit::drop_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M >
@@ -163,7 +160,7 @@ operator+(
 	message_limit::abort_app_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M, class L >
@@ -173,7 +170,7 @@ operator+(
 	message_limit::log_then_abort_app_indicator_t< M, L > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M, class L >
@@ -183,7 +180,7 @@ operator+(
 	message_limit::redirect_indicator_t< M, L > limit )
 	{
 		ctx.options().message_limits( std::move( limit ) );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M >
@@ -193,7 +190,7 @@ operator+(
 	message_limit::transform_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( std::move( limit ) );
-		return std::move( ctx );
+		return ctx;
 	};
 
 inline agent_context_t
@@ -202,11 +199,20 @@ operator+(
 	so_5::priority_t agent_priority )
 	{
 		ctx.options().priority( agent_priority );
-		return std::move( ctx );
+		return ctx;
 	}
 /*!
  * \}
  */
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using agent_context_t = so_5::agent_context_t;
 
 } /* namespace rt */
 
@@ -218,8 +224,8 @@ namespace std
 template<>
 inline void
 swap(
-	so_5::rt::agent_context_t & a,
-	so_5::rt::agent_context_t & b )
+	so_5::agent_context_t & a,
+	so_5::agent_context_t & b )
 	{
 		a.swap( b );
 	}

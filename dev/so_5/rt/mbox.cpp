@@ -7,9 +7,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // delivery_filter_t
 //
@@ -38,7 +35,5 @@ abstract_message_box_t::operator<( const abstract_message_box_t & o ) const
 {
 	return id() < o.id();
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */

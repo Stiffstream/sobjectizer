@@ -10,11 +10,9 @@
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
 #include <so_5/rt/impl/h/mpsc_mbox.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
+#include <so_5/rt/impl/h/mchain_details.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -37,57 +35,70 @@ mbox_core_t::~mbox_core_t()
 
 
 mbox_t
-mbox_core_t::create_local_mbox()
+mbox_core_t::create_mbox()
 {
 	auto id = ++m_mbox_id_counter;
 	if( !m_tracer )
-		return mbox_t{ new local_mbox_without_tracing_t{ id } };
+		return mbox_t{ new local_mbox_without_tracing{ id } };
 	else
-		return mbox_t{ new local_mbox_with_tracing_t{ id, *m_tracer } };
+		return mbox_t{ new local_mbox_with_tracing{ id, *m_tracer } };
 }
 
 mbox_t
-mbox_core_t::create_local_mbox(
+mbox_core_t::create_mbox(
 	const nonempty_name_t & mbox_name )
 {
 	return create_named_mbox(
 			mbox_name,
-			[this]() { return create_local_mbox(); } );
+			[this]() { return create_mbox(); } );
 }
+
+namespace {
+
+template< typename M1, typename M2, typename... A >
+std::unique_ptr< abstract_message_box_t >
+make_actual_mbox(
+	so_5::msg_tracing::tracer_t * tracer,
+	A &&... args )
+	{
+		std::unique_ptr< abstract_message_box_t > result;
+		if( !tracer )
+			result.reset( new M1{ std::forward<A>(args)... } );
+		else
+			result.reset( new M2{ std::forward<A>(args)..., *tracer } );
+		return result;
+	}
+
+} /* namespace anonymous */
 
 mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
 	const auto id = ++m_mbox_id_counter;
 
 	std::unique_ptr< abstract_message_box_t > actual_mbox;
 	if( limits_storage )
 	{
-		if( !m_tracer )
-			actual_mbox.reset( new limitful_mpsc_mbox_without_tracing_t{
+		actual_mbox =
+				make_actual_mbox<
+						limitful_mpsc_mbox_without_tracing,
+						limitful_mpsc_mbox_with_tracing >(
+					m_tracer,
 					id,
 					single_consumer,
-					*limits_storage } );
-		else
-			actual_mbox.reset( new limitful_mpsc_mbox_with_tracing_t{
-					id,
-					single_consumer,
-					*limits_storage,
-					*m_tracer } );
+					*limits_storage );
 	}
 	else
 	{
-		if( !m_tracer )
-			actual_mbox.reset( new limitless_mpsc_mbox_without_tracing_t{
+		actual_mbox =
+				make_actual_mbox<
+						limitless_mpsc_mbox_without_tracing,
+						limitless_mpsc_mbox_with_tracing >(
+					m_tracer,
 					id,
-					single_consumer } );
-		else
-			actual_mbox.reset( new limitless_mpsc_mbox_with_tracing_t{
-					id,
-					single_consumer,
-					*m_tracer } );
+					single_consumer );
 	}
 
 	return mbox_t{ actual_mbox.release() };
@@ -108,6 +119,55 @@ mbox_core_t::destroy_mbox(
 		if( 0 == ref_count )
 			m_named_mboxes_dictionary.erase( it );
 	}
+}
+
+namespace {
+
+template< typename Q, typename... A >
+mchain_t
+make_mchain(
+	so_5::msg_tracing::tracer_t * tracer,
+	const mchain_params_t & params,
+	A &&... args )
+	{
+		using namespace so_5::mchain_props;
+		using namespace so_5::impl::msg_tracing_helpers;
+		using D = mchain_tracing_disabled_base;
+		using E = mchain_tracing_enabled_base;
+
+		if( tracer && !params.msg_tracing_disabled() )
+			return mchain_t{
+					new mchain_template< Q, E >{
+						std::forward<A>(args)...,
+						params,
+						*tracer } };
+		else
+			return mchain_t{
+					new mchain_template< Q, D >{
+						std::forward<A>(args)..., params } };
+	}
+
+} /* namespace anonymous */
+
+mchain_t
+mbox_core_t::create_mchain(
+	environment_t & env,
+	const mchain_params_t & params )
+{
+	using namespace so_5::mchain_props;
+	using namespace so_5::mchain_props::details;
+
+	auto id = ++m_mbox_id_counter;
+
+	if( params.capacity().unlimited() )
+		return make_mchain< unlimited_demand_queue >(
+				m_tracer, params, env, id );
+	else if( memory_usage_t::dynamic == params.capacity().memory_usage() )
+		return make_mchain< limited_dynamic_demand_queue >(
+				m_tracer, params, env, id );
+	else
+		return make_mchain< limited_preallocated_demand_queue >(
+				m_tracer, params, env, id );
 }
 
 mbox_core_stats_t
@@ -211,7 +271,5 @@ mbox_core_ref_t::inc_mbox_core_ref_count()
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

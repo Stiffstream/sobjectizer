@@ -97,7 +97,7 @@ struct request_metadata
 using request_metadata_shptr = std::shared_ptr< request_metadata >;
 
 // Request for image generation.
-struct generation_request : public so_5::rt::message_t
+struct generation_request : public so_5::message_t
 	{
 		const unsigned int m_id;
 		const unsigned int m_dimension;
@@ -118,7 +118,7 @@ struct generation_request : public so_5::rt::message_t
 using generation_request_shptr = so_5::intrusive_ptr_t< generation_request >;
 
 // Positive response for image generation request.
-struct generation_result : public so_5::rt::message_t
+struct generation_result : public so_5::message_t
 	{
 		const unsigned int m_id;
 		request_metadata_shptr m_metadata;
@@ -132,7 +132,7 @@ struct generation_result : public so_5::rt::message_t
 	};
 
 // Negative response for image generation request.
-struct generation_rejected : public so_5::rt::message_t
+struct generation_rejected : public so_5::message_t
 	{
 		const unsigned int m_id;
 
@@ -144,17 +144,17 @@ struct generation_rejected : public so_5::rt::message_t
 //
 // Request generator agent.
 //
-class request_generator : public so_5::rt::agent_t
+class request_generator : public so_5::agent_t
 	{
 		// Signal which agent sends to itself with random delays.
 		// A new request will be produced for every occurrence of that signal.
-		struct produce_next : public so_5::rt::signal_t {};
+		struct produce_next : public so_5::signal_t {};
 
 	public :
 		request_generator(
 			context_t ctx,
-			so_5::rt::mbox_t interaction_mbox )
-			:	so_5::rt::agent_t( ctx )
+			so_5::mbox_t interaction_mbox )
+			:	so_5::agent_t( ctx )
 			,	m_interaction_mbox( std::move( interaction_mbox ) )
 			{}
 
@@ -178,7 +178,7 @@ class request_generator : public so_5::rt::agent_t
 
 	private :
 		// Mbox for sending new requests and receiving responses.
-		const so_5::rt::mbox_t m_interaction_mbox;
+		const so_5::mbox_t m_interaction_mbox;
 
 		// Counter for request ID generation.
 		unsigned int m_last_id = 0;
@@ -203,7 +203,7 @@ class request_generator : public so_5::rt::agent_t
 				std::cout << "generated {" << id << "}, dimension: "
 						<< dimension << std::endl;
 
-				so_5::send_delayed_to_agent< produce_next >( *this,
+				so_5::send_delayed< produce_next >( *this,
 						std::chrono::milliseconds( random_value( 0, 100 ) ) );
 			}
 
@@ -286,7 +286,7 @@ struct request_scheduling_data
 		struct priority_data
 			{
 				// Mbox of request processor for that priority.
-				so_5::rt::mbox_t m_processor;
+				so_5::mbox_t m_processor;
 
 				// List of pending requests for that priority.
 				request_queue m_requests;
@@ -312,7 +312,7 @@ struct request_scheduling_data
 
 // An information about a possibility to schedule request to
 // a free processor.
-struct processor_can_be_loaded : public so_5::rt::message_t
+struct processor_can_be_loaded : public so_5::message_t
 	{
 		// Priority of the processor.
 		so_5::priority_t m_priority;
@@ -323,7 +323,7 @@ struct processor_can_be_loaded : public so_5::rt::message_t
 	};
 
 // Ask for next request to be processed.
-struct ask_for_work : public so_5::rt::message_t
+struct ask_for_work : public so_5::message_t
 	{
 		// Priority of the processor.
 		so_5::priority_t m_priority;
@@ -335,14 +335,14 @@ struct ask_for_work : public so_5::rt::message_t
 
 // Request acceptor.
 // Accepts and stores requests to queue of appropriate priority.
-class request_acceptor : public so_5::rt::agent_t
+class request_acceptor : public so_5::agent_t
 	{
 	public :
 		request_acceptor(
 			context_t ctx,
-			so_5::rt::mbox_t interaction_mbox,
+			so_5::mbox_t interaction_mbox,
 			request_scheduling_data & data )
-			:	so_5::rt::agent_t( ctx
+			:	so_5::agent_t( ctx
 					// This agent has minimal priority.
 					+ so_5::prio::p0
 					// If there are to many pending requests then
@@ -365,14 +365,14 @@ class request_acceptor : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_interaction_mbox;
+		const so_5::mbox_t m_interaction_mbox;
 
 		request_scheduling_data & m_data;
 
 		// The event handler has that prototype for ability to
 		// store the original message object in request queue.
 		void
-		evt_request( const so_5::rt::event_data_t< generation_request > & evt )
+		evt_request( const so_5::event_data_t< generation_request > & evt )
 			{
 				using namespace so_5::prio;
 
@@ -410,14 +410,14 @@ class request_acceptor : public so_5::rt::agent_t
 // Request scheduler.
 // Creates child coop with processors at the start.
 // Processes ask_for_work requests from processors.
-class request_scheduler : public so_5::rt::agent_t
+class request_scheduler : public so_5::agent_t
 	{
 	public :
 		request_scheduler(
 			context_t ctx,
-			so_5::rt::mbox_t interaction_mbox,
+			so_5::mbox_t interaction_mbox,
 			request_scheduling_data & data )
-			:	so_5::rt::agent_t( ctx
+			:	so_5::agent_t( ctx
 					// This agent must have more high priority than acceptor.
 					+ so_5::prio::p1 )
 			,	m_interaction_mbox( std::move( interaction_mbox ) )
@@ -437,11 +437,11 @@ class request_scheduler : public so_5::rt::agent_t
 			{
 				// Child cooperation with actual processors must be created.
 				// It will use prio_dedicated_threads::one_per_prio dispacther.
-				so_5::rt::introduce_child_coop(
+				so_5::introduce_child_coop(
 					*this,
 					so_5::disp::prio_dedicated_threads::one_per_prio::create_private_disp(
 							so_environment() )->binder(),
-					[this]( so_5::rt::coop_t & coop )
+					[this]( so_5::coop_t & coop )
 					{
 						so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 								create_processor_agent( coop, p );
@@ -450,7 +450,7 @@ class request_scheduler : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_interaction_mbox;
+		const so_5::mbox_t m_interaction_mbox;
 
 		request_scheduling_data & m_data;
 
@@ -478,11 +478,11 @@ class request_scheduler : public so_5::rt::agent_t
 
 		void
 		create_processor_agent(
-			so_5::rt::coop_t & coop,
+			so_5::coop_t & coop,
 			so_5::priority_t priority )
 			{
 				auto a = coop.define_agent( coop.make_agent_context() + priority
-						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 1 ) );
+						+ so_5::agent_t::limit_then_abort< generation_request >( 1 ) );
 
 				// Mbox of processor must be stored to be used later.
 				m_data.info_at( priority ).m_processor = a.direct_mbox();
@@ -550,12 +550,12 @@ class request_scheduler : public so_5::rt::agent_t
 	};
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		// All top-level agents belong to the same coop,
 		// but work on different dispacthers.
-		env.introduce_coop( []( so_5::rt::coop_t & coop ) {
-				auto mbox = coop.environment().create_local_mbox();
+		env.introduce_coop( []( so_5::coop_t & coop ) {
+				auto mbox = coop.environment().create_mbox();
 
 				// Request scheduler and accepter stuff.
 

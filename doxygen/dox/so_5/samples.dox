@@ -182,4 +182,12 @@
  * \example so_5/convert_lib/main.cpp
  */
 
+/*!
+ * \example so_5/mchain_svc_req/main.cpp
+ */
+
+/*!
+ * \example so_5/wrapped_env_demo_2/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

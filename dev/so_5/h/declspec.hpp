@@ -2,8 +2,7 @@
 	SObjectizer 5.
 */
 
-#if !defined( _SO_5__DECLSPEC_HPP_ )
-#define _SO_5__DECLSPEC_HPP_
+#pragma once
 
 #if defined( _MSC_VER )
 /*
@@ -43,4 +42,3 @@
 
 #endif
 
-#endif

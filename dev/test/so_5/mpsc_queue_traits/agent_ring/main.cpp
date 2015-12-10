@@ -9,10 +9,10 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_ring_member_t : public so_5::rt::agent_t
+class a_ring_member_t : public so_5::agent_t
 	{
 	public :
-		struct msg_start : public so_5::rt::signal_t {};
+		struct msg_start : public so_5::signal_t {};
 
 		struct msg_your_turn
 			{
@@ -20,11 +20,11 @@ class a_ring_member_t : public so_5::rt::agent_t
 			};
 
 		a_ring_member_t( context_t ctx )
-			:	so_5::rt::agent_t( ctx )
+			:	so_5::agent_t( ctx )
 			{}
 
 		void
-		set_next_mbox( const so_5::rt::mbox_t & mbox )
+		set_next_mbox( const so_5::mbox_t & mbox )
 			{
 				m_next_mbox = mbox;
 			}
@@ -56,8 +56,8 @@ class a_ring_member_t : public so_5::rt::agent_t
 			}
 
 	private :
-		so_5::rt::mbox_t m_self_mbox;
-		so_5::rt::mbox_t m_next_mbox;
+		so_5::mbox_t m_self_mbox;
+		so_5::mbox_t m_next_mbox;
 
 		unsigned int m_rounds_passed = 0;
 		const unsigned int m_rounds = 2000;
@@ -74,9 +74,9 @@ class case_setter_t
 		virtual ~case_setter_t() {}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & ) = 0;
+		tune_env_params( so_5::environment_params_t & ) = 0;
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() = 0;
 
 	protected :
@@ -109,16 +109,16 @@ class default_disp_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				params.default_disp_params(
 					setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
-				return so_5::rt::create_default_disp_binder();
+				return so_5::create_default_disp_binder();
 			}
 	};
 
@@ -130,7 +130,7 @@ class one_thread_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				params.add_named_dispatcher(
 					"one_thread",
@@ -138,7 +138,7 @@ class one_thread_case_setter_t : public case_setter_t
 						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) )
 				);
 			}
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				return so_5::disp::one_thread::create_disp_binder( "one_thread" );
@@ -153,7 +153,7 @@ class active_obj_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				params.add_named_dispatcher(
 					"active_obj",
@@ -162,7 +162,7 @@ class active_obj_case_setter_t : public case_setter_t
 				);
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				return so_5::disp::active_obj::create_disp_binder( "active_obj" );
@@ -177,7 +177,7 @@ class active_group_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				params.add_named_dispatcher(
 					"active_group",
@@ -186,7 +186,7 @@ class active_group_case_setter_t : public case_setter_t
 				);
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				auto id = ++m_id;
@@ -206,7 +206,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				using namespace so_5::disp::prio_one_thread::strictly_ordered;
 				params.add_named_dispatcher(
@@ -215,7 +215,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 				);
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				using namespace so_5::disp::prio_one_thread::strictly_ordered;
@@ -231,7 +231,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 				params.add_named_dispatcher(
@@ -240,7 +240,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 				);
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
@@ -256,7 +256,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 			{}
 
 		virtual void
-		tune_env_params( so_5::rt::environment_params_t & params ) override
+		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
 				params.add_named_dispatcher(
@@ -264,7 +264,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 					create_disp( setup_lock_factory( disp_params_t{} ) ) );
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder() override
 			{
 				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
@@ -274,20 +274,20 @@ class one_per_prio_case_setter_t : public case_setter_t
 
 void
 create_coop(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	case_setter_t & setter )
 	{
-		so_5::rt::mbox_t first_agent_mbox;
+		so_5::mbox_t first_agent_mbox;
 
 		env.introduce_coop(
-			[&]( so_5::rt::agent_coop_t & coop )
+			[&]( so_5::coop_t & coop )
 			{
 				const std::size_t ring_size = 16;
 
 				std::vector< a_ring_member_t * > agents;
 				agents.reserve( ring_size );
 
-				std::vector< so_5::rt::mbox_t > mboxes;
+				std::vector< so_5::mbox_t > mboxes;
 				mboxes.reserve( ring_size );
 
 				for( unsigned int i = 0; i != ring_size; ++i )
@@ -375,10 +375,10 @@ do_test()
 								auto setter = c.m_maker( f.m_factory );
 
 								so_5::launch(
-									[&]( so_5::rt::environment_t & env ) {
+									[&]( so_5::environment_t & env ) {
 										create_coop( env, *setter );
 									},
-									[&]( so_5::rt::environment_params_t & params ) {
+									[&]( so_5::environment_params_t & params ) {
 										setter->tune_env_params( params );
 									} );
 							},

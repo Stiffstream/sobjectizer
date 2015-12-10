@@ -298,24 +298,142 @@ namespace so_5
 	} /* namespace log_msg_details */
 
 	/*!
+	 * \brief Details of SObjectizer run-time implementations.
+	 */
+	namespace impl
+	{
+		/*!
+		 * \brief Implementation details related to cooperations and
+		 * agents repository.
+		 */
+		namespace agent_core_details {
+		} /* namespace agent_core_details */
+
+		/*!
+		 * \brief Details of cooperation deregistration implementation
+		 */
+		namespace coop_dereg
+		{
+		} /* namespace coop_dereg */
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Various helpers for message delivery tracing mechanism.
+		 */
+		namespace msg_tracing_helpers
+		{
+			/*!
+			 * \since v.5.5.9
+			 * \brief Low-level details of message delivery tracing
+			 * implementation.
+			 */
+			namespace details
+			{
+			} /* namespace details */
+
+		} /* namespace msg_tracing_helpers */
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Implementation details for MPMC mboxes.
+		 */
+		namespace local_mbox_details
+		{}
+	} /* namespace impl */
+
+	/*!
+	 * \since v.5.2.3
+	 * \brief Enumeration of cooperation deregistration reasons.
+	 */
+	namespace dereg_reason
+	{
+	} /* namespace dereg_reason */
+
+	/*!
+	 * \brief Some low-level implemetation details which can be used
+	 * in public header files.
+	 */
+	namespace details {
+	} /* namespace details */
+
+	/*!
+	 * \since v.5.5.4
+	 * \brief All stuff related to message limits.
+	 */
+	namespace message_limit {
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Internal implementation of message limits related stuff.
+		 */
+		namespace impl {
+
+		} /* namespace impl */
+
+	} /* namespace message_limit */
+
+	/*!
+	 * \since v.5.5.4
+	 * \brief All stuff related to run-time monitoring and statistics.
+	 */
+	namespace stats {
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Internal implementation of run-time monitoring
+		 * and statistics related stuff.
+		 */
+		namespace impl {
+
+		} /* namespace impl */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Declarations of messages used by run-time monitoring
+		 * and statistics.
+		 */
+		namespace messages {
+		} /* namespace messages */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Predefined prefixes of data-sources.
+		 */
+		namespace prefixes {
+		} /* namespace prefixes */
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Predefined suffixes of data-sources.
+		 */
+		namespace suffixes {
+		} /* namespace suffixes */
+
+	} /* namespace stats */
+
+	/*!
 	 * \brief All code related to implementation of SObjectizer run-time.
+	 * \deprecated Obsolete and will be removed in v.5.6.0.
 	 */
 	namespace rt
 	{
 		/*!
 		 * \brief Details of SObjectizer run-time implementations.
+		 * \deprecated Obsolete and will be removed in v.5.6.0.
 		 */
 		namespace impl
 		{
 			/*!
 			 * \brief Implementation details related to cooperations and
 			 * agents repository.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace agent_core_details {
 			} /* namespace agent_core_details */
 
 			/*!
 			 * \brief Details of cooperation deregistration implementation
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace coop_dereg
 			{
@@ -324,6 +442,7 @@ namespace so_5
 			/*!
 			 * \since v.5.5.9
 			 * \brief Various helpers for message delivery tracing mechanism.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace msg_tracing_helpers
 			{
@@ -331,6 +450,7 @@ namespace so_5
 				 * \since v.5.5.9
 				 * \brief Low-level details of message delivery tracing
 				 * implementation.
+				 * \deprecated Obsolete and will be removed in v.5.6.0.
 				 */
 				namespace details
 				{
@@ -343,6 +463,7 @@ namespace so_5
 		/*!
 		 * \since v.5.2.3
 		 * \brief Enumeration of cooperation deregistration reasons.
+		 * \deprecated Obsolete and will be removed in v.5.6.0.
 		 */
 		namespace dereg_reason
 		{
@@ -351,6 +472,7 @@ namespace so_5
 		/*!
 		 * \brief Some low-level implemetation details which can be used
 		 * in public header files.
+		 * \deprecated Obsolete and will be removed in v.5.6.0.
 		 */
 		namespace details {
 		} /* namespace details */
@@ -358,12 +480,14 @@ namespace so_5
 		/*!
 		 * \since v.5.5.4
 		 * \brief All stuff related to message limits.
+		 * \deprecated Obsolete and will be removed in v.5.6.0.
 		 */
 		namespace message_limit {
 
 			/*!
 			 * \since v.5.5.4
 			 * \brief Internal implementation of message limits related stuff.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace impl {
 
@@ -374,6 +498,7 @@ namespace so_5
 		/*!
 		 * \since v.5.5.4
 		 * \brief All stuff related to run-time monitoring and statistics.
+		 * \deprecated Obsolete and will be removed in v.5.6.0.
 		 */
 		namespace stats {
 
@@ -381,6 +506,7 @@ namespace so_5
 			 * \since v.5.5.4
 			 * \brief Internal implementation of run-time monitoring
 			 * and statistics related stuff.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace impl {
 
@@ -390,6 +516,7 @@ namespace so_5
 			 * \since v.5.5.4
 			 * \brief Declarations of messages used by run-time monitoring
 			 * and statistics.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace messages {
 			} /* namespace messages */
@@ -397,6 +524,7 @@ namespace so_5
 			/*!
 			 * \since v.5.5.4
 			 * \brief Predefined prefixes of data-sources.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace prefixes {
 			} /* namespace prefixes */
@@ -404,6 +532,7 @@ namespace so_5
 			/*!
 			 * \since v.5.5.4
 			 * \brief Predefined suffixes of data-sources.
+			 * \deprecated Obsolete and will be removed in v.5.6.0.
 			 */
 			namespace suffixes {
 			} /* namespace suffixes */
@@ -452,6 +581,22 @@ namespace so_5
 		} /* namespace impl */
 
 	} /* namespace msg_tracing */
+
+	/*!
+	 * \since v.5.5.13
+	 * \brief Various properties and parameters of message chains.
+	 */
+	namespace mchain_props
+	{
+		/*!
+		 * \since v.5.5.13
+		 * \brief Implementation details.
+		 */
+		namespace details
+		{
+		} /* namespace details */
+
+	} /* namespace mchain_props */
 
 } /* namespace so_5 */
 

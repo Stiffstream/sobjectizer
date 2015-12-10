@@ -82,15 +82,15 @@ try_parse_cmdline(
 	return tmp_cfg;
 }
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-class a_contoller_t : public so_5::rt::agent_t
+class a_contoller_t : public so_5::agent_t
 {
 	public :
 		a_contoller_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			cfg_t cfg )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_cfg( std::move( cfg ) )
 			,	m_remaining( m_cfg.m_pause )
 		{}
@@ -138,7 +138,7 @@ default_thread_pool_size()
 	return c;
 }
 
-so_5::rt::dispatcher_unique_ptr_t
+so_5::dispatcher_unique_ptr_t
 create_dispatcher( const cfg_t & cfg )
 {
 	const auto threads = cfg.m_threads ?
@@ -158,12 +158,12 @@ main( int argc, char ** argv )
 		cfg_t cfg = try_parse_cmdline( argc, argv );
 
 		so_5::launch(
-			[cfg]( so_5::rt::environment_t & env )
+			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
 						new a_contoller_t( env, cfg ) );
 			},
-			[cfg]( so_5::rt::environment_params_t & params )
+			[cfg]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"dispatcher",

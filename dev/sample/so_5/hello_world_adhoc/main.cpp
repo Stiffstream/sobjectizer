@@ -11,7 +11,7 @@ int
 main()
 {
 	using namespace std;
-	using namespace so_5::rt;
+	using namespace so_5;
 
 	try
 	{

@@ -21,11 +21,11 @@
 
 namespace atp_disp = so_5::disp::adv_thread_pool;
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-struct msg_safe_signal : public so_5::rt::signal_t {};
+struct msg_safe_signal : public so_5::signal_t {};
 
-struct msg_unsafe_signal : public so_5::rt::signal_t {};
+struct msg_unsafe_signal : public so_5::signal_t {};
 
 void
 expect_throw(
@@ -58,12 +58,12 @@ expect_throw(
 				"an exception expected for " + description );
 }
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{
 		}
 
@@ -131,15 +131,15 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::state_t st_safe = so_make_state( "safe" );
-		const so_5::rt::state_t st_unsafe = so_make_state( "unsafe" );
+		const so_5::state_t st_safe = so_make_state( "safe" );
+		const so_5::state_t st_unsafe = so_make_state( "unsafe" );
 };
 
 void
 run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 {
 	so_5::launch(
-		[&]( so_5::rt::environment_t & env )
+		[&]( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"test",
@@ -148,7 +148,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 							"thread_pool",
 							atp_disp::bind_params_t() ) );
 		},
-		[&]( so_5::rt::environment_params_t & params )
+		[&]( so_5::environment_params_t & params )
 		{
 			using namespace atp_disp;
 			params.add_named_dispatcher(

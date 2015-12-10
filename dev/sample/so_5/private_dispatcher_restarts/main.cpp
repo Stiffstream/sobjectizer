@@ -17,18 +17,18 @@
 // Will be member of agent's chain.
 // If it is the last member of chain it will deregister
 // the whole cooperation.
-class a_chain_member_t : public so_5::rt::agent_t
+class a_chain_member_t : public so_5::agent_t
 {
 public :
 	// A signal to be sent from one chain's member to the next member.
-	struct msg_your_turn : public so_5::rt::signal_t {};
+	struct msg_your_turn : public so_5::signal_t {};
 
-	a_chain_member_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_chain_member_t( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	void
-	set_next( const so_5::rt::mbox_t & next )
+	set_next( const so_5::mbox_t & next )
 	{
 		m_next = next;
 	}
@@ -45,20 +45,20 @@ public :
 	}
 
 private :
-	so_5::rt::mbox_t m_next;
+	so_5::mbox_t m_next;
 };
 
 
 // Sample coordinator.
 // Works on the default dispatcher.
 // Creates and recreates children cooperations.
-class a_coordinator_t : public so_5::rt::agent_t
+class a_coordinator_t : public so_5::agent_t
 {
 public :
 	a_coordinator_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		unsigned int iterations )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_remaining_iterations( iterations )
 	{}
 
@@ -68,7 +68,7 @@ public :
 		// A notification on complete children cooperation deregistration
 		// must be received and handled.
 		so_default_state().event(
-			[this]( const so_5::rt::msg_coop_deregistered & ) {
+			[this]( const so_5::msg_coop_deregistered & ) {
 				--m_remaining_iterations;
 				show_remaining_iterations();
 
@@ -109,7 +109,7 @@ private :
 		// The cooperation will use active_obj dispatcher.
 		auto disp = so_5::disp::active_obj::create_private_disp(
 				so_environment() );
-		auto coop = so_5::rt::create_child_coop(
+		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.
@@ -120,7 +120,7 @@ private :
 		// We should receive notification about complete
 		// child cooperation deregistration.
 		coop->add_dereg_notificator(
-				so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
+				so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
 
 		auto first_mbox = fill_coop( *coop );
 
@@ -132,13 +132,13 @@ private :
 
 	// Filling the cooperation with the agents.
 	// Return the mbox of the first member in the chain.
-	so_5::rt::mbox_t
-	fill_coop( so_5::rt::coop_t & coop )
+	so_5::mbox_t
+	fill_coop( so_5::coop_t & coop )
 	{
 		const std::size_t agent_count = 8;
 
 		// Those containers are necessary for building agents chain.
-		std::vector< so_5::rt::mbox_t > mboxes;
+		std::vector< so_5::mbox_t > mboxes;
 		mboxes.reserve( agent_count );
 
 		std::vector< a_chain_member_t * > agents;
@@ -185,7 +185,7 @@ main( int argc, char ** argv )
 		const auto iterations = detect_iteration_count( argc, argv );
 
 		so_5::launch(
-			[iterations]( so_5::rt::environment_t & env ) {
+			[iterations]( so_5::environment_t & env ) {
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,

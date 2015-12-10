@@ -14,19 +14,19 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-	struct msg_1 : public so_5::rt::signal_t {};
-	struct msg_2 : public so_5::rt::signal_t {};
-	struct msg_3 : public so_5::rt::signal_t {};
+	struct msg_1 : public so_5::signal_t {};
+	struct msg_2 : public so_5::signal_t {};
+	struct msg_3 : public so_5::signal_t {};
 
-	const so_5::rt::state_t st_1 = so_make_state( "st_1" );
-	const so_5::rt::state_t st_2 = so_make_state( "st_2" );
-	const so_5::rt::state_t st_3 = so_make_state( "st_3" );
+	const so_5::state_t st_1 = so_make_state( "st_1" );
+	const so_5::state_t st_2 = so_make_state( "st_2" );
+	const so_5::state_t st_3 = so_make_state( "st_3" );
 
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{
 		this >>= st_1;
 
@@ -58,8 +58,8 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				so_5::launch( []( so_5::rt::environment_t & env ) {
-						env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+				so_5::launch( []( so_5::environment_t & env ) {
+						env.introduce_coop( []( so_5::coop_t & coop ) {
 								coop.make_agent< a_test_t >();
 							} );
 					} );

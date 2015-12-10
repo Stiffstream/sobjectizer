@@ -22,14 +22,16 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
 namespace impl
 {
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 /*!
  * \since v.5.5.4
@@ -117,11 +119,13 @@ class std_controller_t
 		distribute_current_data();
 	};
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

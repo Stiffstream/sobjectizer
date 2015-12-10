@@ -10,19 +10,19 @@
 
 #include <so_5/all.hpp>
 
-so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
+so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct some_message : public so_5::rt::signal_t {};
+struct some_message : public so_5::signal_t {};
 
 class a_ordinary_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 
-		a_ordinary_t( so_5::rt::environment_t & env )
+		a_ordinary_t( so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -33,8 +33,8 @@ class a_ordinary_t
 		virtual void
 		so_define_agent()
 		{
-			so_5::rt::mbox_t mbox = so_environment()
-				.create_local_mbox( g_test_mbox_name );
+			so_5::mbox_t mbox = so_environment()
+				.create_mbox( g_test_mbox_name );
 
 			so_subscribe( mbox )
 				.in( so_default_state() )
@@ -49,7 +49,7 @@ class a_ordinary_t
 
 		void
 		some_handler(
-			const so_5::rt::event_data_t< some_message > & );
+			const so_5::event_data_t< some_message > & );
 };
 
 void
@@ -64,7 +64,7 @@ a_ordinary_t::so_evt_start()
 
 void
 a_ordinary_t::some_handler(
-	const so_5::rt::event_data_t< some_message > & )
+	const so_5::event_data_t< some_message > & )
 {
 	// This method should not be called.
 	std::cerr << "error: a_ordinary_t::some_handler called.";
@@ -73,12 +73,12 @@ a_ordinary_t::some_handler(
 
 class a_throwing_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
-		a_throwing_t( so_5::rt::environment_t & env )
+		a_throwing_t( so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -107,9 +107,9 @@ a_throwing_t::so_evt_start()
 
 void
 reg_coop(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
 	coop->add_agent( new a_ordinary_t( env ) );
@@ -134,7 +134,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	reg_coop( env );
 	env.stop();
@@ -147,7 +147,7 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"active_obj",

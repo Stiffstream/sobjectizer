@@ -19,9 +19,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -389,8 +386,6 @@ vector_based_subscription_storage_factory(
 							initial_capacity ) );
 		};
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

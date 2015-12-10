@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -124,8 +121,6 @@ manually_registered_source_t::stop()
 	}
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

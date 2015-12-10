@@ -59,7 +59,7 @@ ms_from_time( const clock_type::time_point & previous_point )
 	}
 
 // A message for logging something.
-struct msg_log : public so_5::rt::message_t
+struct msg_log : public so_5::message_t
 	{
 		std::string m_who;
 		std::string m_what;
@@ -73,7 +73,7 @@ struct msg_log : public so_5::rt::message_t
 // A helper for logging simplification.
 void
 log(
-	const so_5::rt::mbox_t & logger_mbox,
+	const so_5::mbox_t & logger_mbox,
 	std::string who,
 	std::string what )
 	{
@@ -81,12 +81,12 @@ log(
 	}
 
 // Builder of logger agent.
-so_5::rt::mbox_t
-create_logger_coop( so_5::rt::environment_t & env )
+so_5::mbox_t
+create_logger_coop( so_5::environment_t & env )
 	{
-		so_5::rt::mbox_t result;
+		so_5::mbox_t result;
 
-		env.introduce_coop( [&]( so_5::rt::coop_t & coop )
+		env.introduce_coop( [&]( so_5::coop_t & coop )
 			{
 				// Logger agent.
 				auto a = coop.define_agent();
@@ -118,7 +118,7 @@ create_logger_coop( so_5::rt::environment_t & env )
 using story_id_type = unsigned long;
 
 // Base class for all messages. It stores timestamp.
-struct news_board_message_base : public so_5::rt::message_t
+struct news_board_message_base : public so_5::message_t
 	{
 		// Time at which an operation was started.
 		// This time will be used for calculation of operation duration.
@@ -134,11 +134,11 @@ struct news_board_request_base : public news_board_message_base
 	{
 		// Mbox of request initiator.
 		// Response will be sent to that mbox.
-		const so_5::rt::mbox_t m_reply_to;
+		const so_5::mbox_t m_reply_to;
 
 		news_board_request_base(
 			clock_type::time_point timestamp,
-			so_5::rt::mbox_t reply_to )
+			so_5::mbox_t reply_to )
 			:	news_board_message_base( std::move(timestamp) )
 			,	m_reply_to( std::move(reply_to) )
 			{}
@@ -152,7 +152,7 @@ struct msg_publish_story_req : public news_board_request_base
 
 		msg_publish_story_req(
 			clock_type::time_point timestamp,
-			so_5::rt::mbox_t reply_to,
+			so_5::mbox_t reply_to,
 			std::string title,
 			std::string content )
 			:	news_board_request_base(
@@ -183,7 +183,7 @@ struct msg_updates_req : public news_board_request_base
 
 		msg_updates_req(
 			clock_type::time_point timestamp,
-			so_5::rt::mbox_t reply_to,
+			so_5::mbox_t reply_to,
 			story_id_type last_id )
 			:	news_board_request_base(
 					std::move(timestamp), std::move(reply_to) )
@@ -217,7 +217,7 @@ struct msg_story_content_req : public news_board_request_base
 
 		msg_story_content_req(
 			clock_type::time_point timestamp,
-			so_5::rt::mbox_t reply_to,
+			so_5::mbox_t reply_to,
 			story_id_type id )
 			:	news_board_request_base(
 					std::move(timestamp), std::move(reply_to) )
@@ -279,10 +279,10 @@ struct news_board_data
 // Agent for receiving and storing new stories to news board.
 void
 define_news_receiver_agent(
-	so_5::rt::coop_t & coop,
+	so_5::coop_t & coop,
 	news_board_data & board_data,
-	const so_5::rt::mbox_t & board_mbox,
-	const so_5::rt::mbox_t & logger_mbox )
+	const so_5::mbox_t & board_mbox,
+	const so_5::mbox_t & logger_mbox )
 	{
 		coop.define_agent(
 				// This agent should have lowest priority among
@@ -327,10 +327,10 @@ define_news_receiver_agent(
 // Agent for handling requests about updates on news board.
 void
 define_news_directory_agent(
-	so_5::rt::coop_t & coop,
+	so_5::coop_t & coop,
 	news_board_data & board_data,
-	const so_5::rt::mbox_t & board_mbox,
-	const so_5::rt::mbox_t & logger_mbox )
+	const so_5::mbox_t & board_mbox,
+	const so_5::mbox_t & logger_mbox )
 	{
 		coop.define_agent(
 				// This agent should have priority higher than news_receiver.
@@ -373,10 +373,10 @@ define_news_directory_agent(
 // Agent for handling requests for story content.
 void
 define_story_extractor_agent(
-	so_5::rt::coop_t & coop,
+	so_5::coop_t & coop,
 	news_board_data & board_data,
-	const so_5::rt::mbox_t & board_mbox,
-	const so_5::rt::mbox_t & logger_mbox )
+	const so_5::mbox_t & board_mbox,
+	const so_5::mbox_t & logger_mbox )
 	{
 		coop.define_agent(
 				// This agent should have priority higher that news_directory.
@@ -419,12 +419,12 @@ define_story_extractor_agent(
 	}
 
 
-so_5::rt::mbox_t
+so_5::mbox_t
 create_board_coop(
-	so_5::rt::environment_t & env,
-	const so_5::rt::mbox_t & logger_mbox )
+	so_5::environment_t & env,
+	const so_5::mbox_t & logger_mbox )
 	{
-		auto board_mbox = env.create_local_mbox();
+		auto board_mbox = env.create_mbox();
 
 		using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 		using namespace so_5::prio;
@@ -438,7 +438,7 @@ create_board_coop(
 					.set( p2, 20 ) // 20 events for news_directory.
 					.set( p3, 30 ) // 30 events for story_extractor.
 				)->binder(),
-			[&]( so_5::rt::coop_t & coop )
+			[&]( so_5::coop_t & coop )
 			{
 				// Lifetime of news board data will be controlled by cooperation.
 				auto board_data = coop.take_under_control( new news_board_data() );
@@ -458,17 +458,17 @@ create_board_coop(
 // Story publishers.
 //
 
-class story_publisher : public so_5::rt::agent_t
+class story_publisher : public so_5::agent_t
 	{
-		struct msg_time_for_new_story : public so_5::rt::signal_t {};
+		struct msg_time_for_new_story : public so_5::signal_t {};
 
 	public :
 		story_publisher(
 			context_t ctx,
 			std::string publisher_name,
-			so_5::rt::mbox_t board_mbox,
-			so_5::rt::mbox_t logger_mbox )
-			:	so_5::rt::agent_t( ctx )
+			so_5::mbox_t board_mbox,
+			so_5::mbox_t logger_mbox )
+			:	so_5::agent_t( ctx )
 			,	m_name( std::move(publisher_name) )
 			,	m_board_mbox( std::move(board_mbox) )
 			,	m_logger_mbox( std::move(logger_mbox) )
@@ -494,14 +494,14 @@ class story_publisher : public so_5::rt::agent_t
 
 	private :
 		// The agent will wait 'msg_time_for_new_story' signal in this state.
-		const so_5::rt::state_t st_await_new_story = so_make_state();
+		const state_t st_await_new_story = so_make_state();
 		// The agent will wait a response to publising request in this state.
-		const so_5::rt::state_t st_await_publish_response = so_make_state();
+		const state_t st_await_publish_response = so_make_state();
 
 		const std::string m_name;
 
-		const so_5::rt::mbox_t m_board_mbox;
-		const so_5::rt::mbox_t m_logger_mbox;
+		const so_5::mbox_t m_board_mbox;
+		const so_5::mbox_t m_logger_mbox;
 
 		// This counter will be used in store generation procedure.
 		unsigned int m_stories_counter = 0;
@@ -509,7 +509,7 @@ class story_publisher : public so_5::rt::agent_t
 		void
 		initiate_time_for_new_story_signal()
 			{
-				so_5::send_delayed_to_agent< msg_time_for_new_story >(
+				so_5::send_delayed< msg_time_for_new_story >(
 						*this,
 						std::chrono::milliseconds{ random_value( 100, 1500 ) } );
 			}
@@ -552,14 +552,14 @@ class story_publisher : public so_5::rt::agent_t
 
 void
 create_publisher_coop(
-	so_5::rt::environment_t & env,
-	const so_5::rt::mbox_t & board_mbox,
-	const so_5::rt::mbox_t & logger_mbox )
+	so_5::environment_t & env,
+	const so_5::mbox_t & board_mbox,
+	const so_5::mbox_t & logger_mbox )
 	{
 		// All publishers will work on the same working thread.
 		env.introduce_coop(
 			so_5::disp::one_thread::create_private_disp( env )->binder(),
-			[&]( so_5::rt::coop_t & coop )
+			[&]( so_5::coop_t & coop )
 			{
 				for( int i = 0; i != 5; ++i )
 					coop.make_agent< story_publisher >(
@@ -573,17 +573,17 @@ create_publisher_coop(
 // News readers.
 //
 
-class news_reader : public so_5::rt::agent_t
+class news_reader : public so_5::agent_t
 	{
-		struct msg_time_for_updates : public so_5::rt::signal_t {};
+		struct msg_time_for_updates : public so_5::signal_t {};
 
 	public :
 		news_reader(
 			context_t ctx,
 			std::string reader_name,
-			so_5::rt::mbox_t board_mbox,
-			so_5::rt::mbox_t logger_mbox )
-			:	so_5::rt::agent_t( ctx )
+			so_5::mbox_t board_mbox,
+			so_5::mbox_t logger_mbox )
+			:	so_5::agent_t( ctx )
 			,	m_name( std::move(reader_name) )
 			,	m_board_mbox( std::move(board_mbox) )
 			,	m_logger_mbox( std::move(logger_mbox) )
@@ -614,16 +614,16 @@ class news_reader : public so_5::rt::agent_t
 
 	private :
 		// The agent will wait 'msg_time_for_updates' signal in this state.
-		const so_5::rt::state_t st_sleeping = so_make_state();
+		const state_t st_sleeping = so_make_state();
 		// The agent will wait updates from news board in this state. 
-		const so_5::rt::state_t st_await_updates = so_make_state();
+		const state_t st_await_updates = so_make_state();
 		// The agent will wait story content in this state.
-		const so_5::rt::state_t st_await_story_content = so_make_state();
+		const state_t st_await_story_content = so_make_state();
 
 		const std::string m_name;
 
-		const so_5::rt::mbox_t m_board_mbox;
-		const so_5::rt::mbox_t m_logger_mbox;
+		const so_5::mbox_t m_board_mbox;
+		const so_5::mbox_t m_logger_mbox;
 
 		// ID of last received story from news board.
 		story_id_type m_last_id = 0;
@@ -634,7 +634,7 @@ class news_reader : public so_5::rt::agent_t
 		void
 		initiate_time_for_updates_signal()
 			{
-				so_5::send_delayed_to_agent< msg_time_for_updates >(
+				so_5::send_delayed< msg_time_for_updates >(
 						*this,
 						std::chrono::milliseconds{ random_value( 500, 2500 ) } );
 			}
@@ -747,14 +747,14 @@ class news_reader : public so_5::rt::agent_t
 
 void
 create_reader_coop(
-	so_5::rt::environment_t & env,
-	const so_5::rt::mbox_t & board_mbox,
-	const so_5::rt::mbox_t & logger_mbox )
+	so_5::environment_t & env,
+	const so_5::mbox_t & board_mbox,
+	const so_5::mbox_t & logger_mbox )
 	{
 		// All readers will work on the same working thread.
 		env.introduce_coop(
 			so_5::disp::one_thread::create_private_disp( env )->binder(),
-			[&]( so_5::rt::coop_t & coop )
+			[&]( so_5::coop_t & coop )
 			{
 				for( int i = 0; i != 50; ++i )
 					coop.make_agent< news_reader >(
@@ -766,7 +766,7 @@ create_reader_coop(
 
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		auto logger_mbox = create_logger_coop( env );
 		auto board_mbox = create_board_coop( env, logger_mbox );

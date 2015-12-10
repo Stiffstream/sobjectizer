@@ -14,8 +14,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 /*!
@@ -32,11 +30,9 @@ process_unhandled_exception(
 	//! Raised and caught exception.
 	const std::exception & ex,
 	//! Agent who is the producer of the exception.
-	so_5::rt::agent_t & a_exception_producer );
+	agent_t & a_exception_producer );
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

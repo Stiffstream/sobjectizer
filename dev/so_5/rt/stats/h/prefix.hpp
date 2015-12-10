@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -174,6 +171,26 @@ operator<<( std::ostream & to, const suffix_t & what )
 	{
 		return (to << what.c_str());
 	}
+
+} /* namespace stats */
+
+namespace rt
+{
+
+namespace stats
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::stats::prefix_t
+ * instead.
+ */
+using prefix_t = so_5::stats::prefix_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::stats::suffix_t
+ * instead.
+ */
+using suffix_t = so_5::stats::suffix_t;
 
 } /* namespace stats */
 

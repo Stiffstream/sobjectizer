@@ -8,15 +8,15 @@
 
 #include <so_5/all.hpp>
 
-struct msg_child_deregistered : public so_5::rt::signal_t {};
+struct msg_child_deregistered : public so_5::signal_t {};
 
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:	base_type_t( env )
 		{
 		}
@@ -26,23 +26,23 @@ class a_child_t : public so_5::rt::agent_t
 		{
 			so_environment().deregister_coop(
 					so_coop_name(),
-					so_5::rt::dereg_reason::normal );
+					so_5::dereg_reason::normal );
 		}
 };
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
+	typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::coop_reg_notificator_t & reg_notificator,
-			const so_5::rt::coop_dereg_notificator_t & dereg_notificator )
+			so_5::environment_t & env,
+			const so_5::coop_reg_notificator_t & reg_notificator,
+			const so_5::coop_dereg_notificator_t & dereg_notificator )
 			:	base_type_t( env )
 			,	m_reg_notificator( reg_notificator )
 			,	m_dereg_notificator( dereg_notificator )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{}
 
 		void
@@ -62,9 +62,9 @@ class a_test_t : public so_5::rt::agent_t
 			child_coop->add_reg_notificator( m_reg_notificator );
 			child_coop->add_dereg_notificator( m_dereg_notificator );
 			child_coop->add_dereg_notificator(
-					[this]( so_5::rt::environment_t &,
+					[this]( so_5::environment_t &,
 						const std::string &,
-						const so_5::rt::coop_dereg_reason_t &)
+						const so_5::coop_dereg_reason_t &)
 					{
 						m_mbox->deliver_signal< msg_child_deregistered >();
 					} );
@@ -76,16 +76,16 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_child_deregistered(
-			const so_5::rt::event_data_t< msg_child_deregistered > & )
+			const so_5::event_data_t< msg_child_deregistered > & )
 		{
 			so_environment().stop();
 		}
 
 	private :
-		const so_5::rt::coop_reg_notificator_t m_reg_notificator;
-		const so_5::rt::coop_dereg_notificator_t m_dereg_notificator;
+		const so_5::coop_reg_notificator_t m_reg_notificator;
+		const so_5::coop_dereg_notificator_t m_dereg_notificator;
 
-		const so_5::rt::mbox_t m_mbox;
+		const so_5::mbox_t m_mbox;
 };
 
 class sequence_holder_t
@@ -134,7 +134,7 @@ class test_env_t
 		{}
 
 		void
-		init( so_5::rt::environment_t & env )
+		init( so_5::environment_t & env )
 		{
 			env.add_dispatcher_if_not_exists(
 					"active_obj",
@@ -165,10 +165,10 @@ class test_env_t
 	private :
 		sequence_holder_t m_sequence;
 
-		so_5::rt::coop_reg_notificator_t
+		so_5::coop_reg_notificator_t
 		create_on_reg_notificator()
 		{
-			return [this]( so_5::rt::environment_t &,
+			return [this]( so_5::environment_t &,
 							const std::string & )
 					{
 						m_sequence.add( "on_reg_1" );
@@ -181,12 +181,12 @@ class test_env_t
 					};
 		}
 
-		so_5::rt::coop_dereg_notificator_t
+		so_5::coop_dereg_notificator_t
 		create_on_dereg_notificator()
 		{
-			return [this]( so_5::rt::environment_t &,
+			return [this]( so_5::environment_t &,
 							const std::string &,
-							const so_5::rt::coop_dereg_reason_t &)
+							const so_5::coop_dereg_reason_t &)
 					{
 						m_sequence.add( "on_dereg" );
 					};
@@ -200,7 +200,7 @@ main()
 	{
 		test_env_t test_env;
 		so_5::launch(
-			[&test_env]( so_5::rt::environment_t & env )
+			[&test_env]( so_5::environment_t & env )
 			{
 				test_env.init( env );
 			} );

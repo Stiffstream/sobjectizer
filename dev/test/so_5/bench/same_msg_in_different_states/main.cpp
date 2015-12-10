@@ -12,24 +12,24 @@
 #include <various_helpers_1/benchmark_helpers.hpp>
 #include <various_helpers_1/ensure.hpp>
 
-struct msg_tick : public so_5::rt::signal_t {};
+struct msg_tick : public so_5::signal_t {};
 
 class a_test_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::size_t states_count,
 			int tick_count )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			:	so_5::agent_t( env )
+			,	m_self_mbox( env.create_mbox() )
 			,	m_tick_count( tick_count )
 			,	m_messages_received( 0 )
 			{
 				for( size_t i = 0; i != states_count; ++i )
 					m_states.emplace_back(
-							std::make_shared< so_5::rt::state_t >(
+							std::make_shared< so_5::state_t >(
 									self_ptr(), "noname" ) );
 
 				m_it_current_state = m_states.begin();
@@ -56,7 +56,7 @@ class a_test_t
 
 		void
 		evt_tick(
-			const so_5::rt::event_data_t< msg_tick > & )
+			const so_5::event_data_t< msg_tick > & )
 			{
 				++m_messages_received;
 				++m_it_current_state;
@@ -82,13 +82,13 @@ class a_test_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::mbox_t m_self_mbox;
 
 		int m_tick_count;
 		std::uint_fast64_t m_messages_received;
 
-		std::vector< std::shared_ptr< so_5::rt::state_t > > m_states;
-		std::vector< std::shared_ptr< so_5::rt::state_t > >::iterator m_it_current_state;
+		std::vector< std::shared_ptr< so_5::state_t > > m_states;
+		std::vector< std::shared_ptr< so_5::state_t > >::iterator m_it_current_state;
 
 		benchmarker_t m_benchmarker;
 	};
@@ -116,7 +116,7 @@ main( int argc, char ** argv )
 				<< std::endl;
 
 			so_5::launch(
-				[states, tick_count]( so_5::rt::environment_t & env )
+				[states, tick_count]( so_5::environment_t & env )
 				{
 					env.register_agent_as_coop( "test",
 							new a_test_t( env, states, tick_count ) );

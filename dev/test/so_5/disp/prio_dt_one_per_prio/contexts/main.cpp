@@ -10,7 +10,7 @@
 #include <set>
 #include <sstream>
 
-struct msg_context_info : public so_5::rt::message_t
+struct msg_context_info : public so_5::message_t
 {
 	so_5::current_thread_id_t m_thread_id;
 
@@ -19,11 +19,11 @@ struct msg_context_info : public so_5::rt::message_t
 	{}
 };
 
-class a_supervisor_t : public so_5::rt::agent_t
+class a_supervisor_t : public so_5::agent_t
 {
 public:
 	a_supervisor_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	virtual void
@@ -62,17 +62,17 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	so_5::rt::mbox_t supervisor_mbox;
-	env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+	so_5::mbox_t supervisor_mbox;
+	env.introduce_coop( [&]( so_5::coop_t & coop ) {
 		auto a = coop.make_agent< a_supervisor_t >();
 		supervisor_mbox = a->so_direct_mbox();
 	} );
 
 	using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
 	env.introduce_coop( create_private_disp( env )->binder(),
-		[&]( so_5::rt::agent_coop_t & coop )
+		[&]( so_5::coop_t & coop )
 		{
 			so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 				coop.define_agent( coop.make_agent_context() + p )

@@ -7,7 +7,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	struct msg1
 	{
@@ -20,11 +20,11 @@ class a_test_t : public so_5::rt::agent_t
 		std::string m_b;
 	};
 
-	struct stop : public so_5::rt::signal_t {};
+	struct stop : public so_5::signal_t {};
 
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	virtual void
@@ -96,7 +96,7 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( so_5::autoname,
 			env.make_agent< a_test_t >() );

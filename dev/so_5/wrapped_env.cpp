@@ -23,19 +23,16 @@ namespace
  * \since v.5.5.9
  * \brief Implementation of environment to be used inside wrapped_env.
  */
-class actual_environment_t
-	:	public so_5::rt::environment_t
+class actual_environment_t : public environment_t
 	{
-	typedef so_5::rt::environment_t base_type_t;
-
 	public:
 		//! Initializing constructor.
 		actual_environment_t(
 			//! Initialization routine.
 			so_5::api::generic_simple_init_t init,
 			//! SObjectizer Environment parameters.
-			so_5::rt::environment_params_t && env_params )
-			:	base_type_t( std::move( env_params ) )
+			environment_params_t && env_params )
+			:	environment_t( std::move( env_params ) )
 			,	m_init( std::move(init) )
 			{}
 
@@ -101,7 +98,7 @@ struct wrapped_env_t::details_t
 		//! Initializing constructor.
 		details_t(
 			so_5::api::generic_simple_init_t init_func,
-			so_5::rt::environment_params_t && params )
+			environment_params_t && params )
 			:	m_env{ std::move( init_func ), std::move( params ) }
 			{}
 
@@ -128,7 +125,7 @@ namespace
 std::unique_ptr< wrapped_env_t::details_t >
 make_details_object(
 	so_5::api::generic_simple_init_t init_func,
-	so_5::rt::environment_params_t && params )
+	environment_params_t && params )
 	{
 		return std::unique_ptr< wrapped_env_t::details_t >(
 				new wrapped_env_t::details_t{
@@ -137,34 +134,32 @@ make_details_object(
 				} );
 	}
 
-so_5::rt::environment_params_t
-make_necessary_tuning( so_5::rt::environment_params_t && params )
+environment_params_t
+make_necessary_tuning( environment_params_t && params )
 	{
 		params.disable_autoshutdown();
 		return std::move( params );
 	}
 
-so_5::rt::environment_params_t
+environment_params_t
 make_params_via_tuner( so_5::api::generic_simple_so_env_params_tuner_t tuner )
 	{
-		so_5::rt::environment_params_t params;
+		environment_params_t params;
 		tuner( params );
-		return std::move( params );
+		return params;
 	}
 
 } /* namespace anonymous */
 
 wrapped_env_t::wrapped_env_t()
-	:	wrapped_env_t{
-			[]( so_5::rt::environment_t & ) {},
-			so_5::rt::environment_params_t{} }
+	:	wrapped_env_t{ []( environment_t & ) {}, environment_params_t{} }
 	{}
 
 wrapped_env_t::wrapped_env_t(
 	so_5::api::generic_simple_init_t init_func )
 	:	wrapped_env_t{
 			std::move( init_func ),
-			make_necessary_tuning( so_5::rt::environment_params_t{} ) }
+			make_necessary_tuning( environment_params_t{} ) }
 	{}
 
 wrapped_env_t::wrapped_env_t(
@@ -177,7 +172,7 @@ wrapped_env_t::wrapped_env_t(
 
 wrapped_env_t::wrapped_env_t(
 	so_5::api::generic_simple_init_t init_func,
-	so_5::rt::environment_params_t && params )
+	environment_params_t && params )
 	:	m_impl{ make_details_object(
 			std::move( init_func ),
 			make_necessary_tuning( std::move( params ) ) ) }
@@ -185,12 +180,19 @@ wrapped_env_t::wrapped_env_t(
 		m_impl->start();
 	}
 
+wrapped_env_t::wrapped_env_t(
+	environment_params_t && params )
+	:	wrapped_env_t{
+			[]( environment_t & ) {},
+			make_necessary_tuning( std::move( params ) ) }
+	{}
+
 wrapped_env_t::~wrapped_env_t()
 	{
 		stop_then_join();
 	}
 
-so_5::rt::environment_t &
+environment_t &
 wrapped_env_t::environment() const
 	{
 		return m_impl->m_env;

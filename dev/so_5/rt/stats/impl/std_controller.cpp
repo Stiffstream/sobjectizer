@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -146,8 +143,6 @@ std_controller_t::distribute_current_data()
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // msg_coop_registered
 //
@@ -73,8 +70,6 @@ make_coop_dereg_notificator(
 									reason ) );
 				};
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

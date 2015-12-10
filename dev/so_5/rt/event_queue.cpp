@@ -13,14 +13,9 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 event_queue_t::~event_queue_t()
 	{
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

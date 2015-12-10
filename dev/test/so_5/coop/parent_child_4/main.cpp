@@ -10,22 +10,22 @@
 
 #include "test/so_5/svc/a_time_sentinel.hpp"
 
-struct msg_parent_started : public so_5::rt::signal_t {};
+struct msg_parent_started : public so_5::signal_t {};
 
-struct msg_initiate_dereg : public so_5::rt::signal_t {};
+struct msg_initiate_dereg : public so_5::signal_t {};
 
-struct msg_check_signal : public so_5::rt::signal_t {};
+struct msg_check_signal : public so_5::signal_t {};
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & self_mbox,
-			const so_5::rt::mbox_t & parent_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & self_mbox,
+			const so_5::mbox_t & parent_mbox )
+			:	so_5::agent_t( env )
 			,	m_mbox( self_mbox )
 			,	m_parent_mbox( parent_mbox )
 			,	m_so_evt_finish_passed( false )
@@ -74,19 +74,19 @@ class a_child_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_mbox;
-		const so_5::rt::mbox_t m_parent_mbox;
+		const so_5::mbox_t m_mbox;
+		const so_5::mbox_t m_parent_mbox;
 
 		bool m_so_evt_finish_passed;
 };
 
-class a_parent_t : public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
 	public :
 		a_parent_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
+			:	so_5::agent_t( env )
 			,	m_mbox( mbox )
 		{}
 
@@ -107,20 +107,20 @@ class a_parent_t : public so_5::rt::agent_t
 		evt_initiate_dereg()
 		{
 			so_environment().deregister_coop( so_coop_name(),
-					so_5::rt::dereg_reason::normal );
+					so_5::dereg_reason::normal );
 		}
 
 	private :
-		const so_5::rt::mbox_t m_mbox;
+		const so_5::mbox_t m_mbox;
 };
 
-class a_driver_t : public so_5::rt::agent_t
+class a_driver_t : public so_5::agent_t
 {
 	public :
 		a_driver_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
-			,	m_mbox( env.create_local_mbox() )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
+			,	m_mbox( env.create_mbox() )
 		{}
 
 		virtual void
@@ -152,7 +152,7 @@ class a_driver_t : public so_5::rt::agent_t
 			coop->add_agent(
 				new a_child_t(
 					so_environment(),
-					so_environment().create_local_mbox(),
+					so_environment().create_mbox(),
 					m_mbox ) );
 
 			so_environment().register_coop( std::move( coop ) );
@@ -167,11 +167,11 @@ class a_driver_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_mbox;
+		const so_5::mbox_t m_mbox;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "driver",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
@@ -189,7 +189,7 @@ main()
 	{
 		so_5::launch(
 				&init,
-				[]( so_5::rt::environment_params_t & p ) {
+				[]( so_5::environment_params_t & p ) {
 					p.add_named_dispatcher( "active_obj",
 						so_5::disp::active_obj::create_disp() );
 				} );

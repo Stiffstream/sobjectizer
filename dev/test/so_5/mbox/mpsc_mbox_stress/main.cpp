@@ -11,22 +11,22 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_ping : public so_5::rt::signal_t {};
-struct msg_ack : public so_5::rt::signal_t {};
+struct msg_ping : public so_5::signal_t {};
+struct msg_ack : public so_5::signal_t {};
 
-struct msg_child_agent_destroyed : public so_5::rt::signal_t {};
+struct msg_child_agent_destroyed : public so_5::signal_t {};
 
-struct msg_next_iteration : public so_5::rt::signal_t {};
+struct msg_next_iteration : public so_5::signal_t {};
 
 // A class of child agent.
 class a_child_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 {
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & parent_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & parent_mbox )
+			:	so_5::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
 			{}
 		~a_child_t()
@@ -43,18 +43,18 @@ class a_child_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_parent_mbox;
+		const so_5::mbox_t m_parent_mbox;
 };
 
 // A class of parent agent.
 class a_parent_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
+	typedef so_5::agent_t base_type_t;
 
 	public :
 		a_parent_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			int iterations )
 			:	base_type_t( env )
 			,	m_iterations_left( iterations )
@@ -88,7 +88,7 @@ class a_parent_t
 
 		void
 		evt_child_created(
-			const so_5::rt::msg_coop_registered & )
+			const so_5::msg_coop_registered & )
 		{
 			if( m_state != state_t::awaiting_creation )
 				throw std::runtime_error( "expected awaiting_creation state!" );
@@ -101,7 +101,7 @@ class a_parent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::rt::msg_coop_deregistered & )
+			const so_5::msg_coop_deregistered & )
 		{
 			if( m_state != state_t::awaiting_destroying )
 				throw std::runtime_error( "msg_coop_deregistered when "
@@ -136,7 +136,7 @@ class a_parent_t
 			{
 				m_state = state_t::awaiting_destroying;
 				so_environment().deregister_coop( "child",
-						so_5::rt::dereg_reason::normal );
+						so_5::dereg_reason::normal );
 			}
 		}
 		
@@ -171,7 +171,7 @@ class a_parent_t
 		std::size_t m_acks_received;
 		std::size_t m_destroy_received;
 
-		std::vector< so_5::rt::mbox_t > m_child_mboxes;
+		std::vector< so_5::mbox_t > m_child_mboxes;
 
 		void
 		try_start_new_iteration()
@@ -191,19 +191,19 @@ class a_parent_t
 			m_acks_received = 0;
 			m_destroy_received = 0;
 
-			m_child_mboxes = std::vector< so_5::rt::mbox_t >();
+			m_child_mboxes = std::vector< so_5::mbox_t >();
 			m_child_mboxes.reserve( m_max_agents );
 
 			auto coop = so_environment().create_coop( "child" );
 			coop->set_parent_coop_name( so_coop_name() );
 			coop->add_reg_notificator(
-					so_5::rt::make_coop_reg_notificator( so_direct_mbox() ) );
+					so_5::make_coop_reg_notificator( so_direct_mbox() ) );
 			coop->add_dereg_notificator(
-					so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
+					so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
 
 			for( std::size_t i = 0; i != m_max_agents; ++i )
 			{
-				std::unique_ptr< so_5::rt::agent_t > agent(
+				std::unique_ptr< so_5::agent_t > agent(
 						new a_child_t(
 								so_environment(),
 								so_direct_mbox() ) );
@@ -236,7 +236,7 @@ main( int argc, char ** argv )
 		const int iterations = argc == 2 ? std::atoi( argv[ 1 ] ) : 100;
 
 		so_5::launch(
-			[iterations]( so_5::rt::environment_t & env )
+			[iterations]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "parent",
 					new a_parent_t( env, iterations ) );

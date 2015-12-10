@@ -16,11 +16,14 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace stats {
 
 namespace impl {
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 //
 // ds_timer_thread_stats_t
@@ -48,11 +51,13 @@ class ds_timer_thread_stats_t : public auto_registered_source_t
 		so_5::timer_thread_t & m_what;
 	};
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

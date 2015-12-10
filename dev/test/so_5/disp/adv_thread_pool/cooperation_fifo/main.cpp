@@ -20,15 +20,15 @@
 
 namespace atp_disp = so_5::disp::adv_thread_pool;
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & shutdowner_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & shutdowner_mbox )
+			:	so_5::agent_t( env )
 			,	m_shutdowner_mbox( shutdowner_mbox )
 		{
 		}
@@ -56,18 +56,18 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		static std::atomic_uint m_workers;
 
-		const so_5::rt::mbox_t m_shutdowner_mbox;
+		const so_5::mbox_t m_shutdowner_mbox;
 };
 
 std::atomic_uint a_test_t::m_workers = ATOMIC_VAR_INIT( 0 );
 
-class a_shutdowner_t : public so_5::rt::agent_t
+class a_shutdowner_t : public so_5::agent_t
 {
 	public :
 		a_shutdowner_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::size_t working_agents )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_working_agents( working_agents )
 		{}
 
@@ -92,9 +92,9 @@ void
 run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 {
 	so_5::launch(
-		[&]( so_5::rt::environment_t & env )
+		[&]( so_5::environment_t & env )
 		{
-			so_5::rt::mbox_t shutdowner_mbox;
+			so_5::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
 				auto a = c->add_agent( new a_shutdowner_t( env, thread_count ) );
@@ -112,7 +112,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 
 			env.register_coop( std::move( c ) );
 		},
-		[&]( so_5::rt::environment_params_t & params )
+		[&]( so_5::environment_params_t & params )
 		{
 			using namespace atp_disp;
 			params.add_named_dispatcher(

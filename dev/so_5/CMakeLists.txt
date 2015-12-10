@@ -19,6 +19,7 @@ set(SO_5_SRC exception.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
+	rt/mchain.cpp
 	rt/event_queue.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
@@ -44,9 +45,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/disp_repository.cpp
 	rt/impl/layer_core.cpp
 	rt/impl/state_listener_controller.cpp
-	
-	rt/impl/coop_dereg/coop_dereg_executor_thread.cpp
-	rt/impl/coop_dereg/dereg_demand_queue.cpp
 	
 	rt/stats/controller.cpp
 	rt/stats/repository.cpp

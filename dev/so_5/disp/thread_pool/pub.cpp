@@ -31,7 +31,6 @@ namespace thread_pool
 namespace
 {
 
-using namespace so_5::rt;
 using namespace so_5::disp::thread_pool::impl;
 
 //
@@ -48,10 +47,10 @@ class binding_actions_t
 			:	m_params( std::move( params ) )
 			{}
 
-		so_5::rt::disp_binding_activator_t
+		disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t agent )
+			agent_ref_t agent )
 			{
 				auto queue = disp.bind_agent( agent, m_params );
 
@@ -111,7 +110,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		 */
 		real_private_dispatcher_t(
 			//! SObjectizer Environment to work in.
-			so_5::rt::environment_t & env,
+			environment_t & env,
 			//! Parameters for the dispatcher.
 			disp_params_t params,
 			//! Value for creating names of data sources for
@@ -135,10 +134,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 				m_disp->wait();
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual disp_binder_unique_ptr_t
 		binder( const bind_params_t & params ) override
 			{
-				return so_5::rt::disp_binder_unique_ptr_t(
+				return disp_binder_unique_ptr_t(
 						new private_dispatcher_binder_t(
 								private_dispatcher_handle_t( this ),
 								*m_disp,
@@ -172,13 +171,13 @@ private_dispatcher_t::~private_dispatcher_t()
 //
 // create_disp
 //
-SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
+SO_5_FUNC dispatcher_unique_ptr_t
 create_disp(
 	disp_params_t params )
 	{
 		adjust_thread_count( params );
 
-		return so_5::rt::dispatcher_unique_ptr_t{
+		return dispatcher_unique_ptr_t{
 				new impl::dispatcher_t{
 						params.thread_count(),
 						params.queue_params() } };
@@ -190,7 +189,7 @@ create_disp(
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	//! Parameters for the dispatcher.
 	disp_params_t params,
 	//! Value for creating names of data sources for
@@ -209,12 +208,12 @@ create_private_disp(
 //
 // create_disp_binder
 //
-SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
+SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	std::string disp_name,
 	const bind_params_t & params )
 	{
-		return so_5::rt::disp_binder_unique_ptr_t(
+		return disp_binder_unique_ptr_t(
 				new disp_binder_t( std::move( disp_name ), params ) );
 	}
 

@@ -16,9 +16,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -287,8 +284,6 @@ default_subscription_storage_factory()
 	{
 		return adaptive_subscription_storage_factory( 8 );
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

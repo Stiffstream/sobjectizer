@@ -12,9 +12,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -29,7 +26,7 @@ typed_layer_ref_t::typed_layer_ref_t()
 }
 
 typed_layer_ref_t::typed_layer_ref_t(
-	const so_layer_map_t::value_type & v )
+	const layer_map_t::value_type & v )
 	:
 		m_true_type( v.first ),
 		m_layer( v.second )
@@ -38,7 +35,7 @@ typed_layer_ref_t::typed_layer_ref_t(
 
 typed_layer_ref_t::typed_layer_ref_t(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 	:
 		m_true_type( type ),
 		m_layer( layer )
@@ -57,7 +54,7 @@ typed_layer_ref_t::operator < ( const typed_layer_ref_t & tl ) const
 
 layer_core_t::layer_core_t(
 	environment_t & env,
-	const so_layer_map_t & so_layers )
+	const layer_map_t & so_layers )
 	:
 		m_env( env ),
 		m_default_layers( so_layers.begin(), so_layers.end() )
@@ -91,7 +88,7 @@ search_for_layer(
 	return layers.end();
 }
 
-so_layer_t *
+layer_t *
 layer_core_t::query_layer(
 	const std::type_index & type ) const
 {
@@ -156,7 +153,7 @@ layer_core_t::finish()
 void
 layer_core_t::add_extra_layer(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 {
 	if( nullptr == layer.get() )
 		SO_5_THROW_EXCEPTION(
@@ -213,6 +210,11 @@ layer_core_t::add_extra_layer(
 	}
 }
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+
 void
 call_shutdown( typed_layer_ref_t &  tl )
 {
@@ -223,6 +225,10 @@ call_wait( typed_layer_ref_t &  tl )
 {
 	tl.m_layer->wait();
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 void
 layer_core_t::shutdown_extra_layers()
@@ -264,7 +270,5 @@ layer_core_t::wait_default_layers()
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

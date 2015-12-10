@@ -1,5 +1,5 @@
 /*
- * A test for checking so_5::rt::ignore_exception behaviour.
+ * A test for checking so_5::ignore_exception behaviour.
  */
 
 #include <iostream>
@@ -7,18 +7,18 @@
 
 #include <so_5/all.hpp>
 
-struct msg_test_signal : public so_5::rt::signal_t {};
+struct msg_test_signal : public so_5::signal_t {};
 
 class a_test_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:	base_type_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 			,	m_counter( 0 )
 			,	m_max_attempts( 3 )
 		{}
@@ -36,7 +36,7 @@ class a_test_t
 		}
 
 		void
-		evt_signal( const so_5::rt::event_data_t< msg_test_signal > & )
+		evt_signal( const so_5::event_data_t< msg_test_signal > & )
 		{
 			if( m_counter < m_max_attempts )
 			{
@@ -49,21 +49,21 @@ class a_test_t
 				so_environment().stop();
 		}
 
-		virtual so_5::rt::exception_reaction_t
+		virtual so_5::exception_reaction_t
 		so_exception_reaction() const
 		{
-			return so_5::rt::ignore_exception;
+			return so_5::ignore_exception;
 		}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::mbox_t m_self_mbox;
 
 		int m_counter;
 		const int m_max_attempts;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test", new a_test_t( env ) );
 }

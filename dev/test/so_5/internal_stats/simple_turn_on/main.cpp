@@ -15,7 +15,7 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.stats_controller().turn_on();
 

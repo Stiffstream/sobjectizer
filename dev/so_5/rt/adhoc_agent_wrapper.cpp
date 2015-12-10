@@ -13,9 +13,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( agent_context_t ctx )
 	:	agent_t( std::move( ctx ) )
 	,	m_exception_reaction( inherit_exception_reaction )
@@ -67,7 +64,5 @@ adhoc_agent_wrapper_t::so_exception_reaction() const
 			// Let's basic implementation handle this case.
 			return agent_t::so_exception_reaction();
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */

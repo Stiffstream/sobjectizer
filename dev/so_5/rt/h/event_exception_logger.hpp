@@ -7,8 +7,7 @@
 	\brief An interface for the exception logging definition.
 */
 
-#if !defined( _SO_5__RT__EVENT_EXCEPTION_LOGGER_HPP_ )
-#define _SO_5__RT__EVENT_EXCEPTION_LOGGER_HPP_
+#pragma once
 
 #include <exception>
 #include <string>
@@ -19,9 +18,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // event_exception_logger_t
 //
@@ -29,8 +25,8 @@ namespace rt
 class event_exception_logger_t;
 
 //! Typedef for the event_exception_logger autopointer.
-typedef std::unique_ptr< event_exception_logger_t >
-	event_exception_logger_unique_ptr_t;
+using event_exception_logger_unique_ptr_t =
+	std::unique_ptr< event_exception_logger_t >;
 
 //! An interface for the exception logging.
 /*!
@@ -83,8 +79,33 @@ class SO_5_TYPE event_exception_logger_t
 SO_5_FUNC event_exception_logger_unique_ptr_t
 create_std_event_exception_logger();
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::event_exception_logger_t;
+ * instead.
+ */
+using event_exception_logger_t = so_5::event_exception_logger_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using event_exception_logger_unique_ptr_t =
+	so_5::event_exception_logger_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::create_std_event_exception_logger() instead.
+ */
+inline so_5::event_exception_logger_unique_ptr_t
+create_std_event_exception_logger()
+	{
+		return so_5::create_std_event_exception_logger();
+	}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
 
-#endif

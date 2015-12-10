@@ -130,20 +130,20 @@ total_messages( const cfg_t & cfg )
 	return total_agents + total_agents + total_agents * cfg.m_messages;
 }
 
-struct msg_start : public so_5::rt::signal_t {};
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_start : public so_5::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & controller_mbox,
+			so_5::environment_t & env,
+			const so_5::mbox_t & controller_mbox,
 			std::size_t total_messages_to_send,
 			std::size_t messages_at_start )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_controller_mbox( controller_mbox )
 			,	m_messages_to_send( total_messages_to_send )
 			,	m_messages_at_start( messages_at_start )
@@ -181,7 +181,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::mbox_t m_controller_mbox;
+		const so_5::mbox_t m_controller_mbox;
 
 		const std::size_t m_messages_to_send;
 		const std::size_t m_messages_at_start;
@@ -190,16 +190,16 @@ class a_test_t : public so_5::rt::agent_t
 		std::size_t m_messages_received = 0;
 };
 
-class a_contoller_t : public so_5::rt::agent_t
+class a_contoller_t : public so_5::agent_t
 {
 	public :
 		a_contoller_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			cfg_t cfg )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_cfg( std::move( cfg ) )
 			,	m_working_agents( cfg.m_cooperations * cfg.m_agents )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 		{}
 
 		virtual void
@@ -237,7 +237,7 @@ class a_contoller_t : public so_5::rt::agent_t
 		const cfg_t m_cfg;
 		std::size_t m_working_agents;
 
-		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::mbox_t m_self_mbox;
 
 		benchmarker_t m_benchmarker;
 
@@ -253,7 +253,7 @@ class a_contoller_t : public so_5::rt::agent_t
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
-				auto c = so_5::rt::create_child_coop(
+				auto c = so_5::create_child_coop(
 						*this,
 						ss.str(),
 						create_binder() );
@@ -271,7 +271,7 @@ class a_contoller_t : public so_5::rt::agent_t
 			}
 		}
 
-		so_5::rt::disp_binder_unique_ptr_t
+		so_5::disp_binder_unique_ptr_t
 		create_binder() const
 		{
 			if( dispatcher_t::thread_pool == m_cfg.m_dispatcher )
@@ -359,7 +359,7 @@ show_cfg( const cfg_t & cfg )
 	std::cout << std::endl;
 }
 
-so_5::rt::dispatcher_unique_ptr_t
+so_5::dispatcher_unique_ptr_t
 create_dispatcher( const cfg_t & cfg )
 {
 	const auto threads = cfg.m_threads ?
@@ -398,12 +398,12 @@ main( int argc, char ** argv )
 		show_cfg( cfg );
 
 		so_5::launch(
-			[cfg]( so_5::rt::environment_t & env )
+			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
 						new a_contoller_t( env, cfg ) );
 			},
-			[cfg]( so_5::rt::environment_params_t & params )
+			[cfg]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"thread_pool",

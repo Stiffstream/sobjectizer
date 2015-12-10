@@ -139,7 +139,7 @@ class controller_t
 		}
 };
 
-struct msg_test : public so_5::rt::message_t
+struct msg_test : public so_5::message_t
 {
 	msg_test( controller_t & controller )
 		:	m_controller( controller )
@@ -155,21 +155,21 @@ struct msg_test : public so_5::rt::message_t
 	controller_t & m_controller;
 };
 
-struct msg_stop : public so_5::rt::signal_t
+struct msg_stop : public so_5::signal_t
 {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			controller_t & controller )
 			:	base_type_t( env )
 			,	m_controller( controller )
-			,	m_mbox_1( env.create_local_mbox() )
-			,	m_mbox_2( env.create_local_mbox() )
+			,	m_mbox_1( env.create_mbox() )
+			,	m_mbox_2( env.create_mbox() )
 		{
 		}
 
@@ -197,7 +197,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_msg_1( const so_5::rt::event_data_t< msg_test > & evt )
+		evt_msg_1( const so_5::event_data_t< msg_test > & evt )
 		{
 			m_controller.msg_receive_1( evt.get() );
 
@@ -208,7 +208,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_msg_2( const so_5::rt::event_data_t< msg_test > & evt )
+		evt_msg_2( const so_5::event_data_t< msg_test > & evt )
 		{
 			m_controller.msg_receive_2( evt.get() );
 
@@ -216,7 +216,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_stop( const so_5::rt::event_data_t< msg_stop > & )
+		evt_stop( const so_5::event_data_t< msg_stop > & )
 		{
 			so_environment().stop();
 		}
@@ -224,8 +224,8 @@ class a_test_t : public so_5::rt::agent_t
 	private :
 		controller_t & m_controller;
 
-		so_5::rt::mbox_t m_mbox_1;
-		so_5::rt::mbox_t m_mbox_2;
+		so_5::mbox_t m_mbox_1;
+		so_5::mbox_t m_mbox_2;
 };
 
 struct test_env_t
@@ -233,7 +233,7 @@ struct test_env_t
 	controller_t m_controller;
 
 	void
-	init( so_5::rt::environment_t & env )
+	init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( "test_coop",
 				new a_test_t( env, m_controller ) );
@@ -248,7 +248,7 @@ main()
 		test_env_t test_env;
 
 		so_5::launch(
-			[&]( so_5::rt::environment_t & env )
+			[&]( so_5::environment_t & env )
 			{
 				test_env.init( env );
 			} );

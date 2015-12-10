@@ -9,8 +9,8 @@
 
 #include <so_5/all.hpp>
 
-so_5::rt::mbox_t
-make_converter( so_5::rt::agent_coop_t & coop )
+so_5::mbox_t
+make_converter( so_5::coop_t & coop )
 	{
 		auto a = coop.define_agent();
 		a.event( a, []( const std::string & value ) -> int {
@@ -31,13 +31,13 @@ make_converter( so_5::rt::agent_coop_t & coop )
 	}
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & svc_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & svc_mbox )
+			:	so_5::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
 
@@ -70,7 +70,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_svc_mbox;
+		const so_5::mbox_t m_svc_mbox;
 	};
 
 int
@@ -78,10 +78,10 @@ main()
 	{
 		try
 			{
-				so_5::launch( []( so_5::rt::environment_t & env ) {
+				so_5::launch( []( so_5::environment_t & env ) {
 						env.introduce_coop(
 								so_5::disp::active_obj::create_private_disp( env )->binder(),
-								[]( so_5::rt::coop_t & coop ) {
+								[]( so_5::coop_t & coop ) {
 									auto service = make_converter( coop );
 									coop.make_agent< a_client_t >( service );
 								} );

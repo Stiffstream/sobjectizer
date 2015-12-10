@@ -64,9 +64,9 @@ typedef std::shared_ptr< thread_id_collector_t > thread_id_collector_ptr_t;
 
 typedef std::vector< thread_id_collector_ptr_t > collector_container_t;
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
 /*
  * There is a trick in working scheme for this agent.
@@ -83,14 +83,14 @@ struct msg_hello : public so_5::rt::signal_t {};
  * processed on the same working thread because of big value
  * of max_demands_at_once parameter.
  */
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			thread_id_collector_t & collector,
-			const so_5::rt::mbox_t & shutdowner_mbox )
-			:	so_5::rt::agent_t( env )
+			const so_5::mbox_t & shutdowner_mbox )
+			:	so_5::agent_t( env )
 			,	m_collector( collector )
 		{
 			so_subscribe_self().event< msg_hello >(
@@ -111,13 +111,13 @@ class a_test_t : public so_5::rt::agent_t
 		thread_id_collector_t & m_collector;
 };
 
-class a_shutdowner_t : public so_5::rt::agent_t
+class a_shutdowner_t : public so_5::agent_t
 {
 	public :
 		a_shutdowner_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::size_t working_agents )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_working_agents( working_agents )
 		{}
 
@@ -158,9 +158,9 @@ run_sobjectizer(
 	duration_meter_t duration( "running of test cooperations" );
 
 	so_5::launch(
-		[&]( so_5::rt::environment_t & env )
+		[&]( so_5::environment_t & env )
 		{
-			so_5::rt::mbox_t shutdowner_mbox;
+			so_5::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
 				auto a = c->add_agent( new a_shutdowner_t( env,
@@ -199,7 +199,7 @@ run_sobjectizer(
 				env.register_coop( std::move( c ) );
 			}
 		},
-		[&]( so_5::rt::environment_params_t & params )
+		[&]( so_5::environment_params_t & params )
 		{
 			using namespace tp_disp;
 			params.add_named_dispatcher(

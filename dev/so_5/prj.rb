@@ -38,6 +38,7 @@ MxxRu::Cpp::dll_target {
 		cpp_source 'message_limit.cpp'
 
 		cpp_source 'mbox.cpp'
+		cpp_source 'mchain.cpp'
 
 		cpp_source 'event_queue.cpp'
 
@@ -74,11 +75,6 @@ MxxRu::Cpp::dll_target {
 			cpp_source 'disp_repository.cpp'
 			cpp_source 'layer_core.cpp'
 			cpp_source 'state_listener_controller.cpp'
-
-			sources_root( 'coop_dereg' ){
-				cpp_source 'coop_dereg_executor_thread.cpp'
-				cpp_source 'dereg_demand_queue.cpp'
-			}
 		}
 
 		sources_root( 'stats' ) {

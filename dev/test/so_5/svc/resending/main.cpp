@@ -12,7 +12,7 @@
 
 const std::size_t SVC_COUNT = 5;
 
-struct msg_param : public so_5::rt::message_t
+struct msg_param : public so_5::message_t
 	{
 		bool m_test_passed;
 		mutable std::size_t m_svc_handled;
@@ -44,15 +44,15 @@ struct msg_param : public so_5::rt::message_t
 	};
 
 class a_service_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_service_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & self_mbox,
-			const so_5::rt::mbox_t & next_mbox,
+			so_5::environment_t & env,
+			const so_5::mbox_t & self_mbox,
+			const so_5::mbox_t & next_mbox,
 			const msg_param * expected_msg_ptr )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_next_mbox( next_mbox )
 			,	m_expected_msg_ptr( expected_msg_ptr )
@@ -66,7 +66,7 @@ class a_service_t
 			}
 
 		void
-		svc( const so_5::rt::event_data_t< msg_param > & evt )
+		svc( const so_5::event_data_t< msg_param > & evt )
 			{
 				if( m_expected_msg_ptr != evt.get() )
 					{
@@ -86,21 +86,21 @@ class a_service_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
-		const so_5::rt::mbox_t m_next_mbox;
+		const so_5::mbox_t m_self_mbox;
+		const so_5::mbox_t m_next_mbox;
 
 		const msg_param * const m_expected_msg_ptr;
 	};
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & svc_mbox,
+			so_5::environment_t & env,
+			const so_5::mbox_t & svc_mbox,
 			const so_5::intrusive_ptr_t< msg_param > & param )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			,	m_param( param )
 			{}
@@ -117,14 +117,14 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_svc_mbox;
+		const so_5::mbox_t m_svc_mbox;
 
 		so_5::intrusive_ptr_t< msg_param > m_param;
 	};
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
 		auto coop = env.create_coop(
 				"test_coop",
@@ -132,14 +132,14 @@ init(
 
 		so_5::intrusive_ptr_t< msg_param > msg( new msg_param() );
 
-		auto svc_mbox = env.create_local_mbox();
-		so_5::rt::mbox_t current_svc_mbox = svc_mbox;
-		so_5::rt::mbox_t next_svc_mbox;
+		auto svc_mbox = env.create_mbox();
+		so_5::mbox_t current_svc_mbox = svc_mbox;
+		so_5::mbox_t next_svc_mbox;
 
 		for( std::size_t i = 0; i != SVC_COUNT; ++i ) 
 			{
 				if( i+1 != SVC_COUNT )
-					next_svc_mbox = env.create_local_mbox();
+					next_svc_mbox = env.create_mbox();
 
 				coop->add_agent(
 						new a_service_t(
@@ -149,7 +149,7 @@ init(
 								msg.get() ) );
 
 				current_svc_mbox = next_svc_mbox;
-				next_svc_mbox = so_5::rt::mbox_t();
+				next_svc_mbox = so_5::mbox_t();
 			}
 
 		coop->add_agent( new a_client_t( env, svc_mbox, msg ) );
@@ -165,7 +165,7 @@ main()
 			{
 				so_5::launch(
 					&init,
-					[]( so_5::rt::environment_params_t & params )
+					[]( so_5::environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 								"active_obj",

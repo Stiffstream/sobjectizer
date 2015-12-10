@@ -16,76 +16,52 @@ enum sample_state_t
 	SECOND_STATE,
 };
 
-// Message for the changing state.
-struct change_state_message : public so_5::rt::message_t
-{
-	change_state_message( sample_state_t next_state )
-		: m_next_state( next_state )
-	{}
-
-	const sample_state_t m_next_state;
-};
-
 // Sample message.
-struct my_message : public so_5::rt::message_t
+struct my_message
 {
-	my_message( int x ) : m_x( x ) {}
-
 	// Some data.
 	int m_x;
 };
 
 // Another sample message.
-struct my_another_message : public so_5::rt::message_t
+struct my_another_message
 {
-	my_another_message( std::string s ) : m_s( std::move( s ) ) {}
-
 	// Some data.
 	std::string m_s;
 };
 
 // Sample message for the subscription demonstrtion.
-class my_agent_t : public so_5::rt::agent_t
+class my_agent_t : public so_5::agent_t
 {
 	public:
-		my_agent_t( so_5::rt::environment_t & env );
+		my_agent_t( context_t ctx );
 
 		// Definition of an agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override;
 
 		// Handle change state.
-		void
-		change_state_event_handler(
-			const change_state_message & message );
+		void change_state_event_handler( sample_state_t next_state );
 
 		// Handle my_message.
-		void
-		my_event_handler(
-			const my_message & message );
+		void my_event_handler( const my_message & message );
 
 		// Handle my_another_message.
-		void
-		my_another_event_handler(
-			const my_another_message & message );
+		void my_another_event_handler( const my_another_message & message );
 
 	private:
 		// Agent states.
-		const so_5::rt::state_t st_first = so_make_state( "first" );
-		const so_5::rt::state_t st_second = so_make_state( "second" );
+		const state_t st_first = so_make_state( "first" );
+		const state_t st_second = so_make_state( "second" );
 };
 
-my_agent_t::my_agent_t( so_5::rt::environment_t & env )
-	: so_5::rt::agent_t( env )
-{
-}
+my_agent_t::my_agent_t( context_t ctx )
+	: so_5::agent_t{ ctx }
+{}
 
-void
-my_agent_t::so_define_agent()
+void my_agent_t::so_define_agent()
 {
 	std::cout << "so_define_agent()" << std::endl;
 
@@ -110,25 +86,20 @@ my_agent_t::so_define_agent()
 	st_second.event( &my_agent_t::my_event_handler );
 }
 
-void
-my_agent_t::so_evt_start()
+void my_agent_t::so_evt_start()
 {
 	std::cout << "so_evt_start()" << std::endl;
 
-	std::cout << "\tsend sample messages sequence for state changes" << std::endl;
-	// Send siries of messages.
-
+	std::cout << "\tsend the first sample_state_t for state changes" << std::endl;
 	// Switch to first state and handle messages.
-	so_5::send< change_state_message >( *this, FIRST_STATE );
+	so_5::send< sample_state_t >( *this, FIRST_STATE );
 }
 
-void
-my_agent_t::change_state_event_handler(
-	const change_state_message & message )
+void my_agent_t::change_state_event_handler( sample_state_t next_state )
 {
 	std::cout << "change_state_event_handler()" << std::endl;
 
-	if( DEFAULT_STATE == message.m_next_state )
+	if( DEFAULT_STATE == next_state )
 	{
 		this >>= so_default_state();
 
@@ -137,7 +108,7 @@ my_agent_t::change_state_event_handler(
 	}
 	else
 	{
-		if( FIRST_STATE == message.m_next_state )
+		if( FIRST_STATE == next_state )
 		{
 			this >>= st_first;
 
@@ -151,9 +122,9 @@ my_agent_t::change_state_event_handler(
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to second.
-			so_5::send< change_state_message >( *this, SECOND_STATE );
+			so_5::send< sample_state_t >( *this, SECOND_STATE );
 		}
-		else if( SECOND_STATE == message.m_next_state )
+		else if( SECOND_STATE == next_state )
 		{
 			this >>= st_second;
 
@@ -168,14 +139,12 @@ my_agent_t::change_state_event_handler(
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to default.
-			so_5::send< change_state_message >( *this, DEFAULT_STATE );
+			so_5::send< sample_state_t >( *this, DEFAULT_STATE );
 		}
 	}
 }
 
-void
-my_agent_t::my_event_handler(
-	const my_message & message )
+void my_agent_t::my_event_handler( const my_message & message )
 {
 	std::cout << "my_event_handler()" << std::endl;
 
@@ -184,9 +153,7 @@ my_agent_t::my_event_handler(
 		<< "\tmessage.x = " << message.m_x << std::endl;
 }
 
-void
-my_agent_t::my_another_event_handler(
-	const my_another_message & message )
+void my_agent_t::my_another_event_handler( const my_another_message & message )
 {
 	std::cout << "my_another_event_handler()" << std::endl;
 
@@ -196,13 +163,12 @@ my_agent_t::my_another_event_handler(
 }
 
 
-int
-main()
+int main()
 {
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( so_5::autoname,
 						env.make_agent< my_agent_t >() );

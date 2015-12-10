@@ -8,20 +8,20 @@
 
 #include <so_5/all.hpp>
 
-struct msg_one : public so_5::rt::signal_t {};
-struct msg_two : public so_5::rt::signal_t {};
-struct msg_three : public so_5::rt::signal_t {};
-struct msg_four : public so_5::rt::signal_t {};
+struct msg_one : public so_5::signal_t {};
+struct msg_two : public so_5::signal_t {};
+struct msg_three : public so_5::signal_t {};
+struct msg_four : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:	base_type_t( env )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{
 		}
 
@@ -47,7 +47,7 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_one( const so_5::rt::event_data_t< msg_one > & )
+		evt_one( const so_5::event_data_t< msg_one > & )
 		{
 			for( size_t i = 0; i != 10000u; ++i )
 			{
@@ -62,29 +62,29 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_two( const so_5::rt::event_data_t< msg_two > & )
+		evt_two( const so_5::event_data_t< msg_two > & )
 		{
 			std::abort();
 		}
 
 		void
-		evt_three( const so_5::rt::event_data_t< msg_three > & )
+		evt_three( const so_5::event_data_t< msg_three > & )
 		{
 			m_mbox->deliver_signal< msg_four >();
 		}
 
 		void
-		evt_four( const so_5::rt::event_data_t< msg_four > & )
+		evt_four( const so_5::event_data_t< msg_four > & )
 		{
 			so_environment().stop();
 		}
 
 	private :
-		so_5::rt::mbox_t m_mbox;
+		so_5::mbox_t m_mbox;
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test", new a_test_t( env ) );
 }

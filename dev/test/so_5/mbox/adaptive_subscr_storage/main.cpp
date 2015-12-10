@@ -9,17 +9,17 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class test_mbox_t : public so_5::rt::abstract_message_box_t
+class test_mbox_t : public so_5::abstract_message_box_t
 	{
 	private :
-		const so_5::rt::mbox_t m_actual_mbox;
+		const so_5::mbox_t m_actual_mbox;
 
 		unsigned int m_subscriptions = 0;
 		unsigned int m_unsubscriptions = 0;
 
 	public :
-		test_mbox_t( so_5::rt::environment_t & env )
-			:	m_actual_mbox( env.create_local_mbox() )
+		test_mbox_t( so_5::environment_t & env )
+			:	m_actual_mbox( env.create_mbox() )
 			{
 			}
 
@@ -44,7 +44,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		do_deliver_message(
 			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & message_ref,
+			const so_5::message_ref_t & message_ref,
 			unsigned int overlimit_reaction_deep ) const override
 			{
 				m_actual_mbox->do_deliver_message(
@@ -54,7 +54,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		do_deliver_service_request(
 			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & svc_request_ref,
+			const so_5::message_ref_t & svc_request_ref,
 			unsigned int overlimit_reaction_deep ) const override
 			{
 				m_actual_mbox->do_deliver_service_request(
@@ -66,8 +66,8 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			const so_5::rt::message_limit::control_block_t * limit,
-			so_5::rt::agent_t * subscriber ) override
+			const so_5::message_limit::control_block_t * limit,
+			so_5::agent_t * subscriber ) override
 			{
 				++m_subscriptions;
 				m_actual_mbox->subscribe_event_handler( type_index, limit, subscriber );
@@ -76,7 +76,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber ) override
+			so_5::agent_t * subscriber ) override
 			{
 				++m_unsubscriptions;
 				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
@@ -85,7 +85,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual std::string
 		query_name() const override { return m_actual_mbox->query_name(); }
 
-		virtual so_5::rt::mbox_type_t
+		virtual so_5::mbox_type_t
 		type() const override
 			{
 				return m_actual_mbox->type();
@@ -94,8 +94,8 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		set_delivery_filter(
 			const std::type_index & msg_type,
-			const so_5::rt::delivery_filter_t & filter,
-			so_5::rt::agent_t & subscriber ) override
+			const so_5::delivery_filter_t & filter,
+			so_5::agent_t & subscriber ) override
 			{
 				m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 			}
@@ -103,26 +103,26 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			so_5::rt::agent_t & subscriber ) SO_5_NOEXCEPT override
+			so_5::agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 			}
 
-		static so_5::rt::mbox_t
-		create( so_5::rt::environment_t & env )
+		static so_5::mbox_t
+		create( so_5::environment_t & env )
 			{
-				return so_5::rt::mbox_t( new test_mbox_t( env ) );
+				return so_5::mbox_t( new test_mbox_t( env ) );
 			}
 	};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
-			so_5::rt::subscription_storage_factory_t factory )
+			so_5::environment_t & env,
+			so_5::subscription_storage_factory_t factory )
 			:	base_type_t( env + factory )
 			,	m_mbox( test_mbox_t::create( env ) )
 		{
@@ -142,33 +142,33 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		struct next : public so_5::rt::signal_t {};
+		struct next : public so_5::signal_t {};
 
-		so_5::rt::mbox_t m_mbox;
+		so_5::mbox_t m_mbox;
 
-		so_5::rt::state_t st_1_1 = so_make_state( "st_1_1" );
-		so_5::rt::state_t st_1_2 = so_make_state( "st_1_2" );
-		so_5::rt::state_t st_1_3 = so_make_state( "st_1_3" );
-		so_5::rt::state_t st_1_4 = so_make_state( "st_1_4" );
-		so_5::rt::state_t st_1_5 = so_make_state( "st_1_5" );
-		so_5::rt::state_t st_1_6 = so_make_state( "st_1_6" );
-		so_5::rt::state_t st_1_7 = so_make_state( "st_1_7" );
-		so_5::rt::state_t st_1_8 = so_make_state( "st_1_8" );
+		so_5::state_t st_1_1 = so_make_state( "st_1_1" );
+		so_5::state_t st_1_2 = so_make_state( "st_1_2" );
+		so_5::state_t st_1_3 = so_make_state( "st_1_3" );
+		so_5::state_t st_1_4 = so_make_state( "st_1_4" );
+		so_5::state_t st_1_5 = so_make_state( "st_1_5" );
+		so_5::state_t st_1_6 = so_make_state( "st_1_6" );
+		so_5::state_t st_1_7 = so_make_state( "st_1_7" );
+		so_5::state_t st_1_8 = so_make_state( "st_1_8" );
 
-		so_5::rt::state_t st_2_1 = so_make_state( "st_2_1" );
-		so_5::rt::state_t st_2_2 = so_make_state( "st_2_2" );
-		so_5::rt::state_t st_2_3 = so_make_state( "st_2_3" );
-		so_5::rt::state_t st_2_4 = so_make_state( "st_2_4" );
-		so_5::rt::state_t st_2_5 = so_make_state( "st_2_5" );
-		so_5::rt::state_t st_2_6 = so_make_state( "st_2_6" );
-		so_5::rt::state_t st_2_7 = so_make_state( "st_2_7" );
-		so_5::rt::state_t st_2_8 = so_make_state( "st_2_8" );
+		so_5::state_t st_2_1 = so_make_state( "st_2_1" );
+		so_5::state_t st_2_2 = so_make_state( "st_2_2" );
+		so_5::state_t st_2_3 = so_make_state( "st_2_3" );
+		so_5::state_t st_2_4 = so_make_state( "st_2_4" );
+		so_5::state_t st_2_5 = so_make_state( "st_2_5" );
+		so_5::state_t st_2_6 = so_make_state( "st_2_6" );
+		so_5::state_t st_2_7 = so_make_state( "st_2_7" );
+		so_5::state_t st_2_8 = so_make_state( "st_2_8" );
 
-		so_5::rt::state_t st_finish = so_make_state( "st_finish" );
+		so_5::state_t st_finish = so_make_state( "st_finish" );
 
 		void
 		perform_action(
-			const so_5::rt::state_t & next_state,
+			const so_5::state_t & next_state,
 			void (a_test_t::*event_handler)() )
 		{
 			this >>= next_state;
@@ -298,7 +298,6 @@ do_test()
 {
 	using namespace std;
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	const std::size_t threshold = 4;
 
@@ -347,7 +346,7 @@ do_test()
 			[&f] {
 				for( int i = 0; i != 10; ++i )
 					so_5::launch(
-						[&]( so_5::rt::environment_t & env )
+						[&]( so_5::environment_t & env )
 						{
 							env.register_agent_as_coop( "test",
 								new a_test_t( env, f.second ) );

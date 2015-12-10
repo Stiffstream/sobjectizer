@@ -17,15 +17,15 @@
 // Due to expiration of key-value lifetimes the agents should receive
 // negative responses for its requests from time to time.
 //
-class a_consumer_t : public so_5::rt::agent_t
+class a_consumer_t : public so_5::agent_t
 {
 public :
 	a_consumer_t(
 		// Environment to work in.
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Mbox of key-value-storage.
-		so_5::rt::mbox_t storage_mbox )
-		:	so_5::rt::agent_t( env )
+		so_5::mbox_t storage_mbox )
+		:	so_5::agent_t( env )
 		,	m_storage_mbox( std::move( storage_mbox ) )
 	{
 		m_values.emplace_back( std::make_pair( "first", "value for first" ) );
@@ -63,10 +63,10 @@ public :
 
 private :
 	// Signal for next interation of requests loop.
-	struct msg_next_turn : public so_5::rt::signal_t {};
+	struct msg_next_turn : public so_5::signal_t {};
 
 	// Mbox of key-value-storage.
-	const so_5::rt::mbox_t m_storage_mbox;
+	const so_5::mbox_t m_storage_mbox;
 
 	// Values to be placed into storage.
 	std::vector< std::pair< std::string, std::string > > m_values;
@@ -102,7 +102,7 @@ private :
 
 		if( values_found )
 			// Loop count be continued.
-			so_5::send_delayed_to_agent< msg_next_turn >( *this,
+			so_5::send_delayed< msg_next_turn >( *this,
 					std::chrono::milliseconds{ 50 } );
 		else
 			// Work can be finished. All values removed due to
@@ -116,13 +116,13 @@ main()
 {
 	try
 	{
-		so_5::launch( []( so_5::rt::environment_t & env )
+		so_5::launch( []( so_5::environment_t & env )
 			{
 				// All agents of example must be active agents.
 				env.introduce_coop(
 					// Agents will be bound to private active_obj dispatcher.
 					so_5::disp::active_obj::create_private_disp( env )->binder(),
-					[]( so_5::rt::coop_t & coop ) {
+					[]( so_5::coop_t & coop ) {
 						auto storage = coop.make_agent< a_key_value_storage_t >();
 
 						coop.make_agent< a_consumer_t >( storage->so_direct_mbox() );

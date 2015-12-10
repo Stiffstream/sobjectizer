@@ -190,16 +190,16 @@ class actual_thread_t : public timer_thread_t
 		virtual timer_id_t
 		schedule(
 			const std::type_index & type_index,
-			const so_5::rt::mbox_t & mbox_r,
-			const so_5::rt::message_ref_t & msg_r,
+			const mbox_t & mbox_r,
+			const message_ref_t & msg_r,
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{
 				std::unique_ptr< timer_demand_t > timer(
 						new timer_demand_t( m_thread.get() ) );
 
-				so_5::rt::mbox_t mbox{ mbox_r };
-				so_5::rt::message_ref_t msg{ msg_r };
+				mbox_t mbox{ mbox_r };
+				message_ref_t msg{ msg_r };
 				m_thread->activate( timer->timer_holder(),
 						pause,
 						period,
@@ -214,8 +214,8 @@ class actual_thread_t : public timer_thread_t
 		virtual void
 		schedule_anonymous(
 			const std::type_index & type_index,
-			const so_5::rt::mbox_t & mbox,
-			const so_5::rt::message_ref_t & msg,
+			const mbox_t & mbox,
+			const message_ref_t & msg,
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{
@@ -255,6 +255,12 @@ using error_logger_for_timertt_t = std::function< void(const std::string &) >;
 //
 // create_error_logger_for_timertt
 //
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+
 error_logger_for_timertt_t
 create_error_logger_for_timertt( error_logger_shptr_t logger )
 	{
@@ -264,6 +270,10 @@ create_error_logger_for_timertt( error_logger_shptr_t logger )
 			}
 		};
 	}
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 //
 // exception_handler_for_timertt_t
@@ -278,6 +288,12 @@ using exception_handler_for_timertt_t =
 //
 // create_exception_handler_for_timertt
 //
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+
 exception_handler_for_timertt_t
 create_exception_handler_for_timertt( error_logger_shptr_t logger )
 	{
@@ -291,6 +307,10 @@ create_exception_handler_for_timertt( error_logger_shptr_t logger )
 			} );
 		};
 	}
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 /*!
  * \name Short synonyms for timertt templates.

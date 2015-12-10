@@ -7,11 +7,11 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_receiver_started : public so_5::rt::signal_t {};
-struct msg_send_messages : public so_5::rt::signal_t {};
+struct msg_receiver_started : public so_5::signal_t {};
+struct msg_send_messages : public so_5::signal_t {};
 
-struct msg_request : public so_5::rt::signal_t {};
-struct msg_reply : public so_5::rt::message_t
+struct msg_request : public so_5::signal_t {};
+struct msg_reply : public so_5::message_t
 	{
 		so_5::priority_t m_priority;
 
@@ -22,10 +22,10 @@ struct msg_reply : public so_5::rt::message_t
 
 void
 define_receiver_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
 	so_5::priority_t priority,
-	const so_5::rt::mbox_t & common_mbox )
+	const so_5::mbox_t & common_mbox )
 	{
 		coop.define_agent( coop.make_agent_context() + priority, disp.binder() )
 			.on_start( [common_mbox] {
@@ -40,9 +40,9 @@ define_receiver_agent(
 
 void
 define_message_sender(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
-	const so_5::rt::mbox_t & common_mbox )
+	const so_5::mbox_t & common_mbox )
 	{
 		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.event< msg_send_messages >( common_mbox, [common_mbox] {
@@ -53,8 +53,8 @@ define_message_sender(
 
 void
 define_supervison_agent(
-	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t & common_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & common_mbox )
 	{
 		struct supervisor_data
 			{
@@ -112,12 +112,12 @@ define_supervison_agent(
 
 void
 fill_coop(
-	so_5::rt::agent_coop_t & coop )
+	so_5::coop_t & coop )
 	{
 		using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 		using namespace so_5::prio;
 
-		auto common_mbox = coop.environment().create_local_mbox();
+		auto common_mbox = coop.environment().create_mbox();
 		auto rr_disp = create_private_disp( coop.environment(),
 				quotes_t{2}
 					.set( p7, 5 )
@@ -144,7 +144,7 @@ main()
 				[]()
 				{
 					so_5::launch(
-						[]( so_5::rt::environment_t & env )
+						[]( so_5::environment_t & env )
 						{
 							env.introduce_coop( fill_coop );
 						} );

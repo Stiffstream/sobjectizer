@@ -8,14 +8,14 @@
 
 #include <so_5/all.hpp>
 
-struct msg_one : public so_5::rt::signal_t {};
+struct msg_one : public so_5::signal_t {};
 
-class a_first_t : public so_5::rt::agent_t
+class a_first_t : public so_5::agent_t
 {
 	public :
 		a_first_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{
 		}
 
@@ -32,17 +32,17 @@ class a_first_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_one( const so_5::rt::event_data_t< msg_one > & )
+		evt_one( const so_5::event_data_t< msg_one > & )
 		{}
 };
 
-class a_second_t : public so_5::rt::agent_t
+class a_second_t : public so_5::agent_t
 {
 	public :
 		a_second_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
+			:	so_5::agent_t( env )
 			,	m_mbox( mbox )
 		{
 		}
@@ -62,11 +62,11 @@ class a_second_t : public so_5::rt::agent_t
 		}
 
 		void
-		evt_one( const so_5::rt::event_data_t< msg_one > & )
+		evt_one( const so_5::event_data_t< msg_one > & )
 		{}
 
 	private :
-		const so_5::rt::mbox_t m_mbox;
+		const so_5::mbox_t m_mbox;
 };
 
 int
@@ -75,7 +75,7 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				auto coop = env.create_coop( "test" );
 

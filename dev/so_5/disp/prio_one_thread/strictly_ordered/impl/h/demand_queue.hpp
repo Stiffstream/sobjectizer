@@ -40,14 +40,14 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
  * \since v.5.5.8
  * \brief A single execution demand.
  */
-struct demand_t : public so_5::rt::execution_demand_t
+struct demand_t : public execution_demand_t
 	{
 		//! Next demand in the queue.
 		demand_t * m_next = nullptr;
 
 		//! Initializing constructor.
-		demand_t( so_5::rt::execution_demand_t && source )
-			:	so_5::rt::execution_demand_t( std::move( source ) )
+		demand_t( execution_demand_t && source )
+			:	execution_demand_t( std::move( source ) )
 			{}
 	};
 
@@ -73,7 +73,7 @@ class demand_queue_t
 
 		//! Description of queue for one priority.
 		struct queue_for_one_priority_t
-			:	public so_5::rt::event_queue_t
+			:	public event_queue_t
 			{
 				//! Pointer to main demand queue.
 				demand_queue_t * m_demand_queue = nullptr;
@@ -98,7 +98,7 @@ class demand_queue_t
 				 */
 
 				virtual void
-				push( so_5::rt::execution_demand_t exec_demand ) override
+				push( execution_demand_t exec_demand ) override
 					{
 						demand_unique_ptr_t what{ new demand_t{
 								std::move( exec_demand ) } };
@@ -190,7 +190,7 @@ class demand_queue_t
 			}
 
 		//! Get queue for the priority specified.
-		so_5::rt::event_queue_t &
+		event_queue_t &
 		event_queue_by_priority( priority_t priority )
 			{
 				return m_priorities[ to_size_t(priority) ];
@@ -252,7 +252,7 @@ class demand_queue_t
 						demand_unique_ptr_t t{ h };
 						h = h->m_next;
 					}
-			};
+			}
 
 		//! Push a new demand to the queue.
 		void

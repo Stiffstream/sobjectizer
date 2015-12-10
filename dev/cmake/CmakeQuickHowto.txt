@@ -54,16 +54,16 @@ To build SObjectizer under Windows by MS Visual Studio 2013 from command line Yo
 need console with properly configured compiler environment variables via vcvarsall.bat
 (I start it from "Start->All Programms->Visuil Studio 2013->Tools")
 
-  cd so-5.5.12
+  cd so-5.5.13
   mkdir cmake_build
   cd cmake_build
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 12 2013" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 14 2015" ../dev
   msbuild /m /t:Build /p:Configuration=Release ALL_BUILD.vcxproj
   msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
 
 If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
 
 msbuild's Configuration argument usually can be one of "Debug", "Release", "MinSizeRel" or
 "RelWithDebInfo".
@@ -82,7 +82,7 @@ Running tests from Windows
 ==========================
 
   :: run once
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 12 2013" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 14 2015" ../dev
   :: and after each change
   msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
   run_tests.bat
@@ -97,7 +97,7 @@ so.5.x.x.dll will be in known directory.
 Running tests without installation (set need to be configured once if You will not change
 Configuration=Release argument)
 
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 12 2013" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_TESTS=ON -G "Visual Studio 14 2015" ../dev
   msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
   set PATH=%PATH%;dir_with_compiled_so.5.x.x.dll
   ctest --force-new-ctest-process

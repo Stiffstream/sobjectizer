@@ -23,9 +23,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // environment_params_t
 //
@@ -119,9 +116,9 @@ environment_params_t::event_exception_logger(
 void
 environment_params_t::add_layer(
 	const std::type_index & type,
-	so_layer_unique_ptr_t layer_ptr )
+	layer_unique_ptr_t layer_ptr )
 {
-	m_so_layers[ type ] = so_layer_ref_t( layer_ptr.release() );
+	m_so_layers[ type ] = layer_ref_t( layer_ptr.release() );
 }
 
 namespace 
@@ -150,9 +147,9 @@ class core_data_sources_t
 	{
 	public :
 		core_data_sources_t(
-			so_5::rt::stats::repository_t & ds_repository,
-			so_5::rt::impl::mbox_core_t & mbox_repository,
-			so_5::rt::impl::agent_core_t & coop_repository,
+			stats::repository_t & ds_repository,
+			impl::mbox_core_t & mbox_repository,
+			impl::agent_core_t & coop_repository,
 			so_5::timer_thread_t & timer_thread )
 			:	m_mbox_repository( ds_repository, mbox_repository )
 			,	m_coop_repository( ds_repository, coop_repository )
@@ -161,11 +158,11 @@ class core_data_sources_t
 
 	private :
 		//! Data source for mboxes repository.
-		so_5::rt::stats::impl::ds_mbox_core_stats_t m_mbox_repository;
+		stats::impl::ds_mbox_core_stats_t m_mbox_repository;
 		//! Data source for cooperations repository.
-		so_5::rt::stats::impl::ds_agent_core_stats_t m_coop_repository;
+		stats::impl::ds_agent_core_stats_t m_coop_repository;
 		//! Data source for timer thread.
-		so_5::rt::stats::impl::ds_timer_thread_stats_t m_timer_thread;
+		stats::impl::ds_timer_thread_stats_t m_timer_thread;
 	};
 
 } /* namespace anonymous */
@@ -277,7 +274,7 @@ struct environment_t::internals_t
 		,	m_stats_controller(
 				// A special mbox for distributing monitoring information
 				// must be created and passed to stats_controller.
-				m_mbox_core->create_local_mbox() )
+				m_mbox_core->create_mbox() )
 		,	m_core_data_sources(
 				m_stats_controller,
 				*m_mbox_core,
@@ -308,16 +305,23 @@ environment_t::~environment_t()
 }
 
 mbox_t
-environment_t::create_local_mbox( )
+environment_t::create_mbox( )
 {
-	return m_impl->m_mbox_core->create_local_mbox();
+	return m_impl->m_mbox_core->create_mbox();
 }
 
 mbox_t
-environment_t::create_local_mbox(
+environment_t::create_mbox(
 	const nonempty_name_t & nonempty_name )
 {
-	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
+	return m_impl->m_mbox_core->create_mbox( nonempty_name );
+}
+
+mchain_t
+environment_t::create_mchain(
+	const mchain_params_t & params )
+{
+	return m_impl->m_mbox_core->create_mchain( *this, params );
 }
 
 dispatcher_t &
@@ -436,7 +440,7 @@ environment_t::single_timer(
 			std::chrono::milliseconds::zero() );
 }
 
-so_layer_t *
+layer_t *
 environment_t::query_layer(
 	const std::type_index & type ) const
 {
@@ -446,7 +450,7 @@ environment_t::query_layer(
 void
 environment_t::add_extra_layer(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 {
 	m_impl->m_layer_core.add_extra_layer( type, layer );
 }
@@ -575,6 +579,11 @@ namespace autoshutdown_guard
 			{}
 	};
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
+
 	void
 	register_init_guard_cooperation(
 		environment_t & env,
@@ -596,6 +605,11 @@ namespace autoshutdown_guard
 					"__so_5__init_autoshutdown_guard__",
 					dereg_reason::normal );
 	}
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 }
 
 void
@@ -686,7 +700,7 @@ namespace impl
 mbox_t
 internal_env_iface_t::create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+	const message_limit::impl::info_storage_t * limits_storage )
 {
 	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
 			single_consumer,
@@ -728,8 +742,6 @@ internal_env_iface_t::msg_tracer() const
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

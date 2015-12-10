@@ -68,6 +68,8 @@ add_subdirectory(coop/create_child_coop_5_5_8)
 
 add_subdirectory(mbox)
 
+add_subdirectory(mchain)
+
 add_subdirectory(msg_tracing)
 
 add_subdirectory(ad_hoc_agents)

@@ -121,16 +121,16 @@ show_cfg( const cfg_t & cfg )
 }
 
 // Timer message.
-struct msg_timer : public so_5::rt::signal_t {};
+struct msg_timer : public so_5::signal_t {};
 
 // Agent-receiver.
-class a_receiver_t : public so_5::rt::agent_t
+class a_receiver_t : public so_5::agent_t
 {
 public :
 	a_receiver_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		unsigned long long messages )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_messages_to_receive( messages )
 	{}
 
@@ -154,15 +154,15 @@ private :
 };
 
 // Agent-sender.
-class a_sender_t : public so_5::rt::agent_t
+class a_sender_t : public so_5::agent_t
 {
 public :
 	a_sender_t(
-		so_5::rt::environment_t & env,
-		so_5::rt::mbox_t dest_mbox,
+		so_5::environment_t & env,
+		so_5::mbox_t dest_mbox,
 		unsigned long long messages_to_send,
 		std::chrono::milliseconds delay )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_dest_mbox( std::move( dest_mbox ) )
 		,	m_messages_to_send( messages_to_send )
 		,	m_delay( delay )
@@ -176,7 +176,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_dest_mbox;
+	const so_5::mbox_t m_dest_mbox;
 
 	const unsigned long long m_messages_to_send;
 
@@ -188,12 +188,12 @@ run_sobjectizer( const cfg_t & cfg )
 {
 	so_5::launch(
 		// Initialization actions.
-		[&cfg]( so_5::rt::environment_t & env )
+		[&cfg]( so_5::environment_t & env )
 		{
 			// Active object dispatcher is necessary.
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[&cfg]( so_5::rt::coop_t & coop ) {
+				[&cfg]( so_5::coop_t & coop ) {
 					auto a_receiver = coop.make_agent< a_receiver_t >( cfg.m_messages );
 
 					coop.make_agent< a_sender_t >(
@@ -201,7 +201,7 @@ run_sobjectizer( const cfg_t & cfg )
 				});
 		},
 		// Parameter tuning actions.
-		[&cfg]( so_5::rt::environment_params_t & params )
+		[&cfg]( so_5::environment_params_t & params )
 		{
 			// Appropriate timer thread must be used.
 			so_5::timer_thread_factory_t timer = so_5::timer_wheel_factory();

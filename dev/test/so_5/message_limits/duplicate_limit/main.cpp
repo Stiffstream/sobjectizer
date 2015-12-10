@@ -14,15 +14,15 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_one : public so_5::rt::signal_t {};
-struct msg_two : public so_5::rt::signal_t {};
+struct msg_one : public so_5::signal_t {};
+struct msg_two : public so_5::signal_t {};
 
-class a_wrong_agent_t : public so_5::rt::agent_t
+class a_wrong_agent_t : public so_5::agent_t
 {
 public :
 	a_wrong_agent_t(
-		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env
+		so_5::environment_t & env )
+		:	so_5::agent_t( env
 				+ limit_then_drop< msg_one >( 2 )
 				+ limit_then_drop< msg_two >( 1000 )
 				+ limit_then_redirect< msg_one >( 3,
@@ -61,12 +61,12 @@ private :
 	unsigned int m_received = 0;
 };
 
-class a_normal_agent_t : public so_5::rt::agent_t
+class a_normal_agent_t : public so_5::agent_t
 {
 public :
 	a_normal_agent_t(
-		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env
+		so_5::environment_t & env )
+		:	so_5::agent_t( env
 				+ limit_then_drop< msg_one >( 1 )
 				+ limit_then_drop< msg_two >( 1 ) )
 	{}
@@ -90,7 +90,7 @@ public :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( so_5::autoname );
 

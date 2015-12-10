@@ -26,7 +26,7 @@ namespace so_5
 //! The base class for the object with a reference counting.
 /*!
  * Should be used as a base class. The smart reference for such objects
- * should be defined for derived classes (for example so_5::rt::agent_ref_t).
+ * should be defined for derived classes (for example agent_ref_t).
 */
 class SO_5_TYPE atomic_refcounted_t
 {

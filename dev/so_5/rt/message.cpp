@@ -7,9 +7,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // message_t
 //
@@ -47,8 +44,6 @@ signal_t::signal_t()
 
 signal_t::~signal_t()
 {}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

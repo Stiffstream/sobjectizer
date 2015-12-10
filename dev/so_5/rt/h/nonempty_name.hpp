@@ -7,8 +7,7 @@
 	\brief A nonempty_name class definition.
 */
 
-#if !defined( _SO_5__RT__NONEMPTY_NAME_HPP_ )
-#define _SO_5__RT__NONEMPTY_NAME_HPP_
+#pragma once
 
 #include <string>
 
@@ -16,9 +15,6 @@
 #include <so_5/h/declspec.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 #if defined( SO_5_MSVC )
@@ -63,8 +59,16 @@ class SO_5_TYPE nonempty_name_t
 	#pragma warning(pop)
 #endif
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::nonempty_name_t
+ * instead.
+ */
+using nonempty_name_t = so_5::nonempty_name_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
 
-#endif

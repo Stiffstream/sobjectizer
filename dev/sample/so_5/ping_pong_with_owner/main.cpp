@@ -7,14 +7,14 @@
 // Ping signal.
 // Signal is a special type of message which has no actual data.
 // Sending of signals is like sending only atoms in Erlang.
-struct ping : public so_5::rt::signal_t {};
+struct ping : public so_5::signal_t {};
 
 // Pong signal.
-struct pong : public so_5::rt::signal_t {};
+struct pong : public so_5::signal_t {};
 
 // Message with result of pinger/ponger run.
 // Unlike signal message it must have actual data.
-struct run_result : public so_5::rt::message_t
+struct run_result : public so_5::message_t
 {
 	std::string m_result;
 
@@ -26,21 +26,21 @@ struct run_result : public so_5::rt::message_t
 };
 
 // Pinger agent.
-class pinger : public so_5::rt::agent_t
+class pinger : public so_5::agent_t
 {
 public :
 	pinger(
 		// SObjectizer Environment to work within.
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Parent's mbox for result sending.
-		const so_5::rt::mbox_t & parent )
-		:	so_5::rt::agent_t( env )
+		const so_5::mbox_t & parent )
+		:	so_5::agent_t( env )
 		,	m_parent( parent )
 	{}
 
 	// Ponger mbox will be available only after
 	// creation of pinger/ponger pair. 
-	void set_ponger_mbox( const so_5::rt::mbox_t & mbox ) {
+	void set_ponger_mbox( const so_5::mbox_t & mbox ) {
 		m_ponger = mbox;
 	}
 
@@ -75,25 +75,25 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_parent;
-	so_5::rt::mbox_t m_ponger;
+	const so_5::mbox_t m_parent;
+	so_5::mbox_t m_ponger;
 	unsigned int m_pongs = 0;
 };
 
 // Ponger agent is very similar to pinger.
 // But it hasn't so_evt_start method because it will
 // wait the first ping signal from the pinger.
-class ponger : public so_5::rt::agent_t
+class ponger : public so_5::agent_t
 {
 public :
 	ponger(
-		so_5::rt::environment_t & env,
-		const so_5::rt::mbox_t & parent )
-		:	so_5::rt::agent_t( env )
+		so_5::environment_t & env,
+		const so_5::mbox_t & parent )
+		:	so_5::agent_t( env )
 		,	m_parent( parent )
 	{}
 
-	void set_pinger_mbox( const so_5::rt::mbox_t & mbox ) {
+	void set_pinger_mbox( const so_5::mbox_t & mbox ) {
 		m_pinger = mbox;
 	}
 
@@ -112,19 +112,19 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_parent;
-	so_5::rt::mbox_t m_pinger;
+	const so_5::mbox_t m_parent;
+	so_5::mbox_t m_pinger;
 	unsigned int m_pings = 0;
 };
 
 // Parent agent.
 // Creates pair of pinger/ponger agents, then limits their working time,
 // then handles their run results.
-class parent : public so_5::rt::agent_t
+class parent : public so_5::agent_t
 {
 public :
-	parent( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	parent( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	virtual void so_define_agent() override {
@@ -137,7 +137,7 @@ public :
 					// The reason of deregistration.
 					// This value means that deregistration is caused
 					// by application logic.
-					so_5::rt::dereg_reason::normal );
+					so_5::dereg_reason::normal );
 			} );
 
 		// NOTE: message type is automatically deduced from
@@ -151,7 +151,7 @@ public :
 
 	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
-		so_5::rt::introduce_child_coop(
+		so_5::introduce_child_coop(
 				// Parent of the new cooperation.
 				*this,
 				// Cooperation name.
@@ -164,7 +164,7 @@ public :
 				so_5::disp::active_obj::create_private_disp(
 						so_environment() )->binder(),
 				// Lambda for tuning cooperation object.
-				[this]( so_5::rt::coop_t & coop ) {
+				[this]( so_5::coop_t & coop ) {
 					// Filling the child cooperation.
 					auto a_pinger = coop.make_agent< pinger >( so_direct_mbox() );
 					auto a_ponger = coop.make_agent< ponger >( so_direct_mbox() );
@@ -174,18 +174,18 @@ public :
 				} );
 
 		// Limit the pinger/ponger exchange time.
-		so_5::send_delayed_to_agent< stop >(
+		so_5::send_delayed< stop >(
 				*this, std::chrono::seconds( 1 ) );
 	}
 
 private :
 	// Time limit signal.
-	struct stop : public so_5::rt::signal_t {};
+	struct stop : public so_5::signal_t {};
 
 	// Additional state for the agent.
 	// This state means that the first result from children agents
 	// has been received and that the parent expects the last one.
-	const so_5::rt::state_t st_first_result_got = so_make_state();
+	const state_t st_first_result_got = so_make_state();
 
 	// Result's accumulator.
 	std::string m_results;
@@ -218,7 +218,7 @@ int main()
 		// Create SO Environment objects and run SO Run-Time inside it.
 		so_5::launch(
 			// SO Environment initialization routine.
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				// We must have the cooperation with just one
 				// agent inside it.

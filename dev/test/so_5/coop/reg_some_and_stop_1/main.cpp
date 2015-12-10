@@ -15,13 +15,13 @@
 // A dummy agent to be placed into test cooperations.
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -32,9 +32,9 @@ class test_agent_t
 void
 reg_coop(
 	const std::string & coop_name,
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( coop_name );
+	so_5::coop_unique_ptr_t coop = env.create_coop( coop_name );
 
 	coop->add_agent( new test_agent_t( env ) );
 	coop->add_agent( new test_agent_t( env ) );
@@ -43,7 +43,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	reg_coop( "test_coop_1", env );
 	reg_coop( "test_coop_2", env );
@@ -54,11 +54,11 @@ init( so_5::rt::environment_t & env )
 
 	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
-	env.deregister_coop( "test_coop_1", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_1", so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_6", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_6", so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_3", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_3", so_5::dereg_reason::normal );
 
 	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 

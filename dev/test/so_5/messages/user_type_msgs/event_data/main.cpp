@@ -6,13 +6,13 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
-		,	m_m1( ctx.environment().create_local_mbox() )
-		,	m_m2( ctx.environment().create_local_mbox() )
+		:	so_5::agent_t( ctx )
+		,	m_m1( ctx.environment().create_mbox() )
+		,	m_m2( ctx.environment().create_mbox() )
 	{}
 
 	virtual void
@@ -29,11 +29,11 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_m1;
-	const so_5::rt::mbox_t m_m2;
+	const so_5::mbox_t m_m1;
+	const so_5::mbox_t m_m2;
 
 	void
-	evt_one( const so_5::rt::event_data_t< so_5::rt::user_type_message_t< std::string > > & evt )
+	evt_one( const so_5::event_data_t< so_5::user_type_message_t< std::string > > & evt )
 	{
 		std::cout << "One: '" << evt->m_payload << "' at " << &(evt->m_payload) << std::endl;
 		m_m2->deliver_message( evt.make_reference() );
@@ -49,7 +49,7 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( so_5::autoname,
 			env.make_agent< a_test_t >() );

@@ -8,15 +8,11 @@
 	\brief An interface of event queue for agent.
 */
 
-#if !defined( _SO_5__RT__EVENT_QUEUE_HPP_ )
-#define _SO_5__RT__EVENT_QUEUE_HPP_
+#pragma once
 
 #include <so_5/rt/h/execution_demand.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 /*!
@@ -33,9 +29,15 @@ class SO_5_TYPE event_queue_t
 		push( execution_demand_t demand ) = 0;
 	};
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::event_queue_t instead.
+ */
+using event_queue_t = so_5::event_queue_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

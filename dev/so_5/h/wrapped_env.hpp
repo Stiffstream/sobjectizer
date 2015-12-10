@@ -45,7 +45,7 @@ namespace so_5 {
 		so_5::wrapped_env_t env;
 		... // Some user code.
 		// Add a cooperation to environment.
-		env.environment().introduce_coop( []( so_5::rt::coop_t & coop ) {
+		env.environment().introduce_coop( []( so_5::coop_t & coop ) {
 			coop.make_agent< some_agent >(...);
 			...
 		} );
@@ -59,7 +59,7 @@ namespace so_5 {
 	int main()
 	{
 		so_5::wrapped_env_t env{
-			[]( so_5::rt::environment_t & env ) {
+			[]( so_5::environment_t & env ) {
 				... // Some initialization stuff.
 			}
 		};
@@ -70,10 +70,10 @@ namespace so_5 {
 
 	// Start Environment with initialization function and custom
 	// parameters.
-	so_5::rt::environment_params_t make_params()
+	so_5::environment_params_t make_params()
 	{
-		so_5::rt::environment_params_t params;
-		params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+		so_5::environment_params_t params;
+		params.exception_reaction( so_5::shutdown_sobjectizer_on_exception );
 		...
 		return params;
 	}
@@ -81,7 +81,7 @@ namespace so_5 {
 	int main()
 	{
 		so_5::wrapped_env_t env{
-			[]( so_5::rt::environment_t & env ) {
+			[]( so_5::environment_t & env ) {
 				... // Some initialization stuff.
 			},
 			make_params()
@@ -96,11 +96,11 @@ namespace so_5 {
 	int main()
 	{
 		so_5::wrapped_env_t env{
-			[]( so_5::rt::environment_t & env ) {
+			[]( so_5::environment_t & env ) {
 				... // Some initialization stuff.
 			},
-			[]( so_5::rt::environment_params_t & params ) {
-				params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+			[]( so_5::environment_params_t & params ) {
+				params.exception_reaction( so_5::shutdown_sobjectizer_on_exception );
 				...
 			}
 		};
@@ -157,7 +157,16 @@ class SO_5_TYPE wrapped_env_t
 			//! Initialization function.
 			so_5::api::generic_simple_init_t init_func,
 			//! Environment's params.
-			so_5::rt::environment_params_t && params );
+			environment_params_t && params );
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief A constructor which receives already prepared
+		 * environment's params.
+		 */
+		wrapped_env_t(
+			//! Environment's params.
+			environment_params_t && params );
 
 		//! Destructor.
 		/*!
@@ -166,7 +175,7 @@ class SO_5_TYPE wrapped_env_t
 		~wrapped_env_t();
 
 		//! Access to wrapped environment.
-		so_5::rt::environment_t &
+		environment_t &
 		environment() const;
 
 		//! Send stop signal to environment.

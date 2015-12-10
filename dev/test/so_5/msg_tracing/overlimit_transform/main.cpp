@@ -14,11 +14,11 @@
 struct hello { int m_v; };
 struct bye { std::string m_v; };
 
-class a_first_t : public so_5::rt::agent_t
+class a_first_t : public so_5::agent_t
 {
 public :
 	a_first_t( context_t ctx )
-		:	so_5::rt::agent_t{ ctx }
+		:	so_5::agent_t{ ctx }
 	{}
 
 	virtual void
@@ -36,11 +36,11 @@ private :
 	}
 };
 
-class a_second_t : public so_5::rt::agent_t
+class a_second_t : public so_5::agent_t
 {
 public :
-	a_second_t( context_t ctx, so_5::rt::mbox_t target )
-		:	so_5::rt::agent_t{ ctx
+	a_second_t( context_t ctx, so_5::mbox_t target )
+		:	so_5::agent_t{ ctx
 				+ limit_then_transform( 1,
 						[this]( const hello & msg ) {
 							return make_transformed< bye >(
@@ -64,16 +64,16 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_target;
+	const so_5::mbox_t m_target;
 
 	void
 	evt_hello( const hello & ) {}
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			auto first = coop.make_agent< a_first_t >();
 			coop.make_agent< a_second_t >( first->so_direct_mbox() );
 		} );
@@ -89,7 +89,7 @@ main()
 			{
 				counter_t counter = { 0 };
 				so_5::launch( &init,
-					[&counter]( so_5::rt::environment_params_t & params ) {
+					[&counter]( so_5::environment_params_t & params ) {
 						params.message_delivery_tracer(
 								so_5::msg_tracing::tracer_unique_ptr_t{
 										new tracer_t{ counter,

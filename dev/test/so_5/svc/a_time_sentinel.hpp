@@ -6,15 +6,15 @@
 #include <cstdlib>
 
 class a_time_sentinel_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
-		struct msg_timeout : public so_5::rt::signal_t {};
+		struct msg_timeout : public so_5::signal_t {};
 
 		a_time_sentinel_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
+			,	m_self_mbox( env.create_mbox() )
 			{}
 
 		virtual void
@@ -28,7 +28,7 @@ class a_time_sentinel_t
 			}
 
 		void
-		evt_timeout( const so_5::rt::event_data_t< msg_timeout > & )
+		evt_timeout( const so_5::event_data_t< msg_timeout > & )
 			{
 				std::cerr << "TIMEOUT!!!" << std::endl;
 
@@ -36,7 +36,7 @@ class a_time_sentinel_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
+		const so_5::mbox_t m_self_mbox;
 	};
 
 #endif

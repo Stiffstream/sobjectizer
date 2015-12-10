@@ -9,8 +9,7 @@
 	\deprecated Obsolete in v.5.5.0.
 */
 
-#if !defined( SO_5__CHRONO_HELPERS_HPP )
-#define SO_5__CHRONO_HELPERS_HPP
+#pragma once
 
 #include <chrono>
 
@@ -41,6 +40,4 @@ namespace chrono_helpers
 } /* namespace chrono_helpers */
 
 }
-
-#endif
 

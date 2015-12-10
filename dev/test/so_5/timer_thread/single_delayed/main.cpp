@@ -10,22 +10,22 @@
 #include <so_5/all.hpp>
 
 struct test_message
-	: public so_5::rt::signal_t
+	: public so_5::signal_t
 {};
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_test_mbox( so_environment().create_local_mbox() )
+				m_test_mbox( so_environment().create_mbox() )
 		{
 		}
 
@@ -50,7 +50,7 @@ class test_agent_t
 		evt_test();
 
 	private:
-		so_5::rt::mbox_t	m_test_mbox;
+		so_5::mbox_t	m_test_mbox;
 
 		so_5::timer_thread::timer_id_ref_t	m_timer_ref;
 
@@ -70,7 +70,7 @@ test_agent_t::evt_test()
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
 }

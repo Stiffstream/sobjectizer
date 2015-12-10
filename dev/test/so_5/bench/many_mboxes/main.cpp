@@ -121,7 +121,7 @@ try_parse_cmdline(
 }
 
 #define DECLARE_SIGNAL_TYPE(I) \
-	struct msg_signal_##I : public so_5::rt::signal_t {}
+	struct msg_signal_##I : public so_5::signal_t {}
 
 DECLARE_SIGNAL_TYPE(0);
 DECLARE_SIGNAL_TYPE(1);
@@ -158,18 +158,18 @@ DECLARE_SIGNAL_TYPE(31);
 
 #undef DECLARE_SIGNAL_TYPE
 
-struct msg_start : public so_5::rt::signal_t {};
-struct msg_shutdown : public so_5::rt::signal_t {};
-struct msg_next_iteration : public so_5::rt::signal_t {};
+struct msg_start : public so_5::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
+struct msg_next_iteration : public so_5::signal_t {};
 
 class a_worker_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_worker_t(
-			so_5::rt::environment_t & env,
-			so_5::rt::subscription_storage_factory_t subscr_storage_factory )
-			:	so_5::rt::agent_t( env + subscr_storage_factory )
+			so_5::environment_t & env,
+			so_5::subscription_storage_factory_t subscr_storage_factory )
+			:	so_5::agent_t( env + subscr_storage_factory )
 			,	m_signals_received( 0 )
 			{
 			}
@@ -186,17 +186,17 @@ class a_worker_t
 
 template< class SIGNAL >
 class a_sender_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_sender_t(
-			so_5::rt::environment_t & env,
-			so_5::rt::subscription_storage_factory_t subscr_storage_factory,
-			const so_5::rt::mbox_t & common_mbox,
+			so_5::environment_t & env,
+			so_5::subscription_storage_factory_t subscr_storage_factory,
+			const so_5::mbox_t & common_mbox,
 			std::size_t iterations,
-			const std::vector< so_5::rt::mbox_t > & mboxes,
+			const std::vector< so_5::mbox_t > & mboxes,
 			const std::vector< a_worker_t * > & workers )
-			:	so_5::rt::agent_t( env + subscr_storage_factory )
+			:	so_5::agent_t( env + subscr_storage_factory )
 			,	m_common_mbox( common_mbox )
 			,	m_iterations_left( iterations )
 			,	m_mboxes( mboxes )
@@ -230,9 +230,9 @@ class a_sender_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_common_mbox;
+		const so_5::mbox_t m_common_mbox;
 		std::size_t m_iterations_left;
-		const std::vector< so_5::rt::mbox_t > & m_mboxes;
+		const std::vector< so_5::mbox_t > & m_mboxes;
 
 		void
 		try_start_next_iteration()
@@ -256,22 +256,22 @@ class a_sender_t
 		void
 		initiate_next_iteration()
 			{
-				so_5::rt::abstract_message_box_t & m = *(so_direct_mbox());
+				so_5::abstract_message_box_t & m = *(so_direct_mbox());
 				m.deliver_signal< msg_next_iteration >();
 			}
 	};
 
 class a_starter_stopper_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_starter_stopper_t(
-			so_5::rt::environment_t & env,
-			so_5::rt::subscription_storage_factory_t subscr_storage_factory,
+			so_5::environment_t & env,
+			so_5::subscription_storage_factory_t subscr_storage_factory,
 			const cfg_t & cfg )
-			:	so_5::rt::agent_t( env + subscr_storage_factory )
+			:	so_5::agent_t( env + subscr_storage_factory )
 			,	m_subscr_storage_factory( subscr_storage_factory )
-			,	m_common_mbox( env.create_local_mbox() )
+			,	m_common_mbox( env.create_mbox() )
 			,	m_cfg( cfg )
 			,	m_agents_finished( 0 )
 			{
@@ -328,9 +328,9 @@ class a_starter_stopper_t
 			}
 
 	private :
-		const so_5::rt::subscription_storage_factory_t m_subscr_storage_factory;
+		const so_5::subscription_storage_factory_t m_subscr_storage_factory;
 
-		const so_5::rt::mbox_t m_common_mbox;
+		const so_5::mbox_t m_common_mbox;
 
 		const cfg_t m_cfg;
 
@@ -338,10 +338,10 @@ class a_starter_stopper_t
 
 		benchmarker_t m_benchmark;
 
-		std::vector< so_5::rt::mbox_t > m_mboxes;
+		std::vector< so_5::mbox_t > m_mboxes;
 		std::vector< a_worker_t * > m_workers;
 
-		typedef std::function< so_5::rt::agent_t *() >
+		typedef std::function< so_5::agent_t *() >
 			sender_factory_t;
 
 		std::vector< sender_factory_t > m_sender_factories;
@@ -408,7 +408,7 @@ class a_starter_stopper_t
 					duration_meter_t meter( "creating mboxes" );
 					m_mboxes.reserve( m_cfg.m_mboxes );
 					for( std::size_t i = 0; i != m_cfg.m_mboxes; ++i )
-						m_mboxes.emplace_back( so_environment().create_local_mbox() );
+						m_mboxes.emplace_back( so_environment().create_mbox() );
 				}
 
 				auto coop = so_environment().create_coop( "child" );
@@ -430,7 +430,7 @@ class a_starter_stopper_t
 					duration_meter_t meter( "creating senders and subscribe workers" );
 					for( std::size_t i = 0; i != m_cfg.m_msg_types; ++i )
 						{
-							std::unique_ptr< so_5::rt::agent_t > sender(
+							std::unique_ptr< so_5::agent_t > sender(
 									m_sender_factories[i]() );
 							coop->add_agent( std::move( sender ) );
 						}
@@ -442,10 +442,10 @@ class a_starter_stopper_t
 			}
 	};
 
-so_5::rt::subscription_storage_factory_t
+so_5::subscription_storage_factory_t
 factory_by_cfg( const cfg_t & cfg )
 	{
-		using namespace so_5::rt;
+		using namespace so_5;
 
 		const auto type = cfg.m_subscr_storage;
 		if( subscr_storage_type_t::vector_based == type  )
@@ -475,7 +475,7 @@ main( int argc, char ** argv )
 			}
 
 		so_5::launch(
-			[cfg]( so_5::rt::environment_t & env )
+			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
 						new a_starter_stopper_t(
@@ -483,7 +483,7 @@ main( int argc, char ** argv )
 								factory_by_cfg( cfg ),
 								cfg ) );
 			},
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				// This timer thread doesn't consume resources without
 				// actual delayed/periodic messages.

@@ -17,7 +17,7 @@
 template < int N >
 class test_layer_t
 	:
-		public so_5::rt::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()
@@ -41,7 +41,7 @@ class test_layer_t
 
 class test_layer_bad_start_t
 	:
-		public so_5::rt::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_bad_start_t()
@@ -66,16 +66,16 @@ class test_layer_bad_start_t
 };
 
 class so_environment_error_checker_t
-	:	public so_5::rt::environment_t
+	:	public so_5::environment_t
 	,	public separate_so_thread::init_finish_signal_mixin_t
 {
-		typedef so_5::rt::environment_t base_type_t;
+		typedef so_5::environment_t base_type_t;
 	public:
 		so_environment_error_checker_t()
 			:
 				base_type_t(
 					std::move(
-						so_5::rt::environment_params_t()
+						so_5::environment_params_t()
 							.add_layer( new test_layer_t< 0 >() )
 							.disable_autoshutdown() ) )
 		{}

@@ -37,7 +37,7 @@ namespace reuse
 template< class DISPATCHER, class ACTION > 
 auto
 do_with_dispatcher_of_type(
-	so_5::rt::dispatcher_t * disp_pointer,
+	dispatcher_t * disp_pointer,
 	const std::string & disp_name,
 	ACTION action )
 	-> decltype(action(*static_cast<DISPATCHER *>(nullptr)))
@@ -63,12 +63,12 @@ do_with_dispatcher_of_type(
 template< class DISPATCHER, class ACTION > 
 auto
 do_with_dispatcher(
-	so_5::rt::environment_t & env,
+	environment_t & env,
 	const std::string & disp_name,
 	ACTION action )
 	-> decltype(action(*static_cast<DISPATCHER *>(nullptr)))
 	{
-		so_5::rt::dispatcher_ref_t disp_ref = env.query_named_dispatcher(
+		dispatcher_ref_t disp_ref = env.query_named_dispatcher(
 				disp_name );
 
 		// If the dispatcher is found then the agent should be bound to it.
@@ -98,7 +98,7 @@ template<
 	typename DISPATCHER,
 	typename BINDER_MIXIN >
 class binder_for_public_disp_template_t
-	:	public so_5::rt::disp_binder_t
+	:	public disp_binder_t
 	,	protected BINDER_MIXIN
 	{
 	public:
@@ -113,10 +113,10 @@ class binder_for_public_disp_template_t
 			,	m_disp_name( std::move( disp_name ) )
 			{}
 
-		virtual so_5::rt::disp_binding_activator_t
+		virtual disp_binding_activator_t
 		bind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
+			environment_t & env,
+			agent_ref_t agent ) override
 			{
 				return do_with_dispatcher< DISPATCHER >(
 					env,
@@ -129,8 +129,8 @@ class binder_for_public_disp_template_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
+			environment_t & env,
+			agent_ref_t agent ) override
 			{
 				using namespace so_5::disp::reuse;
 
@@ -164,7 +164,7 @@ template<
 	typename DISPATCHER,
 	typename BINDER_MIXIN >
 class binder_for_private_disp_template_t
-	:	public so_5::rt::disp_binder_t
+	:	public disp_binder_t
 	,	protected BINDER_MIXIN
 	{
 	public:
@@ -185,18 +185,18 @@ class binder_for_private_disp_template_t
 			,	m_instance( instance )
 			{}
 
-		virtual so_5::rt::disp_binding_activator_t
+		virtual disp_binding_activator_t
 		bind_agent(
-			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent ) override
+			environment_t & /* env */,
+			agent_ref_t agent ) override
 			{
 				return this->do_bind( m_instance, std::move( agent ) );
 			}
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent ) override
+			environment_t & /* env */,
+			agent_ref_t agent ) override
 			{
 				this->do_unbind( m_instance, std::move( agent ) );
 			}

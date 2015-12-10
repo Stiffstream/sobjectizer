@@ -14,21 +14,21 @@
 
 #include <so_5/all.hpp>
 
-so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
+so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct test_message : public so_5::rt::signal_t {};
+struct test_message : public so_5::signal_t {};
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 
 		test_agent_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & test_mbox )
+			so_5::environment_t & env,
+			const so_5::mbox_t & test_mbox )
 			:
 				base_type_t( env ),
 				m_test_mbox( test_mbox )
@@ -46,7 +46,7 @@ class test_agent_t
 
 		void
 		evt_test(
-			const so_5::rt::event_data_t< test_message > & msg );
+			const so_5::event_data_t< test_message > & msg );
 
 		// Count of life agents.
 		static so_5::atomic_counter_t m_agent_count;
@@ -55,7 +55,7 @@ class test_agent_t
 		static so_5::atomic_counter_t m_message_rec_cnt;
 
 	private:
-		so_5::rt::mbox_t m_test_mbox;
+		so_5::mbox_t m_test_mbox;
 
 };
 
@@ -72,17 +72,17 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > & )
+	const so_5::event_data_t< test_message > & )
 {
 	++m_message_rec_cnt;
 }
 void
 reg_coop(
 	const std::string & coop_name,
-	const so_5::rt::mbox_t & test_mbox,
-	so_5::rt::environment_t & env )
+	const so_5::mbox_t & test_mbox,
+	so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( coop_name );
 
 	coop->add_agent( new test_agent_t( env, test_mbox ) );
@@ -92,10 +92,10 @@ reg_coop(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	so_5::rt::mbox_t test_mbox =
-		env.create_local_mbox( g_test_mbox_name );
+	so_5::mbox_t test_mbox =
+		env.create_mbox( g_test_mbox_name );
 
 	reg_coop( "test_coop_1", test_mbox, env );
 	reg_coop( "test_coop_2", test_mbox, env );
@@ -108,7 +108,7 @@ init( so_5::rt::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Initiate message.
-	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -121,11 +121,11 @@ init( so_5::rt::environment_t & env )
 			"test_agent_t::m_message_rec_cnt" );
 
 	// Deregister some cooperations.
-	env.deregister_coop( "test_coop_1", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_1", so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_6", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_6", so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_3", so_5::rt::dereg_reason::normal );
+	env.deregister_coop( "test_coop_3", so_5::dereg_reason::normal );
 
 	test_agent_t::m_message_rec_cnt = 0;
 
@@ -133,7 +133,7 @@ init( so_5::rt::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Send another message.
-	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );

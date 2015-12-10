@@ -23,25 +23,25 @@
 	} \
 }
 
-struct msg_test : public so_5::rt::signal_t {};
+struct msg_test : public so_5::signal_t {};
 
-struct msg_stop : public so_5::rt::signal_t {};
+struct msg_stop : public so_5::signal_t {};
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
-		const so_5::rt::state_t m_state_a = so_make_state();
-		const so_5::rt::state_t m_state_b = so_make_state();
+		const so_5::state_t m_state_a = so_make_state();
+		const so_5::state_t m_state_b = so_make_state();
 
 	public:
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_mbox( so_environment().create_local_mbox() )
+				m_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_t()
@@ -55,14 +55,14 @@ class test_agent_t
 
 		void
 		evt_handler1(
-			const so_5::rt::event_data_t< msg_test > & )
+			const so_5::event_data_t< msg_test > & )
 		{
 			// Should be called in default state.
 		}
 
 		void
 		evt_handler3(
-			const so_5::rt::event_data_t< msg_test > & )
+			const so_5::event_data_t< msg_test > & )
 		{
 			std::cerr << "Error: evt_handler3 called..." << std::endl;
 			std::abort();
@@ -70,14 +70,14 @@ class test_agent_t
 
 		void
 		evt_stop(
-			const so_5::rt::event_data_t< msg_stop > & )
+			const so_5::event_data_t< msg_stop > & )
 		{
 			so_environment().stop();
 		}
 
 	private:
 		// Mbox to subscribe.
-		so_5::rt::mbox_t m_mbox;
+		so_5::mbox_t m_mbox;
 };
 
 
@@ -120,7 +120,7 @@ test_agent_t::so_evt_start()
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
 	env.register_agent_as_coop(
 			"test_coop",

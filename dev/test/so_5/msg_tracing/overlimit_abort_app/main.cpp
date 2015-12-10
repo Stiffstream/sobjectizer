@@ -8,13 +8,13 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	struct dummy_msg { int m_i; };
 
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t{ ctx + limit_then_abort< dummy_msg >( 1 ) }
+		:	so_5::agent_t{ ctx + limit_then_abort< dummy_msg >( 1 ) }
 	{}
 
 	virtual void
@@ -39,9 +39,9 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			coop.make_agent< a_test_t >();
 		} );
 }
@@ -55,7 +55,7 @@ main()
 			[]()
 			{
 				so_5::launch( &init,
-					[]( so_5::rt::environment_params_t & params ) {
+					[]( so_5::environment_params_t & params ) {
 						params.message_delivery_tracer(
 								so_5::msg_tracing::std_cout_tracer() );
 					} );

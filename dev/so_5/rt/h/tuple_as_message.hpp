@@ -16,8 +16,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 #if defined( _MSC_VER ) && (_MSC_VER <= 1800)
 	#pragma warning(push)
 	#pragma warning(disable: 4520)
@@ -40,7 +38,7 @@ namespace rt {
 	// This is recommended way to defining of messages.
 	// Separate class allows to easily extend or refactor
 	// message type in the future.
-	struct process_data : public so_5::rt::message_t
+	struct process_data : public so_5::message_t
 	{
 		const std::uint8_t * m_data;
 
@@ -64,7 +62,7 @@ namespace rt {
 	// with large code base and big amount of agents and messages.
 	// But can be useful for small to-be-thrown-out utilities.
 	struct process_data_tag {};
-	using process_data = so_5::rt::tuple_as_message_t< process_data_tag, const std::uint8_t * >;
+	using process_data = so_5::tuple_as_message_t< process_data_tag, const std::uint8_t * >;
 
 	// And the event-handler for this message.
 	void data_processing_agent::evt_process_data( const process_data & evt )
@@ -78,7 +76,7 @@ namespace rt {
 	\code
 	// This way of defining messages can be good only for very and very
 	// small to-be-thrown-out programs (like tests and samples).
-	using process_data = so_5::rt::tuple_as_message_t<
+	using process_data = so_5::tuple_as_message_t<
 				std::integral_constant<int, 0>, const std::uint8_t * >;
 
 	// And the event-handler for this message.
@@ -91,7 +89,7 @@ namespace rt {
 template< typename TAG, typename... TYPES >
 struct tuple_as_message_t
 	:	public std::tuple< TYPES... >
-	,	public so_5::rt::message_t
+	,	public so_5::message_t
 {
 	using base_tuple_type = std::tuple< TYPES... >;
 
@@ -135,7 +133,6 @@ struct tuple_as_message_t
  * \par Usage sample:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// Defining domain specific messages as tuples.
 	using process_range = tuple_as_message_t< mtag<0>, string, string >;
@@ -146,7 +143,6 @@ struct tuple_as_message_t
  * This is a short equivalent of:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// Defining domain specific messages as tuples.
 	using process_range = tuple_as_message_t<
@@ -168,13 +164,12 @@ using mtag = std::integral_constant< int, N >;
  * \brief A helper template for simplification of defining unique message tags
  * for tuple as message.
  *
- * Very similar to so_5::rt::mtag but allows to define message tags for
+ * Very similar to so_5::mtag but allows to define message tags for
  * different modules.
  *
  * \par Usage sample:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// The first module.
 	namespace first_module {
@@ -207,6 +202,27 @@ using mtag = std::integral_constant< int, N >;
  */
 template< typename T, int N >
 struct typed_mtag {};
+
+namespace rt {
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::tuple_as_message_t
+ * instead.
+ */
+template< typename TAG, typename... TYPES >
+using tuple_as_message_t = so_5::tuple_as_message_t< TAG, TYPES... >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::mtag instead.
+ */
+template< int N >
+using mtag = so_5::mtag< N >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::typed_mtag instead.
+ */
+template< typename T, int N >
+using typed_mtag = so_5::typed_mtag< T, N >;
 
 } /* namespace rt */
 

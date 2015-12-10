@@ -93,12 +93,12 @@ struct	measure_result_t
 	steady_clock::time_point	m_finish_time;
 };
 
-class a_ring_member_t : public so_5::rt::agent_t
+class a_ring_member_t : public so_5::agent_t
 	{
 	public :
-		struct msg_start : public so_5::rt::signal_t {};
+		struct msg_start : public so_5::signal_t {};
 
-		struct msg_your_turn : public so_5::rt::message_t
+		struct msg_your_turn : public so_5::message_t
 			{
 				unsigned long long m_request_number;
 
@@ -108,22 +108,22 @@ class a_ring_member_t : public so_5::rt::agent_t
 			};
 
 		a_ring_member_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const cfg_t & cfg,
 			measure_result_t & measure_result )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_cfg( cfg )
 			,	m_measure_result( measure_result )
 			{}
 
 		void
-		set_self_mbox( const so_5::rt::mbox_t & mbox )
+		set_self_mbox( const so_5::mbox_t & mbox )
 			{
 				m_self_mbox = mbox;
 			}
 
 		void
-		set_next_mbox( const so_5::rt::mbox_t & mbox )
+		set_next_mbox( const so_5::mbox_t & mbox )
 			{
 				m_next_mbox = mbox;
 			}
@@ -160,8 +160,8 @@ class a_ring_member_t : public so_5::rt::agent_t
 			}
 
 	private :
-		so_5::rt::mbox_t m_self_mbox;
-		so_5::rt::mbox_t m_next_mbox;
+		so_5::mbox_t m_self_mbox;
+		so_5::mbox_t m_next_mbox;
 
 		const cfg_t m_cfg;
 		measure_result_t & m_measure_result;
@@ -215,9 +215,9 @@ show_result(
 			", throughtput: " << throughtput << std::endl;
 	}
 
-so_5::rt::disp_binder_unique_ptr_t
+so_5::disp_binder_unique_ptr_t
 create_disp_binder(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const cfg_t & cfg )
 	{
 		using namespace so_5::disp;
@@ -238,18 +238,18 @@ void
 create_coop(
 	const cfg_t & cfg,
 	measure_result_t & result,
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
-		so_5::rt::mbox_t first_agent_mbox;
+		so_5::mbox_t first_agent_mbox;
 
 		env.introduce_coop(
 			create_disp_binder( env, cfg ),
-			[&]( so_5::rt::agent_coop_t & coop )
+			[&]( so_5::coop_t & coop )
 			{
 				std::vector< a_ring_member_t * > agents;
 				agents.reserve( cfg.m_ring_size );
 
-				std::vector< so_5::rt::mbox_t > mboxes;
+				std::vector< so_5::mbox_t > mboxes;
 				mboxes.reserve( cfg.m_ring_size );
 
 				for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
@@ -260,7 +260,7 @@ create_coop(
 						if( cfg.m_direct_mboxes )
 							mboxes.push_back( member->so_direct_mbox() );
 						else
-							mboxes.push_back( env.create_local_mbox() );
+							mboxes.push_back( env.create_mbox() );
 					}
 
 				for( unsigned int i = 0; i != cfg.m_ring_size; ++i )
@@ -287,7 +287,7 @@ main( int argc, char ** argv )
 		measure_result_t result;
 
 		so_5::launch(
-				[&]( so_5::rt::environment_t & env )
+				[&]( so_5::environment_t & env )
 				{
 					create_coop( cfg, result, env );
 				} );

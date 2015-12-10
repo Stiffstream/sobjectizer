@@ -40,7 +40,7 @@ demand_queue_t::~demand_queue_t()
 
 void
 demand_queue_t::push(
-	so_5::rt::execution_demand_t demand )
+	execution_demand_t demand )
 {
 	queue_traits::lock_guard_t guard{ *m_lock };
 
@@ -159,13 +159,13 @@ work_thread_t::wait()
 	m_queue.clear();
 }
 
-so_5::rt::event_queue_t &
+event_queue_t &
 work_thread_t::event_queue()
 {
 	return m_queue;
 }
 
-so_5::rt::event_queue_t *
+event_queue_t *
 work_thread_t::get_agent_binding()
 {
 	return &event_queue();

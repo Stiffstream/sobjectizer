@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -160,8 +157,6 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 	};
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

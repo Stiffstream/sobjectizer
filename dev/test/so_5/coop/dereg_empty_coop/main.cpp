@@ -7,26 +7,26 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	// Supervison coop.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+	env.introduce_coop( []( so_5::coop_t & parent ) {
 			auto a = parent.define_agent();
 			a.on_start( [&parent, a] {
 					// Child coop.
-					auto child = so_5::rt::create_child_coop( parent, "child" );
+					auto child = so_5::create_child_coop( parent, "child" );
 					child->add_reg_notificator(
-							so_5::rt::make_coop_reg_notificator( a.direct_mbox() ) );
+							so_5::make_coop_reg_notificator( a.direct_mbox() ) );
 					child->add_dereg_notificator(
-							so_5::rt::make_coop_dereg_notificator( a.direct_mbox() ) );
+							so_5::make_coop_dereg_notificator( a.direct_mbox() ) );
 					parent.environment().register_coop( std::move(child) );
 				} )
-			.event( a, [&parent]( const so_5::rt::msg_coop_registered & ) {
+			.event( a, [&parent]( const so_5::msg_coop_registered & ) {
 					parent.environment().deregister_coop(
 							"child",
-							so_5::rt::dereg_reason::normal );
+							so_5::dereg_reason::normal );
 				} )
-			.event( a, [&parent]( const so_5::rt::msg_coop_deregistered & ) {
+			.event( a, [&parent]( const so_5::msg_coop_deregistered & ) {
 					parent.deregister_normally();
 				} );
 		} );

@@ -11,15 +11,15 @@
 
 #include "../simple_tracer.hpp"
 
-struct finish : public so_5::rt::signal_t {};
+struct finish : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	struct dummy_msg { int m_i; };
 
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t{ ctx
+		:	so_5::agent_t{ ctx
 				+ limit_then_drop< dummy_msg >(1)
 				+ limit_then_abort< finish >(1) }
 	{}
@@ -54,9 +54,9 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			coop.make_agent< a_test_t >();
 		} );
 }
@@ -71,7 +71,7 @@ main()
 			{
 				counter_t counter = { 0 };
 				so_5::launch( &init,
-					[&counter]( so_5::rt::environment_params_t & params ) {
+					[&counter]( so_5::environment_params_t & params ) {
 						params.message_delivery_tracer(
 								so_5::msg_tracing::tracer_unique_ptr_t{
 										new tracer_t{ counter,

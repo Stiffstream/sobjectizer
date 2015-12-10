@@ -1,5 +1,5 @@
 /*
- * Test for so_5::rt::tuple_as_message_t and so_5::rt::typed_mtag.
+ * Test for so_5::tuple_as_message_t and so_5::typed_mtag.
  */
 
 #include <iostream>
@@ -11,7 +11,6 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 
 using namespace so_5;
-using namespace so_5::rt;
 using namespace std;
 
 namespace mod1 {
@@ -36,7 +35,7 @@ using third = tuple_as_message_t< typed_mtag< tag, 2 >, int >;
 
 void
 create_coop(
-	agent_coop_t & coop )
+	coop_t & coop )
 {
 	auto & env = coop.environment();
 	auto agent = coop.define_agent();

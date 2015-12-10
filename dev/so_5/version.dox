@@ -2,6 +2,27 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_13 5.5.13 "Cerro Dona Ana"
+
+	<b>Breaking change: namespace so_5::rt is deprecated!</b>
+	See \ref so_5_5_13__so_rt_ns_deprecated for more details.
+
+	Functions send_delayed_to_agent and send_periodic_to_agent are
+	deprecated. See \ref so_5_5_13__timed_send_deprecated for more
+	details.
+
+	Another constructor implemented for class so_5::wrapped_env_t. It
+	receives just one argument: an instance of so_5::environment_params_t.
+
+	Type name so_5::agent_t::state_t is added. It just an alias for
+	so_5::state_t.
+
+	Methods so_5::environment_t::create_local_mbox() are deprecated.
+	Methods so_5::environment_t::create_mbox() must be used instead.
+
+	A new mechanism named <i>message chain</i> added.
+	See \ref so_5_5__in_depth__mchains for more details.
+
 \section so_5__5_12 5.5.12 "Cerro Araral"
 
 	A performance degradation for local mboxes with large amount of

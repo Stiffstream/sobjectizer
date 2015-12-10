@@ -38,7 +38,6 @@
 using namespace std;
 
 using namespace so_5;
-using namespace so_5::rt;
 
 /*
  * The first part.
@@ -502,7 +501,7 @@ make_pipeline(
 	agent_t & owner,
 	// Definition of a pipeline.
 	stage_t< IN, OUT > && sink,
-	// Optional args to be passed to so_5::rt::create_child_coop function.
+	// Optional args to be passed to so_5::create_child_coop function.
 	ARGS &&... args )
 {
 	auto coop = create_child_coop( owner, forward< ARGS >(args)... );
@@ -756,7 +755,7 @@ public :
 				autoname );
 
 		// One second for imitation then shutdown.
-		send_delayed_to_agent< shutdown >( *this, chrono::seconds(1) );
+		send_delayed< shutdown >( *this, chrono::seconds(1) );
 
 		// Imitation of several samples from a sensor.
 		// One sample for each 10ms.

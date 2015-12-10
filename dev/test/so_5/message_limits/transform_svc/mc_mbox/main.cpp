@@ -9,7 +9,7 @@ main()
 {
 	do_test( "simple test for transformation of service request (MPMC-mbox)",
 		[]( a_test_t & a ) {
-			a.set_working_mbox( a.so_environment().create_local_mbox() );
+			a.set_working_mbox( a.so_environment().create_mbox() );
 		} );
 
 	return 0;

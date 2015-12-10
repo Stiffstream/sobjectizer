@@ -14,8 +14,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 //
@@ -49,7 +47,7 @@ class internal_env_iface_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
+			const so_5::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Notification about readiness to the deregistration.
 		void
@@ -76,8 +74,6 @@ class internal_env_iface_t
 	};
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

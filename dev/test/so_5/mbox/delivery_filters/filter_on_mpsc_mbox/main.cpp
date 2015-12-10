@@ -14,15 +14,15 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::rt::tuple_as_message_t< so_5::rt::mtag< 0 >, int >;
+using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
 
-struct finish : public so_5::rt::signal_t {};
+struct finish : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	virtual void
@@ -67,7 +67,7 @@ public :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( so_5::autoname,
 			env.make_agent< a_test_t >() );

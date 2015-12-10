@@ -8,9 +8,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // nonempty_name_t
 //
@@ -40,7 +37,5 @@ nonempty_name_t::nonempty_name_t(
 nonempty_name_t::~nonempty_name_t()
 {
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */

@@ -44,7 +44,7 @@ private :
 };
 
 // Message to be processed by worker agent.
-struct application_request : public so_5::rt::message_t
+struct application_request : public so_5::message_t
 {
 	std::string m_to;
 	std::string m_from;
@@ -67,18 +67,18 @@ struct application_request : public so_5::rt::message_t
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::rt::agent_t,
+class a_generator_t : public so_5::agent_t,
 	private random_generator_mixin_t
 {
 public :
 	a_generator_t(
 		// Environment to work in.
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Name of generator.
 		std::string name,
 		// Workers.
-		const std::vector< so_5::rt::mbox_t > & workers_mboxes )
-		:	so_5::rt::agent_t( env )
+		const std::vector< so_5::mbox_t > & workers_mboxes )
+		:	so_5::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
 	{}
@@ -100,12 +100,12 @@ public :
 
 private :
 	// Signal about next turn start.
-	struct msg_next_turn : public so_5::rt::signal_t {};
+	struct msg_next_turn : public so_5::signal_t {};
 
 	// Generator name.
 	const std::string m_name;
 	// Workers.
-	const std::vector< so_5::rt::mbox_t > m_workers_mboxes;
+	const std::vector< so_5::mbox_t > m_workers_mboxes;
 
 	void
 	evt_next_turn()
@@ -118,7 +118,7 @@ private :
 
 		// We need copy of workers list to modify it if
 		// some worker rejects our requests.
-		std::vector< so_5::rt::mbox_t > live_workers( m_workers_mboxes );
+		std::vector< so_5::mbox_t > live_workers( m_workers_mboxes );
 		int sent = 0;
 		// If there is no active workers there is no need to continue.
 		while( sent < requests && !live_workers.empty() )
@@ -134,11 +134,11 @@ private :
 				<< sent << ", will sleep for "
 				<< next_turn_pause.count() << "ms" << std::endl;
 
-		so_5::send_delayed_to_agent< msg_next_turn >( *this, next_turn_pause );
+		so_5::send_delayed< msg_next_turn >( *this, next_turn_pause );
 	}
 
 	bool
-	generate_next_request( std::vector< so_5::rt::mbox_t > & workers )
+	generate_next_request( std::vector< so_5::mbox_t > & workers )
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
@@ -164,7 +164,7 @@ private :
 
 	bool
 	push_request_to_receiver(
-		const so_5::rt::mbox_t & to,
+		const so_5::mbox_t & to,
 		std::unique_ptr< application_request > req )
 	{
 		// There is a plenty of room for any errors related to
@@ -187,20 +187,20 @@ private :
 };
 
 // Load receiver agent.
-class a_receiver_t : public so_5::rt::agent_t
+class a_receiver_t : public so_5::agent_t
 {
 public :
 	// A signal to take the collected requests to processor.
-	struct msg_take_requests : public so_5::rt::signal_t {};
+	struct msg_take_requests : public so_5::signal_t {};
 
 	a_receiver_t(
 		// Environment to work in.
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Receiver's name.
 		std::string name,
 		// Max capacity of receiver
 		std::size_t max_receiver_capacity )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	max_capacity( max_receiver_capacity )
 	{
@@ -228,8 +228,8 @@ public :
 	}
 
 private :
-	const so_5::rt::state_t st_not_full = so_make_state();
-	const so_5::rt::state_t st_overload = so_make_state();
+	const state_t st_not_full = so_make_state();
+	const state_t st_overload = so_make_state();
 
 	// Receiver's name.
 	const std::string m_name;
@@ -285,18 +285,18 @@ private :
 };
 
 // Load processor agent.
-class a_processor_t : public so_5::rt::agent_t,
+class a_processor_t : public so_5::agent_t,
 	private random_generator_mixin_t
 {
 public :
 	a_processor_t(
 		// Environment to work in.
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Processor's name.
 		std::string name,
 		// Receiver mbox.
-		const so_5::rt::mbox_t & receiver )
-		:	so_5::rt::agent_t( env )
+		const so_5::mbox_t & receiver )
+		:	so_5::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_receiver( receiver )
 	{}
@@ -318,13 +318,13 @@ public :
 
 private :
 	// Start of next processing turn signal.
-	struct msg_next_turn : public so_5::rt::signal_t {};
+	struct msg_next_turn : public so_5::signal_t {};
 
 	// Processor name.
 	const std::string m_name;
 
 	// Receiver.
-	const so_5::rt::mbox_t m_receiver;
+	const so_5::mbox_t m_receiver;
 
 	void
 	evt_next_turn()
@@ -339,7 +339,7 @@ private :
 			// and receiver.
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
 					<< std::endl;
-			so_5::send_delayed_to_agent< msg_next_turn >(
+			so_5::send_delayed< msg_next_turn >(
 					*this, std::chrono::milliseconds( 25 ) );
 		}
 		else
@@ -382,7 +382,7 @@ private :
 		// Just imitation of requests processing.
 		// Processing time is proportional to count of requests.
 		const auto processing_time = std::chrono::microseconds(
-				requests.size() * random( 150, 1500 ) );
+				requests.size() * static_cast< unsigned int >(random( 150, 1500 )) );
 		std::this_thread::sleep_for( processing_time );
 
 		TRACE() << "PRO(" << m_name << ") processing took: "
@@ -390,10 +390,10 @@ private :
 	}
 };
 
-std::vector< so_5::rt::mbox_t >
-create_processing_coops( so_5::rt::environment_t & env )
+std::vector< so_5::mbox_t >
+create_processing_coops( so_5::environment_t & env )
 {
-	std::vector< so_5::rt::mbox_t > result;
+	std::vector< so_5::mbox_t > result;
 
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 
@@ -405,7 +405,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		env.introduce_coop( [&]( so_5::rt::coop_t & coop ) {
+		env.introduce_coop( [&]( so_5::coop_t & coop ) {
 			auto receiver = coop.make_agent_with_binder< a_receiver_t >(
 					receiver_disp->binder( so_5::disp::thread_pool::bind_params_t{} ),
 					"r" + std::to_string(i), c );
@@ -425,7 +425,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
@@ -435,7 +435,7 @@ init( so_5::rt::environment_t & env )
 	auto generators_disp = create_private_disp( env, 3 );
 	env.introduce_coop(
 			generators_disp->binder( bind_params_t{}.fifo( fifo_t::individual ) ),
-			[&receivers]( so_5::rt::coop_t & coop ) {
+			[&receivers]( so_5::coop_t & coop ) {
 				for( int i = 0; i != 3; ++i )
 					coop.make_agent< a_generator_t >(
 							"g" + std::to_string(i), receivers );

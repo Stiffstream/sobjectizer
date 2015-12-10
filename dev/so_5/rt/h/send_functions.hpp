@@ -10,13 +10,9 @@
 
 #pragma once
 
-#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/environment.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -27,32 +23,71 @@ namespace impl
 	 */
 
 	template< class MESSAGE, bool IS_SIGNAL >
-	struct instantiator_and_sender_t
+	struct instantiator_and_sender_base
 		{
+			template< typename... ARGS >
+			static void
+			send(
+				const so_5::mbox_t & to,
+				ARGS &&... args )
+				{
+					to->deliver_message(
+						so_5::details::make_message_instance< MESSAGE >(
+							std::forward< ARGS >( args )...) );
+				}
+
+			template< typename... ARGS >
+			static void
+			send_delayed(
+				so_5::environment_t & env,
+				const so_5::mbox_t & to,
+				std::chrono::steady_clock::duration pause,
+				ARGS &&... args )
+				{
+					env.single_timer(
+							so_5::details::make_message_instance< MESSAGE >(
+								std::forward< ARGS >( args )...),
+							to, pause );
+				}
+
+			template< typename... ARGS >
+			static timer_id_t
+			send_periodic(
+				so_5::environment_t & env,
+				const so_5::mbox_t & to,
+				std::chrono::steady_clock::duration pause,
+				std::chrono::steady_clock::duration period,
+				ARGS &&... args )
+				{
+					return env.schedule_timer( 
+							so_5::details::make_message_instance< MESSAGE >(
+								std::forward< ARGS >( args )...),
+							to, pause, period );
+				}
 		};
 
 	template< class MESSAGE >
-	struct instantiator_and_sender_t< MESSAGE, true >
+	struct instantiator_and_sender_base< MESSAGE, true >
 		{
-			void
-			send( const so_5::rt::mbox_t & to )
+			static void
+			send( const so_5::mbox_t & to )
 				{
 					to->deliver_signal< MESSAGE >();
 				}
 
-			void
+			static void
 			send_delayed(
-				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_t & to,
+				so_5::environment_t & env,
+				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause )
 				{
 					env.single_timer< MESSAGE >( to, pause );
 				}
 
-			timer_id_t
+			static timer_id_t
 			send_periodic(
-				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_t & to,
+				so_5::environment_t & env,
+				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period )
 				{
@@ -60,9 +95,12 @@ namespace impl
 				}
 		};
 
-} /* namespace impl */
+	template< class MESSAGE >
+	struct instantiator_and_sender
+		:	public instantiator_and_sender_base< MESSAGE, is_signal< MESSAGE >::value >
+		{};
 
-} /* namespace rt */
+} /* namespace impl */
 
 /*!
  * \since v.5.5.9
@@ -70,28 +108,33 @@ namespace impl
  */
 namespace send_functions_details {
 
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::mbox_t & mbox ) { return mbox; }
+inline const so_5::mbox_t &
+arg_to_mbox( const so_5::mbox_t & mbox ) { return mbox; }
 
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); }
+inline const so_5::mbox_t &
+arg_to_mbox( const so_5::agent_t & agent ) { return agent.so_direct_mbox(); }
 
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+inline const so_5::mbox_t &
+arg_to_mbox( const so_5::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+
+inline so_5::mbox_t
+arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 
 } /* namespace send_functions_details */
 
 /*!
  * \since v.5.5.1
- * \brief A utility function for creating and delivering a message.
+ * \brief A utility function for creating and delivering a message or a signal.
  *
- * \note Since v.5.5.9 can accept const references to so_5::rt::mbox_t,
- * so_5::rt::agent_t and so_5::rt::adhoc_agent_definition_proxy_t.
+ * \note Since v.5.5.9 can accept const references to so_5::mbox_t,
+ * so_5::agent_t and so_5::adhoc_agent_definition_proxy_t.
+ *
+ * \note Since v.5.5.13 can send also a signal.
  *
  * \tparam MESSAGE type of message to be sent.
  * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or
+ * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
  * \tparam ARGS arguments for MESSAGE's constructor.
  *
@@ -100,10 +143,10 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 	struct hello_msg { std::string greeting; std::string who };
 
 	// Send to mbox.
-	so_5::send< hello_msg >( env.create_local_mbox( "hello" ), "Hello", "World!" );
+	so_5::send< hello_msg >( env.create_mbox( "hello" ), "Hello", "World!" );
 
 	// Send to agent.
-	class demo_agent : public so_5::rt::agent_t
+	class demo_agent : public so_5::agent_t
 	{
 	public :
 		...
@@ -115,7 +158,7 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 	};
 
 	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		auto a = coop.define_agent();
 		a.on_start( [a] {
 			...
@@ -123,39 +166,14 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 		} );
 		...
 	} );
- * \endcode
- */
-template< typename MESSAGE, typename TARGET, typename... ARGS >
-void
-send( TARGET && to, ARGS&&... args )
-	{
-		send_functions_details::arg_to_mbox( to )->deliver_message(
-				so_5::rt::details::make_message_instance< MESSAGE >(
-						std::forward<ARGS>(args)...) );
-	}
 
-/*!
- * \since v.5.5.1
- * \brief A utility function for sending a signal.
- *
- * \note Since v.5.5.9 can accept const references to so_5::rt::mbox_t,
- * so_5::rt::agent_t and so_5::rt::adhoc_agent_definition_proxy_t.
- *
- * \tparam MESSAGE type of signal o be sent.
- * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
- * mbox will be used).
- *
- * \par Usage samples:
- * \code
-	struct turn_on : public so_5::rt::signal_t;
+	struct turn_on : public so_5::signal_t {};
 
 	// Send to mbox.
-	so_5::send< turn_on >( env.create_local_mbox( "engine" ) );
+	so_5::send< turn_on >( env.create_mbox( "engine" ) );
 
 	// Send to agent.
-	class engine_agent : public so_5::rt::agent_t
+	class engine_agent : public so_5::agent_t
 	{
 	public :
 		...
@@ -167,7 +185,7 @@ send( TARGET && to, ARGS&&... args )
 	};
 
 	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		auto a = coop.define_agent();
 		a.on_start( [a] {
 			...
@@ -177,15 +195,13 @@ send( TARGET && to, ARGS&&... args )
 	} );
  * \endcode
  */
-template< typename MESSAGE, typename TARGET >
+template< typename MESSAGE, typename TARGET, typename... ARGS >
 void
-send( TARGET && to )
+send( TARGET && to, ARGS&&... args )
 	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		helper.send( send_functions_details::arg_to_mbox( to ) );
+		so_5::impl::instantiator_and_sender< MESSAGE >::send(
+				send_functions_details::arg_to_mbox( std::forward<TARGET>(to) ),
+				std::forward<ARGS>(args)... );
 	}
 
 /*!
@@ -195,7 +211,7 @@ send( TARGET && to )
  */
 template< typename MESSAGE, typename... ARGS >
 void
-send_to_agent( const so_5::rt::agent_t & receiver, ARGS&&... args )
+send_to_agent( const so_5::agent_t & receiver, ARGS&&... args )
 	{
 		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
 	}
@@ -208,32 +224,10 @@ send_to_agent( const so_5::rt::agent_t & receiver, ARGS&&... args )
 template< typename MESSAGE, typename... ARGS >
 void
 send_to_agent(
-	const so_5::rt::adhoc_agent_definition_proxy_t & receiver,
+	const so_5::adhoc_agent_definition_proxy_t & receiver,
 	ARGS&&... args )
 	{
 		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for sending a signal to the agent's direct mbox.
- */
-template< typename MESSAGE >
-void
-send_to_agent( const so_5::rt::agent_t & receiver )
-	{
-		send< MESSAGE >( receiver );
-	}
-
-/*!
- * \since v.5.5.8
- * \brief A utility function for sending a signal to the ad-hoc agent's direct mbox.
- */
-template< typename MESSAGE >
-void
-send_to_agent( const so_5::rt::adhoc_agent_definition_proxy_t & receiver )
-	{
-		send< MESSAGE >( receiver.direct_mbox() );
 	}
 
 /*!
@@ -244,23 +238,22 @@ template< typename MESSAGE, typename... ARGS >
 void
 send_delayed(
 	//! An environment to be used for timer.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
+	const so_5::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
 	ARGS&&... args )
 	{
-		env.single_timer(
-				so_5::rt::details::make_message_instance< MESSAGE >(
-						std::forward<ARGS>(args)... ),
-				to, pause );
+		so_5::impl::instantiator_and_sender< MESSAGE >::send_delayed(
+				env, to, pause, std::forward<ARGS>(args)... );
 	}
 
 /*!
- * \since v.5.5.1
- * \brief A utility function for creating and delivering a delayed message.
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a delayed message
+ * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
  */
@@ -268,9 +261,34 @@ template< typename MESSAGE, typename... ARGS >
 void
 send_delayed(
 	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
+	so_5::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a delayed message.
+ *
+ * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed(
+	//! An agent whos environment must be used.
+	so_5::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
+	const so_5::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -281,17 +299,63 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since v.5.5.13
  * \brief A utility function for creating and delivering a delayed message
- * to the agent's direct mbox.
+ * to the ad-hoc agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
  */
 template< typename MESSAGE, typename... ARGS >
 void
+send_delayed(
+	//! An agent whos environment must be used.
+	const so_5::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
+				pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a delayed message.
+ *
+ * Gets the Environment from the chain specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed(
+	//! A chain for receiving the delayed message.
+	const mchain_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >( to->environment(), to->as_mbox(), pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a delayed message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
+	so_5::agent_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -310,12 +374,14 @@ send_delayed_to_agent(
  * to the ad-hoc agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
-	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -330,97 +396,15 @@ send_delayed_to_agent(
 
 /*!
  * \since v.5.5.1
- * \brief A utility function for delivering a delayed signal.
- */
-template< typename MESSAGE >
-void
-send_delayed(
-	//! An environment to be used for timer.
-	so_5::rt::environment_t & env,
-	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause )
-	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		helper.send_delayed( env, to, pause );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for delivering a delayed signal.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-void
-send_delayed(
-	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
-	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause )
-	{
-		send_delayed< MESSAGE >( agent.so_environment(), to, pause );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for delivering a delayed signal to
- * the agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-void
-send_delayed_to_agent(
-	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause )
-	{
-		send_delayed< MESSAGE >(
-				agent.so_environment(),
-				agent.so_direct_mbox(),
-				pause );
-	}
-
-/*!
- * \since v.5.5.8
- * \brief A utility function for delivering a delayed signal to
- * the ad-hoc agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-void
-send_delayed_to_agent(
-	//! An agent whos environment must be used.
-	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause )
-	{
-		send_delayed< MESSAGE >(
-				agent.environment(),
-				agent.direct_mbox(),
-				pause );
-	}
-
-/*!
- * \since v.5.5.1
  * \brief A utility function for creating and delivering a periodic message.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
 send_periodic(
 	//! An environment to be used for timer.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
+	const so_5::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -428,10 +412,8 @@ send_periodic(
 	//! Message constructor parameters.
 	ARGS&&... args )
 	{
-		return env.schedule_timer( 
-				so_5::rt::details::make_message_instance< MESSAGE >(
-						std::forward< ARGS >( args )... ),
-				to, pause, period );
+		return so_5::impl::instantiator_and_sender< MESSAGE >::send_periodic(
+				env, to, pause, period, std::forward< ARGS >( args )... );
 	}
 
 /*!
@@ -439,14 +421,16 @@ send_periodic(
  * \brief A utility function for creating and delivering a periodic message.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
 send_periodic(
 	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
+	so_5::agent_t & agent,
 	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
+	const so_5::mbox_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -463,7 +447,7 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since v.5.5.13
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
  *
@@ -471,9 +455,90 @@ send_periodic(
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	so_5::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	const so_5::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a periodic message
+ * to %mchain.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! Chain for the message to be sent to.
+	const mchain_t & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				to->environment(),
+				to->as_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.1
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
+	so_5::agent_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -495,12 +560,14 @@ send_periodic_to_agent(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
-	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -514,102 +581,6 @@ send_periodic_to_agent(
 				pause,
 				period,
 				std::forward< ARGS >(args)... );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for delivering a periodic signal.
- */
-template< typename MESSAGE >
-timer_id_t
-send_periodic(
-	//! An environment to be used for timer.
-	so_5::rt::environment_t & env,
-	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period )
-	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		return helper.send_periodic( env, to, pause, period );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for delivering a periodic signal.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-timer_id_t
-send_periodic(
-	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
-	//! Mbox for the message to be sent to.
-	const so_5::rt::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period )
-	{
-		return send_periodic< MESSAGE >(
-				agent.so_environment(),
-				to,
-				pause,
-				period );
-	}
-
-/*!
- * \since v.5.5.1
- * \brief A utility function for delivering a periodic signal to
- * the agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-timer_id_t
-send_periodic_to_agent(
-	//! An agent whos environment must be used.
-	so_5::rt::agent_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period )
-	{
-		return send_periodic< MESSAGE >(
-				agent.so_environment(),
-				agent.so_direct_mbox(),
-				pause,
-				period );
-	}
-
-/*!
- * \since v.5.5.8
- * \brief A utility function for delivering a periodic signal to
- * the ad-hoc agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- */
-template< typename MESSAGE >
-timer_id_t
-send_periodic_to_agent(
-	//! An agent whos environment must be used.
-	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period )
-	{
-		return send_periodic< MESSAGE >(
-				agent.environment(),
-				agent.direct_mbox(),
-				pause,
-				period );
 	}
 
 /*!
@@ -626,21 +597,21 @@ send_periodic_to_agent(
  * returned.
  * \tparam MSG type of message to be sent to request processor.
  * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or
+ * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
  * \tparam ARGS arguments for MSG's constructors.
  *
  * \par Usage example:
  * \code
 	// For sending request to mbox:
-	const so_5::rt::mbox_t & convert_mbox = ...;
+	const so_5::mbox_t & convert_mbox = ...;
 	auto f1 = so_5::request_future< std::string, int >( convert_mbox, 10 );
 	...
 	f1.get();
 
 	// For sending request to agent:
-	const so_5::rt::agent_t & a = ...;
+	const so_5::agent_t & a = ...;
 	auto f2 = so_5::request_future< std::string, int >( a, 10 );
 	...
 	f2.get();
@@ -664,7 +635,7 @@ request_future(
 	{
 		using namespace send_functions_details;
 
-		so_5::rt::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< MSG >();
 
 		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
@@ -679,25 +650,25 @@ request_future(
  * \tparam RESULT type of expected result. The std::future<RESULT> will be
  * returned.
  * \tparam SIGNAL type of signal to be sent to request processor.
- * This type must be derived from so_5::rt::signal_t.
+ * This type must be derived from so_5::signal_t.
  * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or
+ * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
  * \tparam FUTURE_TYPE type of funtion return value (detected automatically).
  *
  * \par Usage example:
  * \code
-	struct get_status : public so_5::rt::signal_t {};
+	struct get_status : public so_5::signal_t {};
 
 	// For sending request to mbox:
-	const so_5::rt::mbox_t & engine = ...;
+	const so_5::mbox_t & engine = ...;
 	auto f1 = so_5::request_future< std::string, get_status >( engine );
 	...
 	f1.get();
 
 	// For sending request to agent:
-	const so_5::rt::agent_t & engine = ...;
+	const so_5::agent_t & engine = ...;
 	auto f2 = so_5::request_future< std::string, get_status >( engine );
 	...
 	f2.get();
@@ -717,7 +688,7 @@ template<
 		typename TARGET,
 		typename FUTURE_TYPE =
 				typename std::enable_if<
-						so_5::rt::is_signal< SIGNAL >::value, std::future< RESULT >
+						so_5::is_signal< SIGNAL >::value, std::future< RESULT >
 				>::type >
 FUTURE_TYPE
 request_future(
@@ -726,7 +697,7 @@ request_future(
 	{
 		using namespace send_functions_details;
 
-		so_5::rt::ensure_signal< SIGNAL >();
+		so_5::ensure_signal< SIGNAL >();
 
 		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
@@ -741,8 +712,8 @@ request_future(
  * \tparam RESULT type of expected result.
  * \tparam MSG type of message to be sent to request processor.
  * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or
+ * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
  * \tparam DURATION type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
@@ -751,12 +722,12 @@ request_future(
  * \par Usage example:
  * \code
 	// For sending request to mbox:
-	const so_5::rt::mbox_t & convert_mbox = ...;
+	const so_5::mbox_t & convert_mbox = ...;
 	auto r1 = so_5::request_value< std::string, int >( convert_mbox, so_5::infinite_wait, 10 );
 	auto r2 = so_5::request_value< std::string, int >( convert_mbox, std::chrono::milliseconds(10), 10 );
 
 	// For sending request to agent:
-	const so_5::rt::agent_t & a = ...;
+	const so_5::agent_t & a = ...;
 	auto r3 = so_5::request_value< std::string, int >( a, so_5::infinite_wait, 10 );
 	auto r4 = so_5::request_value< std::string, int >( a, std::chrono::milliseconds(10), 10 );
 
@@ -785,7 +756,7 @@ request_value(
 	{
 		using namespace send_functions_details;
 
-		so_5::rt::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< MSG >();
 
 		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
@@ -801,10 +772,10 @@ request_value(
  * \tparam RESULT type of expected result.
  * returned.
  * \tparam SIGNAL type of signal to be sent to request processor.
- * This type must be derived from so_5::rt::signal_t.
+ * This type must be derived from so_5::signal_t.
  * \tparam TARGET identification of request processor. Could be reference to
- * so_5::rt::mbox_t, to so_5::rt::agent_t or
- * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or
+ * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
  * \tparam DURATION type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
@@ -812,15 +783,15 @@ request_value(
  *
  * \par Usage example:
  * \code
-	struct get_status : public so_5::rt::signal_t {};
+	struct get_status : public so_5::signal_t {};
 
 	// For sending request to mbox:
-	const so_5::rt::mbox_t & engine = ...;
+	const so_5::mbox_t & engine = ...;
 	auto r1 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
 	auto r2 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
 
 	// For sending request to agent:
-	const so_5::rt::agent_t & engine = ...;
+	const so_5::agent_t & engine = ...;
 	auto r3 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
 	auto r4 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
 
@@ -839,7 +810,7 @@ template<
 		typename DURATION,
 		typename RESULT_TYPE =
 				typename std::enable_if<
-						so_5::rt::is_signal< SIGNAL >::value, RESULT
+						so_5::is_signal< SIGNAL >::value, RESULT
 				>::type >
 RESULT_TYPE
 request_value(
@@ -850,7 +821,7 @@ request_value(
 	{
 		using namespace send_functions_details;
 
-		so_5::rt::ensure_signal< SIGNAL >();
+		so_5::ensure_signal< SIGNAL >();
 
 		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()

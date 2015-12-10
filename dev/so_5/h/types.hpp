@@ -7,8 +7,7 @@
 	\brief Various typedefs.
 */
 
-#if !defined( _SO_5__TYPES_HPP_ )
-#define _SO_5__TYPES_HPP_
+#pragma once
 
 #include <atomic>
 #include <cstdint>
@@ -61,5 +60,3 @@ const thread_safety_t not_thread_safe = thread_safety_t::unsafe;
 const thread_safety_t thread_safe = thread_safety_t::safe;
 
 }
-
-#endif

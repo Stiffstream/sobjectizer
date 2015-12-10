@@ -9,19 +9,19 @@
 #include <so_5/all.hpp>
 
 // A simple agent which will be used in demo.
-class demo_agent : public so_5::rt::agent_t
+class demo_agent : public so_5::agent_t
 {
 public :
 	// Ping signal to which agent must respond.
-	struct ping : public so_5::rt::signal_t {};
+	struct ping : public so_5::signal_t {};
 
-	demo_agent( context_t ctx ) :	so_5::rt::agent_t{ ctx } {}
+	demo_agent( context_t ctx ) :	so_5::agent_t{ ctx } {}
 
 	virtual void so_define_agent() override
 	{
 		// Ping signals will be sent to named mbox.
 		// The name of this mbox is the same as the name of agent's coop.
-		so_subscribe( so_environment().create_local_mbox( so_coop_name() ) )
+		so_subscribe( so_environment().create_mbox( so_coop_name() ) )
 			.event< ping >( &demo_agent::evt_ping );
 	}
 
@@ -89,7 +89,7 @@ void demo()
 			const auto name = ask_coop_name();
 			do_action( "registering coop '" + name + "'",
 				[&] {
-					env.environment().introduce_coop( name, []( so_5::rt::coop_t & coop ) {
+					env.environment().introduce_coop( name, []( so_5::coop_t & coop ) {
 						coop.make_agent< demo_agent >();
 					} );
 				} );
@@ -100,7 +100,7 @@ void demo()
 			const auto name = ask_coop_name();
 			do_action( "deregistering coop '" + name + "'",
 				[&] {
-					env.environment().deregister_coop( name, so_5::rt::dereg_reason::normal );
+					env.environment().deregister_coop( name, so_5::dereg_reason::normal );
 				} );
 		}
 		else if( "ping" == choice )
@@ -114,7 +114,7 @@ void demo()
 					auto reply = so_5::request_value< std::string, demo_agent::ping >(
 							// Mbox will be created if necessary.
 							// If such mbox is already exists it will be reused.
-							env.environment().create_local_mbox( name ),
+							env.environment().create_mbox( name ),
 							// Infinite wait for response.
 							so_5::infinite_wait );
 

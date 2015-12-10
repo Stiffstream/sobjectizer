@@ -12,16 +12,16 @@
 
 #include <various_helpers_1/benchmark_helpers.hpp>
 
-struct msg_dummy : public so_5::rt::signal_t {};
+struct msg_dummy : public so_5::signal_t {};
 
 class a_test_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			unsigned int iterations )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_iterations( iterations )
 			{
 				m_states.push_back( &st_0 );
@@ -75,25 +75,25 @@ class a_test_t
 
 		void
 		evt_dummy(
-			const so_5::rt::event_data_t< msg_dummy > & )
+			const so_5::event_data_t< msg_dummy > & )
 			{
 			}
 
 	private :
-		const so_5::rt::state_t st_0 = so_make_state( "0" );
-		const so_5::rt::state_t st_1 = so_make_state( "1" );
-		const so_5::rt::state_t st_2 = so_make_state( "2" );
-		const so_5::rt::state_t st_3 = so_make_state( "3" );
-		const so_5::rt::state_t st_4 = so_make_state( "4" );
-		const so_5::rt::state_t st_5 = so_make_state( "5" );
-		const so_5::rt::state_t st_6 = so_make_state( "6" );
-		const so_5::rt::state_t st_7 = so_make_state( "7" );
-		const so_5::rt::state_t st_8 = so_make_state( "8" );
-		const so_5::rt::state_t st_9 = so_make_state( "9" );
+		const so_5::state_t st_0 = so_make_state( "0" );
+		const so_5::state_t st_1 = so_make_state( "1" );
+		const so_5::state_t st_2 = so_make_state( "2" );
+		const so_5::state_t st_3 = so_make_state( "3" );
+		const so_5::state_t st_4 = so_make_state( "4" );
+		const so_5::state_t st_5 = so_make_state( "5" );
+		const so_5::state_t st_6 = so_make_state( "6" );
+		const so_5::state_t st_7 = so_make_state( "7" );
+		const so_5::state_t st_8 = so_make_state( "8" );
+		const so_5::state_t st_9 = so_make_state( "9" );
 
 		unsigned int m_iterations;
 
-		std::vector< const so_5::rt::state_t * > m_states;
+		std::vector< const so_5::state_t * > m_states;
 	};
 
 int
@@ -104,7 +104,7 @@ main( int argc, char ** argv )
 		const unsigned int tick_count = 2 == argc ? std::atoi( argv[1] ) : 1000;
 
 		so_5::launch(
-			[tick_count]( so_5::rt::environment_t & env )
+			[tick_count]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop(
 					"test",

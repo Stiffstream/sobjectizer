@@ -10,15 +10,15 @@
 
 #include "../simple_tracer.hpp"
 
-struct finish : public so_5::rt::signal_t {};
+struct finish : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	struct dummy_msg { int m_i; };
 
 public :
-	a_test_t( context_t ctx, so_5::rt::mbox_t data_mbox )
-		:	so_5::rt::agent_t{ ctx }
+	a_test_t( context_t ctx, so_5::mbox_t data_mbox )
+		:	so_5::agent_t{ ctx }
 		,	m_data_mbox{ std::move( data_mbox ) }
 	{}
 
@@ -41,7 +41,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_data_mbox;
+	const so_5::mbox_t m_data_mbox;
 
 	void
 	evt_finish()
@@ -58,10 +58,10 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-			coop.make_agent< a_test_t >( coop.environment().create_local_mbox() );
+	env.introduce_coop( []( so_5::coop_t & coop ) {
+			coop.make_agent< a_test_t >( coop.environment().create_mbox() );
 		} );
 }
 
@@ -75,7 +75,7 @@ main()
 			{
 				counter_t counter = { 0 };
 				so_5::launch( &init,
-					[&counter]( so_5::rt::environment_params_t & params ) {
+					[&counter]( so_5::environment_params_t & params ) {
 						params.message_delivery_tracer(
 								so_5::msg_tracing::tracer_unique_ptr_t{
 										new tracer_t{ counter,

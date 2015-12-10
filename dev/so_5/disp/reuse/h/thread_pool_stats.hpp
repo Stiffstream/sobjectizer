@@ -28,7 +28,7 @@ namespace reuse {
 
 namespace thread_pool_stats {
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 
 /*!
  * \since v.5.5.4
@@ -158,6 +158,11 @@ class stats_consumer_t
 				const intrusive_ptr_t< queue_description_holder_t > & queue_desc ) = 0;
 	};
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 /*!
  * \since v.5.5.4
  * \brief An interface of supplier of information about thread-pool-like
@@ -205,7 +210,7 @@ class data_source_t : public stats::manually_registered_source_t
 		//! Distribution of statistical information.
 		virtual void
 		distribute(
-			const so_5::rt::mbox_t & mbox ) override
+			const mbox_t & mbox ) override
 			{
 				// Collecting...
 				collector_t collector;
@@ -332,7 +337,12 @@ class data_source_t : public stats::manually_registered_source_t
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_head;
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_tail;
 			};
+
 	};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } /* namespace thread_pool_stats */
 

@@ -7,8 +7,7 @@
 	\brief A definition of the named local mbox.
 */
 
-#if !defined( _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_ )
-#define _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_
+#pragma once
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -18,9 +17,6 @@
 #include <so_5/rt/impl/h/mbox_core.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -57,7 +53,7 @@ class named_local_mbox_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			const so_5::rt::message_limit::control_block_t * limit,
+			const so_5::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override;
 
 		virtual void
@@ -107,8 +103,4 @@ class named_local_mbox_t
 
 } /* namespace impl */
 
-} /* namespace rt */
-
 } /* namespace so_5 */
-
-#endif

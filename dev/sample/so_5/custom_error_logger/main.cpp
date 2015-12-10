@@ -11,7 +11,7 @@
 // A cooperation notificator which will not throw exceptions.
 void
 normal_coop_reg_notificator(
-	so_5::rt::environment_t &,
+	so_5::environment_t &,
 	const std::string & coop_name )
 {
 	std::cout << "cooperation registered: " << coop_name << std::endl;
@@ -20,7 +20,7 @@ normal_coop_reg_notificator(
 // A cooperation notificator which will throw exception.
 void
 invalid_coop_reg_notificator(
-	so_5::rt::environment_t &,
+	so_5::environment_t &,
 	const std::string & coop_name )
 {
 	throw std::runtime_error(
@@ -29,12 +29,12 @@ invalid_coop_reg_notificator(
 }
 
 // A class of parent agent.
-class a_parent_t : public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
 public :
 	a_parent_t(
-		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+		so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	virtual void
@@ -47,7 +47,7 @@ public :
 	void
 	so_evt_start() override
 	{
-		using namespace so_5::rt;
+		using namespace so_5;
 
 		introduce_child_coop( *this, "child", [this]( coop_t & coop ) {
 			// Add necessary cooperation notificators for coop.
@@ -67,7 +67,7 @@ public :
 
 	void
 	evt_child_created(
-		const so_5::rt::msg_coop_registered & evt )
+		const so_5::msg_coop_registered & evt )
 	{
 		std::cout << "registration passed: " << evt.m_coop_name << std::endl;
 
@@ -100,13 +100,13 @@ main()
 	{
 		so_5::launch(
 			// The SObjectizer Environment initialization.
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
 				env.register_agent_as_coop( "parent", new a_parent_t( env ) );
 			},
 			// Parameters for SObjectizer Environment.
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.error_logger(
 					std::make_shared< custom_logger_t >() );

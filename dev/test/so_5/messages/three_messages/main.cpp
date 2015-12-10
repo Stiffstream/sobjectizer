@@ -10,7 +10,7 @@
 
 struct test_message_1
 	:
-		public so_5::rt::message_t
+		public so_5::message_t
 {
 	test_message_1(): m_year_1( 2010 ), m_year_2( 2011 ) {}
 
@@ -20,7 +20,7 @@ struct test_message_1
 
 struct test_message_2
 	:
-		public so_5::rt::message_t
+		public so_5::message_t
 {
 	test_message_2(): m_so( "SObjectizer" ), m_ver( "5" ) {}
 
@@ -30,7 +30,7 @@ struct test_message_2
 
 struct test_message_3
 	:
-		public so_5::rt::message_t
+		public so_5::message_t
 {
 	test_message_3(): m_where( "Gomel" ) {}
 
@@ -39,16 +39,16 @@ struct test_message_3
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_test_mbox( so_environment().create_local_mbox() )
+				m_test_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_t()
@@ -62,18 +62,18 @@ class test_agent_t
 
 		void
 		evt_test_1(
-			const so_5::rt::event_data_t< test_message_1 > & msg );
+			const so_5::event_data_t< test_message_1 > & msg );
 
 		void
 		evt_test_2(
-			const so_5::rt::event_data_t< test_message_2 > & msg );
+			const so_5::event_data_t< test_message_2 > & msg );
 
 		void
 		evt_test_3(
-			const so_5::rt::event_data_t< test_message_3 > & msg );
+			const so_5::event_data_t< test_message_3 > & msg );
 
 	private:
-		so_5::rt::mbox_t m_test_mbox;
+		so_5::mbox_t m_test_mbox;
 };
 
 void
@@ -98,7 +98,7 @@ test_agent_t::so_evt_start()
 
 void
 test_agent_t::evt_test_1(
-	const so_5::rt::event_data_t< test_message_1 > &
+	const so_5::event_data_t< test_message_1 > &
 		msg )
 {
 	if( 0 == msg.get() )
@@ -115,7 +115,7 @@ test_agent_t::evt_test_1(
 
 void
 test_agent_t::evt_test_2(
-	const so_5::rt::event_data_t< test_message_2 > &
+	const so_5::event_data_t< test_message_2 > &
 		msg )
 {
 	if( 0 == msg.get() )
@@ -132,7 +132,7 @@ test_agent_t::evt_test_2(
 
 void
 test_agent_t::evt_test_3(
-	const so_5::rt::event_data_t< test_message_3 > &
+	const so_5::event_data_t< test_message_3 > &
 		msg )
 {
 	if( 0 == msg.get() )
@@ -150,7 +150,7 @@ test_agent_t::evt_test_3(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
 }

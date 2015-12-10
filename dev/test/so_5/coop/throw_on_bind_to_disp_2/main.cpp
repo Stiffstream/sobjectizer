@@ -14,17 +14,17 @@
 
 so_5::atomic_counter_t g_agents_count;
 
-struct some_message : public so_5::rt::signal_t {};
+struct some_message : public so_5::signal_t {};
 
 class a_ordinary_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		a_ordinary_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{
@@ -51,7 +51,7 @@ class a_ordinary_t
 
 		void
 		some_handler(
-			const so_5::rt::event_data_t< some_message > & );
+			const so_5::event_data_t< some_message > & );
 };
 
 void
@@ -64,7 +64,7 @@ a_ordinary_t::so_evt_start()
 
 void
 a_ordinary_t::some_handler(
-	const so_5::rt::event_data_t< some_message > & )
+	const so_5::event_data_t< some_message > & )
 {
 	// This method should not be called.
 	std::cerr << "error: a_ordinary_t::some_handler called.";
@@ -73,16 +73,16 @@ a_ordinary_t::some_handler(
 
 class throwing_disp_binder_t
 	:
-		public so_5::rt::disp_binder_t
+		public so_5::disp_binder_t
 {
 	public:
 		throwing_disp_binder_t() {}
 		virtual ~throwing_disp_binder_t() {}
 
-		virtual so_5::rt::disp_binding_activator_t
+		virtual so_5::disp_binding_activator_t
 		bind_agent(
-			so_5::rt::environment_t &,
-			so_5::rt::agent_ref_t )
+			so_5::environment_t &,
+			so_5::agent_ref_t )
 		{
 			std::this_thread::sleep_for( std::chrono::milliseconds( 300 ) );
 
@@ -92,17 +92,17 @@ class throwing_disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t &,
-			so_5::rt::agent_ref_t )
+			so_5::environment_t &,
+			so_5::agent_ref_t )
 		{
 		}
 };
 
 void
 reg_coop(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "test_coop",
+	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 	coop->add_agent( new a_ordinary_t( env ) );
@@ -114,7 +114,7 @@ reg_coop(
 	// This agent will throw an exception during binding for dispatcher.
 	coop->add_agent(
 		new a_ordinary_t( env ),
-		so_5::rt::disp_binder_unique_ptr_t( new throwing_disp_binder_t ) );
+		so_5::disp_binder_unique_ptr_t( new throwing_disp_binder_t ) );
 
 	try
 	{
@@ -128,7 +128,7 @@ reg_coop(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	reg_coop( env );
 
@@ -142,7 +142,7 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				params.add_named_dispatcher(
 					"active_obj",

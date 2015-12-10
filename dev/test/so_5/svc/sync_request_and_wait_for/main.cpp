@@ -11,13 +11,13 @@
 
 #include "../a_time_sentinel.hpp"
 
-struct msg_get_default : public so_5::rt::signal_t
+struct msg_get_default : public so_5::signal_t
 	{};
 
-struct msg_back_call_get_default : public so_5::rt::signal_t
+struct msg_back_call_get_default : public so_5::signal_t
 	{};
 
-struct msg_convert : public so_5::rt::message_t
+struct msg_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -25,7 +25,7 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
-struct msg_back_call_convert : public so_5::rt::message_t
+struct msg_back_call_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -33,26 +33,26 @@ struct msg_back_call_convert : public so_5::rt::message_t
 			{}
 	};
 
-struct msg_back_call : public so_5::rt::signal_t
+struct msg_back_call : public so_5::signal_t
 	{};
 
 class a_convert_service_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_convert_service_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & self_mbox,
-			const so_5::rt::mbox_t & back_call_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & self_mbox,
+			const so_5::mbox_t & back_call_mbox )
+			:	so_5::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_back_call_mbox( back_call_mbox )
 			{}
 
-		virtual so_5::rt::exception_reaction_t
+		virtual so_5::exception_reaction_t
 		so_exception_reaction() const
 			{
-				return so_5::rt::abort_on_exception;
+				return so_5::abort_on_exception;
 			}
 
 		virtual void
@@ -72,14 +72,14 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_default( const so_5::rt::event_data_t< msg_get_default > & )
+		svc_default( const so_5::event_data_t< msg_get_default > & )
 			{
 				return "DEFAULT";
 			}
 
 		std::string
 		svc_back_call_default(
-			const so_5::rt::event_data_t< msg_back_call_get_default > & )
+			const so_5::event_data_t< msg_back_call_get_default > & )
 			{
 				m_back_call_mbox->run_one()
 						.wait_forever().sync_get< msg_back_call >();
@@ -88,7 +88,7 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_convert( const so_5::rt::event_data_t< msg_convert > & evt )
+		svc_convert( const so_5::event_data_t< msg_convert > & evt )
 			{
 				std::ostringstream s;
 				s << evt->m_value;
@@ -98,7 +98,7 @@ class a_convert_service_t
 
 		std::string
 		svc_back_call_convert(
-			const so_5::rt::event_data_t< msg_back_call_convert > & )
+			const so_5::event_data_t< msg_back_call_convert > & )
 			{
 				m_back_call_mbox->run_one()
 						.wait_forever().sync_get< msg_back_call >();
@@ -107,8 +107,8 @@ class a_convert_service_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_self_mbox;
-		const so_5::rt::mbox_t m_back_call_mbox;
+		const so_5::mbox_t m_self_mbox;
+		const so_5::mbox_t m_back_call_mbox;
 	};
 
 void
@@ -126,16 +126,16 @@ compare_and_abort_if_missmatch(
 	}
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
-		struct msg_next_convert : public so_5::rt::signal_t {};
+		struct msg_next_convert : public so_5::signal_t {};
 
 		a_client_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & self_mbox,
-			const so_5::rt::mbox_t & svc_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & self_mbox,
+			const so_5::mbox_t & svc_mbox )
+			:	so_5::agent_t( env )
 			,	m_self_mbox( self_mbox )
 			,	m_svc_mbox( svc_mbox )
 			,	m_normal_convert_actions_current( 0 )
@@ -145,10 +145,10 @@ class a_client_t
 				fill_back_call_actions();
 			}
 
-		virtual so_5::rt::exception_reaction_t
+		virtual so_5::exception_reaction_t
 		so_exception_reaction() const
 			{
-				return so_5::rt::abort_on_exception;
+				return so_5::abort_on_exception;
 			}
 
 		virtual void
@@ -172,7 +172,7 @@ class a_client_t
 
 		void
 		evt_next_normal_convert(
-			const so_5::rt::event_data_t< msg_next_convert > & )
+			const so_5::event_data_t< msg_next_convert > & )
 			{
 				if( m_normal_convert_actions_current <
 						m_normal_convert_actions.size() )
@@ -190,7 +190,7 @@ class a_client_t
 
 		void
 		evt_next_back_call_convert(
-			const so_5::rt::event_data_t< msg_next_convert > & )
+			const so_5::event_data_t< msg_next_convert > & )
 			{
 				if( m_back_call_actions_current <
 						m_back_call_actions.size() )
@@ -206,15 +206,15 @@ class a_client_t
 					}
 			}
 		void
-		svc_back_call( const so_5::rt::event_data_t< msg_back_call > & )
+		svc_back_call( const so_5::event_data_t< msg_back_call > & )
 			{
 			}
 
 	private :
-		const so_5::rt::state_t st_deadlocks = so_make_state( "deadlocks" );
+		const so_5::state_t st_deadlocks = so_make_state( "deadlocks" );
 
-		const so_5::rt::mbox_t m_self_mbox;
-		const so_5::rt::mbox_t m_svc_mbox;
+		const so_5::mbox_t m_self_mbox;
+		const so_5::mbox_t m_svc_mbox;
 
 		typedef std::function< void(void) > action_t;
 
@@ -336,14 +336,14 @@ class a_client_t
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
 		auto coop = env.create_coop(
 				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-		auto back_call_mbox = env.create_local_mbox();
-		auto svc_mbox = env.create_local_mbox();
+		auto back_call_mbox = env.create_mbox();
+		auto svc_mbox = env.create_mbox();
 
 		coop->add_agent( new a_convert_service_t(
 				env, svc_mbox, back_call_mbox ) );
@@ -360,7 +360,7 @@ main()
 			{
 				so_5::launch(
 					&init,
-					[]( so_5::rt::environment_params_t & params )
+					[]( so_5::environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 								"active_obj",

@@ -15,16 +15,16 @@
 #include <so_5/all.hpp>
 
 // A request to be processed.
-struct msg_request : public so_5::rt::message_t
+struct msg_request : public so_5::message_t
 {
 	std::string m_id;
 	std::time_t m_deadline;
-	const so_5::rt::mbox_t m_reply_to;
+	const so_5::mbox_t m_reply_to;
 
 	msg_request(
 		std::string id,
 		std::time_t deadline,
-		const so_5::rt::mbox_t & reply_to )
+		const so_5::mbox_t & reply_to )
 		:	m_id( std::move( id ) )
 		,	m_deadline( deadline )
 		,	m_reply_to( reply_to )
@@ -35,7 +35,7 @@ struct msg_request : public so_5::rt::message_t
 using msg_request_smart_ptr_t = so_5::intrusive_ptr_t< msg_request >;
 
 // A successful reply to request.
-struct msg_positive_reply : public so_5::rt::message_t
+struct msg_positive_reply : public so_5::message_t
 {
 	std::string m_id;
 	std::string m_result;
@@ -52,7 +52,7 @@ struct msg_positive_reply : public so_5::rt::message_t
 };
 
 // A negative reply to request.
-struct msg_negative_reply : public so_5::rt::message_t
+struct msg_negative_reply : public so_5::message_t
 {
 	std::string m_id;
 	std::time_t m_deadline;
@@ -76,13 +76,13 @@ time_to_string( std::time_t t )
 }
 
 // Agent for generation of serie of requests.
-class a_generator_t : public so_5::rt::agent_t
+class a_generator_t : public so_5::agent_t
 {
 public :
 	a_generator_t(
-		so_5::rt::environment_t & env,
-		const so_5::rt::mbox_t & processor_mbox )
-		:	so_5::rt::agent_t( env )
+		so_5::environment_t & env,
+		const so_5::mbox_t & processor_mbox )
+		:	so_5::agent_t( env )
 		,	m_processor_mbox( processor_mbox )
 	{}
 
@@ -123,7 +123,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_processor_mbox;
+	const so_5::mbox_t m_processor_mbox;
 
 	unsigned int m_expected_replies = 0;
 
@@ -162,17 +162,17 @@ private :
 };
 
 // Agent-collector for handling message deadlines.
-class a_collector_t : public so_5::rt::agent_t
+class a_collector_t : public so_5::agent_t
 {
 public :
-	struct msg_select_next_job : public so_5::rt::signal_t {};
+	struct msg_select_next_job : public so_5::signal_t {};
 
-	a_collector_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_collector_t( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	void
-	set_performer_mbox( const so_5::rt::mbox_t & mbox )
+	set_performer_mbox( const so_5::mbox_t & mbox )
 	{
 		m_performer_mbox = mbox;
 	}
@@ -192,7 +192,7 @@ public :
 	}
 
 private :
-	struct msg_check_deadline : public so_5::rt::signal_t {};
+	struct msg_check_deadline : public so_5::signal_t {};
 
 	// Comparator for priority queue of stored requests.
 	struct request_comparator_t
@@ -207,10 +207,10 @@ private :
 		}
 	};
 
-	const so_5::rt::state_t st_performer_is_free = so_make_state();
-	const so_5::rt::state_t st_performer_is_busy = so_make_state();
+	const state_t st_performer_is_free = so_make_state();
+	const state_t st_performer_is_busy = so_make_state();
 
-	so_5::rt::mbox_t m_performer_mbox;
+	so_5::mbox_t m_performer_mbox;
 
 	// Queue of pending requests.
 	std::priority_queue<
@@ -220,7 +220,7 @@ private :
 			m_pending_requests;
 
 	void
-	evt_first_request( const so_5::rt::event_data_t< msg_request > & evt )
+	evt_first_request( const so_5::event_data_t< msg_request > & evt )
 	{
 		// Performer is waiting for a request.
 		// So the request can be sent for processing right now.
@@ -231,7 +231,7 @@ private :
 
 	void
 	evt_yet_another_request(
-		const so_5::rt::event_data_t< msg_request > & evt )
+		const so_5::event_data_t< msg_request > & evt )
 	{
 		// Performer is busy. So the request must be stored in the queue.
 		// And deadline for it must be controlled.
@@ -242,7 +242,7 @@ private :
 			m_pending_requests.push( evt.make_reference() );
 
 			// Just use delayed signal for every pending request.
-			so_5::send_delayed_to_agent< msg_check_deadline >(
+			so_5::send_delayed< msg_check_deadline >(
 					*this,
 					std::chrono::seconds( evt->m_deadline - now ) );
 		}
@@ -304,13 +304,13 @@ private :
 };
 
 // Agent for handling requests.
-class a_performer_t : public so_5::rt::agent_t
+class a_performer_t : public so_5::agent_t
 {
 public :
 	a_performer_t(
-		so_5::rt::environment_t & env,
-		const so_5::rt::mbox_t & collector_mbox )
-		:	so_5::rt::agent_t( env )
+		so_5::environment_t & env,
+		const so_5::mbox_t & collector_mbox )
+		:	so_5::agent_t( env )
 		,	m_collector_mbox( collector_mbox )
 	{}
 
@@ -321,7 +321,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_collector_mbox;
+	const so_5::mbox_t m_collector_mbox;
 
 	void
 	evt_request( const msg_request & evt )
@@ -344,14 +344,14 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
 	env.introduce_coop(
 		create_private_disp( env, 3 )->binder(
 				bind_params_t{}.fifo( fifo_t::individual ) ),
-		[]( so_5::rt::coop_t & c ) {
+		[]( so_5::coop_t & c ) {
 			auto collector = c.make_agent< a_collector_t >();
 			auto performer = c.make_agent< a_performer_t >(
 					collector->so_direct_mbox() );

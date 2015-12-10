@@ -7,7 +7,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct classic_msg : public so_5::rt::message_t
+struct classic_msg : public so_5::message_t
 {
 	std::string m_a;
 	std::string m_b;
@@ -25,7 +25,7 @@ struct msg
 
 struct empty {};
 
-struct classic_signal : public so_5::rt::signal_t {};
+struct classic_signal : public so_5::signal_t {};
 
 template< typename TARGET, typename MBOX >
 void
@@ -151,11 +151,11 @@ perform_service_interaction( TARGET && service )
 	perform_service_interaction_via_finite_wait( forward< TARGET >(service) );
 }
 
-class a_service_t : public so_5::rt::agent_t
+class a_service_t : public so_5::agent_t
 {
 public :
 	a_service_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 	{}
 
 	virtual void
@@ -165,11 +165,11 @@ public :
 	}
 };
 
-class a_test_via_mbox_t : public so_5::rt::agent_t
+class a_test_via_mbox_t : public so_5::agent_t
 {
 public :
-	a_test_via_mbox_t( context_t ctx, so_5::rt::mbox_t service )
-		:	so_5::rt::agent_t( ctx )
+	a_test_via_mbox_t( context_t ctx, so_5::mbox_t service )
+		:	so_5::agent_t( ctx )
 		,	m_service( std::move( service ) )
 	{}
 
@@ -184,14 +184,14 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_service;
+	const so_5::mbox_t m_service;
 };
 
-class a_test_via_direct_mbox_t : public so_5::rt::agent_t
+class a_test_via_direct_mbox_t : public so_5::agent_t
 {
 public :
 	a_test_via_direct_mbox_t( context_t ctx, const a_service_t & service )
-		:	so_5::rt::agent_t( ctx )
+		:	so_5::agent_t( ctx )
 		,	m_service( service )
 	{}
 
@@ -210,9 +210,9 @@ private :
 };
 
 void
-make_adhoc_agents_coop( so_5::rt::environment_t & env )
+make_adhoc_agents_coop( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		using namespace so_5::disp::one_thread;
 
 		auto service = coop.define_agent(
@@ -228,9 +228,9 @@ make_adhoc_agents_coop( so_5::rt::environment_t & env )
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			using namespace so_5::disp::one_thread;
 
 			auto service = coop.make_agent_with_binder< a_service_t >(
@@ -239,7 +239,7 @@ init( so_5::rt::environment_t & env )
 			coop.make_agent< a_test_via_mbox_t >( service->so_direct_mbox() );
 		} );
 
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 			using namespace so_5::disp::one_thread;
 
 			auto service = coop.make_agent_with_binder< a_service_t >(

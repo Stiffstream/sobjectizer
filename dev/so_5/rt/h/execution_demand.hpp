@@ -8,21 +8,17 @@
 	\brief Event-related stuff.
 */
 
-#if !defined( _SO_5__RT__EXECUTION_DEMAND_HPP_ )
-#define _SO_5__RT__EXECUTION_DEMAND_HPP_
+#pragma once
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
+
+#include <so_5/rt/h/fwd.hpp>
 
 #include <so_5/rt/h/message.hpp>
 
 namespace so_5
 {
-
-namespace rt
-{
-
-class agent_t;
 
 //
 // event_handler_method_t
@@ -191,9 +187,129 @@ public :
 #endif
 };
 
+namespace details {
+
+//
+// msg_type_and_handler_pair_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Description of an event handler.
+ */
+struct msg_type_and_handler_pair_t
+	{
+		//! Type of a message or signal.
+		std::type_index m_msg_type;
+		//! A handler for processing this message or signal.
+		event_handler_method_t m_handler;
+
+		//! Default constructor.
+		msg_type_and_handler_pair_t()
+			:	m_msg_type{ typeid(void) }
+			{}
+		//! Constructor for the case when only msg_type is known.
+		/*!
+		 * This constructor is intended for cases when
+		 * msg_type_and_handler_pair_t instance is used
+		 * as a key for searching in ordered sequences.
+		 */
+		msg_type_and_handler_pair_t(
+			//! Type of a message or signal.
+			std::type_index msg_type )
+			:	m_msg_type{ std::move(msg_type) }
+			{}
+		//! Initializing constructor.
+		msg_type_and_handler_pair_t(
+			//! Type of a message or signal.
+			std::type_index msg_type,
+			//! A handler for processing this message or signal.
+			event_handler_method_t handler )
+			:	m_msg_type{ std::move(msg_type) }
+			,	m_handler{ std::move(handler) }
+			{}
+		//! Copy constructor.
+		msg_type_and_handler_pair_t(
+			const msg_type_and_handler_pair_t & o )
+			:	m_msg_type{ o.m_msg_type }
+			,	m_handler{ o.m_handler }
+			{}
+		//! Move constructor.
+		msg_type_and_handler_pair_t(
+			msg_type_and_handler_pair_t && o )
+			:	m_msg_type{ std::move(o.m_msg_type) }
+			,	m_handler{ std::move(o.m_handler) }
+			{}
+
+		//! Swap operation.
+		void swap( msg_type_and_handler_pair_t & o ) SO_5_NOEXCEPT
+			{
+				std::swap( m_msg_type, o.m_msg_type );
+				m_handler.swap( o.m_handler );
+			}
+
+		//! Copy operator.
+		msg_type_and_handler_pair_t &
+		operator=( const msg_type_and_handler_pair_t & o )
+			{
+				msg_type_and_handler_pair_t tmp{ o };
+				tmp.swap( *this );
+				return *this;
+			}
+
+		//! Move operator.
+		msg_type_and_handler_pair_t &
+		operator=( msg_type_and_handler_pair_t && o )
+			{
+				msg_type_and_handler_pair_t tmp{ std::move(o) };
+				tmp.swap( *this );
+				return *this;
+			}
+
+		//! Comparison (strictly less than).
+		bool
+		operator<( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type < o.m_msg_type;
+			}
+
+		//! Comparison (strictly equal).
+		bool
+		operator==( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type == o.m_msg_type;
+			}
+	};
+
+} /* namespace details */
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::event_handler_method_t
+ * instead.
+ */
+using event_handler_method_t = so_5::event_handler_method_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::demand_handler_pfn_t
+ * instead.
+ */
+using demand_handler_pfn_t = so_5::demand_handler_pfn_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::execution_demand_t
+ * instead.
+ */
+using execution_demand_t = so_5::execution_demand_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::execution_hint_t
+ * instead.
+ */
+using execution_hint_t = so_5::execution_hint_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

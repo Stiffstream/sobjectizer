@@ -7,11 +7,11 @@
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
 
-struct msg_hello_to_all : public so_5::rt::message_t
+struct msg_hello_to_all : public so_5::message_t
 {
 	msg_hello_to_all(
 		std::string sender,
-		const so_5::rt::mbox_t & mbox )
+		const so_5::mbox_t & mbox )
 		:	m_sender( std::move( sender ) ),
 			m_mbox( mbox )
 	{}
@@ -19,10 +19,10 @@ struct msg_hello_to_all : public so_5::rt::message_t
 	// Sender name.
 	const std::string m_sender;
 	// Sender Mbox.
-	const so_5::rt::mbox_t m_mbox;
+	const so_5::mbox_t m_mbox;
 };
 
-struct msg_hello_to_you : public so_5::rt::message_t
+struct msg_hello_to_you : public so_5::message_t
 {
 	msg_hello_to_you( std::string sender )
 		: m_sender( std::move( sender ) )
@@ -34,15 +34,15 @@ struct msg_hello_to_you : public so_5::rt::message_t
 
 
 // An agent class.
-class a_hello_t : public so_5::rt::agent_t
+class a_hello_t : public so_5::agent_t
 {
 	public:
 		a_hello_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & agent_name )
-			:	so_5::rt::agent_t( env ),
+			:	so_5::agent_t( env ),
 				m_agent_name( agent_name ),
-				m_common_mbox( so_environment().create_local_mbox( "common_mbox" ) )
+				m_common_mbox( so_environment().create_mbox( "common_mbox" ) )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -68,7 +68,7 @@ class a_hello_t : public so_5::rt::agent_t
 		const std::string m_agent_name;
 
 		// Common mbox for all sample agents.
-		const so_5::rt::mbox_t m_common_mbox;
+		const so_5::mbox_t m_common_mbox;
 };
 
 void
@@ -117,10 +117,10 @@ a_hello_t::evt_hello_to_you(
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		// Adding agents to the cooperation.
 		coop.make_agent< a_hello_t >( "alpha" );
 		coop.make_agent< a_hello_t >( "beta" );

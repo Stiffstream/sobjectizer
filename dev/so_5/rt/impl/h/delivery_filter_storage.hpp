@@ -20,8 +20,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 //
@@ -145,8 +143,6 @@ class delivery_filter_storage_t
 	};
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

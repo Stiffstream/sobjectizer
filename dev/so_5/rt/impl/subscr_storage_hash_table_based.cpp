@@ -20,9 +20,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -126,7 +123,7 @@ struct hash_t
 					(std::hash< std::type_index >()( ptr->m_msg_type ) +
 					 	0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 
-				return h2 ^ (std::hash< const so_5::rt::state_t * >()(
+				return h2 ^ (std::hash< const state_t * >()(
 							ptr->m_state ) +
 						0x9e3779b9 + (h2 << 6) + (h2 >> 2));
 			}
@@ -477,13 +474,13 @@ storage_t::setup_content(
 		hash_table_t fresh_table;
 
 		for_each( begin(info), end(info),
-			[&]( const subscr_info_t & info )
+			[&]( const subscr_info_t & i )
 			{
-				key_t k{ info.m_mbox->id(), info.m_msg_type, *(info.m_state) };
+				key_t k{ i.m_mbox->id(), i.m_msg_type, *(i.m_state) };
 
-				auto ins_result = fresh_map.emplace( k, info.m_mbox );
+				auto ins_result = fresh_map.emplace( k, i.m_mbox );
 
-				fresh_table.emplace( &(ins_result.first->first), info.m_handler );
+				fresh_table.emplace( &(ins_result.first->first), i.m_handler );
 			} );
 
 		m_map.swap( fresh_map );
@@ -508,8 +505,6 @@ hash_table_based_subscription_storage_factory()
 					new impl::hash_table_subscr_storage::storage_t( owner ) );
 		};
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

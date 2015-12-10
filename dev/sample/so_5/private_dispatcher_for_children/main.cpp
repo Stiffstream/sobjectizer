@@ -9,7 +9,7 @@
 #include <so_5/all.hpp>
 
 // A hello message to be sent to coordinator.
-struct msg_hello : public so_5::rt::message_t
+struct msg_hello : public so_5::message_t
 {
 	std::string m_text;
 
@@ -21,20 +21,20 @@ struct msg_hello : public so_5::rt::message_t
 // Sends a hello message to the coordinator at start.
 // Then if creation of another child cooperation is enabled creates
 // child cooperation.
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
 public :
 	a_child_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		// Mbox of the coordinator.
-		so_5::rt::mbox_t coordinator,
+		so_5::mbox_t coordinator,
 		// Dispatcher to be used for child.
 		so_5::disp::active_obj::private_dispatcher_handle_t dispatcher,
 		// Current generation.
 		int generation,
 		// Max generation.
 		int max_generation )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_coordinator( std::move( coordinator ) )
 		,	m_dispatcher( std::move( dispatcher ) )
 		,	m_generation( generation )
@@ -51,7 +51,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_coordinator;
+	const so_5::mbox_t m_coordinator;
 
 	so_5::disp::active_obj::private_dispatcher_handle_t m_dispatcher;
 
@@ -74,13 +74,13 @@ private :
 	void
 	create_child_coop()
 	{
-		so_5::rt::introduce_child_coop(
+		so_5::introduce_child_coop(
 				*this,
 				// Name will be generated automatically.
 				so_5::autoname,
 				// The same dispatcher will be used for child cooperation.
 				m_dispatcher->binder(),
-				[this]( so_5::rt::coop_t & coop ) {
+				[this]( so_5::coop_t & coop ) {
 					coop.make_agent< a_child_t >(
 							m_coordinator,
 							m_dispatcher,
@@ -94,11 +94,11 @@ private :
 // Works on the default dispatcher.
 // Receives messages from children agents.
 // Finishes sample when all messages are received.
-class a_coordinator_t : public so_5::rt::agent_t
+class a_coordinator_t : public so_5::agent_t
 {
 public :
-	a_coordinator_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_coordinator_t( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	virtual void
@@ -130,7 +130,7 @@ private :
 		// The private dispatcher for the family of child cooperations.
 		auto disp = so_5::disp::active_obj::create_private_disp(
 				so_environment() );
-		so_5::rt::introduce_child_coop(
+		so_5::introduce_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.
@@ -138,7 +138,7 @@ private :
 				// The main dispatcher for the new cooperation is
 				// the private dispatcher.
 				disp->binder(),
-				[&]( so_5::rt::coop_t & coop ) {
+				[&]( so_5::coop_t & coop ) {
 					coop.make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
 				} );
 	}
@@ -150,7 +150,7 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env ) {
+			[]( so_5::environment_t & env ) {
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,

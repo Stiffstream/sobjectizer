@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -56,6 +53,26 @@ struct quantity : public message_t
 			,	m_value( std::move( value ) )
 			{}
 	};
+
+} /* namespace messages */
+
+} /* namespace stats */
+
+namespace rt
+{
+
+namespace stats
+{
+
+namespace messages
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::stats::messages::quantity
+ * instead.
+ */
+template< typename T >
+using quantity = so_5::stats::messages::quantity< T >;
 
 } /* namespace messages */
 

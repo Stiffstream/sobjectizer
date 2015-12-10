@@ -14,14 +14,14 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
 template< typename DISPATCHER_HANDLE >
 void
-make_coop( so_5::rt::environment_t & env, DISPATCHER_HANDLE disp )
+make_coop( so_5::environment_t & env, DISPATCHER_HANDLE disp )
 {
 	env.introduce_coop( disp->binder(),
-		[]( so_5::rt::agent_coop_t & coop ) {
+		[]( so_5::coop_t & coop ) {
 			auto a1 = coop.define_agent();
 			auto a2 = coop.define_agent();
 			auto a3 = coop.define_agent();
@@ -47,10 +47,10 @@ make_coop( so_5::rt::environment_t & env, DISPATCHER_HANDLE disp )
 }
 
 void
-make_stopper( so_5::rt::environment_t & env )
+make_stopper( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-			struct msg_stop : public so_5::rt::signal_t {};
+	env.introduce_coop( []( so_5::coop_t & coop ) {
+			struct msg_stop : public so_5::signal_t {};
 
 			auto a1 = coop.define_agent();
 			a1.on_start( [&coop, a1] { so_5::send_to_agent< msg_stop >( a1 ); } )
@@ -60,7 +60,7 @@ make_stopper( so_5::rt::environment_t & env )
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto one_thread = so_5::disp::one_thread::create_private_disp( env );
 	make_coop( env, one_thread );

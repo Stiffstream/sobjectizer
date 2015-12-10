@@ -11,7 +11,7 @@
 #include <so_5/all.hpp>
 
 // Message for registration key-value pair in the storage.
-struct msg_register_pair : public so_5::rt::message_t
+struct msg_register_pair : public so_5::message_t
 {
 	std::string m_key;
 	std::string m_value;
@@ -31,7 +31,7 @@ struct msg_register_pair : public so_5::rt::message_t
 };
 
 // A request for the value by key.
-struct msg_request_by_key : public so_5::rt::message_t
+struct msg_request_by_key : public so_5::message_t
 {
 	std::string m_key;
 
@@ -50,10 +50,10 @@ public :
 
 // An agent for implementing key-value-storage.
 // The real implementation is hidden by PImpl idiom.
-class a_key_value_storage_t : public so_5::rt::agent_t
+class a_key_value_storage_t : public so_5::agent_t
 {
 public :
-	a_key_value_storage_t( so_5::rt::environment_t & env );
+	a_key_value_storage_t( so_5::environment_t & env );
 	~a_key_value_storage_t();
 
 	virtual void

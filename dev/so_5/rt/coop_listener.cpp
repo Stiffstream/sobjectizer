@@ -7,9 +7,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // coop_listener_t
 //
@@ -17,7 +14,5 @@ namespace rt
 coop_listener_t::~coop_listener_t()
 {
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */

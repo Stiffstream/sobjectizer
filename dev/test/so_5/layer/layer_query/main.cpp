@@ -17,7 +17,7 @@ void * last_created_objects[ 64 ];
 template < int N >
 class test_layer_t
 	:
-		public so_5::rt::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()
@@ -42,10 +42,10 @@ class test_layer_t
 };
 
 class test_environment_t
-	:	public so_5::rt::environment_t
+	:	public so_5::environment_t
 	,	public separate_so_thread::init_finish_signal_mixin_t
 {
-		typedef so_5::rt::environment_t base_type_t;
+		typedef so_5::environment_t base_type_t;
 	public:
 		test_environment_t(
 			test_layer_t< 1 > * tl1,
@@ -54,7 +54,7 @@ class test_environment_t
 			:
 				base_type_t(
 					std::move(
-						so_5::rt::environment_params_t()
+						so_5::environment_params_t()
 							.add_layer(
 								std::unique_ptr< test_layer_t< 1 > >( tl1 ) )
 							.add_layer(
@@ -141,7 +141,7 @@ UT_UNIT_TEST( check_2_3_exist )
 			(test_layer_t< N >*) last_created_objects[ N ] )
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	CHECK_LAYER_EXISTANCE( env, 1 );
 	CHECK_LAYER_EXISTANCE( env, 2 );
@@ -187,7 +187,7 @@ UT_UNIT_TEST( check_many_layers )
 {
 	so_5::launch(
 		&init,
-		[]( so_5::rt::environment_params_t & params )
+		[]( so_5::environment_params_t & params )
 		{
 			params
 			ADD_LAYER( 1 )

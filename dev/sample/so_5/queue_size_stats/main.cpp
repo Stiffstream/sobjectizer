@@ -15,10 +15,10 @@
 #include <so_5/all.hpp>
 
 // A signal to worker agent to do something.
-struct msg_start_thinking : public so_5::rt::signal_t {};
+struct msg_start_thinking : public so_5::signal_t {};
 
 // Message for logger.
-struct log_message : public so_5::rt::message_t
+struct log_message : public so_5::message_t
 {
 	// Text to be logged.
 	std::string m_what;
@@ -29,11 +29,11 @@ struct log_message : public so_5::rt::message_t
 };
 
 // Logger agent.
-class a_logger_t : public so_5::rt::agent_t
+class a_logger_t : public so_5::agent_t
 {
 public :
 	a_logger_t( context_t ctx )
-		:	so_5::rt::agent_t( ctx
+		:	so_5::agent_t( ctx
 				// Limit the count of messages.
 				// Because we can't lost log messages the overlimit
 				// must lead to application crash.
@@ -68,22 +68,22 @@ private :
 };
 
 // Agent for receiving run-time monitoring information.
-class a_stats_listener_t : public so_5::rt::agent_t
+class a_stats_listener_t : public so_5::agent_t
 {
 public :
 	a_stats_listener_t(
 		// Environment to work in.
 		context_t ctx,
 		// Address of logger.
-		so_5::rt::mbox_t logger )
-		:	so_5::rt::agent_t( ctx )
+		so_5::mbox_t logger )
+		:	so_5::agent_t( ctx )
 		,	m_logger( std::move( logger ) )
 	{}
 
 	virtual void
 	so_define_agent() override
 	{
-		using namespace so_5::rt::stats;
+		using namespace so_5::stats;
 
 		// Set up a filter for messages with run-time monitoring information.
 		so_set_delivery_filter(
@@ -113,11 +113,11 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_logger;
+	const so_5::mbox_t m_logger;
 
 	void
 	evt_quantity(
-		const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+		const so_5::stats::messages::quantity< std::size_t > & evt )
 	{
 		std::ostringstream ss;
 
@@ -128,17 +128,17 @@ private :
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::rt::agent_t
+class a_generator_t : public so_5::agent_t
 {
 public :
 	a_generator_t(
 		// Environment to work in.
 		context_t ctx,
 		// Address of logger.
-		so_5::rt::mbox_t logger,
+		so_5::mbox_t logger,
 		// Addresses of worker agents.
-		std::vector< so_5::rt::mbox_t > workers )
-		:	so_5::rt::agent_t( ctx )
+		std::vector< so_5::mbox_t > workers )
+		:	so_5::agent_t( ctx )
 		,	m_logger( std::move( logger ) )
 		,	m_workers( std::move( workers ) )
 		,	m_turn_pause( 600 )
@@ -160,13 +160,13 @@ public :
 
 private :
 	// Signal about start of the next turn.
-	struct msg_next_turn : public so_5::rt::signal_t {};
+	struct msg_next_turn : public so_5::signal_t {};
 
 	// Logger.
-	const so_5::rt::mbox_t m_logger;
+	const so_5::mbox_t m_logger;
 
 	// Workers.
-	const std::vector< so_5::rt::mbox_t > m_workers;
+	const std::vector< so_5::mbox_t > m_workers;
 
 	// Pause between working turns.
 	const std::chrono::milliseconds m_turn_pause;
@@ -178,7 +178,7 @@ private :
 		generate_new_requests( random( 100, 200 ) );
 
 		// Wait for next turn and process replies.
-		so_5::send_delayed_to_agent< msg_next_turn >( *this, m_turn_pause );
+		so_5::send_delayed< msg_next_turn >( *this, m_turn_pause );
 	}
 
 	void
@@ -203,13 +203,13 @@ private :
 };
 
 // Worker agent.
-class a_worker_t : public so_5::rt::agent_t
+class a_worker_t : public so_5::agent_t
 {
 public :
 	a_worker_t(
 		// Environment to work in.
 		context_t ctx )
-		:	so_5::rt::agent_t( ctx
+		:	so_5::agent_t( ctx
 				// Limit the maximum count of messages.
 				+ limit_then_drop< msg_start_thinking >( 50 ) )
 	{}
@@ -225,9 +225,9 @@ public :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( [&env]( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 		// Logger will work on the default dispatcher.
 		auto logger = coop.make_agent< a_logger_t >();
 
@@ -247,7 +247,7 @@ init( so_5::rt::environment_t & env )
 		const auto worker_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
-		std::vector< so_5::rt::mbox_t > workers;
+		std::vector< so_5::mbox_t > workers;
 		for( int i = 0; i != 5; ++i )
 		{
 			auto w = coop.make_agent_with_binder< a_worker_t >(

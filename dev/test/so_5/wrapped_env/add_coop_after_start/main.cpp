@@ -18,17 +18,17 @@ main()
 
 				std::cout << "Before adding a coop" << std::endl;
 
-				env.environment().introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-					struct hello_sig : public so_5::rt::signal_t {};
+				env.environment().introduce_coop( []( so_5::coop_t & coop ) {
+					struct hello_sig : public so_5::signal_t {};
 
 					auto a = coop.define_agent();
 					a.on_start( [a] {
-							so_5::send_delayed_to_agent< hello_sig >( a,
+							so_5::send_delayed< hello_sig >( a,
 									std::chrono::milliseconds( 25 ) );
 						} );
 					a.event< hello_sig >( a, [a] {
 							std::cout << "Hello for agent" << std::endl;
-							so_5::send_delayed_to_agent< hello_sig >( a,
+							so_5::send_delayed< hello_sig >( a,
 									std::chrono::milliseconds( 100 ) );
 						} );
 					a.on_finish( [] {

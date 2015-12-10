@@ -12,7 +12,7 @@
 #include <so_5/all.hpp>
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.stop();
 }
@@ -26,7 +26,7 @@ const std::string test_str_param = "Hello!";
 
 void
 init_with_string_param(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & param )
 {
 	if( param != test_str_param )
@@ -39,7 +39,7 @@ const int test_int_param = 42;
 
 void
 init_with_int_param(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	int param )
 {
 	if( param != test_int_param )
@@ -77,7 +77,7 @@ struct so_init_tester_t
 
 	void
 	init(
-		so_5::rt::environment_t & env )
+		so_5::environment_t & env )
 	{
 		env.stop();
 	}

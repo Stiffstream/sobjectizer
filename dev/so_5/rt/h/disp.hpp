@@ -7,8 +7,7 @@
 	\brief Interface for the dispatcher definition.
 */
 
-#if !defined( _SO_5__RT__DISP_HPP_ )
-#define _SO_5__RT__DISP_HPP_
+#pragma once
 
 #include <memory>
 #include <map>
@@ -17,13 +16,10 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
 
 //
 // dispatcher_t
@@ -97,21 +93,41 @@ class SO_5_TYPE dispatcher_t
 };
 
 //! Typedef of the dispatcher autopointer.
-typedef std::unique_ptr< dispatcher_t > dispatcher_unique_ptr_t;
+using dispatcher_unique_ptr_t = std::unique_ptr< dispatcher_t >;
 
 //! Typedef of the dispatcher smart pointer.
-typedef std::shared_ptr< dispatcher_t >
-	dispatcher_ref_t;
+using dispatcher_ref_t = std::shared_ptr< dispatcher_t >;
 
 //! Typedef of the map from dispatcher name to a dispather.
-typedef std::map<
-		std::string,
-		dispatcher_ref_t >
-	named_dispatcher_map_t;
+using named_dispatcher_map_t = std::map< std::string, dispatcher_ref_t >;
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_t instead.
+ */
+using dispatcher_t = so_5::dispatcher_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_unique_ptr_t
+ * instead.
+ */
+using dispatcher_unique_ptr_t = so_5::dispatcher_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_ref_t
+ * instead.
+ */
+using dispatcher_ref_t = so_5::dispatcher_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::named_dispatcher_map_t
+ * instead.
+ */
+using named_dispatcher_map_t = so_5::named_dispatcher_map_t;
 
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

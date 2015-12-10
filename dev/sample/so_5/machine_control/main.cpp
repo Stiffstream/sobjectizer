@@ -12,15 +12,15 @@ enum class engine_state_t { on, off };
 enum class cooler_state_t { on, off };
 
 // Signals to turn engine on and off.
-struct turn_engine_on : public so_5::rt::signal_t {};
-struct turn_engine_off : public so_5::rt::signal_t {};
+struct turn_engine_on : public so_5::signal_t {};
+struct turn_engine_off : public so_5::signal_t {};
 
 // Signals to turn cooler on and off.
-struct turn_cooler_on : public so_5::rt::signal_t {};
-struct turn_cooler_off : public so_5::rt::signal_t {};
+struct turn_cooler_on : public so_5::signal_t {};
+struct turn_cooler_off : public so_5::signal_t {};
 
 // Machine status message.
-struct machine_status : public so_5::rt::message_t
+struct machine_status : public so_5::message_t
 {
 	const std::string m_id;
 	const engine_state_t m_engine_status;
@@ -49,7 +49,7 @@ enum class attention_t
 };
 
 // Notification about machine which needs some attention.
-struct machine_needs_attention : public so_5::rt::message_t
+struct machine_needs_attention : public so_5::message_t
 {
 	const std::string m_id;
 	const attention_t m_attention;
@@ -69,20 +69,20 @@ struct machine_needs_attention : public so_5::rt::message_t
 };
 
 // Agent for representing a machine.
-class a_machine_t : public so_5::rt::agent_t
+class a_machine_t : public so_5::agent_t
 {
 	// Periodic signal to update and distribute status of the machine.
-	struct update_status : public so_5::rt::signal_t {};
+	struct update_status : public so_5::signal_t {};
 
 public :
 	a_machine_t(
 		context_t ctx,
 		std::string id,
-		so_5::rt::mbox_t status_distrib_mbox,
+		so_5::mbox_t status_distrib_mbox,
 		float initial_temperature,
 		float engine_heating_step,
 		float cooler_impact_step )
-		:	so_5::rt::agent_t{ ctx }
+		:	so_5::agent_t{ ctx }
 		,	m_id( std::move( id ) )
 		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
 		,	m_initial_temperature{ initial_temperature }
@@ -110,18 +110,18 @@ public :
 	virtual void so_evt_start() override
 	{
 		// Periodic update_status signal must be initiated.
-		m_update_status_timer = so_5::send_periodic_to_agent< update_status >(
+		m_update_status_timer = so_5::send_periodic< update_status >(
 				*this,
 				std::chrono::milliseconds(0),
 				std::chrono::milliseconds(200) );
 	}
 
 private :
-	const so_5::rt::state_t st_engine_on = so_make_state( "on" );
-	const so_5::rt::state_t st_engine_off = so_make_state( "off" );
+	const state_t st_engine_on = so_make_state( "on" );
+	const state_t st_engine_off = so_make_state( "off" );
 
 	const std::string m_id;
-	const so_5::rt::mbox_t m_status_distrib_mbox;
+	const so_5::mbox_t m_status_distrib_mbox;
 
 	const float m_initial_temperature;
 	const float m_engine_heating_step;
@@ -190,16 +190,16 @@ private :
 };
 
 // An agent to collect and periodically show status of all machines.
-class a_total_status_dashboard_t : public so_5::rt::agent_t
+class a_total_status_dashboard_t : public so_5::agent_t
 {
 	// A signal to show the current state of all machines to the console.
-	struct show_dashboard : public so_5::rt::signal_t {};
+	struct show_dashboard : public so_5::signal_t {};
 
 public :
 	a_total_status_dashboard_t(
 		context_t ctx,
-		so_5::rt::mbox_t status_distrib_mbox )
-		:	so_5::rt::agent_t{ ctx }
+		so_5::mbox_t status_distrib_mbox )
+		:	so_5::agent_t{ ctx }
 		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
 	{}
 
@@ -216,12 +216,12 @@ public :
 	{
 		// Periodic signal must be initiated.
 		const auto period = std::chrono::milliseconds( 1500 );
-		m_show_timer = so_5::send_periodic_to_agent< show_dashboard >( *this,
+		m_show_timer = so_5::send_periodic< show_dashboard >( *this,
 				period, period );
 	}
 
 private :
-	const so_5::rt::mbox_t m_status_distrib_mbox;
+	const so_5::mbox_t m_status_distrib_mbox;
 
 	// Description of one machine state.
 	struct one_machine_status_t
@@ -253,7 +253,7 @@ private :
 		auto old_precision = std::cout.precision( 5 );
 		std::cout << "=== The current status ===" << std::endl;
 
-		for( const auto m : m_machine_statuses )
+		for( const auto & m : m_machine_statuses )
 		{
 			show_one_status( m );
 		}
@@ -278,13 +278,13 @@ private :
 class machine_dictionary_t
 {
 public :
-	using dictionary_type_t = std::map< std::string, so_5::rt::mbox_t >;
+	using dictionary_type_t = std::map< std::string, so_5::mbox_t >;
 
 	machine_dictionary_t( dictionary_type_t values )
 		:	m_dictionary( std::move( values ) )
 	{}
 
-	so_5::rt::mbox_t find_mbox( const std::string & name ) const
+	so_5::mbox_t find_mbox( const std::string & name ) const
 	{
 		auto r = m_dictionary.find( name );
 		if( r == m_dictionary.end() )
@@ -296,7 +296,7 @@ public :
 	template< typename L >
 	void for_each( L lambda ) const
 	{
-		for( const auto m : m_dictionary )
+		for( const auto & m : m_dictionary )
 			lambda( m.first, m.second );
 	}
 
@@ -306,16 +306,16 @@ private :
 
 // Agent which does analyzing of machine statuses and produces
 // machine_needs_attention messages.
-class a_statuses_analyzer_t : public so_5::rt::agent_t
+class a_statuses_analyzer_t : public so_5::agent_t
 {
 public :
 	a_statuses_analyzer_t(
 		context_t ctx,
-		so_5::rt::mbox_t status_distrib_mbox,
+		so_5::mbox_t status_distrib_mbox,
 		float safe_temperature,
 		float warn_temperature,
 		float high_temperature)
-		:	so_5::rt::agent_t{ ctx }
+		:	so_5::agent_t{ ctx }
 		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
 		,	m_safe_temperature{ safe_temperature }
 		,	m_warn_temperature{ warn_temperature }
@@ -329,7 +329,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_status_distrib_mbox;
+	const so_5::mbox_t m_status_distrib_mbox;
 
 	const float m_safe_temperature;
 	const float m_warn_temperature;
@@ -418,15 +418,15 @@ private :
 
 // A class for machine controllers.
 template< class LOGIC >
-class a_machine_controller_t : public so_5::rt::agent_t
+class a_machine_controller_t : public so_5::agent_t
 {
 public :
 	a_machine_controller_t(
 		context_t ctx,
 		so_5::priority_t priority,
-		so_5::rt::mbox_t status_distrib_mbox,
+		so_5::mbox_t status_distrib_mbox,
 		const machine_dictionary_t & machines )
-		:	so_5::rt::agent_t{ ctx + priority }
+		:	so_5::agent_t{ ctx + priority }
 		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
 		,	m_machines{ machines }
 		,	m_logic{}
@@ -446,7 +446,7 @@ public :
 	}
 
 private :
-	const so_5::rt::mbox_t m_status_distrib_mbox;
+	const so_5::mbox_t m_status_distrib_mbox;
 
 	const machine_dictionary_t & m_machines;
 
@@ -531,8 +531,8 @@ struct cooler_stopper_t
 
 // Helper for creation of machine agents.
 const machine_dictionary_t & create_machines(
-	so_5::rt::coop_t & coop,
-	const so_5::rt::mbox_t & status_distrib_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & status_distrib_mbox )
 {
 	// Data for machine dictionary.
 	machine_dictionary_t::dictionary_type_t dict_data;
@@ -564,8 +564,8 @@ const machine_dictionary_t & create_machines(
 }
 
 void create_machine_controllers(
-	so_5::rt::coop_t & coop,
-	const so_5::rt::mbox_t & status_distrib_mbox,
+	so_5::coop_t & coop,
+	const so_5::mbox_t & status_distrib_mbox,
 	const machine_dictionary_t & machines )
 {
 	// There must be a priority-respected dispatcher.
@@ -598,23 +598,23 @@ void create_machine_controllers(
 }
 
 void create_starter_agent(
-	so_5::rt::coop_t & coop,
+	so_5::coop_t & coop,
 	const machine_dictionary_t & dict )
 {
 	// A very simple ad-hoc agent will be used as starter.
 	// It will work on the default dispatcher.
 	coop.define_agent().on_start( [&dict] {
 			dict.for_each(
-				[]( const std::string &, const so_5::rt::mbox_t & mbox ) {
+				[]( const std::string &, const so_5::mbox_t & mbox ) {
 					so_5::send< turn_engine_on >( mbox );
 				} );
 		} );
 }
 
-void fill_coop( so_5::rt::coop_t & coop )
+void fill_coop( so_5::coop_t & coop )
 {
 	// Common mbox for information distribution.
-	auto status_distrib_mbox = coop.environment().create_local_mbox();
+	auto status_distrib_mbox = coop.environment().create_mbox();
 
 	// Create machines and form machines dictionary.
 	const auto & machine_dict = create_machines( coop, status_distrib_mbox );
@@ -646,7 +646,7 @@ int main()
 {
 	try
 	{
-		so_5::launch( []( so_5::rt::environment_t & env ) {
+		so_5::launch( []( so_5::environment_t & env ) {
 				env.introduce_coop( fill_coop );
 			} );
 	}

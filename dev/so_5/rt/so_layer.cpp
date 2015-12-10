@@ -9,35 +9,32 @@
 namespace so_5
 {
 
-namespace rt
-{
-
-so_layer_t::so_layer_t()
+layer_t::layer_t()
 	:	m_env( nullptr )
 {
 }
 
-so_layer_t::~so_layer_t()
+layer_t::~layer_t()
 {
 }
 
 void
-so_layer_t::start()
+layer_t::start()
 {
 }
 
 void
-so_layer_t::shutdown()
+layer_t::shutdown()
 {
 }
 
 void
-so_layer_t::wait()
+layer_t::wait()
 {
 }
 
 environment_t &
-so_layer_t::so_environment()
+layer_t::so_environment()
 {
 	if( nullptr == m_env )
 	{
@@ -50,12 +47,10 @@ so_layer_t::so_environment()
 }
 
 void
-so_layer_t::bind_to_environment( environment_t * env )
+layer_t::bind_to_environment( environment_t * env )
 {
 	m_env = env;
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

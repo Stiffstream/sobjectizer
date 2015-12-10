@@ -31,21 +31,18 @@ class logger_t
 };
 
 // A signal for parent cooperation about child work finish.
-struct msg_child_finished : public so_5::rt::signal_t {};
+struct msg_child_finished : public so_5::signal_t {};
 
 // A class of child agent.
-class a_child_t
-	:	public so_5::rt::agent_t
+class a_child_t :	public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::string agent_name,
-			const so_5::rt::mbox_t & parent_mbox,
+			const so_5::mbox_t & parent_mbox,
 			logger_t & logger )
-			:	base_type_t( env )
+			:	so_5::agent_t( env )
 			,	m_agent_name( std::move( agent_name ) )
 			,	m_parent_mbox( parent_mbox )
 			,	m_logger( logger )
@@ -66,22 +63,19 @@ class a_child_t
 
 	private :
 		const std::string m_agent_name;
-		const so_5::rt::mbox_t m_parent_mbox;
+		const so_5::mbox_t m_parent_mbox;
 		logger_t & m_logger;
 };
 
 // A class of parent agent.
-class a_parent_t
-	:	public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
-
 	public :
 		a_parent_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			logger_t & logger,
 			size_t child_count )
-			:	base_type_t( env )
+			:	so_5::agent_t( env )
 			,	m_logger( logger )
 			,	m_child_count( child_count )
 			,	m_child_finished( 0 )
@@ -131,8 +125,8 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			so_5::rt::introduce_child_coop( *this, "child",
-				[this]( so_5::rt::coop_t & coop ) 
+			so_5::introduce_child_coop( *this, "child",
+				[this]( so_5::coop_t & coop ) 
 				{
 					for( size_t i = 0; i != m_child_count; ++i )
 						coop.make_agent< a_child_t >(
@@ -144,11 +138,11 @@ class a_parent_t
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		auto logger = coop.take_under_control( new logger_t() );
-		coop.make_agent< a_parent_t >( *logger, 2 );
+		coop.make_agent< a_parent_t >( *logger, 2u );
 	} );
 }
 

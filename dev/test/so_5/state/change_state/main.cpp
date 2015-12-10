@@ -8,25 +8,25 @@
 
 #include <so_5/all.hpp>
 
-struct test_message : public so_5::rt::signal_t {};
+struct test_message : public so_5::signal_t {};
 
 class test_agent_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
-		const so_5::rt::state_t m_first_state = so_make_state();
-		const so_5::rt::state_t m_second_state = so_make_state();
-		const so_5::rt::state_t m_third_state = so_make_state();
+		const so_5::state_t m_first_state = so_make_state();
+		const so_5::state_t m_second_state = so_make_state();
+		const so_5::state_t m_third_state = so_make_state();
 
 	public:
 
 		test_agent_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_test_mbox( so_environment().create_local_mbox() )
+				m_test_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_t()
@@ -40,19 +40,19 @@ class test_agent_t
 
 		void
 		evt_in_state_default(
-			const so_5::rt::event_data_t< test_message > & );
+			const so_5::event_data_t< test_message > & );
 
 		void
 		evt_in_state_1(
-			const so_5::rt::event_data_t< test_message > & );
+			const so_5::event_data_t< test_message > & );
 
 		void
 		evt_in_state_2(
-			const so_5::rt::event_data_t< test_message > & );
+			const so_5::event_data_t< test_message > & );
 
 		void
 		evt_in_state_3(
-			const so_5::rt::event_data_t< test_message > & );
+			const so_5::event_data_t< test_message > & );
 
 		// Count for event handlers calls.
 		static int m_handler_in_state_default_calls;
@@ -61,7 +61,7 @@ class test_agent_t
 		static int m_handler_in_state_3_calls;
 
 	private:
-		so_5::rt::mbox_t m_test_mbox;
+		so_5::mbox_t m_test_mbox;
 };
 
 int test_agent_t::m_handler_in_state_default_calls = 0;
@@ -104,7 +104,7 @@ test_agent_t::so_evt_start()
 
 void
 test_agent_t::evt_in_state_default(
-	const so_5::rt::event_data_t< test_message > & )
+	const so_5::event_data_t< test_message > & )
 {
 	++m_handler_in_state_default_calls;
 	m_test_mbox->deliver_signal< test_message >();
@@ -115,7 +115,7 @@ test_agent_t::evt_in_state_default(
 
 void
 test_agent_t::evt_in_state_1(
-	const so_5::rt::event_data_t< test_message > & )
+	const so_5::event_data_t< test_message > & )
 {
 	++m_handler_in_state_1_calls;
 
@@ -127,7 +127,7 @@ test_agent_t::evt_in_state_1(
 
 void
 test_agent_t::evt_in_state_2(
-	const so_5::rt::event_data_t< test_message > & )
+	const so_5::event_data_t< test_message > & )
 {
 	++m_handler_in_state_2_calls;
 
@@ -139,7 +139,7 @@ test_agent_t::evt_in_state_2(
 
 void
 test_agent_t::evt_in_state_3(
-	const so_5::rt::event_data_t< test_message > & )
+	const so_5::event_data_t< test_message > & )
 {
 	++m_handler_in_state_3_calls;
 
@@ -150,7 +150,7 @@ test_agent_t::evt_in_state_3(
 }
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
 }

@@ -79,22 +79,22 @@ try_parse_cmdline(
 	return tmp_cfg;
 }
 
-using binder_generator_t = std::function< so_5::rt::disp_binder_unique_ptr_t() >;
+using binder_generator_t = std::function< so_5::disp_binder_unique_ptr_t() >;
 
-class a_benchmarker_t : public so_5::rt::agent_t
+class a_benchmarker_t : public so_5::agent_t
 	{
-		struct ping : public so_5::rt::signal_t {};
-		struct pong : public so_5::rt::signal_t {};
+		struct ping : public so_5::signal_t {};
+		struct pong : public so_5::signal_t {};
 
 	public :
 		a_benchmarker_t(
 			context_t ctx,
 			cfg_t cfg,
 			binder_generator_t binder_generator )
-			:	so_5::rt::agent_t{ ctx }
+			:	so_5::agent_t{ ctx }
 			,	m_cfg{ std::move(cfg) }
 			,	m_binder_generator{ std::move(binder_generator) }
-			,	m_root_coop_name{ "root" }
+			,	m_root_coop_name( "root" )
 			{
 				m_child_mboxes.reserve( cfg.m_coop_count * cfg.m_coop_size );
 			}
@@ -112,13 +112,13 @@ class a_benchmarker_t : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Root for children coops must be registered first.
-				so_5::rt::introduce_child_coop(
+				so_5::introduce_child_coop(
 						*this,
 						m_root_coop_name,
 						m_binder_generator(),
-						[this]( so_5::rt::agent_coop_t & coop ) {
+						[this]( so_5::coop_t & coop ) {
 							coop.add_dereg_notificator(
-									so_5::rt::make_coop_dereg_notificator(
+									so_5::make_coop_dereg_notificator(
 											so_direct_mbox() ) );
 							// Empty agent.
 							coop.define_agent();
@@ -136,7 +136,7 @@ class a_benchmarker_t : public so_5::rt::agent_t
 
 		const std::string m_root_coop_name;
 
-		std::vector< so_5::rt::mbox_t > m_child_mboxes;
+		std::vector< so_5::mbox_t > m_child_mboxes;
 
 		benchmarker_t m_reg_bench;
 		benchmarker_t m_ping_pong_bench;
@@ -146,7 +146,7 @@ class a_benchmarker_t : public so_5::rt::agent_t
 		unsigned int m_pongs_received = { 0u };
 
 		void
-		evt_root_deregistered( const so_5::rt::msg_coop_deregistered & )
+		evt_root_deregistered( const so_5::msg_coop_deregistered & )
 			{
 				m_dereg_bench.finish_and_show_stats(
 						m_cfg.m_coop_count + 1,
@@ -156,7 +156,7 @@ class a_benchmarker_t : public so_5::rt::agent_t
 			}
 
 		void
-		evt_child_registered( const so_5::rt::msg_coop_registered & )
+		evt_child_registered( const so_5::msg_coop_registered & )
 			{
 				++m_child_coop_reg_count;
 				if( m_child_coop_reg_count == m_cfg.m_coop_count )
@@ -191,7 +191,7 @@ class a_benchmarker_t : public so_5::rt::agent_t
 						m_dereg_bench.start();
 						so_environment().deregister_coop(
 								m_root_coop_name,
-								so_5::rt::dereg_reason::normal );
+								so_5::dereg_reason::normal );
 					}
 			}
 
@@ -200,10 +200,10 @@ class a_benchmarker_t : public so_5::rt::agent_t
 			{
 				so_environment().introduce_coop(
 						m_binder_generator(),
-						[this]( so_5::rt::agent_coop_t & coop ) {
+						[this]( so_5::coop_t & coop ) {
 							coop.set_parent_coop_name( m_root_coop_name );
 							coop.add_reg_notificator(
-									so_5::rt::make_coop_reg_notificator(
+									so_5::make_coop_reg_notificator(
 											so_direct_mbox() ) );
 
 							const auto parent = this;
@@ -232,7 +232,7 @@ dispatcher_type_name( dispatcher_type_t t )
 
 binder_generator_t
 make_binder_generator(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	dispatcher_type_t t )
 	{
 		if( dispatcher_type_t::one_thread == t )
@@ -263,8 +263,8 @@ show_cfg(
 void
 run_sobjectizer( const cfg_t & cfg )
 	{
-		so_5::launch( [&cfg]( so_5::rt::environment_t & env ) {
-				env.introduce_coop( [&cfg]( so_5::rt::agent_coop_t & coop ) {
+		so_5::launch( [&cfg]( so_5::environment_t & env ) {
+				env.introduce_coop( [&cfg]( so_5::coop_t & coop ) {
 						coop.make_agent< a_benchmarker_t >(
 								cfg,
 								make_binder_generator(

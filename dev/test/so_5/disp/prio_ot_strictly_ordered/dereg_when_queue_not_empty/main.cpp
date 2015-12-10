@@ -7,14 +7,14 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct send_next : public so_5::rt::signal_t {};
-struct stop : public so_5::rt::signal_t {};
+struct send_next : public so_5::signal_t {};
+struct stop : public so_5::signal_t {};
 
 void
 fill_coop(
-	so_5::rt::agent_coop_t & coop )
+	so_5::coop_t & coop )
 	{
-		using namespace so_5::rt;
+		using namespace so_5;
 
 		auto a = coop.define_agent(
 				coop.make_agent_context() +
@@ -50,7 +50,7 @@ main()
 			[]()
 			{
 				so_5::launch(
-					[]( so_5::rt::environment_t & env )
+					[]( so_5::environment_t & env )
 					{
 						using namespace so_5::disp::prio_one_thread::strictly_ordered;
 

@@ -9,19 +9,14 @@
 #include <so_5/all.hpp>
 
 // A class for an agent.
-class a_disp_user_t
-	:
-		public so_5::rt::agent_t
+class a_disp_user_t : public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_disp_user_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			const std::string & name )
-			:
-				base_type_t( env ),
-				m_name( name )
+			: so_5::agent_t( env )
+			, m_name( name )
 		{}
 		virtual ~a_disp_user_t()
 		{}
@@ -77,10 +72,10 @@ create_agent_name( const std::string & base, int i )
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.introduce_coop( [&env]( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 		// Adding agents which will work on the default dispatcher.
 		for( int i = 0; i < 4; ++i )
 		{
@@ -136,7 +131,7 @@ main()
 	{
 		so_5::launch(
 			&init,
-			[]( so_5::rt::environment_params_t & p )
+			[]( so_5::environment_params_t & p )
 			{
 				p.add_named_dispatcher(
 					"single_thread",

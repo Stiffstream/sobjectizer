@@ -7,8 +7,7 @@
 	\brief A definition of an utility class for work with mboxes.
 */
 
-#if !defined( _SO_5__RT__IMPL__MBOX_CORE_HPP_ )
-#define _SO_5__RT__IMPL__MBOX_CORE_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -21,6 +20,7 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/message_limit.hpp>
@@ -28,8 +28,7 @@
 namespace so_5
 {
 
-namespace rt
-{
+class environment_t;
 
 namespace impl
 {
@@ -78,7 +77,7 @@ class mbox_core_t
 			\note always creates a new mbox.
 		*/
 		mbox_t
-		create_local_mbox();
+		create_mbox();
 
 		//! Create local named mbox.
 		/*!
@@ -88,7 +87,7 @@ class mbox_core_t
 			the present mbox (with this name).
 		*/
 		mbox_t
-		create_local_mbox(
+		create_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 
@@ -104,7 +103,7 @@ class mbox_core_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
+			const so_5::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Remove a reference to the named mbox.
 		/*!
@@ -114,6 +113,19 @@ class mbox_core_t
 		destroy_mbox(
 			//! Mbox name.
 			const std::string & name );
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief Create message chain.
+		 *
+		 * \par Usage examples:
+		 */
+		mchain_t
+		create_mchain(
+			//! SObjectizer Environment for which message chain will be created.
+			environment_t & env,
+			//! Parameters for a new chain.
+			const mchain_params_t & params );
 
 		/*!
 		 * \since v.5.5.4
@@ -266,8 +278,4 @@ class mbox_core_ref_t
 
 } /* namespace impl */
 
-} /* namespace rt */
-
 } /* namespace so_5 */
-
-#endif

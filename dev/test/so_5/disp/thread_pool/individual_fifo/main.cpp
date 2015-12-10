@@ -54,18 +54,18 @@ typedef std::shared_ptr< thread_id_collector_t > thread_id_collector_ptr_t;
 
 typedef std::vector< thread_id_collector_ptr_t > collector_container_t;
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 	public:
 		a_test_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			thread_id_collector_t & collector,
-			const so_5::rt::mbox_t & shutdowner_mbox )
-			:	so_5::rt::agent_t( env )
+			const so_5::mbox_t & shutdowner_mbox )
+			:	so_5::agent_t( env )
 			,	m_collector( collector )
 			,	m_shutdowner_mbox( shutdowner_mbox )
 			,	m_messages_sent( 0 )
@@ -100,18 +100,18 @@ class a_test_t : public so_5::rt::agent_t
 
 	private :
 		thread_id_collector_t & m_collector;
-		const so_5::rt::mbox_t m_shutdowner_mbox;
+		const so_5::mbox_t m_shutdowner_mbox;
 
 		std::size_t m_messages_sent;
 };
 
-class a_shutdowner_t : public so_5::rt::agent_t
+class a_shutdowner_t : public so_5::agent_t
 {
 	public :
 		a_shutdowner_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			std::size_t working_agents )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_working_agents( working_agents )
 		{}
 
@@ -154,9 +154,9 @@ run_sobjectizer(
 	duration_meter_t duration( "running of test cooperations" );
 
 	so_5::launch(
-		[&]( so_5::rt::environment_t & env )
+		[&]( so_5::environment_t & env )
 		{
-			so_5::rt::mbox_t shutdowner_mbox;
+			so_5::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
 				auto a = c->add_agent(
@@ -190,7 +190,7 @@ run_sobjectizer(
 				env.register_coop( std::move( c ) );
 			}
 		},
-		[&]( so_5::rt::environment_params_t & params )
+		[&]( so_5::environment_params_t & params )
 		{
 			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(

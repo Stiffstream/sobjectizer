@@ -14,8 +14,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace message_limit {
 
 namespace impl {
@@ -69,8 +67,6 @@ class action_msg_tracer_t
 } /* namespace impl */
 
 } /* namespace message_limit */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

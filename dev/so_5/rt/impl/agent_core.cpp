@@ -7,14 +7,12 @@
 #include <algorithm>
 
 #include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/h/send_functions.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -290,7 +288,18 @@ void
 agent_core_t::start()
 {
 	m_deregistration_started = false;
-	m_coop_dereg_executor.start();
+
+	// mchain for final coop deregs must be created.
+	m_final_dereg_chain = m_so_environment.create_mchain(
+			make_unlimited_mchain_params().disable_msg_tracing() );
+	// A separate thread for doing the final dereg must be started.
+	m_final_dereg_thread = std::thread{ [this] {
+		// Process dereg demands until chain will be closed.
+		receive( from( m_final_dereg_chain ),
+			[]( coop_t * coop ) {
+				coop_t::call_final_deregister_coop( coop );
+			} );
+	} };
 }
 
 void
@@ -303,7 +312,8 @@ agent_core_t::finish()
 	wait_all_coop_to_deregister();
 
 	// Notify a dedicated thread and wait while it will be stopped.
-	m_coop_dereg_executor.finish();
+	close_retain_content( m_final_dereg_chain );
+	m_final_dereg_thread.join();
 }
 
 namespace
@@ -407,7 +417,7 @@ void
 agent_core_t::ready_to_deregister_notify(
 	coop_t * coop )
 {
-	m_coop_dereg_executor.push_dereg_demand( coop );
+	so_5::send< coop_t * >( m_final_dereg_chain, coop );
 }
 
 bool
@@ -510,7 +520,7 @@ agent_core_t::environment()
 agent_core_stats_t
 agent_core_t::query_stats()
 {
-	const auto final_dereg_coops = m_coop_dereg_executor.queue_size();
+	const auto final_dereg_coops = m_final_dereg_chain->size();
 
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
@@ -675,7 +685,5 @@ agent_core_t::do_coop_dereg_notification_if_necessary(
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

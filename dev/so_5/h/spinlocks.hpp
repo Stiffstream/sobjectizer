@@ -8,8 +8,7 @@
  * \brief Definition of various types of spinlocks.
  */
 
-#if !defined( SO_5__SPINLOCKS_HPP )
-#define SO_5__SPINLOCKS_HPP
+#pragma once
 
 #include <atomic>
 #include <thread>
@@ -211,6 +210,4 @@ class read_lock_guard_t
 	};
 
 } /* namespace so_5 */
-
-#endif
 

@@ -58,6 +58,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/mbox/build_tests.rb" 
 
+	required_prj "#{path}/mchain/build_tests.rb" 
+
 	required_prj "#{path}/msg_tracing/build_tests.rb" 
 
 	required_prj "#{path}/ad_hoc_agents/build_tests.rb" 

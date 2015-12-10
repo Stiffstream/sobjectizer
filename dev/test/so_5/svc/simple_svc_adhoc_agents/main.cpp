@@ -10,7 +10,7 @@
 
 #include "../a_time_sentinel.hpp"
 
-struct msg_convert : public so_5::rt::message_t
+struct msg_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -18,12 +18,12 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
-struct msg_get_status : public so_5::rt::signal_t {};
+struct msg_get_status : public so_5::signal_t {};
 
 void
 define_convert_service(
-	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t & self_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & self_mbox )
 	{
 		coop.define_agent()
 			.event( self_mbox, []( const msg_convert & msg ) -> std::string
@@ -40,12 +40,12 @@ define_convert_service(
 				} );
 	}
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
 void
 define_shutdown_service(
-	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t & self_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & self_mbox )
 	{
 		auto & env = coop.environment();
 		coop.define_agent()
@@ -68,8 +68,8 @@ compare_and_abort_if_missmatch(
 
 void
 define_client(
-	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t & svc_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & svc_mbox )
 	{
 		coop.define_agent()
 			.on_start(
@@ -99,13 +99,13 @@ void
 run_test()
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				auto coop = env.create_coop(
 						"test_coop",
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-				auto svc_mbox = env.create_local_mbox();
+				auto svc_mbox = env.create_mbox();
 
 				coop->add_agent( new a_time_sentinel_t( env ) );
 
@@ -115,7 +115,7 @@ run_test()
 
 				env.register_coop( std::move( coop ) );
 			},
-			[]( so_5::rt::environment_params_t & p )
+			[]( so_5::environment_params_t & p )
 			{
 				p.add_named_dispatcher(
 					"active_obj",

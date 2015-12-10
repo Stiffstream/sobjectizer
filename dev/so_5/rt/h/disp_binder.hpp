@@ -7,8 +7,7 @@
 	\brief Interface for the dispatcher binders definition.
 */
 
-#if !defined( _SO_5__RT__DISP_BINDER_HPP_ )
-#define _SO_5__RT__DISP_BINDER_HPP_
+#pragma once
 
 #include <memory>
 #include <functional>
@@ -17,13 +16,10 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/disp.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
 
 //
 // disp_binding_activator_t
@@ -32,7 +28,7 @@ class environment_t;
  * \since v.5.4.0
  * \brief Type of activator for agent to dispatcher binding.
  */
-typedef std::function< void() > disp_binding_activator_t;
+using disp_binding_activator_t = std::function< void() >;
 
 //
 // disp_binder_t
@@ -70,18 +66,53 @@ class SO_5_TYPE disp_binder_t
 };
 
 //! Typedef for the disp_binder autopointer.
-typedef std::unique_ptr< disp_binder_t > disp_binder_unique_ptr_t;
+using disp_binder_unique_ptr_t = std::unique_ptr< disp_binder_t >;
 
 //! Typedef for the disp_binder smart pointer.
-typedef std::shared_ptr< disp_binder_t >
-	disp_binder_ref_t;
+using disp_binder_ref_t = std::shared_ptr< disp_binder_t >;
 
 //! Create an instance of the default dispatcher binding.
 SO_5_FUNC disp_binder_unique_ptr_t
 create_default_disp_binder();
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binding_activator_t
+ * instead.
+ */
+using disp_binding_activator_t = so_5::disp_binding_activator_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_t
+ * instead.
+ */
+using disp_binder_t = so_5::disp_binder_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_unique_ptr_t
+ * instead.
+ */
+using disp_binder_unique_ptr_t = so_5::disp_binder_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_ref_t
+ * instead.
+ */
+using disp_binder_ref_t = so_5::disp_binder_ref_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::create_default_disp_binder
+ * instead.
+ */
+inline disp_binder_unique_ptr_t
+create_default_disp_binder()
+	{
+		return so_5::create_default_disp_binder();
+	}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
 
-#endif

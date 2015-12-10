@@ -23,6 +23,7 @@
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -58,9 +59,6 @@ struct autoname_indicator_t {};
  */
 inline autoname_indicator_t
 autoname() { return autoname_indicator_t(); }
-
-namespace rt
-{
 
 //
 // environment_params_t
@@ -142,7 +140,7 @@ class SO_5_TYPE environment_params_t
 		{
 			if( layer_ptr.get() )
 			{
-				so_layer_unique_ptr_t ptr( layer_ptr.release() );
+				layer_unique_ptr_t ptr( layer_ptr.release() );
 
 				add_layer(
 					std::type_index( typeid( SO_LAYER ) ),
@@ -267,8 +265,8 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \par Usage example:
 			\code
-			so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-				[]( so_5::rt::environment_params_t & env_params ) {
+			so_5::launch( []( so_5::environment_t & env ) { ... },
+				[]( so_5::environment_params_t & env_params ) {
 					using namespace so_5::disp::one_thread;
 					// Event queue for the default dispatcher must use mutex as lock.
 					env_params.default_disp_params( disp_params_t{}.tune_queue_params(
@@ -308,7 +306,7 @@ class SO_5_TYPE environment_params_t
 		}
 
 		//! Get map of default SObjectizer's layers.
-		const so_layer_map_t &
+		const layer_map_t &
 		so5__layers_map() const
 		{
 			return m_so_layers;
@@ -367,7 +365,7 @@ class SO_5_TYPE environment_params_t
 			//! Type identification for layer.
 			const std::type_index & type,
 			//! A layer to be added.
-			so_layer_unique_ptr_t layer_ptr );
+			layer_unique_ptr_t layer_ptr );
 
 		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
@@ -376,7 +374,7 @@ class SO_5_TYPE environment_params_t
 		so_5::timer_thread_factory_t m_timer_thread_factory;
 
 		//! Additional layers.
-		so_layer_map_t m_so_layers;
+		layer_map_t m_so_layers;
 
 		//! Cooperation listener.
 		coop_listener_unique_ptr_t m_coop_listener;
@@ -416,21 +414,6 @@ class SO_5_TYPE environment_params_t
 		 */
 		so_5::disp::one_thread::disp_params_t m_default_disp_params;
 };
-
-//
-// so_environment_params_t
-//
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0
- */
-typedef environment_params_t so_environment_params_t;
-
-namespace impl {
-
-class internal_env_iface_t;
-
-} /* namespace impl */
 
 //
 // environment_t
@@ -481,13 +464,13 @@ class internal_env_iface_t;
  * Syncronization objects for these mboxes can be obtained from
  * common pools or assigned by a user during mbox creation.
  *
- * Mboxes are created by environment_t::create_local_mbox() methods.
+ * Mboxes are created by environment_t::create_mbox() methods.
  * All these methods return the mbox_t which is a smart reference 
  * to the mbox.
  *
  * An anonymous mbox is automatically destroyed when the last reference to it is
  * destroyed. So, to save the anonymous mbox, the mbox_ref from 
- * the create_local_mbox() should be stored somewhere.
+ * the create_mbox() should be stored somewhere.
  *
  * Named mbox must be destroyed manually by calling the 
  * environment_t::destroy_mbox() method. But physically the deletion of the 
@@ -534,7 +517,7 @@ class internal_env_iface_t;
  */
 class SO_5_TYPE environment_t
 {
-	friend class so_5::rt::impl::internal_env_iface_t;
+	friend class so_5::impl::internal_env_iface_t;
 
 		//! Auxiliary methods for getting reference to itself.
 		/*!
@@ -564,7 +547,7 @@ class SO_5_TYPE environment_t
 		 *	\note always creates a new mbox.
 		 */
 		mbox_t
-		create_local_mbox();
+		create_mbox();
 
 		//! Create named mbox with the default mutex.
 		/*!
@@ -572,9 +555,80 @@ class SO_5_TYPE environment_t
 		 * If not the reference to existing mutex will be returned.
 		 */
 		mbox_t
-		create_local_mbox(
+		create_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
+
+		/*!
+		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
+		 */
+		inline mbox_t
+		create_local_mbox()
+			{
+				return create_mbox();
+			}
+
+		/*!
+		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
+		 */
+		inline mbox_t
+		create_local_mbox(
+			const nonempty_name_t & mbox_name )
+			{
+				return create_mbox( mbox_name );
+			}
+		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Method for working with message chains.
+		 * \{
+		 */
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief Create message chain.
+		 *
+		 * \par Usage examples:
+			\code
+			so_5::environment_t & env = ...;
+			// Create mchain with size-unlimited queue.
+			auto ch1 = env.create_mchain(
+				so_5::make_unlimited_mchain_params() );
+			// Create mchain with size-limited queue without a timeout
+			// on attempt to push another message to full mchain...
+			auto ch2 = env.create_mchain(
+				so_5::make_limited_without_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be allocated and deallocated dynamically...
+					so_5::mchain_props::memory_usage_t::dynamic,
+					// ...an exception will be thrown on overflow.
+					so_5::mchain_props::overflow_reaction_t::throw_exception ) );
+			// Create mchain with size-limited queue with a timeout for 200ms
+			// on attempt to push another message to full mchain...
+			auto ch3 = env.create_mchain(
+				so_5::make_limited_with_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be preallocated...
+					so_5::mchain_props::memory_usage_t::preallocated,
+					// ...an oldest message from mchain will be removed on overflow...
+					so_5::mchain_props::overflow_reaction_t::remove_oldest,
+					// ...timeout for waiting on attempt to push a message into full mchain.
+					std::chrono::milliseconds(200) ) );
+			// Create size-unlimited mchain with custom notificator for
+			// 'not_empty' situations.
+			auto ch4 = env.create_mchain(
+				so_5::make_unlimited_mchain_params().not_empty_notificator(
+					[&] { some_widget.send_notify(); } ) );
+			\endcode
+		 */
+		mchain_t
+		create_mchain(
+			//! Parameters for a new bag.
+			const mchain_params_t & params );
 		/*!
 		 * \}
 		 */
@@ -609,7 +663,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage:
 			\code
-			so_5::rt::environment_t & env = ...;
+			so_5::environment_t & env = ...;
 			env.add_dispatcher_if_not_exists(
 				"my_coop_dispatcher",
 				[]() { so_5::disp::one_thread::create_disp(); } );
@@ -659,7 +713,7 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::rt::coop_unique_ptr_t coop = so_env.create_coop(
+			so_5::coop_unique_ptr_t coop = so_env.create_coop(
 				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
@@ -668,8 +722,7 @@ class SO_5_TYPE environment_t
 			// That agent will be bound to the dispatcher "active_group"
 			// and will be member of an active group with name
 			// "some_active_group".
-			coop->add_agent(
-				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
+			coop->make_agent< a_some_agent_t >();
 			\endcode
 		 */
 		coop_unique_ptr_t
@@ -1181,7 +1234,7 @@ class SO_5_TYPE environment_t
 		SO_LAYER *
 		query_layer_noexcept() const
 		{
-			static_assert( std::is_base_of< so_layer_t, SO_LAYER >::value,
+			static_assert( std::is_base_of< layer_t, SO_LAYER >::value,
 					"SO_LAYER must be derived from so_layer_t class" );
 
 			return dynamic_cast< SO_LAYER * >(
@@ -1211,7 +1264,7 @@ class SO_5_TYPE environment_t
 		{
 			add_extra_layer(
 				std::type_index( typeid( SO_LAYER ) ),
-				so_layer_ref_t( layer_ptr.release() ) );
+				layer_ref_t( layer_ptr.release() ) );
 		}
 
 		/*!
@@ -1296,7 +1349,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::rt::environment_t & env = ...;
+		 so_5::environment_t & env = ...;
 		 // For the case of constructor like my_agent(environmen_t&).
 		 auto a1 = env.make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -1336,14 +1389,14 @@ class SO_5_TYPE environment_t
 			\code
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
-			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+			env.introduce_coop( []( so_5::coop_t & coop ) {
 				coop.make_agent< first_agent >(...);
 				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
-			env.introduce_coop( "main-coop", []( so_5::rt::coop_t & coop ) {
+			env.introduce_coop( "main-coop", []( so_5::coop_t & coop ) {
 				coop.make_agent< first_agent >(...);
 				coop.make_agent< second_agent >(...);
 			});
@@ -1352,7 +1405,7 @@ class SO_5_TYPE environment_t
 			// dispatcher binder is specified.
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
+				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
 				} );
@@ -1362,7 +1415,7 @@ class SO_5_TYPE environment_t
 			env.introduce_coop(
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
+				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
 				} );
@@ -1404,7 +1457,7 @@ class SO_5_TYPE environment_t
 			std::chrono::steady_clock::duration pause );
 
 		//! Access to an additional layer.
-		so_layer_t *
+		layer_t *
 		query_layer(
 			const std::type_index & type ) const;
 
@@ -1412,7 +1465,7 @@ class SO_5_TYPE environment_t
 		void
 		add_extra_layer(
 			const std::type_index & type,
-			const so_layer_ref_t & layer );
+			const layer_ref_t & layer );
 
 		//! Remove an additional layer.
 		void
@@ -1484,15 +1537,6 @@ class SO_5_TYPE environment_t
 		 * \}
 		 */
 };
-
-//
-// so_environment_t
-//
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0
- */
-typedef environment_t so_environment_t;
 
 namespace details
 {
@@ -1653,14 +1697,14 @@ environment_t::introduce_coop( ARGS &&... args )
  *
  * \par Usage sample
 	\code
-	class owner : public so_5::rt::agent_t
+	class owner : public so_5::agent_t
 	{
 	public :
 		...
 		virtual void
 		so_evt_start() override
 		{
-			auto child = so_5::rt::create_child_coop( *this, so_5::autoname );
+			auto child = so_5::create_child_coop( *this, so_5::autoname );
 			child->make_agent< worker >();
 			...
 			so_environment().register_coop( std::move( child ) );
@@ -1690,9 +1734,9 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		coop.define_agent().on_start( [&coop] {
-			auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
+			auto child = so_5::create_child_coop( coop, so_5::autoname );
 			child->make_agent< worker >();
 			...
 			coop.environment().register_coop( std::move( child ) );
@@ -1722,14 +1766,14 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	class owner : public so_5::rt::agent_t
+	class owner : public so_5::agent_t
 	{
 	public :
 		...
 		virtual void
 		so_evt_start() override
 		{
-			so_5::rt::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
+			so_5::introduce_child_coop( *this, []( so_5::coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1737,7 +1781,7 @@ create_child_coop(
 	\endcode
 
  * \note This function is just a tiny wrapper around
- * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * so_5::environment_t::introduce_coop() helper method. For more
  * examples with usage of introduce_coop() please see description of
  * that method.
  */
@@ -1761,10 +1805,10 @@ introduce_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::coop_t & parent ) {
+	env.introduce_coop( []( so_5::coop_t & parent ) {
 		coop.define_agent().on_start( [&parent] {
-			so_5::rt::introduce_child_coop( parent,
-				[]( so_5::rt::coop_t & child ) {
+			so_5::introduce_child_coop( parent,
+				[]( so_5::coop_t & child ) {
 					child.make_agent< worker >();
 					...
 				} );
@@ -1775,7 +1819,7 @@ introduce_child_coop(
 	\endcode
 
  * \note This function is just a tiny wrapper around
- * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * so_5::environment_t::introduce_coop() helper method. For more
  * examples with usage of introduce_coop() please see description of
  * that method.
  */
@@ -1790,6 +1834,55 @@ introduce_child_coop(
 	details::introduce_coop_helper_t{
 			parent.environment(),
 			parent.query_coop_name() }.introduce( std::forward< ARGS >(args)... );
+}
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::environment_params_t
+ * instead.
+ */
+using environment_params_t = so_5::environment_params_t;
+
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0.
+ */
+typedef so_5::environment_params_t so_environment_params_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::environment_t
+ * instead.
+ */
+using environment_t = so_5::environment_t;
+
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0
+ */
+typedef so_5::environment_t so_environment_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::create_child_coop()
+ * instead.
+ */
+template< typename... ARGS >
+coop_unique_ptr_t
+create_child_coop( ARGS&&... args )
+{
+	return so_5::create_child_coop( std::forward<ARGS>(args)... );
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::introduce_child_coop()
+ * instead.
+ */
+template< typename... ARGS >
+void
+introduce_child_coop( ARGS&&... args )
+{
+	so_5::introduce_child_coop( std::forward<ARGS>(args)... );
 }
 
 } /* namespace rt */

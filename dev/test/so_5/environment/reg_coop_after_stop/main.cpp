@@ -38,15 +38,15 @@ class log_t
 		std::string m_value;
 };
 
-class a_second_t : public so_5::rt::agent_t
+class a_second_t : public so_5::agent_t
 {
-		struct msg_timer : public so_5::rt::signal_t {};
+		struct msg_timer : public so_5::signal_t {};
 
 	public :
 		a_second_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			log_t & log )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_log( log )
 		{}
 
@@ -68,13 +68,13 @@ class a_second_t : public so_5::rt::agent_t
 		log_t & m_log;
 };
 
-class a_first_t : public so_5::rt::agent_t
+class a_first_t : public so_5::agent_t
 {
 	public :
 		a_first_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			log_t & log )
-			:	so_5::rt::agent_t( env )
+			:	so_5::agent_t( env )
 			,	m_log( log )
 		{}
 
@@ -124,7 +124,7 @@ main()
 			[&log]()
 			{
 				so_5::launch(
-					[&log]( so_5::rt::environment_t & env )
+					[&log]( so_5::environment_t & env )
 					{
 						
 						env.add_dispatcher_if_not_exists(

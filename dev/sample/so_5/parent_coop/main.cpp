@@ -19,7 +19,7 @@
 #include <so_5/all.hpp>
 
 // Result of task which will be send to a parent agent.
-class task_result_t : public so_5::rt::message_t
+class task_result_t : public so_5::message_t
 {
 	public:
 		task_result_t( unsigned int id ) : m_id( id ) {}
@@ -35,20 +35,20 @@ class task_result_t : public so_5::rt::message_t
 };
 
 // Child finished to do his task.
-class task_completed_t : public so_5::rt::signal_t {}; 
+class task_completed_t : public so_5::signal_t {}; 
 
 // Child agent.
 /*
 	This agent will be created in his own cooperation.
 	Agent does some task, sends a result to the parent agent and closes down.
 */
-class a_child_t : public so_5::rt::agent_t
+class a_child_t : public so_5::agent_t
 {
 	public:
-		a_child_t( so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & result_mbox,
+		a_child_t( so_5::environment_t & env,
+			const so_5::mbox_t & result_mbox,
 			unsigned int task_id ) 
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_result_mbox( result_mbox )
 		,	m_task_id( task_id )
 		{}
@@ -74,7 +74,7 @@ class a_child_t : public so_5::rt::agent_t
 			std::cout << "Child: has started to do task " << m_task_id
 					<< std::endl;
 
-			so_5::send_delayed_to_agent< task_completed_t >(
+			so_5::send_delayed< task_completed_t >(
 					*this,
 					// One second delay.
 					std::chrono::seconds( 1 ) ); 
@@ -89,7 +89,7 @@ class a_child_t : public so_5::rt::agent_t
 		//! Child has completed the task.
 		void
 		evt_task_completed(
-			const so_5::rt::event_data_t< task_completed_t > & )
+			const so_5::event_data_t< task_completed_t > & )
 		{
 			std::cout << "Child: has completed his task " << m_task_id
 					<< std::endl;
@@ -104,18 +104,18 @@ class a_child_t : public so_5::rt::agent_t
 
 	private:
 		// Result mbox.
-		const so_5::rt::mbox_t m_result_mbox; 
+		const so_5::mbox_t m_result_mbox; 
 
 		// Task ID.
 		const unsigned int m_task_id;
 };
 
 // Parent agent in his parent cooperation.
-class a_parent_t : public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
 	public:
-		a_parent_t( so_5::rt::environment_t & env ) 
-		:	so_5::rt::agent_t( env )
+		a_parent_t( so_5::environment_t & env ) 
+		:	so_5::agent_t( env )
 		{}
 
 		virtual ~a_parent_t()
@@ -168,15 +168,15 @@ class a_parent_t : public so_5::rt::agent_t
 			std::cout << "Parent: starting a child to do task " << id << std::endl;
 
 			// Creating a child cooperation.
-			so_5::rt::introduce_child_coop( *this, so_5::autoname,
-				[&]( so_5::rt::coop_t & coop ) {
+			so_5::introduce_child_coop( *this, so_5::autoname,
+				[&]( so_5::coop_t & coop ) {
 					// Adding agents to the cooperation.
 					coop.make_agent< a_child_t >( so_direct_mbox(), id );
 				} );
 		}
 
 		// Agent mbox.
-		so_5::rt::mbox_t m_self_mbox;
+		so_5::mbox_t m_self_mbox;
 };
 
 int
@@ -184,7 +184,7 @@ main()
 {
 	try
 	{
-		so_5::launch( []( so_5::rt::environment_t & env )
+		so_5::launch( []( so_5::environment_t & env )
 			{
 				// Registering the parent cooperation.
 				env.register_agent_as_coop( "coop",

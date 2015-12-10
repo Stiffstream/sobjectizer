@@ -13,7 +13,7 @@
 #include <so_5/all.hpp>
 
 // Hello message.
-struct msg_hello : public so_5::rt::message_t
+struct msg_hello : public so_5::message_t
 {
 	// Greeting.
 	std::string m_message;
@@ -22,14 +22,14 @@ struct msg_hello : public so_5::rt::message_t
 };
 
 // Stop message.
-class msg_stop_signal : public so_5::rt::signal_t {};
+class msg_stop_signal : public so_5::signal_t {};
 
 // An agent class.
-class a_hello_t : public so_5::rt::agent_t
+class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::rt::environment_t & env )
-			: so_5::rt::agent_t( env )
+		a_hello_t( so_5::environment_t & env )
+			: so_5::agent_t( env )
 		{}
 
 		// Definition of an agent for SObjectizer.
@@ -68,7 +68,7 @@ a_hello_t::so_evt_start()
 {
 	show_message( "a_hello_t::so_evt_start()" );
 
-	so_5::send_delayed_to_agent< msg_hello >(
+	so_5::send_delayed< msg_hello >(
 		*this,
 		std::chrono::seconds( 2 ),
 		"Hello, world! This is SObjectizer v.5." );
@@ -79,7 +79,7 @@ a_hello_t::evt_hello_delay( const msg_hello & msg )
 {
 	show_message( msg.m_message );
 
-	so_5::send_delayed_to_agent< msg_stop_signal >(
+	so_5::send_delayed< msg_stop_signal >(
 		*this,
 		std::chrono::seconds( 2 ) );
 }
@@ -106,9 +106,9 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( "coop", new a_hello_t( env ) );
+				env.register_agent_as_coop( "coop", env.make_agent< a_hello_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

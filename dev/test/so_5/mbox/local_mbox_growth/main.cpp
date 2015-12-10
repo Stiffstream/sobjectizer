@@ -6,18 +6,18 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
-		struct ping : public so_5::rt::signal_t {};
-		struct pong : public so_5::rt::signal_t {};
+		struct ping : public so_5::signal_t {};
+		struct pong : public so_5::signal_t {};
 
-		const so_5::rt::state_t st_creating_coops = so_make_state();
-		const so_5::rt::state_t st_destroying_coops = so_make_state();
+		const so_5::state_t st_creating_coops = so_make_state();
+		const so_5::state_t st_destroying_coops = so_make_state();
 
 	public :
 		a_test_t( context_t ctx )
-			:	so_5::rt::agent_t( ctx )
-			,	m_ping_mbox( so_environment().create_local_mbox() )
+			:	so_5::agent_t( ctx )
+			,	m_ping_mbox( so_environment().create_mbox() )
 			{}
 
 		virtual void
@@ -41,7 +41,7 @@ class a_test_t : public so_5::rt::agent_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_ping_mbox;
+		const so_5::mbox_t m_ping_mbox;
 
 		unsigned int m_iterations_passed = { 0 };
 		unsigned int m_last_coop_size = { 1 };
@@ -52,7 +52,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_coop_registered(
-			const so_5::rt::msg_coop_registered & )
+			const so_5::msg_coop_registered & )
 			{
 				so_5::send< ping >( m_ping_mbox );
 			}
@@ -79,7 +79,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_coop_deregistered(
-			const so_5::rt::msg_coop_deregistered & cmd )
+			const so_5::msg_coop_deregistered & )
 			{
 				if( m_live_coops.empty() )
 					{
@@ -113,12 +113,12 @@ class a_test_t : public so_5::rt::agent_t
 		create_next_coop()
 			{
 				std::string coop_name = "child_" + std::to_string( m_last_coop_size );
-				auto coop = so_5::rt::create_child_coop( *this, coop_name );
+				auto coop = so_5::create_child_coop( *this, coop_name );
 
 				coop->add_reg_notificator(
-						so_5::rt::make_coop_reg_notificator( so_direct_mbox() ) );
+						so_5::make_coop_reg_notificator( so_direct_mbox() ) );
 				coop->add_dereg_notificator(
-						so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
+						so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
 
 				for( unsigned int i = 0; i != m_last_coop_size; ++i )
 					coop->define_agent()
@@ -141,12 +141,12 @@ class a_test_t : public so_5::rt::agent_t
 
 				so_environment().deregister_coop(
 						coop_to_destroy,
-						so_5::rt::dereg_reason::normal );
+						so_5::dereg_reason::normal );
 			}
 	};
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( so_5::autoname,
 				env.make_agent< a_test_t >() );

@@ -8,12 +8,12 @@
 
 #include <so_5/all.hpp>
 
-class msg_hello_svc : public so_5::rt::signal_t {};
+class msg_hello_svc : public so_5::signal_t {};
 
 void
 define_hello_service(
-	so_5::rt::coop_t & coop,
-	const so_5::rt::mbox_t & self_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & self_mbox )
 	{
 		coop.define_agent().event< msg_hello_svc >( self_mbox,
 			[]() -> std::string {
@@ -22,7 +22,7 @@ define_hello_service(
 			} );
 	}
 
-struct msg_convert : public so_5::rt::message_t
+struct msg_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -32,8 +32,8 @@ struct msg_convert : public so_5::rt::message_t
 
 void
 define_convert_service(
-	so_5::rt::coop_t & coop,
-	const so_5::rt::mbox_t & self_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & self_mbox )
 	{
 		coop.define_agent().event( self_mbox,
 			[]( const msg_convert & msg ) -> std::string {
@@ -47,12 +47,12 @@ define_convert_service(
 			} );
 	}
 
-struct msg_shutdown : public so_5::rt::signal_t {};
+struct msg_shutdown : public so_5::signal_t {};
 
 void
 define_shutdown_service(
-	so_5::rt::coop_t & coop,
-	const so_5::rt::mbox_t & self_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & self_mbox )
 	{
 		auto & env = coop.environment();
 		coop.define_agent().event< msg_shutdown >( self_mbox,
@@ -64,13 +64,13 @@ define_shutdown_service(
 	};
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & svc_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & svc_mbox )
+			:	so_5::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
 
@@ -113,18 +113,18 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_svc_mbox;
+		const so_5::mbox_t m_svc_mbox;
 	};
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[&env]( so_5::rt::coop_t & coop )
+				[&env]( so_5::coop_t & coop )
 				{
-					auto svc_mbox = env.create_local_mbox();
+					auto svc_mbox = env.create_mbox();
 
 					define_hello_service( coop, svc_mbox );
 					define_convert_service( coop, svc_mbox );

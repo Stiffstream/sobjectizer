@@ -9,20 +9,20 @@
 
 #include <so_5/all.hpp>
 
-so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
+so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct slave_coop_finished_signal : public so_5::rt::signal_t {};
+struct slave_coop_finished_signal : public so_5::signal_t {};
 
 class a_slave_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		a_slave_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & master_mbox )
+			so_5::environment_t & env,
+			const so_5::mbox_t & master_mbox )
 			:
 				base_type_t( env ),
 				m_master_mbox( master_mbox )
@@ -36,25 +36,25 @@ class a_slave_t
 		{
 			so_environment().deregister_coop(
 				so_coop_name(),
-				so_5::rt::dereg_reason::normal );
+				so_5::dereg_reason::normal );
 
 			m_master_mbox->deliver_signal< slave_coop_finished_signal >();
 		}
 
 	private:
-		so_5::rt::mbox_t m_master_mbox;
+		so_5::mbox_t m_master_mbox;
 
 };
 
 class a_master_t
 	:
-		public so_5::rt::agent_t
+		public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
+		typedef so_5::agent_t base_type_t;
 
 	public:
 		a_master_t(
-			so_5::rt::environment_t & env )
+			so_5::environment_t & env )
 			:
 				base_type_t( env )
 		{}
@@ -65,8 +65,8 @@ class a_master_t
 		virtual void
 		so_evt_start()
 		{
-			so_5::rt::mbox_t mbox = so_environment()
-				.create_local_mbox( so_coop_name() + "_mbox" );
+			so_5::mbox_t mbox = so_environment()
+				.create_mbox( so_coop_name() + "_mbox" );
 
 			so_subscribe( mbox )
 				.in( so_default_state() )
@@ -79,7 +79,7 @@ class a_master_t
 
 		void
 		evt_slave_finished(
-			const so_5::rt::event_data_t< slave_coop_finished_signal > & )
+			const so_5::event_data_t< slave_coop_finished_signal > & )
 		{
 			std::cout << "Shutdown\n";
 			so_environment().stop();
@@ -87,7 +87,7 @@ class a_master_t
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "test_coop_1", new a_master_t( env ) );
 }

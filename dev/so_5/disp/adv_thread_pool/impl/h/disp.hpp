@@ -29,14 +29,14 @@
 #include <so_5/disp/thread_pool/impl/h/common_implementation.hpp>
 
 #if 0
-	#define SO_5__CHECK_INVARIANT__(what, data, file, line) \
+	#define SO_5_CHECK_INVARIANT_IMPL(what, data, file, line) \
 	if( !(what) ) { \
 		std::cerr << file << ":" << line << ": FAILED INVARIANT: " << #what << "; data: " << data << std::endl; \
 		std::abort(); \
 	}
-	#define SO_5__CHECK_INVARIANT(what, data) SO_5__CHECK_INVARIANT__(what, data, __FILE__, __LINE__)
+	#define SO_5_CHECK_INVARIANT(what, data) SO_5_CHECK_INVARIANT_IMPL(what, data, __FILE__, __LINE__)
 #else
-	#define SO_5__CHECK_INVARIANT(what, data)
+	#define SO_5_CHECK_INVARIANT(what, data)
 #endif
 
 
@@ -56,7 +56,7 @@ using spinlock_t = so_5::default_spinlock_t;
 
 class agent_queue_t;
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
@@ -72,7 +72,7 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \brief Event queue for the agent (or cooperation).
  */
 class agent_queue_t
-	:	public so_5::rt::event_queue_t
+	:	public event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
 		friend class so_5::intrusive_ptr_t< agent_queue_t >;
@@ -82,7 +82,7 @@ class agent_queue_t
 		struct demand_t
 			{
 				//! Actual demand.
-				so_5::rt::execution_demand_t m_demand;
+				execution_demand_t m_demand;
 
 				//! Next item in queue.
 				demand_t * m_next;
@@ -90,7 +90,7 @@ class agent_queue_t
 				demand_t()
 					:	m_next( nullptr )
 					{}
-				demand_t( so_5::rt::execution_demand_t && original )
+				demand_t( execution_demand_t && original )
 					:	m_demand( std::move( original ) )
 					,	m_next( nullptr )
 					{}
@@ -129,7 +129,7 @@ class agent_queue_t
 
 		//! Push next demand to queue.
 		virtual void
-		push( so_5::rt::execution_demand_t demand )
+		push( execution_demand_t demand )
 			{
 				bool need_schedule = false;
 				{
@@ -155,9 +155,9 @@ class agent_queue_t
 								}
 						}
 
-					SO_5__CHECK_INVARIANT( !empty(), this )
-					SO_5__CHECK_INVARIANT( m_active || is_there_any_worker(), this )
-					SO_5__CHECK_INVARIANT( !(need_schedule && !m_active), this )
+					SO_5_CHECK_INVARIANT( !empty(), this )
+					SO_5_CHECK_INVARIANT( m_active || is_there_any_worker(), this )
+					SO_5_CHECK_INVARIANT( !(need_schedule && !m_active), this )
 				}
 
 				if( need_schedule )
@@ -168,11 +168,11 @@ class agent_queue_t
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
-		so_5::rt::execution_demand_t
+		execution_demand_t
 		peek_front()
 			{
-				SO_5__CHECK_INVARIANT( !empty(), this )
-				SO_5__CHECK_INVARIANT( m_active, this )
+				SO_5_CHECK_INVARIANT( !empty(), this )
+				SO_5_CHECK_INVARIANT( m_active, this )
 
 				m_active = false;
 
@@ -190,8 +190,8 @@ class agent_queue_t
 			//! Must be thread_safe_worker or not_thread_safe_worker.
 			unsigned int type_of_worker )
 			{
-				SO_5__CHECK_INVARIANT( !empty(), this );
-				SO_5__CHECK_INVARIANT( !m_active, this );
+				SO_5_CHECK_INVARIANT( !empty(), this );
+				SO_5_CHECK_INVARIANT( !m_active, this );
 
 				delete_head();
 				if( !m_head.m_next )
@@ -224,8 +224,8 @@ class agent_queue_t
 				if( !m_active )
 					m_active = !empty();
 
-				SO_5__CHECK_INVARIANT( !(m_active && empty()), this )
-				SO_5__CHECK_INVARIANT(
+				SO_5_CHECK_INVARIANT( !(m_active && empty()), this )
+				SO_5_CHECK_INVARIANT(
 						!old_active || m_active, this );
 
 				return old_active != m_active;
@@ -414,10 +414,10 @@ class work_thread_t
 					need_schedule = queue.worker_started(
 							agent_queue_t::thread_safe_worker );
 
-				SO_5__CHECK_INVARIANT( !(need_schedule && queue.empty()), &queue )
-				SO_5__CHECK_INVARIANT(
+				SO_5_CHECK_INVARIANT( !(need_schedule && queue.empty()), &queue )
+				SO_5_CHECK_INVARIANT(
 						!need_schedule || hint.is_thread_safe(), &queue );
-				SO_5__CHECK_INVARIANT( !need_schedule || queue.active(), &queue );
+				SO_5_CHECK_INVARIANT( !need_schedule || queue.active(), &queue );
 
 				// Next few actions must be done on unlocked queue.
 				lock.unlock();
@@ -436,7 +436,7 @@ class work_thread_t
 								agent_queue_t::thread_safe_worker :
 								agent_queue_t::not_thread_safe_worker );
 
-				SO_5__CHECK_INVARIANT(
+				SO_5_CHECK_INVARIANT(
 						!need_schedule || queue.active(), &queue );
 
 				lock.unlock();

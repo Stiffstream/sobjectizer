@@ -14,12 +14,12 @@
 
 #include "../separate_so_thread_inl.cpp"
 
-std::array< so_5::rt::so_layer_t *, 64 > last_created_objects;
+std::array< so_5::layer_t *, 64 > last_created_objects;
 
 template < int N >
 class test_layer_t
 	:
-		public so_5::rt::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()
@@ -44,10 +44,10 @@ class test_layer_t
 };
 
 class test_environment_t
-	:	public so_5::rt::environment_t
+	:	public so_5::environment_t
 	,	public separate_so_thread::init_finish_signal_mixin_t
 {
-		typedef so_5::rt::environment_t base_type_t;
+		typedef so_5::environment_t base_type_t;
 	public:
 		test_environment_t(
 			test_layer_t< 1 > * tl1,
@@ -80,10 +80,10 @@ class test_environment_t
 		std::unique_ptr< test_layer_t< 2 > > m_tl2;
 		std::unique_ptr< test_layer_t< 3 > > m_tl3;
 
-		static so_5::rt::environment_params_t
+		static so_5::environment_params_t
 		get_params()
 		{
-			so_5::rt::environment_params_t params;
+			so_5::environment_params_t params;
 			params.disable_autoshutdown();
 			return params;
 		}
@@ -158,7 +158,7 @@ UT_UNIT_TEST( check_2_3_exist )
 #define CHECK_LAYER_DONT_EXISTS( so_env, N ) \
 		UT_CHECK_EQ( \
 			so_env.query_layer_noexcept< test_layer_t< N > >(), \
-			static_cast< so_5::rt::so_layer_t* >( nullptr) )
+			static_cast< so_5::layer_t* >( nullptr) )
 
 #define ADD_LAYER( so_env, N ) \
 	so_env.add_extra_layer( \
@@ -177,7 +177,7 @@ UT_UNIT_TEST( check_2_3_exist )
 	CHECK_LAYER_EXISTS( so_env, N );
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	CHECK_LAYER( env, 1 )
 	CHECK_LAYER( env, 2 )

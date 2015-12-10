@@ -104,8 +104,8 @@ default_combined_lock_waiting_time()
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-		[]( so_5::rt::environment_params_t & params ) {
+	so_5::launch( []( so_5::environment_t & env ) { ... },
+		[]( so_5::environment_params_t & params ) {
 			// Add another one_thread dispatcher with combined_lock for
 			// event queue protection.
 			using namespace so_5::disp::one_thread;
@@ -134,8 +134,8 @@ combined_lock_factory(
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-		[]( so_5::rt::environment_params_t & params ) {
+	so_5::launch( []( so_5::environment_t & env ) { ... },
+		[]( so_5::environment_params_t & params ) {
 			// Add another one_thread dispatcher with combined_lock for
 			// event queue protection.
 			using namespace so_5::disp::one_thread;
@@ -161,8 +161,8 @@ combined_lock_factory()
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-		[]( so_5::rt::environment_params_t & params ) {
+	so_5::launch( []( so_5::environment_t & env ) { ... },
+		[]( so_5::environment_params_t & params ) {
 			// Add another one_thread dispatcher with simple_lock for
 			// event queue protection.
 			using namespace so_5::disp::one_thread;

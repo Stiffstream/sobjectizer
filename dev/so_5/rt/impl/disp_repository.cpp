@@ -16,9 +16,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -203,7 +200,5 @@ disp_repository_t::wait_for_full_shutdown()
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

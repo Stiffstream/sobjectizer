@@ -14,13 +14,13 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
 	public :
-		struct msg_delayed : so_5::rt::signal_t {};
+		struct msg_delayed : so_5::signal_t {};
 
 		a_test_t( context_t ctx )
-			:	so_5::rt::agent_t( ctx )
+			:	so_5::agent_t( ctx )
 			{}
 
 		virtual void
@@ -36,14 +36,14 @@ class a_test_t : public so_5::rt::agent_t
 			{
 				using namespace std::chrono;
 
-				so_5::send_delayed_to_agent< msg_delayed >( *this, seconds( 10 ) );
-				so_5::send_delayed_to_agent< msg_delayed >( *this, seconds( 10 ) );
+				so_5::send_delayed< msg_delayed >( *this, seconds( 10 ) );
+				so_5::send_delayed< msg_delayed >( *this, seconds( 10 ) );
 
-				m_p1 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p1 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
-				m_p2 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p2 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
-				m_p3 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p3 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
 
 				so_environment().stats_controller().turn_on();
@@ -58,9 +58,9 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_monitor_quantity(
-			const so_5::rt::stats::messages::quantity< std::size_t > & evt )
+			const so_5::stats::messages::quantity< std::size_t > & evt )
 			{
-				namespace stats = so_5::rt::stats;
+				namespace stats = so_5::stats;
 
 				std::cout << evt.m_prefix.c_str()
 						<< evt.m_suffix.c_str()
@@ -94,7 +94,7 @@ class a_test_t : public so_5::rt::agent_t
 	};
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( so_5::autoname,
 				env.make_agent< a_test_t >() );

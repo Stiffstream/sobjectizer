@@ -7,8 +7,7 @@
 	\brief An exception class.
 */
 
-#if !defined( _SO_5__EXCEPTION_HPP_ )
-#define _SO_5__EXCEPTION_HPP_
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -24,6 +23,8 @@ namespace so_5
 	#pragma warning(push)
 	#pragma warning(disable: 4275)
 #endif
+
+#define SO_5_NORETURN [[noreturn]]
 
 //
 // exception_t
@@ -62,13 +63,11 @@ class SO_5_TYPE exception_t : public std::runtime_error
 	#pragma warning(pop)
 #endif
 
-#define SO_5_THROW_EXCEPTION__(file, line, error_code, desc)\
+#define SO_5_THROW_EXCEPTION_IMPL(file, line, error_code, desc)\
 	so_5::exception_t::raise(file, line, (desc), (error_code))
 
 #define SO_5_THROW_EXCEPTION(error_code, desc)\
-	SO_5_THROW_EXCEPTION__(__FILE__, __LINE__, error_code, desc)
+	SO_5_THROW_EXCEPTION_IMPL(__FILE__, __LINE__, error_code, desc)
 
 } /* namespace so_5 */
-
-#endif
 

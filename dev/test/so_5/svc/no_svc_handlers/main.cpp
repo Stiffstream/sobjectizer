@@ -10,7 +10,7 @@
 
 #include "../a_time_sentinel.hpp"
 
-struct msg_convert : public so_5::rt::message_t
+struct msg_convert : public so_5::message_t
 	{
 		int m_value;
 
@@ -19,13 +19,13 @@ struct msg_convert : public so_5::rt::message_t
 	};
 
 class a_client_t
-	:	public so_5::rt::agent_t
+	:	public so_5::agent_t
 	{
 	public :
 		a_client_t(
-			so_5::rt::environment_t & env,
-			const so_5::rt::mbox_t & svc_mbox )
-			:	so_5::rt::agent_t( env )
+			so_5::environment_t & env,
+			const so_5::mbox_t & svc_mbox )
+			:	so_5::agent_t( env )
 			,	m_svc_mbox( svc_mbox )
 			{}
 
@@ -60,18 +60,18 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::mbox_t m_svc_mbox;
+		const so_5::mbox_t m_svc_mbox;
 	};
 
 void
 init(
-	so_5::rt::environment_t & env )
+	so_5::environment_t & env )
 	{
 		auto coop = env.create_coop(
 				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-		auto svc_mbox = env.create_local_mbox();
+		auto svc_mbox = env.create_mbox();
 
 		coop->add_agent( new a_client_t( env, svc_mbox ) );
 		coop->add_agent( new a_time_sentinel_t( env ) );
@@ -86,7 +86,7 @@ main()
 			{
 				so_5::launch(
 					&init,
-					[]( so_5::rt::environment_params_t & params )
+					[]( so_5::environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 							"active_obj",

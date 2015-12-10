@@ -8,12 +8,12 @@
 #include <so_5/all.hpp>
 
 class test_environment_t
-	:	public so_5::rt::environment_t
+	:	public so_5::environment_t
 	{
 	public :
 		test_environment_t()
-			:	so_5::rt::environment_t(
-					so_5::rt::environment_params_t() )
+			:	so_5::environment_t(
+					so_5::environment_params_t() )
 			{}
 
 		virtual void
@@ -21,15 +21,15 @@ class test_environment_t
 		{}
 	};
 
-struct msg_signal : public so_5::rt::signal_t {};
-struct msg_thread_safe_signal : public so_5::rt::signal_t {};
-struct msg_get_status : public so_5::rt::signal_t {};
+struct msg_signal : public so_5::signal_t {};
+struct msg_thread_safe_signal : public so_5::signal_t {};
+struct msg_get_status : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 	{
 	public :
-		a_test_t( so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_test_t( so_5::environment_t & env )
+			:	so_5::agent_t( env )
 			,	m_signal_handled( false )
 			,	m_thread_safe_signal_handled( false )
 			,	m_get_status_handled( false )
@@ -62,7 +62,6 @@ class a_test_t : public so_5::rt::agent_t
 UT_UNIT_TEST( no_handlers )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 
@@ -128,7 +127,6 @@ UT_UNIT_TEST( no_handlers )
 UT_UNIT_TEST( event_handler )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 
@@ -187,7 +185,6 @@ UT_UNIT_TEST( event_handler )
 UT_UNIT_TEST( service_handler )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 

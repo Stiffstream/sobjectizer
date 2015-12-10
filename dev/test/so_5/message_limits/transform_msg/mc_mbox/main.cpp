@@ -9,7 +9,7 @@ main()
 {
 	do_test( "mpmc_mbox test case",
 		[]( a_test_t & a ) {
-			a.set_working_mbox( a.so_environment().create_local_mbox() );
+			a.set_working_mbox( a.so_environment().create_mbox() );
 		} );
 
 	return 0;
