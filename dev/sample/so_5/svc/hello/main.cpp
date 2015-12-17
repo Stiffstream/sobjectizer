@@ -10,8 +10,7 @@
 
 class msg_hello_svc : public so_5::signal_t {};
 
-void
-define_hello_service(
+void define_hello_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
@@ -22,23 +21,18 @@ define_hello_service(
 			} );
 	}
 
-struct msg_convert : public so_5::message_t
+struct msg_convert
 	{
 		int m_value;
-
-		msg_convert( int value ) : m_value( value )
-			{}
 	};
 
-void
-define_convert_service(
+void define_convert_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
 		coop.define_agent().event( self_mbox,
 			[]( const msg_convert & msg ) -> std::string {
-				std::cout << "svc_convert called: value=" << msg.m_value
-						<< std::endl;
+				std::cout << "svc_convert called: value=" << msg.m_value << std::endl;
 
 				std::ostringstream s;
 				s << msg.m_value;
@@ -49,8 +43,7 @@ define_convert_service(
 
 struct msg_shutdown : public so_5::signal_t {};
 
-void
-define_shutdown_service(
+void define_shutdown_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
@@ -63,19 +56,15 @@ define_shutdown_service(
 			} );
 	};
 
-class a_client_t
-	:	public so_5::agent_t
+class a_client_t : public so_5::agent_t
 	{
 	public :
-		a_client_t(
-			so_5::environment_t & env,
-			const so_5::mbox_t & svc_mbox )
-			:	so_5::agent_t( env )
+		a_client_t( context_t ctx, so_5::mbox_t svc_mbox )
+			:	so_5::agent_t( ctx )
 			,	m_svc_mbox( svc_mbox )
 			{}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				std::cout << "hello_svc: "
 						<< so_5::request_future< std::string, msg_hello_svc >(
@@ -116,9 +105,7 @@ class a_client_t
 		const so_5::mbox_t m_svc_mbox;
 	};
 
-void
-init(
-	so_5::environment_t & env )
+void init( so_5::environment_t & env )
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
@@ -134,8 +121,7 @@ init(
 				} );
 	}
 
-int
-main()
+int main()
 	{
 		try
 			{

@@ -22,10 +22,10 @@ class a_consumer_t : public so_5::agent_t
 public :
 	a_consumer_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Mbox of key-value-storage.
 		so_5::mbox_t storage_mbox )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_storage_mbox( std::move( storage_mbox ) )
 	{
 		m_values.emplace_back( std::make_pair( "first", "value for first" ) );
@@ -34,15 +34,13 @@ public :
 		m_values.emplace_back( std::make_pair( "forth", "value for forth" ) );
 	}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one signal must be handled by main agent.
 		so_default_state().event< msg_next_turn >( &a_consumer_t::evt_next_turn );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Do registration of key-value pairs.
 		// Lifetime will be incremented for next pair.
@@ -72,8 +70,7 @@ private :
 	std::vector< std::pair< std::string, std::string > > m_values;
 
 	// Next interation of requests loop.
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		std::cout << "--- next iteration ---" << std::endl;
 
@@ -111,8 +108,7 @@ private :
 	}
 };
 
-int
-main()
+int main()
 {
 	try
 	{

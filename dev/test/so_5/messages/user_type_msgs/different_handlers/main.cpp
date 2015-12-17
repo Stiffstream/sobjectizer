@@ -39,6 +39,10 @@ public :
 				} )
 			.event( &a_test_t::evt_uint )
 			.event( &a_test_t::evt_ulong )
+			.event( [&]( so_5::mhood_t< short > evt ) {
+					m_accumulator += "si{" + std::to_string( *evt ) + "}";
+				} )
+			.event( &a_test_t::evt_ushort )
 			.event( [&]( const std::string & evt ) {
 					m_accumulator += "s{" + evt + "}";
 				} )
@@ -48,7 +52,7 @@ public :
 			.event( &a_test_t::evt_msg2 )
 			.event< stop >( [&]{
 				const std::string expected =
-						"i{1}l{2}ui{3}ul{4}s{Hello}"
+						"i{1}l{2}ui{3}ul{4}si{5}usi{6}s{Hello}"
 						"m1{Bye,World}m2{Bye,Bye}";
 
 				if( expected != m_accumulator )
@@ -66,6 +70,8 @@ public :
 		so_5::send_to_agent< long >( *this, 2 );
 		so_5::send_to_agent< unsigned int >( *this, 3u );
 		so_5::send_to_agent< unsigned long >( *this, 4ul );
+		so_5::send_to_agent< short >( *this, static_cast< short >(5) );
+		so_5::send_to_agent< unsigned short >( *this, static_cast< unsigned short >(6) );
 		so_5::send_to_agent< std::string >( *this, "Hello" );
 		so_5::send_to_agent< msg1 >( *this, "Bye", "World" );
 		so_5::send_to_agent< msg2 >( *this, "Bye", "Bye" );
@@ -86,6 +92,12 @@ private :
 	evt_ulong( unsigned long evt )
 	{
 		m_accumulator += "ul{" + std::to_string( evt ) + "}";
+	}
+
+	void
+	evt_ushort( const so_5::mhood_t< unsigned short > & evt )
+	{
+		m_accumulator += "usi{" + std::to_string( *evt ) + "}";
 	}
 
 	void

@@ -80,7 +80,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
+		 	void some_agent::some_event( mhood_t< request > & req )
 			{
 				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_forever().sync_get( req.make_reference() );
@@ -191,7 +191,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
+		 	void some_agent::some_event( mhood_t< request > req )
 			{
 				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( req.make_reference() );
@@ -309,7 +309,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
+		 	void some_agent::some_event( mhood_t< request > req )
 			{
 				const so_5::mbox_t & dest = ...;
 				std::future< std::string > result = dest.get_one< std::string >().async( req.make_reference() );

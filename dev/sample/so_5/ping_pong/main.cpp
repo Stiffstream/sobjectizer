@@ -19,8 +19,7 @@ struct	cfg_t
 		{}
 };
 
-cfg_t
-try_parse_cmdline(
+cfg_t try_parse_cmdline(
 	int argc,
 	char ** argv )
 	{
@@ -75,8 +74,7 @@ try_parse_cmdline(
 		return result;
 	}
 
-void
-show_cfg(
+void show_cfg(
 	const cfg_t & cfg )
 	{
 		std::cout << "Configuration: "
@@ -85,8 +83,7 @@ show_cfg(
 			<< std::endl;
 	}
 
-void
-run_sample(
+void run_sample(
 	const cfg_t & cfg )
 	{
 		// This variable will be a part of pinger agent's state.
@@ -130,8 +127,7 @@ run_sample(
 			} );
 	}
 
-int
-main( int argc, char ** argv )
+int main( int argc, char ** argv )
 {
 	try
 	{

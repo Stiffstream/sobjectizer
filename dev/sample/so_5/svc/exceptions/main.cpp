@@ -9,8 +9,7 @@
 
 #include <so_5/all.hpp>
 
-so_5::mbox_t
-make_converter( so_5::coop_t & coop )
+so_5::mbox_t make_converter( so_5::coop_t & coop )
 	{
 		auto a = coop.define_agent();
 		a.event( a, []( const std::string & value ) -> int {
@@ -30,19 +29,15 @@ make_converter( so_5::coop_t & coop )
 		return a.direct_mbox();
 	}
 
-class a_client_t
-	:	public so_5::agent_t
+class a_client_t : public so_5::agent_t
 	{
 	public :
-		a_client_t(
-			so_5::environment_t & env,
-			const so_5::mbox_t & svc_mbox )
-			:	so_5::agent_t( env )
-			,	m_svc_mbox( svc_mbox )
+		a_client_t( context_t ctx, so_5::mbox_t svc_mbox )
+			:	so_5::agent_t( ctx )
+			,	m_svc_mbox( std::move(svc_mbox) )
 			{}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				std::string values_to_convert[] = {
 						"1", "2", "a1", "a2", "3", "a3", "41", "42", "43" };
@@ -73,8 +68,7 @@ class a_client_t
 		const so_5::mbox_t m_svc_mbox;
 	};
 
-int
-main()
+int main()
 	{
 		try
 			{

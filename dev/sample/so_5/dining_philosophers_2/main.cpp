@@ -22,28 +22,23 @@
 #include <so_5/all.hpp>
 
 // Helper function to generate a random integer in the specified range.
-unsigned int
-random_value( unsigned int left, unsigned int right )
+unsigned int random_value( unsigned int left, unsigned int right )
 	{
 		std::random_device rd;
 		std::mt19937 gen{ rd() };
 		return std::uniform_int_distribution< unsigned int >{left, right}(gen);
 	}
 
-struct msg_take : public so_5::message_t
+struct msg_take
 {
 	const so_5::mbox_t m_who;
-
-	msg_take( so_5::mbox_t who ) : m_who( std::move( who ) ) {}
 };
 
 struct msg_busy : public so_5::signal_t {};
 
-struct msg_taken : public so_5::message_t
+struct msg_taken
 {
 	const so_5::mbox_t m_who;
-
-	msg_taken( so_5::mbox_t who ) : m_who( std::move( who ) ) {}
 };
 
 struct msg_put : public so_5::signal_t {};
@@ -51,12 +46,10 @@ struct msg_put : public so_5::signal_t {};
 class a_fork_t : public so_5::agent_t
 {
 public :
-	a_fork_t( so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	a_fork_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		this >>= st_free;
 
@@ -85,11 +78,11 @@ class a_philosopher_t : public so_5::agent_t
 
 public :
 	a_philosopher_t(
-		so_5::environment_t & env,
+		context_t ctx,
 		std::string name,
 		so_5::mbox_t left_fork,
 		so_5::mbox_t right_fork )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	m_left_fork( std::move( left_fork ) )
 		,	m_right_fork( std::move( right_fork ) )
@@ -148,8 +141,7 @@ public :
 			} );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		think();
 	}
@@ -168,26 +160,22 @@ private :
 
 	so_5::mbox_t m_first_taken;
 
-	std::string
-	fork_name( const so_5::mbox_t & fork ) const
+	std::string fork_name( const so_5::mbox_t & fork ) const
 	{
 		return (m_left_fork == fork ? "left" : "right");
 	}
 
-	std::string
-	opposite_fork_name( const so_5::mbox_t & fork ) const
+	std::string opposite_fork_name( const so_5::mbox_t & fork ) const
 	{
 		return (m_left_fork == fork ? "right" : "left");
 	}
 
-	void
-	show_msg( const std::string & msg ) const
+	void show_msg( const std::string & msg ) const
 	{
 		std::cout << "[" << m_name << "] " << msg << std::endl;
 	}
 
-	void
-	think()
+	void think()
 	{
 		show_msg( "start thinking" );
 		this >>= st_thinking;
@@ -201,8 +189,7 @@ private :
 	}
 };
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.introduce_coop( []( so_5::coop_t & coop ) {
 		const std::size_t count = 5;
@@ -222,8 +209,7 @@ init( so_5::environment_t & env )
 	env.stop();
 }
 
-int
-main()
+int main()
 {
 	try
 	{

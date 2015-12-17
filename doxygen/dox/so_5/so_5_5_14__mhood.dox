@@ -1,0 +1,132 @@
+/*!
+
+\page so_5_5_14__mhood so-5.5.14: mhood_t and event handler formats
+
+An event handler for agent can be specified as ordinary method:
+
+\code
+class my_agent : public so_5::agent_t {
+public :
+    virtual void so_define_agent() override {
+        so_subscribe_self().event( &my_agent::some_handler );
+        ...
+    }
+    ...
+    void some_handler( const some_message & msg ) {...}
+};
+\endcode
+
+Also an event handler for agent can be specified as lambda-function:
+
+\code
+class my_agent : public so_5::agent_t {
+public :
+    virtual void so_define_agent() override {
+        so_subscribe_self().event(
+            [&]( const some_message & msg ) {...} );
+        ...
+    }
+};
+\endcode
+
+Please note that event handlers for ad-hoc agents can be specified only as
+lambda-functions.
+
+But in versions prior to v.5.5.14 there was some discrimination for lambda-like
+event handlers: it was impossible to pass an `so_5::event_data_t<M>` as
+argument for lambda-function. This flaw in event handlers design had two major
+negative consequences.
+
+There was no possibitity to resend the same message object or to store it for
+the future use. Event handler in the form of agent's method can receive message
+as `so_5::event_data_t<M>` and call `make_reference()` method. But lambda-style
+event handler couldn't do that.
+
+There was some difficulty in writing template code. For example it was not a
+simple task to write something like this:
+
+\code
+template< typename M >
+void define_reaction_for( so_5::agent_t & receiver )
+{
+    receiver.so_subscribe_self().event( []( const M & ) {...) );
+}
+\endcode
+
+It is because if M is a signal then event handler must have different format.
+
+Since v.5.5.14 lambda-style event handlers can have the same format as
+method-style event handler.
+
+In v.5.5.14 any event handler (as lambda-style as well as method-style) can
+have one of the following formats:
+
+\code
+// Applicable for messages and signals.
+return_type handler( so_5::mhood_t< message_type > msg );
+return_type handler( const so_5::mhood_t< message_type > & msg );
+
+// Applicable for messages only.
+return_type handler( const message_type & msg );
+return_type handler( message_type msg );
+
+// Applicable for signals only.
+return_type handler();
+\endcode
+
+Old name `so_5::event_data_t` is now just an alias for `so_5::mhood_t`. Name
+`event_data_t` is deprecated and will be removed in v.5.6.0. Name `mhood_t`
+must be used instead.
+
+Method `mhood_t::make_reference` allows to receive smart pointer to message
+object even if message type is not derived from `so_5::message_t`. It makes
+possible to write something like this:
+
+\code
+so_subscribe_self().event( [&]( mhood_t< std::string > msg ) {
+    // Redirecting message to different mbox.
+    m_next_target->deliver_message( msg.make_reference() );
+} );
+\endcode
+
+If M is not derived from `so_5::message_t` then `mhood_t<M>::make_reference`
+returns `so_5::intrusive_ptr_t<so_5::user_type_message_t<M>>`.
+
+<b>NOTE!</b> In previous versions it was possible to write:
+
+\code
+void some_handler( const so_5::event_data_t< so_5::user_type_message_t< M > > & msg ) {
+...
+}
+\endcode
+
+Now it is prohibited. Such code must be rewritten as:
+
+\code
+void some_handler( mhood_t< M > msg ) {
+...
+}
+// Or:
+void some_handler( const mhood_t< M > & msg ) {
+...
+}
+\endcode
+
+<b>NOTE!</b> There is an alias `so_5::agent_t::mhood_t`. It allows to use short
+name `mhood_t<M>` instead of `so_5::mhood_t<M>` in the scope of a class which
+is derived from `so_5::agent_t`. For example:
+
+\code
+class my_agent : public so_5::agent_t {
+...
+private:
+    void some_handler( mhood_t< some_message > msg ) {...}
+    void another_handler( mhood_t< another_message > msg ) {...}
+    ...
+};
+\endcode
+
+*/
+
+// vim:ft=cpp
+

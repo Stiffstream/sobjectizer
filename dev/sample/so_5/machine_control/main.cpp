@@ -20,23 +20,12 @@ struct turn_cooler_on : public so_5::signal_t {};
 struct turn_cooler_off : public so_5::signal_t {};
 
 // Machine status message.
-struct machine_status : public so_5::message_t
+struct machine_status
 {
 	const std::string m_id;
 	const engine_state_t m_engine_status;
 	const cooler_state_t m_cooler_status;
 	const float m_engine_temperature;
-
-	machine_status(
-		std::string id,
-		engine_state_t engine_status,
-		cooler_state_t cooler_status,
-		float engine_temperature )
-		:	m_id( std::move(id) )
-		,	m_engine_status{ engine_status }
-		,	m_cooler_status{ cooler_status }
-		,	m_engine_temperature{ engine_temperature }
-	{}
 };
 
 // Type of reaction to be performed on machine.
@@ -49,23 +38,12 @@ enum class attention_t
 };
 
 // Notification about machine which needs some attention.
-struct machine_needs_attention : public so_5::message_t
+struct machine_needs_attention
 {
 	const std::string m_id;
 	const attention_t m_attention;
 	const engine_state_t m_engine_status;
 	const cooler_state_t m_cooler_status;
-
-	machine_needs_attention(
-		std::string id,
-		attention_t attention,
-		engine_state_t engine_status,
-		cooler_state_t cooler_status )
-		:	m_id( std::move(id) )
-		,	m_attention{ attention }
-		,	m_engine_status{ engine_status }
-		,	m_cooler_status{ cooler_status }
-	{}
 };
 
 // Agent for representing a machine.

@@ -7,60 +7,40 @@
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
 
-struct msg_hello_to_all : public so_5::message_t
+struct msg_hello_to_all
 {
-	msg_hello_to_all(
-		std::string sender,
-		const so_5::mbox_t & mbox )
-		:	m_sender( std::move( sender ) ),
-			m_mbox( mbox )
-	{}
-
 	// Sender name.
 	const std::string m_sender;
 	// Sender Mbox.
 	const so_5::mbox_t m_mbox;
 };
 
-struct msg_hello_to_you : public so_5::message_t
+struct msg_hello_to_you
 {
-	msg_hello_to_you( std::string sender )
-		: m_sender( std::move( sender ) )
-	{}
-
 	// Sender name.
 	const std::string m_sender;
 };
-
 
 // An agent class.
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t(
-			so_5::environment_t & env,
-			const std::string & agent_name )
-			:	so_5::agent_t( env ),
-				m_agent_name( agent_name ),
-				m_common_mbox( so_environment().create_mbox( "common_mbox" ) )
-		{}
-		virtual ~a_hello_t()
+		a_hello_t( context_t ctx, std::string agent_name )
+			:	so_5::agent_t( ctx )
+			,	m_agent_name( std::move( agent_name ) )
+			,	m_common_mbox( so_environment().create_mbox( "common_mbox" ) )
 		{}
 
 		// Definition of the agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override;
 
-		void
-		evt_hello_to_all(
+		void evt_hello_to_all(
 			const msg_hello_to_all & evt_data );
 
-		void
-		evt_hello_to_you(
+		void evt_hello_to_you(
 			const msg_hello_to_you & evt_data );
 
 	private:
@@ -71,8 +51,7 @@ class a_hello_t : public so_5::agent_t
 		const so_5::mbox_t m_common_mbox;
 };
 
-void
-a_hello_t::so_define_agent()
+void a_hello_t::so_define_agent()
 {
 	// Message subscription.
 	so_subscribe( m_common_mbox )
@@ -82,8 +61,7 @@ a_hello_t::so_define_agent()
 		.event( &a_hello_t::evt_hello_to_you );
 }
 
-void
-a_hello_t::so_evt_start()
+void a_hello_t::so_evt_start()
 {
 	std::cout << m_agent_name << ".so_evt_start" << std::endl;
 
@@ -93,8 +71,7 @@ a_hello_t::so_evt_start()
 		m_agent_name, so_direct_mbox() );
 }
 
-void
-a_hello_t::evt_hello_to_all(
+void a_hello_t::evt_hello_to_all(
 	const msg_hello_to_all & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_all: "
@@ -107,8 +84,7 @@ a_hello_t::evt_hello_to_all(
 	}
 }
 
-void
-a_hello_t::evt_hello_to_you(
+void a_hello_t::evt_hello_to_you(
 	const msg_hello_to_you & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_you: "
@@ -116,8 +92,7 @@ a_hello_t::evt_hello_to_you(
 }
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
 	env.introduce_coop( []( so_5::coop_t & coop ) {
@@ -132,8 +107,7 @@ init( so_5::environment_t & env )
 	env.stop();
 }
 
-int
-main()
+int main()
 {
 	try
 	{

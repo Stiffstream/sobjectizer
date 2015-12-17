@@ -33,9 +33,9 @@ private :
 	const so_5::mbox_t m_m2;
 
 	void
-	evt_one( const so_5::event_data_t< so_5::user_type_message_t< std::string > > & evt )
+	evt_one( const so_5::mhood_t< std::string > & evt )
 	{
-		std::cout << "One: '" << evt->m_payload << "' at " << &(evt->m_payload) << std::endl;
+		std::cout << "One: '" << *evt << "' at " << evt.get() << std::endl;
 		m_m2->deliver_message( evt.make_reference() );
 	}
 

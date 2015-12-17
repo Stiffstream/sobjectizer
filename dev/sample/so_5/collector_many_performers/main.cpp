@@ -79,26 +79,24 @@ class a_generator_t : public so_5::agent_t,
 public :
 	a_generator_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Name of generator.
 		std::string name,
 		// Workers.
 		const std::vector< so_5::mbox_t > & workers_mboxes )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one handler in one state.
 		so_default_state().event< msg_next_turn >(
 				&a_generator_t::evt_next_turn );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -113,8 +111,7 @@ private :
 	// Workers.
 	const std::vector< so_5::mbox_t > m_workers_mboxes;
 
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		// How many requests will be sent on this turn.
 		const int requests = random( 1, 100 );
@@ -143,8 +140,7 @@ private :
 		so_5::send_delayed< msg_next_turn >( *this, next_turn_pause );
 	}
 
-	bool
-	generate_next_request( std::vector< so_5::mbox_t > & workers )
+	bool generate_next_request( std::vector< so_5::mbox_t > & workers )
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
@@ -168,8 +164,7 @@ private :
 		return result;
 	}
 
-	bool
-	push_request_to_receiver(
+	bool push_request_to_receiver(
 		const so_5::mbox_t & to,
 		std::unique_ptr< application_request > req )
 	{
@@ -197,30 +192,25 @@ class a_collector_t : public so_5::agent_t
 {
 public :
 	// A signal to send next request to performer.
-	struct msg_select_next_job : public so_5::message_t
+	struct msg_select_next_job
 	{
 		const so_5::mbox_t m_performer_mbox;
-
-		msg_select_next_job( const so_5::mbox_t & mbox )
-			:	m_performer_mbox( mbox )
-		{}
 	};
 
 	a_collector_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Receiver's name.
 		std::string name,
 		// Max capacity of receiver
 		std::size_t max_receiver_capacity )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	max_capacity( max_receiver_capacity )
 	{
 	}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state()
 			.event( &a_collector_t::evt_receive_job )
@@ -240,9 +230,7 @@ private :
 	// Storage for mboxes of free performers.
 	std::deque< so_5::mbox_t > m_free_performers;
 
-	bool
-	evt_receive_job(
-		const so_5::event_data_t< application_request > & evt )
+	bool evt_receive_job( mhood_t< application_request > evt )
 	{
 		bool processed = true;
 
@@ -269,8 +257,7 @@ private :
 		return processed;
 	}
 
-	void
-	evt_select_next_job( const msg_select_next_job & evt )
+	void evt_select_next_job( const msg_select_next_job & evt )
 	{
 		m_free_performers.push_back( evt.m_performer_mbox );
 
@@ -282,8 +269,7 @@ private :
 		}
 	}
 
-	void
-	send_job_to_first_free_performer(
+	void send_job_to_first_free_performer(
 		const application_request_smart_ptr_t & what )
 	{
 		const so_5::mbox_t to = m_free_performers.front();
@@ -300,26 +286,24 @@ class a_performer_t : public so_5::agent_t,
 public :
 	a_performer_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Performer's name.
 		std::string name,
 		// Collector mbox.
-		const so_5::mbox_t & collector_mbox )
-		:	so_5::agent_t( env )
+		so_5::mbox_t collector_mbox )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
-		,	m_collector_mbox( collector_mbox )
+		,	m_collector_mbox( std::move(collector_mbox) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one handler in the default state.
 		so_default_state().event(
 				&a_performer_t::evt_perform_job );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		so_5::send< a_collector_t::msg_select_next_job >(
 				m_collector_mbox, so_direct_mbox() );
@@ -332,8 +316,7 @@ private :
 	// Collector.
 	const so_5::mbox_t m_collector_mbox;
 
-	void
-	evt_perform_job( const application_request & job )
+	void evt_perform_job( const application_request & job )
 	{
 		process_request( job );
 
@@ -341,8 +324,7 @@ private :
 				m_collector_mbox, so_direct_mbox() );
 	}
 
-	void
-	process_request( const application_request & )
+	void process_request( const application_request & )
 	{
 		TRACE() << "PER(" << m_name << ") start processing; thread="
 				<< so_5::query_current_thread_id() << std::endl;
@@ -406,8 +388,7 @@ create_processing_coops( so_5::environment_t & env )
 	return result;
 }
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 

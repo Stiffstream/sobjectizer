@@ -13,12 +13,8 @@ class sample_event_exception_logger_t
 	: public so_5::event_exception_logger_t
 {
 	public:
-		virtual ~sample_event_exception_logger_t()
-		{}
-
 		// A reaction to an exception.
-		virtual void
-		log_exception(
+		virtual void log_exception(
 			const std::exception & event_exception,
 			const std::string & coop_name ) override
 		{
@@ -35,15 +31,11 @@ class sample_event_exception_logger_t
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::environment_t & env )
-			: so_5::agent_t( env )
-		{}
-		virtual ~a_hello_t()
+		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
 		{}
 
 		// A reaction to start work in SObjectizer.
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			so_environment().install_exception_logger(
 				so_5::event_exception_logger_unique_ptr_t(
@@ -60,8 +52,7 @@ class a_hello_t : public so_5::agent_t
 		}
 };
 
-int
-main()
+int main()
 {
 	try
 	{
@@ -70,7 +61,7 @@ main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering cooperation with a single agent.
-				env.register_agent_as_coop( "sample", new a_hello_t( env ) );
+				env.register_agent_as_coop( "sample", env.make_agent< a_hello_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

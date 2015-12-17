@@ -83,8 +83,7 @@ public:
 	}
 
 	// Reaction to start inside SObjectizer.
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		m_greeting_timer_id = so_5::send_periodic< greeting_message >(
 				*this,
@@ -105,8 +104,7 @@ private:
 	so_5::timer_id_t m_change_timer_id;
 };
 
-int
-main()
+int main()
 {
 	try
 	{

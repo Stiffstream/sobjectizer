@@ -232,7 +232,7 @@ public :
 private :
 	const vector< mbox_t > m_next_stages;
 
-	void evt_broadcast( const event_data_t< IN > & evt )
+	void evt_broadcast( mhood_t< IN > evt )
 	{
 		// The same message instance will be redirected to subsequent stages.
 		auto msg = evt.make_reference();

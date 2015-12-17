@@ -38,13 +38,13 @@ class a_child_t :	public so_5::agent_t
 {
 	public :
 		a_child_t(
-			so_5::environment_t & env,
+			context_t ctx,
 			std::string agent_name,
-			const so_5::mbox_t & parent_mbox,
+			so_5::mbox_t parent_mbox,
 			logger_t & logger )
-			:	so_5::agent_t( env )
+			:	so_5::agent_t( ctx )
 			,	m_agent_name( std::move( agent_name ) )
-			,	m_parent_mbox( parent_mbox )
+			,	m_parent_mbox( std::move( parent_mbox ) )
 			,	m_logger( logger )
 		{
 			m_logger.log( m_agent_name + ": created" );
@@ -54,8 +54,7 @@ class a_child_t :	public so_5::agent_t
 			m_logger.log( m_agent_name + ": destroyed" );
 		}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			m_logger.log( m_agent_name + ": finishing" );
 			so_5::send< msg_child_finished >( m_parent_mbox );
@@ -72,10 +71,10 @@ class a_parent_t : public so_5::agent_t
 {
 	public :
 		a_parent_t(
-			so_5::environment_t & env,
+			context_t ctx,
 			logger_t & logger,
 			size_t child_count )
-			:	so_5::agent_t( env )
+			:	so_5::agent_t( ctx )
 			,	m_logger( logger )
 			,	m_child_count( child_count )
 			,	m_child_finished( 0 )
@@ -88,23 +87,20 @@ class a_parent_t : public so_5::agent_t
 			m_logger.log( "parent destroyed" );
 		}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
 			so_default_state().event< msg_child_finished >(
 					&a_parent_t::evt_child_finished );
 		}
 
-		void
-		so_evt_start() override
+		void so_evt_start() override
 		{
 			m_logger.log( "creating child cooperation..." );
 			register_child_coop();
 			m_logger.log( "child cooperation created" );
 		}
 
-		void
-		evt_child_finished()
+		void evt_child_finished()
 		{
 			m_logger.log( "child_finished notification received" );
 
@@ -122,8 +118,7 @@ class a_parent_t : public so_5::agent_t
 		const size_t m_child_count;
 		size_t m_child_finished;
 
-		void
-		register_child_coop()
+		void register_child_coop()
 		{
 			so_5::introduce_child_coop( *this, "child",
 				[this]( so_5::coop_t & coop ) 
@@ -137,8 +132,7 @@ class a_parent_t : public so_5::agent_t
 };
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.introduce_coop( []( so_5::coop_t & coop ) {
 		auto logger = coop.take_under_control( new logger_t() );
@@ -146,8 +140,7 @@ init( so_5::environment_t & env )
 	} );
 }
 
-int
-main()
+int main()
 {
 	try
 	{

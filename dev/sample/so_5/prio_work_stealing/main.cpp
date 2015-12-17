@@ -48,8 +48,7 @@
 //
 
 // Helper function to generate a random integer in the specified range.
-unsigned int
-random_value( unsigned int left, unsigned int right )
+unsigned int random_value( unsigned int left, unsigned int right )
 	{
 		std::random_device rd;
 		std::mt19937 gen{ rd() };
@@ -58,8 +57,7 @@ random_value( unsigned int left, unsigned int right )
 
 // Imitation of some hard-working.
 // Blocks the current thread for random amount of time.
-void
-imitate_hard_work( unsigned int pause )
+void imitate_hard_work( unsigned int pause )
 	{
 		std::this_thread::sleep_for( std::chrono::milliseconds{ pause } );
 	}
@@ -158,8 +156,7 @@ class request_generator : public so_5::agent_t
 			,	m_interaction_mbox( std::move( interaction_mbox ) )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				so_subscribe_self()
 					.event< produce_next >( &request_generator::evt_produce_next );
@@ -169,8 +166,7 @@ class request_generator : public so_5::agent_t
 					.event( &request_generator::evt_generation_rejected );
 			}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				// Will start requests generation immediately.
 				so_5::send< produce_next >( *this );
@@ -188,8 +184,7 @@ class request_generator : public so_5::agent_t
 		unsigned int m_y = 0;
 		unsigned int m_z = 0;
 
-		void
-		evt_produce_next()
+		void evt_produce_next()
 			{
 				auto id = ++m_last_id;
 				auto dimension = generate_next_dimension();
@@ -207,8 +202,7 @@ class request_generator : public so_5::agent_t
 						std::chrono::milliseconds( random_value( 0, 100 ) ) );
 			}
 
-		void
-		evt_generation_result( const generation_result & evt )
+		void evt_generation_result( const generation_result & evt )
 			{
 				auto ms =
 					[]( const clock_type::time_point a,
@@ -236,8 +230,7 @@ class request_generator : public so_5::agent_t
 						<< std::endl;
 			}
 
-		void
-		evt_generation_rejected( const generation_rejected & evt )
+		void evt_generation_rejected( const generation_rejected & evt )
 			{
 				std::cout << "*** REJECTION: " << evt.m_id << std::endl;
 			}
@@ -250,8 +243,7 @@ class request_generator : public so_5::agent_t
 		 * 30% of values in range [3000, 8000)
 		 * 10% of values in range [8000, 10000]
 		 */
-		unsigned int
-		generate_next_dimension()
+		unsigned int generate_next_dimension()
 			{
 				if( 0 == m_x + m_y + m_z )
 					{
@@ -357,8 +349,7 @@ class request_acceptor : public so_5::agent_t
 			,	m_data( data )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				so_subscribe( m_interaction_mbox )
 					.event( &request_acceptor::evt_request );
@@ -371,8 +362,7 @@ class request_acceptor : public so_5::agent_t
 
 		// The event handler has that prototype for ability to
 		// store the original message object in request queue.
-		void
-		evt_request( const so_5::event_data_t< generation_request > & evt )
+		void evt_request( mhood_t< generation_request > evt )
 			{
 				using namespace so_5::prio;
 
@@ -424,16 +414,14 @@ class request_scheduler : public so_5::agent_t
 			,	m_data( data )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				so_subscribe( m_interaction_mbox )
 					.event( &request_scheduler::evt_processor_can_be_loaded )
 					.event( &request_scheduler::evt_ask_for_work );
 			}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				// Child cooperation with actual processors must be created.
 				// It will use prio_dedicated_threads::one_per_prio dispacther.
@@ -454,8 +442,7 @@ class request_scheduler : public so_5::agent_t
 
 		request_scheduling_data & m_data;
 
-		void
-		evt_processor_can_be_loaded( const processor_can_be_loaded & evt )
+		void evt_processor_can_be_loaded( const processor_can_be_loaded & evt )
 			{
 				auto & info = m_data.info_at( evt.m_priority );
 
@@ -467,8 +454,7 @@ class request_scheduler : public so_5::agent_t
 					try_schedule_work_to( evt.m_priority );
 			}
 
-		void
-		evt_ask_for_work( const ask_for_work & evt )
+		void evt_ask_for_work( const ask_for_work & evt )
 			{
 				// Processor must be marked as free.
 				m_data.info_at( evt.m_priority ).m_processor_is_free = true;
@@ -476,8 +462,7 @@ class request_scheduler : public so_5::agent_t
 				try_schedule_work_to( evt.m_priority );
 			}
 
-		void
-		create_processor_agent(
+		void create_processor_agent(
 			so_5::coop_t & coop,
 			so_5::priority_t priority )
 			{
@@ -508,8 +493,7 @@ class request_scheduler : public so_5::agent_t
 					} );
 			}
 
-		void
-		try_schedule_work_to( so_5::priority_t priority )
+		void try_schedule_work_to( so_5::priority_t priority )
 			{
 				auto & free_processor_info = m_data.info_at( priority );
 
@@ -549,8 +533,7 @@ class request_scheduler : public so_5::agent_t
 			}
 	};
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 	{
 		// All top-level agents belong to the same coop,
 		// but work on different dispacthers.
@@ -560,8 +543,8 @@ init( so_5::environment_t & env )
 				// Request scheduler and accepter stuff.
 
 				// A special dispatcher.
-				auto prio_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
-						coop.environment() );
+				namespace disp_ns = so_5::disp::prio_one_thread::strictly_ordered;
+				auto prio_disp = disp_ns::create_private_disp( coop.environment() );
 
 				// Common data for both agents. Will be controlled by the coop.
 				auto data = coop.take_under_control(
@@ -577,8 +560,7 @@ init( so_5::environment_t & env )
 			} );
 	}
 
-int
-main()
+int main()
 	{
 		try
 			{

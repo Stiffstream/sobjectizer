@@ -29,8 +29,7 @@ public :
 		,	m_mbox( so_environment().create_mbox() )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_subscribe_self()
 			.event< msg_second_part >( &a_example_t::evt_second_part )
@@ -39,8 +38,7 @@ public :
 			} );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Subscribe for the message. Without filter.
 		so_subscribe( m_mbox ).event( []( const msg_sample & evt ) {
@@ -64,8 +62,7 @@ public :
 		send< msg_second_part >( *this );
 	}
 
-	void
-	evt_second_part()
+	void evt_second_part()
 	{
 		// Drop the subscription.
 		so_drop_subscription< msg_sample >( m_mbox );

@@ -13,12 +13,10 @@
 #include <so_5/all.hpp>
 
 // Hello message.
-struct msg_hello : public so_5::message_t
+struct msg_hello
 {
 	// Greeting.
 	std::string m_message;
-
-	msg_hello( std::string message ) : m_message( std::move( message ) ) {}
 };
 
 // Stop message.
@@ -28,34 +26,27 @@ class msg_stop_signal : public so_5::signal_t {};
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::environment_t & env )
-			: so_5::agent_t( env )
+		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
 		{}
 
 		// Definition of an agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override;
 
 		// Delayed message handler.
-		void
-		evt_hello_delay( const msg_hello & msg );
+		void evt_hello_delay( const msg_hello & msg );
 
 		// Stop signal handler.
-		void
-		evt_stop_signal();
+		void evt_stop_signal();
 
 	private:
 		// Helper function for printing messages.
-		static void
-		show_message( const std::string & what );
+		static void show_message( const std::string & what );
 };
 
-void
-a_hello_t::so_define_agent()
+void a_hello_t::so_define_agent()
 {
 	// Message subscription.
 	so_subscribe_self().event( &a_hello_t::evt_hello_delay );
@@ -63,8 +54,7 @@ a_hello_t::so_define_agent()
 	so_subscribe_self().event< msg_stop_signal >( &a_hello_t::evt_stop_signal );
 }
 
-void
-a_hello_t::so_evt_start()
+void a_hello_t::so_evt_start()
 {
 	show_message( "a_hello_t::so_evt_start()" );
 
@@ -74,8 +64,7 @@ a_hello_t::so_evt_start()
 		"Hello, world! This is SObjectizer v.5." );
 }
 
-void
-a_hello_t::evt_hello_delay( const msg_hello & msg )
+void a_hello_t::evt_hello_delay( const msg_hello & msg )
 {
 	show_message( msg.m_message );
 
@@ -84,8 +73,7 @@ a_hello_t::evt_hello_delay( const msg_hello & msg )
 		std::chrono::seconds( 2 ) );
 }
 
-void
-a_hello_t::evt_stop_signal()
+void a_hello_t::evt_stop_signal()
 {
 	show_message( "Stop SObjectizer..." );
 
@@ -93,15 +81,13 @@ a_hello_t::evt_stop_signal()
 	so_environment().stop();
 }
 
-void
-a_hello_t::show_message( const std::string & what )
+void a_hello_t::show_message( const std::string & what )
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) ) << what << std::endl;
 }
 
-int
-main()
+int main()
 {
 	try
 	{

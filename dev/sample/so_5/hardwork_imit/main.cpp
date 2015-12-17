@@ -9,77 +9,52 @@
 
 #include <so_5/all.hpp>
 
-struct msg_do_hardwork : public so_5::message_t
+struct msg_do_hardwork
 {
 	unsigned int m_index;
 	unsigned int m_milliseconds;
-
-	msg_do_hardwork(
-		unsigned int index,
-		unsigned int milliseconds )
-		:	m_index( index )
-		,	m_milliseconds( milliseconds )
-	{}
 };
 
-struct msg_hardwork_done : public so_5::message_t
+struct msg_hardwork_done
 {
 	unsigned int m_index;
-
-	msg_hardwork_done( unsigned int index )
-		:	m_index( index )
-	{}
 };
 
-struct msg_check_hardwork : public so_5::message_t
+struct msg_check_hardwork
 {
 	unsigned int m_index;
 	unsigned int m_milliseconds;
-
-	msg_check_hardwork(
-		unsigned int index,
-		unsigned int milliseconds )
-		:	m_index( index )
-		,	m_milliseconds( milliseconds )
-	{}
 };
 
-struct msg_hardwork_checked : public so_5::message_t
+struct msg_hardwork_checked
 {
 	unsigned int m_index;
-
-	msg_hardwork_checked(
-		unsigned int index )
-		:	m_index( index )
-	{}
 };
 
 class a_manager_t : public so_5::agent_t
 {
 	public :
 		a_manager_t(
-			so_5::environment_t & env,
-			const so_5::mbox_t & worker_mbox,
-			const so_5::mbox_t & checker_mbox,
+			context_t ctx,
+			so_5::mbox_t worker_mbox,
+			so_5::mbox_t checker_mbox,
 			unsigned int requests,
 			unsigned int milliseconds )
-			:	so_5::agent_t( env )
-			,	m_worker_mbox( worker_mbox )
-			,	m_checker_mbox( checker_mbox )
+			:	so_5::agent_t( ctx )
+			,	m_worker_mbox( std::move(worker_mbox) )
+			,	m_checker_mbox( std::move(checker_mbox) )
 			,	m_requests( requests )
 			,	m_milliseconds( milliseconds )
 		{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
 			so_subscribe_self()
 				.event( &a_manager_t::evt_hardwork_done )
 				.event( &a_manager_t::evt_hardwork_checked );
 		}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			m_start_time = std::chrono::steady_clock::now();
 
@@ -91,16 +66,14 @@ class a_manager_t : public so_5::agent_t
 			}
 		}
 
-		void
-		evt_hardwork_done( const msg_hardwork_done & evt )
+		void evt_hardwork_done( const msg_hardwork_done & evt )
 		{
 			so_5::send< msg_check_hardwork >(
 					m_checker_mbox,
 					evt.m_index, m_milliseconds );
 		}
 
-		void
-		evt_hardwork_checked( const msg_hardwork_checked & )
+		void evt_hardwork_checked( const msg_hardwork_checked & )
 		{
 			++m_processed;
 

@@ -18,14 +18,10 @@
 struct msg_start_thinking : public so_5::signal_t {};
 
 // Message for logger.
-struct log_message : public so_5::message_t
+struct log_message
 {
 	// Text to be logged.
 	std::string m_what;
-
-	log_message( std::string what )
-		: m_what( std::move( what ) )
-	{}
 };
 
 // Logger agent.
@@ -41,8 +37,7 @@ public :
 		,	m_started_at( std::chrono::steady_clock::now() )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event(
 			[this]( const log_message & evt ) {
@@ -54,8 +49,7 @@ public :
 private :
 	const std::chrono::steady_clock::time_point m_started_at;
 
-	std::string
-	time_delta() const
+	std::string time_delta() const
 	{
 		auto now = std::chrono::steady_clock::now();
 
@@ -80,8 +74,7 @@ public :
 		,	m_logger( std::move( logger ) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		using namespace so_5::stats;
 
@@ -102,8 +95,7 @@ public :
 				&a_stats_listener_t::evt_quantity );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Change the speed of run-time monitor updates.
 		so_environment().stats_controller().set_distribution_period(
@@ -115,8 +107,7 @@ public :
 private :
 	const so_5::mbox_t m_logger;
 
-	void
-	evt_quantity(
+	void evt_quantity(
 		const so_5::stats::messages::quantity< std::size_t > & evt )
 	{
 		std::ostringstream ss;
@@ -144,15 +135,13 @@ public :
 		,	m_turn_pause( 600 )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state()
 			.event< msg_next_turn >( &a_generator_t::evt_next_turn );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -171,8 +160,7 @@ private :
 	// Pause between working turns.
 	const std::chrono::milliseconds m_turn_pause;
 
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		// Create and send new requests.
 		generate_new_requests( random( 100, 200 ) );
@@ -181,8 +169,7 @@ private :
 		so_5::send_delayed< msg_next_turn >( *this, m_turn_pause );
 	}
 
-	void
-	generate_new_requests( unsigned int requests )
+	void generate_new_requests( unsigned int requests )
 	{
 		const auto size = m_workers.size();
 
@@ -206,16 +193,13 @@ private :
 class a_worker_t : public so_5::agent_t
 {
 public :
-	a_worker_t(
-		// Environment to work in.
-		context_t ctx )
+	a_worker_t( context_t ctx )
 		:	so_5::agent_t( ctx
 				// Limit the maximum count of messages.
 				+ limit_then_drop< msg_start_thinking >( 50 ) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event< msg_start_thinking >( [] {
 				std::this_thread::sleep_for(
@@ -224,8 +208,7 @@ public :
 	}
 };
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 		// Logger will work on the default dispatcher.

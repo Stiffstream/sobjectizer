@@ -86,22 +86,20 @@ struct msg_shutdown_ack : public so_5::message_t
 			{}
 	};
 
-class a_meeting_place_t
-	:	public so_5::agent_t
+class a_meeting_place_t : public so_5::agent_t
 	{
 	public :
 		a_meeting_place_t(
-			so_5::environment_t & env,
+			context_t ctx,
 			int creatures,
 			int meetings )
-			:	so_5::agent_t( env )
+			:	so_5::agent_t( ctx )
 			,	m_creatures_alive( creatures )	
 			,	m_remaining_meetings( meetings )
 			,	m_total_meetings( 0 )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				this >>= st_empty;
 
@@ -113,9 +111,7 @@ class a_meeting_place_t
 					.event( &a_meeting_place_t::evt_second_creature );
 			}
 
-		void
-		evt_first_creature(
-			const so_5::event_data_t< msg_meeting_request > & evt )
+		void evt_first_creature( mhood_t< msg_meeting_request > evt )
 			{
 				if( m_remaining_meetings )
 				{
@@ -127,8 +123,7 @@ class a_meeting_place_t
 					evt->m_who->deliver_signal< msg_shutdown_request >();
 			}
 
-		void
-		evt_second_creature(
+		void evt_second_creature(
 			const msg_meeting_request & evt )
 			{
 				evt.m_result_message->m_color =
@@ -146,8 +141,7 @@ class a_meeting_place_t
 				this >>= st_empty;
 			}
 
-		void
-		evt_shutdown_ack(
+		void evt_shutdown_ack(
 			const msg_shutdown_ack & evt )
 			{
 				m_total_meetings += evt.m_creatures_met;
@@ -172,16 +166,15 @@ class a_meeting_place_t
 		msg_meeting_request_smart_ref_t m_first_creature_info;
 	};
 
-class a_creature_t
-	:	public so_5::agent_t
+class a_creature_t :	public so_5::agent_t
 	{
 	public :
 		a_creature_t(
-			so_5::environment_t & env,
-			const so_5::mbox_t & meeting_place_mbox,
+			context_t ctx,
+			so_5::mbox_t meeting_place_mbox,
 			color_t color )
-			:	so_5::agent_t( env )
-			,	m_meeting_place_mbox( meeting_place_mbox )
+			:	so_5::agent_t( ctx )
+			,	m_meeting_place_mbox( std::move(meeting_place_mbox) )
 			,	m_meeting_counter( 0 )
 			,	m_response_message( new msg_meeting_result( color ) )
 			,	m_request_message( new msg_meeting_request(
@@ -190,8 +183,7 @@ class a_creature_t
 						m_response_message ) )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				so_default_state()
 					.event( &a_creature_t::evt_meeting_result )
@@ -199,14 +191,12 @@ class a_creature_t
 							&a_creature_t::evt_shutdown_request );
 			}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				m_meeting_place_mbox->deliver_message( m_request_message );
 			}
 
-		void
-		evt_meeting_result(
+		void evt_meeting_result(
 			const msg_meeting_result & evt )
 			{
 				m_request_message->m_color = complement( evt.m_color );
@@ -215,8 +205,7 @@ class a_creature_t
 				m_meeting_place_mbox->deliver_message( m_request_message );
 			}
 
-		void
-		evt_shutdown_request()
+		void evt_shutdown_request()
 			{
 				m_request_message->m_color = FADED;
 				std::cout << "Creatures met: " << m_meeting_counter << std::endl;
@@ -233,8 +222,7 @@ class a_creature_t
 		msg_meeting_result_smart_ref_t m_response_message;
 		msg_meeting_request_smart_ref_t m_request_message;
 
-		color_t
-		complement( color_t other ) const
+		color_t complement( color_t other ) const
 			{
 				switch( m_request_message->m_color )
 					{
@@ -253,10 +241,7 @@ class a_creature_t
 
 const int CREATURE_COUNT = 4;
 
-void
-init(
-	so_5::environment_t & env,
-	int meetings )
+void init( so_5::environment_t & env, int meetings )
 	{
 		env.introduce_coop( "chameneos",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
@@ -278,8 +263,7 @@ init(
 				} );
 	}
 
-int
-main( int argc, char ** argv )
+int main( int argc, char ** argv )
 {
 	try
 	{

@@ -9,8 +9,7 @@
 #include <so_5/all.hpp>
 
 // A cooperation notificator which will not throw exceptions.
-void
-normal_coop_reg_notificator(
+void normal_coop_reg_notificator(
 	so_5::environment_t &,
 	const std::string & coop_name )
 {
@@ -18,8 +17,7 @@ normal_coop_reg_notificator(
 }
 
 // A cooperation notificator which will throw exception.
-void
-invalid_coop_reg_notificator(
+void invalid_coop_reg_notificator(
 	so_5::environment_t &,
 	const std::string & coop_name )
 {
@@ -32,20 +30,16 @@ invalid_coop_reg_notificator(
 class a_parent_t : public so_5::agent_t
 {
 public :
-	a_parent_t(
-		so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	a_parent_t( context_t ctx ) :	so_5::agent_t( ctx )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_subscribe_self()
 			.event( &a_parent_t::evt_child_created );
 	}
 
-	void
-	so_evt_start() override
+	void so_evt_start() override
 	{
 		using namespace so_5;
 
@@ -65,8 +59,7 @@ public :
 		});
 	}
 
-	void
-	evt_child_created(
+	void evt_child_created(
 		const so_5::msg_coop_registered & evt )
 	{
 		std::cout << "registration passed: " << evt.m_coop_name << std::endl;
@@ -82,8 +75,7 @@ public :
 	custom_logger_t()
 	{}
 
-	virtual void
-	log(
+	virtual void log(
 		const char * file_name,
 		unsigned int line,
 		const std::string & message ) override
@@ -93,8 +85,7 @@ public :
 	}
 };
 
-int
-main()
+int main()
 {
 	try
 	{

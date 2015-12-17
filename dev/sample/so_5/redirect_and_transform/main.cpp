@@ -15,7 +15,7 @@
 #include <so_5/all.hpp>
 
 // A request to be processed.
-struct request : public so_5::message_t
+struct request
 {
 	// Return address.
 	so_5::mbox_t m_reply_to;
@@ -23,43 +23,22 @@ struct request : public so_5::message_t
 	int m_id;
 	// Some payload.
 	int m_payload;
-
-	request(
-		so_5::mbox_t reply_to,
-		int id,
-		int payload )
-		:	m_reply_to( std::move( reply_to ) )
-		,	m_id( id )
-		,	m_payload( payload )
-	{}
 };
 
-// Typedef for smart intrusive pointer to request object.
-typedef so_5::intrusive_ptr_t< request > request_smart_ptr_t;
-
 // A reply to processed request.
-struct reply : public so_5::message_t
+struct reply
 {
 	// Request ID.
 	int m_id;
 	// Was request processed successfully?
 	bool m_processed;
-
-	reply( int id, bool processed )
-		:	m_id( id )
-		,	m_processed( processed )
-	{}
 };
 
 // Message for logger.
-struct log_message : public so_5::message_t
+struct log_message
 {
 	// Text to be logged.
 	std::string m_what;
-
-	log_message( std::string what )
-		: m_what( std::move( what ) )
-	{}
 };
 
 // Logger agent.
@@ -75,8 +54,7 @@ public :
 		,	m_started_at( std::chrono::steady_clock::now() )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event(
 			[this]( const log_message & evt ) {
@@ -88,8 +66,7 @@ public :
 private :
 	const std::chrono::steady_clock::time_point m_started_at;
 
-	std::string
-	time_delta() const
+	std::string time_delta() const
 	{
 		auto now = std::chrono::steady_clock::now();
 
@@ -136,16 +113,14 @@ public :
 		,	m_last_id( id_starting_point )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state()
 			.event< msg_next_turn >( &a_generator_t::evt_next_turn )
 			.event( &a_generator_t::evt_reply );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -168,8 +143,7 @@ private :
 	// Last generated ID for request.
 	int m_last_id;
 
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		// Create and send new requests.
 		generate_new_requests( random( 5, 8 ) );
@@ -178,16 +152,14 @@ private :
 		so_5::send_delayed< msg_next_turn >( *this, m_turn_pause );
 	}
 
-	void
-	evt_reply( const reply & evt )
+	void evt_reply( const reply & evt )
 	{
 		so_5::send< log_message >( m_logger,
 				m_name + ": reply received(" + std::to_string( evt.m_id ) +
 				"), processed:" + std::to_string( evt.m_processed ) );
 	}
 
-	void
-	generate_new_requests( int requests )
+	void generate_new_requests( int requests )
 	{
 		for(; requests > 0; --requests )
 		{
@@ -201,8 +173,7 @@ private :
 		}
 	}
 
-	static int
-	random( int l, int h )
+	static int random( int l, int h )
 	{
 		std::random_device rd;
 		std::mt19937 gen{ rd() };
@@ -259,8 +230,7 @@ public :
 		,	m_logger( std::move( logger ) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event( &a_performer_t::evt_request );
 	}
@@ -270,8 +240,7 @@ private :
 	const float m_slowdown;
 	const so_5::mbox_t m_logger;
 
-	void
-	evt_request( const request & evt )
+	void evt_request( const request & evt )
 	{
 		// Processing time is depend on speed of the performer.
 		auto processing_time = static_cast< int >(
@@ -291,8 +260,7 @@ private :
 	}
 };
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 		// Logger will work on the default dispatcher.

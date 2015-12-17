@@ -11,32 +11,26 @@
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::environment_t & env )
-			: so_5::agent_t( env )
+		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
 		{}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
-			std::cout << "Hello, world! This is SObjectizer v.5."
-				<< std::endl;
+			std::cout << "Hello, world! This is SObjectizer v.5." << std::endl;
 
 			// Shutting down SObjectizer.
 			so_environment().stop();
 		}
 
 		// A reaction to finish of work in SObjectizer.
-		virtual void
-		so_evt_finish() override
+		virtual void so_evt_finish() override
 		{
-			std::cout << "Bye! This was SObjectizer v.5."
-				<< std::endl;
+			std::cout << "Bye! This was SObjectizer v.5." << std::endl;
 		}
 };
 
-int
-main()
+int main()
 {
 	try
 	{

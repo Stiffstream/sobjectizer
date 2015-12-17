@@ -14,15 +14,9 @@ struct pong : public so_5::signal_t {};
 
 // Message with result of pinger/ponger run.
 // Unlike signal message it must have actual data.
-struct run_result : public so_5::message_t
+struct run_result
 {
 	std::string m_result;
-
-	// Messages usually have a constructor for
-	// simplification of message construction.
-	run_result( std::string result )
-		:	m_result( std::move( result ) )
-	{}
 };
 
 // Pinger agent.
@@ -30,12 +24,12 @@ class pinger : public so_5::agent_t
 {
 public :
 	pinger(
-		// SObjectizer Environment to work within.
-		so_5::environment_t & env,
+		// Working context for agent.
+		context_t ctx,
 		// Parent's mbox for result sending.
-		const so_5::mbox_t & parent )
-		:	so_5::agent_t( env )
-		,	m_parent( parent )
+		so_5::mbox_t parent )
+		:	so_5::agent_t( ctx )
+		,	m_parent( std::move(parent) )
 	{}
 
 	// Ponger mbox will be available only after
@@ -86,11 +80,9 @@ private :
 class ponger : public so_5::agent_t
 {
 public :
-	ponger(
-		so_5::environment_t & env,
-		const so_5::mbox_t & parent )
-		:	so_5::agent_t( env )
-		,	m_parent( parent )
+	ponger( context_t ctx, so_5::mbox_t parent )
+		:	so_5::agent_t( ctx )
+		,	m_parent( std::move(parent) )
 	{}
 
 	void set_pinger_mbox( const so_5::mbox_t & mbox ) {
@@ -123,8 +115,7 @@ private :
 class parent : public so_5::agent_t
 {
 public :
-	parent( so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	parent( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
 	virtual void so_define_agent() override {

@@ -12,67 +12,50 @@
 class a_disp_user_t : public so_5::agent_t
 {
 	public:
-		a_disp_user_t(
-			so_5::environment_t & env,
-			const std::string & name )
-			: so_5::agent_t( env )
-			, m_name( name )
-		{}
-		virtual ~a_disp_user_t()
+		a_disp_user_t( context_t ctx, std::string name )
+			: so_5::agent_t( ctx )
+			, m_name( std::move(name) )
 		{}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override
+		{
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{ log_stream << m_name << ".so_evt_start(): start pause"; }
+
+			// Sleeping for some time.
+			std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{ log_stream << m_name << ".so_evt_start(): finish pause"; }
+		}
 
 		// A reaction to finish of work in SObjectizer.
-		virtual void
-		so_evt_finish() override;
+		virtual void so_evt_finish() override
+		{
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{ log_stream << m_name << ".so_evt_finish(): start pause"; }
+
+			// Sleeping for some time.
+			std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{ log_stream << m_name << ".so_evt_finish(): finish pause"; }
+		}
 
 	private:
 		const std::string m_name;
 };
 
-void
-a_disp_user_t::so_evt_start()
-{
-	SO_5_LOG_ERROR( so_environment(), log_stream )
-	{ log_stream << m_name << ".so_evt_start(): start pause"; }
-
-	// Sleeping for some time.
-	std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
-
-	SO_5_LOG_ERROR( so_environment(), log_stream )
-	{ log_stream << m_name << ".so_evt_start(): finish pause"; }
-}
-
-void
-a_disp_user_t::so_evt_finish()
-{
-	SO_5_LOG_ERROR( so_environment(), log_stream )
-	{ log_stream << m_name << ".so_evt_finish(): start pause"; }
-
-	// Sleeping for some time.
-	std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
-
-	SO_5_LOG_ERROR( so_environment(), log_stream )
-	{ log_stream << m_name << ".so_evt_finish(): finish pause"; }
-}
-
 // The helper function for making name of an agent.
-std::string
-create_agent_name( const std::string & base, int i )
+std::string create_agent_name( const std::string & base, int i )
 {
-	std::ostringstream sout;
-	sout << base << "_" << i;
-
-	return sout.str();
+	return base + "_" + std::to_string(i);
 }
 
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
 	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
@@ -124,8 +107,7 @@ init( so_5::environment_t & env )
 	env.stop();
 }
 
-int
-main()
+int main()
 {
 	try
 	{

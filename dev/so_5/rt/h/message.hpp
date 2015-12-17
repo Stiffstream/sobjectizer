@@ -271,7 +271,7 @@ struct message_payload_type_impl
 		//! Helper for extraction of pointer to payload part.
 		/*!
 		 * \note This method return non-const pointer because it is
-		 * necessary for so_5::event_data_t.
+		 * necessary for so_5::mhood_t.
 		 */
 		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )

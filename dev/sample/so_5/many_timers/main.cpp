@@ -46,8 +46,7 @@ T str_to_value( const char * s )
 }
 
 // Parse command-line arguments and prepare sample configuration.
-cfg_t
-parse_args( int argc, char ** argv )
+cfg_t parse_args( int argc, char ** argv )
 {
 	cfg_t result;
 
@@ -105,8 +104,7 @@ parse_args( int argc, char ** argv )
 	return result;
 }
 
-void
-show_cfg( const cfg_t & cfg )
+void show_cfg( const cfg_t & cfg )
 {
 	std::string timer_type = "wheel";
 	if( cfg.m_timer_type == cfg_t::timer_type_t::list )
@@ -128,20 +126,18 @@ class a_receiver_t : public so_5::agent_t
 {
 public :
 	a_receiver_t(
-		so_5::environment_t & env,
+		context_t ctx,
 		unsigned long long messages )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_messages_to_receive( messages )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_subscribe_self().event< msg_timer >( &a_receiver_t::evt_timer );
 	}
 
-	void
-	evt_timer()
+	void evt_timer()
 	{
 		++m_messages_received;
 		if( m_messages_received == m_messages_to_receive )
@@ -158,18 +154,17 @@ class a_sender_t : public so_5::agent_t
 {
 public :
 	a_sender_t(
-		so_5::environment_t & env,
+		context_t ctx,
 		so_5::mbox_t dest_mbox,
 		unsigned long long messages_to_send,
 		std::chrono::milliseconds delay )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_dest_mbox( std::move( dest_mbox ) )
 		,	m_messages_to_send( messages_to_send )
 		,	m_delay( delay )
 	{}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		for( unsigned long long i = 0; i != m_messages_to_send; ++i )
 			so_environment().single_timer< msg_timer >( m_dest_mbox, m_delay );
@@ -183,8 +178,7 @@ private :
 	const std::chrono::milliseconds m_delay;
 };
 
-void
-run_sobjectizer( const cfg_t & cfg )
+void run_sobjectizer( const cfg_t & cfg )
 {
 	so_5::launch(
 		// Initialization actions.
@@ -214,8 +208,7 @@ run_sobjectizer( const cfg_t & cfg )
 		} );
 }
 
-int
-main( int argc, char ** argv )
+int main( int argc, char ** argv )
 {
 	try
 	{

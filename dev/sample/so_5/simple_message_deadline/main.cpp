@@ -66,8 +66,7 @@ struct msg_negative_reply : public so_5::message_t
 };
 
 // Simple helper function for time formatting.
-std::string
-time_to_string( std::time_t t )
+std::string time_to_string( std::time_t t )
 {
 	char r[ 32 ];
 	std::strftime( r, sizeof(r) - 1, "%H:%M:%S", std::localtime(&t) );
@@ -79,23 +78,19 @@ time_to_string( std::time_t t )
 class a_generator_t : public so_5::agent_t
 {
 public :
-	a_generator_t(
-		so_5::environment_t & env,
-		const so_5::mbox_t & processor_mbox )
-		:	so_5::agent_t( env )
-		,	m_processor_mbox( processor_mbox )
+	a_generator_t( context_t ctx, so_5::mbox_t processor_mbox )
+		:	so_5::agent_t( ctx )
+		,	m_processor_mbox( std::move(processor_mbox) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state()
 				.event( &a_generator_t::evt_positive_reply )
 				.event( &a_generator_t::evt_negative_reply );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		unsigned int delays[] = { 1, 4, 5, 3, 9, 15, 12 };
 
@@ -127,8 +122,7 @@ private :
 
 	unsigned int m_expected_replies = 0;
 
-	void
-	evt_positive_reply( const msg_positive_reply & evt )
+	void evt_positive_reply( const msg_positive_reply & evt )
 	{
 		std::cout
 				<< time_to_string( std::time(nullptr) ) << " - OK: ["
@@ -140,8 +134,7 @@ private :
 		count_reply();
 	}
 
-	void
-	evt_negative_reply( const msg_negative_reply & evt )
+	void evt_negative_reply( const msg_negative_reply & evt )
 	{
 		std::cout
 				<< time_to_string( std::time(nullptr) ) << " - FAIL: ["
@@ -152,8 +145,7 @@ private :
 		count_reply();
 	}
 
-	void
-	count_reply()
+	void count_reply()
 	{
 		--m_expected_replies;
 		if( !m_expected_replies )
@@ -167,18 +159,15 @@ class a_collector_t : public so_5::agent_t
 public :
 	struct msg_select_next_job : public so_5::signal_t {};
 
-	a_collector_t( so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	a_collector_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	void
-	set_performer_mbox( const so_5::mbox_t & mbox )
+	void set_performer_mbox( const so_5::mbox_t & mbox )
 	{
 		m_performer_mbox = mbox;
 	}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		this >>= st_performer_is_free;
 
@@ -197,8 +186,7 @@ private :
 	// Comparator for priority queue of stored requests.
 	struct request_comparator_t
 	{
-		bool
-		operator()(
+		bool operator()(
 			const msg_request_smart_ptr_t & a,
 			const msg_request_smart_ptr_t & b ) const
 		{
@@ -219,8 +207,7 @@ private :
 				request_comparator_t >
 			m_pending_requests;
 
-	void
-	evt_first_request( const so_5::event_data_t< msg_request > & evt )
+	void evt_first_request( mhood_t< msg_request > evt )
 	{
 		// Performer is waiting for a request.
 		// So the request can be sent for processing right now.
@@ -229,9 +216,7 @@ private :
 		m_performer_mbox->deliver_message( evt.make_reference() );
 	}
 
-	void
-	evt_yet_another_request(
-		const so_5::event_data_t< msg_request > & evt )
+	void evt_yet_another_request( mhood_t< msg_request > evt )
 	{
 		// Performer is busy. So the request must be stored in the queue.
 		// And deadline for it must be controlled.
@@ -255,8 +240,7 @@ private :
 	}
 
 	// Reaction for request for next job from performer.
-	void
-	evt_select_next_job()
+	void evt_select_next_job()
 	{
 		if( m_pending_requests.empty() )
 			// Because there are no more pending jobs
@@ -274,8 +258,7 @@ private :
 	}
 
 	// Reaction for check deadline timer signal.
-	void
-	evt_check_deadline()
+	void evt_check_deadline()
 	{
 		const std::time_t now = std::time(nullptr);
 
@@ -293,8 +276,7 @@ private :
 		}
 	}
 
-	void
-	send_negative_reply( const msg_request & request )
+	void send_negative_reply( const msg_request & request )
 	{
 		so_5::send< msg_negative_reply >(
 				request.m_reply_to,
@@ -307,15 +289,12 @@ private :
 class a_performer_t : public so_5::agent_t
 {
 public :
-	a_performer_t(
-		so_5::environment_t & env,
-		const so_5::mbox_t & collector_mbox )
-		:	so_5::agent_t( env )
-		,	m_collector_mbox( collector_mbox )
+	a_performer_t( context_t ctx, so_5::mbox_t collector_mbox )
+		:	so_5::agent_t( ctx )
+		,	m_collector_mbox( std::move(collector_mbox) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event( &a_performer_t::evt_request );
 	}
@@ -323,8 +302,7 @@ public :
 private :
 	const so_5::mbox_t m_collector_mbox;
 
-	void
-	evt_request( const msg_request & evt )
+	void evt_request( const msg_request & evt )
 	{
 		const std::time_t started_at = std::time(nullptr);
 
@@ -343,8 +321,7 @@ private :
 	}
 };
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
@@ -361,8 +338,7 @@ init( so_5::environment_t & env )
 		});
 }
 
-int
-main()
+int main()
 {
 	try
 	{

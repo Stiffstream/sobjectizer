@@ -50,4 +50,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/convert_lib/prj.rb'
 	required_prj 'sample/so_5/mchain_svc_req/prj.rb'
 	required_prj 'sample/so_5/wrapped_env_demo_2/prj.rb'
+	required_prj 'sample/so_5/producer_consumer_mchain/prj.rb'
 }

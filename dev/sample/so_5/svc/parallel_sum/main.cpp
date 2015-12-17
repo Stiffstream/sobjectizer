@@ -36,22 +36,18 @@ struct msg_sum_vector : public so_5::message_t
 class a_vector_summator_t : public so_5::agent_t
 	{
 	public :
-		a_vector_summator_t(
-			so_5::environment_t & env,
-			const so_5::mbox_t & self_mbox )
-			:	so_5::agent_t( env )
-			,	m_self_mbox( self_mbox )
-			,	m_part_summator_mbox( env.create_mbox() )
+		a_vector_summator_t( context_t ctx, so_5::mbox_t self_mbox )
+			:	so_5::agent_t( ctx )
+			,	m_self_mbox( std::move(self_mbox) )
+			,	m_part_summator_mbox( so_environment().create_mbox() )
 			{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 			{
 				so_subscribe( m_self_mbox ).event( &a_vector_summator_t::evt_sum );
 			}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
 				so_5::introduce_child_coop(
@@ -67,8 +63,7 @@ class a_vector_summator_t : public so_5::agent_t
 						} );
 			}
 
-		int
-		evt_sum( const msg_sum_vector & evt )
+		int evt_sum( const msg_sum_vector & evt )
 			{
 				auto m = evt.m_vector.begin() + evt.m_vector.size() / 2;
 
@@ -96,8 +91,7 @@ class progress_indicator_t
 				std::cout << std::endl;
 			}
 
-		void
-		update( std::size_t current )
+		void update( std::size_t current )
 			{
 				int p = static_cast< int >(
 						(double(current + 1) / double(m_total)) * 100);
@@ -116,16 +110,13 @@ class progress_indicator_t
 class a_runner_t : public so_5::agent_t
 	{
 	public :
-		a_runner_t(
-			so_5::environment_t & env,
-			std::size_t iterations )
-			:	so_5::agent_t( env )
+		a_runner_t( context_t ctx, std::size_t iterations )
+			:	so_5::agent_t( ctx )
 			,	ITERATIONS( iterations )
-			,	m_summator_mbox( env.create_mbox() )
+			,	m_summator_mbox( so_environment().create_mbox() )
 			{}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				create_summator_coop();
 				fill_test_vector();
@@ -142,8 +133,7 @@ class a_runner_t : public so_5::agent_t
 
 		vector_t m_vector;
 
-		void
-		create_summator_coop()
+		void create_summator_coop()
 			{
 				so_5::introduce_child_coop(
 					*this,
@@ -153,8 +143,7 @@ class a_runner_t : public so_5::agent_t
 					} );
 			}
 
-		void
-		fill_test_vector()
+		void fill_test_vector()
 			{
 				const std::size_t CAPACITY = 1000;
 				m_vector.reserve( CAPACITY );
@@ -163,8 +152,7 @@ class a_runner_t : public so_5::agent_t
 					m_vector.push_back( i );
 			}
 
-		void
-		do_calculations()
+		void do_calculations()
 			{
 				progress_indicator_t indicator( (ITERATIONS) );
 
@@ -178,8 +166,7 @@ class a_runner_t : public so_5::agent_t
 			}
 	};
 
-int
-main( int argc, char ** argv )
+int main( int argc, char ** argv )
 	{
 		try
 			{

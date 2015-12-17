@@ -228,8 +228,7 @@ const int rc_svc_result_not_received_yet = 86;
  *
 \code
 // Actual service type.
-int a_some_svc_t::evt_query_state(
-	const so_5::event_data_t< msg_query_state > & )
+int a_some_svc_t::evt_query_state( mhood_t< msg_query_state > )
 	{ ... }
 
 // Service request call with wrong return type.

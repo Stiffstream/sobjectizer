@@ -19,23 +19,13 @@
 #include <so_5/all.hpp>
 
 // Result of task which will be send to a parent agent.
-class task_result_t : public so_5::message_t
+struct task_result
 {
-	public:
-		task_result_t( unsigned int id ) : m_id( id ) {}
-
-		unsigned int
-		id() const
-		{
-			return m_id;
-		}
-
-	private:
-		unsigned int m_id;
+	unsigned int m_id;
 };
 
 // Child finished to do his task.
-class task_completed_t : public so_5::signal_t {}; 
+class task_completed : public so_5::signal_t {}; 
 
 // Child agent.
 /*
@@ -45,12 +35,13 @@ class task_completed_t : public so_5::signal_t {};
 class a_child_t : public so_5::agent_t
 {
 	public:
-		a_child_t( so_5::environment_t & env,
-			const so_5::mbox_t & result_mbox,
+		a_child_t(
+			context_t ctx,
+			so_5::mbox_t result_mbox,
 			unsigned int task_id ) 
-		:	so_5::agent_t( env )
-		,	m_result_mbox( result_mbox )
-		,	m_task_id( task_id )
+			:	so_5::agent_t( ctx )
+			,	m_result_mbox( std::move(result_mbox) )
+			,	m_task_id( task_id )
 		{}
 
 		virtual ~a_child_t()
@@ -60,42 +51,31 @@ class a_child_t : public so_5::agent_t
 		}
 
 		// Definition of the agent for SObjectizer.
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
-			so_subscribe_self()
-				.event( &a_child_t::evt_task_completed );
+			so_subscribe_self().event< task_completed >( &a_child_t::evt_task_completed );
 		}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
-			std::cout << "Child: has started to do task " << m_task_id
-					<< std::endl;
+			std::cout << "Child: has started to do task " << m_task_id << std::endl;
 
-			so_5::send_delayed< task_completed_t >(
-					*this,
-					// One second delay.
-					std::chrono::seconds( 1 ) ); 
+			so_5::send_delayed< task_completed >( *this, std::chrono::seconds( 1 ) ); 
 		}
 
-		virtual void
-		so_evt_finish() override
+		virtual void so_evt_finish() override
 		{
 			std::cout << "Child: has finished, task " << m_task_id << std::endl;
 		}
 
 		//! Child has completed the task.
-		void
-		evt_task_completed(
-			const so_5::event_data_t< task_completed_t > & )
+		void evt_task_completed()
 		{
-			std::cout << "Child: has completed his task " << m_task_id
-					<< std::endl;
+			std::cout << "Child: has completed his task " << m_task_id << std::endl;
 
 			// Send information about result to the parent agent.
-			so_5::send< task_result_t >( m_result_mbox, m_task_id );
+			so_5::send< task_result >( m_result_mbox, m_task_id );
 
 			// Deregister child cooperation and close 
 			// down activity of this child instance.
@@ -114,8 +94,7 @@ class a_child_t : public so_5::agent_t
 class a_parent_t : public so_5::agent_t
 {
 	public:
-		a_parent_t( so_5::environment_t & env ) 
-		:	so_5::agent_t( env )
+		a_parent_t( context_t ctx ) :	so_5::agent_t( ctx )
 		{}
 
 		virtual ~a_parent_t()
@@ -124,16 +103,13 @@ class a_parent_t : public so_5::agent_t
 		}
 
 		// Definition of the agent for SObjectizer.
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
-			so_subscribe_self()
-				.event( &a_parent_t::evt_task_result );
+			so_subscribe_self().event( &a_parent_t::evt_task_result );
 		}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			std::cout << "Parent: agent has started." << std::endl;
 
@@ -141,29 +117,23 @@ class a_parent_t : public so_5::agent_t
 			start_child( 0 );
 		}
 
-		virtual void
-		so_evt_finish() override
+		virtual void so_evt_finish() override
 		{
 			std::cout << "Parent: agent has finished." << std::endl;
 		}
 
 		// Task result received from child-agent.
-		void
-		evt_task_result(
-			const task_result_t & task_result )
+		void evt_task_result( const task_result & evt )
 		{
-			std::cout << "Parent: task result " << task_result.id()
-				<< " is received." << std::endl;
+			std::cout << "Parent: task result " << evt.m_id << " is received." << std::endl;
 
 			// We will start to do a next task.
-			start_child( task_result.id() + 1 );
+			start_child( evt.m_id + 1 );
 		}
 
 	private:
-
-		//! Starts child to solve a task number ID.
-		void
-		start_child( unsigned int id )
+		// Starts child to solve a task number ID.
+		void start_child( unsigned int id )
 		{
 			std::cout << "Parent: starting a child to do task " << id << std::endl;
 
@@ -174,13 +144,9 @@ class a_parent_t : public so_5::agent_t
 					coop.make_agent< a_child_t >( so_direct_mbox(), id );
 				} );
 		}
-
-		// Agent mbox.
-		so_5::mbox_t m_self_mbox;
 };
 
-int
-main()
+int main()
 {
 	try
 	{

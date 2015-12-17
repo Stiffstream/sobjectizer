@@ -134,114 +134,38 @@ class subscription_bind_t
 
 		//! Make subscription to the message.
 		/*!
-		 * \note Since v.5.3.0 could be used for event handlers and service handlers.
-		 *
-		 * \note This method supports event-methods which receive
-		 * message or signal information via event_data_t object.
-		 *
-		 * \par Usage example
-		 * \code
-			struct engine_control : public so_5::message_t { ... };
-			class engine_controller : public so_5::agent_t
-			{
-			public :
-				virtual void so_define_agent() override
-				{
-					so_subscribe_self().event( &engine_controller::evt_control );
-					...
-				}
-				...
-			private :
-				void evt_control( const so_5::event_data_t< engine_control > & cmd )
-				{
-					...
-				}
-			};
-		 * \endcode
-		 */
-		template< class RESULT, class MESSAGE, class AGENT >
-		subscription_bind_t &
-		event(
-			//! Event handling method.
-			RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety = not_thread_safe );
-
-		//! Make subscription to the message.
-		/*!
-		 * \note Since v.5.3.0 could be used for event handlers and service
-		 * handlers.
-		 *
-		 * \note This method supports event-methods for messages only.
-		 * Message object is passed to event-method directly, without
-		 * event_data_t wrapper.
+		 * \since v.5.5.14
+		 * 
+		 * \note Can be used for message and signal handlers.
 		 *
 		 * \par Usage example
 		 * \code
 			struct engine_control : public so_5::message_t { ... };
+			struct check_status : public so_5::signal_t {};
 			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
 				{
-					so_subscribe_self().event( &engine_controller::evt_control );
+					so_subscribe_self()
+							.event( &engine_controller::control )
+							.event( &engine_controller::check_status );
+							.event( &engine_controller::accelerate );
 					...
 				}
 				...
 			private :
-				void evt_control( const engine_control & cmd )
-				{
-					...
-				}
+				void control( so_5::mhood_t< engine_control > & cmd ) { ... }
+				void check_status( so_5::mhood_t< check_status > & cmd ) { ... }
+				void accelerate( so_5::mhood_t< int > & cmd ) { ... }
 			};
 		 * \endcode
 		 */
-		template< class RESULT, class MESSAGE, class AGENT >
+		template< class RESULT, class ARG, class AGENT >
 		subscription_bind_t &
 		event(
 			//! Event handling method.
-			RESULT (AGENT::*pfn)( const MESSAGE & ),
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety = not_thread_safe );
-
-		//! Make subscription to the message.
-		/*!
-		 * \since v.5.5.9
-		 *
-		 * \note This method is intended to use with messages whose types
-		 * are not derived from so_5::message_t. Message content is
-		 * passed to event handler by copy. It can be costly if message is
-		 * a heavy object.
-		 *
-		 * \note This method supports event-methods for messages only.
-		 * Message object is passed to event-method directly, without
-		 * event_data_t wrapper.
-		 *
-		 * \par Usage example
-		 * \code
-			enum class engine_control { turn_on, turn_off, slow_down };
-			class engine_controller : public so_5::agent_t
-			{
-			public :
-				virtual void so_define_agent() override
-				{
-					so_subscribe_self().event( &engine_controller::evt_control );
-					...
-				}
-				...
-			private :
-				void evt_control( engine_control cmd )
-				{
-					...
-				}
-			};
-		 * \endcode
-		 */
-		template< class RESULT, class MESSAGE, class AGENT >
-		subscription_bind_t &
-		event(
-			//! Event handling method.
-			RESULT (AGENT::*pfn)( MESSAGE ),
+			RESULT (AGENT::*pfn)( ARG ),
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
@@ -277,6 +201,8 @@ class subscription_bind_t
 		 * \code
 			so_subscribe_self().event< turn_on >( &engine_controller::evt_turn_on );
 		 * \endcode
+		 *
+		 * \deprecated Will be removed in v.5.6.0.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		subscription_bind_t &
@@ -296,13 +222,11 @@ class subscription_bind_t
 		 * \code
 			RESULT (const MESSAGE &)
 			RESULT (MESSAGE)
+			RESULT (so_5::mhood_t<MESSAGE>)
+			RESULT (const so_5::mhood_t<MESSAGE> &)
 		 * \endcode
 		 * are supported.
 		 *
-		 * \note This method supports event-lambdas for messages only.
-		 * Message object is passed to the lambda directly, without
-		 * event_data_t wrapper.
-		 * 
 		 * \par Usage example.
 		 * \code
 			enum class engine_control { turn_on, turn_off, slow_down };
@@ -367,6 +291,8 @@ class subscription_bind_t
 		 * \code
 			so_subscribe_self().event< turn_on >( [this]{...} );
 		 * \endcode
+		 * 
+		 * \deprecated Will be removed in v.5.6.0.
 		 */
 		template< class MESSAGE, class LAMBDA >
 		subscription_bind_t &
@@ -387,7 +313,7 @@ class subscription_bind_t
 		   virtual void my_agent::so_define_agent()
 		   {
 		   	so_subscribe_self().event< msg_my_signal >( &my_agent::event );
-		   	so_subscribe_self().event< msg_another_signal( [=] { ... } );
+		   	so_subscribe_self().event< msg_another_signal >( [=] { ... } );
 		   }
 		 * \endcode
 		 */
@@ -426,19 +352,6 @@ class subscription_bind_t
 			const std::type_index & msg_type,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) const;
-
-		/*!
-		 * \since v.5.5.9
-		 * \brief Common implementation of subscription for method
-		 * of agent's class.
-		 */
-		template< class RESULT, class MESSAGE, class AGENT, class METHOD >
-		subscription_bind_t &
-		event_impl(
-			//! Event handling method.
-			METHOD pfn,
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety );
 };
 
 //
@@ -490,33 +403,33 @@ class subscription_bind_t
 
 	<b>Message subscription and unsubscription methods</b>
 
-	Any method with the following prototype can be used as an event
+	Any method with one of the following prototypes can be used as an event
 	handler:
 	\code
-		void
-		evt_handler(
-			const so_5::event_data_t< MESSAGE > & msg );
+		return_type handler( mhood_t< MESSAGE > msg );
+		return_type handler( const mhood_t< MESSAGE > & msg );
+		return_type handler( const MESSAGE & msg );
+		return_type handler( MESSAGE msg );
+		return_type handler();
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c MESSAGE is a 
 	message type.
 
-	The class so_5::event_data_t is a wrapper on pointer to an instance 
+	The class mhood_t is a wrapper on pointer to an instance 
 	of the \c MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. 
 	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
 
-	Since v.5.3.0 there is also support for two additional forms of
-	event handlers:
+	Please note that handlers with the following prototypes can be used
+	only for messages, not signals:
 	\code
-		void
-		evt_handler( const MESSAGE & msg );
+		return_type handler( const MESSAGE & msg );
+		return_type handler( MESSAGE msg );
 	\endcode
-	This form is used for ordinary messages with some data inside.
 
 	This form is used only for signals (messages without actual data):
 	\code
-		void
-		evt_handler();
+		return_type handler();
 	\endcode
 
 	A subscription to the message is performed by the method so_subscribe().
@@ -588,6 +501,12 @@ class SO_5_TYPE agent_t
 		 * \brief Short alias for %so_5::state_t.
 		 */
 		using state_t = so_5::state_t;
+		/*!
+		 * \since v.5.5.14
+		 * \brief Short alias for %so_5::mhood_t.
+		 */
+		template< typename T >
+		using mhood_t = so_5::mhood_t< T >;
 
 		//! Constructor.
 		/*!
@@ -879,9 +798,7 @@ class SO_5_TYPE agent_t
 		/*!
 			Usage sample:
 			\code
-			void
-			a_sample_t::evt_smth(
-				const so_5::event_data_t< message_one_t > & msg )
+			void a_sample_t::evt_smth( mhood_t< message_one_t > msg )
 			{
 				// If something wrong with the message then we should
 				// switch to the error_state.
@@ -962,10 +879,31 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
 		{
-			ensure_classical_message< MESSAGE >();
+			do_drop_subscription( mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
+		}
 
+		/*!
+		 * \since v.5.5.14
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			const state_t & target_state,
+			void (AGENT::*)( mhood_t< MESSAGE > ) )
+		{
 			do_drop_subscription( mbox,
 					message_payload_type< MESSAGE >::payload_type_index(),
 					target_state );
@@ -988,6 +926,30 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			const state_t & target_state,
 			void (AGENT::*)( const MESSAGE & ) )
+		{
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
+		}
+
+		/*!
+		 * \since v.5.5.14
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			const state_t & target_state,
+			void (AGENT::*)( MESSAGE ) )
 		{
 			do_drop_subscription(
 					mbox,
@@ -1047,10 +1009,31 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
-			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
 		{
-			ensure_classical_message< MESSAGE >();
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
+		}
 
+		/*!
+		 * \since v.5.5.14
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			void (AGENT::*)( mhood_t< MESSAGE > ) )
+		{
 			do_drop_subscription(
 					mbox,
 					message_payload_type< MESSAGE >::payload_type_index(),
@@ -1073,6 +1056,29 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox,
 			void (AGENT::*)( const MESSAGE & ) )
+		{
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
+		}
+
+		/*!
+		 * \since v.5.5.14
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			void (AGENT::*)( MESSAGE ) )
 		{
 			do_drop_subscription(
 					mbox,
@@ -1131,10 +1137,31 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
+			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
 		{
-			ensure_classical_message< MESSAGE >();
+			do_drop_subscription_for_all_states(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index() );
+		}
 
+		/*!
+		 * \since v.5.5.14
+		 * \brief Drop subscription for all states.
+		 *
+		 * \note Doesn't throw if there is no any subscription for
+		 * that mbox and message type.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription_for_all_states(
+			const mbox_t & mbox,
+			void (AGENT::*)( mhood_t< MESSAGE > ) )
+		{
 			do_drop_subscription_for_all_states(
 					mbox,
 					message_payload_type< MESSAGE >::payload_type_index() );
@@ -1237,13 +1264,9 @@ class SO_5_TYPE agent_t
 				virtual void
 				so_define_agent();
 
-				void
-				evt_handler_1(
-					const so_5::event_data_t< message1_t > & msg );
+				void evt_handler_1( mhood_t< message1 > msg );
 				// ...
-				void
-				evt_handler_N(
-					const so_5::event_data_t< messageN_t > & msg );
+				void evt_handler_N( mhood_t< messageN > & msg );
 
 			};
 
@@ -1299,9 +1322,7 @@ class SO_5_TYPE agent_t
 		/*!
 			Usage sample for other cooperation registration:
 			\code
-			void
-			a_sample_t::evt_on_smth(
-				const so_5::event_data_t< some_message_t > & msg )
+			void a_sample_t::evt_on_smth( mhood_t< some_message_t > msg )
 			{
 				so_5::coop_unique_ptr_t coop =
 					so_environment().create_coop( "first_coop" );
@@ -1317,9 +1338,7 @@ class SO_5_TYPE agent_t
 
 			Usage sample for the SObjectizer shutting down:
 			\code
-			void
-			a_sample_t::evt_last_event(
-				const so_5::event_data_t< message_one_t > & msg )
+			void a_sample_t::evt_last_event( mhood_t< message_one_t > msg )
 			{
 				...
 				so_environment().stop();
@@ -2037,89 +2056,25 @@ subscription_bind_t::in(
 	return *this;
 }
 
-template< class RESULT, class MESSAGE, class AGENT >
+template< class RESULT, class ARG, class AGENT >
 inline subscription_bind_t &
 subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
+	RESULT (AGENT::*pfn)( ARG ),
 	thread_safety_t thread_safety )
 {
-	/*!
-	 * \note This method uses special trick to allow to receve and
-	 * resend instances of user_type_message_t<T>. To do that
-	 * a message_payload_type<T>::extract_envelope_ptr() is used,
-	 * but subscription is made for
-	 * message_payload_type<T>::payload_type.
-	 * This trick works because in case when MESSAGE is not
-	 * user_type_message_t<T> then payload_type and envelope_type
-	 * will be the same type (type MESSAGE).
-	 */
-
-	ensure_classical_message< MESSAGE >();
-
 	using namespace details::event_subscription_helpers;
 
 	// Agent must have right type.
 	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
-	auto method = [cast_result,pfn](
-			invocation_type_t invocation_type,
-			message_ref_t & message_ref)
-		{
-			if( invocation_type_t::service_request == invocation_type )
-				{
-					using namespace details::promise_result_setting_details;
-
-					auto actual_request_ptr =
-							get_actual_service_request_pointer< RESULT, MESSAGE >(
-									message_ref );
-
-					const event_data_t< MESSAGE > event_data{
-							// Extraction of whole envelope, not just a payload.
-							message_payload_type< MESSAGE >::extract_envelope_ptr(
-									actual_request_ptr->m_param ) };
-
-					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_old_format_event_and_set_result(
-							actual_request_ptr->m_promise,
-							cast_result,
-							pfn,
-							event_data );
-				}
-			else
-				{
-					const event_data_t< MESSAGE > event_data{
-							// Extraction of whole envelope, not just a payload.
-							message_payload_type< MESSAGE >::extract_envelope_ptr(
-									message_ref ) };
-
-					(cast_result->*pfn)( event_data );
-				}
-		};
+	const auto ev = make_handler_with_arg_for_agent( cast_result, pfn );
 
 	create_subscription_for_states( 
-			message_payload_type< MESSAGE >::payload_type_index(),
-			method,
+			ev.m_msg_type,
+			ev.m_handler,
 			thread_safety );
 
 	return *this;
-}
-
-template< class RESULT, class MESSAGE, class AGENT >
-inline subscription_bind_t &
-subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( const MESSAGE & ),
-	thread_safety_t thread_safety )
-{
-	return this->event_impl< RESULT, MESSAGE, AGENT, decltype(pfn) >( pfn, thread_safety );
-}
-
-template< class RESULT, class MESSAGE, class AGENT >
-inline subscription_bind_t &
-subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( MESSAGE ),
-	thread_safety_t thread_safety )
-{
-	return this->event_impl< RESULT, MESSAGE, AGENT, decltype(pfn) >( pfn, thread_safety );
 }
 
 template< class RESULT, class MESSAGE, class AGENT >
@@ -2136,33 +2091,12 @@ subscription_bind_t::event(
 	// Agent must have right type.
 	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
-	auto method = [cast_result,pfn](
-			invocation_type_t invocation_type,
-			message_ref_t & message_ref)
-		{
-			if( invocation_type_t::service_request == invocation_type )
-				{
-					using namespace details::promise_result_setting_details;
-
-					auto actual_request_ptr =
-							get_actual_service_request_pointer< RESULT, MESSAGE >(
-									message_ref );
-
-					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_new_format_signal_and_set_result(
-							actual_request_ptr->m_promise,
-							cast_result,
-							pfn );
-				}
-			else
-				{
-					(cast_result->*pfn)();
-				}
-		};
+	const auto ev = handler< MESSAGE >(
+			[cast_result, pfn]() -> RESULT { return (cast_result->*pfn)(); } );
 
 	create_subscription_for_states(
-			message_payload_type< MESSAGE >::payload_type_index(),
-			method,
+			ev.m_msg_type,
+			ev.m_handler,
 			thread_safety );
 
 	return *this;
@@ -2174,7 +2108,7 @@ subscription_bind_t::event(
 	LAMBDA && lambda,
 	thread_safety_t thread_safety )
 {
-	auto ev = handler( std::forward<LAMBDA>(lambda) );
+	const auto ev = handler( std::forward<LAMBDA>(lambda) );
 
 	create_subscription_for_states(
 			ev.m_msg_type,
@@ -2223,58 +2157,6 @@ subscription_bind_t::create_subscription_for_states(
 					*s,
 					method,
 					thread_safety );
-}
-
-template< class RESULT, class MESSAGE, class AGENT, class METHOD >
-subscription_bind_t &
-subscription_bind_t::event_impl(
-	METHOD pfn,
-	thread_safety_t thread_safety )
-{
-	using namespace details::event_subscription_helpers;
-
-	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
-
-	auto method = [cast_result,pfn](
-			invocation_type_t invocation_type,
-			message_ref_t & message_ref)
-		{
-			if( invocation_type_t::service_request == invocation_type )
-				{
-					using namespace details::promise_result_setting_details;
-
-					auto actual_request_ptr =
-							get_actual_service_request_pointer< RESULT, MESSAGE >(
-									message_ref );
-
-					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-							actual_request_ptr->m_param );
-					ensure_message_with_actual_data( msg );
-
-					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_new_format_event_and_set_result(
-							actual_request_ptr->m_promise,
-							cast_result,
-							pfn,
-							*msg );
-				}
-			else
-				{
-					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-							message_ref );
-					ensure_message_with_actual_data( msg );
-
-					(cast_result->*pfn)( *msg );
-				}
-		};
-
-	create_subscription_for_states(
-			message_payload_type< MESSAGE >::payload_type_index(),
-			method,
-			thread_safety );
-
-	return *this;
 }
 
 /*

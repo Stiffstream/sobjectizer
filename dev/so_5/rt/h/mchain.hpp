@@ -922,6 +922,28 @@ class mchain_receive_params_t
 		const mchain_props::duration_t &
 		empty_timeout() const { return m_empty_timeout; }
 
+		/*!
+		 * \since v.5.5.14
+		 * \brief Disable waiting on the empty queue.
+		 *
+		 * \par Usage example:
+		 * \code
+			so_5::mchain_t ch = env.create_mchain(...);
+			receive( from(ch).no_wait_on_empty(), ... );
+		 * \endcode
+		 *
+		 * \note It is just a shorthand for:
+		 * \code
+			receive( from(chain).empty_timeout(std::chrono::seconds(0)), ...);
+		 * \endcode
+		 */
+		mchain_receive_params_t
+		no_wait_on_empty()
+			{
+				return empty_timeout(
+						mchain_props::details::no_wait_special_timevalue() );
+			}
+
 		//! Set total time for the whole receive operation.
 		/*!
 		 * \note Argument \a v can be of type duration_t or

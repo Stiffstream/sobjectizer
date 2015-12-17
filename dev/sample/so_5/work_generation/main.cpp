@@ -73,26 +73,24 @@ class a_generator_t : public so_5::agent_t,
 public :
 	a_generator_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Name of generator.
 		std::string name,
 		// Workers.
 		const std::vector< so_5::mbox_t > & workers_mboxes )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	m_workers_mboxes( workers_mboxes )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one handler in one state.
 		so_default_state().event< msg_next_turn >(
 				&a_generator_t::evt_next_turn );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -107,8 +105,7 @@ private :
 	// Workers.
 	const std::vector< so_5::mbox_t > m_workers_mboxes;
 
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		// How many requests will be sent on this turn.
 		const int requests = random( 1, 100 );
@@ -137,8 +134,7 @@ private :
 		so_5::send_delayed< msg_next_turn >( *this, next_turn_pause );
 	}
 
-	bool
-	generate_next_request( std::vector< so_5::mbox_t > & workers )
+	bool generate_next_request( std::vector< so_5::mbox_t > & workers )
 	{
 		auto it = workers.begin();
 		if( workers.size() > 1 )
@@ -162,8 +158,7 @@ private :
 		return result;
 	}
 
-	bool
-	push_request_to_receiver(
+	bool push_request_to_receiver(
 		const so_5::mbox_t & to,
 		std::unique_ptr< application_request > req )
 	{
@@ -195,20 +190,19 @@ public :
 
 	a_receiver_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Receiver's name.
 		std::string name,
 		// Max capacity of receiver
 		std::size_t max_receiver_capacity )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	max_capacity( max_receiver_capacity )
 	{
 		m_requests.reserve( max_capacity );
 	}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		this >>= st_not_full;
 
@@ -240,8 +234,7 @@ private :
 	// Storage for requests between turns.
 	std::vector< application_request > m_requests;
 
-	bool
-	evt_store_request( const application_request & what )
+	bool evt_store_request( const application_request & what )
 	{
 		// Just store new request.
 		m_requests.push_back( what );
@@ -257,8 +250,7 @@ private :
 		}
 	}
 
-	bool
-	evt_reject_request( const application_request & what )
+	bool evt_reject_request( const application_request & what )
 	{
 		TRACE() << "REC(" << m_name << ") reject request from "
 				<< what.m_generator << std::endl;
@@ -291,26 +283,24 @@ class a_processor_t : public so_5::agent_t,
 public :
 	a_processor_t(
 		// Environment to work in.
-		so_5::environment_t & env,
+		context_t ctx,
 		// Processor's name.
 		std::string name,
 		// Receiver mbox.
 		const so_5::mbox_t & receiver )
-		:	so_5::agent_t( env )
+		:	so_5::agent_t( ctx )
 		,	m_name( std::move( name ) )
 		,	m_receiver( receiver )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one handler in the default state.
 		so_default_state().event< msg_next_turn >(
 				&a_processor_t::evt_next_turn );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Start working cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -326,8 +316,7 @@ private :
 	// Receiver.
 	const so_5::mbox_t m_receiver;
 
-	void
-	evt_next_turn()
+	void evt_next_turn()
 	{
 		// Take requests from receiver.
 		auto requests = take_requests();
@@ -373,8 +362,7 @@ private :
 		return std::vector< application_request >();
 	}
 
-	void
-	process_requests( const std::vector< application_request > & requests )
+	void process_requests( const std::vector< application_request > & requests )
 	{
 		TRACE() << "PRO(" << m_name << ") start processing, requests="
 				<< requests.size() << std::endl;
@@ -424,8 +412,7 @@ create_processing_coops( so_5::environment_t & env )
 	return result;
 }
 
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 

@@ -7,15 +7,6 @@
 
 #include <so_5/all.hpp>
 
-// A hello message to be sent to coordinator.
-struct msg_hello : public so_5::message_t
-{
-	std::string m_text;
-
-	msg_hello( std::string text ) : m_text( std::move( text ) )
-	{}
-};
-
 // Sample coordinator.
 // Works on the default dispatcher.
 // Receives messages from children agents.
@@ -23,16 +14,14 @@ struct msg_hello : public so_5::message_t
 class a_coordinator_t : public so_5::agent_t
 {
 public :
-	a_coordinator_t( so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	a_coordinator_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// Just one message must be handled in the default agent state.
-		so_default_state().event( [this]( const msg_hello & msg ) {
-				std::cout << "hello: " << msg.m_text << std::endl;
+		so_default_state().event( [this]( const std::string & msg ) {
+				std::cout << "hello: " << msg << std::endl;
 
 				// Work must be stopped if all messages are received.
 				if( 0 == (--m_remaining_messages) )
@@ -40,8 +29,7 @@ public :
 			} );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		// Cooperation must be created at the start of agent's work.
 
@@ -52,8 +40,7 @@ public :
 private :
 	unsigned int m_remaining_messages = 6;
 
-	void
-	create_first_child_coop()
+	void create_first_child_coop()
 	{
 		// The first cooperation will use one_thread dispatcher.
 		auto disp = so_5::disp::one_thread::create_private_disp(
@@ -70,8 +57,7 @@ private :
 		fill_and_register_coop( std::move( coop ), "one_thread" );
 	}
 
-	void
-	create_second_child_coop()
+	void create_second_child_coop()
 	{
 		// The second cooperation will use active_obj dispatcher.
 		auto disp = so_5::disp::active_obj::create_private_disp(
@@ -88,8 +74,7 @@ private :
 		fill_and_register_coop( std::move( coop ), "active_obj" );
 	}
 
-	void
-	fill_and_register_coop(
+	void fill_and_register_coop(
 		so_5::coop_unique_ptr_t coop,
 		const std::string & agent_name_prefix )
 	{
@@ -110,7 +95,7 @@ private :
 							<< std::this_thread::get_id();
 
 						// Coordinator should receive a hello message.
-						so_5::send< msg_hello >( mbox, ss.str() );
+						so_5::send< std::string >( mbox, ss.str() );
 					} );
 		}
 
@@ -118,8 +103,7 @@ private :
 	}
 };
 
-int
-main()
+int main()
 {
 	try
 	{

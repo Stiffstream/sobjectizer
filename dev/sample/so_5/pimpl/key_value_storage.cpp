@@ -7,12 +7,9 @@ struct a_key_value_storage_t::internals_t
 {
 	// Type of delayed message to be used for removing
 	// key-value pair after expiration of its lifetime.
-	struct msg_lifetime_expired : public so_5::message_t
+	struct msg_lifetime_expired
 	{
 		std::string m_key;
-
-		msg_lifetime_expired( std::string key ) : m_key( std::move( key ) )
-		{}
 	};
 
 	// Type of storage for key-value pairs.
@@ -22,8 +19,7 @@ struct a_key_value_storage_t::internals_t
 	values_map_t m_values;
 
 	// Registration of new pair in the storage.
-	void
-	register_pair(
+	void register_pair(
 		a_key_value_storage_t & self,
 		const msg_register_pair & what )
 	{
@@ -40,8 +36,7 @@ struct a_key_value_storage_t::internals_t
 
 	// Handle request for the pair.
 	// Throws an exception if pair is not found.
-	std::string
-	handle_request_for_pair(
+	std::string handle_request_for_pair(
 		const msg_request_by_key & what )
 	{
 		auto r = m_values.find( what.m_key );
@@ -53,16 +48,15 @@ struct a_key_value_storage_t::internals_t
 	}
 
 	// Handle lifetime expiration for the pair.
-	void
-	handle_lifetime_expiration(
+	void handle_lifetime_expiration(
 		const msg_lifetime_expired & evt )
 	{
 		m_values.erase( evt.m_key );
 	}
 };
 
-a_key_value_storage_t::a_key_value_storage_t( so_5::environment_t & env )
-	:	so_5::agent_t( env )
+a_key_value_storage_t::a_key_value_storage_t( context_t ctx )
+	:	so_5::agent_t( ctx )
 	,	m_impl( new internals_t() )
 {}
 a_key_value_storage_t::~a_key_value_storage_t()

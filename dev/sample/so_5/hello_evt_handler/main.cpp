@@ -7,53 +7,38 @@
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
 
-// Hello message.
-struct msg_hello : public so_5::message_t
-{
-	// Greeting.
-	std::string m_message;
-
-	msg_hello( std::string message ) : m_message( std::move( message ) )
-	{}
-};
-
 // An agent class definition.
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::environment_t & env )
-			: so_5::agent_t( env )
+		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
 		{}
 
 		// Definition of an agent for SObjectizer.
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
 			// The hello message subscription.
 			so_subscribe_self().event( &a_hello_t::evt_hello );
 		}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			// Send hello message.
-			so_5::send< msg_hello >( *this, "Hello, world! This is SObjectizer-5.");
+			so_5::send< std::string >( *this, "Hello, world! This is SObjectizer-5.");
 		}
 
 		// Hello message handler.
-		void
-		evt_hello( const msg_hello & msg )
+		void evt_hello( const std::string & msg )
 		{
-			std::cout << msg.m_message << std::endl;
+			std::cout << msg << std::endl;
 
 			// Shutting down SObjectizer.
 			so_environment().stop();
 		}
 };
 
-int
-main()
+int main()
 {
 	try
 	{

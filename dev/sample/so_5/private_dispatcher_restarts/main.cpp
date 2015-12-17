@@ -23,18 +23,15 @@ public :
 	// A signal to be sent from one chain's member to the next member.
 	struct msg_your_turn : public so_5::signal_t {};
 
-	a_chain_member_t( so_5::environment_t & env )
-		:	so_5::agent_t( env )
+	a_chain_member_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	void
-	set_next( const so_5::mbox_t & next )
+	void set_next( const so_5::mbox_t & next )
 	{
 		m_next = next;
 	}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		so_default_state().event< msg_your_turn >( [this] {
 				if( m_next )
@@ -55,15 +52,12 @@ private :
 class a_coordinator_t : public so_5::agent_t
 {
 public :
-	a_coordinator_t(
-		so_5::environment_t & env,
-		unsigned int iterations )
-		:	so_5::agent_t( env )
+	a_coordinator_t( context_t ctx, unsigned int iterations )
+		:	so_5::agent_t( ctx )
 		,	m_remaining_iterations( iterations )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		// A notification on complete children cooperation deregistration
 		// must be received and handled.
@@ -85,8 +79,7 @@ public :
 			} );
 	}
 
-	virtual void
-	so_evt_start() override
+	virtual void so_evt_start() override
 	{
 		show_remaining_iterations();
 		create_new_child_coop();
@@ -96,15 +89,13 @@ private :
 	// How many iterations remains.
 	unsigned int m_remaining_iterations;
 
-	void
-	show_remaining_iterations() const
+	void show_remaining_iterations() const
 	{
 		std::cout << m_remaining_iterations << ": iterations left...\r"
 			<< std::flush;
 	}
 
-	void
-	create_new_child_coop()
+	void create_new_child_coop()
 	{
 		// The cooperation will use active_obj dispatcher.
 		auto disp = so_5::disp::active_obj::create_private_disp(
@@ -132,8 +123,7 @@ private :
 
 	// Filling the cooperation with the agents.
 	// Return the mbox of the first member in the chain.
-	so_5::mbox_t
-	fill_coop( so_5::coop_t & coop )
+	so_5::mbox_t fill_coop( so_5::coop_t & coop )
 	{
 		const std::size_t agent_count = 8;
 
@@ -160,10 +150,9 @@ private :
 	}
 };
 
-unsigned int
-detect_iteration_count( int argc, char ** argv )
+unsigned int detect_iteration_count( int argc, char ** argv )
 {
-	unsigned int r = 500000;
+	unsigned int r = 5000;
 	if( 2 == argc )
 	{
 		auto a = std::atoi( argv[ 1 ] );
@@ -177,8 +166,7 @@ detect_iteration_count( int argc, char ** argv )
 	return r;
 }
 
-int
-main( int argc, char ** argv )
+int main( int argc, char ** argv )
 {
 	try
 	{
@@ -189,7 +177,7 @@ main( int argc, char ** argv )
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,
-						new a_coordinator_t( env, iterations ) );
+						env.make_agent< a_coordinator_t >( iterations ) );
 			} );
 
 		return 0;

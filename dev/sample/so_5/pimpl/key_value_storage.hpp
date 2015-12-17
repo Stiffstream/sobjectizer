@@ -11,7 +11,7 @@
 #include <so_5/all.hpp>
 
 // Message for registration key-value pair in the storage.
-struct msg_register_pair : public so_5::message_t
+struct msg_register_pair
 {
 	std::string m_key;
 	std::string m_value;
@@ -19,24 +19,12 @@ struct msg_register_pair : public so_5::message_t
 	// Lifetime for the pair.
 	// After expiration of that lifetime pair will be automatically removed.
 	std::chrono::milliseconds m_lifetime;
-
-	msg_register_pair(
-		std::string key,
-		std::string value,
-		std::chrono::milliseconds lifetime )
-		:	m_key( std::move( key ) )
-		,	m_value( std::move( value ) )
-		,	m_lifetime( lifetime )
-	{}
 };
 
 // A request for the value by key.
-struct msg_request_by_key : public so_5::message_t
+struct msg_request_by_key
 {
 	std::string m_key;
-
-	msg_request_by_key( std::string key ) : m_key( std::move( key ) )
-	{}
 };
 
 // An exception to be thrown if key is not found in the storage.
@@ -53,11 +41,10 @@ public :
 class a_key_value_storage_t : public so_5::agent_t
 {
 public :
-	a_key_value_storage_t( so_5::environment_t & env );
+	a_key_value_storage_t( context_t ctx );
 	~a_key_value_storage_t();
 
-	virtual void
-	so_define_agent() override;
+	virtual void so_define_agent() override;
 
 private :
 	struct internals_t;
