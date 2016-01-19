@@ -222,8 +222,8 @@ public :
 	}
 
 private :
-	const state_t st_not_full = so_make_state();
-	const state_t st_overload = so_make_state();
+	const state_t st_not_full{ this };
+	const state_t st_overload{ this };
 
 	// Receiver's name.
 	const std::string m_name;

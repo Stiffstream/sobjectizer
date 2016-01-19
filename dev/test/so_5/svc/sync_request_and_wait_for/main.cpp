@@ -211,7 +211,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::state_t st_deadlocks = so_make_state( "deadlocks" );
+		const so_5::state_t st_deadlocks{ this, "deadlocks" };
 
 		const so_5::mbox_t m_self_mbox;
 		const so_5::mbox_t m_svc_mbox;

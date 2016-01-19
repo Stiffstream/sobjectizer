@@ -19,6 +19,7 @@
 
 #include <so_5/h/spinlocks.hpp>
 
+#include <algorithm>
 #include <sstream>
 #include <cstdlib>
 
@@ -71,32 +72,209 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 // NOTE: Implementation of state_t is moved to that file in v.5.4.0.
 
 //
+// state_t::time_limit_t
+//
+struct state_t::time_limit_t
+{
+	struct timeout : public signal_t {};
+
+	duration_t m_limit;
+	const state_t & m_state_to_switch;
+
+	mbox_t m_unique_mbox;
+	timer_id_t m_timer;
+
+	time_limit_t(
+		duration_t limit,
+		const state_t & state_to_switch )
+		:	m_limit{ limit }
+		,	m_state_to_switch{ state_to_switch }
+	{}
+
+	void
+	set_up_limit_for_agent(
+		agent_t & agent,
+		const state_t & current_state ) SO_5_NOEXCEPT
+	{
+		// Because this method is called from on_enter handler it can't
+		// throw exceptions. Any exception will lead to abort of the application.
+		// So we don't care about exception safety.
+		so_5::details::invoke_noexcept_code( [&] {
+
+			// New unique mbox is necessary for time limit.
+			m_unique_mbox = impl::internal_env_iface_t{ agent.so_environment() }
+					// A new MPSC mbox will be used for that.
+					.create_mpsc_mbox(
+							// New MPSC mbox will be directly connected to target agent.
+							&agent,
+							// Message limits will not be used.
+							nullptr );
+
+			// A subscription must be created for timeout signal.
+			agent.so_subscribe( m_unique_mbox )
+					.in( current_state )
+					.event< timeout >( [&agent, this] {
+						agent.so_change_state( m_state_to_switch );
+					} );
+
+			// Delayed timeout signal must be sent.
+			m_timer = agent.so_environment().schedule_timer< timeout >(
+					m_unique_mbox,
+					m_limit,
+					duration_t::zero() );
+		} );
+	}
+
+	void
+	drop_limit_for_agent(
+		agent_t & agent,
+		const state_t & current_state ) SO_5_NOEXCEPT
+	{
+		// Because this method is called from on_exit handler it can't
+		// throw exceptions. Any exception will lead to abort of the application.
+		// So we don't care about exception safety.
+		so_5::details::invoke_noexcept_code( [&] {
+			m_timer.release();
+
+			if( m_unique_mbox )
+			{
+				// Old subscription must be removed.
+				agent.so_drop_subscription< timeout >( m_unique_mbox, current_state );
+				// Unique mbox is no more needed.
+				m_unique_mbox = mbox_t{};
+			}
+		} );
+	}
+};
+
+//
 // state_t
 //
 
 state_t::state_t(
+	agent_t * target_agent,
+	std::string state_name,
+	state_t * parent_state,
+	std::size_t nested_level,
+	history_t state_history )
+	:	m_target_agent{ target_agent }
+	,	m_state_name( std::move(state_name) )
+	,	m_parent_state{ parent_state }
+	,	m_initial_substate{ nullptr }
+	,	m_state_history{ state_history }
+	,	m_last_active_substate{ nullptr }
+	,	m_nested_level{ nested_level }
+	,	m_substate_count{ 0 }
+{
+	if( parent_state )
+	{
+		// We should check the deep of nested states.
+		if( m_nested_level >= max_deep )
+			SO_5_THROW_EXCEPTION( rc_state_nesting_is_too_deep,
+					"max nesting deep for agent states is " +
+					std::to_string( max_deep ) );
+
+		// Now we can safely mark parent state as composite.
+		parent_state->m_substate_count += 1;
+	}
+}
+
+state_t::state_t(
 	agent_t * agent )
-	:	m_target_agent( agent )
-	,	m_state_name( create_anonymous_state_name( agent, self_ptr() ) )
+	:	state_t{ agent, history_t::none }
+{
+}
+
+state_t::state_t(
+	agent_t * agent,
+	history_t state_history )
+	:	state_t{ agent, std::string(), nullptr, 0, state_history }
 {
 }
 
 state_t::state_t(
 	agent_t * agent,
 	std::string state_name )
-	:
-		m_target_agent( agent ),
-		m_state_name( state_name.empty() ?
-				create_anonymous_state_name( agent, self_ptr() ) :
-				std::move(state_name) )
+	:	state_t{ agent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	agent_t * agent,
+	std::string state_name,
+	history_t state_history )
+	:	state_t{ agent, std::move(state_name), nullptr, 0, state_history }
+{}
+
+state_t::state_t(
+	initial_substate_of parent )
+	:	state_t{ parent, std::string(), history_t::none }
+{} 
+
+state_t::state_t(
+	initial_substate_of parent,
+	std::string state_name )
+	:	state_t{ parent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	initial_substate_of parent,
+	std::string state_name,
+	history_t state_history )
+	:	state_t{
+			parent.m_parent_state->m_target_agent,
+			std::move(state_name),
+			parent.m_parent_state,
+			parent.m_parent_state->m_nested_level + 1,
+			state_history }
 {
+	if( m_parent_state->m_initial_substate )
+		SO_5_THROW_EXCEPTION( rc_initial_substate_already_defined,
+				"initial substate for state " + m_parent_state->query_name() +
+				" is already defined: " +
+				m_parent_state->m_initial_substate->query_name() );
+
+	m_parent_state->m_initial_substate = this;
 }
+
+state_t::state_t(
+	substate_of parent )
+	:	state_t{ parent, std::string(), history_t::none }
+{}
+
+state_t::state_t(
+	substate_of parent,
+	std::string state_name )
+	:	state_t{ parent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	substate_of parent,
+	std::string state_name,
+	history_t state_history )
+	:	state_t{
+			parent.m_parent_state->m_target_agent,
+			std::move(state_name),
+			parent.m_parent_state,
+			parent.m_parent_state->m_nested_level + 1,
+			state_history }
+{}
 
 state_t::state_t(
 	state_t && other )
 	:	m_target_agent( other.m_target_agent )
 	,	m_state_name( std::move( other.m_state_name ) )
-{}
+	,	m_parent_state{ other.m_parent_state }
+	,	m_initial_substate{ other.m_initial_substate }
+	,	m_state_history{ other.m_state_history }
+	,	m_last_active_substate{ other.m_last_active_substate }
+	,	m_nested_level{ other.m_nested_level }
+	,	m_substate_count{ other.m_substate_count }
+	,	m_on_enter{ std::move(other.m_on_enter) }
+	,	m_on_exit{ std::move(other.m_on_exit) }
+{
+	if( m_parent_state && m_parent_state->m_initial_substate == &other )
+		m_parent_state->m_initial_substate = this;
+}
 
 state_t::~state_t()
 {
@@ -108,10 +286,20 @@ state_t::operator == ( const state_t & state ) const
 	return &state == this;
 }
 
-const std::string &
+std::string
 state_t::query_name() const
 {
-	return m_state_name;
+	auto getter = [this]() -> std::string {
+		if( m_state_name.empty() )
+			return create_anonymous_state_name( m_target_agent, this );
+		else
+			return m_state_name;
+	};
+
+	if( m_parent_state )
+		return m_parent_state->query_name() + "." + getter();
+	else
+		return getter();
 }
 
 namespace {
@@ -153,6 +341,103 @@ void
 state_t::activate() const
 {
 	m_target_agent->so_change_state( *this );
+}
+
+state_t &
+state_t::time_limit(
+	duration_t timeout,
+	const state_t & state_to_switch )
+{
+	if( duration_t::zero() == timeout )
+		SO_5_THROW_EXCEPTION( rc_invalid_time_limit_for_state,
+				"zero can't be used as time limit for state '" +
+				query_name() );
+
+	// Old time limit must be dropped if it exists.
+	drop_time_limit();
+	m_time_limit.reset( new time_limit_t{ timeout, state_to_switch } );
+
+	// If this state is active then new time limit must be activated.
+	if( is_active() )
+		so_5::details::do_with_rollback_on_exception(
+			[&] {
+				m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
+			},
+			[&] {
+				// Time limit must be dropped because it is not activated
+				// for the current state.
+				drop_time_limit();
+			} );
+
+	return *this;
+}
+
+state_t &
+state_t::drop_time_limit()
+{
+	if( m_time_limit )
+	{
+		m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
+		m_time_limit.reset();
+	}
+
+	return *this;
+}
+
+const state_t *
+state_t::actual_state_to_enter() const
+{
+	const state_t * s = this;
+	while( 0 != s->m_substate_count )
+	{
+		if( s->m_last_active_substate )
+			// Note: for states with shallow history m_last_active_substate
+			// can point to composite substate. This substate must be
+			// processed usual way with checking for substate count, presence
+			// of initial substate and so on...
+			s = s->m_last_active_substate;
+		else if( !s->m_initial_substate )
+			SO_5_THROW_EXCEPTION( rc_no_initial_substate,
+					"there is no initial substate for composite state: " +
+					query_name() );
+		else
+			s = s->m_initial_substate;
+	}
+
+	return s;
+}
+
+void
+state_t::update_history_in_parent_states() const
+{
+	auto p = m_parent_state;
+
+	// This pointer will be used for update states with shallow history.
+	// This pointer will be changed on every iteration.
+	auto c = this;
+
+	while( p )
+	{
+		if( history_t::shallow == p->m_state_history )
+			p->m_last_active_substate = c;
+		else if( history_t::deep == p->m_state_history )
+			p->m_last_active_substate = this;
+
+		c = p;
+		p = p->m_parent_state;
+	}
+}
+
+void
+state_t::handle_time_limit_on_enter() const
+{
+	m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
+}
+
+void
+state_t::handle_time_limit_on_exit() const
+{
+	m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
 }
 
 //
@@ -221,6 +506,16 @@ agent_t::so_evt_finish()
 	// Default implementation do nothing.
 }
 
+bool
+agent_t::so_is_active_state( const state_t & state_to_check ) const
+{
+	state_t::path_t path;
+	m_current_state_ptr->fill_path( path );
+
+	auto e = begin(path) + m_current_state_ptr->nested_level() + 1;
+
+	return e != std::find( begin(path), e, &state_to_check );
+}
 
 const std::string &
 agent_t::so_coop_name() const
@@ -285,12 +580,18 @@ agent_t::so_change_state(
 
 	if( new_state.is_target( this ) )
 	{
-		m_current_state_ptr = &new_state;
+		auto actual_new_state = new_state.actual_state_to_enter();
+		if( !( *actual_new_state == *m_current_state_ptr ) )
+		{
+			// New state differs from the current one.
+			// Actual state switch must be performed.
+			do_state_switch( *actual_new_state );
 
-		// State listener should be informed.
-		m_state_listener_controller->changed(
-			*this,
-			*m_current_state_ptr );
+			// State listener should be informed.
+			m_state_listener_controller->changed(
+				*this,
+				*m_current_state_ptr );
+		}
 	}
 	else
 		SO_5_THROW_EXCEPTION(
@@ -658,6 +959,9 @@ agent_t::demand_handler_on_finish(
 			impl::process_unhandled_exception(
 					working_thread_id, x, *(d.m_receiver) );
 		}
+
+		// Since v.5.5.15 agent should be returned in default state.
+		d.m_receiver->return_to_default_state_if_possible();
 	}
 
 	// Cooperation should receive notification about agent deregistration.
@@ -825,10 +1129,7 @@ agent_t::handler_finder_msg_tracing_disabled(
 	execution_demand_t & d,
 	const char * /*context_marker*/ )
 {
-	return d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	return find_event_handler_for_current_state( d );
 }
 
 const impl::event_handler_data_t *
@@ -836,10 +1137,7 @@ agent_t::handler_finder_msg_tracing_enabled(
 	execution_demand_t & d,
 	const char * context_marker )
 {
-	const auto search_result = d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	const auto search_result = find_event_handler_for_current_state( d );
 
 	impl::msg_tracing_helpers::trace_event_handler_search_result(
 			d,
@@ -847,6 +1145,89 @@ agent_t::handler_finder_msg_tracing_enabled(
 			search_result );
 
 	return search_result;
+}
+
+const impl::event_handler_data_t *
+agent_t::find_event_handler_for_current_state(
+	execution_demand_t & d )
+{
+	const impl::event_handler_data_t * search_result = nullptr;
+	const state_t * s = &d.m_receiver->so_current_state();
+
+	do {
+		search_result = d.m_receiver->m_subscriptions->find_handler(
+				d.m_mbox_id,
+				d.m_msg_type, 
+				*s );
+
+		if( !search_result )
+			s = s->parent_state();
+
+	} while( search_result == nullptr && s != nullptr );
+
+	return search_result;
+}
+
+void
+agent_t::do_state_switch(
+	const state_t & state_to_be_set )
+{
+	state_t::path_t old_path;
+	state_t::path_t new_path;
+
+	m_current_state_ptr->fill_path( old_path );
+	state_to_be_set.fill_path( new_path );
+
+	// Find the first item which is different in the paths.
+	std::size_t first_diff = 0;
+	for(; first_diff < std::min(
+				m_current_state_ptr->nested_level(),
+				state_to_be_set.nested_level() );
+			++first_diff )
+		if( old_path[ first_diff ] != new_path[ first_diff ] )
+			break;
+
+	// Do call for on_exit and on_enter for states.
+	// on_exit and on_enter should not throw exceptions.
+	so_5::details::invoke_noexcept_code( [&] {
+
+		impl::msg_tracing_helpers::safe_trace_state_leaving(
+				*this, *m_current_state_ptr );
+		for( std::size_t i = m_current_state_ptr->nested_level();
+				i >= first_diff; )
+			{
+				old_path[ i ]->call_on_exit();
+				if( i )
+					--i;
+				else
+					break;
+			}
+
+		impl::msg_tracing_helpers::safe_trace_state_entering(
+				*this, state_to_be_set );
+		for( std::size_t i = first_diff;
+				i <= state_to_be_set.nested_level();
+				++i )
+			{
+				new_path[ i ]->call_on_enter();
+			}
+	} );
+
+	// Now the current state for the agent can be changed.
+	m_current_state_ptr = &state_to_be_set;
+	m_current_state_ptr->update_history_in_parent_states();
+}
+
+void
+agent_t::return_to_default_state_if_possible() SO_5_NOEXCEPT
+{
+	if( !( st_default == so_current_state() ||
+			awaiting_deregistration_state == so_current_state() ) )
+	{
+		// The agent must be returned to the default state.
+		// All on_exit handlers must be called at this point.
+		so_change_state( st_default );
+	}
 }
 
 } /* namespace so_5 */

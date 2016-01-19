@@ -325,6 +325,131 @@ class subscription_bind_t
 						std::forward< ARGS >(args)... );
 			}
 
+		/*!
+		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					so_subscribe_self().in( off )
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note Event will not be postponed or returned to event queue.
+		 * A search for a handler for this event will be performed immediately
+		 * after switching to the new state.
+		 *
+		 * \note New state can use transfer_to_state for that event too:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+				state_t status_dialog{ this, "status" };
+			public :
+				virtual void so_define_agent() override {
+					so_subscribe_self().in( off )
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+
+					so_subscribe_self().in( on )
+						.transfer_to_state< key_info >( status_dialog )
+						...;
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \attention There is no hard limit for deep of transfering an event
+		 * from one state to another. It means that an infinite loop can be
+		 * produced and there is no tools for preventing such infinite loops.
+		 */
+		template< typename MSG >
+		subscription_bind_t &
+		transfer_to_state(
+			const state_t & target_state );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note This method is useful because the event is not passed to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t S1{ this, "1" };
+				state_t S2{ initial_substate_of{ S1 }, "2" };
+				state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().in( S1 )
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >(...)
+						.event< msg2 >(...)
+						.event< msg3 >(...);
+
+					so_subscribe_self().in( S2 )
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >(...);
+
+					so_subscribe_self().in( S3 )
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >()
+						// The same for msg2.
+						.suppress< msg2 >()
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >(...);
+				}
+			};
+		 * \endcode
+		 */
+		template< typename MSG >
+		subscription_bind_t &
+		suppress();
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state.  It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				so_subscribe_self().in( S1 )
+					.event< some_signal >( [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				so_subscribe_self().in( S1 )
+					.just_switch_to< some_signal >( S2 );
+			}
+		 * \endcode
+		 */
+		template< typename MSG >
+		subscription_bind_t &
+		just_switch_to(
+			const state_t & target_state );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t * m_agent;
@@ -507,6 +632,28 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename T >
 		using mhood_t = so_5::mhood_t< T >;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::initial_substate_of.
+		 */
+		using initial_substate_of = so_5::initial_substate_of;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::substate_of.
+		 */
+		using substate_of = so_5::substate_of;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::state_t::history_t::shallow.
+		 */
+		static const state_t::history_t shallow_history =
+				state_t::history_t::shallow;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::state_t::history_t::deep.
+		 */
+		static const state_t::history_t deep_history =
+				state_t::history_t::deep;
 
 		//! Constructor.
 		/*!
@@ -678,6 +825,44 @@ class SO_5_TYPE agent_t
 		{
 			return *m_current_state_ptr;
 		}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Is a state activated?
+		 *
+		 * \note Since v.5.5.15 a state can have substates. For example
+		 * state A can have substates B and C. If B is the current state
+		 * then so_current_state() will return a reference to B. But
+		 * state A is active too because it is a superstate for B.
+		 * Method so_is_active_state(A) will return \a true in that case:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t A{ this, "A" };
+				state_t B{ initial_substate_of{ A }, "B" };
+				state_t C{ substate_of{ A }, "C" };
+				...
+				void some_event()
+				{
+					this >>= C;
+
+					assert( C == so_current_state() );
+					assert( !( A == so_current_state() ) );
+					assert( so_is_active_state(A) );
+					...
+				}
+			};
+		 * \endcode
+		 *
+		 * \attention This method is not thread safe. Be careful calling
+		 * this method from outside of agent's working thread.
+		 *
+		 * \return \a true if state \a state_to_check is the current state
+		 * or if the current state is a substate of \a state_to_check.
+		 *
+		 */
+		bool
+		so_is_active_state( const state_t & state_to_check ) const;
 
 		//! Name of the agent's cooperation.
 		/*!
@@ -1505,6 +1690,16 @@ class SO_5_TYPE agent_t
 			};
 			\endcode
 		 *
+		 * \deprecated Will be removed in v.5.6.0.
+		 * Just use ordinary constructors of state_t:
+		 	\code
+			class my_agent_t : public so_5::agent_t
+			{
+				state_t st_1{ this };
+				state_t st_2{ this };
+				...
+			}
+			\endcode
 		 */
 		inline state_t
 		so_make_state()
@@ -1526,6 +1721,17 @@ class SO_5_TYPE agent_t
 			};
 			\endcode
 		 *
+		 *
+		 * \deprecated Will be removed in v.5.6.0.
+		 * Just use ordinary constructors of state_t:
+		 	\code
+			class my_agent_t : public so_5::agent_t
+			{
+				state_t st_1{ this, "st_one" };
+				state_t st_2{ this, "st_two" };
+				...
+			}
+			\endcode
 		 */
 		inline state_t
 		so_make_state( std::string name )
@@ -1955,6 +2161,40 @@ class SO_5_TYPE agent_t
 		handler_finder_msg_tracing_enabled(
 			execution_demand_t & demand,
 			const char * context_marker );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Actual search for event handler with respect
+		 * to parent-child relationship between agent states.
+		 */
+		static const impl::event_handler_data_t *
+		find_event_handler_for_current_state(
+			execution_demand_t & demand );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Actual action for switching agent state.
+		 */
+		void
+		do_state_switch(
+			//! New state to be set as the current state.
+			const state_t & state_to_be_set );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Return agent to the default state.
+		 *
+		 * \note This method is called just before invocation of
+		 * so_evt_finish() to return agent to the default state.
+		 * This return will initiate invocation of on_exit handlers
+		 * for all active states of the agent.
+		 *
+		 * \attention State switch is not performed is agent is already
+		 * in default state or if it waits deregistration after unhandled
+		 * exception.
+		 */
+		void
+		return_to_default_state_if_possible() SO_5_NOEXCEPT;
 };
 
 /*!
@@ -2135,6 +2375,78 @@ subscription_bind_t::event(
 	return *this;
 }
 
+template< typename MSG >
+subscription_bind_t &
+subscription_bind_t::transfer_to_state(
+	const state_t & target_state )
+{
+	agent_t * agent_ptr = m_agent;
+	mbox_id_t mbox_id = m_mbox_ref->id();
+
+	auto method = [agent_ptr, mbox_id, &target_state](
+			invocation_type_t invoke_type,
+			message_ref_t & msg )
+		{
+			agent_ptr->so_change_state( target_state );
+
+			execution_demand_t demand{
+					agent_ptr,
+					nullptr, // Message limit is not actual here.
+					mbox_id,
+					typeid( MSG ),
+					msg,
+					invocation_type_t::event == invoke_type ?
+							agent_t::get_demand_handler_on_message_ptr() :
+							agent_t::get_service_request_handler_on_message_ptr()
+			};
+
+			demand.call_handler( query_current_thread_id() );
+		};
+
+	create_subscription_for_states(
+			typeid( MSG ),
+			method,
+			thread_safety_t::unsafe );
+
+	return *this;
+}
+
+template< typename MSG >
+subscription_bind_t &
+subscription_bind_t::suppress()
+{
+	// A method with nothing inside.
+	auto method = []( invocation_type_t, message_ref_t & ) {};
+
+	create_subscription_for_states(
+			typeid( MSG ),
+			method,
+			thread_safety_t::safe );
+
+	return *this;
+}
+
+template< typename MSG >
+subscription_bind_t &
+subscription_bind_t::just_switch_to(
+	const state_t & target_state )
+{
+	agent_t * agent_ptr = m_agent;
+
+	auto method = [agent_ptr, &target_state](
+			invocation_type_t, message_ref_t & )
+		{
+			agent_ptr->so_change_state( target_state );
+		};
+
+	create_subscription_for_states(
+			typeid( MSG ),
+			method,
+			thread_safety_t::unsafe );
+
+	return *this;
+}
+
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
@@ -2162,6 +2474,12 @@ subscription_bind_t::create_subscription_for_states(
 /*
  * Implementation of template methods of state_t class.
  */
+inline bool
+state_t::is_active() const
+{
+	return m_target_agent->so_is_active_state( *this );
+}
+
 template< typename... ARGS >
 const state_t &
 state_t::event( ARGS&&... args ) const
@@ -2195,6 +2513,88 @@ state_t::event( mbox_t from, ARGS&&... args ) const
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
 			std::forward< ARGS >(args)... );
+}
+
+template< typename MSG >
+const state_t &
+state_t::transfer_to_state( mbox_t from, const state_t & target_state ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this )
+			.transfer_to_state< MSG >( target_state );
+
+	return *this;
+}
+
+template< typename MSG >
+const state_t &
+state_t::transfer_to_state( const state_t & target_state ) const
+{
+	return this->transfer_to_state< MSG >(
+			m_target_agent->so_direct_mbox(),
+			target_state );
+}
+
+template< typename MSG >
+const state_t &
+state_t::just_switch_to( mbox_t from, const state_t & target_state ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this )
+			.just_switch_to< MSG >( target_state );
+
+	return *this;
+}
+
+template< typename MSG >
+const state_t &
+state_t::just_switch_to( const state_t & target_state ) const
+{
+	return this->just_switch_to< MSG >(
+			m_target_agent->so_direct_mbox(),
+			target_state );
+}
+
+template< typename MSG >
+const state_t &
+state_t::suppress() const
+{
+	return this->suppress< MSG >( m_target_agent->so_direct_mbox() );
+}
+
+template< typename MSG >
+const state_t &
+state_t::suppress( mbox_t from ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this )
+			.suppress< MSG >();
+
+	return *this;
+}
+
+template< typename AGENT >
+state_t &
+state_t::on_enter( void (AGENT::*pfn)() )
+{
+	using namespace details::event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+
+	return this->on_enter( [cast_result, pfn]() { (cast_result->*pfn)(); } );
+}
+
+template< typename AGENT >
+state_t &
+state_t::on_exit( void (AGENT::*pfn)() )
+{
+	using namespace details::event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+
+	return this->on_exit( [cast_result, pfn]() { (cast_result->*pfn)(); } );
 }
 
 template< typename... ARGS >

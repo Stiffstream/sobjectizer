@@ -195,8 +195,8 @@ private :
 		}
 	};
 
-	const state_t st_performer_is_free = so_make_state();
-	const state_t st_performer_is_busy = so_make_state();
+	const state_t st_performer_is_free{ this };
+	const state_t st_performer_is_busy{ this };
 
 	so_5::mbox_t m_performer_mbox;
 

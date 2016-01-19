@@ -53,8 +53,8 @@ class my_agent_t : public so_5::agent_t
 
 	private:
 		// Agent states.
-		const state_t st_first = so_make_state( "first" );
-		const state_t st_second = so_make_state( "second" );
+		const state_t st_first{ this, "first" };
+		const state_t st_second{ this, "second" };
 };
 
 my_agent_t::my_agent_t( context_t ctx )

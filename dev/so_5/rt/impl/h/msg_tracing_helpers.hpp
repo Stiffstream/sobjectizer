@@ -434,6 +434,50 @@ trace_event_handler_search_result(
 			search_result );
 	}
 
+/*!
+ * \since v.5.5.15
+ * \brief Helper for tracing the fact of leaving a state.
+ *
+ * \note This helper checks status of msg tracing by itself. It means that
+ * it is safe to call this function if msg tracing is disabled.
+ */
+inline void
+safe_trace_state_leaving(
+	const agent_t & state_owner,
+	const state_t & state )
+{
+	internal_env_iface_t env{ state_owner.so_environment() };
+
+	if( env.is_msg_tracing_enabled() )
+		details::make_trace(
+				env.msg_tracer(),
+				&state_owner,
+				details::composed_action_name{ "state", "leaving" },
+				&state );
+}
+
+/*!
+ * \since v.5.5.15
+ * \brief Helper for tracing the fact of entering into a state.
+ *
+ * \note This helper checks status of msg tracing by itself. It means that
+ * it is safe to call this function if msg tracing is disabled.
+ */
+inline void
+safe_trace_state_entering(
+	const agent_t & state_owner,
+	const state_t & state )
+{
+	internal_env_iface_t env{ state_owner.so_environment() };
+
+	if( env.is_msg_tracing_enabled() )
+		details::make_trace(
+				env.msg_tracer(),
+				&state_owner,
+				details::composed_action_name{ "state", "entering" },
+				&state );
+}
+
 //
 // mchain_tracing_disabled_base
 //

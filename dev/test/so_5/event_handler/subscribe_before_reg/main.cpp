@@ -20,9 +20,9 @@ class a_test_t : public so_5::agent_t
 	struct msg_2 : public so_5::signal_t {};
 	struct msg_3 : public so_5::signal_t {};
 
-	const so_5::state_t st_1 = so_make_state( "st_1" );
-	const so_5::state_t st_2 = so_make_state( "st_2" );
-	const so_5::state_t st_3 = so_make_state( "st_3" );
+	const so_5::state_t st_1{ this, "st_1" };
+	const so_5::state_t st_2{ this, "st_2" };
+	const so_5::state_t st_3{ this, "st_3" };
 
 public :
 	a_test_t( context_t ctx )

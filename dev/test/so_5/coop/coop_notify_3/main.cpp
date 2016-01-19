@@ -85,8 +85,8 @@ class a_test_t : public so_5::agent_t
 
 		int m_cycle;
 
-		so_5::state_t st_wait_registration = so_make_state();
-		so_5::state_t st_wait_deregistration = so_make_state();
+		so_5::state_t st_wait_registration{ this };
+		so_5::state_t st_wait_deregistration{ this };
 
 		void
 		create_next_coop()

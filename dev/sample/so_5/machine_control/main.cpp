@@ -95,8 +95,8 @@ public :
 	}
 
 private :
-	const state_t st_engine_on = so_make_state( "on" );
-	const state_t st_engine_off = so_make_state( "off" );
+	const state_t st_engine_on{ this, "on" };
+	const state_t st_engine_off{ this, "off" };
 
 	const std::string m_id;
 	const so_5::mbox_t m_status_distrib_mbox;

@@ -146,25 +146,25 @@ class a_test_t : public so_5::agent_t
 
 		so_5::mbox_t m_mbox;
 
-		so_5::state_t st_1_1 = so_make_state( "st_1_1" );
-		so_5::state_t st_1_2 = so_make_state( "st_1_2" );
-		so_5::state_t st_1_3 = so_make_state( "st_1_3" );
-		so_5::state_t st_1_4 = so_make_state( "st_1_4" );
-		so_5::state_t st_1_5 = so_make_state( "st_1_5" );
-		so_5::state_t st_1_6 = so_make_state( "st_1_6" );
-		so_5::state_t st_1_7 = so_make_state( "st_1_7" );
-		so_5::state_t st_1_8 = so_make_state( "st_1_8" );
+		so_5::state_t st_1_1{ this, "st_1_1" };
+		so_5::state_t st_1_2{ this, "st_1_2" };
+		so_5::state_t st_1_3{ this, "st_1_3" };
+		so_5::state_t st_1_4{ this, "st_1_4" };
+		so_5::state_t st_1_5{ this, "st_1_5" };
+		so_5::state_t st_1_6{ this, "st_1_6" };
+		so_5::state_t st_1_7{ this, "st_1_7" };
+		so_5::state_t st_1_8{ this, "st_1_8" };
 
-		so_5::state_t st_2_1 = so_make_state( "st_2_1" );
-		so_5::state_t st_2_2 = so_make_state( "st_2_2" );
-		so_5::state_t st_2_3 = so_make_state( "st_2_3" );
-		so_5::state_t st_2_4 = so_make_state( "st_2_4" );
-		so_5::state_t st_2_5 = so_make_state( "st_2_5" );
-		so_5::state_t st_2_6 = so_make_state( "st_2_6" );
-		so_5::state_t st_2_7 = so_make_state( "st_2_7" );
-		so_5::state_t st_2_8 = so_make_state( "st_2_8" );
+		so_5::state_t st_2_1{ this, "st_2_1" };
+		so_5::state_t st_2_2{ this, "st_2_2" };
+		so_5::state_t st_2_3{ this, "st_2_3" };
+		so_5::state_t st_2_4{ this, "st_2_4" };
+		so_5::state_t st_2_5{ this, "st_2_5" };
+		so_5::state_t st_2_6{ this, "st_2_6" };
+		so_5::state_t st_2_7{ this, "st_2_7" };
+		so_5::state_t st_2_8{ this, "st_2_8" };
 
-		so_5::state_t st_finish = so_make_state( "st_finish" );
+		so_5::state_t st_finish{ this, "st_finish" };
 
 		void
 		perform_action(

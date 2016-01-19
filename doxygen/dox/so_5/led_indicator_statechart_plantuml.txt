@@ -1,0 +1,11 @@
+[*] --> off
+
+state off {
+  off --> on : turn_on_off
+}
+
+state on {
+  on --> off : turn_on_off
+  on: enter/turn_led_on
+  on: exit/turn_led_off
+}

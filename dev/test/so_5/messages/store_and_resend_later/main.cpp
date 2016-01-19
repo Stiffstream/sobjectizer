@@ -243,7 +243,7 @@ class a_test_t : public so_5::agent_t
 
 		so_5::intrusive_ptr_t< msg_test > m_stored_message;
 
-		so_5::state_t st_stored = so_make_state( "stored" );
+		so_5::state_t st_stored{ this, "stored" };
 };
 
 struct test_env_t

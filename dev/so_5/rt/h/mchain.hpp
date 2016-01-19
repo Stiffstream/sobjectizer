@@ -786,6 +786,25 @@ class mchain_receive_result_t
 	// Extract and handle one message with waiting no more than 200ms on empty mchain.
 	auto r3 = receive(ch, std::chrono::milliseconds(200), ...);
 	\endcode
+ *
+ * \par Handlers format examples:
+ * \code
+	receive( ch, so_5::infinite_wait,
+		// Message instance by const reference.
+		[]( const std::string & v ) {...},
+		// Message instance by value (efficient for small types like int).
+		[]( int v ) {...},
+		// Message instance via mhood_t value.
+		[]( so_5::mhood_t< some_message > v ) {...},
+		// Message instance via const reference to mhood_t.
+		[]( const so_5::mhood_t< some_another_message > & v ) {...},
+		// Explicitly specified signal handler.
+		so_5::handler< some_signal >( []{...} ),
+		// Signal handler via mhood_t value.
+		[]( so_5::mhood_t< some_another_signal > ) {...},
+		// Signal handler via const reference to mhood_t.
+		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
+ * \endcode
  */
 template< typename TIMEOUT, typename... HANDLERS >
 inline mchain_receive_result_t
@@ -1236,6 +1255,25 @@ receive_without_total_time(
 			[]( const first_message_type & msg ) { ... },
 			[]( const second_message_type & msg ) { ... }, ... );
 	\endcode
+ *
+ * \par Handlers format examples:
+ * \code
+	receive( ch, so_5::infinite_wait,
+		// Message instance by const reference.
+		[]( const std::string & v ) {...},
+		// Message instance by value (efficient for small types like int).
+		[]( int v ) {...},
+		// Message instance via mhood_t value.
+		[]( so_5::mhood_t< some_message > v ) {...},
+		// Message instance via const reference to mhood_t.
+		[]( const so_5::mhood_t< some_another_message > & v ) {...},
+		// Explicitly specified signal handler.
+		so_5::handler< some_signal >( []{...} ),
+		// Signal handler via mhood_t value.
+		[]( so_5::mhood_t< some_another_signal > ) {...},
+		// Signal handler via const reference to mhood_t.
+		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
+ * \endcode
  */
 template< typename... HANDLERS >
 inline mchain_receive_result_t

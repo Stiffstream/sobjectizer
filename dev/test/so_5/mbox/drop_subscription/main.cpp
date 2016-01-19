@@ -284,8 +284,8 @@ class a_test_t : public so_5::agent_t
 
 		so_5::mbox_t m_mbox;
 
-		so_5::state_t st_1 = so_make_state( "st_1" );
-		so_5::state_t st_2 = so_make_state( "st_2" );
+		so_5::state_t st_1{ this, "st_1" };
+		so_5::state_t st_2{ this, "st_2" };
 };
 
 class test_env_t

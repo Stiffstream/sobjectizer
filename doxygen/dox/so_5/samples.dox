@@ -187,11 +187,27 @@
  */
 
 /*!
+ * \example so_5/mchain_handler_formats/main.cpp
+ */
+
+/*!
  * \example so_5/wrapped_env_demo_2/main.cpp
  */
 
 /*!
  * \example so_5/producer_consumer_mchain/main.cpp
+ */
+
+/*!
+ * \example so_5/blinking_led/main.cpp
+ */
+
+/*!
+ * \example so_5/intercom_statechart/main.cpp
+ */
+
+/*!
+ * \example so_5/state_deep_history/main.cpp
  */
 
 // vim:ft=cpp.doxygen

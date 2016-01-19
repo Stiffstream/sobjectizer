@@ -80,16 +80,16 @@ class a_test_t
 			}
 
 	private :
-		const so_5::state_t st_0 = so_make_state( "0" );
-		const so_5::state_t st_1 = so_make_state( "1" );
-		const so_5::state_t st_2 = so_make_state( "2" );
-		const so_5::state_t st_3 = so_make_state( "3" );
-		const so_5::state_t st_4 = so_make_state( "4" );
-		const so_5::state_t st_5 = so_make_state( "5" );
-		const so_5::state_t st_6 = so_make_state( "6" );
-		const so_5::state_t st_7 = so_make_state( "7" );
-		const so_5::state_t st_8 = so_make_state( "8" );
-		const so_5::state_t st_9 = so_make_state( "9" );
+		const so_5::state_t st_0{ this, "0" };
+		const so_5::state_t st_1{ this, "1" };
+		const so_5::state_t st_2{ this, "2" };
+		const so_5::state_t st_3{ this, "3" };
+		const so_5::state_t st_4{ this, "4" };
+		const so_5::state_t st_5{ this, "5" };
+		const so_5::state_t st_6{ this, "6" };
+		const so_5::state_t st_7{ this, "7" };
+		const so_5::state_t st_8{ this, "8" };
+		const so_5::state_t st_9{ this, "9" };
 
 		unsigned int m_iterations;
 

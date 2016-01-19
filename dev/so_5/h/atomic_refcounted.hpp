@@ -132,7 +132,7 @@ class intrusive_ptr_t
 		template< class Y >
 		intrusive_ptr_t(
 			const intrusive_ptr_t< Y > & o )
-			:	m_obj( dynamic_cast< T * >( o.get() ) )
+			:	m_obj( o.get() )
 		{
 			ensure_right_T();
 			take_object();

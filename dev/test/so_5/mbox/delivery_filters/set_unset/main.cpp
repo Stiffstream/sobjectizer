@@ -120,13 +120,13 @@ public :
 	}
 
 private :
-	const so_5::state_t st_1 = so_make_state();
-	const so_5::state_t st_2 = so_make_state();
-	const so_5::state_t st_3 = so_make_state();
-	const so_5::state_t st_4 = so_make_state();
-	const so_5::state_t st_5 = so_make_state();
-	const so_5::state_t st_6 = so_make_state();
-	const so_5::state_t st_7 = so_make_state();
+	const so_5::state_t st_1{ this };
+	const so_5::state_t st_2{ this };
+	const so_5::state_t st_3{ this };
+	const so_5::state_t st_4{ this };
+	const so_5::state_t st_5{ this };
+	const so_5::state_t st_6{ this };
+	const so_5::state_t st_7{ this };
 
 	const so_5::mbox_t m_data_mbox;
 

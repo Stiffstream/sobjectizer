@@ -11,8 +11,8 @@ class a_test_t : public so_5::agent_t
 		struct ping : public so_5::signal_t {};
 		struct pong : public so_5::signal_t {};
 
-		const so_5::state_t st_creating_coops = so_make_state();
-		const so_5::state_t st_destroying_coops = so_make_state();
+		const so_5::state_t st_creating_coops{ this };
+		const so_5::state_t st_destroying_coops{ this };
 
 	public :
 		a_test_t( context_t ctx )

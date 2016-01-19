@@ -34,17 +34,14 @@ struct msg_taken : public so_5::signal_t {};
 
 struct msg_put : public so_5::signal_t {};
 
-class a_fork_t : public so_5::agent_t
+class fork_t final : public so_5::agent_t
 {
 public :
-	a_fork_t( context_t ctx ) : so_5::agent_t( ctx )
-	{}
-
-	virtual void so_define_agent() override
-	{
+	fork_t( context_t ctx ) : so_5::agent_t( ctx )
+   {
 		this >>= st_free;
 
-		st_free.event( [=]( const msg_take & evt )
+		st_free.event( [this]( const msg_take & evt )
 				{
 					this >>= st_taken;
 					so_5::send< msg_taken >( evt.m_who );
@@ -54,21 +51,21 @@ public :
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.event< msg_put >( [=] { this >>= st_free; } );
+			.just_switch_to< msg_put >( st_free );
 	}
 
 private :
-	const state_t st_free = so_make_state( "free" );
-	const state_t st_taken = so_make_state( "taken" );
+	state_t st_free{ this };
+	state_t st_taken{ this };
 };
 
-class a_philosopher_t : public so_5::agent_t
+class philosopher_t final : public so_5::agent_t
 {
 	struct msg_stop_thinking : public so_5::signal_t {};
 	struct msg_stop_eating : public so_5::signal_t {};
 
 public :
-	a_philosopher_t(
+	philosopher_t(
 		context_t ctx,
 		std::string name,
 		so_5::mbox_t left_fork,
@@ -122,10 +119,10 @@ public :
 	}
 
 private :
-	const state_t st_thinking = so_make_state( "thinking" );
-	const state_t st_wait_left = so_make_state( "wait_left" );
-	const state_t st_wait_right = so_make_state( "wait_right" );
-	const state_t st_eating = so_make_state( "eating" );
+	const state_t st_thinking{ this, "thinking" };
+	const state_t st_wait_left{ this, "wait_left" };
+	const state_t st_wait_right{ this, "wait_right" };
+	const state_t st_eating{ this, "eating" };
 
 	const std::string m_name;
 
@@ -156,10 +153,10 @@ void init( so_5::environment_t & env )
 
 		std::vector< so_5::agent_t * > forks( count, nullptr );
 		for( std::size_t i = 0; i != count; ++i )
-			forks[ i ] = coop.make_agent< a_fork_t >();
+			forks[ i ] = coop.make_agent< fork_t >();
 
 		for( std::size_t i = 0; i != count; ++i )
-			coop.make_agent< a_philosopher_t >(
+			coop.make_agent< philosopher_t >(
 					std::to_string( i ),
 					forks[ i ]->so_direct_mbox(),
 					forks[ (i + 1) % count ]->so_direct_mbox() );

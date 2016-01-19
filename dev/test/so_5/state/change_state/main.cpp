@@ -16,9 +16,9 @@ class test_agent_t
 {
 		typedef so_5::agent_t base_type_t;
 
-		const so_5::state_t m_first_state = so_make_state();
-		const so_5::state_t m_second_state = so_make_state();
-		const so_5::state_t m_third_state = so_make_state();
+		const so_5::state_t m_first_state{ this };
+		const so_5::state_t m_second_state{ this };
+		const so_5::state_t m_third_state{ this };
 
 	public:
 

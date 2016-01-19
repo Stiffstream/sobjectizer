@@ -43,17 +43,14 @@ struct msg_taken
 
 struct msg_put : public so_5::signal_t {};
 
-class a_fork_t : public so_5::agent_t
+class fork_t : public so_5::agent_t
 {
 public :
-	a_fork_t( context_t ctx ) : so_5::agent_t( ctx )
-	{}
-
-	virtual void so_define_agent() override
+	fork_t( context_t ctx ) : so_5::agent_t( ctx )
 	{
 		this >>= st_free;
 
-		st_free.event( [=]( const msg_take & evt )
+		st_free.event( [this]( const msg_take & evt )
 				{
 					this >>= st_taken;
 					so_5::send< msg_taken >( evt.m_who, so_direct_mbox() );
@@ -63,21 +60,21 @@ public :
 				{
 					so_5::send< msg_busy >( evt.m_who );
 				} )
-			.event< msg_put >( [=]() { this >>= st_free; } );
+			.just_switch_to< msg_put >( st_free );
 	}
 
 private :
-	const state_t st_free = so_make_state( "free" );
-	const state_t st_taken = so_make_state( "taken" );
+	const state_t st_free{ this, "free" };
+	const state_t st_taken{ this, "taken" };
 };
 
-class a_philosopher_t : public so_5::agent_t
+class philosopher_t : public so_5::agent_t
 {
 	struct msg_stop_thinking : public so_5::signal_t {};
 	struct msg_stop_eating : public so_5::signal_t {};
 
 public :
-	a_philosopher_t(
+	philosopher_t(
 		context_t ctx,
 		std::string name,
 		so_5::mbox_t left_fork,
@@ -88,8 +85,7 @@ public :
 		,	m_right_fork( std::move( right_fork ) )
 	{}
 
-	virtual void
-	so_define_agent() override
+	virtual void so_define_agent() override
 	{
 		st_thinking.event< msg_stop_thinking >( [=]{
 				show_msg( "become hungry, try to take forks" );
@@ -104,7 +100,7 @@ public :
 				m_first_taken = evt.m_who;
 				this >>= st_one_taken;
 			} )
-			.event< msg_busy >( [=]{ this >>= st_denied; } );
+			.just_switch_to< msg_busy >( st_denied );
 
 		st_one_taken.event( [=]( const msg_taken & evt ) {
 				show_msg( fork_name( evt.m_who ) + " fork taken" );
@@ -147,11 +143,11 @@ public :
 	}
 
 private :
-	const state_t st_thinking = so_make_state();
-	const state_t st_hungry = so_make_state();
-	const state_t st_denied = so_make_state();
-	const state_t st_one_taken = so_make_state();
-	const state_t st_eating = so_make_state();
+	const state_t st_thinking{ this };
+	const state_t st_hungry{ this };
+	const state_t st_denied{ this };
+	const state_t st_one_taken{ this };
+	const state_t st_eating{ this };
 
 	const std::string m_name;
 
@@ -196,10 +192,10 @@ void init( so_5::environment_t & env )
 
 		std::vector< so_5::agent_t * > forks( count, nullptr );
 		for( std::size_t i = 0; i != count; ++i )
-			forks[ i ] = coop.make_agent< a_fork_t >();
+			forks[ i ] = coop.make_agent< fork_t >();
 
 		for( std::size_t i = 0; i != count; ++i )
-			coop.make_agent< a_philosopher_t >(
+			coop.make_agent< philosopher_t >(
 					std::to_string( i ),
 					forks[ i ]->so_direct_mbox(),
 					forks[ (i + 1) % count ]->so_direct_mbox() );

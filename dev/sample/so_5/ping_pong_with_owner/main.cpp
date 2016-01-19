@@ -176,7 +176,7 @@ private :
 	// Additional state for the agent.
 	// This state means that the first result from children agents
 	// has been received and that the parent expects the last one.
-	const state_t st_first_result_got = so_make_state();
+	const state_t st_first_result_got{ this };
 
 	// Result's accumulator.
 	std::string m_results;

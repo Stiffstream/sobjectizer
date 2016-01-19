@@ -1,0 +1,24 @@
+@startuml
+scale 600 height
+
+[*] --> off
+
+state off {
+  off --> blinking : turn_on_off
+}
+
+state blinking {
+  [*] --> blink_on
+  blinking --> off : turn_on_off
+
+  state blink_on {
+    blink_on --> blink_off : [1.5s]
+    blink_on : enter/turn_led_on
+    blink_on : exit/turn_led_off
+  }
+
+  state blink_off {
+    blink_off --> blink_on : [0.75s]
+  }
+}
+@enduml

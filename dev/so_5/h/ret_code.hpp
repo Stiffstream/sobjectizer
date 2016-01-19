@@ -50,6 +50,26 @@ const int rc_agent_incompatible_type_conversion = 15;
  * on agent's working thread.
  */
 const int rc_operation_enabled_only_on_agent_working_thread = 16;
+
+/*!
+ * \since v.5.5.15
+ * \brief An attempt to change agent state to a new composite state which
+ * have no initial state defined.
+ */
+const int rc_no_initial_substate = 17;
+
+/*!
+ * \since v.5.5.15
+ * \brief Nesting of agent states is too deep.
+ */
+const int rc_state_nesting_is_too_deep = 18;
+
+/*!
+ * \since v.5.5.15
+ * \brief Initial substate for a composite state is already defined.
+ */
+const int rc_initial_substate_already_defined = 19;
+
 //! \}
 
 //! \name Error codes for cooperations of agents.
@@ -325,6 +345,12 @@ const int rc_several_handlers_for_one_message_type = 165;
 
 //! The empty name doesn't allowed.
 const int rc_empty_name = 500;
+
+/*!
+ * \since v.5.5.15
+ * \brief Invalid value of time limit for an agent's state.
+ */
+const int rc_invalid_time_limit_for_state = 501;
 
 //! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;

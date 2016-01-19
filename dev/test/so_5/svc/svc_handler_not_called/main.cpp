@@ -46,7 +46,7 @@ class a_convert_service_t
 			}
 
 	private :
-		const so_5::state_t st_dummy = so_make_state( "dummy" );
+		const so_5::state_t st_dummy{ this, "dummy" };
 
 		const so_5::mbox_t m_self_mbox;
 	};

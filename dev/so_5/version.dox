@@ -2,6 +2,14 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_15 5.5.15 "Cerro Paroma"
+
+	A possibility to implement agent as a hierachical state machine added.
+	See \ref so_5_5__in_depth__agent_states for more details.
+
+	New examples added: *blinking_led*, *intercom_statechart* and *state_deep_history*.
+	
+
 \section so_5__5_14 5.5.14 "Nevado de Antisana"
 
 	Unification of event handler formats for method-style and lambda-style

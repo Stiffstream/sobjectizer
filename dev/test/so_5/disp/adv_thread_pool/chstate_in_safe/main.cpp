@@ -93,8 +93,8 @@ class a_test_t : public so_5::agent_t
 		}
 
 	private :
-		const so_5::state_t st_safe = so_make_state( "safe" );
-		const so_5::state_t st_unsafe = so_make_state( "unsafe" );
+		const so_5::state_t st_safe{ this, "safe" };
+		const so_5::state_t st_unsafe{ this, "unsafe" };
 };
 
 void

@@ -45,7 +45,7 @@ add_subdirectory(event_handler)
 
 add_subdirectory(messages)
 
-add_subdirectory(state/change_state)
+add_subdirectory(state)
 
 add_subdirectory(coop/duplicate_name)
 add_subdirectory(coop/dereg_empty_coop)
