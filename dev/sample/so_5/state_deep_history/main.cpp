@@ -206,10 +206,7 @@ private :
 	{
 		if( m_apartment_number.size() == apartment_number_size )
 		{
-			std::string number;
-			m_apartment_number.swap( number );
-
-			complete_operation( "dial to apartment #" + number );
+			complete_operation( "dial to apartment #" + m_apartment_number );
 		}
 		else
 			initiate_error( "apartment number must be " +
@@ -260,26 +257,20 @@ private :
 			m_display.show( std::string( m_user_secret_code.size(), '*' ) );
 		}
 		else
-			initiate_error( "secret code be " +
-					std::to_string( apartment_number_size ) + " digits long" );
+			initiate_error( "secret code must be " +
+					std::to_string( secret_code_size ) + " digits long" );
 	}
 
 	void user_code_secret_on_bell( mhood_t< key_bell > )
 	{
 		if( m_user_secret_code.size() == secret_code_size )
 		{
-			std::string number;
-			std::string code;
-
-			m_apartment_number.swap( number );
-			m_user_secret_code.swap( code );
-
 			complete_operation( "open the door via user secret code: " +
-					number + "#" + code );
+					m_apartment_number + "#" + m_user_secret_code );
 		}
 		else
 			initiate_error( "secret code be " +
-					std::to_string( apartment_number_size ) + " digits long" );
+					std::to_string( secret_code_size ) + " digits long" );
 	}
 
 	void user_code_secret_on_grid( mhood_t< key_grid > )
@@ -315,14 +306,10 @@ private :
 	{
 		if( m_service_code.size() == service_code_size )
 		{
-			std::string code;
-
-			m_service_code.swap( code );
-
-			complete_operation( "open the door via service code: " + code );
+			complete_operation( "open the door via service code: " + m_service_code );
 		}
 		else
-			initiate_error( "service code be " +
+			initiate_error( "service code must be " +
 					std::to_string( service_code_size ) + " digits long" );
 	}
 
