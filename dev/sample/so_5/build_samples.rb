@@ -58,4 +58,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'blinking_led' ]
 	example[ 'intercom_statechart' ]
 	example[ 'state_deep_history' ]
+
+	example[ 'adv_thread_pool_fifo' ]
 }

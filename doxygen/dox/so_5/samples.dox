@@ -210,4 +210,8 @@
  * \example so_5/state_deep_history/main.cpp
  */
 
+/*!
+ * \example so_5/adv_thread_pool_fifo/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

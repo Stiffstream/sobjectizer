@@ -56,3 +56,5 @@ add_subdirectory(producer_consumer_mchain)
 add_subdirectory(blinking_led)
 add_subdirectory(intercom_statechart)
 add_subdirectory(state_deep_history)
+
+add_subdirectory(adv_thread_pool_fifo)
