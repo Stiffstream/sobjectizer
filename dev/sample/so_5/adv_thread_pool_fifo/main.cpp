@@ -28,9 +28,7 @@ class A final : public so_5::agent_t
 public :
 	A( context_t ctx ) : so_5::agent_t{ ctx }
 	{
-		auto m = so_environment().create_mbox( "demo" );
-
-		so_subscribe( m )
+		so_subscribe( so_environment().create_mbox( "demo" ) )
 			.event< M1 >( [] {
 					std::cout << "A.e1" << std::endl;
 					std::this_thread::sleep_for( pause );
