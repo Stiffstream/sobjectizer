@@ -15,6 +15,33 @@
 
 #include <so_5/all.hpp>
 
+// Logging infrastructure.
+struct trace_msg
+{
+	const so_5::agent_t * m_who;
+	std::string m_what;
+	std::thread::id m_thread_id;
+};
+
+void create_logger( so_5::environment_t & env )
+{
+	env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		coop.define_agent().event( env.create_mbox( "log" ),
+			[]( const trace_msg & msg ) {
+				std::cout << msg.m_thread_id << ": (" << msg.m_who
+					<< ") " << msg.m_what << std::endl;
+			} );
+	} );
+}
+
+void trace( const so_5::agent_t & agent, const std::string what )
+{
+	so_5::send< trace_msg >( agent.so_environment().create_mbox( "log" ),
+		&agent, what, std::this_thread::get_id() );
+}
+
+// Main part of the example.
+
 struct M1 : public so_5::signal_t {};
 struct M2 : public so_5::signal_t {};
 struct M3 : public so_5::signal_t {};
@@ -29,14 +56,16 @@ public :
 	A( context_t ctx ) : so_5::agent_t{ ctx }
 	{
 		so_subscribe( so_environment().create_mbox( "demo" ) )
-			.event< M1 >( [] {
-					std::cout << "A.e1" << std::endl;
+			.event< M1 >( [this] {
+					trace( *this, "A.e1 started" );
 					std::this_thread::sleep_for( pause );
+					trace( *this, "A.e1 finished" );
 				},
 				so_5::thread_safe )
-			.event< M3 >( [] {
-					std::cout << "A.e3" << std::endl;
+			.event< M3 >( [this] {
+					trace( *this, "A.e3 started" );
 					std::this_thread::sleep_for( pause );
+					trace( *this, "A.e3 finished" );
 				} )
 			.event< stop >( [this] { so_environment().stop(); } );
 	}
@@ -48,9 +77,10 @@ public :
 	B( context_t ctx ) : so_5::agent_t{ ctx }
 	{
 		so_subscribe( so_environment().create_mbox( "demo" ) )
-			.event< M2 >( [] {
-					std::cout << "B.e2" << std::endl;
+			.event< M2 >( [this] {
+					trace( *this, "B.e2 started" );
 					std::this_thread::sleep_for( pause );
+					trace( *this, "B.e2 finished" );
 				},
 				so_5::thread_safe );
 	}
@@ -59,6 +89,8 @@ public :
 void run_sample( so_5::disp::adv_thread_pool::fifo_t fifo_type )
 {
 	so_5::launch( [fifo_type]( so_5::environment_t & env ) {
+		create_logger( env );
+
 		namespace pool_disp = so_5::disp::adv_thread_pool;
 
 		env.introduce_coop(
