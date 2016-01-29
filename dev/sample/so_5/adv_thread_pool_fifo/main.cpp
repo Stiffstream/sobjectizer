@@ -48,7 +48,7 @@ struct M3 : public so_5::signal_t {};
 
 struct stop : public so_5::signal_t {};
 
-const std::chrono::milliseconds pause{ 200 };
+const std::chrono::milliseconds sleeping_time{ 200 };
 
 class A final : public so_5::agent_t
 {
@@ -58,13 +58,13 @@ public :
 		so_subscribe( so_environment().create_mbox( "demo" ) )
 			.event< M1 >( [this] {
 					trace( *this, "A.e1 started" );
-					std::this_thread::sleep_for( pause );
+					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "A.e1 finished" );
 				},
 				so_5::thread_safe )
 			.event< M3 >( [this] {
 					trace( *this, "A.e3 started" );
-					std::this_thread::sleep_for( pause );
+					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "A.e3 finished" );
 				} )
 			.event< stop >( [this] { so_environment().stop(); } );
@@ -79,7 +79,7 @@ public :
 		so_subscribe( so_environment().create_mbox( "demo" ) )
 			.event< M2 >( [this] {
 					trace( *this, "B.e2 started" );
-					std::this_thread::sleep_for( pause );
+					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "B.e2 finished" );
 				},
 				so_5::thread_safe );
