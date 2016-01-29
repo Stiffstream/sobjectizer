@@ -549,10 +549,10 @@ class SO_5_TYPE environment_t
 		mbox_t
 		create_mbox();
 
-		//! Create named mbox with the default mutex.
+		//! Create named mbox.
 		/*!
-		 * If \a mbox_name is unique then a new mutex will be created.
-		 * If not the reference to existing mutex will be returned.
+		 * If \a mbox_name is unique then a new mbox will be created.
+		 * If not the reference to existing mbox will be returned.
 		 */
 		mbox_t
 		create_mbox(
