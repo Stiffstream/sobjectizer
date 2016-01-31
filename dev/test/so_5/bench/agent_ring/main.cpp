@@ -16,7 +16,20 @@ enum class dispatcher_type_t
 {
 	one_thread,
 	thread_pool,
+	adv_thread_pool,
 	prio_ot_strictly_ordered
+};
+
+enum class queue_lock_type_t
+{
+	combined,
+	simple
+};
+
+enum class pool_fifo_t
+{
+	cooperation,
+	individual
 };
 
 struct	cfg_t
@@ -27,6 +40,10 @@ struct	cfg_t
 	bool	m_direct_mboxes = false;
 
 	dispatcher_type_t m_dispatcher_type = dispatcher_type_t::one_thread;
+
+	queue_lock_type_t m_queue_lock_type = queue_lock_type_t::combined;
+
+	pool_fifo_t m_fifo = pool_fifo_t::individual;
 };
 
 cfg_t
@@ -49,7 +66,15 @@ try_parse_cmdline(
 							"-r, --rounds         count of full rounds around the ring\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-D, --dispatcher     type of dispatcher to be used:\n"
-							"                     one_thread, thread_pool, prio_ot_strictly_ordered\n"
+							"                     one_thread,\n"
+							"                     thread_pool,\n"
+							"                     adv_thread_pool,\n"
+							"                     prio_ot_strictly_ordered\n"
+							"-L, --queue-lock     type of queue lock to be used:\n"
+							"                     combined, simple\n"
+							"-f, --fifo           type of fifo for dispatcher with "
+								"thread pool:\n"
+							"                     cooperation, individual (default)\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -74,10 +99,38 @@ try_parse_cmdline(
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;
 					else if( "thread_pool" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::thread_pool;
+					else if( "adv_thread_pool" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::adv_thread_pool;
 					else if( "prio_ot_strictly_ordered" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::prio_ot_strictly_ordered;
 					else
 						throw std::runtime_error( "unsupported dispatcher type: " + name );
+				}
+			else if( is_arg( *current, "-L", "--queue-lock" ) )
+				{
+					std::string name;
+					mandatory_arg_to_value(
+							name, ++current, last,
+							"-L", "queue lock type" );
+					if( "combined" == name )
+						tmp_cfg.m_queue_lock_type = queue_lock_type_t::combined;
+					else if( "simple" == name )
+						tmp_cfg.m_queue_lock_type = queue_lock_type_t::simple;
+					else
+						throw std::runtime_error( "unsupported queue lock type: " + name );
+				}
+			else if( is_arg( *current, "-f", "--fifo" ) )
+				{
+					std::string name;
+					mandatory_arg_to_value(
+							name, ++current, last,
+							"-f", "FIFO type" );
+					if( "cooperation" == name )
+						tmp_cfg.m_fifo = pool_fifo_t::cooperation;
+					else if( "individual" == name )
+						tmp_cfg.m_fifo = pool_fifo_t::individual;
+					else
+						throw std::runtime_error( "unsupported FIFO: " + name );
 				}
 			else
 				throw std::runtime_error(
@@ -176,20 +229,46 @@ dispatcher_type_name( dispatcher_type_t t )
 			return "one_thread";
 		else if( dispatcher_type_t::thread_pool == t )
 			return "thread_pool";
+		else if( dispatcher_type_t::adv_thread_pool == t )
+			return "adv_thread_pool";
 		else
 			return "prio_ot_strictly_ordered";
+	}
+
+const char *
+queue_lock_type_name( queue_lock_type_t t )
+	{
+		if( queue_lock_type_t::combined == t )
+			return "combined";
+		else
+			return "simple";
+	}
+
+const char *
+fifo_name( pool_fifo_t fifo )
+	{
+		if( pool_fifo_t::cooperation == fifo )
+			return "cooperation";
+		else
+			return "individual";
 	}
 
 void
 show_cfg(
 	const cfg_t & cfg )
 	{
-		std::cout << "Configuration: "
-			<< "ring size: " << cfg.m_ring_size
-			<< ", rounds: " << cfg.m_rounds
-			<< ", direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
-			<< ", disp: " << dispatcher_type_name( cfg.m_dispatcher_type )
-			<< std::endl;
+		std::cout << "Configuration:"
+			<< "\n\t" "ring size: " << cfg.m_ring_size
+			<< "\n\t" "rounds: " << cfg.m_rounds
+			<< "\n\t" "direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
+			<< "\n\t" "disp: " << dispatcher_type_name( cfg.m_dispatcher_type )
+			<< "\n\t" "queue_lock: " << queue_lock_type_name( cfg.m_queue_lock_type );
+
+		if( dispatcher_type_t::thread_pool == cfg.m_dispatcher_type ||
+				dispatcher_type_t::adv_thread_pool == cfg.m_dispatcher_type )
+			std::cout << "\n\t" "fifo: " << fifo_name( cfg.m_fifo );
+
+		std::cout << std::endl;
 	}
 
 void
@@ -215,23 +294,79 @@ show_result(
 			", throughtput: " << throughtput << std::endl;
 	}
 
+template<
+	typename DISP_PARAMS,
+	typename COMBINED_FACTORY,
+	typename SIMPLE_FACTORY >
+DISP_PARAMS
+make_disp_params(
+	const cfg_t & cfg,
+	COMBINED_FACTORY combined_factory,
+	SIMPLE_FACTORY simple_factory )
+	{
+		DISP_PARAMS disp_params;
+		using queue_params_t =
+			typename std::decay< decltype(disp_params.queue_params()) >::type;
+
+		disp_params.tune_queue_params( [&]( queue_params_t & p ) {
+				if( queue_lock_type_t::simple == cfg.m_queue_lock_type )
+					p.lock_factory( simple_factory() );
+				else
+					p.lock_factory( combined_factory() );
+			} );
+		return disp_params;
+	}
+
 so_5::disp_binder_unique_ptr_t
 create_disp_binder(
 	so_5::environment_t & env,
 	const cfg_t & cfg )
 	{
-		using namespace so_5::disp;
-
 		const auto t = cfg.m_dispatcher_type;
 		if( dispatcher_type_t::one_thread == t )
-			return one_thread::create_private_disp( env )->binder();
+		{
+			using namespace so_5::disp::one_thread;
+			auto disp_params = make_disp_params< disp_params_t >(
+					cfg,
+					[]{ return queue_traits::combined_lock_factory(); },
+					[]{ return queue_traits::simple_lock_factory(); } );
+			return create_private_disp( env, "disp", disp_params )->binder();
+		}
 		else if( dispatcher_type_t::thread_pool == t )
-			return thread_pool::create_private_disp( env )->binder(
-					[]( thread_pool::bind_params_t & p ) {
-						p.fifo( thread_pool::fifo_t::individual );
+		{
+			using namespace so_5::disp::thread_pool;
+			auto disp_params = make_disp_params< disp_params_t >(
+					cfg,
+					[]{ return queue_traits::combined_lock_factory(); },
+					[]{ return queue_traits::simple_lock_factory(); } );
+			return create_private_disp( env, "disp", disp_params )->binder(
+					[&cfg]( bind_params_t & p ) {
+						if( pool_fifo_t::individual == cfg.m_fifo )
+							p.fifo( fifo_t::individual );
 					} );
+		}
+		else if( dispatcher_type_t::adv_thread_pool == t )
+		{
+			using namespace so_5::disp::adv_thread_pool;
+			auto disp_params = make_disp_params< disp_params_t >(
+					cfg,
+					[]{ return queue_traits::combined_lock_factory(); },
+					[]{ return queue_traits::simple_lock_factory(); } );
+			return create_private_disp( env, "disp", disp_params )->binder(
+					[cfg]( bind_params_t & p ) {
+						if( pool_fifo_t::individual == cfg.m_fifo )
+							p.fifo( fifo_t::individual );
+					} );
+		}
 		else
-			return prio_one_thread::strictly_ordered::create_private_disp( env )->binder();
+		{
+			using namespace so_5::disp::prio_one_thread::strictly_ordered;
+			auto disp_params = make_disp_params< disp_params_t >(
+					cfg,
+					[]{ return queue_traits::combined_lock_factory(); },
+					[]{ return queue_traits::simple_lock_factory(); } );
+			return create_private_disp( env, "disp", disp_params )->binder();
+		}
 	}
 
 void

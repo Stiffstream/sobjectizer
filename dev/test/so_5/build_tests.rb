@@ -30,23 +30,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/mpsc_queue_traits/build_tests.rb"
 
-	required_prj "#{path}/disp/binder/bind_to_disp_1/prj.ut.rb" 
-	required_prj "#{path}/disp/binder/bind_to_disp_2/prj.ut.rb" 
-	required_prj "#{path}/disp/binder/bind_to_disp_3/prj.ut.rb" 
-	required_prj "#{path}/disp/binder/bind_to_disp_error_no_disp/prj.ut.rb" 
-	required_prj "#{path}/disp/binder/bind_to_disp_error_disp_type_mismatch/prj.ut.rb" 
-	required_prj "#{path}/disp/binder/correct_unbind_after_throw_on_bind/prj.ut.rb" 
-
-	required_prj "#{path}/disp/thread_pool/build_tests.rb" 
-
-	required_prj "#{path}/disp/adv_thread_pool/build_tests.rb" 
-
-	required_prj "#{path}/disp/private_dispatchers/build_tests.rb" 
-
-	required_prj "#{path}/disp/prio_ot_strictly_ordered/build_tests.rb" 
-	required_prj "#{path}/disp/prio_ot_quoted_round_robin/build_tests.rb" 
-
-	required_prj "#{path}/disp/prio_dt_one_per_prio/build_tests.rb" 
+	required_prj "#{path}/disp/build_tests.rb" 
 
 	required_prj "#{path}/event_handler/build_tests.rb" 
 

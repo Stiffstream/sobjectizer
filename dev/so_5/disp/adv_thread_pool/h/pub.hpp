@@ -338,7 +338,7 @@ auto private_disp = create_private_disp(
 	env,
 	disp_params_t{}
 		.thread_count( 16 )
-		.tune_queue_params( queue_traits::params_t & params ) {
+		.tune_queue_params( []( queue_traits::params_t & params ) {
 				params.lock_factory( queue_traits::simple_lock_factory() );
 			} ),
 	"db_workers_pool" );
@@ -357,6 +357,51 @@ create_private_disp(
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
 	const std::string & data_sources_name_base );
+
+//
+// create_private_disp
+//
+/*!
+ * \since
+ * v.5.5.15.1
+ *
+ * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \par Usage sample
+\code
+using namespace so_5::disp::adv_thread_pool;
+auto private_disp = create_private_disp(
+	env,
+	"db_workers_pool",
+	disp_params_t{}
+		.thread_count( 16 )
+		.tune_queue_params( []( queue_traits::params_t & params ) {
+				params.lock_factory( queue_traits::simple_lock_factory() );
+			} ) );
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private thread_pool dispatcher.
+	private_disp->binder( bind_params_t{} ) );
+\endcode
+ *
+ * This function is added to fix order of parameters and make it similar
+ * to create_private_disp from other dispatchers.
+ */
+inline private_dispatcher_handle_t
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	environment_t & env,
+	//! Value for creating names of data sources for
+	//! run-time monitoring.
+	const std::string & data_sources_name_base,
+	//! Parameters for the dispatcher.
+	disp_params_t disp_params )
+	{
+		return create_private_disp(
+				env,
+				std::move(disp_params),
+				data_sources_name_base );
+	}
 
 //
 // create_private_disp

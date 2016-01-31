@@ -23,23 +23,7 @@ add_subdirectory(timer_thread/timers_cancelation)
 
 add_subdirectory(mpsc_queue_traits)
 
-add_subdirectory(disp/binder/bind_to_disp_1)
-add_subdirectory(disp/binder/bind_to_disp_2)
-add_subdirectory(disp/binder/bind_to_disp_3)
-add_subdirectory(disp/binder/bind_to_disp_error_no_disp)
-add_subdirectory(disp/binder/bind_to_disp_error_disp_type_mismatch)
-add_subdirectory(disp/binder/correct_unbind_after_throw_on_bind)
-
-add_subdirectory(disp/thread_pool)
-
-add_subdirectory(disp/adv_thread_pool)
-
-add_subdirectory(disp/private_dispatchers)
-
-add_subdirectory(disp/prio_ot_strictly_ordered)
-add_subdirectory(disp/prio_ot_quoted_round_robin)
-
-add_subdirectory(disp/prio_dt_one_per_prio)
+add_subdirectory(disp)
 
 add_subdirectory(event_handler)
 

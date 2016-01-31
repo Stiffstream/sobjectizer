@@ -1,0 +1,7 @@
+add_subdirectory(bind_to_disp_1)
+add_subdirectory(bind_to_disp_2)
+add_subdirectory(bind_to_disp_3)
+add_subdirectory(bind_to_disp_error_no_disp)
+add_subdirectory(bind_to_disp_error_disp_type_mismatch)
+add_subdirectory(correct_unbind_after_throw_on_bind)
+
