@@ -11,8 +11,7 @@ SObjectizer can be downloaded from SourceForge[1] as an archive or
 exported/checkedout from Subversion repository.
 
 There are two ways for building SObjectizer. The first one by using Mxx_ru[2]
-tool. The second one by using CMake[3]. Please note that CMake support is
-experimental and is subject for changes in the future SObjectizer versions.
+tool. The second one by using CMake[3].
 
 Building via Mxx_ru
 ===================
@@ -72,8 +71,9 @@ corresponding documentation [4].
 Building via CMake
 ==================
 
-NOTE. This way of building is not used by SObjectizer developers. The projects
-files for CMake are contributed by users.
+NOTE. This way of building is not used by SObjectizer developers. But
+CMake-related files are in actual state, they maintained by SObjectizer Team
+and can be used for building SObjectizer, its samples and tests.
 
 To build SObjectizer via CMake it is necessary to have CMake and some knowledge
 of how to use it. The following action is just a demonstration. For more 
