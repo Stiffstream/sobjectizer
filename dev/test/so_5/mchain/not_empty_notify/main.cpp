@@ -87,7 +87,7 @@ main()
 
 					do_check( env.environment(), p.second );
 				},
-				4,
+				20,
 				p.first );
 		}
 	}

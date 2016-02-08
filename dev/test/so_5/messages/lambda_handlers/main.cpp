@@ -87,7 +87,7 @@ main()
 						p.message_delivery_tracer( so_5::msg_tracing::std_cout_tracer() );
 					}*/ );
 			},
-			4,
+			20,
 			"simple test for various types of event handlers" );
 	}
 	catch( const std::exception & ex )

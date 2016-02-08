@@ -75,7 +75,7 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 										.lock_factory( factory ) ) ) );
 				} );
 		},
-		5,
+		20,
 		"simple adv_thread_pool dispatcher test" );
 }
 

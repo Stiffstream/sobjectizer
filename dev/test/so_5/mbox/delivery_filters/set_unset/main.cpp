@@ -175,7 +175,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			10,
+			40,
 			"delivery filter set/unset test" );
 	}
 	catch( const std::exception & ex )

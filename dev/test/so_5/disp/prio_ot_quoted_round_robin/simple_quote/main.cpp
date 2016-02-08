@@ -149,7 +149,7 @@ main()
 							env.introduce_coop( fill_coop );
 						} );
 				},
-				5,
+				20,
 				"simple sequence prio_one_thread::quoted_round_robin dispatcher test" );
 			std::cout << "." << std::flush;
 		}

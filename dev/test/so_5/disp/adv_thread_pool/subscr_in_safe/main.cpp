@@ -169,7 +169,7 @@ main()
 				{
 					run_sobjectizer( factory );
 				},
-				5,
+				20,
 				"subscr_in_safe test" );
 		} );
 	}

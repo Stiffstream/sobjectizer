@@ -42,7 +42,7 @@ main()
 
 				std::cout << "Finishing test..." << std::endl;
 			},
-			4,
+			20,
 			"test for add a coop to wrapped_env_t" );
 	}
 	catch( const std::exception & ex )

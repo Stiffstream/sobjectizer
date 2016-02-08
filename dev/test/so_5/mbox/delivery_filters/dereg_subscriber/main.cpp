@@ -107,7 +107,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"delivery filter for MPSC-mboxes" );
 	}
 	catch( const std::exception & ex )

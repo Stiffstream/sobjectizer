@@ -81,7 +81,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"delivery filter without subscriptions test" );
 	}
 	catch( const std::exception & ex )

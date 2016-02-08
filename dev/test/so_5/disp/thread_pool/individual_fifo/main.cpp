@@ -256,7 +256,7 @@ main()
 				{
 					run_and_check( factory );
 				},
-				60,
+				240,
 				"individual_fifo test" );
 			} );
 	}

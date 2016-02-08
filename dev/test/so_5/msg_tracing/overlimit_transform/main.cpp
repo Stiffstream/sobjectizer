@@ -103,7 +103,7 @@ main()
 							"expected=" + std::to_string(expected_value) +
 							", actual=" + std::to_string(actual_value) );
 			},
-			4,
+			20,
 			"simple tracing overlimit reaction (transform case)" );
 	}
 	catch( const std::exception & ex )

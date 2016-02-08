@@ -256,7 +256,7 @@ main()
 								so_5::msg_tracing::std_cout_tracer() );
 					}*/ );
 			},
-			4,
+			20,
 			"simple test for on_enter and on_exit handlers" );
 	}
 	catch( const std::exception & ex )

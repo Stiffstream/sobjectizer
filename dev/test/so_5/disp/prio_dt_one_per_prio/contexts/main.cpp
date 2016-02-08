@@ -94,7 +94,7 @@ main()
 			{
 				so_5::launch( init );
 			},
-			5,
+			20,
 			"prio_dedicated_threads::one_per_prio dispatcher test for "
 			"context uniquness" );
 	}

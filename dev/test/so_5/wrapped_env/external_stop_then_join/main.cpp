@@ -43,7 +43,7 @@ main()
 
 				std::cout << "Joined" << std::endl;
 			},
-			4,
+			20,
 			"test for stopping wrapped_env_t" );
 	}
 	catch( const std::exception & ex )

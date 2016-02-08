@@ -1,0 +1,1 @@
+set(SO_5_TARGET so.${SO_5_VERSION})

@@ -5,7 +5,7 @@ if(WIN32)
 	add_definitions(-DSO_5__PLATFORM_REQUIRES_CDECL)
 endif()
 
-set(SO_5_TARGET so.${SO_5_VERSION})
+include(${CMAKE_SOURCE_DIR}/cmake/target.cmake)
 
 set(SO_5_SRC exception.cpp
 	exception.cpp
@@ -70,12 +70,27 @@ set(SO_5_SRC exception.cpp
 
 add_library(${SO_5_TARGET} SHARED ${SO_5_SRC})
 
+set(SO_5_EXT_LIBS )
+if( ANDROID )
+	list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBCRYSTAX_FILE})
+	list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBSTDCXX_FILE})
+endif()
+
+foreach(__extLibrary ${SO_5_EXT_LIBS})
+	add_custom_command(TARGET ${SO_5_TARGET} PRE_LINK
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${__extLibrary} $<TARGET_FILE_DIR:${SO_5_TARGET}>)
+endforeach()
+
 install(
 	TARGETS ${SO_5_TARGET}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin
 )
+
+foreach(__extLibrary ${SO_5_EXT_LIBS})
+	install(FILES ${__extLibrary} DESTINATION lib)
+endforeach()
 
 file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 

@@ -78,7 +78,7 @@ main()
 				{
 					so_5::launch( &init );
 				},
-				4,
+				20,
 				"stopping environment via environment_t::stop()" );
 
 		std::cout << "done" << std::endl;

@@ -130,7 +130,7 @@ main()
 				{
 					run_sobjectizer( factory );
 				},
-				5,
+				20,
 				"chstate_in_safe test" );
 		} );
 	}

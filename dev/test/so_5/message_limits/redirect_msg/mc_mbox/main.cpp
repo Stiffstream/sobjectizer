@@ -141,7 +141,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			2,
+			20,
 			"simple message redirect on MPMC-mboxes test" );
 	}
 	catch( const std::exception & ex )

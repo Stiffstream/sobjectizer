@@ -210,7 +210,7 @@ main()
 					params.coop_listener( test_coop_listener_t::make( names ) );
 				} );
 			},
-			60,
+			240,
 			"parent_child_2 test" );
 
 		if( !names.empty() )

@@ -136,7 +136,7 @@ main()
 								new a_first_t( env, log ) );
 					} );
 			},
-			5,
+			20,
 			"SO Environment reg_coop_after_stop test" );
 
 		const std::string expected = "f.start;env.stop;exception(28);f.finish;";

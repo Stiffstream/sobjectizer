@@ -58,7 +58,7 @@ main()
 						env.introduce_coop( create_coop );
 					} );
 			},
-			4,
+			20,
 			"introduce_coop test" );
 	}
 	catch( const std::exception & ex )

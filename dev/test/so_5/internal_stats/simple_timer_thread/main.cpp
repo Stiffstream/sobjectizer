@@ -110,7 +110,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple timer thread monitoring test" );
 	}
 	catch( const std::exception & ex )

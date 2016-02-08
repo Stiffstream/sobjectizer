@@ -73,7 +73,7 @@ single_pair_test_case( lock_factory_t factory )
 			do_pair_thread_test_case( factory, 250 );
 			std::cout << "OK" << std::endl;
 		},
-		2,
+		20,
 		"single_pair_test_case" );
 
 }
@@ -88,7 +88,7 @@ serie_of_pair_tests_with_equal_intervals( lock_factory_t factory )
 		run_with_time_limit( [factory] {
 			do_pair_thread_test_case( factory, 25 );
 		},
-		2,
+		20,
 		"serie_of_pair_tests_with_equal_intervals" );
 	}
 
@@ -106,7 +106,7 @@ serie_of_pair_tests_with_different_intervals( lock_factory_t factory )
 		run_with_time_limit( [factory, i] {
 			do_pair_thread_test_case( factory, i*5 );
 		},
-		2,
+		20,
 		"serie_of_pair_tests_with_different_intervals" );
 	}
 
@@ -129,7 +129,7 @@ bunch_of_threads( lock_factory_t factory )
 			for( auto & t : threads )
 				t.join();
 		},
-		20,
+		100,
 		"bunch_of_threads" );
 
 	std::cout << "OK" << std::endl;

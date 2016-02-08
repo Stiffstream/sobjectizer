@@ -135,7 +135,7 @@ main()
 				{
 					run_sobjectizer( factory );
 				},
-				5,
+				20,
 				"cooperation_fifo test" );
 		} );
 	}

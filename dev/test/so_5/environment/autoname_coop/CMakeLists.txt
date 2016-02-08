@@ -1,3 +1,2 @@
-add_executable(_unit.test.environment.autoname_coop main.cpp)
-target_link_libraries(_unit.test.environment.autoname_coop so.${SO_5_VERSION})
-add_test(_unit.test.environment.autoname_coop _unit.test.environment.autoname_coop)
+set(UNITTEST _unit.test.environment.autoname_coop)
+include(${CMAKE_SOURCE_DIR}/cmake/unittest.cmake)

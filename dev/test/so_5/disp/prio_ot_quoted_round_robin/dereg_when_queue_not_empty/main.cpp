@@ -59,7 +59,7 @@ main()
 								fill_coop );
 					} );
 			},
-			5,
+			20,
 			"deregistration of coop on prio_one_thread::quoted_round_robin dispatcher test" );
 	}
 	catch( const std::exception & ex )

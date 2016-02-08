@@ -1,2 +1,2 @@
-add_executable(_unit.test.spinlocks.llvm_inspired_test main.cpp)
-add_test(_unit.test.spinlocks.llvm_inspired_test  _unit.test.spinlocks.llvm_inspired_test)
+set(UNITTEST _unit.test.spinlocks.llvm_inspired_test)
+include(${CMAKE_SOURCE_DIR}/cmake/unittest.cmake)

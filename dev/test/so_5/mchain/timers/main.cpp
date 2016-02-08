@@ -82,7 +82,7 @@ do_check( bool msg_tracing_enabled )
 						env.environment().create_mchain( p.second ) );
 			}
 		},
-		4,
+		20,
 		"timers" );
 }
 

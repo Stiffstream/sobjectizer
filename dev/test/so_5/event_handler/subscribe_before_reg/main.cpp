@@ -64,7 +64,7 @@ main()
 							} );
 					} );
 			},
-			4,
+			20,
 			"subscription before registration test" );
 	}
 	catch( const std::exception & ex )

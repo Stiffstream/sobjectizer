@@ -57,7 +57,7 @@ main()
 					UT_CHECK_CONDITION( !hello_received );
 				}
 			},
-			4,
+			20,
 			"simple test for mchain" );
 	}
 	catch( const exception & ex )

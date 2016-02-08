@@ -52,7 +52,7 @@ main()
 					do_check( env.environment().create_mchain( p.second ) );
 				}
 			},
-			4,
+			20,
 			"simple test for msg_bag" );
 	}
 	catch( const exception & ex )

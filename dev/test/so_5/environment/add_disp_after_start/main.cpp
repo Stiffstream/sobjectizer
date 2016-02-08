@@ -128,7 +128,7 @@ main()
 						}
 					} );
 			},
-			5,
+			20,
 			"Adding dispatcher on running SO Environment test" );
 	}
 	catch( const std::exception & ex )

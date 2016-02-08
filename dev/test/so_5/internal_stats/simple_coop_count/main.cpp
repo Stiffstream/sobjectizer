@@ -138,7 +138,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple coop count monitoring test" );
 	}
 	catch( const std::exception & ex )

@@ -62,7 +62,7 @@ main()
 								create_disp() );
 					} );
 			},
-			5,
+			20,
 			"simple prio_dedicated_threads::one_per_prio dispatcher test" );
 	}
 	catch( const std::exception & ex )

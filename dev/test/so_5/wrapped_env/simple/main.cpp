@@ -18,7 +18,7 @@ main()
 
 				std::cout << "Print from primary working thread" << std::endl;
 			},
-			4,
+			20,
 			"simple test for wrapped_env_t" );
 	}
 	catch( const std::exception & ex )

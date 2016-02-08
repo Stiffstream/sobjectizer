@@ -60,7 +60,7 @@ class a_ring_member_t : public so_5::agent_t
 		so_5::mbox_t m_next_mbox;
 
 		unsigned int m_rounds_passed = 0;
-		const unsigned int m_rounds = 2000;
+		const unsigned int m_rounds = 20;
 	};
 
 using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
@@ -382,7 +382,7 @@ do_test()
 										setter->tune_env_params( params );
 									} );
 							},
-							25,
+							100,
 							"dispatcher: " + c.m_disp_name + ", lock: " + f.m_name );
 
 					std::cout << "--- DONE ---" << std::endl;

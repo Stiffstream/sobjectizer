@@ -352,7 +352,7 @@ do_test()
 								new a_test_t( env, f.second ) );
 						} );
 			}, 
-			5,
+			20,
 			"checking factory " + f.first );
 
 		std::cout << "OK" << std::endl;

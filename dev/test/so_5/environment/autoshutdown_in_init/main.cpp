@@ -84,7 +84,7 @@ main()
 							"second", new a_second_t( env, &actual ) );
 					} );
 			},
-			5,
+			20,
 			"SO Environment autoshutdown_in_run test" );
 
 		if( 42 != actual )

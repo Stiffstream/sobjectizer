@@ -100,7 +100,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple delivery filter for service_request test" );
 	}
 	catch( const std::exception & ex )

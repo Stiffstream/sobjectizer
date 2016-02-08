@@ -92,7 +92,7 @@ main()
 							so_5::send< msg_hello >( common_mbox );
 						} );
 				},
-				5,
+				20,
 				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
 			std::cout << "." << std::flush;
 		}

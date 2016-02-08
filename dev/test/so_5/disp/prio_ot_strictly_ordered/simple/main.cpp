@@ -61,7 +61,7 @@ main()
 								so_5::disp::prio_one_thread::strictly_ordered::create_disp() );
 					} );
 			},
-			5,
+			20,
 			"simple prio_one_thread::strictly_ordered dispatcher test" );
 	}
 	catch( const std::exception & ex )

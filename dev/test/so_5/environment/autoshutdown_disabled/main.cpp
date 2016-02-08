@@ -114,7 +114,7 @@ main()
 
 				controller_thread.join();
 			},
-			5,
+			20,
 			"SO Environment autoshutdown disabled test" );
 	}
 	catch( const std::exception & ex )

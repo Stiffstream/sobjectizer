@@ -126,7 +126,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple message drop at peaks test" );
 	}
 	catch( const std::exception & ex )

@@ -177,7 +177,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple private dispatchers test" );
 	}
 	catch( const std::exception & ex )

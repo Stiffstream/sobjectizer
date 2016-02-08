@@ -69,7 +69,7 @@ do_test()
 								disp->binder( bind_params_t{} ) );
 					} );
 			},
-			5,
+			20,
 			"simple thread_pool dispatcher test" );
 	} );
 }

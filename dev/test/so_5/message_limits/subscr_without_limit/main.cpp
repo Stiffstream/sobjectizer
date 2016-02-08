@@ -112,7 +112,7 @@ main()
 				so_5::launch( case_with_message_limits );
 				so_5::launch( case_without_message_limits );
 			},
-			4,
+			20,
 			"subscription without limit" );
 	}
 	catch( const std::exception & ex )

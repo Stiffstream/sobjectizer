@@ -60,7 +60,7 @@ main()
 								so_5::msg_tracing::std_cout_tracer() );
 					} );
 			},
-			4,
+			20,
 			"simple tracing for overlimit reaction abort_app" );
 	}
 	catch( const std::exception & ex )

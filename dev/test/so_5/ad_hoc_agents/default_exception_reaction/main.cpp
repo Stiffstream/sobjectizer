@@ -83,7 +83,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"default ad-hoc agent exception reaction test" );
 	}
 	catch( const std::exception & ex )

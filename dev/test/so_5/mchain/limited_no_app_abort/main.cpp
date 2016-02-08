@@ -139,7 +139,7 @@ do_test_no_wait( bool use_tracer )
 			do_check_no_wait_remove_oldest( env.environment() );
 			do_check_no_wait_throw_exception( env.environment() );
 		},
-		4,
+		20,
 		"test_no_wait + " + env_desc );
 }
 UT_UNIT_TEST( test_no_wait )
@@ -292,7 +292,7 @@ do_test_wait( bool use_tracer )
 			do_check_wait_remove_oldest( env.environment() );
 			do_check_wait_throw_exception( env.environment() );
 		},
-		4,
+		20,
 		"test_wait + " + env_desc );
 }
 

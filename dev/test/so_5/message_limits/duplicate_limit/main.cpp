@@ -121,7 +121,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"duplicate message limit test" );
 	}
 	catch( const std::exception & ex )

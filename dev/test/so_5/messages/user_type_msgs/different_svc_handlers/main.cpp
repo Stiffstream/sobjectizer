@@ -127,7 +127,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple user message type service_request test" );
 	}
 	catch( const std::exception & ex )

@@ -53,7 +53,7 @@ main()
 							so_5::disp::one_thread::create_disp() );
 					} );
 			},
-			5,
+			20,
 			"SO Environment autoshutdown test" );
 	}
 	catch( const std::exception & ex )

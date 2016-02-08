@@ -174,7 +174,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"introduce_coop test" );
 	}
 	catch( const std::exception & ex )

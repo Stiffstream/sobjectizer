@@ -13,6 +13,9 @@ exported/checkedout from Subversion repository.
 There are two ways for building SObjectizer. The first one by using Mxx_ru[2]
 tool. The second one by using CMake[3].
 
+NOTE. Since v.5.5.15.2 there is a support of Android platform.  Building for
+Android is possible by CMake only. See the corresponding section below.
+
 Building via Mxx_ru
 ===================
 
@@ -30,33 +33,33 @@ If you already have Mxx_ru installed please update to at least version 1.6.4:
 
 SObjectizer can be obtained from Subversion repository on SourceForge:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.1 so-5.5.15.1
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.2 so-5.5.15.2
 
 To build SObjectizer:
 
-  cd so-5.5.15.1/dev
+  cd so-5.5.15.2/dev
   ruby build.rb
 
 Or to build SObjectizer with all tests and samples:
 
-  cd so-5.5.15.1/dev
+  cd so-5.5.15.2/dev
   ruby build_all.rb
 
 Please note that under Linux it could be necessary to define LD_LIBRARY_PATH
 environment variable. And the actual build command sequence under Linux could
 be as follows:
 
-  cd so-5.5.15.1/dev
+  cd so-5.5.15.2/dev
   export LD_LIBRARY_PATH=.
   ruby build_all.rb
 
 To build html-format documentation for SObjectizer the Doxygen tool is
 necessary. If it is installed then:
 
-  cd so-5.5.15.1/doxygen
+  cd so-5.5.15.2/doxygen
   doxygen
 
-Generated html-files will be located in so-5.5.15.1/dev/doc/html.
+Generated html-files will be located in so-5.5.15.2/dev/doc/html.
 
 NOTE. If you do not specify MXX_RU_CPP_TOOLSET by youself then Mxx_ru will
 try to detect your C++ toolset automatically. If you want to use C++ compiler
@@ -82,8 +85,8 @@ dev/cmake/CmakeQuickHowto.txt
 
 To get and build SObjectizer under Linux/FreeBSD in command line run:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.1 so-5.5.15.1
-  cd so-5.5.15.1
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.2 so-5.5.15.2
+  cd so-5.5.15.2
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files ../dev
@@ -106,7 +109,7 @@ CMake build system currently supports this options:
 
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
-  cd so-5.5.15.1
+  cd so-5.5.15.2
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 14 2015" ../dev
@@ -116,6 +119,23 @@ To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
+
+Building for Android
+--------------------
+
+Building for Android is possible via CrystaX NDK[5]. You need CrystaX NDK
+v.10.4.0 or higher already installed in your system. CMake is used for building
+SObjectizer:
+
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.2 so-5.5.15.2
+  cd so-5.5.15.2
+  mkdir cmake_build
+  cd cmake_build
+  export NDK=/path/to/the/crystax-ndk
+  cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=result -DCMAKE_TOOLCHAIN_FILE=$NDK/cmake/toolchain.cmake -DANDROID_ABI=arm64-v8a ../dev
+  make
+  make test
+  make install
 
 License
 =======
@@ -130,3 +150,4 @@ References
 [2] https://sourceforge.net/projects/mxxru/
 [3] http://www.cmake.org/
 [4] http://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.4-r1.pdf/download
+[5] https://www.crystax.net/android/ndk 

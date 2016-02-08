@@ -108,7 +108,7 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 					);
 				} );
 		},
-		5,
+		20,
 		"adv_thread_pool chained_svc_call_adhoc" );
 }
 

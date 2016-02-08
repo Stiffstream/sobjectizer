@@ -162,7 +162,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			60,
+			240,
 			"local_mbox_growth" );
 	}
 	catch( const std::exception & ex )

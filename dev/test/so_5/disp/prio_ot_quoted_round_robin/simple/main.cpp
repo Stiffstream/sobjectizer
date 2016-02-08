@@ -62,7 +62,7 @@ main()
 								create_disp( quotes_t{ 10 } ) );
 					} );
 			},
-			5,
+			20,
 			"simple prio_one_thread::quoted_round_robin dispatcher test" );
 	}
 	catch( const std::exception & ex )

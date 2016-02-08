@@ -65,7 +65,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple test for resending same instance of user type message" );
 	}
 	catch( const std::exception & ex )

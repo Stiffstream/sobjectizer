@@ -354,7 +354,7 @@ do_test()
 
 				test_env.check_result();
 			}, 
-			5,
+			20,
 			"checking factory " + f.first );
 
 		std::cout << "OK" << std::endl;

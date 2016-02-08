@@ -88,7 +88,7 @@ main()
 								so_5::msg_tracing::std_cout_tracer() );
 					}*/ );
 			},
-			4,
+			20,
 			"simple test for clear state history" );
 	}
 	catch( const std::exception & ex )

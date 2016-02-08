@@ -252,7 +252,7 @@ main()
 				{
 					run_and_check( factory );
 				},
-				60,
+				240,
 				"cooperation_fifo test" );
 			} );
 	}

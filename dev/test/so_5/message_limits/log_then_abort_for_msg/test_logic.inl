@@ -81,7 +81,7 @@ do_test(
 							env.register_coop( std::move( coop ) );
 						} );
 			},
-			4,
+			20,
 			test_name );
 	}
 	catch( const std::exception & ex )

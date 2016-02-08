@@ -34,7 +34,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple stats_controller().turn_on() test" );
 	}
 	catch( const std::exception & ex )

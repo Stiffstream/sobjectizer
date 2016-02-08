@@ -80,7 +80,7 @@ main()
 								so_5::msg_tracing::std_cout_tracer() );
 					}*/ );
 			},
-			4,
+			20,
 			"simple test for too deep nesting of agent states" );
 	}
 	catch( const std::exception & ex )

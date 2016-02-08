@@ -73,7 +73,7 @@ main()
 						params.timer_thread( so_5::timer_list_factory() );
 					} );
 			},
-			60,
+			240,
 			"test for canceling time_limit on deregistration" );
 	}
 	catch( const std::exception & ex )

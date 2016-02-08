@@ -162,7 +162,7 @@ main()
 				ensure( expected2 == log2,
 						"unexpected value of log2: " + log2 + ", expected: " + expected2 );
 			},
-			4,
+			20,
 			"test for calling on_exit on environment shutdown" );
 	}
 	catch( const std::exception & ex )

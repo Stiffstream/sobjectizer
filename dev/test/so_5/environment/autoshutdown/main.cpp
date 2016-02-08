@@ -68,7 +68,7 @@ main()
 						}
 					} );
 			},
-			5,
+			20,
 			"SO Environment autoshutdown test" );
 	}
 	catch( const std::exception & ex )

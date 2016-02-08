@@ -76,7 +76,7 @@ main()
 			{
 				so_5::launch( &init );
 			},
-			4,
+			20,
 			"simple message drop test" );
 	}
 	catch( const std::exception & ex )

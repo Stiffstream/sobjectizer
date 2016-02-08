@@ -38,7 +38,7 @@ main()
 	try
 	{
 		run_with_time_limit( []{ so_5::launch( init ); },
-				5,
+				20,
 				"dereg_empty_coop" );
 
 		return 0;

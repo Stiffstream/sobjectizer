@@ -43,7 +43,7 @@ UT_UNIT_TEST( test_timeout_on_empty_queue )
 				do_check_timeout_on_empty_queue(
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_timeout_on_empty_queue: " + p.first );
 	}
 }
@@ -84,7 +84,7 @@ UT_UNIT_TEST( test_total_time )
 				do_check_total_time(
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_total_time: " + p.first );
 	}
 }
@@ -134,7 +134,7 @@ UT_UNIT_TEST( test_handle_n )
 						env.environment().create_mchain( p.second ),
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_handle_n: " + p.first );
 	}
 }
@@ -187,7 +187,7 @@ UT_UNIT_TEST( test_extract_n )
 						env.environment().create_mchain( p.second ),
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_extract_n: " + p.first );
 	}
 }
@@ -242,7 +242,7 @@ UT_UNIT_TEST( test_stop_pred )
 						env.environment().create_mchain( p.second ),
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_stop_pred(no_msg_tracing): " + p.first );
 
 		run_with_time_limit(
@@ -259,7 +259,7 @@ UT_UNIT_TEST( test_stop_pred )
 						env.environment().create_mchain( p.second ),
 						env.environment().create_mchain( p.second ) );
 			},
-			4,
+			20,
 			"test_stop_pred(msg_tracing): " + p.first );
 	}
 }

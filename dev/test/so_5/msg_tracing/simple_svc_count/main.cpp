@@ -91,7 +91,7 @@ main()
 							"expected=" + std::to_string(expected_value) +
 							", actual=" + std::to_string(actual_value) );
 			},
-			4,
+			20,
 			"simple tracing for service request via MPMC-mboxes" );
 	}
 	catch( const std::exception & ex )

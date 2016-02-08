@@ -117,7 +117,7 @@ class a_parent_t
 					for( auto & m : m_child_mboxes )
 						m->deliver_signal< msg_ping >();
 				},
-				10,
+				40,
 				"attempts to send signal to MPSC mbox of destroyed agent" );
 
 			--m_iterations_left;

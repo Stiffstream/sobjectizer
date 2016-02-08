@@ -59,7 +59,7 @@ main()
 								so_5::msg_tracing::std_cout_tracer() );
 					} );
 			},
-			4,
+			20,
 			"simple test for state's time_limit" );
 	}
 	catch( const std::exception & ex )
