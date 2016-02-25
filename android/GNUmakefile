@@ -2,6 +2,7 @@ override MYDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 override TOPDIR := $(abspath $(MYDIR)/..)
 
 ABI ?= armeabi-v7a armeabi-v7a-hard x86 arm64-v8a x86_64
+TOOLCHAIN_VERSION ?= gcc5
 
 #========================================================================================
 
@@ -85,6 +86,7 @@ configure-$(1): | $$(call builddir,$(1))
 			-DCMAKE_INSTALL_PREFIX=$$(call installdir,$(1)) \
 			-DCMAKE_TOOLCHAIN_FILE=$$(NDK)/cmake/toolchain.cmake \
 			-DANDROID_ABI=$(1) \
+			-DANDROID_TOOLCHAIN_VERSION=$(TOOLCHAIN_VERSION) \
 			$$(TOPDIR)/dev \
 	)
 
