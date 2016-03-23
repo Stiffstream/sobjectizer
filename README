@@ -13,7 +13,7 @@ exported/checkedout from Subversion repository.
 There are two ways for building SObjectizer. The first one by using Mxx_ru[2]
 tool. The second one by using CMake[3].
 
-NOTE. Since v.5.5.16 there is a support of Android platform.  Building for
+NOTE. Since v.5.5.15.2 there is a support of Android platform.  Building for
 Android is possible by CMake only. See the corresponding section below.
 
 Building via Mxx_ru
