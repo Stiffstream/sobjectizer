@@ -44,6 +44,8 @@ struct	cfg_t
 	queue_lock_type_t m_queue_lock_type = queue_lock_type_t::combined;
 
 	pool_fifo_t m_fifo = pool_fifo_t::individual;
+
+	std::size_t m_next_thread_wakeup_threshold = 0;
 };
 
 cfg_t
@@ -75,6 +77,9 @@ try_parse_cmdline(
 							"-f, --fifo           type of fifo for dispatcher with "
 								"thread pool:\n"
 							"                     cooperation, individual (default)\n"
+							"-T, --threshold      value of next_thread_wakeup_threshold for\n"
+							"                     thread_pool and adv_thread_pool dispatchers\n"
+							"                     (defaule value: 0)\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -132,6 +137,10 @@ try_parse_cmdline(
 					else
 						throw std::runtime_error( "unsupported FIFO: " + name );
 				}
+			else if( is_arg( *current, "-T", "--threshold" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_next_thread_wakeup_threshold, ++current, last,
+						"-T", "value of next_thread_wakeup_threshold param" );
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -266,7 +275,8 @@ show_cfg(
 
 		if( dispatcher_type_t::thread_pool == cfg.m_dispatcher_type ||
 				dispatcher_type_t::adv_thread_pool == cfg.m_dispatcher_type )
-			std::cout << "\n\t" "fifo: " << fifo_name( cfg.m_fifo );
+			std::cout << "\n\t" "fifo: " << fifo_name( cfg.m_fifo )
+					<< "\n\t" "threshold: " << cfg.m_next_thread_wakeup_threshold;
 
 		std::cout << std::endl;
 	}
@@ -297,12 +307,14 @@ show_result(
 template<
 	typename DISP_PARAMS,
 	typename COMBINED_FACTORY,
-	typename SIMPLE_FACTORY >
+	typename SIMPLE_FACTORY,
+	typename QUEUE_PARAMS_TUNER >
 DISP_PARAMS
 make_disp_params(
 	const cfg_t & cfg,
 	COMBINED_FACTORY combined_factory,
-	SIMPLE_FACTORY simple_factory )
+	SIMPLE_FACTORY simple_factory,
+	QUEUE_PARAMS_TUNER queue_params_tuner )
 	{
 		DISP_PARAMS disp_params;
 		using queue_params_t =
@@ -313,6 +325,7 @@ make_disp_params(
 					p.lock_factory( simple_factory() );
 				else
 					p.lock_factory( combined_factory() );
+				queue_params_tuner( p );
 			} );
 		return disp_params;
 	}
@@ -329,7 +342,8 @@ create_disp_binder(
 			auto disp_params = make_disp_params< disp_params_t >(
 					cfg,
 					[]{ return queue_traits::combined_lock_factory(); },
-					[]{ return queue_traits::simple_lock_factory(); } );
+					[]{ return queue_traits::simple_lock_factory(); },
+					[]( queue_traits::queue_params_t & ) {} );
 			return create_private_disp( env, "disp", disp_params )->binder();
 		}
 		else if( dispatcher_type_t::thread_pool == t )
@@ -338,7 +352,11 @@ create_disp_binder(
 			auto disp_params = make_disp_params< disp_params_t >(
 					cfg,
 					[]{ return queue_traits::combined_lock_factory(); },
-					[]{ return queue_traits::simple_lock_factory(); } );
+					[]{ return queue_traits::simple_lock_factory(); },
+					[&cfg]( queue_traits::queue_params_t & qp ) {
+						qp.next_thread_wakeup_threshold(
+								cfg.m_next_thread_wakeup_threshold );
+					} );
 			return create_private_disp( env, "disp", disp_params )->binder(
 					[&cfg]( bind_params_t & p ) {
 						if( pool_fifo_t::individual == cfg.m_fifo )
@@ -351,7 +369,11 @@ create_disp_binder(
 			auto disp_params = make_disp_params< disp_params_t >(
 					cfg,
 					[]{ return queue_traits::combined_lock_factory(); },
-					[]{ return queue_traits::simple_lock_factory(); } );
+					[]{ return queue_traits::simple_lock_factory(); },
+					[&cfg]( queue_traits::queue_params_t & qp ) {
+						qp.next_thread_wakeup_threshold(
+								cfg.m_next_thread_wakeup_threshold );
+					} );
 			return create_private_disp( env, "disp", disp_params )->binder(
 					[cfg]( bind_params_t & p ) {
 						if( pool_fifo_t::individual == cfg.m_fifo )
@@ -364,7 +386,8 @@ create_disp_binder(
 			auto disp_params = make_disp_params< disp_params_t >(
 					cfg,
 					[]{ return queue_traits::combined_lock_factory(); },
-					[]{ return queue_traits::simple_lock_factory(); } );
+					[]{ return queue_traits::simple_lock_factory(); },
+					[]( queue_traits::queue_params_t & ) {} );
 			return create_private_disp( env, "disp", disp_params )->binder();
 		}
 	}

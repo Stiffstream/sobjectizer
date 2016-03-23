@@ -14,9 +14,8 @@ void demo()
 	so_5::wrapped_env_t sobj;
 
 	// Message chain to be used.
-	auto ch = sobj.environment().create_mchain(
-			// Chain will have unlimited dynamic message queue.
-			so_5::make_unlimited_mchain_params() );
+	// Chain will have unlimited dynamic message queue.
+	auto ch = create_mchain( sobj );
 
 	// Create an agent for sending service requests.
 	sobj.environment().introduce_coop( [&ch]( so_5::coop_t & coop ) {

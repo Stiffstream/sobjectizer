@@ -3,9 +3,10 @@
  */
 
 /*!
- * \since v.5.5.13
  * \file
  * \brief Public part of message chain related stuff.
+ * \since
+ * v.5.5.13
  */
 
 #pragma once
@@ -14,6 +15,8 @@
 #include <so_5/rt/h/handler_makers.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
+
+#include <so_5/details/h/remaining_time_counter.hpp>
 
 #include <chrono>
 #include <functional>
@@ -415,6 +418,11 @@ enum class close_mode_t
  */
 using not_empty_notification_func_t = std::function< void() >;
 
+//
+// Forward declarations related to multi chain select operations.
+//
+class select_case_t;
+
 } /* namespace mchain_props */
 
 //
@@ -427,6 +435,7 @@ using not_empty_notification_func_t = std::function< void() >;
 class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_t
 	{
 		friend class intrusive_ptr_t< abstract_message_chain_t >;
+		friend class mchain_props::select_case_t;
 
 		abstract_message_chain_t( const abstract_message_chain_t & ) = delete;
 		abstract_message_chain_t &
@@ -467,6 +476,46 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		//! SObjectizer Environment for which the chain is created.
 		virtual so_5::environment_t &
 		environment() const = 0;
+
+	protected :
+		/*!
+		 * \brief An extraction attempt as a part of multi chain select.
+		 *
+		 * \note In v.5.5.16 this method has an implementation. It is done to
+		 * keep compatibility with previous version. This implementation throws
+		 * an exception.
+		 *
+		 * \note This method is intended to be used by select_case_t.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		virtual mchain_props::extraction_status_t
+		extract(
+			//! Destination for extracted messages.
+			mchain_props::demand_t & dest,
+			//! Select case to be stored for notification if mchain is empty.
+			mchain_props::select_case_t & select_case );
+
+		/*!
+		 * \brief Removement of mchain from multi chain select.
+		 *
+		 * \note In v.5.5.16 this method has an implementation. It is done to
+		 * keep compatibility with previous version. This implementation throws
+		 * an exception.
+		 *
+		 * \note This method is intended to be used by select_case_t.
+		 *
+		 * \attention This method will be declared as pure virtual and noexcept
+		 * in v.5.6.0.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		virtual void
+		remove_from_select(
+			//! Select case to be removed from notification queue.
+			mchain_props::select_case_t & select_case );
 	};
 
 //
@@ -842,27 +891,32 @@ receive(
 	}
 
 //
-// mchain_receive_params_t
+// mchain_bulk_processing_params_t
 //
 /*!
- * \since v.5.5.13
- * \brief Parameters for advanced receive from %mchain.
+ * \brief Basic parameters for advanced receive from %mchain and for
+ * multi chain select.
  *
- * \sa so_5::from().
+ * \since v.5.5.16
  */
-class mchain_receive_params_t
+template< typename DERIVED >
+class mchain_bulk_processing_params_t
 	{
 	public :
+		//! Actual type of params.
+		using actual_type = DERIVED;
+
 		//! Type of stop-predicate.
 		/*!
 		 * Must return \a true if receive procedure should be stopped.
 		 */
 		using stop_predicate = std::function< bool() >;
 
-	private :
-		//! Chain from which messages must be extracted and handled.
-		mchain_t m_chain;
+	protected :
+		actual_type &
+		self_reference() { return static_cast< actual_type & >(*this); }
 
+	private :
 		//! Minimal count of messages to be extracted.
 		/*!
 		 * Value 0 means that this parameter is not set.
@@ -886,23 +940,12 @@ class mchain_receive_params_t
 		stop_predicate m_stop_predicate;
 
 	public :
-		//! Initializing constructor.
-		mchain_receive_params_t(
-			//! Chain from which messages must be extracted and handled.
-			mchain_t chain )
-			:	m_chain{ std::move(chain) }
-			{}
-
-		//! Chain from which messages must be extracted and handled.
-		const mchain_t &
-		chain() const { return m_chain; }
-
 		//! Set limit for count of messages to be extracted.
-		mchain_receive_params_t &
+		actual_type &
 		extract_n( std::size_t v )
 			{
 				m_to_extract = v;
-				return *this;
+				return self_reference();
 			}
 
 		//! Get limit for count of messages to be extracted.
@@ -910,11 +953,11 @@ class mchain_receive_params_t
 		to_extract() const { return m_to_extract; }
 
 		//! Set limit for count of messages to be handled.
-		mchain_receive_params_t &
+		actual_type &
 		handle_n( std::size_t v )
 			{
 				m_to_handle = v;
-				return *this;
+				return self_reference();
 			}
 
 		//! Get limit for count of message to be handled.
@@ -930,11 +973,11 @@ class mchain_receive_params_t
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
-		mchain_receive_params_t &
+		actual_type &
 		empty_timeout( TIMEOUT v )
 			{
 				m_empty_timeout = mchain_props::details::actual_timeout( v );
-				return *this;
+				return self_reference();
 			}
 
 		//! Get timeout for waiting on empty chain.
@@ -942,7 +985,6 @@ class mchain_receive_params_t
 		empty_timeout() const { return m_empty_timeout; }
 
 		/*!
-		 * \since v.5.5.14
 		 * \brief Disable waiting on the empty queue.
 		 *
 		 * \par Usage example:
@@ -956,7 +998,7 @@ class mchain_receive_params_t
 			receive( from(chain).empty_timeout(std::chrono::seconds(0)), ...);
 		 * \endcode
 		 */
-		mchain_receive_params_t
+		actual_type &
 		no_wait_on_empty()
 			{
 				return empty_timeout(
@@ -969,11 +1011,11 @@ class mchain_receive_params_t
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
-		mchain_receive_params_t &
+		actual_type &
 		total_time( TIMEOUT v )
 			{
 				m_total_time = mchain_props::details::actual_timeout( v );
-				return *this;
+				return self_reference();
 			}
 
 		//! Get total time for the whole receive operation.
@@ -985,11 +1027,11 @@ class mchain_receive_params_t
 		 * \note \a predicate should return \a true if receive must
 		 * be stopped.
 		 */
-		mchain_receive_params_t &
+		actual_type &
 		stop_on( stop_predicate predicate )
 			{
 				m_stop_predicate = std::move(predicate);
-				return *this;
+				return self_reference();
 			}
 
 		//! Get user condition for stopping receive operation.
@@ -998,6 +1040,38 @@ class mchain_receive_params_t
 			{
 				return m_stop_predicate;
 			}
+	};
+
+//
+// mchain_receive_params_t
+//
+/*!
+ * \brief Parameters for advanced receive from %mchain.
+ *
+ * \sa so_5::from().
+ *
+ * \note Derived from basic_receive_params_t since v.5.5.16.
+ *
+ * \since
+ * v.5.5.13
+ */
+class mchain_receive_params_t final
+	: public mchain_bulk_processing_params_t< mchain_receive_params_t >
+	{
+		//! Chain from which messages must be extracted and handled.
+		mchain_t m_chain;
+
+	public :
+		//! Initializing constructor.
+		mchain_receive_params_t(
+			//! Chain from which messages must be extracted and handled.
+			mchain_t chain )
+			:	m_chain{ std::move(chain) }
+			{}
+
+		//! Chain from which messages must be extracted and handled.
+		const mchain_t &
+		chain() const { return m_chain; }
 	};
 
 //
@@ -1148,22 +1222,16 @@ receive_with_finite_total_time(
 	{
 		receive_actions_performer_t< BUNCH > performer{ params, bunch };
 
-		duration_t remaining_time = params.total_time();
-		const auto start_point = std::chrono::steady_clock::now();
-
+		so_5::details::remaining_time_counter_t remaining_time{
+				params.total_time() };
 		do
 			{
-				performer.handle_next( remaining_time );
+				performer.handle_next( remaining_time.remaining() );
 				if( !performer.can_continue() )
 					break;
-
-				const auto elapsed = std::chrono::steady_clock::now() - start_point;
-				if( elapsed < remaining_time )
-					remaining_time -= elapsed;
-				else
-					remaining_time = duration_t::zero();
+				remaining_time.update();
 			}
-		while( remaining_time > duration_t::zero() );
+		while( remaining_time );
 
 		return performer.make_result();
 	}

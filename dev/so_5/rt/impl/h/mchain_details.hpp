@@ -11,11 +11,14 @@
 #pragma once
 
 #include <so_5/rt/h/mchain.hpp>
+#include <so_5/rt/h/mchain_select_ifaces.hpp>
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
+
+#include <so_5/details/h/at_scope_exit.hpp>
 
 #include <deque>
 #include <vector>
@@ -410,6 +413,12 @@ class mchain_template
 										details::status::closed == m_status;
 							};
 
+						// Count of sleeping thread must be incremented before
+						// going to sleep and decremented right after.
+						++m_threads_to_wakeup;
+						auto decrement_threads = so_5::details::at_scope_exit(
+								[this] { --m_threads_to_wakeup; } );
+
 						if( !details::is_infinite_wait_timevalue( empty_queue_timeout ) )
 							// A wait with finite timeout must be performed.
 							m_underflow_cond.wait_for(
@@ -428,17 +437,7 @@ class mchain_template
 							// The chain is closed and there must be different result
 							extraction_status_t::chain_closed;
 
-				// If queue was full then someone can wait on it.
-				const bool queue_was_full = m_queue.is_full();
-				dest = std::move( m_queue.front() );
-				m_queue.pop_front();
-
-				this->trace_extracted_demand( *this, dest );
-
-				if( queue_was_full )
-					m_overflow_cond.notify_all();
-
-				return extraction_status_t::msg_extracted;
+				return extract_demand_from_not_empty_queue( dest );
 			}
 
 		virtual bool
@@ -464,7 +463,6 @@ class mchain_template
 				m_status = details::status::closed;
 
 				const bool was_full = m_queue.is_full();
-				const bool was_empty = m_queue.is_empty();
 
 				if( close_mode_t::drop_content == mode )
 					{
@@ -476,8 +474,13 @@ class mchain_template
 							}
 					}
 
-				if( was_empty )
-					// Someone can wait on empty chain for new messages.
+				// If queue is empty now and there is any multi chain select
+				// than select_tail must be handled.
+				if( m_queue.is_empty() )
+					notify_multi_chain_select_ops();
+
+				if( m_threads_to_wakeup )
+					// Someone is waiting on empty chain for new messages.
 					// It must be informed that no new messages will be here.
 					m_underflow_cond.notify_all();
 
@@ -491,6 +494,57 @@ class mchain_template
 		environment() const override
 			{
 				return m_env;
+			}
+
+	protected :
+		virtual extraction_status_t
+		extract(
+			demand_t & dest,
+			select_case_t & select_case ) override
+			{
+				std::unique_lock< std::mutex > lock{ m_lock };
+
+				const bool queue_empty = m_queue.is_empty();
+				if( queue_empty )
+					{
+						if( details::status::closed == m_status )
+							// There is no need to wait for something.
+							return extraction_status_t::chain_closed;
+
+						// In other cases select_tail must be modified.
+						select_case.set_next( m_select_tail );
+						m_select_tail = &select_case;
+
+						return extraction_status_t::no_messages;
+					}
+				else
+					return extract_demand_from_not_empty_queue( dest );
+			}
+
+		virtual void
+		remove_from_select(
+			select_case_t & select_case ) override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				select_case_t * c = m_select_tail;
+				select_case_t * prev = nullptr;
+				while( c )
+					{
+						select_case_t * const next = c->query_next();
+						if( c == &select_case )
+							{
+								if( prev )
+									prev->set_next( next );
+								else
+									m_select_tail = next;
+
+								return;
+							}
+
+						prev = c;
+						c = next;
+					}
 			}
 
 	private :
@@ -519,6 +573,25 @@ class mchain_template
 		mutable std::condition_variable m_underflow_cond;
 		//! Condition variable for waiting on full queue.
 		mutable std::condition_variable m_overflow_cond;
+
+		/*!
+		 * \brief Count of threads sleeping on empty mchain.
+		 *
+		 * This value is incremented before sleeping on m_underflow_cond and
+		 * decremented just after a return from this sleep.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		std::size_t m_threads_to_wakeup = { 0 };
+
+		/*!
+		 * \brief A queue of multi-chain selects in which this chain is used.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		mutable select_case_t * m_select_tail = nullptr;
 
 		//! Actual implementation of pushing message to the queue.
 		/*!
@@ -604,24 +677,72 @@ class mchain_template
 							}
 					}
 
-				// May be someone is waiting on empty queue?
-				const bool queue_was_empty = m_queue.is_empty();
+				const bool was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
 						demand_t{ msg_type, message, demand_type } );
 
 				tracer.stored( m_queue );
 
-				if( queue_was_empty )
+				// If chain was empty then multi-chain cases must be notified.
+				// And if not_empty_notificator is defined then it must be used too.
+				if( was_empty )
 					{
-						// Someone can wait on empty queue.
-						m_underflow_cond.notify_one();
-
-						// Custom 'not_empty' notificator should be used if defined.
 						if( m_not_empty_notificator )
-							so_5::details::invoke_noexcept_code( [this] {
-								m_not_empty_notificator();
-							} );
+							so_5::details::invoke_noexcept_code(
+								[this] { m_not_empty_notificator(); } );
+
+						notify_multi_chain_select_ops();
+					}
+
+				// Should be wake up some sleeping thread?
+				if( m_threads_to_wakeup && m_threads_to_wakeup >= m_queue.size() )
+					// Someone is waiting on empty queue.
+					m_underflow_cond.notify_one();
+			}
+
+		/*!
+		 * \brief Implementation of extract operation for the case when
+		 * message queue is not empty.
+		 *
+		 * \attention This helper method must be called when chain object
+		 * is locked in some hi-level method.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		extraction_status_t
+		extract_demand_from_not_empty_queue(
+			demand_t & dest )
+			{
+				// If queue was full then someone can wait on it.
+				const bool queue_was_full = m_queue.is_full();
+				dest = std::move( m_queue.front() );
+				m_queue.pop_front();
+
+				this->trace_extracted_demand( *this, dest );
+
+				if( queue_was_full )
+					m_overflow_cond.notify_all();
+
+				return extraction_status_t::msg_extracted;
+			}
+
+		/*!
+		 * \note This method declared as const by the same reason
+		 * as try_to_store_message_to_queue() method.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		void
+		notify_multi_chain_select_ops() const SO_5_NOEXCEPT
+			{
+				if( m_select_tail )
+					{
+						auto old = m_select_tail;
+						m_select_tail = nullptr;
+						old->notify();
 					}
 			}
 	};

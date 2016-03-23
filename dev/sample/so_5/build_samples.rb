@@ -52,6 +52,7 @@ MxxRu::Cpp::composite_target {
 	example[ 'convert_lib' ]
 	example[ 'mchain_svc_req' ]
 	example[ 'mchain_handler_formats' ]
+	example[ 'mchain_multi_consumers' ]
 	example[ 'wrapped_env_demo_2' ]
 	example[ 'producer_consumer_mchain' ]
 
@@ -60,4 +61,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'state_deep_history' ]
 
 	example[ 'adv_thread_pool_fifo' ]
+
+	example[ 'mchain_select' ]
 }

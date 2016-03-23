@@ -19,6 +19,8 @@
 #include <so_5/rt/h/agent_coop_notifications.hpp>
 #include <so_5/rt/h/send_functions.hpp>
 
+#include <so_5/rt/h/mchain_select.hpp>
+
 #include <so_5/h/chrono_helpers.hpp>
 
 #include <so_5/rt/stats/h/std_names.hpp>

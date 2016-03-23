@@ -725,7 +725,9 @@ class SO_5_TYPE coop_t
 		}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Get agent count in the cooperation.
 		 */
 		std::size_t
@@ -733,6 +735,44 @@ class SO_5_TYPE coop_t
 		{
 			return m_agent_array.size();
 		}
+
+		/*!
+		 * \since
+		 * v.5.5.16
+		 *
+		 * \brief Get agent count in the cooperation.
+		 * \note Just an alias for query_agent_count().
+		 */
+		std::size_t
+		size() const { return query_agent_count(); }
+
+		/*!
+		 * \since
+		 * v.5.5.16
+		 *
+		 * \brief Get the capacity of vector for holding agents list.
+		 */
+		std::size_t
+		capacity() const { return m_agent_array.capacity(); }
+
+		/*!
+		 * \since
+		 * v.5.5.16
+		 *
+		 * \brief Reserve a space for vector for holding agents list.
+		 *
+		 * This method can help avoid reallocations of agents list during
+		 * filling the coop:
+		 * \code
+			env.introduce_coop( []( so_5::coop_t & coop ) {
+				coop.reserve( agents_count );
+				for( size_t i = 0; i != agents_count; ++i )
+					coop.make_agent< some_type >( some_args );
+			} );
+		 * \endcode
+		 */
+		void
+		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
 		/*!
 		 * \since v.5.5.8

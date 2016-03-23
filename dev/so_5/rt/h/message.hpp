@@ -99,11 +99,13 @@ class SO_5_TYPE signal_t
 // user_type_message_t
 //
 /*!
- * \since v.5.5.9
  * \brief Template class for representing object of user type as a message.
  *
  * \tparam T type of actual message. This type must have move- or copy
  * constructor.
+ *
+ * \since
+ * v.5.5.9
  */
 template< typename T >
 struct user_type_message_t : public message_t
@@ -115,6 +117,21 @@ struct user_type_message_t : public message_t
 	template< typename... ARGS >
 	user_type_message_t( ARGS &&... args )
 		:	m_payload( T{ std::forward< ARGS >( args )... } )
+		{}
+
+	//! Initialization from const T object.
+	user_type_message_t( const T & o )
+		:	m_payload( o )
+		{}
+
+	//! Initialization from non-const T object.
+	user_type_message_t( T & o )
+		:	m_payload( o )
+		{}
+
+	//! Initialization from temporary T object.
+	user_type_message_t( T && o )
+		:	m_payload( std::move(o) )
 		{}
 
 private :

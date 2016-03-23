@@ -347,10 +347,18 @@ const int rc_several_handlers_for_one_message_type = 165;
 const int rc_empty_name = 500;
 
 /*!
- * \since v.5.5.15
  * \brief Invalid value of time limit for an agent's state.
+ * \since
+ * v.5.5.15
  */
 const int rc_invalid_time_limit_for_state = 501;
+
+/*!
+ * \brief Feature or method has no implementation yet.
+ * \since
+ * v.5.5.16
+ */
+const int rc_not_implemented = 502;
 
 //! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;

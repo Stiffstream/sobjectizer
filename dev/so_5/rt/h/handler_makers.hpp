@@ -24,8 +24,10 @@ namespace so_5 {
 namespace details {
 
 /*!
- * \since v.5.3.0
  * \brief Various helpers for event subscription.
+ *
+ * \since
+ * v.5.3.0
  */
 namespace event_subscription_helpers
 {
@@ -87,11 +89,13 @@ get_actual_service_request_pointer(
 }
 
 /*!
- * \since v.5.5.14
  * \brief A helper template for create an argument for event handler
  * in the case when argument is passed as value or const reference.
  *
  * \note MSG can't be a type of a signal.
+ *
+ * \since
+ * v.5.5.14
  */
 template< typename MSG >
 struct event_handler_arg_maker
@@ -114,9 +118,10 @@ struct event_handler_arg_maker
 };
 
 /*!
- * \since v.5.5.14
  * \brief A helper template for create an argument for event handler
  * in the case when argument is passed as message hood.
+ * \since
+ * v.5.5.14
  */
 template< typename MSG >
 struct event_handler_arg_maker< mhood_t< MSG > >
@@ -136,8 +141,9 @@ struct event_handler_arg_maker< mhood_t< MSG > >
 };
 
 /*!
- * \since v.5.5.14
  * \brief A helper for setting a result to a promise.
+ * \since
+ * v.5.5.14
  */
 template< typename R, typename L >
 void
@@ -159,9 +165,11 @@ set_promise( std::promise< void > & to, L result_provider )
 }
 
 /*!
- * \since v.5.5.14
  * \brief Helper template for creation of event handler with actual
  * argument.
+ *
+ * \since
+ * v.5.5.14
  */
 template< typename LAMBDA, typename RESULT, typename ARG >
 msg_type_and_handler_pair_t
@@ -202,9 +210,11 @@ make_handler_with_arg( LAMBDA && lambda )
 	}
 
 /*!
- * \since v.5.5.14
  * \brief Helper template for creation of event handler with actual
  * argument.
+ *
+ * \since
+ * v.5.5.14
  */
 template< typename AGENT, typename RESULT, typename ARG >
 msg_type_and_handler_pair_t
@@ -248,11 +258,13 @@ make_handler_with_arg_for_agent(
 	}
 
 /*!
- * \since v.5.5.14
  * \brief Helper template for creation of event handler without actual
  * argument.
  *
  * \note This helper must be used only if SIG is derived from signal_t.
+ *
+ * \since
+ * v.5.5.14
  */
 template< typename LAMBDA, typename RESULT, typename SIG >
 msg_type_and_handler_pair_t
@@ -294,12 +306,14 @@ make_handler_without_arg( LAMBDA && lambda )
 // handler
 //
 /*!
- * \since v.5.5.13
  * \brief A function for creation event handler.
  *
  * \note Must be used for the case when message is an ordinary message.
  *
  * \note This function is intended to be used only by SObjectizer itself.
+ *
+ * \since
+ * v.5.5.13
  */
 template< class LAMBDA >
 details::msg_type_and_handler_pair_t
@@ -320,12 +334,14 @@ handler( LAMBDA && lambda )
 // handler
 //
 /*!
- * \since v.5.5.13
  * \brief A function for creation event handler.
  *
  * \note Must be used for the case when message is a signal.
  *
  * \note This function is intended to be used only by SObjectizer itself.
+ *
+ * \since
+ * v.5.5.13
  */
 template< class SIGNAL, class LAMBDA >
 details::msg_type_and_handler_pair_t
@@ -349,10 +365,11 @@ namespace details {
 // handlers_bunch_basics_t
 //
 /*!
- * \since v.5.5.13
  * \brief Basic part of handlers_bunch implementation.
  *
  * \note This part is not depends on template parameters.
+ * \since
+ * v.5.5.13
  */
 struct handlers_bunch_basics_t
 	{
@@ -429,8 +446,9 @@ struct handlers_bunch_basics_t
 // handlers_bunch
 //
 /*!
- * \since v.5.5.13
  * \brief Template class for storing bunch of message handlers.
+ * \since
+ * v.5.5.13
  */
 template< std::size_t N >
 class handlers_bunch_t : private handlers_bunch_basics_t
@@ -490,9 +508,10 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 	};
 
 /*!
- * \since v.5.5.13
  * \brief A specialization of handlers_bunch_t for the case when there
  * is no any handlers.
+ * \since
+ * v.5.5.13
  */
 template<>
 class handlers_bunch_t< 0 >

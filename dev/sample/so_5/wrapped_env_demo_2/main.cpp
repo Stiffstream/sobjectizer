@@ -159,9 +159,7 @@ void demo()
 	// Mbox for sending requests to SO-part of the app.
 	auto req_mbox = sobj.environment().create_mbox();
 	// Chain for receiving replies from SO-part of the app. 
-	auto chain = sobj.environment().create_mchain(
-			// No limits for chain.
-			so_5::make_unlimited_mchain_params() );
+	auto chain = create_mchain( sobj );
 
 	// Start SO-part of the app.
 	sobj.environment().introduce_coop( [&]( so_5::coop_t & coop ) {

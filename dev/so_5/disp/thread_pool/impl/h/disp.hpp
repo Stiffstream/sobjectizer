@@ -3,9 +3,10 @@
  */
 
 /*!
- * \since v.5.4.0
  * \file
  * \brief An implementation of thread pool dispatcher.
+ * \since
+ * v.5.4.0
  */
 
 #pragma once
@@ -50,8 +51,9 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 // agent_queue_t
 //
 /*!
- * \since v.5.4.0
  * \brief Event queue for the agent (or cooperation).
+ * \since
+ * v.5.4.0
  */
 class agent_queue_t
 	:	public event_queue_t
@@ -130,10 +132,10 @@ class agent_queue_t
 			}
 
 		/*!
+		 * \brief Queue emptyness indication.
+		 *
 		 * \since
 		 * v.5.5.15.1
-		 *
-		 * \brief Queue emptyness indication.
 		 */
 		enum class emptyness_t
 			{
@@ -142,10 +144,10 @@ class agent_queue_t
 			};
 
 		/*!
+		 * \brief Indication of possibility of continuation of demands processing.
+		 *
 		 * \since
 		 * v.5.5.15.1
-		 *
-		 * \brief Indication of possibility of continuation of demands processing.
 		 */
 		enum class processing_continuation_t
 			{
@@ -155,10 +157,10 @@ class agent_queue_t
 			};
 
 		/*!
+		 * \brief A result of erasing of the front demand from queue.
+		 *
 		 * \since
 		 * v.5.5.15.1
-		 *
-		 * \brief A result of erasing of the front demand from queue.
 		 */
 		struct pop_result_t
 			{
@@ -227,8 +229,10 @@ class agent_queue_t
 			}
 
 		/*!
-		 * \since v.5.5.4
 		 * \brief Get the current size of the queue.
+		 *
+		 * \since
+		 * v.5.5.4
 		 */
 		std::size_t
 		size() const
@@ -260,8 +264,9 @@ class agent_queue_t
 		demand_t * m_tail;
 
 		/*!
-		 * \since v.5.5.4
 		 * \brief Current size of the queue.
+		 * \since
+		 * v.5.5.4
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
@@ -294,8 +299,9 @@ class agent_queue_t
 // work_thread_t
 //
 /*!
- * \since v.5.4.0
  * \brief Class of work thread for thread pool dispatcher.
+ * \since
+ * v.5.4.0
  */
 class work_thread_t
 	{
@@ -411,9 +417,10 @@ class work_thread_t
 // adaptation_t
 //
 /*!
- * \since v.5.5.4
  * \brief Adaptation of common implementation of thread-pool-like dispatcher
  * to the specific of this thread-pool dispatcher.
+ * \since
+ * v.5.5.4
  */
 struct adaptation_t
 	{
@@ -440,8 +447,9 @@ struct adaptation_t
 // dispatcher_t
 //
 /*!
- * \since v.5.4.0
  * \brief Actual type of this thread-pool dispatcher.
+ * \since
+ * v.5.4.0
  */
 using dispatcher_t =
 		common_implementation::dispatcher_t<

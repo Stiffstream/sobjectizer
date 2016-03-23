@@ -1,3 +1,4 @@
 add_subdirectory(simple)
 add_subdirectory(cooperation_fifo)
 add_subdirectory(individual_fifo)
+add_subdirectory(threshold)

@@ -2,6 +2,29 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_16 5.5.16 "Cerro Barroso"
+
+	New method
+	so_5::disp::mpmc_queue_traits::queue_params_t::next_thread_wakeup_threshold()
+	for tuning the behaviour of thread_pool and adv_thread_pool dispatchers.
+
+	Helper function so_5::auto_close_mchains() added.
+
+	New functions so_5::select() for handling messages from several
+	mchains added.
+
+	New helper functions so_5::create_mchain().
+
+	New example *mchain_select* added.
+
+	mchain can now be used as MPMC chains. It means that several consumer
+	threads can call so_5::receive() on the same mchain.
+
+	New example *mchain_multi_consumers* added.
+
+	New methods so_5::coop_t::size(), so_5::coop_t::capacity() and
+	so_5::coop_t::reserve().
+
 \section so_5__5_15 5.5.15 "Cerro Paroma"
 
 	A possibility to implement agent as a hierachical state machine added.

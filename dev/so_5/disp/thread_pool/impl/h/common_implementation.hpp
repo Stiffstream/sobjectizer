@@ -97,8 +97,7 @@ class dispatcher_t
 			};
 
 		//! Map from cooperation name to the cooperation data.
-		typedef std::map< std::string, cooperation_data_t >
-				cooperation_map_t;
+		using cooperation_map_t = std::map< std::string, cooperation_data_t >;
 
 		//! Data for one agent.
 		struct agent_data_t
@@ -165,8 +164,7 @@ class dispatcher_t
 			};
 
 		//! Map from agent pointer to the agent data.
-		typedef std::map< agent_t *, agent_data_t >
-				agent_map_t;
+		using agent_map_t = std::map< agent_t *, agent_data_t >;
 
 	public :
 		dispatcher_t( const dispatcher_t & ) = delete;
@@ -176,9 +174,7 @@ class dispatcher_t
 		dispatcher_t(
 			std::size_t thread_count,
 			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params )
-			:	m_queue{
-					queue_params.lock_factory(),
-					thread_count }
+			:	m_queue{ queue_params, thread_count }
 			,	m_thread_count( thread_count )
 			,	m_data_source( stats_supplier() )
 			{
@@ -218,7 +214,7 @@ class dispatcher_t
 			const std::string & name_base ) override
 			{
 				m_data_source.set_data_sources_name_base(
-						ADAPTATIONS::dispatcher_type_name(), // thread-pool
+						ADAPTATIONS::dispatcher_type_name(),
 						name_base,
 						this );
 			}

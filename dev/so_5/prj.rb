@@ -39,6 +39,7 @@ MxxRu::Cpp::dll_target {
 
 		cpp_source 'mbox.cpp'
 		cpp_source 'mchain.cpp'
+		cpp_source 'mchain_select.cpp'
 
 		cpp_source 'event_queue.cpp'
 

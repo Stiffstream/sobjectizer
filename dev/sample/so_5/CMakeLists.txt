@@ -50,6 +50,7 @@ add_subdirectory(wrapped_env_demo)
 add_subdirectory(convert_lib)
 add_subdirectory(mchain_svc_req)
 add_subdirectory(mchain_handler_formats)
+add_subdirectory(mchain_multi_consumers)
 add_subdirectory(wrapped_env_demo_2)
 add_subdirectory(producer_consumer_mchain)
 
@@ -58,3 +59,5 @@ add_subdirectory(intercom_statechart)
 add_subdirectory(state_deep_history)
 
 add_subdirectory(adv_thread_pool_fifo)
+
+add_subdirectory(mchain_select)

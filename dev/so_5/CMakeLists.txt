@@ -20,6 +20,7 @@ set(SO_5_SRC exception.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/mchain.cpp
+	rt/mchain_select.cpp
 	rt/event_queue.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp

@@ -29,19 +29,17 @@ void demo()
 	so_5::wrapped_env_t sobj;
 
 	// Message chain to be used.
-	auto ch = sobj.environment().create_mchain(
-			// Chain is size-limited with blocking of sender on overload.
-			so_5::make_limited_with_waiting_mchain_params(
-				// No more than 3 messages in chain.
-				3u,
-				// Space for mchain will be preallocated.
-				so_5::mchain_props::memory_usage_t::preallocated,
-				// What to do on overflow.
-				// This value has no sence because we use too large time limit.
-				// Because of that use hardest case.
-				so_5::mchain_props::overflow_reaction_t::abort_app,
-				// Wait on overloaded mchain for 5min.
-				std::chrono::minutes{5} ) );
+	auto ch = so_5::create_mchain( sobj,
+			// Wait on overloaded mchain for 5min.
+			std::chrono::minutes{5},
+			// No more than 3 messages in chain.
+			3u,
+			// Space for mchain will be preallocated.
+			so_5::mchain_props::memory_usage_t::preallocated,
+			// What to do on overflow.
+			// This value has no sence because we use too large time limit.
+			// Because of that use hardest case.
+			so_5::mchain_props::overflow_reaction_t::abort_app );
 
 	// We must store timer_id for periodic signal somewhere.
 	// Otherwise periodic signal will be canceled automaticallly right after

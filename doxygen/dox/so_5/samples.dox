@@ -191,6 +191,10 @@
  */
 
 /*!
+ * \example so_5/mchain_multi_consumers/main.cpp
+ */
+
+/*!
  * \example so_5/wrapped_env_demo_2/main.cpp
  */
 
@@ -212,6 +216,10 @@
 
 /*!
  * \example so_5/adv_thread_pool_fifo/main.cpp
+ */
+
+/*!
+ * \example so_5/mchain_select/main.cpp
  */
 
 // vim:ft=cpp.doxygen

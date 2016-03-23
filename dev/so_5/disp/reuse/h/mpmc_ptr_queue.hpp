@@ -3,9 +3,10 @@
  */
 
 /*!
- * \since v.5.4.0
  * \file
  * \brief Multi-producer/Multi-consumer queue of pointers.
+ * \since
+ * v.5.4.0
  */
 
 #pragma once
@@ -28,7 +29,6 @@ namespace reuse
 // mpmc_ptr_queue_t
 //
 /*!
- * \since v.5.4.0
  * \brief Multi-producer/Multi-consumer queue of pointers.
  *
  * Uses two types of waiting on empty queue:
@@ -36,15 +36,21 @@ namespace reuse
  * - then waiting on heavy synchronization object.
  *
  * \tparam T type of object.
+ *
+ * \since
+ * v.5.4.0
  */
 template< class T >
 class mpmc_ptr_queue_t
 	{
 	public :
 		mpmc_ptr_queue_t(
-			so_5::disp::mpmc_queue_traits::lock_factory_t lock_factory,
+			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params,
 			std::size_t thread_count )
-			:	m_lock{ lock_factory() }
+			:	m_lock{ queue_params.lock_factory()() }
+			,	m_max_thread_count{ thread_count }
+			,	m_next_thread_wakeup_threshold{
+					queue_params.next_thread_wakeup_threshold() }
 			{
 				// Reserve some space for storing infos about waiting
 				// customer threads.
@@ -166,6 +172,24 @@ class mpmc_ptr_queue_t
 		 */
 		bool	m_wakeup_in_progress{ false };
 
+		/*!
+		 * \brief Maximum count of working threads to be used with
+		 * that mpmc_queue.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		const std::size_t m_max_thread_count;
+
+		/*!
+		 * \brief Threshold for wake up next working thread if there are
+		 * non-empty agent queues.
+		 *
+		 * \since
+		 * v.5.5.16
+		 */
+		const std::size_t m_next_thread_wakeup_threshold;
+
 		//! Waiting threads.
 		std::vector< so_5::disp::mpmc_queue_traits::condition_t * > m_waiting_customers;
 
@@ -185,13 +209,23 @@ class mpmc_ptr_queue_t
 		 *
 		 * \brief An attempt to wakeup another sleeping thread is this necessary
 		 * and possible.
+		 *
+		 * \note Since v.5.5.16 there are some changes in wakeup conditions.
+		 * A working thread will be woken up if:
+		 * - there are something in m_queue;
+		 * - there are waiting customers but no one of them is in wakeup now;
+		 * - count of items in m_queue is greater than
+		 *   m_next_thread_wakeup_threshold or there is no active customers at
+		 *   all.
 		 */
 		void
 		try_wakeup_someone_if_possible()
 			{
 				if( !m_queue.empty() &&
 						!m_waiting_customers.empty() &&
-						!m_wakeup_in_progress )
+						!m_wakeup_in_progress &&
+						( m_queue.size() > m_next_thread_wakeup_threshold ||
+						m_max_thread_count == m_waiting_customers.size() ) )
 					pop_and_notify_one_waiting_customer();
 			}
 	};
