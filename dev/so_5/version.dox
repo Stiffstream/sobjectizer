@@ -8,6 +8,9 @@
 	so_5::disp::mpmc_queue_traits::queue_params_t::next_thread_wakeup_threshold()
 	for tuning the behaviour of thread_pool and adv_thread_pool dispatchers.
 
+	Helper functions so_5::create_mchain() added. They simplify creation
+	of size-limited and size-unlimited mchains.
+
 	Helper function so_5::auto_close_mchains() added.
 
 	New functions so_5::select() for handling messages from several
