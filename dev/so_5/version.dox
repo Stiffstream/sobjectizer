@@ -16,8 +16,6 @@
 	New functions so_5::select() for handling messages from several
 	mchains added.
 
-	New helper functions so_5::create_mchain().
-
 	New example *mchain_select* added.
 
 	mchain can now be used as MPMC chains. It means that several consumer
