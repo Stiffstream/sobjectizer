@@ -26,9 +26,7 @@ check_drop_content1(
 	so_5::mchain_t ch1 )
 {
 	{
-		auto closer = so_5::auto_close_mchains(
-				so_5::mchain_props::close_mode_t::drop_content,
-				ch1 );
+		auto closer = so_5::auto_close_drop_content( ch1 );
 
 		so_5::send< int >( ch1, 0 );
 	}
@@ -49,9 +47,7 @@ check_drop_content3(
 	so_5::mchain_t ch3 )
 {
 	{
-		auto closer = so_5::auto_close_mchains(
-				so_5::mchain_props::close_mode_t::drop_content,
-				ch1, ch2, ch3 );
+		auto closer = so_5::auto_close_drop_content( ch1, ch2, ch3 );
 
 		so_5::send< int >( ch1, 0 );
 		so_5::send< int >( ch2, 1 );
@@ -74,9 +70,7 @@ check_retain_content1(
 	so_5::mchain_t ch1 )
 {
 	{
-		auto closer = so_5::auto_close_mchains(
-				so_5::mchain_props::close_mode_t::retain_content,
-				ch1 );
+		auto closer = so_5::auto_close_retain_content( ch1 );
 
 		so_5::send< int >( ch1, 42 );
 		so_5::send< int >( ch1, 42 );
@@ -106,9 +100,7 @@ check_retain_content3(
 	so_5::mchain_t ch3 )
 {
 	{
-		auto closer = so_5::auto_close_mchains(
-				so_5::mchain_props::close_mode_t::retain_content,
-				ch1, ch2, ch3 );
+		auto closer = so_5::auto_close_retain_content( ch1, ch2, ch3 );
 
 		so_5::send< int >( ch1, 42 );
 		so_5::send< int >( ch1, 42 );

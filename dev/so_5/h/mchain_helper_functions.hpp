@@ -391,5 +391,71 @@ auto_close_mchains(
 		return closer;
 	}
 
+/*!
+ * \brief Helper function for automatic closing of mchains with
+ * retaining their content.
+ *
+ * Usage example:
+ * \code
+	so_5::environment_t & env = ...;
+	auto ch1 = create_mchain(env);
+	auto ch2 = create_mchain(env);
+	auto ch_closer = so_5::auto_close_retain_content(ch1, ch2);
+	...
+ * \endcode
+ *
+ * \note This is just a shorthand for:
+ * \code
+	so_5::auto_close_mchains(
+		so_5::mchain_props::close_mode_t::retain_content, chains... );
+ * \endcode
+ *
+ * \tparam TAIL List of mchains.
+ *
+ * \since
+ * v.5.5.16
+ */
+template< typename... TAIL >
+mchain_auto_close_details::auto_closer_t< sizeof...(TAIL) >
+auto_close_retain_content( TAIL &&... tail )
+	{
+		return auto_close_mchains(
+				mchain_props::close_mode_t::retain_content,
+				std::forward< TAIL >(tail)... );
+	}
+
+/*!
+ * \brief Helper function for automatic closing of mchains with
+ * dropping their content.
+ *
+ * Usage example:
+ * \code
+	so_5::environment_t & env = ...;
+	auto ch1 = create_mchain(env);
+	auto ch2 = create_mchain(env);
+	auto ch_closer = so_5::auto_close_drop_content(ch1, ch2);
+	...
+ * \endcode
+ *
+ * \note This is just a shorthand for:
+ * \code
+	so_5::auto_close_mchains(
+		so_5::mchain_props::close_mode_t::drop_content, chains... );
+ * \endcode
+ *
+ * \tparam TAIL List of mchains.
+ *
+ * \since
+ * v.5.5.16
+ */
+template< typename... TAIL >
+mchain_auto_close_details::auto_closer_t< sizeof...(TAIL) >
+auto_close_drop_content( TAIL &&... tail )
+	{
+		return auto_close_mchains(
+				mchain_props::close_mode_t::drop_content,
+				std::forward< TAIL >(tail)... );
+	}
+
 } /* namespace so_5 */
 

@@ -40,8 +40,7 @@ do_test_case(
 	auto first_reply_ch = create_mchain( env );
 	thread first_worker{ worker_thread, first_cmd_ch, first_reply_ch };
 	auto_joiner first_joiner{ first_worker };
-	auto first_ch_closer = so_5::auto_close_mchains(
-			so_5::mchain_props::close_mode_t::drop_content,
+	auto first_ch_closer = so_5::auto_close_drop_content(
 			first_cmd_ch,
 			first_reply_ch );
 
@@ -49,8 +48,7 @@ do_test_case(
 	auto second_reply_ch = create_mchain( env );
 	thread second_worker{ worker_thread, second_cmd_ch, second_reply_ch };
 	auto_joiner second_joiner{ second_worker };
-	auto second_ch_closer = so_5::auto_close_mchains(
-			so_5::mchain_props::close_mode_t::drop_content,
+	auto second_ch_closer = so_5::auto_close_drop_content(
 			second_cmd_ch,
 			second_reply_ch );
 
