@@ -11,7 +11,12 @@
 	Helper functions so_5::create_mchain() added. They simplify creation
 	of size-limited and size-unlimited mchains.
 
+	Helper function so_5::auto_join() added. It helps to work with
+	raw std::thread.
+
 	Helper function so_5::auto_close_mchains() added.
+	There are also helper functions so_5::auto_close_retain_content()
+	and so_5::auto_close_drop_content().
 
 	New functions so_5::select() for handling messages from several
 	mchains added.

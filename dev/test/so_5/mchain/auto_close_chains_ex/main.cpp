@@ -23,34 +23,32 @@ worker_thread( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 	close_retain_content( reply_ch );
 }
 
-class auto_joiner
-{
-	thread & m_what;
-public :
-	auto_joiner( thread & what ) : m_what{ what } {}
-	~auto_joiner() { m_what.join(); }
-};
-
 void
 do_test_case(
 	so_5::environment_t & env,
 	bool throw_exception )
 {
+	thread first_worker;
+	auto first_joiner = so_5::auto_join( first_worker );
+
 	auto first_cmd_ch = create_mchain( env );
 	auto first_reply_ch = create_mchain( env );
-	thread first_worker{ worker_thread, first_cmd_ch, first_reply_ch };
-	auto_joiner first_joiner{ first_worker };
 	auto first_ch_closer = so_5::auto_close_drop_content(
 			first_cmd_ch,
 			first_reply_ch );
 
+	first_worker = thread{ worker_thread, first_cmd_ch, first_reply_ch };
+
+	thread second_worker;
+	auto second_joiner = so_5::auto_join( second_worker );
+
 	auto second_cmd_ch = create_mchain( env );
 	auto second_reply_ch = create_mchain( env );
-	thread second_worker{ worker_thread, second_cmd_ch, second_reply_ch };
-	auto_joiner second_joiner{ second_worker };
 	auto second_ch_closer = so_5::auto_close_drop_content(
 			second_cmd_ch,
 			second_reply_ch );
+
+	second_worker = thread{ worker_thread, second_cmd_ch, second_reply_ch };
 
 	if( throw_exception )
 		throw test_ex_t{};
