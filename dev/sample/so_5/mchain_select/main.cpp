@@ -43,7 +43,7 @@ void demo()
 	// Thread objects for workers.
 	thread reverse_thread;
 	thread doubler_thread;
-	// Threads must be automatically joiner (either normal return from
+	// Threads must be automatically joined (either normal return from
 	// demo() or in case of an exception).
 	auto thread_joiner = so_5::auto_join( reverse_thread, doubler_thread );
 
