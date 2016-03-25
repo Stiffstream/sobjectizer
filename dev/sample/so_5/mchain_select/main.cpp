@@ -38,7 +38,7 @@ class auto_joiner
 	thread & m_what;
 public :
 	auto_joiner( thread & what ) : m_what{ what } {}
-	~auto_joiner() { m_what.join(); }
+	~auto_joiner() { if( m_what.joinable() ) m_what.join(); }
 };
 
 void demo()
