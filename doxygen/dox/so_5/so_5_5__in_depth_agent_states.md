@@ -1,6 +1,4 @@
-\page so_5_5__in_depth__agent_states so-5.5 In Depth - Agent States
-
-[TOC]
+# so-5.5 In Depth - Agent States {#so_5_5__in_depth__agent_states}
 
 # Basic
 
