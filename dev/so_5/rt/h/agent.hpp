@@ -2216,11 +2216,31 @@ class lambda_as_filter_t : public delivery_filter_t
 	{
 		LAMBDA m_filter;
 
+		// NOTE: this is a workaround for strage behaviour of VC++ 19.0.23918
+		// (from Visual Studio 2015 Update 2).
+		// It seems that noexcept on check() doesn't work.
+		// Because of that it is necessary to call another noexcept
+		// function from check().
+		bool
+		do_check( const MESSAGE & m ) const SO_5_NOEXCEPT
+		{
+			return m_filter( m );
+		}
+
 	public :
 		lambda_as_filter_t( LAMBDA && filter )
 			:	m_filter( std::forward< LAMBDA >( filter ) )
 			{}
 
+#if SO_5_HAVE_NOEXCEPT
+		virtual bool
+		check(
+			const agent_t & /*receiver*/,
+			const message_t & msg ) const SO_5_NOEXCEPT override
+			{
+				return do_check(message_payload_type< MESSAGE >::payload_reference( msg ));
+			}
+#else
 		virtual bool
 		check(
 			const agent_t & receiver,
@@ -2242,6 +2262,7 @@ class lambda_as_filter_t : public delivery_filter_t
 						} );
 					} );
 			}
+#endif
 	};
 
 } /* namespace delivery_filter_templates */
