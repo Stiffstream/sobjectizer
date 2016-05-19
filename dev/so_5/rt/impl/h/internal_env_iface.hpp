@@ -35,7 +35,7 @@ class internal_env_iface_t
 	public :
 		//! Initializing constructor.
 		internal_env_iface_t( environment_t & env )
-			:	m_env{ env }
+			:	m_env( env )
 			{}
 
 		//! Create multi-producer/single-consumer mbox.

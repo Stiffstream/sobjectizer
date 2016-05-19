@@ -86,7 +86,7 @@ class actual_select_case_t : public select_case_t
 			mchain_t chain,
 			//! Message handlers.
 			HANDLERS &&... handlers )
-			:	select_case_t{ std::move(chain) }
+			:	select_case_t( std::move(chain) )
 			{
 				so_5::details::fill_handlers_bunch(
 						m_handlers,
@@ -149,7 +149,7 @@ class select_cases_holder_t
 		select_cases_holder_t &
 		operator=( select_cases_holder_t && o ) SO_5_NOEXCEPT
 			{
-				select_cases_holder_t tmp{ std::move( o ) };
+				select_cases_holder_t tmp( std::move( o ) );
 				swap( tmp );
 			}
 
@@ -188,7 +188,7 @@ class select_cases_holder_t
 
 			public :
 				iterator() {}
-				iterator( actual_it_t it ) : m_it{ std::move(it) } {}
+				iterator( actual_it_t it ) : m_it( std::move(it) ) {}
 
 				iterator & operator++() { ++m_it; return *this; }
 				iterator operator++(int) { iterator o{ m_it }; ++m_it; return o; }
@@ -383,9 +383,9 @@ class select_actions_performer_t
 		select_actions_performer_t(
 			const mchain_select_params_t & params,
 			HOLDER & select_cases )
-			:	m_params{ params }
-			,	m_select_cases{ select_cases }
-			,	m_notificator{ select_cases.begin(), select_cases.end() }
+			:	m_params( params )
+			,	m_select_cases( select_cases )
+			,	m_notificator( select_cases.begin(), select_cases.end() )
 			{}
 		~select_actions_performer_t()
 			{

@@ -87,8 +87,8 @@ struct state_t::time_limit_t
 	time_limit_t(
 		duration_t limit,
 		const state_t & state_to_switch )
-		:	m_limit{ limit }
-		,	m_state_to_switch{ state_to_switch }
+		:	m_limit( limit )
+		,	m_state_to_switch( state_to_switch )
 	{}
 
 	void
@@ -453,7 +453,7 @@ agent_t::agent_t(
 agent_t::agent_t(
 	environment_t & env,
 	agent_tuning_options_t options )
-	:	agent_t( context_t{ env, std::move( options ) } )
+	:	agent_t( context_t( env, std::move( options ) ) )
 {
 }
 
@@ -462,11 +462,11 @@ agent_t::agent_t(
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
-	,	m_handler_finder{
+	,	m_handler_finder(
 			// Actual handler finder is dependent on msg_tracing status.
-			impl::internal_env_iface_t{ ctx.env() }.is_msg_tracing_enabled() ?
+			impl::internal_env_iface_t( ctx.env() ).is_msg_tracing_enabled() ?
 				&agent_t::handler_finder_msg_tracing_enabled :
-				&agent_t::handler_finder_msg_tracing_disabled }
+				&agent_t::handler_finder_msg_tracing_disabled )
 	,	m_subscriptions(
 			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
 	,	m_message_limits(
@@ -475,7 +475,7 @@ agent_t::agent_t(
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
-			impl::internal_env_iface_t{ ctx.env() }.create_mpsc_mbox(
+			impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
 				self_ptr(),
 				m_message_limits.get() ) )
 		// It is necessary to enable agent subscription in the

@@ -22,9 +22,9 @@ public :
 		context_t ctx,
 		std::string & log,
 		so_5::mchain_t notify_ch )
-		:	so_5::agent_t{ ctx }
-		,	m_log{ log }
-		,	m_notify_ch{ std::move(notify_ch) }
+		:	so_5::agent_t( ctx )
+		,	m_log( log )
+		,	m_notify_ch( std::move(notify_ch) )
 	{
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )
@@ -72,9 +72,9 @@ public :
 		context_t ctx,
 		std::string & log,
 		so_5::mchain_t notify_ch )
-		:	so_5::agent_t{ ctx }
-		,	m_log{ log }
-		,	m_notify_ch{ std::move(notify_ch) }
+		:	so_5::agent_t( ctx )
+		,	m_log( log )
+		,	m_notify_ch( std::move(notify_ch) )
 	{
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )

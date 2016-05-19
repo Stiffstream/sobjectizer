@@ -300,12 +300,12 @@ class mchain_template
 			const mchain_params_t & params,
 			//! Arguments for TRACING_BASE's constructor.
 			TRACING_ARGS &&... tracing_args )
-			:	TRACING_BASE{ std::forward<TRACING_ARGS>(tracing_args)... }
-			,	m_env{ env }
-			,	m_id{ id }
-			,	m_capacity{ params.capacity() }
+			:	TRACING_BASE( std::forward<TRACING_ARGS>(tracing_args)... )
+			,	m_env( env )
+			,	m_id( id )
+			,	m_capacity( params.capacity() )
 			,	m_not_empty_notificator( params.not_empty_notificator() )
-			,	m_queue{ params.capacity() }
+			,	m_queue( params.capacity() )
 			{}
 
 		virtual mbox_id_t

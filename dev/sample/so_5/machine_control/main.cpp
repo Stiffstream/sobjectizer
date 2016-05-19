@@ -404,10 +404,10 @@ public :
 		so_5::priority_t priority,
 		so_5::mbox_t status_distrib_mbox,
 		const machine_dictionary_t & machines )
-		:	so_5::agent_t{ ctx + priority }
-		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
-		,	m_machines{ machines }
-		,	m_logic{}
+		:	so_5::agent_t( ctx + priority )
+		,	m_status_distrib_mbox( std::move( status_distrib_mbox ) )
+		,	m_machines( machines )
+		,	m_logic()
 	{}
 
 	virtual void so_define_agent() override

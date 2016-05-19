@@ -32,7 +32,7 @@ class internal_message_iface_t
 	public :
 		//! Initializing constructor.
 		internal_message_iface_t( const message_t & msg )
-			:	m_msg{ msg }
+			:	m_msg( msg )
 			{}
 
 		//! Get the pointer to the actual message payload.

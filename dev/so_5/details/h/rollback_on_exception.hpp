@@ -30,7 +30,7 @@ class rollbacker_t
 		bool m_commited = false;
 
 	public :
-		inline rollbacker_t( L & action ) : m_action{ action } {}
+		inline rollbacker_t( L & action ) : m_action( action ) {}
 		inline ~rollbacker_t() { if( !m_commited ) m_action(); }
 
 		inline void commit() { m_commited = true; }

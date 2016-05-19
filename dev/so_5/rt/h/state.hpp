@@ -148,8 +148,14 @@ class SO_5_TYPE state_t final
 
 		friend class agent_t;
 
+#if defined( SO_5_NEED_GNU_4_8_WORKAROUNDS )
+// GCC 4.8.2 reports strange error about usage of deleted copy constructor.
+		state_t( const state_t & );
+		state_t & operator =( const state_t & );
+#else
 		state_t( const state_t & ) = delete;
 		state_t & operator =( const state_t & ) = delete;
+#endif
 
 	public:
 		/*!

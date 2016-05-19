@@ -114,7 +114,7 @@ class disp_params_t
 				disp_params_t{}
 					.thread_count( 10 )
 					.tune_queue_params(
-						[]( queue_traits::params_t & p ) {
+						[]( queue_traits::queue_params_t & p ) {
 							p.lock_factory( queue_traits::simple_lock_factory() );
 						} ) );
 			\endcode
@@ -308,7 +308,7 @@ so_5::launch( []( so_5::environment_t & env ) {...},
 		env_params.add_named_dispatcher( create_disp( 
 			disp_params_t{}
 				.thread_count( 16 )
-				.tune_queue_params( queue_traits::params_t & params ) {
+				.tune_queue_params( queue_traits::queue_params_t & params ) {
 						params.lock_factory( queue_traits::simple_lock_factory() );
 					} ) );
 	} );
@@ -366,7 +366,7 @@ auto private_disp = create_private_disp(
 	env,
 	disp_params_t{}
 		.thread_count( 16 )
-		.tune_queue_params( []( queue_traits::params_t & params ) {
+		.tune_queue_params( []( queue_traits::queue_params_t & params ) {
 				params.lock_factory( queue_traits::simple_lock_factory() );
 			} ),
 	"db_workers_pool" );
@@ -405,7 +405,7 @@ auto private_disp = create_private_disp(
 	"db_workers_pool",
 	disp_params_t{}
 		.thread_count( 16 )
-		.tune_queue_params( []( queue_traits::params_t & params ) {
+		.tune_queue_params( []( queue_traits::queue_params_t & params ) {
 				params.lock_factory( queue_traits::simple_lock_factory() );
 			} ) );
 auto coop = env.create_coop( so_5::autoname,

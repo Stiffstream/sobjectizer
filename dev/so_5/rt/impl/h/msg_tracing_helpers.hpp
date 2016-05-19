@@ -211,7 +211,9 @@ make_trace(
 	so_5::msg_tracing::tracer_t & tracer,
 	ARGS &&... args ) SO_5_NOEXCEPT
 	{
+#if !defined( SO_5_HAVE_NOEXCEPT )
 		so_5::details::invoke_noexcept_code( [&] {
+#endif
 				std::ostringstream s;
 
 				s << "[tid=" << query_current_thread_id() << "]";
@@ -219,7 +221,9 @@ make_trace(
 				make_trace_to( s, std::forward< ARGS >(args)... );
 
 				tracer.trace( s.str() );
+#if !defined( SO_5_HAVE_NOEXCEPT )
 			} );
+#endif
 	}
 
 } /* namespace details */
@@ -277,7 +281,7 @@ class tracing_enabled_base
 
 	public :
 		tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
-			:	m_tracer{ tracer }
+			:	m_tracer( tracer )
 			{}
 
 		so_5::msg_tracing::tracer_t &
@@ -327,12 +331,12 @@ class tracing_enabled_base
 					const std::type_index & msg_type,
 					const message_ref_t & message,
 					const unsigned int overlimit_reaction_deep )
-					:	m_tracer{ tracing_base.tracer() }
-					,	m_mbox{ mbox }
-					,	m_op_name{ op_name }
-					,	m_msg_type{ msg_type }
-					,	m_message{ message }
-					,	m_overlimit_deep{ overlimit_reaction_deep }
+					:	m_tracer( tracing_base.tracer() )
+					,	m_mbox( mbox )
+					,	m_op_name( op_name )
+					,	m_msg_type( msg_type )
+					,	m_message( message )
+					,	m_overlimit_deep( overlimit_reaction_deep )
 					{
 					}
 
@@ -543,7 +547,7 @@ class mchain_tracing_enabled_base
 
 	public :
 		mchain_tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
-			:	m_tracer{ tracer }
+			:	m_tracer( tracer )
 			{}
 
 		so_5::msg_tracing::tracer_t &
@@ -614,11 +618,11 @@ class mchain_tracing_enabled_base
 					const std::type_index & msg_type,
 					const message_ref_t & message,
 					const invocation_type_t invocation )
-					:	m_tracer{ tracing_base.tracer() }
-					,	m_chain{ chain }
-					,	m_op_name{ message_or_svc_request( invocation ) }
-					,	m_msg_type{ msg_type }
-					,	m_message{ message }
+					:	m_tracer( tracing_base.tracer() )
+					,	m_chain( chain )
+					,	m_op_name( message_or_svc_request( invocation ) )
+					,	m_msg_type( msg_type )
+					,	m_message( message )
 					{}
 
 				template< typename QUEUE >

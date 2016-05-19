@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+gem 'Mxx_ru', '>= 1.6.11'
 require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {

@@ -12,8 +12,8 @@ public :
 	tracer_t(
 		counter_t & counter,
 		so_5::msg_tracing::tracer_unique_ptr_t actual_tracer )
-		:	m_counter{ counter }
-		,	m_actual_tracer{ std::move( actual_tracer ) }
+		:	m_counter( counter )
+		,	m_actual_tracer( std::move( actual_tracer ) )
 	{}
 
 	virtual void

@@ -279,7 +279,7 @@ class limitful_mpsc_mbox_template
 					id,
 					single_consumer,
 					std::forward< TRACING_ARGS >( tracing_args )... }
-			,	m_limits{ limits_storage }
+			,	m_limits( limits_storage )
 			{}
 
 		virtual void
@@ -288,11 +288,11 @@ class limitful_mpsc_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer(
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_message",
-						msg_type, message, overlimit_reaction_deep };
+						msg_type, message, overlimit_reaction_deep );
 
 				this->do_delivery( tracer, [&] {
 					using namespace so_5::message_limit::impl;

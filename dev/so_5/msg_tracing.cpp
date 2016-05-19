@@ -35,7 +35,7 @@ class std_stream_tracer_t : public tracer_t
 		std_stream_tracer_t(
 			//! Stream to be used for tracing.
 			std::ostream & stream )
-			:	m_stream{ stream }
+			:	m_stream( stream )
 			{}
 
 		virtual void

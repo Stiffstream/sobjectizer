@@ -73,8 +73,8 @@ class actual_cond_t : public condition_t
 			spinlock_t & spinlock,
 			//! Max waiting time for busy waiting stage.
 			std::chrono::high_resolution_clock::duration waiting_time )
-			:	m_spinlock{ spinlock }
-			,	m_waiting_time{ std::move(waiting_time) }
+			:	m_spinlock( spinlock )
+			,	m_waiting_time( std::move(waiting_time) )
 			{}
 
 		virtual void
@@ -212,7 +212,7 @@ class actual_cond_t : public condition_t
 		actual_cond_t(
 			//! Common mutex from the parent lock.
 			std::mutex & mutex )
-			:	m_mutex{ mutex }
+			:	m_mutex( mutex )
 			{}
 
 		virtual void

@@ -17,8 +17,8 @@ class a_only_top_level_states_t final : public so_5::agent_t
 
 public :
 	a_only_top_level_states_t( context_t ctx, std::string & log )
-		:	so_5::agent_t{ ctx }
-		,	m_log{ log }
+		:	so_5::agent_t( ctx )
+		,	m_log( log )
 	{
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )
@@ -62,8 +62,8 @@ class a_substates_of_one_state_t final : public so_5::agent_t
 
 public :
 	a_substates_of_one_state_t( context_t ctx, std::string & log )
-		:	so_5::agent_t{ ctx }
-		,	m_log{ log }
+		:	so_5::agent_t( ctx )
+		,	m_log( log )
 	{
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )

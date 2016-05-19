@@ -34,6 +34,12 @@
 
 #endif
 
+#if defined( __GNUC__ )
+	#if (4 == __GNUC__) && (8 == __GNUC_MINOR__)
+		#define SO_5_NEED_GNU_4_8_WORKAROUNDS
+	#endif
+#endif
+
 #if (__cplusplus >= 201103L) || (defined(_MSC_VER) && (_MSC_VER >= 1900)) 
 	#define SO_5_NOEXCEPT noexcept
 	#define SO_5_HAVE_NOEXCEPT 1

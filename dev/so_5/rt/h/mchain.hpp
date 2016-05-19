@@ -1151,8 +1151,8 @@ class receive_actions_performer_t
 		receive_actions_performer_t(
 			const mchain_receive_params_t & params,
 			const BUNCH & bunch )
-			:	m_params{ params }
-			,	m_bunch{ bunch }
+			:	m_params( params )
+			,	m_bunch( bunch )
 			{}
 
 		void
@@ -1220,10 +1220,10 @@ receive_with_finite_total_time(
 	const mchain_receive_params_t & params,
 	const BUNCH & bunch )
 	{
-		receive_actions_performer_t< BUNCH > performer{ params, bunch };
+		receive_actions_performer_t< BUNCH > performer( params, bunch );
 
-		so_5::details::remaining_time_counter_t remaining_time{
-				params.total_time() };
+		so_5::details::remaining_time_counter_t remaining_time(
+				params.total_time() );
 		do
 			{
 				performer.handle_next( remaining_time.remaining() );
