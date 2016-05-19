@@ -2,6 +2,10 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_16_1 5.5.16.1
+
+	Support for GCC v.4.8.2.
+
 \section so_5__5_16 5.5.16 "Cerro Barroso"
 
 	New method
