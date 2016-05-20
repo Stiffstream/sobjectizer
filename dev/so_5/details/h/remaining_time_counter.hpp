@@ -56,19 +56,22 @@ class remaining_time_counter_t
 			while( counter );
 		 * \endcode
 		 */
-		time_point m_started_at;
+		time_point m_last_time;
 		duration m_remaining;
 
 	public :
 		remaining_time_counter_t( duration remaining )
-			:	m_started_at{ std::chrono::steady_clock::now() }
+			:	m_last_time{ std::chrono::steady_clock::now() }
 			,	m_remaining{ remaining }
 			{}
 
 		void
 		update()
 			{
-				const auto elapsed = std::chrono::steady_clock::now() - m_started_at;
+				const auto now = std::chrono::steady_clock::now();
+				const auto elapsed = now - m_last_time;
+				m_last_time = now;
+
 				if( elapsed < m_remaining )
 					m_remaining -= elapsed;
 				else
