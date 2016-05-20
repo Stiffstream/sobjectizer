@@ -138,7 +138,7 @@ UT_UNIT_TEST( check_2_3_exist )
 #define CHECK_LAYER_EXISTANCE( so_env, N ) \
 		UT_CHECK_EQ( \
 			so_env.query_layer< test_layer_t< N > >(), \
-			(test_layer_t< N >*) last_created_objects[ N ] )
+			static_cast< test_layer_t< N >* >(last_created_objects[ N ]) )
 
 void
 init( so_5::environment_t & env )

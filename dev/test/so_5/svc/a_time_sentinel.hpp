@@ -1,5 +1,4 @@
-#if !defined( TEST__SO_5__SVC__TIME_SENTINEL_HPP )
-#define TEST__SO_5__SVC__TIME_SENTINEL_HPP
+#pragma once
 
 #include <so_5/rt/h/rt.hpp>
 
@@ -38,6 +37,4 @@ class a_time_sentinel_t
 	private :
 		const so_5::mbox_t m_self_mbox;
 	};
-
-#endif
 

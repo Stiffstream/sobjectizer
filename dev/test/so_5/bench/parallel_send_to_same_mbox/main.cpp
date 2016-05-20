@@ -114,10 +114,10 @@ main( int argc, char ** argv )
 		};
 		ensure_args_validity( 3 == argc, "wrong number of arguments" );
 
-		const unsigned int agent_count = std::atoi( argv[1] );
+		const unsigned int agent_count = static_cast< unsigned int >(std::atoi( argv[1] ));
 		ensure_args_validity( agent_count != 0, "agent_count must not be 0" );
 
-		const unsigned int send_count = std::atoi( argv[2] );
+		const unsigned int send_count = static_cast< unsigned int >(std::atoi( argv[2] ));
 		ensure_args_validity( send_count != 0, "send_count must not be 0" );
 
 		benchmarker_t benchmark;

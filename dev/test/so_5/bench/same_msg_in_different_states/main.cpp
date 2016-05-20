@@ -103,7 +103,7 @@ main( int argc, char ** argv )
 
 		if( 3 == argc )
 		{
-			max_states = std::atoi( argv[1] );
+			max_states = static_cast< std::size_t >(std::atoi( argv[1] ));
 			ensure( max_states > 0, "max_states must be >= 1" );
 
 			tick_count = std::atoi( argv[2] );
