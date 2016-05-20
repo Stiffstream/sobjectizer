@@ -6,11 +6,11 @@
 
 #include <so_5/all.hpp>
 
-using namespace std;
-
-vector< pair< string, so_5::mchain_params_t > >
+std::vector< std::pair< std::string, so_5::mchain_params_t > >
 build_mchain_params()
 	{
+		using namespace std;
+
 		namespace props = so_5::mchain_props;
 
 		vector< pair< string, so_5::mchain_params_t > > params;

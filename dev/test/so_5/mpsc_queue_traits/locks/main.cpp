@@ -70,7 +70,7 @@ single_pair_test_case( lock_factory_t factory )
 {
 	run_with_time_limit( [factory] {
 			std::cout << "single pair: " << std::flush;
-			do_pair_thread_test_case( factory, 250 );
+			do_pair_thread_test_case( factory, 250u );
 			std::cout << "OK" << std::endl;
 		},
 		20,
@@ -83,10 +83,10 @@ serie_of_pair_tests_with_equal_intervals( lock_factory_t factory )
 {
 	std::cout << "serie of pair tests with equal interval: " << std::flush;
 
-	for( int i = 0; i != 50; ++i )
+	for( unsigned int i = 0; i != 50; ++i )
 	{
 		run_with_time_limit( [factory] {
-			do_pair_thread_test_case( factory, 25 );
+			do_pair_thread_test_case( factory, 25u );
 		},
 		20,
 		"serie_of_pair_tests_with_equal_intervals" );
@@ -101,10 +101,10 @@ serie_of_pair_tests_with_different_intervals( lock_factory_t factory )
 {
 	std::cout << "serie of pair tests with different intervals: " << std::flush;
 
-	for( int i = 1; i != 50; ++i )
+	for( unsigned int i = 1; i != 50; ++i )
 	{
 		run_with_time_limit( [factory, i] {
-			do_pair_thread_test_case( factory, i*5 );
+			do_pair_thread_test_case( factory, i*5u );
 		},
 		20,
 		"serie_of_pair_tests_with_different_intervals" );
