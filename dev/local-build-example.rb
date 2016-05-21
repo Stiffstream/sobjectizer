@@ -19,6 +19,8 @@ MxxRu::Cpp::composite_target do
   end
 
   if 'clang' == toolset.name
+    global_linker_option "-Wl,-rpath='$ORIGIN'"
+
     global_compiler_option '-Werror'
     global_compiler_option '-Weverything'
     global_compiler_option '-Wno-c++98-compat'
