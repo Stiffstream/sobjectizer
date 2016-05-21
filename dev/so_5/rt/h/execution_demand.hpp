@@ -177,7 +177,7 @@ private :
 		{}
 
 // Only for the unit-testing purposes!
-#if defined( SO_5__EXECUTION_HINT__UNIT_TEST )
+#if defined( SO_5_EXECUTION_HINT_UNIT_TEST )
 public :
 	//! Is event handler defined for the demand?
 	operator bool() const

@@ -121,7 +121,7 @@ init( so_5::environment_t & env )
 {
 	using namespace so_5;
 
-	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12 ) );
+	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12u ) );
 	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
 
 #if __cplusplus < 201402

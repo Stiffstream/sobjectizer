@@ -1,7 +1,7 @@
 /*
  * Test for basic operations with execution hints.
  */
-#define SO_5__EXECUTION_HINT__UNIT_TEST
+#define SO_5_EXECUTION_HINT_UNIT_TEST
 
 #include <utest_helper_1/h/helper.hpp>
 

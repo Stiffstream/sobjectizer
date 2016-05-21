@@ -14,7 +14,7 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				so_5::wrapped_env_t env{
+				so_5::wrapped_env_t sobj{
 					[]( so_5::environment_t & env ) {
 						env.introduce_coop( []( so_5::coop_t & coop ) {
 							struct hello_sig : public so_5::signal_t {};
@@ -35,11 +35,11 @@ main()
 
 				std::this_thread::sleep_for( std::chrono::milliseconds(250) );
 
-				env.stop();
+				sobj.stop();
 
 				std::cout << "Stop signal is sent" << std::endl;
 
-				env.join();
+				sobj.join();
 
 				std::cout << "Joined" << std::endl;
 			},

@@ -5,6 +5,7 @@
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
+#include <various_helpers_1/ensure.hpp>
 
 #include <utest_helper_1/h/helper.hpp>
 
@@ -101,7 +102,7 @@ do_check_no_wait_throw_exception_impl(
 	try
 	{
 		so_5::send< int >( ch, 4 );
-		UT_CHECK_CONDITION( !"An exception must be throw before this line!" );
+		ensure_or_die( false, "An exception must be throw before this line!" );
 	}
 	catch( const so_5::exception_t & ex )
 	{
@@ -253,7 +254,7 @@ do_check_wait_throw_exception_impl(
 		try
 		{
 			so_5::send< int >( ch, 4 );
-			UT_CHECK_CONDITION( !"An exception must be throw before this line!" );
+			ensure_or_die( false, "An exception must be throw before this line!" );
 		}
 		catch( const so_5::exception_t & ex )
 		{

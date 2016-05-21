@@ -77,7 +77,7 @@ init( so_5::environment_t & env )
 	auto start_mbox = env.create_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
 	
-	auto collector = coop->make_agent< a_collector_t >( start_mbox, 9 + 10 );
+	auto collector = coop->make_agent< a_collector_t >( start_mbox, 9u + 10u );
 
 	coop->define_agent( one_thread->binder() )
 		.event< msg_start >( start_mbox,

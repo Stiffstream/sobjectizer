@@ -113,7 +113,7 @@ init( so_5::environment_t & env )
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
-	unsigned int x = test_agent_t::m_agent_count;
+	auto x = test_agent_t::m_agent_count.load();
 	x -= test_agent_t::m_message_rec_cnt;
 	if( 0 != x )
 		throw std::runtime_error(

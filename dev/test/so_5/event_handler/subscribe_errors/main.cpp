@@ -8,7 +8,7 @@
 
 #include <so_5/all.hpp>
 
-#define PERROR_AND_ABORT__(file, line, condition_text) \
+#define PERROR_AND_ABORT_IMPL(file, line, condition_text) \
 	std::cerr << file << ":" << line << ": exception expected but not thrown: " << condition_text << std::endl; \
 	std::abort();
 
@@ -19,7 +19,7 @@
 	catch( const so_5::exception_t & ) { exception_thrown = true; } \
 	if( !exception_thrown ) \
 	{ \
-		PERROR_AND_ABORT__(__FILE__, __LINE__, #condition ) \
+		PERROR_AND_ABORT_IMPL(__FILE__, __LINE__, #condition ) \
 	} \
 }
 

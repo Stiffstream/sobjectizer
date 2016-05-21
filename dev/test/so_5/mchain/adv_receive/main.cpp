@@ -250,8 +250,8 @@ UT_UNIT_TEST( test_stop_pred )
 			{
 				so_5::wrapped_env_t env(
 						[]( so_5::environment_t & ) {},
-						[]( so_5::environment_params_t & params ) {
-							params.message_delivery_tracer(
+						[]( so_5::environment_params_t & env_params ) {
+							env_params.message_delivery_tracer(
 									so_5::msg_tracing::std_clog_tracer() );
 						} );
 
