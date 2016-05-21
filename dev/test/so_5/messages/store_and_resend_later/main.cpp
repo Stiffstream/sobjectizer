@@ -41,8 +41,6 @@ class controller_t
 				case MSG_RECEIVE_2: return "MSG_RECEIVE_2";
 				case MSG_DESTROYED: return "MSG_DESTROYED";
 			}
-
-			throw std::runtime_error( "unknown state!" );
 		}
 
 		void
