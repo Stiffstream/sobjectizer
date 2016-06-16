@@ -16,6 +16,7 @@
 
 #include <so_5/rt/h/fwd.hpp>
 
+#include <so_5/details/h/invoke_noexcept_code.hpp>
 #include <so_5/details/h/remaining_time_counter.hpp>
 
 #include <chrono>
@@ -755,6 +756,7 @@ make_limited_with_waiting_mchain_params(
  * \}
  */
 
+
 //
 // mchain_receive_result_t
 //
@@ -912,6 +914,13 @@ class mchain_bulk_processing_params_t
 		 */
 		using stop_predicate = std::function< bool() >;
 
+		//! Type of chain-closed event.
+		/*!
+		 * \since
+		 * v.5.5.17
+		 */
+		using chain_closed_handler = std::function< void(const mchain_t &) >;
+
 	protected :
 		actual_type &
 		self_reference() { return static_cast< actual_type & >(*this); }
@@ -938,6 +947,13 @@ class mchain_bulk_processing_params_t
 
 		//! Optional stop-predicate.
 		stop_predicate m_stop_predicate;
+
+		//! Optional chain-closed handler.
+		/*!
+		 * \since
+		 * v.5.5.17
+		 */
+		chain_closed_handler m_chain_closed_handler;
 
 	public :
 		//! Set limit for count of messages to be extracted.
@@ -1039,6 +1055,31 @@ class mchain_bulk_processing_params_t
 		stop_on() const
 			{
 				return m_stop_predicate;
+			}
+
+		//! Set handler for chain-closed event.
+		/*!
+		 * If there is a previously set handler the old handler will be lost.
+		 *
+		 * \since
+		 * v.5.5.17
+		 */
+		actual_type &
+		on_close( chain_closed_handler handler )
+			{
+				m_chain_closed_handler = std::move(handler);
+				return self_reference();
+			}
+
+		//! Get handler for chain-closed event.
+		/*!
+		 * \since
+		 * v.5.5.17
+		 */
+		const chain_closed_handler &
+		closed_handler() const
+			{
+				return m_chain_closed_handler;
 			}
 	};
 
@@ -1172,6 +1213,16 @@ class receive_actions_performer_t
 						if( handled )
 							++m_handled_messages;
 					}
+				// Since v.5.5.17 we must check presence of chain-closed handler.
+				// This handler must be used if chain is closed.
+				else if( extraction_status_t::chain_closed == m_status )
+					{
+						if( const auto & handler = m_params.closed_handler() )
+							so_5::details::invoke_noexcept_code(
+								[&handler, this] {
+									handler( m_params.chain() );
+								} );
+					}
 			}
 
 		extraction_status_t
@@ -1210,7 +1261,9 @@ class receive_actions_performer_t
 	};
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief An implementation of advanced receive when a limit for total
  * operation time is defined.
  */
@@ -1237,7 +1290,9 @@ receive_with_finite_total_time(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief An implementation of advanced receive when there is no
  * limit for total operation time is defined.
  */
@@ -1264,6 +1319,24 @@ receive_without_total_time(
 		while( performer.can_continue() );
 
 		return performer.make_result();
+	}
+
+/*!
+ * \brief An implementation of main receive actions.
+ *
+ * \since
+ * v.5.5.17
+ */
+template< typename BUNCH >
+inline mchain_receive_result_t
+perform_receive(
+	const mchain_receive_params_t & params,
+	const BUNCH & bunch )
+	{
+		if( !is_infinite_wait_timevalue( params.total_time() ) )
+			return receive_with_finite_total_time( params, bunch );
+		else
+			return receive_without_total_time( params, bunch );
 	}
 
 } /* namespace details */
@@ -1359,10 +1432,173 @@ receive(
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
-		if( !is_infinite_wait_timevalue( params.total_time() ) )
-			return receive_with_finite_total_time( params, bunch );
-		else
-			return receive_without_total_time( params, bunch );
+		return perform_receive( params, bunch );
+	}
+
+//
+// prepared_receive_t
+//
+/*!
+ * \brief Special container for holding receive parameters and receive cases.
+ *
+ * \note Instances of that type usually used without specifying the actual
+ * type:
+ * \code
+	auto prepared = so_5::prepare_receive(
+		from(ch).handle_n(10).empty_timeout(10s),
+		some_handlers... );
+	...
+	auto r = so_5::receive( prepared );
+ * \endcode
+ * \note This is a moveable type, not copyable.
+ * 
+ * \since
+ * v.5.5.17
+ */
+template< std::size_t HANDLERS_COUNT >
+class prepared_receive_t
+	{
+		//! Parameters for receive.
+		mchain_receive_params_t m_params;
+
+		//! Cases for receive.
+		so_5::details::handlers_bunch_t< HANDLERS_COUNT > m_bunch;
+
+	public :
+		prepared_receive_t( const prepared_receive_t & ) = delete;
+		prepared_receive_t &
+		operator=( const prepared_receive_t & ) = delete;
+
+		//! Initializing constructor.
+		template< typename... HANDLERS >
+		prepared_receive_t(
+			mchain_receive_params_t params,
+			HANDLERS &&... cases )
+			:	m_params( std::move(params) )
+			{
+				static_assert( sizeof...(HANDLERS) == HANDLERS_COUNT,
+						"HANDLERS_COUNT and sizeof...(HANDLERS) mismatch" );
+
+				fill_handlers_bunch(
+						m_bunch, 0u, std::forward<HANDLERS>(cases)... );
+			}
+
+		//! Move constructor.
+		prepared_receive_t(
+			prepared_receive_t && other )
+			:	m_params( std::move(other.m_params) )
+			,	m_bunch( std::move(other.m_bunch) )
+			{}
+
+		//! Move operator.
+		prepared_receive_t &
+		operator=( prepared_receive_t && other ) SO_5_NOEXCEPT
+			{
+				prepared_receive_t tmp( std::move(other) );
+				this->swap(tmp);
+				return *this;
+			}
+
+		//! Swap operation.
+		void
+		swap( prepared_receive_t & o ) SO_5_NOEXCEPT
+			{
+				std::swap( o.m_params, o.m_params );
+				m_bunch.swap( o.m_bunch );
+			}
+
+		/*!
+		 * \name Getters
+		 * \{ 
+		 */
+		const mchain_receive_params_t &
+		params() const { return m_params; }
+
+		const so_5::details::handlers_bunch_t< HANDLERS_COUNT > &
+		handlers() const { return m_bunch; }
+		/*!
+		 * \}
+		 */
+	};
+
+//
+// prepare_receive
+//
+/*!
+ * \brief Create parameters for receive function to be used later.
+ *
+ * Accepts all parameters as advanced receive() version. For example:
+ * \code
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in the mchain the receive will wait
+	// no more that 200ms.
+	// A return from receive will be after handling of 3 messages or
+	// if the mchain is closed explicitely, or if there is no messages
+	// for more than 200ms.
+	auto prepared1 = prepare_receive(
+			from(chain).handle_n( 3 ).empty_timeout( milliseconds(200) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+
+	// Receive all messages from the chain.
+	// If there is no message in the chain then wait no more than 500ms.
+	// A return from receive will be after explicit close of the chain
+	// or if there is no messages for more than 500ms.
+	auto prepared2 = prepare_receive(
+			from(chain).empty_timeout( milliseconds(500) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+ * \endcode
+ *
+ * \since
+ * v.5.5.17
+ */
+template< typename... HANDLERS >
+prepared_receive_t< sizeof...(HANDLERS) >
+prepare_receive(
+	//! Parameters for advanced receive.
+	const mchain_receive_params_t & params,
+	//! Handlers
+	HANDLERS &&... handlers )
+	{
+		return prepared_receive_t< sizeof...(HANDLERS) >(
+				params,
+				std::forward<HANDLERS>(handlers)... );
+	}
+
+/*!
+ * \brief A receive operation to be done on previously prepared receive params.
+ *
+ * Usage of ordinary forms of receive() functions inside loops could be
+ * inefficient because of wasting resources on constructions of internal
+ * objects with descriptions of handlers on each receive() call.  More
+ * efficient way is preparation of all receive params and reusing them later. A
+ * combination of so_5::prepare_receive() and so_5::receive(prepared_receive_t)
+ * allows to do that.
+ *
+ * Usage example:
+ * \code
+	auto prepared = so_5::prepare_receive(
+		so_5::from(ch).extract_n(10).empty_timeout(200ms),
+		some_handlers... );
+	...
+	while( !some_condition )
+	{
+		auto r = so_5::receive( prepared );
+		...
+	}
+ * \endcode
+ * \since
+ * v.5.5.17
+ */
+template< std::size_t HANDLERS_COUNT >
+mchain_receive_result_t
+receive(
+	const prepared_receive_t< HANDLERS_COUNT > & prepared )
+	{
+		return mchain_props::details::perform_receive(
+				prepared.params(),
+				prepared.handlers() );
 	}
 
 } /* namespace so_5 */

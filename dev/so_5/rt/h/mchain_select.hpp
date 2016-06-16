@@ -14,6 +14,7 @@
 #include <so_5/rt/h/mchain_select_ifaces.hpp>
 
 #include <so_5/details/h/at_scope_exit.hpp>
+#include <so_5/details/h/invoke_noexcept_code.hpp>
 #include <so_5/details/h/remaining_time_counter.hpp>
 
 #include <iterator>
@@ -179,34 +180,34 @@ class select_cases_holder_t
 		/*!
 		 * Implements ForwardIterator concept.
 		 */
-		class iterator
+		class const_iterator
 			: public std::iterator< std::forward_iterator_tag, select_case_t >
 			{
-				using actual_it_t = typename array_type_t::iterator;
+				using actual_it_t = typename array_type_t::const_iterator;
 
 				actual_it_t m_it;
 
 			public :
-				iterator() {}
-				iterator( actual_it_t it ) : m_it( std::move(it) ) {}
+				const_iterator() {}
+				const_iterator( actual_it_t it ) : m_it( std::move(it) ) {}
 
-				iterator & operator++() { ++m_it; return *this; }
-				iterator operator++(int) { iterator o{ m_it }; ++m_it; return o; }
+				const_iterator & operator++() { ++m_it; return *this; }
+				const_iterator operator++(int) { const_iterator o{ m_it }; ++m_it; return o; }
 
-				bool operator==( const iterator & o ) const { return m_it == o.m_it; }
-				bool operator!=( const iterator & o ) const { return m_it != o.m_it; }
+				bool operator==( const const_iterator & o ) const { return m_it == o.m_it; }
+				bool operator!=( const const_iterator & o ) const { return m_it != o.m_it; }
 
 				select_case_t & operator*() const { return **m_it; }
 				select_case_t * operator->() const { return m_it->get(); }
 			};
 
 		//! Get iterator for the first item in select_cases_holder.
-		iterator
-		begin() { return iterator{ m_cases.begin() }; }
+		const_iterator
+		begin() const { return const_iterator{ m_cases.begin() }; }
 
 		//! Get iterator for the item just behind the last item in select_cases_holder.
-		iterator
-		end() { return iterator{ m_cases.end() }; }
+		const_iterator
+		end() const { return const_iterator{ m_cases.end() }; }
 	};
 
 //
@@ -370,7 +371,7 @@ template< typename HOLDER >
 class select_actions_performer_t
 	{
 		const mchain_select_params_t & m_params;
-		HOLDER & m_select_cases;
+		const HOLDER & m_select_cases;
 		actual_select_notificator_t m_notificator;
 
 		std::size_t m_closed_chains = 0;
@@ -382,7 +383,7 @@ class select_actions_performer_t
 	public :
 		select_actions_performer_t(
 			const mchain_select_params_t & params,
-			HOLDER & select_cases )
+			const HOLDER & select_cases )
 			:	m_params( params )
 			,	m_select_cases( select_cases )
 			,	m_notificator( select_cases.begin(), select_cases.end() )
@@ -448,7 +449,17 @@ class select_actions_performer_t
 								m_notificator.return_to_ready_chain( *current );
 							}
 						else if( extraction_status_t::chain_closed == m_status )
-							++m_closed_chains;
+							{
+								++m_closed_chains;
+
+								// Since v.5.5.17 chain_closed handler must be
+								// used on chain_closed event.
+								if( const auto & handler = m_params.closed_handler() )
+									so_5::details::invoke_noexcept_code(
+										[&handler, current] {
+											handler( current->chain() );
+										} );
+							}
 
 						update_can_continue_flag();
 					}
@@ -483,7 +494,7 @@ template< typename HOLDER >
 mchain_receive_result_t
 do_adv_select_with_total_time(
 	const mchain_select_params_t & params,
-	HOLDER & select_cases )
+	const HOLDER & select_cases )
 	{
 		using namespace so_5::details;
 
@@ -504,7 +515,7 @@ template< typename HOLDER >
 mchain_receive_result_t
 do_adv_select_without_total_time(
 	const mchain_select_params_t & params,
-	HOLDER & select_cases )
+	const HOLDER & select_cases )
 	{
 		using namespace so_5::details;
 
@@ -533,6 +544,29 @@ do_adv_select_without_total_time(
 		while( wait_time && performer.can_continue() );
 
 		return performer.make_result();
+	}
+
+//
+// perform_select
+//
+/*!
+ * \brief Helper function with implementation of main select action.
+ *
+ * \since
+ * v.5.5.17
+ */
+template< typename CASES_HOLDER >
+mchain_receive_result_t
+perform_select(
+	//! Parameters for advanced select.
+	const mchain_select_params_t & params,
+	//! Select cases.
+	const CASES_HOLDER & cases_holder )
+	{
+		if( is_infinite_wait_timevalue( params.total_time() ) )
+			return do_adv_select_without_total_time( params, cases_holder );
+		else
+			return do_adv_select_with_total_time( params, cases_holder );
 	}
 
 } /* namespace details */
@@ -669,10 +703,7 @@ select(
 		fill_select_cases_holder(
 				cases_holder, 0, std::forward< CASES >(cases)... );
 
-		if( is_infinite_wait_timevalue( params.total_time() ) )
-			return do_adv_select_without_total_time( params, cases_holder );
-		else
-			return do_adv_select_with_total_time( params, cases_holder );
+		return perform_select( params, cases_holder );
 	}
 
 //
@@ -709,6 +740,187 @@ select( DURATION wait_time, CASES &&... cases )
 		return select(
 				mchain_select_params_t{}.extract_n( 1 ).empty_timeout( wait_time ),
 				std::forward< CASES >(cases)... );
+	}
+
+//
+// prepared_select_t
+//
+/*!
+ * \brief Special container for holding select parameters and select cases.
+ *
+ * \note Instances of that type usually used without specifying the actual
+ * type:
+ * \code
+	auto prepared = so_5::prepare_select(
+		so_5::from_all().handle_n(10).empty_timeout(10s),
+		case_( ch1, some_handlers... ),
+		case_( ch2, more_handlers... ), ... );
+	...
+	auto r = so_5::select( prepared );
+ * \endcode
+ *
+ * \note This is a moveable type, not copyable.
+ * 
+ * \since
+ * v.5.5.17
+ */
+template< std::size_t CASES_COUNT >
+class prepared_select_t
+	{
+		//! Parameters for select.
+		mchain_select_params_t m_params;
+
+		//! Cases for select.
+		mchain_props::details::select_cases_holder_t< CASES_COUNT > m_cases_holder;
+
+	public :
+		prepared_select_t( const prepared_select_t & ) = delete;
+		prepared_select_t &
+		operator=( const prepared_select_t & ) = delete;
+
+		//! Initializing constructor.
+		template< typename... CASES >
+		prepared_select_t(
+			mchain_select_params_t params,
+			CASES &&... cases )
+			:	m_params( std::move(params) )
+			{
+				static_assert( sizeof...(CASES) == CASES_COUNT,
+						"CASES_COUNT and sizeof...(CASES) mismatch" );
+
+				mchain_props::details::fill_select_cases_holder(
+						m_cases_holder, 0u, std::forward<CASES>(cases)... );
+			}
+
+		//! Move constructor.
+		prepared_select_t(
+			prepared_select_t && other )
+			:	m_params( std::move(other.m_params) )
+			,	m_cases_holder( std::move(other.m_cases_holder) )
+			{}
+
+		//! Move operator.
+		prepared_select_t &
+		operator=( prepared_select_t && other ) SO_5_NOEXCEPT
+			{
+				prepared_select_t tmp( std::move(other) );
+				this->swap(tmp);
+				return *this;
+			}
+
+		//! Swap operation.
+		void
+		swap( prepared_select_t & o ) SO_5_NOEXCEPT
+			{
+				std::swap( o.m_params, o.m_params );
+				m_cases_holder.swap( o.m_cases_holder );
+			}
+
+		/*!
+		 * \name Getters
+		 * \{ 
+		 */
+		const mchain_select_params_t &
+		params() const { return m_params; }
+
+		const mchain_props::details::select_cases_holder_t< CASES_COUNT > &
+		cases() const { return m_cases_holder; }
+		/*!
+		 * \}
+		 */
+	};
+
+//
+// prepare_select
+//
+/*!
+ * \brief Create prepared select statement to be used later.
+ *
+ * Accepts all parameters as advanced select() version. For example:
+ * \code
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in chains the select will wait
+	// no more that 200ms.
+	// A return from select will be after handling of 3 messages or
+	// if all mchains are closed explicitely, or if there is no messages
+	// for more than 200ms.
+	auto prepared1 = prepare_select(
+		so_5::from_all().handle_n( 3 ).empty_timeout( milliseconds(200) ),
+		case_( ch1,
+				[]( const first_message_type & msg ) { ... },
+				[]( const second_message_type & msg ) { ... } ),
+		case_( ch2,
+				[]( const third_message_type & msg ) { ... },
+				handler< some_signal_type >( []{ ... ] ),
+				... ) );
+
+	// Receive all messages from mchains.
+	// If there is no message in any of mchains then wait no more than 500ms.
+	// A return from select will be after explicit close of all mchains
+	// or if there is no messages for more than 500ms.
+	auto prepared2 = prepare_select(
+		so_5::from_all().empty_timeout( milliseconds(500) ),
+		case_( ch1,
+				[]( const first_message_type & msg ) { ... },
+				[]( const second_message_type & msg ) { ... } ),
+		case_( ch2,
+				[]( const third_message_type & msg ) { ... },
+				handler< some_signal_type >( []{ ... ] ),
+				... ) );
+ * \endcode
+ *
+ * \since
+ * v.5.5.17
+ */
+template< typename... CASES >
+prepared_select_t< sizeof...(CASES) >
+prepare_select(
+	//! Parameters for advanced select.
+	const mchain_select_params_t & params,
+	//! Select cases.
+	CASES &&... cases )
+	{
+		return prepared_select_t< sizeof...(CASES) >(
+				params,
+				std::forward<CASES>(cases)... );
+	}
+
+/*!
+ * \brief A select operation to be done on previously prepared select params.
+ *
+ * Usage of ordinary forms of select() functions inside loops could be
+ * inefficient because of wasting resources on constructions of internal
+ * objects with descriptions of select cases on each select() call.  More
+ * efficient way is preparation of all select params and reusing them later. A
+ * combination of so_5::prepare_select() and so_5::select(prepared_select_t)
+ * allows to do that.
+ *
+ * Usage example:
+ * \code
+	auto prepared = so_5::prepare_select(
+		so_5::from_all().extract_n(10).empty_timeout(200ms),
+		case_( ch1, some_handlers... ),
+		case_( ch2, more_handlers... ),
+		case_( ch3, yet_more_handlers... ) );
+	...
+	while( !some_condition )
+	{
+		auto r = so_5::select( prepared );
+		...
+	}
+ * \endcode
+ *
+ * \since
+ * v.5.5.17
+ */
+template< std::size_t CASES_COUNT >
+mchain_receive_result_t
+select(
+	const prepared_select_t< CASES_COUNT > & prepared )
+	{
+		return mchain_props::details::perform_select(
+				prepared.params(),
+				prepared.cases() );
 	}
 
 } /* namespace so_5 */

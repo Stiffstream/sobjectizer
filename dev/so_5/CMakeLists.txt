@@ -20,7 +20,6 @@ set(SO_5_SRC exception.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/mchain.cpp
-	rt/mchain_select.cpp
 	rt/event_queue.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
@@ -71,6 +70,11 @@ set(SO_5_SRC exception.cpp
 
 add_library(${SO_5_TARGET} SHARED ${SO_5_SRC})
 
+add_library(${SO_5_S_TARGET} STATIC ${SO_5_SRC})
+target_compile_definitions(${SO_5_S_TARGET}
+	PUBLIC -DSO_5_STATIC_LIB
+)
+
 set(SO_5_EXT_LIBS )
 if( ANDROID )
 	list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBCRYSTAX_FILE})
@@ -83,7 +87,7 @@ foreach(__extLibrary ${SO_5_EXT_LIBS})
 endforeach()
 
 install(
-	TARGETS ${SO_5_TARGET}
+	TARGETS ${SO_5_TARGET} ${SO_5_S_TARGET}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin

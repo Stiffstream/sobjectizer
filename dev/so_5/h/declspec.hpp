@@ -31,14 +31,28 @@
 #endif
 
 #if defined( SO_5_PRJ )
-	#define SO_5_TYPE SO_5_EXPORT
+	#if defined( SO_5_STATIC_LIB )
+		// Compilation of SO-5 as static library.
+		#define SO_5_TYPE
 
-	#define SO_5_FUNC SO_5_EXPORT
+		#define SO_5_FUNC
+	#else
+		// Compilation of SO-5 as dynamic library.
+		#define SO_5_TYPE SO_5_EXPORT
 
+		#define SO_5_FUNC SO_5_EXPORT
+	#endif
 #else
-	#define SO_5_TYPE SO_5_IMPORT
+	#if defined( SO_5_STATIC_LIB )
+		// Use of SO-5 as static library.
+		#define SO_5_TYPE
 
-	#define SO_5_FUNC SO_5_IMPORT
+		#define SO_5_FUNC
+	#else
+		// Use of SO-5 as dynamic library.
+		#define SO_5_TYPE SO_5_IMPORT
 
+		#define SO_5_FUNC SO_5_IMPORT
+	#endif
 #endif
 

@@ -1,7 +1,11 @@
 require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
-	example = lambda { |name| required_prj "sample/so_5/#{name}/prj.rb" }
+	example = lambda { |name|
+		required_if_present = lambda { |prj| required_prj(prj) if File.exists?(prj) }
+		required_if_present[ "sample/so_5/#{name}/prj.rb" ]
+		required_if_present[ "sample/so_5/#{name}/prj_s.rb" ]
+	}
 
 	example[ 'hello_world' ]
 	example[ 'hello_world_adhoc' ]

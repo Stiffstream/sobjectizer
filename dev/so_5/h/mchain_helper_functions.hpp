@@ -457,5 +457,176 @@ auto_close_drop_content( TAIL &&... tail )
 				std::forward< TAIL >(tail)... );
 	}
 
+//
+// mchain_master_handle_t
+//
+/*!
+ * \brief Helper class for automatic close of a mchain at
+ * the destruction of master handle instance.
+ *
+ * This class is intended for cases like that:
+	\code
+	auto ch = so_5::create_mchain( env );
+	auto ch_closer = so_5::auto_close_drop_content( ch );
+	...
+	\endcode
+ * The example shown above can be replaced by:
+ * \code
+	so_5::mchain_master_handle_t ch_handle(
+		so_5::create_mchain( env ),
+		so_5::mchain_props::close_mode_t::drop_content );
+
+	// Or
+	auto ch_handle = so_5::mchain_master_handle_t::make(
+		so_5::create_mchain( env ),
+		so_5::mchain_props::close_mode_t::drop_content );
+
+	// Or
+	auto ch_handle = so_5::mchain_master_handle_t::with_drop_content(
+		so_5::create_mchain( env ) );
+ * \endcode
+ *
+ * \note This class is moveable but not copyable.
+ *
+ * \since
+ * v.5.5.17
+ */
+class mchain_master_handle_t
+	{
+	public :
+		mchain_master_handle_t( const mchain_master_handle_t & ) = delete;
+		mchain_master_handle_t &
+		operator=( const mchain_master_handle_t & ) = delete;
+
+		//! Initializing constructor.
+		mchain_master_handle_t(
+			//! A mchain itself.
+			mchain_t chain,
+			//! Close mode for mchain.
+			mchain_props::close_mode_t close_mode ) SO_5_NOEXCEPT
+			:	m_chain( std::move(chain) )
+			,	m_close_mode( close_mode )
+			{}
+
+		//! Move constructor.
+		mchain_master_handle_t(
+			mchain_master_handle_t && handle ) SO_5_NOEXCEPT
+			:	m_chain( std::move(handle.m_chain) )
+			,	m_close_mode( handle.m_close_mode )
+			{}
+
+		//! Destructor closes the chain.
+		~mchain_master_handle_t()
+			{
+				if( m_chain )
+					m_chain->close( m_close_mode );
+			}
+
+		//! Move operator.
+		mchain_master_handle_t &
+		operator=( mchain_master_handle_t && handle ) SO_5_NOEXCEPT
+			{
+				mchain_master_handle_t tmp( std::move(handle) );
+				this->swap(tmp);
+				return *this;
+			}
+
+		//! Swap operation.
+		void
+		swap( mchain_master_handle_t & other ) SO_5_NOEXCEPT
+			{
+				m_chain.swap( other.m_chain );
+				std::swap( m_close_mode, other.m_close_mode );
+			}
+
+		//! Get the mchain.
+		const mchain_t &
+		get() const SO_5_NOEXCEPT { return m_chain; }
+
+		//! Get the mchain.
+		const mchain_t &
+		operator*() const SO_5_NOEXCEPT { return m_chain; }
+
+//FIXME: usage examples must be shown in Doxygen comments.
+		//! \name Helpers methods for master handle creation.
+		//! \{
+		/*!
+		 * \par Usage example:
+		 * \code
+			void demo( so_5::environment_t & env, app_config & config )
+			{
+				std::thread worker;
+				auto worker_joiner = so_5::auto_join( worker );
+
+				auto chain = so_5::mchain_master_handle_t::make(
+					create_mchain( env ),
+					detect_close_mode( config ) );
+
+				worker = std::thread( [ch = *chain]{ ... } );
+				...
+			}
+		 * \endcode
+		 */
+		inline static mchain_master_handle_t
+		make(
+			mchain_t chain,
+			mchain_props::close_mode_t close_mode ) SO_5_NOEXCEPT
+			{
+				return mchain_master_handle_t( std::move(chain), close_mode );
+			}
+
+		/*!
+		 * \par Usage example:
+		 * \code
+			void demo( so_5::environment_t & env )
+			{
+				std::thread worker;
+				auto worker_joiner = so_5::auto_join( worker );
+
+				auto chain = so_5::mchain_master_handle_t::with_drop_content(
+					create_mchain( env ) );
+
+				worker = std::thread( [ch = *chain]{ ... } );
+				...
+			}
+		 * \endcode
+		 */
+		inline static mchain_master_handle_t
+		with_drop_content( mchain_t chain ) SO_5_NOEXCEPT
+			{
+				return mchain_master_handle_t( std::move(chain),
+						mchain_props::close_mode_t::drop_content );
+			}
+
+		/*!
+		 * \par Usage example:
+		 * \code
+			void demo( so_5::environment_t & env )
+			{
+				std::thread worker;
+				auto worker_joiner = so_5::auto_join( worker );
+
+				auto chain = so_5::mchain_master_handle_t::with_retain_content(
+					create_mchain( env ) );
+
+				worker = std::thread( [ch = *chain]{ ... } );
+				...
+			}
+		 * \endcode
+		 */
+		inline static mchain_master_handle_t
+		with_retain_content( mchain_t chain ) SO_5_NOEXCEPT
+			{
+				return mchain_master_handle_t( std::move(chain),
+						mchain_props::close_mode_t::retain_content );
+			}
+		//! \}
+	private :
+		//! Chain to be hold.
+		mchain_t m_chain;
+		//! Close mode for mchain.
+		mchain_props::close_mode_t m_close_mode;
+	};
+
 } /* namespace so_5 */
 

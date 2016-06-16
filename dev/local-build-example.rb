@@ -1,7 +1,7 @@
 MxxRu::Cpp::composite_target do
+  global_obj_placement So5::ObjPlacement.new( 'target', So5::ObjPlacement::USE_COMPILER_ID )
   default_runtime_mode( MxxRu::Cpp::RUNTIME_RELEASE )
   MxxRu::enable_show_brief
-  global_obj_placement MxxRu::Cpp::ToolsetRuntimeSubdirObjPlacement.new( 'target' )
 
   if 'vc' == toolset.name
     global_compiler_option '/W3'

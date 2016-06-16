@@ -209,6 +209,17 @@ class select_case_t
 				return mchain_receive_result_t{ 0u, 0u, status };
 			}
 
+		//! Get the underlying mchain.
+		/*!
+		 * \since
+		 * v.5.5.17
+		 */
+		const mchain_t &
+		chain() const SO_5_NOEXCEPT
+			{
+				return m_chain;
+			}
+
 	protected :
 		//! Attempt to handle extracted message.
 		/*!

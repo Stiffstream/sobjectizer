@@ -1,3 +1,9 @@
-add_executable(sample.so_5.hello_world main.cpp)
-target_link_libraries(sample.so_5.hello_world so.${SO_5_VERSION})
-install(TARGETS sample.so_5.hello_world DESTINATION bin)
+set(SAMPLE sample.so_5.hello_world)
+add_executable(${SAMPLE} main.cpp)
+target_link_libraries(${SAMPLE} so.${SO_5_VERSION})
+install(TARGETS ${SAMPLE} DESTINATION bin)
+
+set(SAMPLE_S sample.so_5.hello_world_s)
+add_executable(${SAMPLE_S} main.cpp)
+target_link_libraries(${SAMPLE_S} so_s.${SO_5_VERSION})
+install(TARGETS ${SAMPLE_S} DESTINATION bin)

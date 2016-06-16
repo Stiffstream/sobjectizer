@@ -2,6 +2,8 @@
 gem 'Mxx_ru', '>= 1.6.11'
 require 'mxx_ru/cpp'
 
+require_relative 'obj_placement'
+
 MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 
 	toolset.force_cpp0x_std
@@ -15,9 +17,11 @@ MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 	if FileTest.exist?( "local-build.rb" )
 		required_prj "local-build.rb"
 	else
+		global_obj_placement So5::ObjPlacement.new( 'target' )
 		default_runtime_mode( MxxRu::Cpp::RUNTIME_RELEASE )
 		MxxRu::enable_show_brief
 	end
 
-	required_prj( "so_5/prj.rb" )
+	required_prj 'so_5/prj.rb'
+	required_prj 'so_5/prj_s.rb'
 }

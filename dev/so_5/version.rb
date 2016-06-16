@@ -1,3 +1,3 @@
-module So_5
-	VERSION = "5.5.16.1"
+module So5
+	VERSION = "5.5.17"
 end

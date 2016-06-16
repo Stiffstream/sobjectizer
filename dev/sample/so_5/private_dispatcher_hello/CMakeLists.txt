@@ -1,3 +1,9 @@
-add_executable(sample.so_5.private_dispatcher_hello main.cpp)
-target_link_libraries(sample.so_5.private_dispatcher_hello so.${SO_5_VERSION})
-install(TARGETS sample.so_5.private_dispatcher_hello DESTINATION bin)
+set(SAMPLE sample.so_5.private_dispatcher_hello)
+add_executable(${SAMPLE} main.cpp)
+target_link_libraries(${SAMPLE} so.${SO_5_VERSION})
+install(TARGETS ${SAMPLE} DESTINATION bin)
+
+set(SAMPLE_S sample.so_5.private_dispatcher_hello_s)
+add_executable(${SAMPLE_S} main.cpp)
+target_link_libraries(${SAMPLE_S} so_s.${SO_5_VERSION})
+install(TARGETS ${SAMPLE_S} DESTINATION bin)

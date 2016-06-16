@@ -41,7 +41,7 @@ repository_t::source_list_add(
 	{
 		if( !tail )
 			{
-				// Addition the the empty list.
+				// Addition to the empty list.
 				what.m_prev = what.m_next = nullptr;
 				head = &what;
 			}

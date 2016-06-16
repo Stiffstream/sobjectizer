@@ -1,3 +1,9 @@
-add_executable(sample.so_5.many_timers main.cpp)
-target_link_libraries(sample.so_5.many_timers so.${SO_5_VERSION})
-install(TARGETS sample.so_5.many_timers DESTINATION bin)
+set(SAMPLE sample.so_5.many_timers)
+add_executable(${SAMPLE} main.cpp)
+target_link_libraries(${SAMPLE} so.${SO_5_VERSION})
+install(TARGETS ${SAMPLE} DESTINATION bin)
+
+set(SAMPLE_S sample.so_5.many_timers_s)
+add_executable(${SAMPLE_S} main.cpp)
+target_link_libraries(${SAMPLE_S} so_s.${SO_5_VERSION})
+install(TARGETS ${SAMPLE_S} DESTINATION bin)

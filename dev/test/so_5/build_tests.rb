@@ -68,6 +68,8 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/bench/agent_ring/prj.rb" 
 	required_prj "#{path}/bench/coop_dereg/prj.rb" 
 	required_prj "#{path}/bench/skynet1m/prj.rb" 
+	required_prj "#{path}/bench/prepared_receive/prj.rb" 
+	required_prj "#{path}/bench/prepared_select/prj.rb" 
 
 	required_prj "#{path}/samples_as_unit_tests/build_tests.rb" 
 }
