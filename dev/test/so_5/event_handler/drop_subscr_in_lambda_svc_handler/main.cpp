@@ -36,7 +36,7 @@ public :
 			auto reply_string = ss.str();
 
 			so_subscribe( unique_mbox ).event< request >(
-				[this, unique_mbox, reply_string] {
+				[this, unique_mbox, reply_string]() -> std::string {
 					so_drop_subscription< request >( unique_mbox );
 					return reply_string;
 				} );
