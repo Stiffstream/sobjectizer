@@ -1018,7 +1018,7 @@ void
 agent_t::process_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d,
-	const event_handler_method_t & method )
+	event_handler_method_t method )
 {
 	working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
@@ -1055,7 +1055,18 @@ agent_t::process_service_request(
 						d.m_receiver->m_working_thread_id,
 						working_thread_id );
 
-				handler->m_method(
+				// This copy is necessary to prevent deallocation of
+				// event-handler if it is implemented as lambda-function.
+				// Deallocation is possible in such case:
+				//
+				// auto mbox = so_environment().create_mbox();
+				// so_subscribe( mbox ).event< some_signal >( [this, mbox] {
+				// 	so_drop_subscription< some_signal >( mbox );
+				// 	... // Some other actions.
+				// } );
+				auto method_to_call = handler->m_method;
+
+				method_to_call(
 						invocation_type_t::service_request, d.m_message_ref );
 			}
 			else

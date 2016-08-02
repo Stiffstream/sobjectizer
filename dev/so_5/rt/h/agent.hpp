@@ -2084,14 +2084,28 @@ class SO_5_TYPE agent_t
 
 	private :
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Actual implementation of message handling.
+		 *
+		 * \note Since v.5.5.17.1 argument \a method is passed as copy.
+		 * It prevents deallocation of event_handler_method in the following
+		 * case:
+		 * \code
+		 	auto mbox = so_environment().create_mbox();
+			so_subscribe( mbox ).event< some_signal >( [this, mbox] {
+				so_drop_subscription< some_signal >( mbox );
+				... // Some other actions.
+			} );
+		 * \endcode
 		 */
 		static void
 		process_message(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
-			const event_handler_method_t & method );
+			event_handler_method_t method );
+
 		/*!
 		 * \since v.5.4.0
 		 * \brief Actual implementation of service request handling.
