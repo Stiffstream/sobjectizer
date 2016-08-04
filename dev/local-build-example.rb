@@ -1,5 +1,6 @@
 MxxRu::Cpp::composite_target do
-  global_obj_placement So5::ObjPlacement.new( 'target', So5::ObjPlacement::USE_COMPILER_ID )
+  global_obj_placement MxxRu::Cpp::PrjAwareRuntimeSubdirObjPlacement.new(
+    'target', MxxRu::Cpp::PrjAwareRuntimeSubdirObjPlacement::USE_COMPILER_ID )
   default_runtime_mode( MxxRu::Cpp::RUNTIME_RELEASE )
   MxxRu::enable_show_brief
 

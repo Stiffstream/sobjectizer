@@ -1,8 +1,6 @@
 #!/usr/bin/ruby
-gem 'Mxx_ru', '>= 1.6.11'
+gem 'Mxx_ru', '>= 1.6.12'
 require 'mxx_ru/cpp'
-
-require_relative 'obj_placement'
 
 MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 
@@ -17,7 +15,7 @@ MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 	if FileTest.exist?( "local-build.rb" )
 		required_prj "local-build.rb"
 	else
-		global_obj_placement So5::ObjPlacement.new( 'target' )
+		global_obj_placement MxxRu::Cpp::PrjAwareRuntimeSubdirObjPlacement.new( 'target' )
 		default_runtime_mode( MxxRu::Cpp::RUNTIME_RELEASE )
 		MxxRu::enable_show_brief
 	end
