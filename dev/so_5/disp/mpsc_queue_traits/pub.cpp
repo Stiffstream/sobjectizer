@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.10
+ * \since
+ * v.5.5.10
+ *
  * \file
  * \brief Various traits for MPSC queues.
  */
@@ -36,7 +38,9 @@ namespace impl {
 // combined_lock_t
 //
 /*!
- * \since v.5.5.10
+ * \since
+ * v.5.5.10
+ *
  * \brief A special combined lock for queue protection.
  *
  * This lock used spinlocks for efficiency and std::mutex and
@@ -148,7 +152,9 @@ class combined_lock_t : public lock_t
 // simple_lock_t
 //
 /*!
- * \since v.5.5.10
+ * \since
+ * v.5.5.10
+ *
  * \brief A very simple lock based on usage of std::mutex and
  * std::condition_variable.
  */

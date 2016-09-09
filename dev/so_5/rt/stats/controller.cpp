@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A public interface for control SObjectizer monitoring options.
  */
 
@@ -15,6 +17,9 @@ namespace so_5
 
 namespace stats
 {
+
+controller_t::controller_t()
+	{}
 
 controller_t::~controller_t()
 	{}

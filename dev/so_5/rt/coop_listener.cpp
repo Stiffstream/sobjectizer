@@ -11,6 +11,10 @@ namespace so_5
 // coop_listener_t
 //
 
+coop_listener_t::coop_listener_t()
+{
+}
+
 coop_listener_t::~coop_listener_t()
 {
 }

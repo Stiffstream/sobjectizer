@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief An adaptive storage for agent's subscriptions information.
  */
@@ -20,14 +22,18 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief An adaptive storage for agent's subscriptions information.
  */
 namespace adaptive_subscr_storage
 {
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief An adaptive storage for agent's subscriptions information.
  *
  * Uses two actual storages: one for small amount of subscriptions,

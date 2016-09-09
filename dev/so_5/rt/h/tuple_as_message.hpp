@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \file
  * \brief All stuff related to tuple_as_message.
  */
@@ -22,7 +24,9 @@ namespace so_5 {
 #endif
 
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief A template which allows to use tuples as messages.
  *
  * \tparam TAG a type tag for distinguish messages with the same fields list.
@@ -126,7 +130,9 @@ struct tuple_as_message_t
 // mtag
 //
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief A helper template for simplification of defining unique message tags
  * for tuple_as_message.
  *
@@ -160,7 +166,9 @@ using mtag = std::integral_constant< int, N >;
 // typed_mtag
 //
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief A helper template for simplification of defining unique message tags
  * for tuple as message.
  *

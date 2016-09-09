@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \file
  * \brief Definition of storage for delivery filters.
  */
@@ -26,7 +28,9 @@ namespace impl {
 // delivery_filter_storage_t
 //
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief Storage for message delivery filters.
  *
  * \attention This storage do not drop filters in the destructor.

@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A public interface for control SObjectizer monitoring options.
  */
 
@@ -23,12 +25,21 @@ namespace stats
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A public interface for control SObjectizer monitoring options.
  */
 class SO_5_TYPE controller_t
 	{
 	protected :
+		// Note: clang-3.9 requires this on Windows platform.
+		controller_t( const controller_t & ) = delete;
+		controller_t( controller_t && ) = delete;
+		controller_t & operator=( const controller_t & ) = delete;
+		controller_t & operator=( controller_t && ) = delete;
+
+		controller_t();
 		~controller_t();
 
 	public :

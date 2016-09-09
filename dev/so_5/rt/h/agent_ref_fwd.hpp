@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.2.0
+	\since
+	v.5.2.0
+
 	\brief A forward declaration of agent_ref_t.
 */
 

@@ -50,7 +50,9 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 
 	private :
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief Get the pointer to the message payload.
 		 *
 		 * \note This method is necessary for message delivery tracing.
@@ -76,7 +78,8 @@ typedef intrusive_ptr_t< message_t > message_ref_t;
 //
 //! A base class for agent signals.
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
  *
  * All signals (messages without any data) for agents should be
  * derived from this class.
@@ -85,6 +88,12 @@ class SO_5_TYPE signal_t
 	:	public message_t
 {
 	private :
+		// Note: clang-3.9 requires this on Windows platform.
+		signal_t( const signal_t & ) = delete;
+		signal_t( signal_t && ) = delete;
+		signal_t & operator=( const signal_t & ) = delete;
+		signal_t & operator=( signal_t && ) = delete;
+
 		/*!
 		 * Private constructor to disable creation of instances of
 		 * derived classes.
@@ -143,7 +152,9 @@ private :
 // is_user_type_message
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A helper for detection presence of message of user type.
  *
  * \tparam M type to test.
@@ -164,7 +175,9 @@ struct is_user_type_message< user_type_message_t< M > >
 // is_signal
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A helper class for checking that message is a signal.
  */
 template< class T >
@@ -177,7 +190,9 @@ struct is_signal
 // is_classical_message
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A helper class for checking that message is a classical message
  * derived from %message_t class.
  */
@@ -191,7 +206,9 @@ struct is_classical_message
 // ensure_not_signal
 //
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  * \brief A special compile-time checker to guarantee that the message
  * class is not a signal class.
  */
@@ -207,7 +224,9 @@ ensure_not_signal()
 // ensure_message_with_actual_data
 //
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  * \brief A special checker to guarantee that the message is an instance
  * of the message_t (not signal_t) and has a not-null pointer 
  * to the message data.
@@ -232,7 +251,9 @@ ensure_message_with_actual_data( const MSG * m )
 // ensure_signal
 //
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  * \brief A special compile-time checker to guarantee that the MSG is derived
  * from the signal_t.
  *
@@ -250,7 +271,9 @@ ensure_signal()
 // ensure_classical_message
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A special compile-time checker to guarantee that MSG is derived from
  * %message_t.
  *
@@ -268,7 +291,9 @@ ensure_classical_message()
 // message_payload_type_impl
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Implementation details for %message_payload_type.
  *
  * \note This specialization is for cases where T is derived from message_t.
@@ -315,7 +340,9 @@ struct message_payload_type_impl
 	};
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Implementation details for %message_payload_type.
  *
  * \note This specialization is for cases where T is not derived from message_t.
@@ -368,7 +395,9 @@ struct message_payload_type_impl< T, false >
 // message_payload_type
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A helper class for detection of payload type of message.
  *
  * \tparam T type to test.
@@ -416,7 +445,9 @@ struct make_message_instance_impl< true, MSG >
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A helper for allocate instance of a message.
  */
 template< typename MSG, typename... ARGS >
@@ -436,7 +467,9 @@ make_message_instance( ARGS &&... args )
 //
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A base class for concrete messages with information
  * about service requests.
  */
@@ -448,14 +481,18 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		set_exception( std::exception_ptr ex ) = 0;
 
 		/*!
-		 * \since v.5.5.5
+		 * \since
+		 * v.5.5.5
+		 *
 		 * \brief Access to param of service_request.
 		 */
 		virtual const message_t &
 		query_param() const SO_5_NOEXCEPT = 0;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Helper wrapper for handling exceptions during
 		 * service request dispatching.
 		 */
@@ -484,7 +521,9 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 // msg_service_request_t
 //
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A concrete message with information about service request.
  */
 template< class RESULT, class PARAM >
@@ -530,7 +569,9 @@ struct msg_service_request_t : public msg_service_request_base_t
 // invocation_type_t
 //
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Type of agent method invocation (event handling, service request).
  */
 enum class invocation_type_t : int
@@ -559,7 +600,9 @@ class action_msg_tracer_t;
 } /* namespace impl */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Description of context for overlimit action.
  */
 struct overlimit_context_t
@@ -583,7 +626,9 @@ struct overlimit_context_t
 		const message_ref_t & m_message;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief An optional pointer to tracer object for
 		 * message delivery tracing.
 		 *
@@ -616,7 +661,9 @@ struct overlimit_context_t
 // action_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A type for reaction of message overlimit.
  */
 using action_t = std::function< void(const overlimit_context_t&) >;
@@ -625,7 +672,9 @@ using action_t = std::function< void(const overlimit_context_t&) >;
 // control_block_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A control block for one message limit.
  */
 struct control_block_t

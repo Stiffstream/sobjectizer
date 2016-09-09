@@ -42,7 +42,9 @@ class deregistration_processor_t;
 // coop_private_iface_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief A special class for accessing private members of agent_coop.
  */
 class coop_private_iface_t
@@ -83,7 +85,9 @@ class coop_private_iface_t
 };
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A typedef for compatibility with previous versions.
  */
 using agent_coop_private_iface_t = coop_private_iface_t;
@@ -92,7 +96,9 @@ using agent_coop_private_iface_t = coop_private_iface_t;
 // agent_core_stats_t
 //
 /*!
- * \since 5.5.4
+ * \since
+ * 5.5.4
+ *
  * \brief Statistical data for run-time monitoring.
  */
 struct agent_core_stats_t
@@ -111,7 +117,9 @@ struct agent_core_stats_t
 		std::size_t m_total_agent_count;
 
 		/*!
-		 * \since v.5.5.12
+		 * \since
+		 * v.5.5.12
+		 *
 		 * \brief Count of coops waiting for the final deregistration.
 		 */
 		std::size_t m_final_dereg_coop_count;
@@ -206,7 +214,9 @@ class agent_core_t
 		wait_all_coop_to_deregister();
 
 		/*!
-		 * \since v.5.5.0
+		 * \since
+		 * v.5.5.0
+		 *
 		 * \brief Access to SObjectizer Environment.
 		 *
 		 * \note This access is necessary to use error_logger for
@@ -216,7 +226,9 @@ class agent_core_t
 		environment();
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Get the current statistic for run-time monitoring.
 		 */
 		agent_core_stats_t
@@ -227,7 +239,9 @@ class agent_core_t
 		typedef std::map< std::string, coop_ref_t > coop_map_t;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Typedef for pair of names of parent and child cooperations.
 		 *
 		 * \a first -- name of parent.
@@ -237,14 +251,18 @@ class agent_core_t
 			parent_child_coop_names_t;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Typedef for set of parent-child names pairs.
 		 */
 		typedef std::set< parent_child_coop_names_t >
 			parent_child_coop_relation_t;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Information for deregistration notification.
 		 */
 		struct info_for_dereg_notification_t
@@ -290,7 +308,9 @@ class agent_core_t
 		};
 		
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Result of final remove of a cooperation from
 		 * map of deregistered cooperations.
 		 *
@@ -375,7 +395,8 @@ class agent_core_t
 
 		//! Total count of agents.
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
 		 */
 		std::size_t m_total_agent_count;
 
@@ -384,7 +405,9 @@ class agent_core_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.5.13
+		 * \since
+		 * v.5.5.13
+		 *
 		 * \brief Queue of coops to be finally deregistered.
 		 *
 		 * \note Actual mchain is created inside start() method.
@@ -392,7 +415,9 @@ class agent_core_t
 		mchain_t m_final_dereg_chain;
 
 		/*!
-		 * \since v.5.5.13
+		 * \since
+		 * v.5.5.13
+		 *
 		 * \brief A separate thread for doing the final deregistration.
 		 *
 		 * \note Actual thread is started inside start() method.
@@ -406,14 +431,18 @@ class agent_core_t
 		coop_listener_unique_ptr_t m_coop_listener;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Information about parent and child cooperations
 		 * relationship.
 		 */
 		parent_child_coop_relation_t m_parent_child_relations;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Ensures that name of new cooperation is unique.
 		 */
 		void
@@ -421,7 +450,9 @@ class agent_core_t
 			const std::string & coop_name ) const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Checks that parent cooperation is registered if its name
 		 * is set for the cooperation specified.
 		 *
@@ -433,7 +464,9 @@ class agent_core_t
 			const coop_t & coop_to_be_registered ) const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Next step of cooperation registration.
 		 *
 		 * Initiate cooperation registration actions and
@@ -448,7 +481,9 @@ class agent_core_t
 			coop_t * parent_coop_ptr );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Next step of cooperation registration.
 		 *
 		 * Updates information about parent-child cooperation relationship
@@ -463,7 +498,9 @@ class agent_core_t
 			coop_t * parent_coop_ptr );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Do final action for cooperation deregistration.
 		 *
 		 * If parent cooperation exists then parent-child relation
@@ -476,7 +513,9 @@ class agent_core_t
 			const std::string & coop_name );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Do all job related to sending notification about
 		 * cooperation registration.
 		 */
@@ -486,7 +525,9 @@ class agent_core_t
 			const coop_reg_notificators_container_ref_t & notificators ) const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Do all job related to sending notification about
 		 * cooperation deregistration.
 		 */

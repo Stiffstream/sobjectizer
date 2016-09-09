@@ -38,6 +38,7 @@ struct cfg_t
 		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
 		std::size_t m_messages_to_send_at_start = 1;
 		lock_type_t m_lock_type = lock_type_t::combined_lock;
+		bool m_track_activity = false;
 	};
 
 cfg_t
@@ -65,6 +66,7 @@ try_parse_cmdline(
 							"-i, --individual-fifo   use individual FIFO for agents\n"
 							"-P, --adv-thread-pool   use adv_thread_pool dispatcher\n"
 							"-s, --simple-lock       use simple_lock_factory for MPMC queue\n"
+							"-T, --track-activity    turn work thread activity tracking on\n"
 							"-h, --help              show this description\n"
 							<< std::endl;
 					std::exit(1);
@@ -100,13 +102,16 @@ try_parse_cmdline(
 					"-t", "size of thread pool" );
 
 			else if( is_arg( *current, "-i", "--individual-fifo" ) )
-					tmp_cfg.m_individual_fifo = true;
+				tmp_cfg.m_individual_fifo = true;
 
 			else if( is_arg( *current, "-P", "--adv-thread-pool" ) )
-					tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
+				tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
 
 			else if( is_arg( *current, "-s", "--simple-lock" ) )
-					tmp_cfg.m_lock_type = lock_type_t::simple_lock;
+				tmp_cfg.m_lock_type = lock_type_t::simple_lock;
+
+			else if( is_arg( *current, "-T", "--track-activity" ) )
+				tmp_cfg.m_track_activity = true;
 
 			else
 				throw std::runtime_error(
@@ -356,6 +361,9 @@ show_cfg( const cfg_t & cfg )
 		std::cout << ")";
 	}
 
+	std::cout << "\n*** activity tracking: "
+			<< (cfg.m_track_activity ? "on" : "off");
+
 	std::cout << std::endl;
 }
 
@@ -405,6 +413,9 @@ main( int argc, char ** argv )
 			},
 			[cfg]( so_5::environment_params_t & params )
 			{
+				if( cfg.m_track_activity )
+					params.turn_work_thread_activity_tracking_on();
+
 				params.add_named_dispatcher(
 					"thread_pool",
 					create_dispatcher( cfg ) );

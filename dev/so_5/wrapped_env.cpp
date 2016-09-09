@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Class wrapped_env and its details.
  */
@@ -20,7 +22,9 @@ namespace
 {
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Implementation of environment to be used inside wrapped_env.
  */
 class actual_environment_t : public environment_t
@@ -84,7 +88,9 @@ class actual_environment_t : public environment_t
 } /* namespace anonymous */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Implementation details for wrapped_env.
  */
 struct wrapped_env_t::details_t

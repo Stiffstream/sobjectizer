@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A standard implementation of controller for run-time monitoring.
  */
 
@@ -34,7 +36,9 @@ namespace impl
 #endif
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A standard implementation of controller for run-time monitoring.
  */
 class std_controller_t

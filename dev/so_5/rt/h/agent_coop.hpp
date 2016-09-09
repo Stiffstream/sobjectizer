@@ -69,7 +69,9 @@ const int user_defined_reason = 0x1000;
 // coop_dereg_reason_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  */
 class coop_dereg_reason_t
 {
@@ -102,7 +104,9 @@ class coop_dereg_reason_t
 // coop_reg_notificator_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Type of cooperation registration notificator.
  *
  * Cooperation notificator should be a function with the following
@@ -124,7 +128,9 @@ typedef std::function<
 // coop_reg_notificators_container_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Container for cooperation registration notificators.
  */
 class SO_5_TYPE coop_reg_notificators_container_t
@@ -156,7 +162,9 @@ class SO_5_TYPE coop_reg_notificators_container_t
 // coop_reg_notificators_container_ref_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Typedef for smart pointer to notificators_container.
  */
 typedef intrusive_ptr_t< coop_reg_notificators_container_t >
@@ -166,7 +174,9 @@ typedef intrusive_ptr_t< coop_reg_notificators_container_t >
 // coop_dereg_notificator_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Type of cooperation deregistration notificator.
  *
  * Cooperation notificator should be a function with the following
@@ -193,7 +203,9 @@ typedef std::function<
 // coop_dereg_notificators_container_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Container for cooperation deregistration notificators.
  */
 class SO_5_TYPE coop_dereg_notificators_container_t
@@ -226,7 +238,9 @@ class SO_5_TYPE coop_dereg_notificators_container_t
 // coop_dereg_notificators_container_ref_t
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Typedef for smart pointer to notificators_container.
  */
 typedef intrusive_ptr_t< coop_dereg_notificators_container_t >
@@ -266,7 +280,9 @@ class SO_5_TYPE coop_t
 
 	public:
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Deleter for agent_coop.
 		 */
 		static void
@@ -365,7 +381,9 @@ class SO_5_TYPE coop_t
 
 		//! Internal SObjectizer method.
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 *
 		 * Informs cooperation that it is used by yet another entity.
 		 */
@@ -401,14 +419,18 @@ class SO_5_TYPE coop_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Does cooperation have parent cooperation?
 		 */
 		bool
 		has_parent_coop() const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Set name of the parent cooperation.
 		 */
 		void
@@ -416,7 +438,9 @@ class SO_5_TYPE coop_t
 			const nonempty_name_t & name );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Get name of the parent cooperation.
 		 *
 		 * \throw exception_t if the parent cooperation name is not set.
@@ -432,7 +456,9 @@ class SO_5_TYPE coop_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Add notificator about cooperation registration event.
 		 */
 		void
@@ -440,7 +466,9 @@ class SO_5_TYPE coop_t
 			const coop_reg_notificator_t & notificator );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Add notificator about cooperation deregistration event.
 		 */
 		void
@@ -455,7 +483,9 @@ class SO_5_TYPE coop_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Take a user resouce under cooperation control.
 		 */
 		template< class T >
@@ -473,7 +503,9 @@ class SO_5_TYPE coop_t
 		}
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Take a user resouce under cooperation control.
 		 */
 		template< class T >
@@ -491,7 +523,9 @@ class SO_5_TYPE coop_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Set exception reaction for that cooperation.
 		 *
 		 * This value will be used by agents and children cooperation if
@@ -502,7 +536,9 @@ class SO_5_TYPE coop_t
 			exception_reaction_t value );
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Get the current exception rection flag for that cooperation.
 		 *
 		 * It uses the following logic:
@@ -520,7 +556,9 @@ class SO_5_TYPE coop_t
 		 */
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Creation of instance of agent_context for tuning agent options.
 		 */
 		agent_context_t
@@ -530,7 +568,9 @@ class SO_5_TYPE coop_t
 			}
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Start definition of ad-hoc agent with default
 		 * dispatcher binding.
 		 *
@@ -554,7 +594,9 @@ class SO_5_TYPE coop_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Start definition of ad-hoc agent with default
 		 * dispatcher binding and the custom agent tuning options.
 		 *
@@ -583,7 +625,9 @@ class SO_5_TYPE coop_t
 			}
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Start definition of ad-hoc agent with the specific
 		 * dispatcher binder.
 		 *
@@ -610,7 +654,9 @@ class SO_5_TYPE coop_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Start definition of ad-hoc agent with the specific
 		 * dispatcher binder and custom agent tuning options.
 		 *
@@ -642,7 +688,9 @@ class SO_5_TYPE coop_t
 				return adhoc_agent_definition_proxy_t( agent );
 			}
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Access to SO Environment for which cooperation is bound.
 		 */
 		inline environment_t &
@@ -652,7 +700,9 @@ class SO_5_TYPE coop_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Helper method for simplification of agents creation.
 		 *
 		 * \note Creates an instance of agent of type \a AGENT and adds it to
@@ -685,7 +735,9 @@ class SO_5_TYPE coop_t
 		}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Helper method for simplification of agents creation and
 		 * binding to the specified dispatcher.
 		 *
@@ -775,7 +827,9 @@ class SO_5_TYPE coop_t
 		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Deregister the cooperation with the specified reason.
 		 *
 		 * \par Usage example:
@@ -802,7 +856,9 @@ class SO_5_TYPE coop_t
 			int reason );
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Deregistr the cooperation normally.
 		 *
 		 * \note This method is just a shorthand for:
@@ -840,7 +896,9 @@ class SO_5_TYPE coop_t
 		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Registration status.
 		 */
 		enum registration_status_t
@@ -862,13 +920,17 @@ class SO_5_TYPE coop_t
 		};
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Type of user resource deleter.
 		 */
 		typedef std::function< void() > resource_deleter_t;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Type of container for user resource deleters.
 		 */
 		typedef std::vector< resource_deleter_t > resource_deleter_vector_t;
@@ -897,7 +959,9 @@ class SO_5_TYPE coop_t
 		atomic_counter_t m_reference_count;
 
 		/*!
-		 * \since v.5.2.3.
+		 * \since
+		 * v.5.2.3.
+		 *
 		 * \brief Name of the parent cooperation.
 		 *
 		 * Empty value means than there is no parent cooperation.
@@ -905,7 +969,9 @@ class SO_5_TYPE coop_t
 		std::string m_parent_coop_name;
 
 		/*!
-		 * \since v.5.2.3.
+		 * \since
+		 * v.5.2.3.
+		 *
 		 * \brief Pointer to parent cooperation.
 		 *
 		 * Gets the value only if there is the parent cooperation and
@@ -914,19 +980,25 @@ class SO_5_TYPE coop_t
 		coop_t * m_parent_coop_ptr;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Notificators for registration event.
 		 */
 		coop_reg_notificators_container_ref_t m_reg_notificators;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Notificators for deregistration event.
 		 */
 		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief A lock for synchonization of evt_start events.
 		 *
 		 * A new way of handling coop registration was introduced
@@ -944,7 +1016,9 @@ class SO_5_TYPE coop_t
 		std::mutex m_binding_lock;
 		
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief The registration status of cooperation.
 		 *
 		 * By default cooperation has NOT_REGISTERED status.
@@ -958,13 +1032,17 @@ class SO_5_TYPE coop_t
 		registration_status_t m_registration_status;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Container of user resource deleters.
 		 */
 		resource_deleter_vector_t m_resource_deleters;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Deregistration reason.
 		 *
 		 * Receives actual value only in do_deregistration_specific_actions().
@@ -972,7 +1050,9 @@ class SO_5_TYPE coop_t
 		coop_dereg_reason_t m_dereg_reason;
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief A reaction to non-handled exception.
 		 *
 		 * By default inherit_exception_reaction is used. It means that
@@ -1004,7 +1084,9 @@ class SO_5_TYPE coop_t
 			disp_binder_unique_ptr_t disp_binder );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Perform all neccessary actions related to
 		 * cooperation registration.
 		 */
@@ -1015,7 +1097,9 @@ class SO_5_TYPE coop_t
 			coop_t * agent_coop );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Perform all necessary actions related to
 		 * cooperation deregistration.
 		 */
@@ -1025,7 +1109,9 @@ class SO_5_TYPE coop_t
 			coop_dereg_reason_t dereg_reason );
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Rearrangement of agents in agents storage with
 		 * respect to its priorities.
 		 *
@@ -1057,7 +1143,9 @@ class SO_5_TYPE coop_t
 			agent_array_t::iterator it );
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Shutdown all agents as a part of cooperation deregistration.
 		 *
 		 * An exception from agent_t::shutdown_agent() leads to call to abort().
@@ -1066,7 +1154,9 @@ class SO_5_TYPE coop_t
 		shutdown_all_agents();
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Increment usage counter for this cooperation.
 		 *
 		 * In v.5.2.3 the counter m_reference_count is used to
@@ -1116,7 +1206,9 @@ class SO_5_TYPE coop_t
 		final_deregister_coop();
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Get pointer to the parent cooperation.
 		 *
 		 * \retval nullptr if there is no parent cooperation.
@@ -1125,28 +1217,36 @@ class SO_5_TYPE coop_t
 		parent_coop_ptr() const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Get registration notificators.
 		 */
 		coop_reg_notificators_container_ref_t
 		reg_notificators() const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Get deregistration notificators.
 		 */
 		coop_dereg_notificators_container_ref_t
 		dereg_notificators() const;
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Delete all user resources.
 		 */
 		void
 		delete_user_resources();
 
 		/*!
-		 * \since v.5.2.3
+		 * \since
+		 * v.5.2.3
+		 *
 		 * \brief Get deregistration reason.
 		 */
 		const coop_dereg_reason_t &
@@ -1154,7 +1254,9 @@ class SO_5_TYPE coop_t
 };
 
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief A custom deleter for cooperation.
  */
 class coop_deleter_t
@@ -1272,7 +1374,9 @@ using coop_dereg_notificators_container_ref_t = so_5::coop_dereg_notificators_co
 using coop_t = so_5::coop_t;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A typedef for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -1285,7 +1389,9 @@ using agent_coop_t = so_5::coop_t;
 using coop_deleter_t = so_5::coop_deleter_t;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A typedef for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -1299,7 +1405,9 @@ using agent_coop_deleter_t = so_5::coop_deleter_t;
 using coop_unique_ptr_t = so_5::coop_unique_ptr_t;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A typedef for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -1311,7 +1419,9 @@ using agent_coop_unique_ptr_t = coop_unique_ptr_t;
 using coop_ref_t = so_5::coop_ref_t;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A typedef for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */

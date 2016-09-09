@@ -4,15 +4,20 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Messages with monitoring information.
  */
 
 #pragma once
 
+#include <so_5/h/current_thread_id.hpp>
+
 #include <so_5/rt/h/message.hpp>
 
 #include <so_5/rt/stats/h/prefix.hpp>
+#include <so_5/rt/stats/h/work_thread_activity.hpp>
 
 namespace so_5
 {
@@ -24,7 +29,9 @@ namespace messages
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A message with value of some quantity.
  *
  * This message can be used for monitoring things like queue sizes,
@@ -51,6 +58,59 @@ struct quantity : public message_t
 			:	m_prefix( prefix )
 			,	m_suffix( suffix )
 			,	m_value( std::move( value ) )
+			{}
+	};
+
+/*!
+ * \brief Notification about start of new stats distribution.
+ *
+ * \since
+ * v.5.5.18
+ *
+ * \note This message is empty now but it is not declared as a signal.
+ * It is for a possibility of expansion of the message in the future.
+ */
+struct distribution_started : public message_t {};
+
+/*!
+ * \brief Notification about finish of stats distribution.
+ *
+ * \since
+ * v.5.5.18
+ *
+ * \note This message is empty now but it is not declared as a signal.
+ * It is for a possibility of expansion of the message in the future.
+ */
+struct distribution_finished : public message_t {};
+
+/*!
+ * \brief Information about one work thread activity.
+ *
+ * \since
+ * v.5.5.18
+ */
+struct work_thread_activity : public message_t
+	{
+		//! Prefix of data_source name.
+		prefix_t m_prefix;
+		//! Suffix of data_source name.
+		suffix_t m_suffix;
+
+		//! ID of the thread.
+		so_5::current_thread_id_t m_thread_id;
+
+		//! Actual value.
+		work_thread_activity_stats_t m_stats;
+
+		work_thread_activity(
+			const prefix_t & prefix,
+			const suffix_t & suffix,
+			const so_5::current_thread_id_t & thread_id,
+			work_thread_activity_stats_t stats )
+			:	m_prefix( prefix )
+			,	m_suffix( suffix )
+			,	m_thread_id( thread_id )
+			,	m_stats( stats )
 			{}
 	};
 

@@ -3,10 +3,12 @@
 */
 
 /*!
- * \since v.5.5.8
  * \file
  * \brief Functions for creating and binding of the dispatcher with
  * dedicated threads per priority.
+ *
+ * \since
+ * v.5.5.8
  */
 
 #include <so_5/disp/prio_dedicated_threads/one_per_prio/h/pub.hpp>
@@ -15,6 +17,7 @@
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
 
 #include <so_5/rt/stats/h/repository.hpp>
 #include <so_5/rt/stats/h/messages.hpp>
@@ -23,6 +26,8 @@
 #include <so_5/rt/h/send_functions.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
+
+#include <so_5/h/stdcpp.hpp>
 
 #include <algorithm>
 
@@ -37,34 +42,87 @@ namespace one_per_prio {
 namespace impl {
 
 namespace stats = so_5::stats;
-using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
+
+namespace {
+
+void
+send_thread_activity_stats(
+	const so_5::mbox_t &,
+	const stats::prefix_t &,
+	so_5::disp::reuse::work_thread::work_thread_no_activity_tracking_t & )
+	{
+		/* Nothing to do */
+	}
+
+void
+send_thread_activity_stats(
+	const so_5::mbox_t & mbox,
+	const stats::prefix_t & prefix,
+	so_5::disp::reuse::work_thread::work_thread_with_activity_tracking_t & wt )
+	{
+		so_5::send< stats::messages::work_thread_activity >(
+				mbox,
+				prefix,
+				stats::suffixes::work_thread_activity(),
+				wt.thread_id(),
+				wt.take_activity_stats() );
+	}
+
+} /* namespace anonymous */
 
 //
-// dispatcher_t
+// actual_disp_iface_t
 //
 /*!
- * \since v.5.5.8
- * \brief An actual implementation of dispatcher with dedicated thread
- * for every priority.
+ * \brief An actual interface of active group dispatcher.
+ *
+ * \since
+ * v.5.5.18
  */
-class dispatcher_t : public so_5::dispatcher_t
+class actual_disp_iface_t : public so_5::dispatcher_t
+	{
+	public :
+		//! Get a binding information for an agent.
+		virtual event_queue_t *
+		get_agent_binding( priority_t priority ) = 0;
+
+		//! Notification about binding of yet another agent.
+		virtual void
+		agent_bound( priority_t priority ) = 0;
+
+		//! Notification about unbinding of an agent.
+		virtual void
+		agent_unbound( priority_t priority ) = 0;
+	};
+
+//
+// dispatcher_template_t
+//
+/*!
+ * \brief An actual implementation of dispatcher with dedicated thread
+ * for every priority in form of a template class.
+ *
+ * \since
+ * v.5.5.8, v.5.5.18
+ */
+template< typename WORK_THREAD >
+class dispatcher_template_t : public actual_disp_iface_t
 	{
 	public:
-		dispatcher_t( disp_params_t params )
+		dispatcher_template_t( disp_params_t params )
 			:	m_data_source{ self() }
 			{
 				m_threads.reserve( so_5::prio::total_priorities_count );
 				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
 						auto lock_factory = params.queue_params().lock_factory();
 
-						std::unique_ptr< work_thread_t > t{
-								new work_thread_t{ std::move(lock_factory) } };
+						auto t = so_5::stdcpp::make_unique< WORK_THREAD >(
+								std::move(lock_factory) );
+
 						m_threads.push_back( std::move(t) );
 					} );
 			}
 
-		//! \name Implementation of dispatcher methods.
-		//! \{
 		virtual void
 		start( environment_t & env ) override
 			{
@@ -101,28 +159,21 @@ class dispatcher_t : public so_5::dispatcher_t
 			{
 				m_data_source.set_data_sources_name_base( name_base );
 			}
-		//! \}
 
-		/*!
-		 * \since v.5.4.0
-		 * \brief Get a binding information for an agent.
-		 */
-		event_queue_t *
-		get_agent_binding( priority_t priority )
+		virtual event_queue_t *
+		get_agent_binding( priority_t priority ) override
 			{
 				return m_threads[ to_size_t( priority ) ]->get_agent_binding();
 			}
 
-		//! Notification about binding of yet another agent.
-		void
-		agent_bound( priority_t priority )
+		virtual void
+		agent_bound( priority_t priority ) override
 			{
 				m_agents_per_priority[ to_size_t(priority) ] += 1;
 			}
 
-		//! Notification about unbinding of an agent.
-		void
-		agent_unbound( priority_t priority )
+		virtual void
+		agent_unbound( priority_t priority ) override
 			{
 				m_agents_per_priority[ to_size_t(priority) ] -= 1;
 			}
@@ -136,19 +187,21 @@ class dispatcher_t : public so_5::dispatcher_t
 #endif
 
 		/*!
-		 * \since v.5.5.8
 		 * \brief Data source for run-time monitoring of whole dispatcher.
+		 *
+		 * \since
+		 * v.5.5.8
 		 */
 		class disp_data_source_t : public stats::manually_registered_source_t
 			{
 				//! Dispatcher to work with.
-				dispatcher_t & m_dispatcher;
+				dispatcher_template_t & m_dispatcher;
 
 				//! Basic prefix for data sources.
 				stats::prefix_t m_base_prefix;
 
 			public :
-				disp_data_source_t( dispatcher_t & disp )
+				disp_data_source_t( dispatcher_template_t & disp )
 					:	m_dispatcher( disp )
 					{}
 
@@ -195,7 +248,7 @@ class dispatcher_t : public so_5::dispatcher_t
 					const mbox_t & mbox,
 					priority_t priority,
 					std::size_t agents_count,
-					work_thread_t & wt )
+					WORK_THREAD & wt )
 					{
 						std::ostringstream ss;
 						ss << m_base_prefix.c_str() << "/wt-p" << to_size_t(priority);
@@ -213,6 +266,8 @@ class dispatcher_t : public so_5::dispatcher_t
 								prefix,
 								stats::suffixes::agent_count(),
 								agents_count );
+
+						send_thread_activity_stats( mbox, prefix, wt );
 					}
 			};
 
@@ -224,7 +279,7 @@ class dispatcher_t : public so_5::dispatcher_t
 		disp_data_source_t m_data_source;
 
 		//! Working threads for every priority.
-		std::vector< std::unique_ptr< work_thread_t > > m_threads;
+		std::vector< std::unique_ptr< WORK_THREAD > > m_threads;
 
 		//! Counters for agent count for every priority.
 		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
@@ -232,7 +287,7 @@ class dispatcher_t : public so_5::dispatcher_t
 		/*!
 		 * \brief Just a helper method for getting reference to itself.
 		 */
-		dispatcher_t &
+		dispatcher_template_t &
 		self()
 			{
 				return *this;
@@ -248,7 +303,7 @@ class dispatcher_t : public so_5::dispatcher_t
 
 				// This helper vector will be used for shutdown of
 				// started threads in the case of an exception.
-				work_thread_t * started_threads[ total_priorities_count ];
+				WORK_THREAD * started_threads[ total_priorities_count ];
 				// Initially all items must be NULL.
 				fill( begin(started_threads), end(started_threads), nullptr );
 
@@ -283,19 +338,88 @@ class dispatcher_t : public so_5::dispatcher_t
 	};
 
 //
+// proxy_dispatcher_t
+//
+
+using proxy_dispatcher_base_t =
+		so_5::disp::reuse::proxy_dispatcher_template_t<
+				actual_disp_iface_t,
+				disp_params_t >;
+
+/*!
+ * \brief A proxy dispatcher which creates actual dispatcher at start.
+ *
+ * \since
+ * v.5.5.18
+ *
+ * This proxy is necessary because named dispatchers which are created
+ * by create_disp() functions do not have a reference to SObjectizer
+ * Environment at creation time. That reference is available in start()
+ * method. Because of that creation of actual dispatcher (with or without
+ * activity tracking) is delayed and performed only in start() method.
+ */
+class proxy_dispatcher_t : public proxy_dispatcher_base_t
+	{
+	public:
+		proxy_dispatcher_t( disp_params_t params )
+			:	proxy_dispatcher_base_t( std::move(params) )
+			{}
+
+		virtual event_queue_t *
+		get_agent_binding( priority_t priority ) override
+			{
+				return m_disp->get_agent_binding( priority );
+			}
+
+		virtual void
+		agent_bound( priority_t priority ) override
+			{
+				m_disp->agent_bound( priority );
+			}
+
+		virtual void
+		agent_unbound( priority_t priority ) override
+			{
+				m_disp->agent_unbound( priority );
+			}
+
+	protected :
+		virtual void
+		do_actual_start( environment_t & env ) override
+			{
+				using namespace so_5::disp::reuse::work_thread;
+
+				using dispatcher_no_activity_tracking_t =
+						dispatcher_template_t< work_thread_no_activity_tracking_t >;
+
+				using dispatcher_with_activity_tracking_t =
+						dispatcher_template_t<
+								work_thread_with_activity_tracking_t >;
+
+				make_actual_dispatcher<
+							dispatcher_no_activity_tracking_t,
+							dispatcher_with_activity_tracking_t >(
+						env,
+						m_disp_params );
+			}
+	};
+
+//
 // binding_actions_mixin_t
 //
 /*!
- * \since v.5.5.8
  * \brief Implementation of binding actions to be reused
  * in various binder implementation.
+ *
+ * \since
+ * v.5.5.8
  */
 class binding_actions_mixin_t
 	{
 	protected :
 		disp_binding_activator_t
 		do_bind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t agent )
 			{
 				auto result = [agent, &disp]() {
@@ -311,7 +435,7 @@ class binding_actions_mixin_t
 
 		void
 		do_unbind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t agent )
 			{
 				// Dispatcher must know about yet another agent unbound.
@@ -323,32 +447,38 @@ class binding_actions_mixin_t
 // disp_binder_t
 //
 /*!
- * \since v.5.5.8
  * \brief Binder for public dispatcher.
+ *
+ * \since
+ * v.5.5.8
  */
 using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
-		dispatcher_t, binding_actions_mixin_t >;
+		proxy_dispatcher_t, binding_actions_mixin_t >;
 
 //
 // private_dispatcher_binder_t
 //
 
 /*!
- * \since v.5.5.8
  * \brief A binder for the private %strictly_ordered dispatcher.
+ *
+ * \since
+ * v.5.5.8
  */
 using private_dispatcher_binder_t =
 	so_5::disp::reuse::binder_for_private_disp_template_t<
 		private_dispatcher_handle_t,
-		dispatcher_t,
+		proxy_dispatcher_t,
 		binding_actions_mixin_t >;
 
 //
 // real_private_dispatcher_t
 //
 /*!
- * \since v.5.5.8
  * \brief A real implementation of private_dispatcher interface.
+ *
+ * \since
+ * v.5.5.8
  */
 class real_private_dispatcher_t : public private_dispatcher_t
 	{
@@ -364,7 +494,8 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			const std::string & data_sources_name_base,
 			//! Parameters for the dispatcher.
 			disp_params_t params )
-			:	m_disp( new dispatcher_t{ std::move(params) } )
+			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
+					std::move( params ) ) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -388,7 +519,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			}
 
 	private :
-		std::unique_ptr< dispatcher_t > m_disp;
+		std::unique_ptr< proxy_dispatcher_t > m_disp;
 	};
 
 } /* namespace impl */
@@ -406,8 +537,8 @@ private_dispatcher_t::~private_dispatcher_t()
 SO_5_FUNC dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return dispatcher_unique_ptr_t(
-				new impl::dispatcher_t{ std::move(params) } );
+		return so_5::stdcpp::make_unique< impl::proxy_dispatcher_t >(
+				std::move(params) );
 	}
 
 //
@@ -433,8 +564,7 @@ SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	const std::string & disp_name )
 	{
-		return disp_binder_unique_ptr_t( 
-			new impl::disp_binder_t( disp_name ) );
+		return so_5::stdcpp::make_unique< impl::disp_binder_t >( disp_name );
 	}
 
 } /* namespace one_per_prio */

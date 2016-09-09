@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief A workaround for very slow implementation of
  * std::this_thread::get_id() under some compilers.
@@ -37,6 +39,18 @@ namespace so_5
 			return std::thread::id();
 		}
 
+	/*!
+	 * \brief Get the raw thread id from current_thread_id.
+	 *
+	 * \since
+	 * v.5.5.18
+	 */
+	inline std::thread::id
+	raw_id_from_current_thread_id( const current_thread_id_t & w )
+		{
+			return w;
+		}
+
 } /* namespace so_5 */
 
 #else
@@ -54,10 +68,10 @@ namespace so_5
 	//! A special wrapper around native thread ID.
 	class current_thread_id_t
 		{
-			friend SO_5_FUNC current_thread_id_t query_current_thread_id();
-
 		public :
 			typedef std::uint_least64_t id_t;
+
+			friend SO_5_FUNC current_thread_id_t query_current_thread_id();
 
 			static const id_t invalid_id = static_cast< id_t >( -1 );
 
@@ -124,6 +138,19 @@ namespace so_5
 	//! Get the ID of the current thread.
 	SO_5_FUNC current_thread_id_t
 	query_current_thread_id();
+
+	/*!
+	 * \brief Get the raw thread id from current_thread_id.
+	 *
+	 * \since
+	 * v.5.5.18
+	 */
+	inline current_thread_id_t::id_t
+	raw_id_from_current_thread_id(
+		const current_thread_id_t & v )
+		{
+			return v.id();
+		}
 
 } /* namespace so_5 */
 

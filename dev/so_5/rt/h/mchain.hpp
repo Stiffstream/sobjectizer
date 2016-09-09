@@ -27,7 +27,9 @@ namespace so_5 {
 namespace mchain_props {
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief An alias for type for repesenting timeout values.
  */
 using duration_t = std::chrono::high_resolution_clock::duration;
@@ -38,7 +40,9 @@ namespace details {
 // no_wait_special_timevalue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Special value of %duration to indicate 'no_wait' case.
  */
 inline duration_t
@@ -48,7 +52,9 @@ no_wait_special_timevalue() { return duration_t::zero(); }
 // infinite_wait_special_timevalue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ * 
  * \brief Special value of %duration to indicate 'infinite_wait' case.
  */
 inline duration_t
@@ -58,7 +64,9 @@ infinite_wait_special_timevalue() { return duration_t::max(); }
 // is_no_wait_timevalue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Is time value means 'no_wait'?
  */
 inline bool
@@ -71,7 +79,9 @@ is_no_wait_timevalue( duration_t v )
 // is_infinite_wait_timevalue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Is time value means 'infinite_wait'?
  */
 inline bool
@@ -85,7 +95,9 @@ is_infinite_wait_timevalue( duration_t v )
 //
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that infinite waiting is
@@ -98,7 +110,9 @@ actual_timeout( infinite_wait_indication )
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that no waiting is
@@ -111,7 +125,9 @@ actual_timeout( no_wait_indication )
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function for detection of actual value for waiting timeout.
  */
 template< typename V >
@@ -127,7 +143,9 @@ actual_timeout( V value )
 // demand_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Description of one demand in message chain.
  */
 struct demand_t
@@ -202,7 +220,9 @@ struct demand_t
 // memory_usage_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Memory allocation for storage for size-limited chains.
  */
 enum class memory_usage_t
@@ -217,7 +237,9 @@ enum class memory_usage_t
 // overflow_reaction_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief What reaction must be performed on attempt to push new message to
  * the full message chain.
  */
@@ -237,7 +259,9 @@ enum class overflow_reaction_t
 // capacity_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Parameters for defining chain size.
  */
 class capacity_t
@@ -378,7 +402,9 @@ class capacity_t
 // extraction_status_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Result of extraction of message from a message chain.
  */
 enum class extraction_status_t
@@ -395,7 +421,9 @@ enum class extraction_status_t
 // close_mode_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief What to do with chain's content at close.
  */
 enum class close_mode_t
@@ -411,7 +439,9 @@ enum class close_mode_t
 // not_empty_notification_func_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Type of functor for notifies about arrival of a message to
  * the empty chain.
  *
@@ -430,7 +460,9 @@ class select_case_t;
 // abstract_message_chain_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief An interace of message chain.
  */
 class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_t
@@ -523,7 +555,9 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 // mchain_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Short name for smart pointer to message chain.
  */
 using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
@@ -532,7 +566,9 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 // close_drop_content
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function for closing a message chain with dropping
  * all its content.
  *
@@ -557,7 +593,9 @@ close_drop_content( const mchain_t & ch )
 // close_retain_content
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function for closing a message chain with retaining
  * all its content.
  *
@@ -582,7 +620,9 @@ close_retain_content( const mchain_t & ch )
 // mchain_params_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Parameters for message chain.
  */
 class mchain_params_t
@@ -666,7 +706,9 @@ class mchain_params_t
  */
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Create parameters for size-unlimited %mchain.
  *
  * \par Usage example:
@@ -682,7 +724,9 @@ make_unlimited_mchain_params()
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Create parameters for size-limited %mchain without waiting on overflow.
  *
  * \par Usage example:
@@ -715,7 +759,9 @@ make_limited_without_waiting_mchain_params(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Create parameters for size-limited %mchain with waiting on overflow.
  *
  * \par Usage example:
@@ -761,7 +807,9 @@ make_limited_with_waiting_mchain_params(
 // mchain_receive_result_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A result of receive from %mchain.
  */
 class mchain_receive_result_t
@@ -811,7 +859,9 @@ class mchain_receive_result_t
 // receive
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Receive and handle one message from message chain.
  *
  * \note Just one message will be extracted from the chain (if chain is not
@@ -899,7 +949,8 @@ receive(
  * \brief Basic parameters for advanced receive from %mchain and for
  * multi chain select.
  *
- * \since v.5.5.16
+ * \since
+ * v.5.5.16
  */
 template< typename DERIVED >
 class mchain_bulk_processing_params_t
@@ -1119,7 +1170,9 @@ class mchain_receive_params_t final
 // from
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A helper function for simplification of creation of %mchain_receive_params instance.
  *
  * \par Usage examples:
@@ -1174,7 +1227,9 @@ namespace details {
 // receive_actions_performer_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper class with implementation of main actions of
  * advanced receive operation.
  */
@@ -1348,7 +1403,9 @@ perform_receive(
 //
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Advanced version of receive from %mchain.
  *
  * \attention It is an error if there are more than one handler for the

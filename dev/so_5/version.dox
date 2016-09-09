@@ -2,6 +2,19 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_18 5.5.18 "Nevado Pisco"
+
+	New messages so_5::stats::messages::distribution_started and
+	so_5::stats::messages::distribution_finished.
+
+	Support for global lock_factories.
+	Class so_5::queue_locks_defaults_manager_t and method
+	so_5::environment_params_t::queue_locks_defaults_manager().
+
+	Nested state switch is explicitely disabled.
+
+	Work thread activity tracking.
+
 \section so_5__5_17 5.5.17 "Nevado del Huila"
 
 	SObjectizer can be built as shared or static library.

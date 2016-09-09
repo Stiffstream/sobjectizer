@@ -12,6 +12,9 @@
  */
 
 #if defined( _MSC_VER )
+	#if defined( __clang__ )
+		#pragma clang diagnostic ignored "-Wreserved-id-macro"
+	#endif
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 

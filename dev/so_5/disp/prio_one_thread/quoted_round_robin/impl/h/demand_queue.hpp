@@ -3,7 +3,9 @@
 */
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \file
  * \brief A demand queue for dispatcher with one common working
  * thread and round-robin processing of prioritised demand on
@@ -40,7 +42,9 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 // demand_t
 //
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief A single execution demand.
  */
 struct demand_t : public execution_demand_t
@@ -58,7 +62,9 @@ struct demand_t : public execution_demand_t
 // demand_unique_ptr_t
 //
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief An alias for unique_ptr to demand.
  */
 using demand_unique_ptr_t = std::unique_ptr< demand_t >;
@@ -67,7 +73,9 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 // demand_queue_t
 //
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ * 
  * \brief A demand queue for dispatcher with one common working
  * thread and round-robin processing of prioritised demand on
  * quoted basic.

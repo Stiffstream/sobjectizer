@@ -547,7 +547,6 @@ class mchain_master_handle_t
 		const mchain_t &
 		operator*() const SO_5_NOEXCEPT { return m_chain; }
 
-//FIXME: usage examples must be shown in Doxygen comments.
 		//! \name Helpers methods for master handle creation.
 		//! \{
 		/*!

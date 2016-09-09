@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief A map-based storage for agent's subscriptions information.
  */
@@ -23,14 +25,18 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief A map-based storage for agent's subscriptions information.
  */
 namespace map_based_subscr_storage
 {
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief A map-based storage for agent's subscriptions information.
  *
  * This is very simple implementation of subscription storage which

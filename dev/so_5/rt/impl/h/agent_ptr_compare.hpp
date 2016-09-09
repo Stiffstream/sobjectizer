@@ -3,7 +3,9 @@
 */
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \file
  * \brief A special comparison for agent pointers.
  */
@@ -17,7 +19,9 @@ namespace so_5 {
 namespace impl {
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \file
  * \brief A special comparison for agent pointers with respect to
  * agent's priorities.

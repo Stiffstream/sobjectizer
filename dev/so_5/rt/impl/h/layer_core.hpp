@@ -105,7 +105,9 @@ class layer_core_t
 		start();
 
 		/*!
-		 * \since v.5.2.0
+		 * \since
+		 * v.5.2.0
+		 *
 		 * \brief Shutdown all layers and wait for full stop of them.
 		 */
 		void

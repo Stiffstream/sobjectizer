@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Public part of message limit implementation.
  */
 
@@ -32,7 +34,9 @@ namespace message_limit
 // description_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A description of one message limit.
  */
 struct description_t
@@ -61,7 +65,9 @@ struct description_t
 // description_container_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Type of container for holding message limit descriptions.
  */
 using description_container_t = std::vector< description_t >;
@@ -70,7 +76,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Actual implementation of drop message reaction.
  */
 SO_5_FUNC
@@ -83,7 +91,9 @@ drop_message_reaction( const overlimit_context_t & ctx );
 // drop_indicator_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Message limit with reaction 'drop new message'.
  */
 template< class M >
@@ -102,7 +112,9 @@ struct drop_indicator_t
 // accept_one_indicator
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for accepting drop_indicator and storing
  * the corresponding description into the limits container.
  */
@@ -123,7 +135,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Actual implementation of abort application reaction.
  */
 SO_5_FUNC
@@ -136,7 +150,9 @@ abort_app_reaction( const overlimit_context_t & ctx );
 // abort_app_indicator_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Message limit with reaction 'abort the application'.
  */
 template< class M >
@@ -152,7 +168,9 @@ struct abort_app_indicator_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for accepting abort_app_indicator and storing
  * the corresponding description into the limits container.
  */
@@ -172,7 +190,9 @@ accept_one_indicator(
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Message limit with reaction 'abort the application' and the
  * possibility to call additional lambda before aborting the app.
  */
@@ -198,7 +218,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Helper class for calling pre-abort action.
  */
 template< bool IS_MESSAGE, typename M, typename L >
@@ -214,7 +236,9 @@ struct call_pre_abort_action_impl
 	};
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Specialization for the case of signal.
  */
 template< typename M, typename L >
@@ -228,7 +252,9 @@ struct call_pre_abort_action_impl< false, M, L >
 	};
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Helper class for calling pre-abort action.
  *
  * \tparam M type of message or signal
@@ -252,7 +278,9 @@ struct call_pre_abort_action
 } /* namespace impl */
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Helper function for accepting log_then_abort_app_indicator and
  * storing the corresponding description into the limits container.
  */
@@ -281,7 +309,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Actual implementation of redirect message reaction.
  */
 SO_5_FUNC
@@ -298,7 +328,9 @@ redirect_reaction(
 // redirect_indicator_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Indication that a message must be redirected on overlimit.
  *
  * \tparam MSG Message type of message/signal to be redirected.
@@ -324,7 +356,9 @@ struct redirect_indicator_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for accepting redirect_indicator and storing
  * the corresponding description into the limits container.
  */
@@ -348,7 +382,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Checks that service request will not be transformed.
  */
 SO_5_FUNC
@@ -358,7 +394,9 @@ ensure_event_transform_reaction(
 	const overlimit_context_t & ctx );
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Actual implementation of transform reaction.
  */
 SO_5_FUNC
@@ -377,7 +415,9 @@ transform_reaction(
 // transformed_message_maker
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A helper function to call appropriate constructor of
  * resulting type in dependence of message or signal.
  *
@@ -400,7 +440,9 @@ struct transformed_message_maker
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A specialization of signal.
  */
 template< typename RESULT, typename MSG >
@@ -419,7 +461,9 @@ struct transformed_message_maker< true, RESULT, MSG >
 // transformed_message_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A result of message transformation.
  *
  * \tparam MSG Type of result (transformed) message.
@@ -494,7 +538,9 @@ class transformed_message_t
 // transform_indicator_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An indicator of transform reaction on message overlimit.
  *
  * \tparam SOURCE Type of message to be transformed.
@@ -518,7 +564,9 @@ struct transform_indicator_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for accepting transform_indicator and storing
  * the corresponding description into the limits container.
  */
@@ -539,7 +587,9 @@ accept_one_indicator(
 // accept_indicators
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for constructing limits description from
  * a series of limit indicators.
  */
@@ -565,13 +615,17 @@ accept_indicators(
 // message_limit_methods_mixin_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A mixin with message limit definition methods.
  */
 struct message_limit_methods_mixin_t
 	{
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief A helper function for creating drop_indicator.
 		 */
 		template< typename MSG >
@@ -582,7 +636,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief A helper function for creating abort_app_indicator.
 		 */
 		template< typename MSG >
@@ -593,7 +649,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief A helper function for creating log_then_abort_app_indicator.
 		 *
 		 * \tparam M type of message or signal
@@ -618,7 +676,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief A helper function for creating redirect_indicator.
 		 */
 		template< typename MSG, typename LAMBDA >
@@ -633,7 +693,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief A helper function for creating transform_indicator.
 		 *
 		 * \note Must be used for message transformation, signals cannot be
@@ -688,7 +750,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief A helper function for creating transform_indicator.
 		 *
 		 * Must be used for signal transformation. Type of signal must be
@@ -716,7 +780,9 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Helper method for creating message transformation result.
 		 *
 		 * \par Usage examples:

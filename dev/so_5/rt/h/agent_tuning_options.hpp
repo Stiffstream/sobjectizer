@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief A collector for agent tuning options.
  */
@@ -25,7 +27,9 @@ namespace so_5
 // agent_tuning_options_t
 //
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief A collector for agent tuning options.
  */
 class agent_tuning_options_t
@@ -104,7 +108,9 @@ class agent_tuning_options_t
 			}
 
 		//! Set priority for agent.
-		/*! \since v.5.5.8 */
+		/*! \since
+		 * v.5.5.8 */
+
 		agent_tuning_options_t &
 		priority( so_5::priority_t v )
 			{
@@ -126,7 +132,9 @@ class agent_tuning_options_t
 		message_limit::description_container_t m_message_limits;
 
 		//! Priority for agent.
-		/*! \since v.5.5.8 */
+		/*! \since
+		 * v.5.5.8 */
+
 		so_5::priority_t m_priority = so_5::prio::default_priority;
 	};
 

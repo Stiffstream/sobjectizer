@@ -78,10 +78,12 @@ public :
 	{
 		using namespace so_5::stats;
 
+		auto & controller = so_environment().stats_controller();
+
 		// Set up a filter for messages with run-time monitoring information.
 		so_set_delivery_filter(
 			// Message box to which delivery filter must be set.
-			so_environment().stats_controller().mbox(),
+			controller.mbox(),
 			// Delivery predicate.
 			[]( const messages::quantity< std::size_t > & msg ) {
 				// Process only messages related to dispatcher's queue sizes.
@@ -89,10 +91,19 @@ public :
 			} );
 
 		// We must receive messages from run-time monitor.
-		so_default_state().event(
+		so_default_state()
+			.event(
 				// This is mbox to that run-time statistic will be sent.
-				so_environment().stats_controller().mbox(),
-				&a_stats_listener_t::evt_quantity );
+				controller.mbox(),
+				&a_stats_listener_t::evt_quantity )
+			.event( controller.mbox(),
+				[this]( const messages::distribution_started & ) {
+					so_5::send< log_message >( m_logger, "--- DISTRIBUTION STARTED ---" );
+				} )
+			.event( controller.mbox(),
+				[this]( const messages::distribution_finished & ) {
+					so_5::send< log_message >( m_logger, "--- DISTRIBUTION FINISHED ---" );
+				} );
 	}
 
 	virtual void so_evt_start() override

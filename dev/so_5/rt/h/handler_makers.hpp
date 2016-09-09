@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \file
  * \brief Various stuff for creation of event handlers.
  */
@@ -153,7 +155,9 @@ set_promise( std::promise< R > & to, L result_provider )
 }
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A helper for setting a result to a promise<void>.
  */
 template< typename L >

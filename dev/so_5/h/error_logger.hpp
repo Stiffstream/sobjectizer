@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \file
  * \brief Tools for logging error messages inside SObjectizer core.
  */
@@ -22,7 +24,9 @@ namespace so_5
 // error_logger_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An interface for logging error messages.
  */
 class SO_5_TYPE error_logger_t
@@ -53,7 +57,9 @@ class SO_5_TYPE error_logger_t
 // error_logger_shptr_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An alias for shared_ptr to error_logger.
  */
 using error_logger_shptr_t = std::shared_ptr< error_logger_t >;
@@ -62,7 +68,9 @@ using error_logger_shptr_t = std::shared_ptr< error_logger_t >;
 // create_stderr_logger
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief A factory for creating error_logger implemenation which
  * uses std::stderr as log stream.
  */
@@ -123,7 +131,9 @@ class conductor_t
 // SO_5_LOG_ERROR
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An implementation for SO_5_LOG_ERROR macro.
  */
 #define SO_5_LOG_ERROR_IMPL(logger, file, line, var_name) \
@@ -136,7 +146,9 @@ class conductor_t
 // SO_5_LOG_ERROR
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief A special macro for helping error logging.
  *
  */

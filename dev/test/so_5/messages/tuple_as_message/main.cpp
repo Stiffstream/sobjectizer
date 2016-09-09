@@ -9,6 +9,22 @@
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
+
+// There is a strange error under clang-3.9.0 and MSVC++14.0 (update3).
+#if defined( _MSC_VER ) || defined( __clang__ )
+namespace std
+{
+
+template< std::size_t I, typename TAG, typename... TYPES >
+typename tuple_element<I, tuple<TYPES...> >::type const &
+get( const so_5::tuple_as_message_t< TAG, TYPES... > & v )
+{
+	const tuple< TYPES... > & t = v;
+	return get<I>(t);
+}
+
+}
+#endif
 		
 void
 create_coop(

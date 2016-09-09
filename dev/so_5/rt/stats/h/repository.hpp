@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Interfaces of data source and data sources repository.
  */
 
@@ -21,7 +23,9 @@ namespace stats
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An interface of data source.
  */
 class SO_5_TYPE source_t
@@ -29,6 +33,11 @@ class SO_5_TYPE source_t
 		friend class repository_t;
 
 	protected :
+		// Note: clang-3.9 requires this on Windows platform.
+		source_t( const source_t & ) = delete;
+		source_t( source_t && ) = delete;
+		source_t & operator=( const source_t & ) = delete;
+		source_t & operator=( source_t && ) = delete;
 		source_t();
 		~source_t();
 
@@ -47,12 +56,21 @@ class SO_5_TYPE source_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An interface of data sources repository.
  */
 class SO_5_TYPE repository_t
 	{
 	protected :
+		// Note: clang-3.9 requires this on Windows platform.
+		repository_t( const repository_t & ) = delete;
+		repository_t( repository_t && ) = delete;
+		repository_t & operator=( const repository_t & ) = delete;
+		repository_t & operator=( repository_t && ) = delete;
+
+		repository_t();
 		~repository_t();
 
 	public :
@@ -104,7 +122,9 @@ class SO_5_TYPE repository_t
 // auto_registered_source_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Version of data source with ability of automatic registration
  * and deregistration of data source in the repository.
  */
@@ -127,7 +147,9 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 // manually_registered_source_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Version of data source for the case when the registration
  * and deregistration of data source in the repository must be performed
  * manually.

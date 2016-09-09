@@ -2,15 +2,19 @@
  * An example of usage of delivery filter.
  */
 
-#include <iostream>
-
 #include <so_5/all.hpp>
+
+#include <iostream>
 
 using namespace std;
 using namespace so_5;
 
 // Message to be filtered.
-using msg_sample = tuple_as_message_t< mtag<0>, int, string >;
+struct msg_sample
+{
+	int m_key;
+	string m_value;
+};
 
 // A signal for doing second part of example.
 struct msg_second_part : public signal_t {};
@@ -42,7 +46,7 @@ public :
 	{
 		// Subscribe for the message. Without filter.
 		so_subscribe( m_mbox ).event( []( const msg_sample & evt ) {
-		  cout << "[first]: " << get<0>(evt) << "-" << get<1>(evt) << endl;
+		  cout << "[first]: " << evt.m_key << "-" << evt.m_value << endl;
 		} );
 		// Sending several messages...
 		// All of them will be stored to the agent's queue and handled.
@@ -51,7 +55,7 @@ public :
 
 		// Setting a delivery filter for message.
 		so_set_delivery_filter( m_mbox, []( const msg_sample & evt ) {
-		  return 1 == get<0>(evt);
+		  return 1 == evt.m_key;
 		} );
 		// Sending several messages...
 		// Only one will be stored to the agent's queue and handled.
@@ -73,7 +77,7 @@ public :
 
 		// Subscribe for the message again.
 		so_subscribe( m_mbox ).event( []( const msg_sample & evt ) {
-		  cout << "[second]: " << get<0>(evt) << "-" << get<1>(evt) << endl;
+		  cout << "[second]: " << evt.m_key << "-" << evt.m_value << endl;
 		} );
 		// Sending several messages...
 		// Only one will be stored to the agent's queue and handled.
@@ -82,7 +86,7 @@ public :
 
 		// Changing the filter to new one.
 		so_set_delivery_filter( m_mbox, []( const msg_sample & evt ) {
-		  return 0 == get<0>(evt);
+		  return 0 == evt.m_key;
 		} );
 		// Sending several messages...
 		// Only one will be stored to the agent's queue and handled.

@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.6
+ * \since
+ * v.5.5.6
+ *
  * \file
  * \brief Helpers for invoking code which must not throws.
  */
@@ -21,7 +23,9 @@ namespace so_5 {
 namespace details {
 
 /*!
- * \since v.5.5.6
+ * \since
+ * v.5.5.6
+ *
  * \file
  * \brief Helpers for invoking code which must not throws.
  *

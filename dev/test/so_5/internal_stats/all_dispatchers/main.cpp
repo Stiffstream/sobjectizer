@@ -64,9 +64,9 @@ class a_controller_t : public so_5::agent_t
 		virtual void
 		so_define_agent() override
 			{
-				so_default_state().event(
-						so_environment().stats_controller().mbox(),
-						&a_controller_t::evt_monitor_quantity );
+				so_subscribe( so_environment().stats_controller().mbox() )
+						.event( &a_controller_t::evt_monitor_quantity )
+						.event( &a_controller_t::evt_activity_tracking );
 
 				so_default_state().event< finish >(
 						[this] { so_deregister_agent_coop_normally(); } );
@@ -99,6 +99,17 @@ class a_controller_t : public so_5::agent_t
 				std::cout << evt.m_prefix.c_str()
 						<< evt.m_suffix.c_str()
 						<< ": " << evt.m_value << std::endl;
+			}
+
+		void
+		evt_activity_tracking(
+			const so_5::stats::messages::work_thread_activity & evt )
+			{
+				std::cout << evt.m_prefix << evt.m_suffix
+						<< " [" << evt.m_thread_id << "] ->\n  "
+						<< evt.m_prefix << evt.m_suffix
+						<< evt.m_stats.m_working_stats
+						<< evt.m_stats.m_waiting_stats << std::endl;
 			}
 
 		void
@@ -340,6 +351,9 @@ main()
 		so_5::launch( []( so_5::environment_t & env ) {
 				env.register_agent_as_coop( so_5::autoname,
 						env.make_agent< a_controller_t >() );
+			},
+			[]( so_5::environment_params_t & params ) {
+				params.turn_work_thread_activity_tracking_on();
 			} );
 	}
 	catch( const std::exception & ex )

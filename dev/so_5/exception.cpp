@@ -22,16 +22,27 @@ exception_t::exception_t(
 {
 }
 
-exception_t::exception_t(
-	const exception_t & x )
-	:
-		base_type_t( x ),
-		m_error_code( x.m_error_code )
-{
-}
+exception_t::exception_t( const exception_t & o )
+	:	base_type_t( o )
+	,	m_error_code( o.m_error_code )
+{}
+
+exception_t::exception_t( exception_t && o )
+	:	base_type_t( std::move(o) )
+	,	m_error_code( o.m_error_code )
+{}
 
 exception_t::~exception_t()
 {
+}
+
+exception_t &
+exception_t::operator=( exception_t o )
+{
+	base_type_t::operator=( std::move(o) );
+	m_error_code = o.m_error_code;
+
+	return *this;
 }
 
 int

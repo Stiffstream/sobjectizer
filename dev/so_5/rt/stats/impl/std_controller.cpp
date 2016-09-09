@@ -4,11 +4,17 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A standard implementation of controller for run-time monitoring.
  */
 
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
+
+#include <so_5/rt/stats/h/messages.hpp>
+
+#include <so_5/rt/h/send_functions.hpp>
 
 namespace so_5
 {
@@ -129,6 +135,8 @@ std_controller_t::distribute_current_data()
 	{
 		auto started_at = std::chrono::steady_clock::now();
 
+		send< so_5::stats::messages::distribution_started >( m_mbox );
+
 		source_t * s = m_head;
 		while( s )
 			{
@@ -136,6 +144,8 @@ std_controller_t::distribute_current_data()
 
 				s = source_list_next( *s );
 			}
+
+		send< so_5::stats::messages::distribution_finished >( m_mbox );
 
 		return std::chrono::steady_clock::now() - started_at;
 	}

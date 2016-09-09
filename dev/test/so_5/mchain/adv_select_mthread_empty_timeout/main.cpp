@@ -79,7 +79,7 @@ do_test(
 					} );
 
 			const auto elapsed = chrono::steady_clock::now() - start_point;
-			ensure_or_die( min_time < elapsed, "min_time must be less than elapsed time" );
+			ensure_or_die( min_time <= elapsed, "min_time must be less than elapsed time" );
 			for( auto & w : workers )
 				w.join();
 		},

@@ -15,6 +15,9 @@ namespace msg_tracing {
 // tracer_t
 //
 
+tracer_t::tracer_t()
+	{}
+
 tracer_t::~tracer_t()
 	{}
 
@@ -24,7 +27,9 @@ namespace impl {
 // std_stream_tracer_t
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A simple implementation of tracer which uses one of
  * standard streams.
  */

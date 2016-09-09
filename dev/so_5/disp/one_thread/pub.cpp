@@ -12,10 +12,13 @@
 #include <so_5/rt/stats/h/messages.hpp>
 #include <so_5/rt/stats/h/std_names.hpp>
 
+#include <so_5/rt/stats/impl/h/activity_tracking.hpp>
+
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 
@@ -36,17 +39,182 @@ namespace impl
 namespace work_thread = so_5::disp::reuse::work_thread;
 namespace stats = so_5::stats;
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
+namespace data_source_details
+{
+
+template< typename WORK_THREAD >
+struct common_data_t
+	{
+		//! Prefix for dispatcher-related data.
+		stats::prefix_t m_base_prefix;
+		//! Prefix for working thread-related data.
+		stats::prefix_t m_work_thread_prefix;
+
+		//! Working thread of the dispatcher.
+		WORK_THREAD & m_work_thread;
+
+		//! Count of agents bound to the dispatcher.
+		std::atomic< std::size_t > & m_agents_bound;
+
+		common_data_t(
+			WORK_THREAD & work_thread,
+			std::atomic< std::size_t > & agents_bound )
+			:	m_work_thread( work_thread )
+			,	m_agents_bound( agents_bound )
+		{}
+	};
+
+inline void
+track_activity(
+	const mbox_t &,
+	const common_data_t< work_thread::work_thread_no_activity_tracking_t > & )
+	{}
+
+inline void
+track_activity(
+	const mbox_t & mbox,
+	const common_data_t< work_thread::work_thread_with_activity_tracking_t > & data )
+	{
+		so_5::send< stats::messages::work_thread_activity >(
+				mbox,
+				data.m_base_prefix,
+				stats::suffixes::work_thread_activity(),
+				data.m_work_thread.thread_id(),
+				data.m_work_thread.take_activity_stats() );
+	}
+
+} /* namespace data_source_details */
+
+/*!
+ * \brief Data source for one-thread dispatcher.
+ */
+template< typename WORK_THREAD >
+class data_source_t
+	:	public stats::source_t
+	,	protected data_source_details::common_data_t< WORK_THREAD >
+	{
+	public :
+		using actual_work_thread_type_t = WORK_THREAD;
+
+		//! SObjectizer Environment to work in.
+		environment_t * m_env = { nullptr };
+
+	public :
+		data_source_t(
+			actual_work_thread_type_t & work_thread,
+			std::atomic< std::size_t > & agents_bound )
+			:	data_source_details::common_data_t< WORK_THREAD >(
+					work_thread, agents_bound )
+			{}
+
+		~data_source_t()
+			{
+				if( m_env )
+					stop();
+			}
+
+		virtual void
+		distribute( const mbox_t & mbox )
+			{
+				so_5::send< stats::messages::quantity< std::size_t > >(
+						mbox,
+						this->m_base_prefix,
+						stats::suffixes::agent_count(),
+						this->m_agents_bound.load( std::memory_order_acquire ) );
+
+				so_5::send< stats::messages::quantity< std::size_t > >(
+						mbox,
+						this->m_work_thread_prefix,
+						stats::suffixes::work_thread_queue_size(),
+						this->m_work_thread.demands_count() );
+
+				data_source_details::track_activity( mbox, *this );
+			}
+
+		void
+		set_data_sources_name_base(
+			const std::string & name_base,
+			const void * disp_this_pointer )
+			{
+				using namespace so_5::disp::reuse;
+
+				this->m_base_prefix = make_disp_prefix(
+						"ot", // ot -- one_thread
+						name_base,
+						disp_this_pointer );
+
+				this->m_work_thread_prefix = make_disp_working_thread_prefix(
+						this->m_base_prefix,
+						0 );
+			}
+
+		void
+		start(
+			environment_t & env )
+			{
+				env.stats_repository().add( *this );
+				m_env = &env;
+			}
+
+		void
+		stop()
+			{
+				m_env->stats_repository().remove( *this );
+				m_env = nullptr;
+			}
+	};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 //
-// dispatcher_t
+// actual_disp_iface_t
+//
+/*!
+ * \brief Interface of actual dispatcher.
+ * \since
+ * v.5.5.18
+ */
+class actual_disp_iface_t : public so_5::dispatcher_t
+	{
+	public :
+		/*!
+		 * \brief Get an event queue for new agent.
+		 */
+		virtual event_queue_t *
+		get_agent_binding() = 0;
+
+		/*!
+		 * \brief Inform dispatcher about binding of yet another agent.
+		 */
+		virtual void
+		agent_bound() = 0;
+
+		/*!
+		 * \brief Inform dispatcher abount unbinding of yet another agent.
+		 */
+		virtual void
+		agent_unbound() = 0;
+	};
+
+//
+// actual_dispatcher_t
 //
 
 /*!
 	\brief A dispatcher with the single working thread and an event queue.
 */
-class dispatcher_t : public so_5::dispatcher_t
+template< typename WORK_THREAD >
+class actual_dispatcher_t : public actual_disp_iface_t
 	{
 	public:
-		dispatcher_t( disp_params_t params )
+		actual_dispatcher_t( disp_params_t params )
 			:	m_work_thread{ params.queue_params().lock_factory() }
 			,	m_data_source( m_work_thread, m_agents_bound )
 			{}
@@ -85,160 +253,129 @@ class dispatcher_t : public so_5::dispatcher_t
 			}
 		//! \}
 
-		/*!
-		 * \since v.5.4.0
-		 * \brief Get a binding information for an agent.
-		 */
-		event_queue_t *
-		get_agent_binding()
+		//! \name Implementation of actial_disp_iface methods.
+		//! \{
+		virtual event_queue_t *
+		get_agent_binding() override
 			{
 				return m_work_thread.get_agent_binding();
 			}
 
-		/*!
-		 * \since v.5.5.4
-		 * \brief Inform dispatcher about binding of yet another agent.
-		 */
-		void
-		agent_bound()
+		virtual void
+		agent_bound() override
 			{
 				++m_agents_bound;
 			}
 
-		/*!
-		 * \since v.5.5.4
-		 * \brief Inform dispatcher abount unbinding of yet another agent.
-		 */
-		void
-		agent_unbound()
+		virtual void
+		agent_unbound() override
 			{
 				--m_agents_bound;
 			}
 
 	private:
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
-		/*!
-		 * \since v.5.5.4
-		 * \brief Type of data source for run-time monitoring.
-		 */
-		class data_source_t : public stats::source_t
-			{
-				//! SObjectizer Environment to work in.
-				environment_t * m_env = { nullptr };
-
-				//! Prefix for dispatcher-related data.
-				stats::prefix_t m_base_prefix;
-				//! Prefix for working thread-related data.
-				stats::prefix_t m_work_thread_prefix;
-
-				//! Working thread of the dispatcher.
-				work_thread::work_thread_t & m_work_thread;
-
-				//! Count of agents bound to the dispatcher.
-				std::atomic< std::size_t > & m_agents_bound;
-
-			public :
-				data_source_t(
-					work_thread::work_thread_t & work_thread,
-					std::atomic< std::size_t > & agents_bound )
-					:	m_work_thread( work_thread )
-					,	m_agents_bound( agents_bound )
-					{}
-
-				~data_source_t()
-					{
-						if( m_env )
-							stop();
-					}
-
-				virtual void
-				distribute( const mbox_t & mbox )
-					{
-						so_5::send< stats::messages::quantity< std::size_t > >(
-								mbox,
-								m_base_prefix,
-								stats::suffixes::agent_count(),
-								m_agents_bound.load( std::memory_order_acquire ) );
-
-						so_5::send< stats::messages::quantity< std::size_t > >(
-								mbox,
-								m_work_thread_prefix,
-								stats::suffixes::work_thread_queue_size(),
-								m_work_thread.demands_count() );
-					}
-
-				void
-				set_data_sources_name_base(
-					const std::string & name_base,
-					const void * disp_this_pointer )
-					{
-						using namespace so_5::disp::reuse;
-
-						m_base_prefix = make_disp_prefix(
-								"ot", // ot -- one_thread
-								name_base,
-								disp_this_pointer );
-
-						m_work_thread_prefix = make_disp_working_thread_prefix(
-								m_base_prefix,
-								0 );
-					}
-
-				void
-				start(
-					environment_t & env )
-					{
-						env.stats_repository().add( *this );
-						m_env = &env;
-					}
-
-				void
-				stop()
-					{
-						m_env->stats_repository().remove( *this );
-						m_env = nullptr;
-					}
-			};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
 		//! Working thread for the dispatcher.
-		work_thread::work_thread_t m_work_thread;
+		WORK_THREAD m_work_thread;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Count of agents bound to this dispatcher.
 		 */
 		std::atomic< std::size_t > m_agents_bound = { 0 };
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Data source for run-time monitoring.
 		 */
-		data_source_t m_data_source;
+		data_source_t< WORK_THREAD > m_data_source;
+	};
+
+//
+// proxy_dispatcher_t
+//
+
+using proxy_dispatcher_base_t =
+		so_5::disp::reuse::proxy_dispatcher_template_t<
+				actual_disp_iface_t,
+				disp_params_t >;
+
+/*!
+ * \brief A proxy dispatcher which creates actual dispatcher at start.
+ *
+ * \since
+ * v.5.5.18
+ *
+ * This proxy is necessary because named dispatchers which are created
+ * by create_disp() functions do not have a reference to SObjectizer
+ * Environment at creation time. That reference is available in start()
+ * method. Because of that creation of actual dispatcher (with or without
+ * activity tracking) is delayed and performed only in start() method.
+ */
+class proxy_dispatcher_t : public proxy_dispatcher_base_t
+	{
+	public:
+		proxy_dispatcher_t( disp_params_t params )
+			:	proxy_dispatcher_base_t( std::move(params) )
+			{}
+
+		virtual event_queue_t *
+		get_agent_binding() override
+			{
+				return m_disp->get_agent_binding();
+			}
+
+		virtual void
+		agent_bound() override
+			{
+				m_disp->agent_bound();
+			}
+
+		virtual void
+		agent_unbound() override
+			{
+				m_disp->agent_unbound();
+			}
+
+	protected :
+		virtual void
+		do_actual_start( environment_t & env ) override
+			{
+				using dispatcher_no_activity_tracking_t =
+						actual_dispatcher_t<
+								work_thread::work_thread_no_activity_tracking_t >;
+
+				using dispatcher_with_activity_tracking_t =
+						actual_dispatcher_t<
+								work_thread::work_thread_with_activity_tracking_t >;
+
+				make_actual_dispatcher<
+							dispatcher_no_activity_tracking_t,
+							dispatcher_with_activity_tracking_t >(
+						env,
+						m_disp_params );
+			}
 	};
 
 //
 // binding_actions_mixin_t
 //
 /*!
- * \since v.5.5.4
  * \brief Implementation of binding actions to be reused
  * in various binder implementation.
+ *
+ * \since
+ * v.5.5.4
  */
 class binding_actions_mixin_t
 	{
 	protected :
 		inline static disp_binding_activator_t
 		do_bind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t agent )
 			{
 				auto result = [agent, &disp]() {
@@ -253,7 +390,7 @@ class binding_actions_mixin_t
 
 		inline static void
 		do_unbind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t /*agent*/)
 			{
 				// Dispatcher must know about yet another agent bound.
@@ -314,8 +451,10 @@ class disp_binder_t
 		const std::string m_disp_name;
 
 		/*!
-		 * \since v.5.4.0
 		 * \brief Make binding to the dispatcher specified.
+		 *
+		 * \since
+		 * v.5.4.0
 		 */
 		disp_binding_activator_t
 		make_agent_binding(
@@ -324,18 +463,20 @@ class disp_binder_t
 		{
 			using namespace so_5::disp::reuse;
 
-			return do_with_dispatcher_of_type< dispatcher_t >(
+			return do_with_dispatcher_of_type< actual_disp_iface_t >(
 					disp,
 					m_disp_name,
-					[agent]( dispatcher_t & d )
+					[agent]( actual_disp_iface_t & d )
 					{
 						return do_bind( d, agent );
 					} );
 		}
 
 		/*!
-		 * \since v.5.5.4
 		 * \brief Unbind agent from the dispatcher specified.
+		 *
+		 * \since
+		 * v.5.5.4
 		 */
 		void
 		unbind_agent_from_disp(
@@ -344,10 +485,10 @@ class disp_binder_t
 		{
 			using namespace so_5::disp::reuse;
 
-			do_with_dispatcher_of_type< dispatcher_t >(
+			do_with_dispatcher_of_type< actual_disp_iface_t >(
 					disp,
 					m_disp_name,
-					[agent]( dispatcher_t & d ) {
+					[agent]( actual_disp_iface_t & d ) {
 						do_unbind( d, std::move(agent) );
 					} );
 		}
@@ -358,27 +499,31 @@ class disp_binder_t
 //
 
 /*!
- * \since v.5.5.4
  * \brief A binder for the private %one_thread dispatcher.
+ *
+ * \since
+ * v.5.5.4, v.5.5.18
  */
 using private_dispatcher_binder_t =
 	so_5::disp::reuse::binder_for_private_disp_template_t<
 		private_dispatcher_handle_t,
-		dispatcher_t,
+		proxy_dispatcher_t,
 		binding_actions_mixin_t >;
 
 //
 // real_private_dispatcher_t
 //
 /*!
- * \since v.5.5.4
  * \brief A real implementation of private_dispatcher interface.
+ *
+ * \since
+ * v.5.5.4
  */
 class real_private_dispatcher_t : public private_dispatcher_t
 	{
 	public :
 		/*!
-		 * Constructor creates a dispatcher instance and launces it.
+		 * Constructor creates a dispatcher instance and launches it.
 		 */
 		real_private_dispatcher_t(
 			//! SObjectizer Environment to work in.
@@ -388,7 +533,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			const std::string & data_sources_name_base,
 			//! Parameters for the dispatcher,
 			disp_params_t params )
-			:	m_disp( new dispatcher_t{ std::move(params) } )
+			:	m_disp( new proxy_dispatcher_t{ std::move(params) } )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -413,7 +558,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			}
 
 	private :
-		std::unique_ptr< dispatcher_t > m_disp;
+		std::unique_ptr< proxy_dispatcher_t > m_disp;
 	};
 
 } /* namespace impl */
@@ -431,7 +576,7 @@ SO_5_FUNC dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 {
 	return dispatcher_unique_ptr_t(
-			new impl::dispatcher_t{ std::move(params) } );
+			new impl::proxy_dispatcher_t{ std::move(params) } );
 }
 
 //

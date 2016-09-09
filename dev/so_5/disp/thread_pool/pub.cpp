@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief Public interface of thread pool dispatcher.
  */
@@ -18,6 +20,9 @@
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
+
+#include <so_5/h/stdcpp.hpp>
 
 namespace so_5
 {
@@ -33,12 +38,77 @@ namespace
 
 using namespace so_5::disp::thread_pool::impl;
 
+using actual_disp_iface_t =
+		common_implementation::ext_dispatcher_iface_t< bind_params_t >;
+
+//
+// proxy_dispatcher_t
+//
+
+using proxy_dispatcher_base_t =
+		so_5::disp::reuse::proxy_dispatcher_template_t<
+				actual_disp_iface_t,
+				disp_params_t >;
+
+/*!
+ * \brief A proxy dispatcher which creates actual dispatcher at start.
+ *
+ * \since
+ * v.5.5.18
+ *
+ * This proxy is necessary because named dispatchers which are created
+ * by create_disp() functions do not have a reference to SObjectizer
+ * Environment at creation time. That reference is available in start()
+ * method. Because of that creation of actual dispatcher (with or without
+ * activity tracking) is delayed and performed only in start() method.
+ */
+class proxy_dispatcher_t : public proxy_dispatcher_base_t
+	{
+	public:
+		proxy_dispatcher_t( disp_params_t params )
+			:	proxy_dispatcher_base_t( std::move(params) )
+			{}
+
+		virtual event_queue_t *
+		bind_agent( agent_ref_t agent, const bind_params_t & params ) override
+			{
+				return m_disp->bind_agent( agent, params );
+			}
+
+		virtual void
+		unbind_agent( agent_ref_t agent ) override
+			{
+				return m_disp->unbind_agent( agent );
+			}
+
+	protected :
+		virtual void
+		do_actual_start( environment_t & env ) override
+			{
+				using dispatcher_no_activity_tracking_t =
+						dispatcher_template_t< work_thread_no_activity_tracking_t >;
+
+				using dispatcher_with_activity_tracking_t =
+						dispatcher_template_t<
+								work_thread_with_activity_tracking_t >;
+
+				make_actual_dispatcher<
+							dispatcher_no_activity_tracking_t,
+							dispatcher_with_activity_tracking_t >(
+						env,
+						m_disp_params.thread_count(),
+						m_disp_params.queue_params() );
+			}
+	};
+
 //
 // binding_actions_t
 //
 /*!
- * \since v.5.5.4
  * \brief A mixin with implementation of main binding/unbinding actions.
+ *
+ * \since
+ * v.5.5.4
  */
 class binding_actions_t
 	{
@@ -49,7 +119,7 @@ class binding_actions_t
 
 		disp_binding_activator_t
 		do_bind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t agent )
 			{
 				auto queue = disp.bind_agent( agent, m_params );
@@ -61,7 +131,7 @@ class binding_actions_t
 
 		void
 		do_unbind(
-			dispatcher_t & disp,
+			actual_disp_iface_t & disp,
 			agent_ref_t agent )
 			{
 				disp.unbind_agent( std::move( agent ) );
@@ -75,32 +145,36 @@ class binding_actions_t
 // disp_binder_t
 //
 /*!
- * \since v.5.4.0
  * \brief An actual dispatcher binder for thread pool dispatcher.
+ * \since
+ * v.5.4.0
  */
 using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
-		dispatcher_t, binding_actions_t >;
+		proxy_dispatcher_t, binding_actions_t >;
 
 //
 // private_dispatcher_binder_t
 //
 
 /*!
- * \since v.5.5.4
  * \brief A binder for the private %thread_pool dispatcher.
+ * \since
+ * v.5.5.4
  */
 using private_dispatcher_binder_t =
 	so_5::disp::reuse::binder_for_private_disp_template_t<
 		private_dispatcher_handle_t,
-		dispatcher_t,
+		proxy_dispatcher_t,
 		binding_actions_t >;
 
 //
 // real_private_dispatcher_t
 //
 /*!
- * \since v.5.5.4
  * \brief A real implementation of private_dispatcher interface.
+ *
+ * \since
+ * v.5.5.4
  */
 class real_private_dispatcher_t : public private_dispatcher_t
 	{
@@ -116,10 +190,8 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base )
-			:	m_disp{
-					new dispatcher_t{
-						params.thread_count(),
-						params.queue_params() } }
+			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
+					std::move( params ) ) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -137,21 +209,22 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		virtual disp_binder_unique_ptr_t
 		binder( const bind_params_t & params ) override
 			{
-				return disp_binder_unique_ptr_t(
-						new private_dispatcher_binder_t(
-								private_dispatcher_handle_t( this ),
-								*m_disp,
-								params ) );
+				return so_5::stdcpp::make_unique< private_dispatcher_binder_t >(
+						private_dispatcher_handle_t( this ),
+						*m_disp,
+						params );
 			}
 
 	private :
-		std::unique_ptr< dispatcher_t > m_disp;
+		std::unique_ptr< proxy_dispatcher_t > m_disp;
 	};
 
 /*!
- * \since v.5.5.11
  * \brief Sets the thread count to default value if used do not
  * specify actual thread count.
+ *
+ * \since
+ * v.5.5.11
  */
 inline void
 adjust_thread_count( disp_params_t & params )
@@ -177,10 +250,8 @@ create_disp(
 	{
 		adjust_thread_count( params );
 
-		return dispatcher_unique_ptr_t{
-				new impl::dispatcher_t{
-						params.thread_count(),
-						params.queue_params() } };
+		return so_5::stdcpp::make_unique< proxy_dispatcher_t >(
+				std::move(params) );
 	}
 
 //
@@ -201,7 +272,7 @@ create_private_disp(
 		return private_dispatcher_handle_t{
 				new real_private_dispatcher_t{
 						env,
-						params,
+						std::move(params),
 						data_sources_name_base } };
 	}
 
@@ -213,8 +284,8 @@ create_disp_binder(
 	std::string disp_name,
 	const bind_params_t & params )
 	{
-		return disp_binder_unique_ptr_t(
-				new disp_binder_t( std::move( disp_name ), params ) );
+		return so_5::stdcpp::make_unique< disp_binder_t >(
+				std::move( disp_name ), params );
 	}
 
 } /* namespace thread_pool */

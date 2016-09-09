@@ -17,6 +17,8 @@
 
 #include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
 
+#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+
 #include <utility>
 
 namespace so_5
@@ -44,23 +46,35 @@ namespace queue_traits = so_5::disp::mpmc_queue_traits;
  * v.5.5.11
  */
 class disp_params_t
+	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
 	{
+		using activity_tracking_mixin_t = so_5::disp::reuse::
+				work_thread_activity_tracking_flag_mixin_t< disp_params_t >;
+
 	public :
 		//! Default constructor.
 		disp_params_t() {}
 		//! Copy constructor.
 		disp_params_t( const disp_params_t & o )
-			:	m_thread_count{ o.m_thread_count }
+			:	activity_tracking_mixin_t( o )
+			,	m_thread_count{ o.m_thread_count }
 			,	m_queue_params{ o.m_queue_params }
 			{}
 		//! Move constructor.
 		disp_params_t( disp_params_t && o )
-			:	m_thread_count{ std::move(o.m_thread_count) }
+			:	activity_tracking_mixin_t( std::move(o) )
+			,	m_thread_count{ std::move(o.m_thread_count) }
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b )
+		friend inline void
+		swap(
+			disp_params_t & a, disp_params_t & b ) SO_5_NOEXCEPT
 			{
+				swap(
+						static_cast< activity_tracking_mixin_t & >(a),
+						static_cast< activity_tracking_mixin_t & >(b) );
+
 				std::swap( a.m_thread_count, b.m_thread_count );
 				swap( a.m_queue_params, b.m_queue_params );
 			}

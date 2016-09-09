@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \file
  * \brief Implementation details for message chains.
  */
@@ -35,7 +37,9 @@ namespace details {
 // ensure_queue_not_empty
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function which throws an exception if queue is empty.
  */
 template< typename Q >
@@ -52,7 +56,9 @@ ensure_queue_not_empty( Q && queue )
 // ensure_queue_not_full
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Helper function which throws an exception if queue is full.
  */
 template< typename Q >
@@ -69,7 +75,9 @@ ensure_queue_not_full( Q && queue )
 // unlimited_demand_queue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Implementation of demands queue for size-unlimited message chain.
  */
 class unlimited_demand_queue
@@ -128,7 +136,9 @@ class unlimited_demand_queue
 // limited_dynamic_demand_queue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Implementation of demands queue for size-limited message chain with
  * dynamically allocated storage.
  */
@@ -188,7 +198,9 @@ class limited_dynamic_demand_queue
 // limited_preallocated_demand_queue
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Implementation of demands queue for size-limited message chain with
  * preallocated storage.
  */
@@ -260,7 +272,9 @@ class limited_preallocated_demand_queue
 // status
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Status of the message chain.
  */
 enum class status
@@ -277,7 +291,9 @@ enum class status
 // mchain_template
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Template-based implementation of message chain.
  *
  * \tparam QUEUE type of demand queue for message chain.

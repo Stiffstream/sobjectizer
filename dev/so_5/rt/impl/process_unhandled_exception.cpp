@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief Helpers for handling unhandled exceptions from agent's event handlers.
  */
@@ -21,7 +23,9 @@ namespace impl {
 namespace {
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Switch agent to special state and deregister its cooperation.
  *
  * Calls abort() if an exception is raised during work.
@@ -54,7 +58,9 @@ switch_agent_to_special_state_and_deregister_coop(
 	}
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Switch agent to special state and initiate stopping
  * of SObjectizer Environment.
  *
@@ -84,7 +90,9 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
 	}
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Log unhandled exception from cooperation.
  *
  * Calls abort() if an exception is raised during logging.

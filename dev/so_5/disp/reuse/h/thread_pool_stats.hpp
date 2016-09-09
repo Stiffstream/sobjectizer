@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief Reusable tools for run-time monitoring of thread-pool-like dispatchers.
  */
@@ -31,7 +33,9 @@ namespace thread_pool_stats {
 namespace stats = so_5::stats;
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Description of one event queue.
  */
 struct queue_description_t
@@ -47,7 +51,9 @@ struct queue_description_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A holder of one event queue information block.
  *
  * This holder must be allocated as dynamic object.
@@ -82,14 +88,18 @@ struct queue_description_holder_t : private atomic_refcounted_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Typedef for smart pointer to queue_description.
  */
 using queue_description_holder_ref_t =
 		intrusive_ptr_t< queue_description_holder_t >;
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for creating queue_description_holder object.
  */
 inline queue_description_holder_ref_t
@@ -113,7 +123,9 @@ make_queue_desc_holder(
 	}
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for creating queue_description_holder object.
  *
  * Must be used for the case when agent uses individual FIFO.
@@ -137,7 +149,9 @@ make_queue_desc_holder(
 	}
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An interface of collector of information about thread-pool-like
  * dispatcher state.
  */
@@ -155,7 +169,41 @@ class stats_consumer_t
 		//! Informs counsumer about yet another event queue.
 		virtual void
 		add_queue(
-				const intrusive_ptr_t< queue_description_holder_t > & queue_desc ) = 0;
+			const intrusive_ptr_t< queue_description_holder_t > & queue_desc ) = 0;
+
+		/*!
+		 * \brief Informs consumer about yet another working thread
+		 * activity.
+		 *
+		 * \note This method is called only if thread activity tracking
+		 * is turned on.
+		 */
+		virtual void
+		add_work_thread_activity(
+			//! ID of working thread.
+			const so_5::current_thread_id_t & thread_id,
+			//! Statistics of working thread.
+			const so_5::stats::work_thread_activity_stats_t & stats ) = 0;
+	};
+
+/*!
+ * \since
+ * v.5.5.4
+ *
+ * \brief An interface of supplier of information about thread-pool-like
+ * dispatcher state.
+ *
+ * It is intended to be used as mixin for a dispatcher class.
+ */
+class stats_supplier_t
+	{
+	protected :
+		// Just to make compilers happy.
+		virtual ~stats_supplier_t() {}
+
+	public :
+		virtual void
+		supply( stats_consumer_t & consumer ) = 0;
 	};
 
 #if defined(__clang__)
@@ -164,21 +212,9 @@ class stats_consumer_t
 #endif
 
 /*!
- * \since v.5.5.4
- * \brief An interface of supplier of information about thread-pool-like
- * dispatcher state.
+ * \since
+ * v.5.5.4
  *
- * It is intended to be used as mixin for a dispatcher class.
- */
-class stats_supplier_t
-	{
-	public :
-		virtual void
-		supply( stats_consumer_t & consumer ) = 0;
-	};
-
-/*!
- * \since v.5.5.4
  * \brief Type of data source for thread-pool-like dispatchers.
  */
 class data_source_t : public stats::manually_registered_source_t
@@ -213,7 +249,7 @@ class data_source_t : public stats::manually_registered_source_t
 			const mbox_t & mbox ) override
 			{
 				// Collecting...
-				collector_t collector;
+				collector_t collector( m_wt_activity );
 				m_supplier.supply( collector );
 
 				// Distributing...
@@ -228,6 +264,17 @@ class data_source_t : public stats::manually_registered_source_t
 						m_prefix,
 						stats::suffixes::agent_count(),
 						collector.agent_count() );
+
+				collector.for_each_thread_activity(
+					[this, &mbox]( const so_5::current_thread_id_t & thread_id,
+						const so_5::stats::work_thread_activity_stats_t & stats ) {
+						so_5::send< stats::messages::work_thread_activity >(
+								mbox,
+								make_work_thread_prefix( thread_id ),
+								stats::suffixes::work_thread_activity(),
+								thread_id,
+								stats );
+					} );
 
 				collector.for_each_queue(
 					[this, &mbox]( const queue_description_t & queue ) {
@@ -253,16 +300,63 @@ class data_source_t : public stats::manually_registered_source_t
 			}
 
 	private :
+		/*!
+		 * \brief Activity stats for a particular work thread.
+		 * \since
+		 * v.5.5.18
+		 */
+		struct wt_activity_info_t
+			{
+				so_5::current_thread_id_t m_thread_id;
+				stats::work_thread_activity_stats_t m_stats;
+
+				wt_activity_info_t(
+					const so_5::current_thread_id_t & thread_id,
+					const stats::work_thread_activity_stats_t & stats )
+					:	m_thread_id( thread_id )
+					,	m_stats( stats )
+					{}
+			};
+
+		/*!
+		 * \brief Type of storage for work thread activity info.
+		 * \since
+		 * v.5.5.18
+		 */
+		using wt_activity_info_container_t =
+				std::vector< wt_activity_info_t >;
+
 		//! Statistical information supplier.
 		stats_supplier_t & m_supplier;
 
 		//! Prefix for data-source names.
 		stats::prefix_t m_prefix;
 
+		/*!
+		 * \brief Container for collecting work activity stats
+		 * from working threads.
+		 *
+		 * This container is stored in data_source itself and will
+		 * be reused on each distribution cycle.
+		 *
+		 * \since
+		 * v.5.5.18
+		 */
+		wt_activity_info_container_t m_wt_activity;
+
 		//! Actual type of statical information collector.
 		class collector_t : public stats_consumer_t
 			{
 			public :
+				collector_t(
+					//! Where to store thread activity stats.
+					wt_activity_info_container_t & wt_activity_holder )
+					:	m_wt_activity( wt_activity_holder )
+					{
+						// Old content must be reset.
+						m_wt_activity.clear();
+					}
+
 				~collector_t()
 					{
 						// Chain of queue data sources must be cleaned up.
@@ -304,6 +398,15 @@ class data_source_t : public stats::manually_registered_source_t
 							}
 					}
 
+				virtual void
+				add_work_thread_activity(
+					const so_5::current_thread_id_t & thread_id,
+					const stats::work_thread_activity_stats_t & stats )
+					override
+					{
+						m_wt_activity.emplace_back( thread_id, stats );
+					}
+
 				std::size_t
 				thread_count() const
 					{
@@ -330,14 +433,34 @@ class data_source_t : public stats::manually_registered_source_t
 							}
 					}
 
+				template< typename LAMBDA >
+				void
+				for_each_thread_activity( LAMBDA lambda ) const
+					{
+						for( const auto & wt : m_wt_activity )
+							lambda( wt.m_thread_id, wt.m_stats );
+					}
+
 			private :
+
 				std::size_t m_thread_count = { 0 };
 				std::size_t m_agent_count = { 0 };
+
+				wt_activity_info_container_t & m_wt_activity;
 
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_head;
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_tail;
 			};
 
+		stats::prefix_t
+		make_work_thread_prefix( const so_5::current_thread_id_t & tid )
+			{
+				std::ostringstream ss;
+				ss << m_prefix << "/wt-"
+						<< so_5::raw_id_from_current_thread_id( tid );
+
+				return stats::prefix_t{ ss.str() };
+			}
 	};
 
 #if defined(__clang__)

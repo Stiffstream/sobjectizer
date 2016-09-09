@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief Helpers for do rollback actions in the case of exception.
  */
@@ -17,7 +19,9 @@ namespace details {
 namespace rollback_on_exception_details {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper template class for do rollback actions automatically
  * in the destructor.
  *
@@ -67,7 +71,9 @@ struct executor< void, MAIN_ACTION, ROLLBACK_ACTION >
 } /* namespace rollback_on_exception_details */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper function for do some action with rollback in the case of
  * an exception.
  *

@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \file
  * \brief A storage of quotes for priorities.
  */

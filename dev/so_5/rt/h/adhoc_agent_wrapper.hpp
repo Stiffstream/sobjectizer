@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
  */
 
@@ -23,7 +25,9 @@ namespace so_5
 {
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
  *
  * \note The presence and usefulness of this class is based on the fact
@@ -69,7 +73,9 @@ class SO_5_TYPE adhoc_agent_wrapper_t : public agent_t
 // adhoc_agent_definition_proxy_t
 //
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A proxy for process of ad-hoc agent definition.
  */
 class adhoc_agent_definition_proxy_t
@@ -96,7 +102,9 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Subscription of event- or service-handler to message.
 		 *
 		 * \note Uses direct mbox of the ad-hoc agent.
@@ -136,7 +144,9 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Subscription of event- or service-handler to signal.
 		 *
 		 * \par Usage sample:
@@ -157,7 +167,9 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Subscription of event- or service-handler to signal.
 		 *
 		 * \note Uses direct mbox of the ad-hoc agent.
@@ -215,7 +227,9 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
-		 * \since v.5.5.3
+		 * \since
+		 * v.5.5.3
+		 *
 		 * \brief Access to agent's direct mbox.
 		 *
 		 * \par Usage sample:
@@ -232,7 +246,9 @@ class adhoc_agent_definition_proxy_t
 			}
 
 		/*!
-		 * \since v.5.5.8
+		 * \since
+		 * v.5.5.8
+		 *
 		 * \brief Access to agent's environment.
 		 */
 		inline environment_t &

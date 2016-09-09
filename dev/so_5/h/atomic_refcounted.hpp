@@ -78,7 +78,9 @@ class SO_5_TYPE atomic_refcounted_t
 // intrusive_ptr_t
 //
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  * \brief Template class for smart reference wrapper on the atomic_refcounted_t.
  *
  * \tparam T class which must be derived from the atomic_refcounted_t.
@@ -126,7 +128,9 @@ class intrusive_ptr_t
 		}
 
 		/*!
-		 * \since v.5.2.2
+		 * \since
+		 * v.5.2.2
+		 *
 		 * \brief Constructor from another smart reference.
 		 */
 		template< class Y >
@@ -176,7 +180,9 @@ class intrusive_ptr_t
 		}
 
 		/*!
-		 * \since v.5.2.2
+		 * \since
+		 * v.5.2.2
+		 *
 		 * \brief Drop controlled object.
 		 */
 		void
@@ -186,7 +192,9 @@ class intrusive_ptr_t
 		}
 
 		/*!
-		 * \since v.5.2.2
+		 * \since
+		 * v.5.2.2
+		 *
 		 * \brief Make reference with casing to different type.
 		 */
 		template< class Y >

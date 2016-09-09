@@ -39,6 +39,12 @@ namespace so_5
  */
 class SO_5_TYPE dispatcher_t
 {
+		// Note: clang-3.9 requires this on Windows platform.
+		dispatcher_t( const dispatcher_t & ) = delete;
+		dispatcher_t( dispatcher_t && ) = delete;
+		dispatcher_t & operator=( const dispatcher_t & ) = delete;
+		dispatcher_t & operator=( dispatcher_t && ) = delete;
+
 	public:
 		/*! Do nothing. */
 		dispatcher_t();
@@ -76,7 +82,9 @@ class SO_5_TYPE dispatcher_t
 		wait() = 0;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Set basic part of names for data sources for
 		 * run-time monitoring.
 		 *

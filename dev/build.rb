@@ -7,8 +7,14 @@ MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 	toolset.force_cpp0x_std
 	global_include_path "."
 
-	if 'gcc' == toolset.name || 'clang' == toolset.name
+	if 'gcc' == toolset.name
 		global_linker_option '-pthread'
+	end
+
+	if 'clang' == toolset.name
+		if 'mswin' != toolset.tag( 'target_os' )
+			global_linker_option '-pthread'
+		end
 	end
 
 	# If there is local options file then use it.

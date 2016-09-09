@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief Standard data sources prefixes and suffixes used by SObjectizer.
  */
@@ -82,6 +84,12 @@ SO_5_FUNC suffix_t
 work_thread_queue_size()
 	{
 		IMPL_SUFFIX( "/demands.count" )
+	}
+
+SO_5_FUNC suffix_t
+work_thread_activity()
+	{
+		IMPL_SUFFIX( "/thread.activity" )
 	}
 
 SO_5_FUNC suffix_t

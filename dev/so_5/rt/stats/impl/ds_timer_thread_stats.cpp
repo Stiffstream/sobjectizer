@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief A data source class for run-time monitoring of timer_thread.
  */

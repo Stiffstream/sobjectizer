@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.4.0
+	\since
+	v.5.4.0
+
 	\brief A multi-producer/single-consumer mbox definition.
 */
 
@@ -32,7 +34,9 @@ namespace impl
 //
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A multi-producer/single-consumer mbox definition.
  *
  * \note Since v.5.5.4 is used for implementation of direct mboxes
@@ -191,13 +195,17 @@ class limitless_mpsc_mbox_template
 		agent_t * m_single_consumer;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief Protection of object from modification.
 		 */
 		mutable default_rw_spinlock_t m_lock;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief Number of active subscriptions.
 		 *
 		 * \note If zero then all attempts to deliver message or
@@ -206,7 +214,9 @@ class limitless_mpsc_mbox_template
 		std::size_t m_subscriptions_count = 0;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief Helper method to do delivery actions under locked object.
 		 *
 		 * \tparam L lambda with actual delivery actions.
@@ -229,14 +239,18 @@ class limitless_mpsc_mbox_template
 };
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for limitless_mpsc_mbox without message delivery tracing.
  */
 using limitless_mpsc_mbox_without_tracing =
 	limitless_mpsc_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for limitless_mpsc_mbox with message delivery tracing.
  */
 using limitless_mpsc_mbox_with_tracing =
@@ -247,7 +261,9 @@ using limitless_mpsc_mbox_with_tracing =
 //
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A multi-producer/single-consumer mbox with message limit
  * control.
  *
@@ -366,14 +382,18 @@ class limitful_mpsc_mbox_template
 };
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for limitful_mpsc_mbox without message delivery tracing.
  */
 using limitful_mpsc_mbox_without_tracing =
 	limitful_mpsc_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for limitful_mpsc_mbox with message delivery tracing.
  */
 using limitful_mpsc_mbox_with_tracing =

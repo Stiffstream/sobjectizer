@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Helper class for accessing private functionality of environment-class.
  */
@@ -23,7 +25,9 @@ namespace impl {
  * NOTE: the implementation of this class is in environment.cpp file.
  */
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A helper class for accessing the functionality of
  * environment-class which is specific for SObjectizer internals only.
  */
@@ -71,7 +75,81 @@ class internal_env_iface_t
 		 */
 		so_5::msg_tracing::tracer_t &
 		msg_tracer() const;
+
+		//! Get default lock_factory for MPSC queues.
+		/*!
+		 * \since
+		 * v.5.5.18
+		 */
+		so_5::disp::mpsc_queue_traits::lock_factory_t
+		default_mpsc_queue_lock_factory() const;
+
+		//! Get default lock_factory for MPMC queues.
+		/*!
+		 * \since
+		 * v.5.5.18
+		 */
+		so_5::disp::mpmc_queue_traits::lock_factory_t
+		default_mpmc_queue_lock_factory() const;
 	};
+
+/*!
+ * \brief Helper function to be used for extraction of lock_factory for MPSC queues.
+ *
+ * \note Intended to be used in template code:
+ * \code
+template< typename DISP_PARAMS >
+auto
+safe_get_lock_factory( so_5::environment_t & env, DISP_PARAMS & params )
+{
+	auto lf = params.queue_params().lock_factory();
+	if( !lf )
+		lf = so_5::impl::default_lock_factory( env, lf );
+	return lf;
+}
+ * \endcode
+ * A call to default_lock_factory() will return appropriate lock_factory
+ * for MPSC or MPMC queues.
+ *
+ * \since
+ * v.5.5.18
+ */
+inline so_5::disp::mpsc_queue_traits::lock_factory_t
+default_lock_factory(
+	environment_t & env,
+	const so_5::disp::mpsc_queue_traits::lock_factory_t & )
+	{
+		return internal_env_iface_t{ env }.default_mpsc_queue_lock_factory();
+	}
+
+/*!
+ * \brief Helper function to be used for extraction of lock_factory for MPSC queues.
+ *
+ * \note Intended to be used in template code:
+ * \code
+template< typename DISP_PARAMS >
+auto
+safe_get_lock_factory( so_5::environment_t & env, DISP_PARAMS & params )
+{
+	auto lf = params.queue_params().lock_factory();
+	if( !lf )
+		lf = so_5::impl::default_lock_factory( env, lf );
+	return lf;
+}
+ * \endcode
+ * A call to default_lock_factory() will return appropriate lock_factory
+ * for MPSC or MPMC queues.
+ *
+ * \since
+ * v.5.5.18
+ */
+inline so_5::disp::mpmc_queue_traits::lock_factory_t
+default_lock_factory(
+	environment_t & env,
+	const so_5::disp::mpmc_queue_traits::lock_factory_t & )
+	{
+		return internal_env_iface_t{ env }.default_mpmc_queue_lock_factory();
+	}
 
 } /* namespace impl */
 

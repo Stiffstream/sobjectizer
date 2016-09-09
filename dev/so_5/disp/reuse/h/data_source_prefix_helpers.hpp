@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ * 
  * \file
  * \brief Helpers creation of data source name prefixes.
  */
@@ -25,7 +27,9 @@ namespace reuse {
 namespace ios_helpers = so_5::details::ios_helpers;
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ * 
  * \brief Create basic prefix for dispatcher data source names.
  */
 inline so_5::stats::prefix_t
@@ -53,7 +57,9 @@ make_disp_prefix(
 	}
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ * 
  * \brief Create prefix for dispatcher's working thread data source.
  */
 inline so_5::stats::prefix_t

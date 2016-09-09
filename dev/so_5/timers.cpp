@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.5.0
+	\since
+	v.5.5.0
+
 	\brief Timers and tools for working with timers.
 */
 
@@ -99,7 +101,9 @@ namespace timers_details
 // actual_timer_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An actual implementation of timer interface.
  * 
  * \tparam TIMER_THREAD A type of timertt-based thread which implements timers.
@@ -157,7 +161,9 @@ class actual_timer_t : public timer_t
 // actual_thread_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An actual implementation of timer thread.
  * 
  * \tparam TIMER_THREAD A type of timertt-based thread which implements timers.
@@ -247,7 +253,9 @@ class actual_thread_t : public timer_thread_t
 // error_logger_for_timertt_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Type of error_logger for timertt stuff.
  */
 using error_logger_for_timertt_t = std::function< void(const std::string &) >;
@@ -279,7 +287,9 @@ create_error_logger_for_timertt( error_logger_shptr_t logger )
 // exception_handler_for_timertt_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Type of actor_exception_handler for timertt stuff.
  */
 using exception_handler_for_timertt_t =

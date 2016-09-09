@@ -3,9 +3,10 @@
  */
 
 /*!
- * \since v.5.4.0
  * \file
  * \brief Helpers for disp_binder implementation.
+ * \since
+ * v.5.4.0
  */
 
 #pragma once
@@ -30,9 +31,10 @@ namespace reuse
 {
 
 /*!
- * \since v.5.5.4
  * \brief A helper method for casing dispatcher to the specified type
  * and performing some action with it.
+ * \since
+ * v.5.5.4
  */
 template< class DISPATCHER, class ACTION > 
 auto
@@ -56,9 +58,10 @@ do_with_dispatcher_of_type(
 	}
 
 /*!
- * \since v.5.4.0
  * \brief A helper method for extracting dispatcher by name,
  * checking its type and to some action.
+ * \since
+ * v.5.4.0
  */
 template< class DISPATCHER, class ACTION > 
 auto
@@ -87,7 +90,9 @@ do_with_dispatcher(
 // binder_for_public_disp_template_t
 //
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ * 
  * \brief A template of binder for a named dispatcher.
  *
  * \tparam DISPATCHER type of a dispatcher.
@@ -151,7 +156,9 @@ class binder_for_public_disp_template_t
 //
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief A template of binder for a private dispatcher.
  *
  * \tparam HANDLE type of a smart pointer to private dispatcher.

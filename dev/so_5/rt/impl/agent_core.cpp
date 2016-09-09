@@ -22,7 +22,9 @@ namespace agent_core_details
 {
 
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Helper class for doing all actions related to
  * start of cooperation deregistration.
  *
@@ -319,7 +321,9 @@ agent_core_t::finish()
 namespace
 {
 	/*!
-	 * \since v.5.2.3
+	 * \since
+	 * v.5.2.3
+	 *
 	 * \brief Special guard to increment and decrement cooperation
 	 * usage counters.
 	 */

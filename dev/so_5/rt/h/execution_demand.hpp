@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.4.0
+	\since
+	v.5.4.0
+
 	\brief Event-related stuff.
 */
 
@@ -24,7 +26,9 @@ namespace so_5
 // event_handler_method_t
 //
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Type of event handler method.
  */
 typedef std::function< void(invocation_type_t, message_ref_t &) >
@@ -36,7 +40,9 @@ struct execution_demand_t;
 // demand_handler_pfn_t
 //
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  * \brief Demand handler prototype.
  */
 typedef void (*demand_handler_pfn_t)(
@@ -47,7 +53,9 @@ typedef void (*demand_handler_pfn_t)(
 // execution_demand_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A description of event execution demand.
  */
 struct execution_demand_t
@@ -90,7 +98,9 @@ struct execution_demand_t
 		{}
 
 	/*!
-	 * \since v.5.5.8
+	 * \since
+	 * v.5.5.8
+	 *
 	 * \brief Helper method to simplify demand execution.
 	 */
 	inline void
@@ -104,7 +114,9 @@ struct execution_demand_t
 // execution_hint_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A hint for a dispatcher for execution of event
  * for the concrete execution_demand.
  */
@@ -193,7 +205,9 @@ namespace details {
 // msg_type_and_handler_pair_t
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Description of an event handler.
  */
 struct msg_type_and_handler_pair_t

@@ -3,11 +3,14 @@
  */
 
 #if defined( _MSC_VER )
+	#if defined( __clang__ )
+		#pragma clang diagnostic ignored "-Wreserved-id-macro"
+	#endif
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include <iostream>
-#include <time.h>
+#include <ctime>
 
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
@@ -84,7 +87,7 @@ void a_hello_t::evt_stop_signal()
 void a_hello_t::show_message( const std::string & what )
 {
 	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) ) << what << std::endl;
+	std::cout << std::asctime( std::localtime( &t ) ) << what << std::endl;
 }
 
 int main()

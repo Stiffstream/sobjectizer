@@ -14,7 +14,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
+struct data { int m_key; };
 
 struct one : public so_5::signal_t {};
 struct finish : public so_5::signal_t {};
@@ -32,7 +32,7 @@ public :
 	{
 		so_set_delivery_filter( m_data_mbox,
 			[]( const data & msg ) {
-				return 1 == std::get<0>( msg );
+				return 1 == msg.m_key;
 			} );
 
 		so_default_state()

@@ -10,6 +10,9 @@ namespace so_5
 //
 // delivery_filter_t
 //
+delivery_filter_t::delivery_filter_t()
+	{}
+
 delivery_filter_t::~delivery_filter_t()
 	{}
 

@@ -32,6 +32,8 @@ environment_params_t::environment_params_t()
 	,	m_exception_reaction( abort_on_exception )
 	,	m_autoshutdown_disabled( false )
 	,	m_error_logger( create_stderr_logger() )
+	,	m_work_thread_activity_tracking(
+			work_thread_activity_tracking_t::unspecified )
 {
 }
 
@@ -46,6 +48,9 @@ environment_params_t::environment_params_t(
 	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
 	,	m_error_logger( std::move( other.m_error_logger ) )
 	,	m_message_delivery_tracer( std::move( other.m_message_delivery_tracer ) )
+	,	m_work_thread_activity_tracking(
+			work_thread_activity_tracking_t::unspecified )
+	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -75,6 +80,11 @@ environment_params_t::swap( environment_params_t & other )
 
 	m_error_logger.swap( other.m_error_logger );
 	m_message_delivery_tracer.swap( other.m_message_delivery_tracer );
+
+	std::swap( m_work_thread_activity_tracking,
+			other.m_work_thread_activity_tracking );
+
+	std::swap( m_queue_locks_defaults_manager, other.m_queue_locks_defaults_manager );
 }
 
 environment_params_t &
@@ -125,8 +135,9 @@ namespace
 {
 
 /*!
- * \since v.5.5.0
  * \brief Helper function for timer_thread creation.
+ * \since
+ * v.5.5.0
  */
 timer_thread_unique_ptr_t
 create_appropriate_timer_thread(
@@ -140,8 +151,9 @@ create_appropriate_timer_thread(
 }
 
 /*!
- * \since v.5.5.4
  * \brief A bunch of data sources for core objects.
+ * \since
+ * v.5.5.4
  */
 class core_data_sources_t
 	{
@@ -165,19 +177,43 @@ class core_data_sources_t
 		stats::impl::ds_timer_thread_stats_t m_timer_thread;
 	};
 
+/*!
+ * \brief Helper function for creation of appropriate manager
+ * object if necessary.
+ *
+ * \since
+ * v.5.5.18
+ */
+queue_locks_defaults_manager_unique_ptr_t
+ensure_locks_defaults_manager_exists(
+	//! The current value. Note: can be nullptr.
+	queue_locks_defaults_manager_unique_ptr_t current )
+	{
+		queue_locks_defaults_manager_unique_ptr_t result( std::move(current) );
+
+		if( !result )
+			result = make_defaults_manager_for_combined_locks();
+
+		return result;
+	}
+
 } /* namespace anonymous */
 
 //
 // environment_t::internals_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Internal details of SObjectizer Environment object.
  */
 struct environment_t::internals_t
 {
 	/*!
-	 * \since v.5.5.0
+	 * \since
+	 * v.5.5.0
+	 *
 	 * \brief Error logger object for this environment.
 	 *
 	 * \attention Must be the first attribute of the object!
@@ -186,7 +222,9 @@ struct environment_t::internals_t
 	error_logger_shptr_t m_error_logger;
 
 	/*!
-	 * \since v.5.5.9
+	 * \since
+	 * v.5.5.9
+	 *
 	 * \brief Tracer object for message delivery tracing.
 	 * \attention This field must be declared and initialized
 	 * before m_mbox_core because a pointer to tracer will be passed
@@ -210,40 +248,64 @@ struct environment_t::internals_t
 	so_5::timer_thread_unique_ptr_t m_timer_thread;
 
 	/*!
-	 * \since v.5.3.0
 	 * \brief An exception reaction for the whole SO Environment.
+	 * \since
+	 * v.5.3.0
 	 */
 	const exception_reaction_t m_exception_reaction;
 
 	/*!
-	 * \since v.5.4.0
 	 * \brief Is autoshutdown when there is no more cooperation disabled?
 	 *
 	 * \see environment_params_t::disable_autoshutdown()
+	 *
+	 * \since
+	 * v.5.4.0
 	 */
 	const bool m_autoshutdown_disabled;
 
 	/*!
-	 * \since v.5.5.1
 	 * \brief A counter for automatically generated cooperation names.
+	 *
+	 * \since
+	 * v.5.5.1
 	 */
 	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
 
 	/*!
-	 * \since v.5.5.4
 	 * \brief A controller for run-time monitoring.
+	 *
+	 * \since
+	 * v.5.5.4
 	 */
 	stats::impl::std_controller_t m_stats_controller;
 
 	/*!
-	 * \since v.5.5.4
 	 * \brief Data sources for core objects.
 	 *
 	 * \attention This instance must be created after m_stats_controller
 	 * and destroyed before it. Because of that m_core_data_sources declared
 	 * after m_stats_controller and after all corresponding objects.
+	 * 
+	 * \since
+	 * v.5.5.4
 	 */
 	core_data_sources_t m_core_data_sources;
+
+	/*!
+	 * \brief Work thread activity tracking for the whole Environment.
+	 * \since
+	 * v.5.5.18
+	 */
+	work_thread_activity_tracking_t m_work_thread_activity_tracking;
+
+	/*!
+	 * \brief Manager for defaults of queue locks.
+	 *
+	 * \since
+	 * v.5.5.18
+	 */
+	queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
 
 	//! Constructor.
 	internals_t(
@@ -280,6 +342,11 @@ struct environment_t::internals_t
 				*m_mbox_core,
 				m_agent_core,
 				*m_timer_thread )
+		,	m_work_thread_activity_tracking(
+				params.work_thread_activity_tracking() )
+		,	m_queue_locks_defaults_manager(
+				ensure_locks_defaults_manager_exists(
+					params.so5__giveout_queue_locks_defaults_manager() ) )
 	{}
 };
 
@@ -515,6 +582,12 @@ environment_t::stats_repository()
 	return m_impl->m_stats_controller;
 }
 
+work_thread_activity_tracking_t
+environment_t::work_thread_activity_tracking() const
+{
+	return m_impl->m_work_thread_activity_tracking;
+}
+
 void
 environment_t::impl__run_stats_controller_and_go_further()
 {
@@ -739,6 +812,20 @@ internal_env_iface_t::msg_tracer() const
 				"msg_tracer cannot be accessed because msg_tracing is disabled" );
 
 	return *(m_env.m_impl->m_message_delivery_tracer);
+}
+
+so_5::disp::mpsc_queue_traits::lock_factory_t
+internal_env_iface_t::default_mpsc_queue_lock_factory() const
+{
+	return m_env.m_impl->m_queue_locks_defaults_manager->
+			mpsc_queue_lock_factory();
+}
+
+so_5::disp::mpmc_queue_traits::lock_factory_t
+internal_env_iface_t::default_mpmc_queue_lock_factory() const
+{
+	return m_env.m_impl->m_queue_locks_defaults_manager->
+			mpmc_queue_lock_factory();
 }
 
 } /* namespace impl */

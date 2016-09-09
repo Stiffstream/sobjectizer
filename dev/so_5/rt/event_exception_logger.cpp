@@ -13,6 +13,9 @@ namespace so_5
 // event_exception_logger_t
 //
 
+event_exception_logger_t::event_exception_logger_t()
+{}
+
 event_exception_logger_t::~event_exception_logger_t()
 {}
 
@@ -37,6 +40,9 @@ class std_event_exception_logger_t
 		public event_exception_logger_t
 {
 	public:
+		std_event_exception_logger_t()
+		{}
+
 		virtual ~std_event_exception_logger_t()
 		{}
 
@@ -63,7 +69,7 @@ SO_5_FUNC event_exception_logger_unique_ptr_t
 create_std_event_exception_logger()
 {
 	return event_exception_logger_unique_ptr_t(
-		new std_event_exception_logger_t );
+		new std_event_exception_logger_t() );
 }
 
 } /* namespace so_5 */

@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief Helpers for handling unhandled exceptions from agent's event handlers.
  */
@@ -17,7 +19,9 @@ namespace so_5 {
 namespace impl {
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Processor of unhandled exception from agent's event handler.
  */
 void

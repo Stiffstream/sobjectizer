@@ -22,6 +22,8 @@ struct	cfg_t
 	bool	m_direct_mboxes = false;
 
 	bool	m_message_limits = false;
+
+	bool	m_track_activity = false;
 };
 
 cfg_t
@@ -45,6 +47,7 @@ try_parse_cmdline(
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-l, --message-limits use message limits for agents\n"
 							"-s, --simple-lock    use simple lock factory for event queue\n"
+							"-T, --track-activity turn work thread activity tracking on\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -61,6 +64,8 @@ try_parse_cmdline(
 				mandatory_arg_to_value(
 						tmp_cfg.m_request_count, ++current, last,
 						"-r", "count of requests to send" );
+			else if( is_arg( *current, "-T", "--track-activity" ) )
+				tmp_cfg.m_simple_lock = true;
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -219,6 +224,7 @@ show_cfg(
 			<< ", limits: " << ( cfg.m_message_limits ? "yes" : "no" )
 			<< ", locks: " << ( cfg.m_simple_lock ? "simple" : "combined" )
 			<< ", requests: " << cfg.m_request_count
+			<< ", activity tracking: " << ( cfg.m_track_activity ? "on" : "off" )
 			<< std::endl;
 	}
 
@@ -305,12 +311,16 @@ main( int argc, char ** argv )
 			},
 			[&]( so_5::environment_params_t & params )
 			{
+				if( cfg.m_track_activity )
+					params.turn_work_thread_activity_tracking_on();
+
+				if( cfg.m_simple_lock )
+					params.queue_locks_defaults_manager(
+							so_5::make_defaults_manager_for_simple_locks() );
+
 				if( cfg.m_active_objects )
 				{
 					so_5::disp::active_obj::queue_traits::queue_params_t queue_params;
-					if( cfg.m_simple_lock )
-						queue_params.lock_factory(
-								so_5::disp::active_obj::queue_traits::simple_lock_factory() );
 
 					params.add_named_dispatcher(
 							"active_obj",

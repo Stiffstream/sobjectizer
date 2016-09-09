@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief A data source class for run-time monitoring of agent_core.
  */
@@ -29,7 +31,9 @@ namespace impl {
 // ds_agent_core_stats_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A data source for distributing information about agent_core.
  */
 class ds_agent_core_stats_t : public auto_registered_source_t

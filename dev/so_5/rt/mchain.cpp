@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \file
  * \brief Public part of message chain related stuff.
  */

@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief An interface of subscription storage.
  */
@@ -31,7 +33,9 @@ namespace impl
 // event_handler_data_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Information about event_handler and its properties.
  */
 struct event_handler_data_t
@@ -50,14 +54,18 @@ struct event_handler_data_t
 	};
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Common stuff for various subscription storage implementations.
  */
 namespace subscription_storage_common
 {
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief An information about one subscription.
  */
 struct subscr_info_t
@@ -87,13 +95,17 @@ struct subscr_info_t
 	};
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Type of vector with subscription information.
  */
 typedef std::vector< subscr_info_t > subscr_info_vector_t;
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief A helper function for creating subscription description.
  */
 inline std::string
@@ -113,7 +125,9 @@ make_subscription_description(
 } /* namespace subscription_storage_common */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief An interface of subscription storage
  *
  * Prior to v.5.5.3 there where only one subscription_storage implementation.

@@ -36,13 +36,17 @@ namespace local_mbox_details
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An information block about one subscriber.
  */
 class subscriber_info_t
 {
 	/*!
-	 * \since v.5.5.5
+	 * \since
+	 * v.5.5.5
+	 *
 	 * \brief Current status of the subscriber.
 	 */
 	enum class state_t
@@ -60,13 +64,17 @@ class subscriber_info_t
 	const so_5::message_limit::control_block_t * m_limit;
 
 	/*!
-	 * \since v.5.5.5
+	 * \since
+	 * v.5.5.5
+	 *
 	 * \brief Delivery filter for that message for that subscriber.
 	 */
 	const delivery_filter_t * m_filter;
 
 	/*!
-	 * \since v.5.5.5
+	 * \since
+	 * v.5.5.5
+	 *
 	 * \brief Current state of the subscriber parameters.
 	 */
 	state_t m_state;
@@ -217,7 +225,9 @@ public :
 // subscriber_adaptive_container_t
 //
 /*!
- * \since v.5.5.12
+ * \since
+ * v.5.5.12
+ *
  * \brief A special container for holding subscriber_info objects.
  *
  * \note Uses std::vector as a storage for small amount of
@@ -663,7 +673,9 @@ public :
 //
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A coolection of data required for local mbox implementation.
  */
 struct data_t
@@ -679,7 +691,9 @@ struct data_t
 		mutable default_rw_spinlock_t m_lock;
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Map from message type to subscribers.
 		 */
 		typedef std::map<
@@ -699,7 +713,9 @@ struct data_t
 
 //! A template with implementation of local mbox.
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \tparam TRACING_BASE base class with implementation of message
  * delivery tracing methods.
  */
@@ -1064,14 +1080,18 @@ class local_mbox_template
 	};
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for local mbox without message delivery tracing.
  */
 using local_mbox_without_tracing =
 	local_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Alias for local mbox with message delivery tracing.
  */
 using local_mbox_with_tracing =

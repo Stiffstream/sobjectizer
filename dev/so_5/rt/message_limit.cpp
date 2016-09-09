@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Public part of message limit implementation.
  */
 
@@ -31,7 +33,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Maximum overlimit reaction deep.
  */
 const unsigned int max_overlimit_reaction_deep = 32;

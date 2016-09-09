@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.11
+ * \since
+ * v.5.5.11
+ *
  * \file
  * \brief Various traits for MPMC queues.
  */
@@ -48,7 +50,9 @@ using spinlock_t = so_5::default_spinlock_t;
 // actual_cond_t
 //
 /*!
- * \since v.5.5.11
+ * \since
+ * v.5.5.11
+ *
  * \brief Impementation of condition object for the case of combined lock.
  */
 class actual_cond_t : public condition_t
@@ -146,7 +150,9 @@ class actual_cond_t : public condition_t
 // actual_lock_t
 //
 /*!
- * \since v.5.5.11
+ * \since
+ * v.5.5.11
+ *
  * \brief Actual implementation of combined lock object.
  */
 class actual_lock_t : public lock_t
@@ -193,7 +199,9 @@ namespace simple_lock
 // actual_cond_t
 //
 /*!
- * \since v.5.5.11
+ * \since
+ * v.5.5.11
+ *
  * \brief Actual implementation of condition object for the case
  * of simple locking on mutex and condition_variable.
  */
@@ -241,7 +249,9 @@ class actual_cond_t : public condition_t
 // actual_lock_t
 //
 /*!
- * \since v.5.5.11
+ * \since
+ * v.5.5.11
+ *
  * \brief Actual implementation of lock object for simple locking
  * on mutex and condition variables.
  */

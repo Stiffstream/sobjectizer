@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief A data source class for run-time monitoring of timer_thread.
  */
@@ -29,7 +31,9 @@ namespace impl {
 // ds_timer_thread_stats_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A data source for distributing information about timer_thread.
  */
 class ds_timer_thread_stats_t : public auto_registered_source_t

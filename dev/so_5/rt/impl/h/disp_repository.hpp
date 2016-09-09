@@ -55,7 +55,9 @@ class disp_repository_t
 			const std::string & disp_name );
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Add named dispatcher if it is not exists.
 		 */
 		dispatcher_ref_t
@@ -78,7 +80,9 @@ class disp_repository_t
 			event_exception_logger_unique_ptr_t logger );
 
 		/*!
-		 * \since v.5.2.3.
+		 * \since
+		 * v.5.2.3.
+		 *
 		 * \brief Call event exception logger for logging an exception.
 		 */
 		void
@@ -90,7 +94,9 @@ class disp_repository_t
 
 	private:
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief SObjectizer Environment to work in.
 		 */
 		environment_t & m_env;
@@ -108,7 +114,9 @@ class disp_repository_t
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief State of dispatcher core.
 		 */
 		enum class state_t
@@ -122,26 +130,34 @@ class disp_repository_t
 		};
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief State of dispatcher core.
 		 */
 		state_t m_state;
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Object lock.
 		 */
 		default_rw_spinlock_t m_lock;
 
 		/*!
-		 * \since v.5.2.0
+		 * \since
+		 * v.5.2.0
+		 *
 		 * \brief Sends shutdown signal to all dispatchers.
 		 */
 		void
 		send_shutdown_signal();
 
 		/*!
-		 * \since v.5.2.0
+		 * \since
+		 * v.5.2.0
+		 *
 		 * \brief Wait for full stop of all dispatchers.
 		 */
 		void

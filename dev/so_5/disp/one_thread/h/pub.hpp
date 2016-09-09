@@ -32,7 +32,9 @@ namespace one_thread
 //
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An interface for %one_thread private dispatcher.
  */
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
@@ -46,14 +48,18 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	};
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A handle for the %one_thread private dispatcher.
  */
 using private_dispatcher_handle_t =
 	so_5::intrusive_ptr_t< private_dispatcher_t >;
 
 /*!
- * \since v.5.5.10
+ * \since
+ * v.5.5.10
+ *
  * \brief Create an instance of %one_thread dispatcher to be used
  * as named dispatcher.
  *
@@ -82,7 +88,9 @@ create_disp()
 	}
 
 /*!
- * \since v.5.5.10
+ * \since
+ * v.5.5.10
+ *
  * \brief Create a private %one_thread dispatcher.
  *
  * \par Usage sample
@@ -111,7 +119,9 @@ create_private_disp(
 	disp_params_t params );
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Create a private %one_thread dispatcher.
  *
  * \par Usage sample
@@ -137,7 +147,9 @@ create_private_disp(
 	}
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Create a private %one_thread dispatcher.
  *
  * \par Usage sample

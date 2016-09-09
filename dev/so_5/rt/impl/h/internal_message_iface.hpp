@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Helper class for accessing private functionality of message-class.
  */
@@ -20,7 +22,9 @@ namespace impl {
 // internal_message_iface_t
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A helper class for accessing the functionality of
  * message-class which is specific for SObjectizer internals only.
  */

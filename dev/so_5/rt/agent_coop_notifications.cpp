@@ -3,7 +3,9 @@
 */
 
 /*!
-	\since v.5.2.3 
+	\since
+	v.5.2.3 
+
 	\file
 	\brief Agent cooperation notifications definition.
 */

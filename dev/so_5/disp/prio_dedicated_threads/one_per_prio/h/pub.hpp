@@ -3,10 +3,12 @@
 */
 
 /*!
- * \since v.5.5.8
  * \file
  * \brief Functions for creating and binding of the dispatcher with
  * dedicated threads per priority.
+ *
+ * \since
+ * v.5.5.8
  */
 
 #pragma once
@@ -22,6 +24,8 @@
 
 #include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 
+#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+
 namespace so_5 {
 
 namespace disp {
@@ -31,8 +35,10 @@ namespace prio_dedicated_threads {
 namespace one_per_prio {
 
 /*!
- * \since v.5.5.10
  * \brief Alias for namespace with traits of event queue.
+ *
+ * \since
+ * v.5.5.10
  */
 namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
@@ -40,25 +46,37 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 // disp_params_t
 //
 /*!
- * \since v.5.5.10
  * \brief Parameters for a dispatcher.
+ *
+ * \since
+ * v.5.5.10
  */
 class disp_params_t
+	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
 	{
+		using activity_tracking_mixin_t = so_5::disp::reuse::
+				work_thread_activity_tracking_flag_mixin_t< disp_params_t >;
+
 	public :
 		//! Default constructor.
 		disp_params_t() {}
 		//! Copy constructor.
 		disp_params_t( const disp_params_t & o )
-			:	m_queue_params{ o.m_queue_params }
+			:	activity_tracking_mixin_t{ o }
+			,	m_queue_params{ o.m_queue_params }
 			{}
 		//! Move constructor.
 		disp_params_t( disp_params_t && o )
-			:	m_queue_params{ std::move(o.m_queue_params) }
+			:	activity_tracking_mixin_t{ std::move(o) }
+			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
+				swap(
+						static_cast< activity_tracking_mixin_t & >(a),
+						static_cast< activity_tracking_mixin_t & >(b) );
+
 				swap( a.m_queue_params, b.m_queue_params );
 			}
 
@@ -133,8 +151,10 @@ using params_t = disp_params_t;
 //
 
 /*!
- * \since v.5.5.8
  * \brief An interface for %one_per_prio private dispatcher.
+ *
+ * \since
+ * v.5.5.8
  */
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	{
@@ -147,15 +167,19 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	};
 
 /*!
- * \since v.5.5.8
  * \brief A handle for the %one_per_prio private dispatcher.
+ *
+ * \since
+ * v.5.5.8
  */
 using private_dispatcher_handle_t =
 	so_5::intrusive_ptr_t< private_dispatcher_t >;
 
 /*!
- * \since v.5.5.10
  * \brief Create an instance of dispatcher to be used as named dispatcher.
+ *
+ * \since
+ * v.5.5.10
  */
 SO_5_FUNC dispatcher_unique_ptr_t
 create_disp(
@@ -170,8 +194,10 @@ create_disp()
 	}
 
 /*!
- * \since v.5.5.10
  * \brief Create a private %one_per_prio dispatcher.
+ *
+ * \since
+ * v.5.5.10
  *
  * \par Usage sample
 \code
@@ -200,8 +226,10 @@ create_private_disp(
 	disp_params_t params );
 
 /*!
- * \since v.5.5.8
  * \brief Create a private %one_per_prio dispatcher.
+ *
+ * \since
+ * v.5.5.8
  *
  * \par Usage sample
 \code
@@ -226,8 +254,10 @@ create_private_disp(
 	}
 
 /*!
- * \since v.5.5.8
  * \brief Create a private %one_per_prio dispatcher.
+ *
+ * \since
+ * v.5.5.8
  *
  * \par Usage sample
 \code

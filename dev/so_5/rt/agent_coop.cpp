@@ -166,7 +166,9 @@ coop_t::parent_coop_name() const
 namespace
 {
 	/*!
-	 * \since v.5.2.3
+	 * \since
+	 * v.5.2.3
+	 *
 	 * \brief Helper function for notificator addition.
 	 */
 	template< class C, class N >

@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief Public interface of advanced thread pool dispatcher.
  */
@@ -15,6 +17,8 @@
 #include <so_5/rt/h/disp_binder.hpp>
 
 #include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
+
+#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
 
 #include <utility>
 
@@ -28,8 +32,10 @@ namespace adv_thread_pool
 {
 
 /*!
- * \since v.5.5.11
  * \brief Alias for namespace with traits of event queue.
+ *
+ * \since
+ * v.5.5.11
  */
 namespace queue_traits = so_5::disp::mpmc_queue_traits;
 
@@ -37,27 +43,39 @@ namespace queue_traits = so_5::disp::mpmc_queue_traits;
 // disp_params_t
 //
 /*!
- * \since v.5.5.11
  * \brief Parameters for %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.11
  */
 class disp_params_t
+	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
 	{
+		using activity_tracking_mixin_t = so_5::disp::reuse::
+				work_thread_activity_tracking_flag_mixin_t< disp_params_t >;
+
 	public :
 		//! Default constructor.
 		disp_params_t() {}
 		//! Copy constructor.
 		disp_params_t( const disp_params_t & o )
-			:	m_thread_count{ o.m_thread_count }
+			:	activity_tracking_mixin_t( o )
+			,	m_thread_count{ o.m_thread_count }
 			,	m_queue_params{ o.m_queue_params }
 			{}
 		//! Move constructor.
 		disp_params_t( disp_params_t && o )
-			:	m_thread_count{ std::move(o.m_thread_count) }
+			:	activity_tracking_mixin_t( std::move(o) )
+			,	m_thread_count{ std::move(o.m_thread_count) }
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
+				swap(
+						static_cast< activity_tracking_mixin_t & >(a),
+						static_cast< activity_tracking_mixin_t & >(b) );
+
 				std::swap( a.m_thread_count, b.m_thread_count );
 				swap( a.m_queue_params, b.m_queue_params );
 			}
@@ -145,8 +163,10 @@ class disp_params_t
 // fifo_t
 //
 /*!
- * \since v.5.4.0
  * \brief Type of FIFO mechanism for agent's demands.
+ *
+ * \since
+ * v.5.4.0
  */
 enum class fifo_t
 	{
@@ -169,8 +189,10 @@ enum class fifo_t
 // bind_params_t
 //
 /*!
- * \since v.5.5.11
  * \brief Parameters for binding agents to %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.11
  */
 class bind_params_t
 	{
@@ -199,8 +221,11 @@ class bind_params_t
 // params_t
 //
 /*!
- * \since v.5.4.0
  * \brief Alias for bind_params.
+ *
+ * \since
+ * v.5.4.0
+ *
  * \deprecated Since v.5.5.11 bind_params_t must be used instead.
  */
 using params_t = bind_params_t;
@@ -209,9 +234,11 @@ using params_t = bind_params_t;
 // default_thread_pool_size
 //
 /*!
- * \since v.5.4.0
  * \brief A helper function for detecting default thread count for
  * thread pool.
+ *
+ * \since
+ * v.5.4.0
  */
 inline std::size_t
 default_thread_pool_size()
@@ -228,8 +255,10 @@ default_thread_pool_size()
 //
 
 /*!
- * \since v.5.5.4
  * \brief An interface for %adv_thread_pool private dispatcher.
+ *
+ * \since
+ * v.5.5.4
  */
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	{
@@ -261,8 +290,10 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	};
 
 /*!
- * \since v.5.5.4
  * \brief A handle for the %adv_thread_pool private dispatcher.
+ *
+ * \since
+ * v.5.5.4
  */
 using private_dispatcher_handle_t =
 	so_5::intrusive_ptr_t< private_dispatcher_t >;
@@ -271,9 +302,11 @@ using private_dispatcher_handle_t =
 // create_disp
 //
 /*!
- * \since v.5.5.11
  * \brief Create %adv_thread_pool dispatcher instance to be used as
  * named dispatcher.
+ *
+ * \since
+ * v.5.5.11
  *
  * \par Usage sample
 \code
@@ -298,8 +331,10 @@ create_disp(
 // create_disp
 //
 /*!
- * \since v.5.4.0
  * \brief Create thread pool dispatcher.
+ *
+ * \since
+ * v.5.4.0
  */
 inline dispatcher_unique_ptr_t
 create_disp(
@@ -313,10 +348,12 @@ create_disp(
 // create_disp
 //
 /*!
- * \since v.5.4.0
  * \brief Create thread pool dispatcher.
  *
  * Size of pool is detected automatically.
+ *
+ * \since
+ * v.5.4.0
  */
 inline dispatcher_unique_ptr_t
 create_disp()
@@ -328,8 +365,10 @@ create_disp()
 // create_private_disp
 //
 /*!
- * \since v.5.5.11
  * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.11
  *
  * \par Usage sample
 \code
@@ -407,8 +446,10 @@ create_private_disp(
 // create_private_disp
 //
 /*!
- * \since v.5.5.4
  * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.4
  *
  * \par Usage sample
 \code
@@ -439,8 +480,10 @@ create_private_disp(
 	}
 
 /*!
- * \since v.5.5.4
  * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.4
  *
  * \par Usage sample
 \code
@@ -466,9 +509,11 @@ create_private_disp(
 // create_private_disp
 //
 /*!
- * \since v.5.5.4
  * \brief Create a private %adv_thread_pool dispatcher with the default
  * count of working threads.
+ *
+ * \since
+ * v.5.5.4
  *
  * \par Usage sample
 \code
@@ -495,8 +540,10 @@ create_private_disp(
 // create_disp_binder
 //
 /*!
- * \since v.5.4.0
  * \brief Create dispatcher binder for thread pool dispatcher.
+ *
+ * \since
+ * v.5.4.0
  */
 SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
@@ -506,8 +553,10 @@ create_disp_binder(
 	const bind_params_t & params );
 
 /*!
- * \since v.5.4.0
  * \brief Create dispatcher binder for thread pool dispatcher.
+ *
+ * \since
+ * v.5.4.0
  *
  * Usage example:
 \code

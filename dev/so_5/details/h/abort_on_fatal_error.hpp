@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.6
+ * \since
+ * v.5.5.6
+ *
  * \file
  * \brief Helpers for aborting the whole application in the
  * case of a fatal error.
@@ -20,7 +22,9 @@ namespace so_5 {
 namespace details {
 
 /*!
- * \since v.5.5.6
+ * \since
+ * v.5.5.6
+ *
  * \file
  * \brief Helper for aborting the whole application in the
  * case of a fatal error.

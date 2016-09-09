@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.5.0
+	\since
+	v.5.5.0
+
 	\brief Timers and tools for working with timers.
 */
 
@@ -33,7 +35,9 @@ namespace so_5
 // timer_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief A base class for timer identificator.
  */
 class SO_5_TYPE timer_t
@@ -57,7 +61,9 @@ class SO_5_TYPE timer_t
 // timer_id_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief An indentificator for the timer.
  */
 class SO_5_TYPE timer_id_t
@@ -116,7 +122,9 @@ namespace timer_thread
 // timer_thread_stats_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Statistics for run-time monitoring.
  */
 struct timer_thread_stats_t
@@ -200,7 +208,9 @@ class SO_5_TYPE timer_thread_t
 			std::chrono::steady_clock::duration period ) = 0;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Get statistics for run-time monitoring.
 		 */
 		virtual timer_thread_stats_t
@@ -214,7 +224,9 @@ typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
 // timer_thread_factory_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Type of factory for creating timer_thread objects.
  */
 using timer_thread_factory_t = std::function<
@@ -225,7 +237,9 @@ using timer_thread_factory_t = std::function<
  * \{
  */
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Create timer thread based on timer_wheel mechanism.
  * \note Default parameters will be used for timer thread.
  */
@@ -235,7 +249,9 @@ create_timer_wheel_thread(
 	error_logger_shptr_t logger );
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Create timer thread based on timer_wheel mechanism.
  * \note Parameters must be specified explicitely.
  */
@@ -249,7 +265,9 @@ create_timer_wheel_thread(
 	std::chrono::steady_clock::duration granuality );
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Create timer thread based on timer_heap mechanism.
  * \note Default parameters will be used for timer thread.
  */
@@ -259,7 +277,9 @@ create_timer_heap_thread(
 	error_logger_shptr_t logger );
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Create timer thread based on timer_heap mechanism.
  * \note Parameters must be specified explicitely.
  */
@@ -271,7 +291,9 @@ create_timer_heap_thread(
 	std::size_t initial_heap_capacity );
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Create timer thread based on timer_list mechanism.
  */
 SO_5_FUNC timer_thread_unique_ptr_t
@@ -287,7 +309,9 @@ create_timer_list_thread(
  * \{
  */
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Factory for timer_wheel thread with default parameters.
  */
 inline timer_thread_factory_t
@@ -300,7 +324,9 @@ timer_wheel_factory()
 	}
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Factory for timer_wheel thread with explicitely specified parameters.
  */
 inline timer_thread_factory_t
@@ -324,7 +350,9 @@ timer_wheel_factory(
 	}
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Factory for timer_heap thread with default parameters.
  */
 inline timer_thread_factory_t
@@ -337,7 +365,9 @@ timer_heap_factory()
 	}
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Factory for timer_heap thread with explicitely specified parameters.
  */
 inline timer_thread_factory_t
@@ -356,7 +386,9 @@ timer_heap_factory(
 	}
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief Factory for timer_list thread with default parameters.
  */
 inline timer_thread_factory_t

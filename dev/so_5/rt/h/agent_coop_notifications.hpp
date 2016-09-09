@@ -3,7 +3,9 @@
 */
 
 /*!
-	\since v.5.2.3 
+	\since
+	v.5.2.3 
+
 	\file
 	\brief Agent cooperation notifications definition.
 */
@@ -25,11 +27,19 @@ namespace so_5
 // msg_coop_registered
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Message about cooperation registration completion.
  */
 struct SO_5_TYPE msg_coop_registered : public message_t
 {
+	// Note: clang-3.9 requires this on Windows platform.
+	msg_coop_registered( const msg_coop_registered & ) = delete;
+	msg_coop_registered( msg_coop_registered && ) = delete;
+	msg_coop_registered & operator=( const msg_coop_registered & ) = delete;
+	msg_coop_registered & operator=( msg_coop_registered && ) = delete;
+
 	msg_coop_registered(
 		const std::string & coop_name );
 	virtual ~msg_coop_registered();
@@ -41,11 +51,19 @@ struct SO_5_TYPE msg_coop_registered : public message_t
 // msg_coop_deregistered
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Message about cooperation deregistration completion.
  */
 struct SO_5_TYPE msg_coop_deregistered : public message_t
 {
+	// Note: clang-3.9 requires this on Windows platform.
+	msg_coop_deregistered( const msg_coop_deregistered & ) = delete;
+	msg_coop_deregistered( msg_coop_deregistered && ) = delete;
+	msg_coop_deregistered & operator=( const msg_coop_deregistered & ) = delete;
+	msg_coop_deregistered & operator=( msg_coop_deregistered && ) = delete;
+
 	msg_coop_deregistered(
 		const std::string & coop_name,
 		coop_dereg_reason_t reason );
@@ -59,7 +77,9 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 // make_coop_reg_notificator
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Create notificator about cooperation registration completion.
  */
 SO_5_FUNC coop_reg_notificator_t
@@ -71,7 +91,9 @@ make_coop_reg_notificator(
 // make_coop_dereg_notificator
 //
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Create notificator about cooperation deregistration completion.
  */
 SO_5_FUNC coop_dereg_notificator_t

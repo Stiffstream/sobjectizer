@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief Implementation of free functions send/send_delayed.
  */
 
@@ -103,7 +105,9 @@ namespace impl
 } /* namespace impl */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Implementation details for send-family and request_future/value helper functions.
  */
 namespace send_functions_details {
@@ -123,7 +127,9 @@ arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 } /* namespace send_functions_details */
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a message or a signal.
  *
  * \note Since v.5.5.9 can accept const references to so_5::mbox_t,
@@ -205,7 +211,9 @@ send( TARGET && to, ARGS&&... args )
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a message to
  * the agent's direct mbox.
  */
@@ -217,7 +225,9 @@ send_to_agent( const so_5::agent_t & receiver, ARGS&&... args )
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief A utility function for creating and delivering a message to
  * the ad-hoc agent's direct mbox.
  */
@@ -231,7 +241,9 @@ send_to_agent(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a delayed message.
  */
 template< typename MESSAGE, typename... ARGS >
@@ -251,7 +263,9 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a delayed message
  * to the agent's direct mbox.
  *
@@ -275,7 +289,9 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a delayed message.
  *
  * Gets the Environment from the agent specified.
@@ -299,7 +315,9 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a delayed message
  * to the ad-hoc agent's direct mbox.
  *
@@ -323,7 +341,9 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a delayed message.
  *
  * Gets the Environment from the chain specified.
@@ -343,7 +363,9 @@ send_delayed(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a delayed message
  * to the agent's direct mbox.
  *
@@ -369,7 +391,9 @@ send_delayed_to_agent(
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief A utility function for creating and delivering a delayed message
  * to the ad-hoc agent's direct mbox.
  *
@@ -395,7 +419,9 @@ send_delayed_to_agent(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a periodic message.
  */
 template< typename MESSAGE, typename... ARGS >
@@ -417,7 +443,9 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a periodic message.
  *
  * Gets the Environment from the agent specified.
@@ -447,7 +475,9 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
  *
@@ -474,7 +504,9 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
  *
@@ -501,7 +533,9 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief A utility function for creating and delivering a periodic message
  * to %mchain.
  */
@@ -526,7 +560,9 @@ send_periodic(
 	}
 
 /*!
- * \since v.5.5.1
+ * \since
+ * v.5.5.1
+ *
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
  *
@@ -555,7 +591,9 @@ send_periodic_to_agent(
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
  *
@@ -589,7 +627,7 @@ send_periodic_to_agent(
  */
 
 /*!
- * \since v.5.5.9
+ * \sincev.5.5.9
  * \brief Make a synchronous request and receive result in form of a future
  * object. Intended to use with messages.
  *
@@ -643,7 +681,9 @@ request_future(
 	}
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Make a synchronous request and receive result in form of a future
  * object. Intended to use with signals.
  *
@@ -705,7 +745,9 @@ request_future(
 	}
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Make a synchronous request and receive result in form of a value
  * with waiting for some time. Intended to use with messages.
  *
@@ -765,7 +807,9 @@ request_value(
 	}
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Make a synchronous request and receive result in form of a value with
  * waiting for some time. Intended to use with signals.
  *

@@ -20,7 +20,9 @@ namespace details
 {
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special selector for %mhood_t implementations.
  */
 enum class mhood_type_t
@@ -34,7 +36,9 @@ enum class mhood_type_t
 };
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A type to be used as a base for %mhood_t implementation.
  */
 template< typename M, mhood_type_t T >
@@ -42,7 +46,9 @@ class mhood_base_t
 {};
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special base for the case when message type is derived
  * from %message_t.
  * 
@@ -80,7 +86,9 @@ private :
 };
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special base for the case when message type is derived
  * from %message_t.
  * 
@@ -94,7 +102,9 @@ public :
 };
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special base for the case when message type is not
  * related to %message_t.
  * 
@@ -134,7 +144,9 @@ private :
 };
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special selector of message hood type.
  */
 template< typename T >
@@ -151,7 +163,9 @@ struct mhood_type_detector
 } /* namespace details */
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A message wrapped to be used as type of argument for
  * event handlers.
  *
@@ -202,7 +216,9 @@ public :
 };
 
 /*!
- * \since v.5.5.14
+ * \since
+ * v.5.5.14
+ *
  * \brief A special case for %mhood_t to prevent usage of %mhood_t as wrapper
  * for %user_type_message_t<T>.
  */

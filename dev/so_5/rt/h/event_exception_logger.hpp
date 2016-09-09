@@ -39,7 +39,14 @@ using event_exception_logger_unique_ptr_t =
  */
 class SO_5_TYPE event_exception_logger_t
 {
+		// Note: clang-3.9 requires this on Windows platform.
+		event_exception_logger_t( const event_exception_logger_t & ) = delete;
+		event_exception_logger_t( event_exception_logger_t && ) = delete;
+		event_exception_logger_t & operator=( const event_exception_logger_t & ) = delete;
+		event_exception_logger_t & operator=( event_exception_logger_t && ) = delete;
+
 	public:
+		event_exception_logger_t();
 		virtual ~event_exception_logger_t();
 
 		/*!

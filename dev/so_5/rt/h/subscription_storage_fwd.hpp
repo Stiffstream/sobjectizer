@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief Forward definitions for subscription storage related stuff.
  */
@@ -24,7 +26,9 @@ namespace impl
 class subscription_storage_t;
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Typedef for unique pointer to subscription_storage object.
  */
 using subscription_storage_unique_ptr_t =
@@ -33,7 +37,9 @@ using subscription_storage_unique_ptr_t =
 } /* namespace impl */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Type of subscription_storage factory.
  */
 using subscription_storage_factory_t =
@@ -41,7 +47,9 @@ using subscription_storage_factory_t =
 				impl::subscription_storage_unique_ptr_t( agent_t * ) >;
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for default subscription storage object.
  *
  * \note Creates adaptive storage with vector-based storage for
@@ -57,7 +65,9 @@ SO_5_FUNC subscription_storage_factory_t
 default_subscription_storage_factory();
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for default subscription storage based on std::unordered_map.
  *
  * \note This storage is efficient only in the cases of very large amount
@@ -73,7 +83,9 @@ SO_5_FUNC subscription_storage_factory_t
 hash_table_based_subscription_storage_factory();
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for subscription storage based on std::vector.
  *
  * \note Uses very simple working scheme: all subscriptions are stored in the
@@ -92,7 +104,9 @@ vector_based_subscription_storage_factory(
 	std::size_t initial_capacity );
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for subscription storage based on std::map.
  *
  * \note Uses std::map as an underlying storage. And very efficient when count
@@ -108,7 +122,9 @@ SO_5_FUNC subscription_storage_factory_t
 map_based_subscription_storage_factory();
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for adaptive subscription storage.
  *
  * \par Description
@@ -129,7 +145,9 @@ adaptive_subscription_storage_factory(
 	std::size_t threshold );
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Factory for adaptive subscription storage.
  *
  * \par Description

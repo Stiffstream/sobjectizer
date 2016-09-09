@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Private part of message limit implementation.
  */
 
@@ -30,7 +32,9 @@ namespace impl
 // info_block_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Run-time data for limit of one message type.
  */
 struct info_block_t
@@ -58,7 +62,9 @@ struct info_block_t
 // info_block_container_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Type of container for limits' run-time data.
  */
 using info_block_container_t = std::vector< info_block_t >;
@@ -67,7 +73,9 @@ using info_block_container_t = std::vector< info_block_t >;
 // info_storage_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A storage for message limits for one agent.
  */
 class info_storage_t
@@ -220,10 +228,13 @@ namespace
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunneeded-member-function"
+#pragma clang diagnostic ignored "-Wunused-member-function"
 #endif
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper class to rollback message count change in
  * case of an exception.
  */
@@ -252,7 +263,9 @@ struct decrement_on_exception_t
 } /* namespace anonymous */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief A helper function for pushing a message or a service
  * request to agent with respect to message limit.
  *
@@ -295,7 +308,7 @@ try_to_deliver_to_agent(
 	}
 	else
 	{
-		decrement_on_exception_t exception_guard{ limit };
+		decrement_on_exception_t exception_guard( limit );
 
 		delivery_action();
 

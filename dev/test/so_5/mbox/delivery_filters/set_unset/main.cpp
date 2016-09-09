@@ -14,7 +14,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
+struct data { int m_key; };
 
 struct next : public so_5::signal_t {};
 struct finish : public so_5::signal_t {};
@@ -34,7 +34,7 @@ public :
 
 		so_set_delivery_filter( m_data_mbox,
 			[]( const data & msg ) {
-				return 1 == std::get<0>( msg );
+				return 1 == msg.m_key;
 			} );
 
 		so_subscribe( m_data_mbox )
@@ -59,7 +59,7 @@ public :
 				this >>= st_3;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
-					return 2 == std::get<0>( msg );
+					return 2 == msg.m_key;
 				} );
 
 				send_bunch();
@@ -77,7 +77,7 @@ public :
 				this >>= st_5;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
-					return 3 == std::get<0>( msg );
+					return 3 == msg.m_key;
 				} );
 
 				send_bunch();
@@ -95,7 +95,7 @@ public :
 				this >>= st_7;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
-					return 4 == std::get<0>( msg );
+					return 4 == msg.m_key;
 				} );
 
 				send_bunch();
@@ -147,7 +147,7 @@ private :
 	void
 	evt_data( const data & msg )
 	{
-		m_accumulator += std::to_string( std::get<0>( msg ) );
+		m_accumulator += std::to_string( msg.m_key );
 		m_accumulator += ',';
 	}
 };

@@ -39,7 +39,9 @@ class mbox_core_ref_t;
 // mbox_core_stats_t
 //
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Statistics from mbox_core for run-time monitoring.
  */
 struct mbox_core_stats_t
@@ -92,7 +94,9 @@ class mbox_core_t
 			const nonempty_name_t & mbox_name );
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Create anonymous mpsc_mbox.
 		 */
 		mbox_t
@@ -115,7 +119,9 @@ class mbox_core_t
 			const std::string & name );
 
 		/*!
-		 * \since v.5.5.13
+		 * \since
+		 * v.5.5.13
+		 *
 		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
@@ -128,7 +134,9 @@ class mbox_core_t
 			const mchain_params_t & params );
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Get statistics for run-time monitoring.
 		 */
 		mbox_core_stats_t
@@ -136,7 +144,9 @@ class mbox_core_t
 
 	private:
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief Optional tracer for message delivery tracing.
 		 *
 		 * \note Value nullptr means that message delivery tracing is disabled.
@@ -175,13 +185,17 @@ class mbox_core_t
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief A counter for mbox ID generation.
 		 */
 		std::atomic< mbox_id_t > m_mbox_id_counter;
 
 		/*!
-		 * \since v.5.2.0
+		 * \since
+		 * v.5.2.0
+		 *
 		 * \brief Low-level implementation of named mbox creation.
 		 */
 		mbox_t

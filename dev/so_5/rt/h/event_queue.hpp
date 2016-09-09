@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.4.0
+	\since
+	v.5.4.0
+
 	\brief An interface of event queue for agent.
 */
 
@@ -16,12 +18,21 @@ namespace so_5
 {
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief An interface of event queue for agent.
  */
 class SO_5_TYPE event_queue_t
 	{
+		// Note: clang-3.9 requires this on Windows platform.
+		event_queue_t( const event_queue_t & ) = delete;
+		event_queue_t( event_queue_t && ) = delete;
+		event_queue_t & operator=( const event_queue_t & ) = delete;
+		event_queue_t & operator=( event_queue_t && ) = delete;
+
 	public :
+		event_queue_t();
 		virtual ~event_queue_t();
 
 		//! Enqueue new event to the queue.

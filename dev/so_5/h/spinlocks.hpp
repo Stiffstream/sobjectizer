@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief Definition of various types of spinlocks.
  */
@@ -21,7 +23,9 @@ namespace so_5
 // yield_backoff_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A implementation of backoff object with usage of std::yield.
  */
 class yield_backoff_t
@@ -38,7 +42,9 @@ class yield_backoff_t
 // spinlock_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A simple spinlock (analog of std::mutex).
  *
  * This implemetation in based on description of std::atomic_flag:
@@ -88,7 +94,9 @@ typedef spinlock_t< yield_backoff_t > default_spinlock_t;
 // rw_spinlock_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A simple multi-readers/single-writer spinlock
  * (analog of std::shared_mutex).
  *
@@ -185,7 +193,9 @@ typedef rw_spinlock_t< yield_backoff_t > default_rw_spinlock_t;
 // read_lock_guard_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Scoped guard for shared locks.
  */
 template< class LOCK >

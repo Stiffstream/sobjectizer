@@ -29,7 +29,9 @@ namespace so_5
 {
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Result of checking delivery posibility.
  */
 enum class delivery_possibility_t
@@ -43,7 +45,9 @@ template< class RESULT >
 class service_invoke_proxy_t;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A special helper class for infinite waiting of service call.
  */
 template< class RESULT >
@@ -146,7 +150,9 @@ class infinite_wait_service_invoke_proxy_t
 	};
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A special helper class for waiting of service call for
  * the specified timeout.
  */
@@ -275,7 +281,9 @@ class wait_for_service_invoke_proxy_t
 	};
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief A special proxy for service request invocation.
  */
 template< class RESULT >
@@ -378,7 +386,9 @@ class service_invoke_proxy_t
 		wait_forever() const;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief A helper method for create a proxy for infinite waiting
 		 * on service request.
 		 */
@@ -421,7 +431,9 @@ class service_invoke_proxy_t
 			const DURATION & timeout ) const;
 
 		/*!
-		 * \since v.5.5.9
+		 * \since
+		 * v.5.5.9
+		 *
 		 * \brief A helper method to create a proxy for waiting on
 		 * service request for a timeout.
 		 */
@@ -459,12 +471,20 @@ class service_invoke_proxy_t
 // delivery_filter_t
 //
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief An interface of delivery filter object.
  */
 class SO_5_TYPE delivery_filter_t
 	{
+		// Note: clang-3.9 requires this on Windows platform.
+		delivery_filter_t( const delivery_filter_t & ) = delete;
+		delivery_filter_t( delivery_filter_t && ) = delete;
+		delivery_filter_t & operator=( const delivery_filter_t & ) = delete;
+		delivery_filter_t & operator=( delivery_filter_t && ) = delete;
 	public :
+		delivery_filter_t();
 		virtual ~delivery_filter_t();
 
 		//! Checker for a message instance.
@@ -484,7 +504,9 @@ class SO_5_TYPE delivery_filter_t
 // delivery_filter_unique_ptr_t
 //
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief An alias of unique_ptr for delivery_filter.
  */
 using delivery_filter_unique_ptr_t =
@@ -494,7 +516,9 @@ using delivery_filter_unique_ptr_t =
 // mbox_type_t
 //
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \brief Type of the message box.
  *
  * \deprecated Will be removed in v.5.6.0.
@@ -546,7 +570,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual ~abstract_message_box_t();
 
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Unique ID of this mbox.
 		 */
 		virtual mbox_id_t
@@ -554,7 +580,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 
 		//! Deliver message.
 		/*!
-		 * \since v.5.2.2
+		 * \since
+		 * v.5.2.2
+		 *
 		 *
 		 * Mbox takes care about destroying a message object.
 		 */
@@ -590,7 +618,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		deliver_signal() const;
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Create a special proxy for service request invocation.
 		 *
 		 * \tparam RESULT type of result to be received as result of
@@ -639,7 +669,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			}
 
 		/*!
-		 * \since v.5.3.0
+		 * \since
+		 * v.5.3.0
+		 *
 		 * \brief Create a special proxy for service request invocation
 		 * where return type is void.
 		 *
@@ -673,7 +705,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			}
 
 		/*!
-		 * \since v.5.3.0.
+		 * \since
+		 * v.5.3.0.
+		 *
 		 * \brief Deliver service request.
 		 *
 		 * \note This is a just a wrapper for do_deliver_service_request
@@ -712,7 +746,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		query_name() const = 0;
 
 		/*!
-		 * \since v.5.5.3
+		 * \since
+		 * v.5.5.3
+		 *
 		 * \brief Get the type of message box.
 		 *
 		 * \note This method is primarily intended for internal usage.
@@ -736,7 +772,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
 		 */
@@ -750,7 +788,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			unsigned int overlimit_reaction_deep ) const = 0;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Deliver service request.
 		 */
 		virtual void
@@ -767,7 +807,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \{
 		 */
 		/*!
-		 * \since v.5.5.5
+		 * \since
+		 * v.5.5.5
+		 *
 		 * \brief Set a delivery filter for message type and subscriber.
 		 *
 		 * \note If there already is a delivery filter for that
@@ -785,7 +827,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			agent_t & subscriber ) = 0;
 
 		/*!
-		 * \since v.5.5.5
+		 * \since
+		 * v.5.5.5
+		 *
 		 * \brief Removes delivery filter for message type and subscriber.
 		 */
 		virtual void

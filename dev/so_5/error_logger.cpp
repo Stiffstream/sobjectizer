@@ -3,19 +3,21 @@
  */
 
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \file
  * \brief Tools for logging error messages inside SObjectizer core.
  */
 
 #include <so_5/h/error_logger.hpp>
 
+#include <so_5/h/compiler_features.hpp>
+
 #include <chrono>
 #include <ctime>
 #include <cstdio>
 #include <iostream>
-
-#include <so_5/h/compiler_features.hpp>
 
 #include <so_5/h/current_thread_id.hpp>
 
@@ -23,6 +25,11 @@
 	#pragma warning(push)
 	// Warning about non-secure localtime and sprintf.
 	#pragma warning(disable: 4996)
+#endif
+
+#if defined( SO_5_CLANG )
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 namespace so_5
@@ -41,7 +48,9 @@ error_logger_t::~error_logger_t()
 // stderr_logger_t
 //
 /*!
- * \since v.5.5.0
+ * \since
+ * v.5.5.0
+ *
  * \brief A standard implementation of error_logger interface.
  */
 class stderr_logger_t : public error_logger_t
@@ -99,6 +108,10 @@ create_stderr_logger()
 	}
 
 } /* namespace so_5 */
+
+#if defined( SO_5_CLANG )
+#pragma clang diagnostic pop
+#endif
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)

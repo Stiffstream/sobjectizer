@@ -29,6 +29,13 @@ namespace so_5
 class SO_5_TYPE layer_t
 {
 		friend class impl::layer_core_t;
+
+		// Note: clang-3.9 requires this on Windows platform.
+		layer_t( const layer_t & ) = delete;
+		layer_t( layer_t && ) = delete;
+		layer_t & operator=( const layer_t & ) = delete;
+		layer_t & operator=( layer_t && ) = delete;
+
 	public:
 		layer_t();
 		virtual ~layer_t();

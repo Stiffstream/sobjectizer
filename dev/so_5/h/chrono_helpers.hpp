@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.3.0
+	\since
+	v.5.3.0
+
 	\brief Utilities for working with std::crhono tools.
 	\deprecated Obsolete in v.5.5.0.
 */
@@ -19,13 +21,17 @@ namespace so_5
 {
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Helper tools for std::chrono interaction.
  */
 namespace chrono_helpers
 {
 	/*!
-	 * \since v.5.3.0
+	 * \since
+	 * v.5.3.0
+	 *
 	 * \brief Translation from std::chrono::duration to millisecons.
 	 * \deprecated Obsolete in v.5.5.0
 	 */

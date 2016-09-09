@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Declaration of action_msg_tracer for overlimit action tracing.
  */
@@ -22,7 +24,9 @@ namespace impl {
 // action_msg_tracer_t
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief An interface of tracer for message delivery tracing.
  */
 class action_msg_tracer_t

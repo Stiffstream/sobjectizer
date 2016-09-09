@@ -3,9 +3,11 @@
  */
 
 /*!
- * \since v.5.5.10
  * \file
  * \brief Various traits for MPSC queues.
+ *
+ * \since
+ * v.5.5.10
  */
 
 #pragma once
@@ -27,8 +29,10 @@ namespace mpsc_queue_traits {
 // lock_t
 //
 /*!
- * \since v.5.5.10
  * \brief An interface for lock for MPSC queue.
+ *
+ * \since
+ * v.5.5.10
  */
 class SO_5_TYPE lock_t
 	{
@@ -36,9 +40,11 @@ class SO_5_TYPE lock_t
 		friend class lock_guard_t;
 
 	public :
-		lock_t();
 		lock_t( const lock_t & ) = delete;
 		lock_t( lock_t && ) = delete;
+		lock_t & operator=( const lock_t & ) = delete;
+		lock_t & operator=( lock_t && ) = delete;
+		lock_t();
 		virtual ~lock_t();
 
 		//! Lock object in exclusive mode.
@@ -69,8 +75,10 @@ class SO_5_TYPE lock_t
 // lock_unique_ptr_t
 //
 /*!
- * \since v.5.5.10
  * \brief An alias for unique_ptr for lock.
+ *
+ * \since
+ * v.5.5.10
  */
 using lock_unique_ptr_t = std::unique_ptr< lock_t >; 
 
@@ -78,8 +86,10 @@ using lock_unique_ptr_t = std::unique_ptr< lock_t >;
 // lock_factory_t
 //
 /*!
- * \since v.5.5.10
  * \brief Type of lock factory.
+ *
+ * \since
+ * v.5.5.10
  */
 using lock_factory_t = std::function< lock_unique_ptr_t() >;
 
@@ -87,9 +97,11 @@ using lock_factory_t = std::function< lock_unique_ptr_t() >;
 // default_combined_lock_waiting_time
 //
 /*!
- * \since v.5.5.10
  * \brief Default timeout used by combined_lock for waiting on spinlock
  * before switching to mutex-based locking scheme.
+ *
+ * \since
+ * v.5.5.10
  */
 inline std::chrono::high_resolution_clock::duration
 default_combined_lock_waiting_time()
@@ -98,9 +110,11 @@ default_combined_lock_waiting_time()
 	}
 
 /*!
- * \since v.5.5.10
  * \brief Factory for creation of combined queue lock with the specified
  * waiting time.
+ *
+ * \since
+ * v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -129,8 +143,10 @@ combined_lock_factory(
 // combined_lock_factory
 //
 /*!
- * \since v.5.5.10
  * \brief Factory for creation of combined queue lock with default waiting time.
+ *
+ * \since
+ * v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -155,9 +171,11 @@ combined_lock_factory()
 	}
 
 /*!
- * \since v.5.5.10
  * \brief Factory for creation of very simple implementation based on
  * usage of mutex and condition_variable only.
+ *
+ * \since
+ * v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -182,8 +200,10 @@ simple_lock_factory();
 // unique_lock_t
 //
 /*!
- * \since v.5.5.10
  * \brief An analog of std::unique_lock for MPSC queue lock.
+ *
+ * \since
+ * v.5.5.10
  */
 class unique_lock_t
 	{
@@ -218,8 +238,10 @@ class unique_lock_t
 // lock_guard_t
 //
 /*!
- * \since v.5.4.0
  * \brief An analog of std::lock_guard for MPSC queue lock.
+ *
+ * \since
+ * v.5.4.0
  */
 class lock_guard_t
 	{
@@ -254,15 +276,17 @@ class lock_guard_t
 // queue_params_t
 //
 /*!
- * \since v.5.5.10
  * \brief Container for storing parameters for MPSC queue.
+ *
+ * \since
+ * v.5.5.10
  */
 class queue_params_t
 	{
 	public :
 		//! Default constructor.
 		queue_params_t()
-			:	m_lock_factory{ combined_lock_factory() }
+			:	m_lock_factory{}
 			{}
 		//! Copy constructor.
 		queue_params_t( const queue_params_t & o )

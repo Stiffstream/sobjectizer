@@ -30,7 +30,9 @@ namespace
 {
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A helper class for temporary setting and then dropping
  * the ID of the current working thread.
  *
@@ -57,7 +59,9 @@ struct working_thread_id_sentinel_t
 	};
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  */
 std::string
 create_anonymous_state_name( const agent_t * agent, const state_t * st )
@@ -311,7 +315,9 @@ namespace {
 #endif
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A special object for the state in which agent is awaiting
  * for deregistration after unhandled exception.
  *
@@ -350,7 +356,7 @@ state_t::time_limit(
 {
 	if( duration_t::zero() == timeout )
 		SO_5_THROW_EXCEPTION( rc_invalid_time_limit_for_state,
-				"zero can't be used as time limit for state '" +
+				"zero can't be used as time limit for state: " +
 				query_name() );
 
 	// Old time limit must be dropped if it exists.
@@ -460,7 +466,7 @@ agent_t::agent_t(
 agent_t::agent_t(
 	context_t ctx )
 	:	m_current_state_ptr( &st_default )
-	,	m_was_defined( false )
+	,	m_current_status( agent_status_t::not_defined_yet )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_handler_finder(
 			// Actual handler finder is dependent on msg_tracing status.
@@ -512,7 +518,8 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const
 	state_t::path_t path;
 	m_current_state_ptr->fill_path( path );
 
-	auto e = begin(path) + m_current_state_ptr->nested_level() + 1;
+	auto e = begin(path) + static_cast< state_t::path_t::difference_type >(
+			m_current_state_ptr->nested_level() ) + 1;
 
 	return e != std::find( begin(path), e, &state_to_check );
 }
@@ -572,6 +579,36 @@ agent_t::so_default_state() const
 	return st_default;
 }
 
+namespace impl {
+
+class state_switch_guard_t
+{
+	agent_t & m_agent;
+	agent_t::agent_status_t m_previous_status;
+
+public :
+	state_switch_guard_t(
+		agent_t & agent )
+		:	m_agent( agent )
+		,	m_previous_status( agent.m_current_status )
+	{
+		if( agent_t::agent_status_t::state_switch_in_progress
+				== agent.m_current_status ) 
+			SO_5_THROW_EXCEPTION(
+					rc_another_state_switch_in_progress,
+					"an attempt to switch agent state when another state "
+					"switch operation is in progress for the same agent" );
+
+		agent.m_current_status = agent_t::agent_status_t::state_switch_in_progress;
+	}
+	~state_switch_guard_t()
+	{
+		m_agent.m_current_status = m_previous_status;
+	}
+};
+
+} /* namespace impl */
+
 void
 agent_t::so_change_state(
 	const state_t & new_state )
@@ -580,6 +617,10 @@ agent_t::so_change_state(
 
 	if( new_state.is_target( this ) )
 	{
+		// Since v.5.5.18 we must check nested state switch operations.
+		// This object will drop pointer to the current state.
+		impl::state_switch_guard_t switch_op_guard( *this );
+
 		auto actual_new_state = new_state.actual_state_to_enter();
 		if( !( *actual_new_state == *m_current_state_ptr ) )
 		{
@@ -609,7 +650,7 @@ agent_t::so_initiate_agent_definition()
 
 	so_define_agent();
 
-	m_was_defined = true;
+	m_current_status = agent_status_t::defined;
 }
 
 void
@@ -621,7 +662,7 @@ agent_t::so_define_agent()
 bool
 agent_t::so_was_defined() const
 {
-	return m_was_defined;
+	return agent_status_t::not_defined_yet != m_current_status;
 }
 
 environment_t &

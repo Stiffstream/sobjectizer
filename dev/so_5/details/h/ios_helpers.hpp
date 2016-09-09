@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.12
+ * \since
+ * v.5.5.12
+ *
  * \file
  * \brief Various helpers for working with C++ iostreams.
  */
@@ -20,7 +22,9 @@ namespace details {
 namespace ios_helpers {
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper for showing only part of long string.
  */
 struct length_limited_string
@@ -54,7 +58,9 @@ operator<<( std::ostream & to, const length_limited_string & v )
 	}
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Helper for showing pointer value.
  */
 struct pointer

@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief Interfaces of data source and data sources repository.
  */
 
@@ -30,6 +32,9 @@ source_t::~source_t()
 //
 // repository_t
 //
+repository_t::repository_t()
+	{}
+
 repository_t::~repository_t()
 	{}
 

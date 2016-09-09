@@ -36,9 +36,11 @@ namespace mpmc_queue_traits {
 class SO_5_TYPE condition_t
 	{
 	public :
-		condition_t();
 		condition_t( const condition_t & ) = delete;
 		condition_t( condition_t && ) = delete;
+		condition_t & operator=( const condition_t & ) = delete;
+		condition_t & operator=( condition_t && ) = delete;
+		condition_t();
 		virtual ~condition_t();
 
 		/*!
@@ -84,9 +86,12 @@ using condition_unique_ptr_t = std::unique_ptr< condition_t >;
 class SO_5_TYPE lock_t
 	{
 	public :
-		lock_t();
 		lock_t( const lock_t & ) = delete;
 		lock_t( lock_t && ) = delete;
+		lock_t & operator=( const lock_t & ) = delete;
+		lock_t & operator=( lock_t && ) = delete;
+
+		lock_t();
 		virtual ~lock_t();
 
 		//! Lock object in exclusive mode.
@@ -238,7 +243,7 @@ class queue_params_t
 	public :
 		//! Default constructor.
 		queue_params_t()
-			:	m_lock_factory{ combined_lock_factory() }
+			:	m_lock_factory{}
 			,	m_next_thread_wakeup_threshold{ 0 }
 			{}
 		//! Copy constructor.

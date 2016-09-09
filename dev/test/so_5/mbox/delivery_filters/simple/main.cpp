@@ -14,7 +14,7 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using data = so_5::tuple_as_message_t< so_5::mtag< 0 >, int >;
+struct data { int m_key; };
 
 struct finish : public so_5::signal_t {};
 
@@ -31,12 +31,12 @@ public :
 	{
 		so_set_delivery_filter( m_data_mbox,
 			[]( const data & msg ) {
-				return 1 == std::get<0>( msg );
+				return 1 == msg.m_key;
 			} );
 
 		so_default_state()
 			.event( m_data_mbox, [this]( const data & msg ) {
-				const auto value = std::get<0>( msg );
+				const auto value = msg.m_key;
 				if( 1 != value )
 					throw std::runtime_error( "unexpected data value: " +
 							std::to_string( value ) );

@@ -65,6 +65,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'agent_coop.cpp'
 			cpp_source 'agent_coop_notifications.cpp'
 
+			cpp_source 'queue_locks_defaults_manager.cpp'
 			cpp_source 'environment.cpp'
 
 			cpp_source 'disp.cpp'
@@ -113,12 +114,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 			sources_root( 'mpmc_queue_traits' ) {
 				cpp_source 'pub.cpp'
-			}
-
-			sources_root( 'reuse' ) {
-				sources_root( 'work_thread' ) {
-					cpp_source 'work_thread.cpp'
-				}
 			}
 
 			sources_root( 'one_thread' ) {

@@ -27,6 +27,7 @@ set(SO_5_SRC exception.cpp
 	rt/adhoc_agent_wrapper.cpp
 	rt/agent_coop.cpp
 	rt/agent_coop_notifications.cpp
+	rt/queue_locks_defaults_manager.cpp
 	rt/environment.cpp
 	rt/disp.cpp
 	rt/disp_binder.cpp
@@ -57,7 +58,6 @@ set(SO_5_SRC exception.cpp
 	
 	disp/mpsc_queue_traits/pub.cpp
 	disp/mpmc_queue_traits/pub.cpp
-	disp/reuse/work_thread/work_thread.cpp
 	disp/one_thread/pub.cpp
 	disp/active_obj/pub.cpp
 	disp/active_group/pub.cpp

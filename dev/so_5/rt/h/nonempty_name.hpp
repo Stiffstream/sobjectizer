@@ -32,6 +32,12 @@ namespace so_5
 */
 class SO_5_TYPE nonempty_name_t
 {
+		// Note: clang-3.9 requires this on Windows platform.
+		nonempty_name_t( const nonempty_name_t & ) = delete;
+		nonempty_name_t( nonempty_name_t && ) = delete;
+		nonempty_name_t & operator=( const nonempty_name_t & ) = delete;
+		nonempty_name_t & operator=( nonempty_name_t && ) = delete;
+
 	public:
 		//! Constructor with check for the empty value.
 		nonempty_name_t(

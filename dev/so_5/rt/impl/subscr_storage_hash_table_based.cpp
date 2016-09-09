@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.3
+ * \since
+ * v.5.5.3
+ *
  * \file
  * \brief A hash_table-based storage for agent's subscriptions information.
  */
@@ -24,7 +26,9 @@ namespace impl
 {
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A hash_table-based storage for agent's subscriptions information.
  */
 namespace hash_table_subscr_storage
@@ -103,7 +107,9 @@ struct key_t
 // hash_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A special class for calculating hash value via pointer to key.
  */
 struct hash_t
@@ -133,7 +139,9 @@ struct hash_t
 // equal_to_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A special class for checking equality via pointer to key.
  */
 struct equal_to_t
@@ -175,7 +183,9 @@ namespace
 } /* namespace anonymous */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief A storage for agent's subscriptions information.
  *
  * The motivation for this class is the following:

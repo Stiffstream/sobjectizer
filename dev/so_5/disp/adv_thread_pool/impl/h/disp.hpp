@@ -3,9 +3,11 @@
  */
 
 /*!
- * \since v.5.4.0
  * \file
  * \brief An implementation of advanced thread pool dispatcher.
+ *
+ * \since
+ * v.5.4.0
  */
 
 #pragma once
@@ -23,6 +25,8 @@
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
+
+#include <so_5/rt/stats/impl/h/activity_tracking.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 
@@ -68,8 +72,10 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 // agent_queue_t
 //
 /*!
- * \since v.5.4.0
  * \brief Event queue for the agent (or cooperation).
+ *
+ * \since
+ * v.5.4.0
  */
 class agent_queue_t
 	:	public event_queue_t
@@ -254,8 +260,10 @@ class agent_queue_t
 		active() const { return m_active; }
 
 		/*!
-		 * \since v.5.5.4
 		 * \brief Get the current size of the queue.
+		 *
+		 * \since
+		 * v.5.5.4
 		 */
 		std::size_t
 		size() const
@@ -293,8 +301,10 @@ class agent_queue_t
 		unsigned int m_workers;
 
 		/*!
-		 * \since v.5.5.4
 		 * \brief Current size of the queue.
+		 *
+		 * \since
+		 * v.5.5.4
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
@@ -315,42 +325,23 @@ class agent_queue_t
 // agent_queue_ref_t
 //
 /*!
- * \since v.5.4.0
  * \brief A typedef of smart pointer for agent_queue.
+ *
+ * \since
+ * v.5.4.0
  */
 typedef so_5::intrusive_ptr_t< agent_queue_t > agent_queue_ref_t;
 
-//
-// work_thread_t
-//
+namespace work_thread_details {
+
 /*!
- * \since v.5.4.0
- * \brief Class of work thread for thread pool dispatcher.
+ * \brief Main data for work_thread.
+ *
+ * \since
+ * v.5.5.18
  */
-class work_thread_t
+struct common_data_t
 	{
-	public :
-		//! Initializing constructor.
-		work_thread_t( dispatcher_queue_t & queue )
-			:	m_disp_queue( &queue )
-			,	m_condition{ queue.allocate_condition() }
-			{
-			}
-
-		void
-		join()
-			{
-				m_thread.join();
-			}
-
-		//! Launch work thread.
-		void
-		start()
-			{
-				m_thread = std::thread( [this]() { body(); } );
-			}
-
-	private :
 		//! Dispatcher's queue.
 		dispatcher_queue_t * m_disp_queue;
 
@@ -363,18 +354,173 @@ class work_thread_t
 		//! Actual thread.
 		std::thread m_thread;
 
-		//! Thread alarm for long waiting.
+		//! Waiting object for long wait.
 		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
+		common_data_t( dispatcher_queue_t & queue )
+			:	m_disp_queue( &queue )
+			,	m_condition{ queue.allocate_condition() }
+			{}
+	};
+
+/*!
+ * \brief Part of implementation of work thread without activity tracing.
+ *
+ * \since
+ * v.5.5.18
+ */
+class no_activity_tracking_impl_t : protected common_data_t
+	{
+	public :
+		//! Initializing constructor.
+		no_activity_tracking_impl_t(
+			dispatcher_queue_t & queue )
+			:	common_data_t( queue )
+			{}
+
+		template< typename L >
+		void
+		take_activity_stats( L ) { /* Nothing to do */ }
+
+	protected :
+		void
+		work_started() {}
+
+		void
+		work_finished() {}
+
+		void
+		wait_started() {}
+
+		void
+		wait_finished() {}
+	};
+
+/*!
+ * \brief Part of implementation of work thread with activity tracing.
+ *
+ * \since
+ * v.5.5.18
+ */
+class with_activity_tracking_impl_t : protected common_data_t
+	{
+		using activity_tracking_traits = so_5::stats::activity_tracking_stuff::traits;
+
+	public :
+		//! Initializing constructor.
+		with_activity_tracking_impl_t(
+			dispatcher_queue_t & queue )
+			:	common_data_t( queue )
+			{}
+
+		template< typename L >
+		void
+		take_activity_stats( L lambda )
+			{
+				so_5::stats::work_thread_activity_stats_t result;
+
+				result.m_working_stats = m_work_activity_collector.take_stats();
+				result.m_waiting_stats = m_waiting_stats_collector.take_stats();
+
+				lambda( result );
+			}
+
+	protected :
+		//! Lock for activity statistics.
+		activity_tracking_traits::lock_t m_stats_lock;
+
+		//! A collector for work activity.
+		so_5::stats::activity_tracking_stuff::stats_collector_t<
+					so_5::stats::activity_tracking_stuff::external_lock<> >
+				m_work_activity_collector{ m_stats_lock };
+
+		//! A collector for waiting stats.
+		so_5::stats::activity_tracking_stuff::stats_collector_t<
+					so_5::stats::activity_tracking_stuff::external_lock<> >
+				m_waiting_stats_collector{ m_stats_lock };
+
+		void
+		work_started()
+			{
+				m_work_activity_collector.start();
+			}
+
+		void
+		work_finished()
+			{
+				m_work_activity_collector.stop();
+			}
+
+		void
+		wait_started()
+			{
+				m_waiting_stats_collector.start();
+			}
+
+		void
+		wait_finished()
+			{
+				m_waiting_stats_collector.stop();
+			}
+	};
+
+//
+// work_thread_template_t
+//
+/*!
+ * \brief Implementation of work_thread in form of template class.
+ *
+ * \tparam IMPL no_activity_tracking_impl_t or with_activity_tracking_impl_t.
+ *
+ * \since
+ * v.5.5.18
+ */
+template< typename IMPL >
+class work_thread_template_t : public IMPL
+	{
+	public :
+		//! Initializing constructor.
+		work_thread_template_t( dispatcher_queue_t & queue )
+			:	IMPL( queue )
+			{}
+
+		void
+		join()
+			{
+				this->m_thread.join();
+			}
+
+		//! Launch work thread.
+		void
+		start()
+			{
+				this->m_thread = std::thread( [this]() { body(); } );
+			}
+
+		/*!
+		 * \brief Get ID of work thread.
+		 *
+		 * \note This method returns correct value only after start
+		 * of the thread.
+		 *
+		 * \since
+		 * v.5.5.18
+		 */
+		so_5::current_thread_id_t
+		thread_id() const
+			{
+				return this->m_thread_id;
+			}
+
+	private :
 		//! Thread body method.
 		void
 		body()
 			{
-				m_thread_id = so_5::query_current_thread_id();
+				this->m_thread_id = so_5::query_current_thread_id();
 
 				agent_queue_t * agent_queue;
-				while( nullptr !=
-						(agent_queue = m_disp_queue->pop( *m_condition )) )
+				while( nullptr != (agent_queue = this->pop_agent_queue()) )
 					{
 						// This guard is necessary to ensure that queue
 						// will exist until processing of queue finished.
@@ -382,6 +528,29 @@ class work_thread_t
 
 						process_queue( *agent_queue );
 					}
+			}
+
+		/*!
+		 * \since
+		 * v.5.5.18
+		 *
+		 * \brief An attempt of extraction of non-empty agent queue.
+		 *
+		 * \note This is noexcept method because its logic can't survive
+		 * an exception from m_disp_queue->pop.
+		 */
+		agent_queue_t *
+		pop_agent_queue() SO_5_NOEXCEPT
+			{
+				agent_queue_t * result = nullptr;
+
+				this->wait_started();
+
+				result = this->m_disp_queue->pop( *(this->m_condition) );
+
+				this->wait_finished();
+
+				return result;
 			}
 
 		//! Processing of demands from agent queue.
@@ -423,10 +592,15 @@ class work_thread_t
 				lock.unlock();
 
 				if( need_schedule )
-					m_disp_queue->schedule( &queue );
+					this->m_disp_queue->schedule( &queue );
+
+				// For activity tracking if it is turned on.
+				this->work_started();
 
 				// Processing of event.
-				hint.exec( m_thread_id );
+				hint.exec( this->m_thread_id );
+
+				this->work_finished();
 
 				// Next actions must be done on locked queue.
 				lock.lock();
@@ -442,17 +616,47 @@ class work_thread_t
 				lock.unlock();
 
 				if( need_schedule )
-					m_disp_queue->schedule( &queue );
+					this->m_disp_queue->schedule( &queue );
 			}
 	};
+
+} /* namespace work_thread_details */
+
+//
+// work_thread_no_activity_tracking_t
+//
+/*!
+ * \brief Type of work thread without activity tracking.
+ *
+ * \since
+ * v.5.5.18
+ */
+using work_thread_no_activity_tracking_t =
+		work_thread_details::work_thread_template_t<
+				work_thread_details::no_activity_tracking_impl_t >;
+
+//
+// work_thread_with_activity_tracking_t
+//
+/*!
+ * \brief Type of work thread without activity tracking.
+ *
+ * \since
+ * v.5.5.18
+ */
+using work_thread_with_activity_tracking_t =
+		work_thread_details::work_thread_template_t<
+				work_thread_details::with_activity_tracking_impl_t >;
 
 //
 // adaptation_t
 //
 /*!
- * \since v.5.5.4
  * \brief Adaptation of common implementation of thread-pool-like dispatcher
  * to the specific of this thread-pool dispatcher.
+ *
+ * \since
+ * v.5.5.4
  */
 struct adaptation_t
 	{
@@ -476,15 +680,21 @@ struct adaptation_t
 	};
 
 //
-// dispatcher_t
+// dispatcher_template_t
 //
 /*!
- * \since v.5.4.0
- * \brief Actual type of this thread-pool dispatcher.
+ * \brief Template for dispatcher.
+ *
+ * This template depends on work_thread type (with or without activity
+ * tracking).
+ *
+ * \since
+ * v.5.5.18
  */
-using dispatcher_t =
+template< typename WORK_THREAD >
+using dispatcher_template_t =
 		so_5::disp::thread_pool::common_implementation::dispatcher_t<
-				work_thread_t,
+				WORK_THREAD,
 				dispatcher_queue_t,
 				agent_queue_t,
 				params_t,

@@ -3,7 +3,9 @@
 */
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \file 
  * \brief Detection of compiler version and absence of various features.
  */
@@ -32,6 +34,10 @@
 	// and move-operators.
 	#define SO_5_NO_DEFAULTS_FOR_MOVE_CONSTRUCTOR
 
+#endif
+
+#if defined( __clang__ )
+	#define SO_5_CLANG
 #endif
 
 #if defined( __GNUC__ )

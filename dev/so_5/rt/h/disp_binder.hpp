@@ -25,7 +25,9 @@ namespace so_5
 // disp_binding_activator_t
 //
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Type of activator for agent to dispatcher binding.
  */
 using disp_binding_activator_t = std::function< void() >;
@@ -41,6 +43,12 @@ using disp_binding_activator_t = std::function< void() >;
  */
 class SO_5_TYPE disp_binder_t
 {
+		// Note: clang-3.9 requires this on Windows platform.
+		disp_binder_t( const disp_binder_t & ) = delete;
+		disp_binder_t( disp_binder_t && ) = delete;
+		disp_binder_t & operator=( const disp_binder_t & ) = delete;
+		disp_binder_t & operator=( disp_binder_t && ) = delete;
+
 	public:
 		disp_binder_t();
 		virtual ~disp_binder_t();

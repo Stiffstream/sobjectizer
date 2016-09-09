@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Various helpers for message delivery tracing stuff.
  */
@@ -232,7 +234,9 @@ make_trace(
 // tracing_disabled_base
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Base class for a mbox for the case when message delivery
  * tracing is disabled.
  */
@@ -270,7 +274,9 @@ struct tracing_disabled_base
 // tracing_enabled_base
 //
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Base class for a mbox for the case when message delivery
  * tracing is enabled.
  */
@@ -418,7 +424,9 @@ class tracing_enabled_base
 	};
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief Helper for tracing the result of event handler search.
  */
 inline void
@@ -439,7 +447,9 @@ trace_event_handler_search_result(
 	}
 
 /*!
- * \since v.5.5.15
+ * \since
+ * v.5.5.15
+ *
  * \brief Helper for tracing the fact of leaving a state.
  *
  * \note This helper checks status of msg tracing by itself. It means that
@@ -461,7 +471,9 @@ safe_trace_state_leaving(
 }
 
 /*!
- * \since v.5.5.15
+ * \since
+ * v.5.5.15
+ *
  * \brief Helper for tracing the fact of entering into a state.
  *
  * \note This helper checks status of msg tracing by itself. It means that
@@ -486,7 +498,9 @@ safe_trace_state_entering(
 // mchain_tracing_disabled_base
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Base class for a mchain for the case when message delivery
  * tracing is disabled.
  */
@@ -528,7 +542,9 @@ struct mchain_tracing_disabled_base
 // mchain_tracing_enabled_base
 //
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \brief Base class for a mchain for the case when message delivery
  * tracing is enabled.
  */

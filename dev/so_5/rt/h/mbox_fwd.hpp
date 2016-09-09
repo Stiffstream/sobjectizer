@@ -4,7 +4,9 @@
 
 /*!
 	\file
-	\since v.5.5.1
+	\since
+	v.5.5.1
+
 	\brief A forward declaration of mbox_t.
 */
 

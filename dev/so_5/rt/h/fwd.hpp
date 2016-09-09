@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.13
+ * \since
+ * v.5.5.13
+ *
  * \file
  * \brief Forward declaration for SObjectizer run-time related classes.
  */
@@ -24,6 +26,7 @@ class coop_private_iface_t;
 class internal_env_iface_t;
 class internal_message_iface_t;
 class layer_core_t;
+class state_switch_guard_t;
 
 } /* namespace impl */
 

@@ -17,5 +17,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/state_history_clear/prj.ut.rb"
 	required_prj "#{path}/transfer_to_state/prj.ut.rb"
 	required_prj "#{path}/just_switch_to/prj.ut.rb"
+	required_prj "#{path}/state_switch_guard/prj.ut.rb"
 	required_prj "#{path}/time_limit/build_tests.rb"
 }

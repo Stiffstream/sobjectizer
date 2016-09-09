@@ -34,7 +34,14 @@ namespace so_5
  */
 class SO_5_TYPE coop_listener_t
 {
+		// Note: clang-3.9 requires this on Windows platform.
+		coop_listener_t( const coop_listener_t & ) = delete;
+		coop_listener_t( coop_listener_t && ) = delete;
+		coop_listener_t & operator=( const coop_listener_t & ) = delete;
+		coop_listener_t & operator=( coop_listener_t && ) = delete;
+
 	public:
+		coop_listener_t();
 		virtual ~coop_listener_t();
 
 		//! Hook for the cooperation registration event.

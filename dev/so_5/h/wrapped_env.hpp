@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \file
  * \brief Class wrapped_env and its details.
  */
@@ -24,7 +26,9 @@ namespace so_5 {
 #endif
 
 /*!
- * \since v.5.5.9
+ * \since
+ * v.5.5.9
+ *
  * \brief A wrapped environment.
  *
  * \note Starts a SObjectizer Environment in the constructor. Automatically
@@ -160,7 +164,9 @@ class SO_5_TYPE wrapped_env_t
 			environment_params_t && params );
 
 		/*!
-		 * \since v.5.5.13
+		 * \since
+		 * v.5.5.13
+		 *
 		 * \brief A constructor which receives already prepared
 		 * environment's params.
 		 */

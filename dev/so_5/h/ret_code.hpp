@@ -45,27 +45,35 @@ const int rc_agent_has_no_cooperation = 14;
 const int rc_agent_incompatible_type_conversion = 15;
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief An attempt to perform an operation which is enabled only
  * on agent's working thread.
  */
 const int rc_operation_enabled_only_on_agent_working_thread = 16;
 
 /*!
- * \since v.5.5.15
+ * \since
+ * v.5.5.15
+ *
  * \brief An attempt to change agent state to a new composite state which
  * have no initial state defined.
  */
 const int rc_no_initial_substate = 17;
 
 /*!
- * \since v.5.5.15
+ * \since
+ * v.5.5.15
+ *
  * \brief Nesting of agent states is too deep.
  */
 const int rc_state_nesting_is_too_deep = 18;
 
 /*!
- * \since v.5.5.15
+ * \since
+ * v.5.5.15
+ *
  * \brief Initial substate for a composite state is already defined.
  */
 const int rc_initial_substate_already_defined = 19;
@@ -91,25 +99,33 @@ const int rc_coop_has_not_found_among_registered_coop = 23;
 const int rc_coop_define_agent_failed = 24;
 
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Cooperation has no the parent cooperation.
  */
 const int rc_coop_has_no_parent = 25;
 
 /*!
- * \since v.5.2.3
+ * \since
+ * v.5.2.3
+ *
  * \brief Parent cooperation not found.
  */
 const int rc_parent_coop_not_found = 26;
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief Binding of agent to dispatcher failed.
  */
 const int rc_agent_to_disp_binding_failed = 27;
 
 /*!
- * \since v.5.4.0.1
+ * \since
+ * v.5.4.0.1
+ *
  * \brief It is impossible to register cooperation during
  * SObjectizer Environment shutdown.
  */
@@ -131,7 +147,9 @@ const int rc_disp_create_failed = 31;
 const int rc_disp_type_mismatch = 32;
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief New dispatcher cannot be added because of illegal
  * state of SObjectizer Environment.
  */
@@ -174,20 +192,26 @@ const int rc_no_interception_handler_provided = 45;
 const int rc_interception_handler_match_error = 46;
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \brief An attempt to create illegal subscription to mpsc_mbox.
  */
 const int rc_illegal_subscriber_for_mpsc_mbox = 47;
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An attempt to create subscription to message without
  * predefined limit for that message type.
  */
 const int rc_message_has_no_limit_defined = 48;
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \brief An attempt to define several limits for one message type.
  */
 const int rc_several_limits_for_one_message_type = 49;
@@ -205,7 +229,9 @@ const int rc_mbox_unable_to_find_mbox = 81;
 
 //! Null message data.
 /*!
- * \since v.5.2.0
+ * \since
+ * v.5.2.0
+ *
  *
  * An attempt to deliver message_t by nullptr pointer to it is an error.
  * A signal should be used for this.
@@ -213,32 +239,42 @@ const int rc_mbox_unable_to_find_mbox = 81;
 const int rc_null_message_data = 82;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief No handlers for service request found.
  */
 const int rc_no_svc_handlers = 83;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief There are more then one handler for service request.
  */
 const int rc_more_than_one_svc_handler = 84;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Service request has not been handled. Service handler 
  * is disabled in the current agent state.
  */
 const int rc_svc_not_handled = 85;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Service request result has not beed received yet.
  */
 const int rc_svc_result_not_received_yet = 86;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Unable to cast service call description object to
  * the appropriate type.
  *
@@ -258,13 +294,17 @@ mbox.get_one< std::string >().wait_forever().sync_get<msg_query_state>();
 const int rc_msg_service_request_bad_cast = 87;
 
 /*!
- * \since v.5.5.4.
+ * \since
+ * v.5.5.4.
+ *
  * \brief Unable to transform service request as part of overlimit reaction.
  */
 const int rc_svc_request_cannot_be_transfomred_on_overlimit = 88;
 
 /*!
- * \since v.5.5.5
+ * \since
+ * v.5.5.5
+ *
  * \brief Delivery filter is not applicable to MPSC-mboxes.
  */
 const int rc_delivery_filter_cannot_be_used_on_mpsc_mbox = 89;
@@ -339,6 +379,15 @@ const int rc_msg_chain_overflow = 164;
 const int rc_several_handlers_for_one_message_type = 165;
 
 //! \}
+
+/*!
+ * \brief An attempt to switch agent state when another switch operation
+ * is in progress.
+ *
+ * \since
+ * v.5.5.18
+ */
+const int rc_another_state_switch_in_progress = 170;
 
 //! \name Common error codes.
 //! \{

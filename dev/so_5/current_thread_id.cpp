@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.4.0
+ * \since
+ * v.5.4.0
+ *
  * \file
  * \brief A workaround for very slow implementation of
  * std::this_thread::get_id() under some compilers.

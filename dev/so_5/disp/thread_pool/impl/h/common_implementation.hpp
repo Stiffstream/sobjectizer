@@ -3,7 +3,9 @@
  */
 
 /*!
- * \since v.5.5.4
+ * \since
+ * v.5.5.4
+ *
  * \file
  * \brief Reusable common implementation for thread-pool-like dispatchers.
  */
@@ -32,11 +34,37 @@ namespace stats = so_5::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
+// ext_dispatcher_iface_t
+//
+/*!
+ * \brief Type of extended dispatcher interface.
+ *
+ * This interface introduces dispatcher specific bind_agent and
+ * unbind_agent methods.
+ *
+ * \since
+ * v.5.5.18
+ */
+template< typename PARAMS >
+class ext_dispatcher_iface_t : public so_5::dispatcher_t
+	{
+	public :
+		//! Bind agent to the dispatcher.
+		virtual event_queue_t *
+		bind_agent( agent_ref_t agent, const PARAMS & params ) = 0;
+
+		//! Unbind agent from the dispatcher.
+		virtual void
+		unbind_agent( agent_ref_t agent ) = 0;
+	};
+
+//
 // dispatcher_t
 //
 /*!
- * \since v.5.5.4
  * \brief Reusable common implementation for thread-pool-like dispatchers.
+ * \since
+ * v.5.5.4
  */
 template<
 	typename WORK_THREAD,
@@ -45,7 +73,7 @@ template<
 	typename PARAMS,
 	typename ADAPTATIONS >
 class dispatcher_t
-	:	public so_5::dispatcher_t
+	:	public ext_dispatcher_iface_t< PARAMS >
 	,	public tp_stats::stats_supplier_t
 	{
 	private :
@@ -65,8 +93,9 @@ class dispatcher_t
 				std::size_t m_agents;
 
 				/*!
-				 * \since v.5.5.4
 				 * \brief Description of that queue for run-time monitoring.
+				 * \since
+				 * v.5.5.4
 				 */
 				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
@@ -85,7 +114,9 @@ class dispatcher_t
 					{}
 
 				/*!
-				 * \since v.5.5.4
+				 * \since
+				 * v.5.5.4
+				 *
 				 * \brief Update queue information for run-time monitoring.
 				 */
 				void
@@ -110,7 +141,9 @@ class dispatcher_t
 				agent_queue_ref_t m_queue;
 
 				/*!
-				 * \since v.5.5.4
+				 * \since
+				 * v.5.5.4
+				 *
 				 * \brief Description of that queue for run-time monitoring.
 				 *
 				 * \note This description is created only if agent
@@ -140,7 +173,9 @@ class dispatcher_t
 					{}
 
 				/*!
-				 * \since v.5.5.4
+				 * \since
+				 * v.5.5.4
+				 *
 				 * \brief Does agent use cooperation FIFO?
 				 */
 				bool
@@ -150,7 +185,9 @@ class dispatcher_t
 					}
 
 				/*!
-				 * \since v.5.5.4
+				 * \since
+				 * v.5.5.4
+				 *
 				 * \brief Update queue description with current information.
 				 *
 				 * \attention Must be called only if !cooperation_fifo().
@@ -220,10 +257,8 @@ class dispatcher_t
 			}
 
 		//! Bind agent to the dispatcher.
-		event_queue_t *
-		bind_agent(
-			agent_ref_t agent,
-			const PARAMS & params )
+		virtual event_queue_t *
+		bind_agent( agent_ref_t agent, const PARAMS & params ) override
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
 
@@ -236,9 +271,8 @@ class dispatcher_t
 			}
 
 		//! Unbind agent from the dispatcher.
-		void
-		unbind_agent(
-			agent_ref_t agent )
+		virtual void
+		unbind_agent( agent_ref_t agent ) override
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
 
@@ -294,7 +328,9 @@ class dispatcher_t
 		agent_map_t m_agents;
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Data source for the run-time monitoring.
 		 */
 		tp_stats::data_source_t m_data_source;
@@ -365,7 +401,9 @@ class dispatcher_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Helper method for casting to stats_supplier-object.
 		 */
 		tp_stats::stats_supplier_t &
@@ -375,7 +413,9 @@ class dispatcher_t
 			}
 
 		/*!
-		 * \since v.5.5.4
+		 * \since
+		 * v.5.5.4
+		 *
 		 * \brief Implementation of stats_supplier-related stuff.
 		 */
 		virtual void
@@ -385,6 +425,17 @@ class dispatcher_t
 				std::lock_guard< std::mutex > lock( m_lock );
 
 				consumer.set_thread_count( m_threads.size() );
+
+				for( auto & t : m_threads )
+					{
+						using stats_t = so_5::stats::work_thread_activity_stats_t;
+
+						WORK_THREAD & wt = *t;
+						wt.take_activity_stats(
+							[&wt, &consumer]( const stats_t & st ) {
+								consumer.add_work_thread_activity( wt.thread_id(), st );
+							} );
+					}
 
 				for( auto & q : m_cooperations )
 					{

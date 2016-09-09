@@ -73,14 +73,18 @@ typedef void (*pfn_so_environment_init_t)(
 		so_5::environment_t & );
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Generic type for a simple SObjectizer-initialization function.
  */
 typedef std::function< void(so_5::environment_t &) >
 	generic_simple_init_t;
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
+ *
  * \brief Generic type for a simple SO Environment paramenters tuning function.
  */
 typedef std::function< void(so_5::environment_params_t &) >
@@ -178,7 +182,8 @@ run_so_environment(
 }
 
 /*!
- * \since v.5.3.0
+ * \since
+ * v.5.3.0
  *
  * \brief  Launch a SObjectizer Environment with arguments.
  *

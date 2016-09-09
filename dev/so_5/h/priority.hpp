@@ -4,7 +4,9 @@
 
 /*!
  * \file
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Definition of priority type.
  */
 
@@ -17,7 +19,9 @@
 namespace so_5 {
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Definition of supported priorities.
  */
 enum class priority_t : unsigned char
@@ -35,7 +39,9 @@ enum class priority_t : unsigned char
 	};
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Helper function for conversion from priority to size_t.
  */
 inline std::size_t
@@ -45,7 +51,9 @@ to_size_t( priority_t priority )
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Helper function for conversion from size_t to priority.
  *
  * \throw std::invalid_argument if \a v is out of range.
@@ -81,13 +89,17 @@ const priority_t p7 = priority_t::p7;
  */
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Default priority value.
  */
 const priority_t default_priority = p0;
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Total count of priorities.
  */
 const unsigned int total_priorities_count =
@@ -95,14 +107,18 @@ const unsigned int total_priorities_count =
 	static_cast< unsigned int >( p0 ) + 1;
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Is there higher priority?
  */
 inline bool
 has_next( priority_t p ) { return p != priority_t::p_max; }
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Get the next priority value.
  *
  * \return next priority value if \a p is less than priority_t::p_max or
@@ -118,14 +134,18 @@ next( priority_t p )
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Is there lower priority?
  */
 inline bool
 has_prev( priority_t p ) { return p != priority_t::p_min; }
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Get the previous priority value.
  *
  * \return previous priority value if \a p is greater than priority_t::p_min or
@@ -141,7 +161,9 @@ prev( priority_t p )
 	}
 
 /*!
- * \since v.5.5.8
+ * \since
+ * v.5.5.8
+ *
  * \brief Does enumeration of all priorities.
  *
  * \note Performs enumeration from priority_t::p_min to priority_t::p_max

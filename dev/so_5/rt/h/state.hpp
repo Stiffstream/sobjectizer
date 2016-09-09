@@ -159,13 +159,17 @@ class SO_5_TYPE state_t final
 
 	public:
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Max deep of nested states.
 		 */
 		static const std::size_t max_deep = 16;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Type of history for state.
 		 */
 		enum class history_t
@@ -179,7 +183,9 @@ class SO_5_TYPE state_t final
 		};
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A type for representation of state's path.
 		 *
 		 * \note Path contains pointer to the state itself (always the
@@ -190,7 +196,9 @@ class SO_5_TYPE state_t final
 		using path_t = std::array< const state_t *, max_deep >;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Type of function to be called on enter to the state.
 		 *
 		 * \attention Handler must be noexcept function.
@@ -198,7 +206,9 @@ class SO_5_TYPE state_t final
 		using on_enter_handler_t = std::function< void() >;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Type of function to be called on exit from the state.
 		 *
 		 * \attention Handler must be noexcept function.
@@ -206,7 +216,9 @@ class SO_5_TYPE state_t final
 		using on_exit_handler_t = std::function< void() >;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Alias for duration type.
 		 */
 		using duration_t = std::chrono::high_resolution_clock::duration;
@@ -218,7 +230,9 @@ class SO_5_TYPE state_t final
 			//! State owner.
 			agent_t * agent );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \note State name will be generated automaticaly.
 		 */
 		state_t(
@@ -232,7 +246,8 @@ class SO_5_TYPE state_t final
 			//! State name.
 			std::string state_name );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		state_t(
 			//! State owner.
@@ -242,7 +257,9 @@ class SO_5_TYPE state_t final
 			//! Type of state history.
 			history_t state_history );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is the initial
 		 * substate of some parent state.
 		 */
@@ -250,7 +267,9 @@ class SO_5_TYPE state_t final
 			//! Parent state.
 			initial_substate_of parent );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is the initial
 		 * substate of some parent state.
 		 */
@@ -260,7 +279,9 @@ class SO_5_TYPE state_t final
 			//! Type of state history.
 			history_t state_history );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is the initial
 		 * substate of some parent state.
 		 */
@@ -270,7 +291,9 @@ class SO_5_TYPE state_t final
 			//! State name.
 			std::string state_name );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is the initial
 		 * substate of some parent state.
 		 */
@@ -282,7 +305,9 @@ class SO_5_TYPE state_t final
 			//! Type of state history.
 			history_t state_history );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is a substate of some
 		 * parent state.
 		 */
@@ -290,7 +315,9 @@ class SO_5_TYPE state_t final
 			//! Parent state.
 			substate_of parent );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is a substate of some
 		 * parent state.
 		 */
@@ -300,7 +327,9 @@ class SO_5_TYPE state_t final
 			//! Type of state history.
 			history_t state_history );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is a substate of some
 		 * parent state.
 		 */
@@ -310,7 +339,9 @@ class SO_5_TYPE state_t final
 			//! State name.
 			std::string state_name );
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Constructor for the case when state is a substate of some
 		 * parent state.
 		 */
@@ -322,7 +353,9 @@ class SO_5_TYPE state_t final
 			//! Type of state history.
 			history_t state_history );
 		/*!
-		 * \since v.5.4.0
+		 * \since
+		 * v.5.4.0
+		 *
 		 * \brief Move constructor.
 		 */
 		state_t( state_t && other );
@@ -345,14 +378,18 @@ class SO_5_TYPE state_t final
 		is_target( const agent_t * agent ) const;
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Switch agent to that state.
 		 */
 		void
 		activate() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Is this state or any of its substates activated?
 		 *
 		 * \note See so_5::agent_t::so_is_active_state() for more details.
@@ -362,7 +399,9 @@ class SO_5_TYPE state_t final
 		is_active() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Clear state history.
 		 *
 		 * \note Clears the history for this state only. History for any
@@ -404,7 +443,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Helper for subscription of event handler in this state.
 		 *
 		 * \note This method must be used for messages which are
@@ -430,7 +471,8 @@ class SO_5_TYPE state_t final
 		event( ARGS&&... args ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		template< typename... ARGS >
 		state_t &
@@ -442,7 +484,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Helper for subscription of event handler in this state.
 		 *
 		 * \note This method must be used for messages which are
@@ -470,7 +514,8 @@ class SO_5_TYPE state_t final
 		event( mbox_t from, ARGS&&... args ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		template< typename... ARGS >
 		state_t &
@@ -482,7 +527,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Helper for subscription of event handler in this state.
 		 *
 		 * \note This method must be used for signal subscriptions.
@@ -509,7 +556,8 @@ class SO_5_TYPE state_t final
 		event( ARGS&&... args ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		state_t &
@@ -521,7 +569,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief Helper for subscription of event handler in this state.
 		 *
 		 * \note This method must be used for signal subscriptions.
@@ -550,7 +600,8 @@ class SO_5_TYPE state_t final
 		event( mbox_t from, ARGS&&... args ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		template< typename SIGNAL, typename... ARGS >
 		state_t &
@@ -562,7 +613,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief An instruction for switching agent to the specified
 		 * state and transfering event proceessing to new state.
 		 *
@@ -592,7 +645,9 @@ class SO_5_TYPE state_t final
 		transfer_to_state( mbox_t from, const state_t & target_state ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief An instruction for switching agent to the specified
 		 * state and transfering event proceessing to new state.
 		 *
@@ -622,7 +677,9 @@ class SO_5_TYPE state_t final
 		transfer_to_state( const state_t & target_state ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief An instruction for switching agent to the specified
 		 * state and transfering event proceessing to new state.
 		 *
@@ -657,7 +714,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief An instruction for switching agent to the specified
 		 * state and transfering event proceessing to new state.
 		 *
@@ -692,7 +751,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Define handler which only switches agent to the specified
 		 * state.
 		 *
@@ -722,7 +783,9 @@ class SO_5_TYPE state_t final
 		just_switch_to( mbox_t from, const state_t & target_state ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Define handler which only switches agent to the specified
 		 * state.
 		 *
@@ -752,7 +815,9 @@ class SO_5_TYPE state_t final
 		just_switch_to( const state_t & target_state ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Define handler which only switches agent to the specified
 		 * state.
 		 *
@@ -787,7 +852,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Define handler which only switches agent to the specified
 		 * state.
 		 *
@@ -822,7 +889,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Suppress processing of event in this state.
 		 *
 		 * \note Suppresses message/signal which is going from agent's
@@ -867,7 +936,9 @@ class SO_5_TYPE state_t final
 		suppress() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Suppress processing of event in this state.
 		 *
 		 * \note Suppresses message/signal which is going from 
@@ -912,7 +983,9 @@ class SO_5_TYPE state_t final
 		suppress( mbox_t from ) const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Suppress processing of event in this state.
 		 *
 		 * \note Suppresses message/signal which is going from agent's
@@ -962,7 +1035,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Suppress processing of event in this state.
 		 *
 		 * \note Suppresses message/signal which is going from 
@@ -1016,7 +1091,9 @@ class SO_5_TYPE state_t final
 		 * \{
 		 */
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Set on enter handler.
 		 *
 		 * \attention Handler must be noexcept function. If handler
@@ -1052,7 +1129,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Set on enter handler.
 		 *
 		 * \attention Handler must be noexcept function. If handler
@@ -1091,7 +1170,9 @@ class SO_5_TYPE state_t final
 		on_enter( void (AGENT::*pfn)() );
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Query on enter handler.
 		 *
 		 * \note This method can be useful if there is a need to refine
@@ -1137,7 +1218,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Set on exit handler.
 		 *
 		 * \attention Handler must be noexcept function. If handler
@@ -1171,7 +1254,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Set on exit handler.
 		 *
 		 * \attention Handler must be noexcept function. If handler
@@ -1208,7 +1293,9 @@ class SO_5_TYPE state_t final
 		on_exit( void (AGENT::*pfn)() );
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Query on enter handler.
 		 *
 		 * \note This method can be useful if there is a need to refine
@@ -1261,7 +1348,9 @@ class SO_5_TYPE state_t final
 		 * \{
 		 */
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Set up a time limit for the state.
 		 *
 		 * \note Agent will automatically switched to \a state_to_switch after
@@ -1311,7 +1400,9 @@ class SO_5_TYPE state_t final
 			const state_t & state_to_switch );
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Drop time limit for the state if defined.
 		 *
 		 * \note Do nothing if a time limit is not defined.
@@ -1420,7 +1511,8 @@ class SO_5_TYPE state_t final
 	private:
 		//! Fully initialized constructor.
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
 		 */
 		state_t(
 			//! Owner of this state.
@@ -1445,7 +1537,9 @@ class SO_5_TYPE state_t final
 		std::string m_state_name;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 * 
 		 * \brief Parent state.
 		 *
 		 * \note Value nullptr means that state is a top-level state and
@@ -1457,7 +1551,9 @@ class SO_5_TYPE state_t final
 		state_t * m_parent_state;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief The initial substate.
 		 *
 		 * \note Value nullptr means that state has no initial substate.
@@ -1468,13 +1564,17 @@ class SO_5_TYPE state_t final
 		const state_t * m_initial_substate;
  
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 * 
 		 * \brief Type of state history.
 		 */
 		history_t m_state_history;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Last active substate.
 		 *
 		 * \note This attribute is used only if
@@ -1484,7 +1584,9 @@ class SO_5_TYPE state_t final
 		const state_t * m_last_active_substate;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Nesting level for state.
 		 *
 		 * \note Value 0 means that state is a top-level state.
@@ -1492,7 +1594,9 @@ class SO_5_TYPE state_t final
 		std::size_t m_nested_level;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Number of substates.
 		 *
 		 * \note Value 0 means that state is not composite state and has no
@@ -1501,19 +1605,25 @@ class SO_5_TYPE state_t final
 		size_t m_substate_count;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Handler for the enter to the state.
 		 */
 		on_enter_handler_t m_on_enter;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Handler for the exit from the state.
 		 */
 		on_exit_handler_t m_on_exit;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A definition of time limit for the state.
 		 *
 		 * \note Value nullptr means that time limit is not set.
@@ -1521,7 +1631,9 @@ class SO_5_TYPE state_t final
 		std::unique_ptr< time_limit_t > m_time_limit;
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief A helper for handle-methods implementation.
 		 */
 		template< typename... ARGS >
@@ -1531,7 +1643,9 @@ class SO_5_TYPE state_t final
 			ARGS&&... args ) const;
 
 		/*!
-		 * \since v.5.5.1
+		 * \since
+		 * v.5.5.1
+		 *
 		 * \brief A helper for handle-methods implementation.
 		 */
 		template< typename SIGNAL, typename... ARGS >
@@ -1545,7 +1659,9 @@ class SO_5_TYPE state_t final
 		 * \{
 		 */
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Get a parent state if exists.
 		 */
 		const state_t *
@@ -1555,7 +1671,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Find actual state to be activated for agent.
 		 *
 		 * \note If (*this) is a composite state then actual state to
@@ -1573,7 +1691,9 @@ class SO_5_TYPE state_t final
 		actual_state_to_enter() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Query nested level for the state.
 		 */
 		std::size_t
@@ -1583,7 +1703,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A helper method for building a path from top-level
 		 * state to this state.
 		 */
@@ -1596,7 +1718,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A helper method which is used during state change for
 		 * update state with history.
 		 */
@@ -1604,7 +1728,9 @@ class SO_5_TYPE state_t final
 		update_history_in_parent_states() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A special handler of time limit to be used on entering into state.
 		 * \attention This method must be called only if m_time_limit is not null.
 		 */
@@ -1612,7 +1738,9 @@ class SO_5_TYPE state_t final
 		handle_time_limit_on_enter() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief A special handler of time limit to be used on exiting from state.
 		 * \attention This method must be called only if m_time_limit is not null.
 		 */
@@ -1620,7 +1748,9 @@ class SO_5_TYPE state_t final
 		handle_time_limit_on_exit() const;
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Call for on enter handler if defined.
 		 */
 		void
@@ -1631,7 +1761,9 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since v.5.5.15
+		 * \since
+		 * v.5.5.15
+		 *
 		 * \brief Call for on exit handler if defined.
 		 */
 		void
