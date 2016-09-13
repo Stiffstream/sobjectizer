@@ -10,6 +10,7 @@
 	Support for global lock_factories.
 	Class so_5::queue_locks_defaults_manager_t and method
 	so_5::environment_params_t::queue_locks_defaults_manager().
+	See also \ref so_5_5_18__global_lock_factories for more details.
 
 	Nested state switch is explicitely disabled.
 
