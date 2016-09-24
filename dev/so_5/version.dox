@@ -6,6 +6,8 @@
 
 	New messages so_5::stats::messages::distribution_started and
 	so_5::stats::messages::distribution_finished.
+	See also \ref so_5_5_18__new_msg_distrib_started_finished
+	for more details.
 
 	Support for global lock_factories.
 	Class so_5::queue_locks_defaults_manager_t and method
@@ -13,6 +15,7 @@
 	See also \ref so_5_5_18__global_lock_factories for more details.
 
 	Nested state switch is explicitely disabled.
+	See \ref so_5_5_18__nested_state_switch for more details.
 
 	Work thread activity tracking.
 
