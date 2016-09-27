@@ -368,10 +368,13 @@ class mchain_template
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				try_to_store_message_to_queue(
-						msg_type,
-						message,
-						invocation_type_t::event );
+				// Constness must be removed explicitly.
+				// Until do_deliver_message() lost const in v.5.6.0.
+				const_cast< mchain_template * >(this)->
+					try_to_store_message_to_queue(
+							msg_type,
+							message,
+							invocation_type_t::event );
 			}
 
 		virtual void
@@ -380,10 +383,13 @@ class mchain_template
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				try_to_store_message_to_queue(
-						msg_type,
-						message,
-						invocation_type_t::service_request );
+				// Constness must be removed explicitly.
+				// Until do_deliver_service_request() lost const in v.5.6.0.
+				const_cast< mchain_template * >(this)->
+					try_to_store_message_to_queue(
+							msg_type,
+							message,
+							invocation_type_t::service_request );
 			}
 
 		/*!
@@ -563,6 +569,17 @@ class mchain_template
 					}
 			}
 
+		virtual void
+		do_deliver_message_from_timer(
+			const std::type_index & msg_type,
+			const message_ref_t & message ) override
+			{
+				try_to_store_message_from_timer_to_queue(
+						msg_type,
+						message,
+						invocation_type_t::event );
+			}
+
 	private :
 		//! SObjectizer Environment for which message chain is created.
 		environment_t & m_env;
@@ -611,18 +628,16 @@ class mchain_template
 
 		//! Actual implementation of pushing message to the queue.
 		/*!
-		 * \attention This method is marked as 'const' but it changes
-		 * state of the object. It is because this method is called
-		 * from do_deliver_message() and do_deliver_service_request() which
-		 * must be 'const'. It is a flaw in the mbox'es design but
-		 * this flaw must be fixed at different level (such as modification
-		 * of abstract_message_box_t interface).
+		 * \note
+		 * This implementation must be used for ordinary delivery operations.
+		 * For delivery operations from timer thread another method must be
+		 * called (see try_to_store_message_from_timer_to_queue()).
 		 */
 		void
 		try_to_store_message_to_queue(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			invocation_type_t demand_type ) const
+			invocation_type_t demand_type )
 			{
 				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as tracing base.
@@ -693,28 +708,90 @@ class mchain_template
 							}
 					}
 
-				const bool was_empty = m_queue.is_empty();
-				
-				m_queue.push_back(
-						demand_t{ msg_type, message, demand_type } );
+				complete_store_message_to_queue(
+						tracer,
+						msg_type,
+						message,
+						demand_type );
+			}
 
-				tracer.stored( m_queue );
+		/*!
+		 * \brief An implementation of storing another message to
+		 * chain for the case of delated/periodic messages.
+		 *
+		 * This implementation handles overloaded chains differently:
+		 * - there is no waiting on overloaded chain (even if such waiting
+		 *   is specified in mchain params);
+		 * - overflow_reaction_t::throw_exception is replaced by
+		 *   overflow_reaction_t::drop_newest.
+		 *
+		 * These defferences are necessary because the context of timer
+		 * thread is very special: there can't be any long-time operation
+		 * (like waiting for free space on overloaded chain) and there can't
+		 * be an exception about mchain's overflow.
+		 *
+		 * \since
+		 * v.5.5.18
+		 */
+		void
+		try_to_store_message_from_timer_to_queue(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			invocation_type_t demand_type )
+			{
+				typename TRACING_BASE::deliver_op_tracer tracer{
+						*this, // as tracing base.
+						*this, // as chain.
+						msg_type,
+						message,
+						demand_type };
 
-				// If chain was empty then multi-chain cases must be notified.
-				// And if not_empty_notificator is defined then it must be used too.
-				if( was_empty )
+				std::unique_lock< std::mutex > lock{ m_lock };
+
+				// Message cannot be stored to closed chain.
+				if( details::status::closed == m_status )
+					return;
+
+				bool queue_full = m_queue.is_full();
+				// NOTE: there is no awaiting on full mchain.
+				// If queue full we must perform some reaction.
+				if( queue_full )
 					{
-						if( m_not_empty_notificator )
-							so_5::details::invoke_noexcept_code(
-								[this] { m_not_empty_notificator(); } );
-
-						notify_multi_chain_select_ops();
+						const auto reaction = m_capacity.overflow_reaction();
+						if( overflow_reaction_t::drop_newest == reaction ||
+								overflow_reaction_t::throw_exception == reaction )
+							{
+								// New message must be simply ignored.
+								tracer.overflow_drop_newest();
+								return;
+							}
+						else if( overflow_reaction_t::remove_oldest == reaction )
+							{
+								// The oldest message must be simply removed.
+								tracer.overflow_remove_oldest( m_queue.front() );
+								m_queue.pop_front();
+							}
+						else
+							{
+								so_5::details::abort_on_fatal_error( [&] {
+										tracer.overflow_throw_exception();
+										SO_5_LOG_ERROR( m_env, log_stream ) {
+											log_stream << "overflow_reaction_t::abort_app "
+													"will be performed for mchain (id="
+													<< m_id << "), msg_type: "
+													<< msg_type.name()
+													<< ". Application will be aborted"
+													<< std::endl;
+										}
+									} );
+							}
 					}
 
-				// Should be wake up some sleeping thread?
-				if( m_threads_to_wakeup && m_threads_to_wakeup >= m_queue.size() )
-					// Someone is waiting on empty queue.
-					m_underflow_cond.notify_one();
+				complete_store_message_to_queue(
+						tracer,
+						msg_type,
+						message,
+						demand_type );
 			}
 
 		/*!
@@ -760,6 +837,48 @@ class mchain_template
 						m_select_tail = nullptr;
 						old->notify();
 					}
+			}
+
+		/*!
+		 * \brief A reusable method with implementation of
+		 * last part of storing a message into chain.
+		 *
+		 * \note
+		 * Intented to be called from try_to_store_message_to_queue()
+		 * and try_to_store_message_from_timer_to_queue().
+		 *
+		 * \since
+		 * v.5.5.18
+		 */
+		void
+		complete_store_message_to_queue(
+			typename TRACING_BASE::deliver_op_tracer & tracer,
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			invocation_type_t demand_type )
+			{
+				const bool was_empty = m_queue.is_empty();
+				
+				m_queue.push_back(
+						demand_t{ msg_type, message, demand_type } );
+
+				tracer.stored( m_queue );
+
+				// If chain was empty then multi-chain cases must be notified.
+				// And if not_empty_notificator is defined then it must be used too.
+				if( was_empty )
+					{
+						if( m_not_empty_notificator )
+							so_5::details::invoke_noexcept_code(
+								[this] { m_not_empty_notificator(); } );
+
+						notify_multi_chain_select_ops();
+					}
+
+				// Should be wake up some sleeping thread?
+				if( m_threads_to_wakeup && m_threads_to_wakeup >= m_queue.size() )
+					// Someone is waiting on empty queue.
+					m_underflow_cond.notify_one();
 			}
 	};
 

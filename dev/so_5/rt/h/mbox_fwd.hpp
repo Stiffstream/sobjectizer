@@ -28,6 +28,12 @@ class abstract_message_box_t;
  */
 typedef intrusive_ptr_t< abstract_message_box_t > mbox_t;
 
+namespace timers_details {
+
+class mbox_iface_for_timers_t;
+
+} /* namespace timers_details */
+
 namespace rt
 {
 

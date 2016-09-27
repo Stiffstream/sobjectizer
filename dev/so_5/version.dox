@@ -4,6 +4,10 @@
 
 \section so_5__5_18 5.5.18 "Nevado Pisco"
 
+	New behavior for delivery of delayed and periodic messages to overloaded
+	message chains. See \ref so_5_5_18__overloaded_mchains_and_timers for
+	details.
+
 	New messages so_5::stats::messages::distribution_started and
 	so_5::stats::messages::distribution_finished.
 	See also \ref so_5_5_18__new_msg_distrib_started_finished

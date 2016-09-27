@@ -248,6 +248,16 @@ enum class overflow_reaction_t
 		//! Application must be aborted.
 		abort_app,
 		//! An exception must be thrown.
+		/*!
+		 * \note
+		 * Since v.5.5.18 this value leads to an exception only if
+		 * ordinary `send` is used for pushing message to overloaded
+		 * message chain. If there is an attempt to push
+		 * delayed or periodic message to overloaded message chain then
+		 * throw_exception reaction is replaced by drop_newest. It is becasue
+		 * the context of timer thread is a special contex. No exceptions
+		 * should be thrown on it.
+		 */
 		throw_exception,
 		//! New message must be ignored and droped.
 		drop_newest,
@@ -777,6 +787,17 @@ make_limited_without_waiting_mchain_params(
 			// But before dropping a new message there will be 500ms timeout
 			std::chrono::milliseconds(500) ) );
 	\endcode
+ *
+ * \note
+ * Since v.5.5.18 there is an important difference in mchain behavior.
+ * If an ordinary `send` is used for message pushing then there will
+ * be waiting for free space if the message chain is full.
+ * But if message push is performed from timer thread (it means that
+ * message is a delayed or a periodic message) then there will not be
+ * any waiting. It is because the context of timer thread is very
+ * special: there is no possibility to spend some time on waiting for
+ * some free space in message chain. All operations on the context of
+ * timer thread must be done as fast as possible.
  */
 inline mchain_params_t
 make_limited_with_waiting_mchain_params(

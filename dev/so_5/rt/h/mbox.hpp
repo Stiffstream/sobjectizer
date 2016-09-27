@@ -561,6 +561,14 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 {
 		friend class intrusive_ptr_t< abstract_message_box_t >;
 
+		/*!
+		 * It is necessary for for access to do_deliver_message_from_timer().
+		 *
+		 * \note
+		 * Added in v.5.5.18.
+		 */
+		friend class so_5::timers_details::mbox_iface_for_timers_t;
+
 		abstract_message_box_t( const abstract_message_box_t & );
 		void
 		operator = ( const abstract_message_box_t & );
@@ -777,6 +785,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
+		 *
+		 * \note
+		 * It is obvious that do_deliver_message() must be non-const method.
+		 * The constness is here now to keep compatibility in 5.5.* versions.
+		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_message(
@@ -792,6 +805,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * v.5.5.4
 		 *
 		 * \brief Deliver service request.
+		 *
+		 * \note
+		 * It is obvious that do_deliver_message() must be non-const method.
+		 * The constness is here now to keep compatibility in 5.5.* versions.
+		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_service_request(
@@ -839,6 +857,34 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		/*!
 		 * \}
 		 */
+
+	protected :
+		/*!
+		 * \since
+		 * v.5.5.18
+		 * 
+		 * \brief Special method for message delivery from a timer thread.
+		 *
+		 * A message delivery from timer thread is somewhat different from
+		 * an ordinary message delivery. Especially in the case when
+		 * target mbox is a message chain. If that message chain is
+		 * full and some kind of overflow reaction is specified (like waiting
+		 * for some time or throwing an exception) then it can lead to
+		 * undesired behaviour of the whole application. To take care about
+		 * these case a new method is introduced.
+		 *
+		 * Note that implementation of that method in abstract_message_box_t
+		 * class is just a proxy for do_deliver_message() method. It is done
+		 * to keep compatibility with previous versions of SObjectizer.
+		 * The actual implementation of that method is present only in
+		 * message chains.
+		 */
+		virtual void
+		do_deliver_message_from_timer(
+			//! Type of the message to deliver.
+			const std::type_index & msg_type,
+			//! A message instance to be delivered.
+			const message_ref_t & message );
 };
 
 template< class MESSAGE >

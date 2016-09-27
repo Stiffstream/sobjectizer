@@ -347,6 +347,10 @@ send_delayed(
  * \brief A utility function for creating and delivering a delayed message.
  *
  * Gets the Environment from the chain specified.
+ *
+ * \note
+ * Message chains with overload control must be used for delayed messages
+ * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
  */
 template< typename MESSAGE, typename... ARGS >
 void
@@ -538,6 +542,10 @@ send_periodic(
  *
  * \brief A utility function for creating and delivering a periodic message
  * to %mchain.
+ *
+ * \note
+ * Message chains with overload control must be used for periodic messages
+ * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t

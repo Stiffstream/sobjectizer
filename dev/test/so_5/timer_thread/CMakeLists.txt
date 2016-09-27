@@ -1,0 +1,6 @@
+add_subdirectory(single_delayed)
+add_subdirectory(single_periodic)
+add_subdirectory(single_timer_zero_delay)
+add_subdirectory(timers_cancelation)
+add_subdirectory(overloaded_mchain)
+add_subdirectory(overloaded_mchain_2)

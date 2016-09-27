@@ -23,10 +23,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/execution_hint/basic_checks/prj.ut.rb"
 
-	required_prj "#{path}/timer_thread/single_delayed/prj.ut.rb" 
-	required_prj "#{path}/timer_thread/single_periodic/prj.ut.rb" 
-	required_prj "#{path}/timer_thread/single_timer_zero_delay/prj.ut.rb" 
-	required_prj "#{path}/timer_thread/timers_cancelation/prj.ut.rb" 
+	required_prj "#{path}/timer_thread/build_tests.rb" 
 
 	required_prj "#{path}/mpsc_queue_traits/build_tests.rb"
 

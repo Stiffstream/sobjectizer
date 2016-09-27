@@ -16,10 +16,7 @@ add_subdirectory(wrapped_env)
 
 add_subdirectory(execution_hint/basic_checks)
 
-add_subdirectory(timer_thread/single_delayed)
-add_subdirectory(timer_thread/single_periodic)
-add_subdirectory(timer_thread/single_timer_zero_delay)
-add_subdirectory(timer_thread/timers_cancelation)
+add_subdirectory(timer_thread)
 
 add_subdirectory(mpsc_queue_traits)
 
