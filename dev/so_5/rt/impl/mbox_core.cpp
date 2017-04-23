@@ -46,10 +46,10 @@ mbox_core_t::create_mbox()
 
 mbox_t
 mbox_core_t::create_mbox(
-	const nonempty_name_t & mbox_name )
+	nonempty_name_t mbox_name )
 {
 	return create_named_mbox(
-			mbox_name,
+			std::move(mbox_name),
 			[this]() { return create_mbox(); } );
 }
 
@@ -180,7 +180,7 @@ mbox_core_t::query_stats()
 
 mbox_t
 mbox_core_t::create_named_mbox(
-	const nonempty_name_t & nonempty_name,
+	nonempty_name_t nonempty_name,
 	const std::function< mbox_t() > & factory )
 {
 	const std::string & name = nonempty_name.query_name();

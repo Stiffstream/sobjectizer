@@ -36,14 +36,9 @@ class disp_repository_t
 		disp_repository_t(
 			environment_t & env,
 			named_dispatcher_map_t named_dispatcher_map,
-			event_exception_logger_unique_ptr_t logger,
-			so_5::disp::one_thread::disp_params_t default_disp_params );
+			event_exception_logger_unique_ptr_t logger );
 
 		virtual ~disp_repository_t();
-
-		//! Get the default dispatcher.
-		dispatcher_t &
-		query_default_dispatcher();
 
 		//! Get a named dispatcher.
 		/*!
@@ -100,9 +95,6 @@ class disp_repository_t
 		 * \brief SObjectizer Environment to work in.
 		 */
 		environment_t & m_env;
-
-		//! Default dispatcher.
-		dispatcher_unique_ptr_t m_default_dispatcher;
 
 		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;

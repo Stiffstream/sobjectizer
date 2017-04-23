@@ -9,6 +9,7 @@ MxxRu::Cpp::composite_target {
 
 	example[ 'hello_world' ]
 	example[ 'hello_world_adhoc' ]
+	example[ 'hello_world_simple_not_mtsafe' ]
 	example[ 'hello_evt_handler' ]
 	example[ 'hello_evt_lambda' ]
 	example[ 'hello_all' ]
@@ -67,4 +68,9 @@ MxxRu::Cpp::composite_target {
 	example[ 'adv_thread_pool_fifo' ]
 
 	example[ 'mchain_select' ]
+
+	example[ 'wrapped_env_demo_3' ]
+
+	example[ 'mutable_msg_agents' ]
+	example[ 'modify_resend_as_immutable' ]
 }

@@ -389,6 +389,45 @@ const int rc_several_handlers_for_one_message_type = 165;
  */
 const int rc_another_state_switch_in_progress = 170;
 
+/*!
+ * \brief An attempt to launch environment with autoshutdown disabled in
+ * conditions where autoshutdown must be enabled.
+ *
+ * For example so_5::env_infrastructures::simple_not_mtsafe requires
+ * autoshutdown feature.
+ *
+ * \since
+ * v.5.5.19
+ */
+const int rc_autoshutdown_must_be_enabled = 171;
+
+/*!
+ * \brief An attempt to deliver mutable message via MPMC mbox.
+ *
+ * \since
+ * v.5.5.19
+ */
+const int rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox = 172;
+
+/*!
+ * \brief An attempt to send mutable message as a periodic message
+ *
+ * \since
+ * v.5.5.19
+ */
+const int rc_mutable_msg_cannot_be_periodic = 173;
+
+/*!
+ * \brief An attempt to make subscription on mutable message from
+ * MPMC mbox.
+ *
+ * Delivery of mutable messages via MPMC mboxes is prohibited.
+ *
+ * \since
+ * v.5.5.19
+ */
+const int rc_subscription_to_mutable_msg_from_mpmc_mbox = 174;
+
 //! \name Common error codes.
 //! \{
 

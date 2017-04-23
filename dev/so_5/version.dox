@@ -2,6 +2,21 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_19 5.5.19 "Nevado de Poquis"
+
+	New format of send-functions, see \ref
+	so_5_5_19__new_format_of_send_functions for more details.
+
+	Mutable messages are supported now. See \ref so_5_5_19__mutable_messages for
+	more details.
+
+	An ability to run SObjectizer Environment in a single threaded mode
+	is implemented. See \ref so_5_5_19__environment_infrastructures for
+	more details.
+
+	New examples: hello_world_simple_not_mtsafe, modify_resend_as_immutable,
+	mutable_msg_agents and wrapped_env_demo_3.
+
 \section so_5__5_18 5.5.18 "Nevado Pisco"
 
 	New behavior for delivery of delayed and periodic messages to overloaded

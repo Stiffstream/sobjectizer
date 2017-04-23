@@ -120,10 +120,10 @@ coop_t::destroy( coop_t * coop )
 }
 
 coop_t::coop_t(
-	const nonempty_name_t & name,
+	nonempty_name_t name,
 	disp_binder_unique_ptr_t coop_disp_binder,
 	environment_t & env )
-	:	m_coop_name( name.query_name() )
+	:	m_coop_name( name.giveout_value() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )
 	,	m_parent_coop_ptr( nullptr )
@@ -147,9 +147,9 @@ coop_t::has_parent_coop() const
 
 void
 coop_t::set_parent_coop_name(
-	const nonempty_name_t & name )
+	nonempty_name_t name )
 {
-	m_parent_coop_name = name.query_name();
+	m_parent_coop_name = name.giveout_value();
 }
 
 const std::string &

@@ -78,6 +78,31 @@ class infinite_wait_service_invoke_proxy_t
 
 		//! Make synchronous service request call with parameter.
 		/*!
+		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * message.
+		 *
+		 * \note
+		 * This method was added in v.5.5.19 for suppor immutable_msg<T> and
+		 * mutable_msg<T> message objects.
+		 *
+		 * \attention
+		 * This method is not a part of stable SObjectizer's API.
+		 * Don't use it in your code because it is a subject of changes in
+		 * the future version of SObjectizer. Use so_5::request_value() or
+		 * so_5::request_future() instead.
+		 *
+		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
+		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
+		RESULT
+		sync_get_2( intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
+
+		//! Make synchronous service request call with parameter.
+		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 *
 		 * \tparam PARAM type of message to be sent to distination.
@@ -187,6 +212,36 @@ class wait_for_service_invoke_proxy_t
 		template< class PARAM >
 		RESULT
 		sync_get() const;
+
+		//! Make synchronous service request call with parameter and
+		//! wait timeout.
+		/*!
+		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * message.
+		 *
+		 * \note
+		 * This method was added in v.5.5.19 for suppor immutable_msg<T> and
+		 * mutable_msg<T> message objects.
+		 *
+		 * \attention
+		 * This method is not a part of stable SObjectizer's API.
+		 * Don't use it in your code because it is a subject of changes in
+		 * the future version of SObjectizer. Use so_5::request_value() or
+		 * so_5::request_future() instead.
+		 *
+		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
+		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 *
+		 * \throw so_5::exception_t with error code
+		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
+		 * after timeout.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
+		RESULT
+		sync_get_2( intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
@@ -311,6 +366,32 @@ class service_invoke_proxy_t
 
 		//! Make service request call with param.
 		/*!
+		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * message.
+		 *
+		 * \note
+		 * This method was added in v.5.5.19 for suppor immutable_msg<T> and
+		 * mutable_msg<T> message objects.
+		 *
+		 * \attention
+		 * This method is not a part of stable SObjectizer's API.
+		 * Don't use it in your code because it is a subject of changes in
+		 * the future version of SObjectizer. Use so_5::request_value() or
+		 * so_5::request_future() instead.
+		 *
+		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
+		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
+		std::future< RESULT >
+		async_2(
+			intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
+
+		//! Make service request call with param.
+		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 *
 		 * \tparam PARAM type of message to be sent to distination.
@@ -324,9 +405,9 @@ class service_invoke_proxy_t
 			}
 		 * \endcode
 		 */
-		template< class PARAM >
+		template< class REQUEST_TYPE >
 		std::future< RESULT >
-		async( intrusive_ptr_t< PARAM > msg_ref ) const;
+		async( intrusive_ptr_t< REQUEST_TYPE > msg_ref ) const;
 
 		//! Make service request call with param.
 		/*!
@@ -465,6 +546,7 @@ class service_invoke_proxy_t
 
 	private :
 		mbox_t m_mbox;
+
 	};
 
 //
@@ -497,7 +579,7 @@ class SO_5_TYPE delivery_filter_t
 			//! Receiver of the message.
 			const agent_t & receiver,
 			//! Message itself.
-			const message_t & msg ) const SO_5_NOEXCEPT = 0;
+			message_t & msg ) const SO_5_NOEXCEPT = 0;
 	};
 
 //
@@ -521,7 +603,8 @@ using delivery_filter_unique_ptr_t =
  *
  * \brief Type of the message box.
  *
- * \deprecated Will be removed in v.5.6.0.
+ * \note
+ * This type is no more marked as deprecated.
  */
 enum class mbox_type_t
 	{
@@ -567,7 +650,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \note
 		 * Added in v.5.5.18.
 		 */
-		friend class so_5::timers_details::mbox_iface_for_timers_t;
+		friend class so_5::rt::impl::mbox_iface_for_timers_t;
 
 		abstract_message_box_t( const abstract_message_box_t & );
 		void
@@ -588,9 +671,23 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 
 		//! Deliver message.
 		/*!
+		 * Mbox takes care about destroying a message object.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Subscription type for that message.
+			std::type_index subscription_type,
+			//! Message data.
+			const intrusive_ptr_t< MESSAGE > & msg_ref ) const;
+
+		//! Deliver message.
+		/*!
 		 * \since
 		 * v.5.2.2
-		 *
 		 *
 		 * Mbox takes care about destroying a message object.
 		 */
@@ -599,6 +696,23 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		deliver_message(
 			//! Message data.
 			const intrusive_ptr_t< MESSAGE > & msg_ref ) const;
+
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Subscription type for that message.
+			std::type_index subscription_type,
+			//! Message data.
+			std::unique_ptr< MESSAGE > msg_unique_ptr,
+			//! Actual mutability for this message instance.
+			message_mutability_t mutability ) const;
 
 		//! Deliver message.
 		/*!
@@ -762,8 +876,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \note This method is primarily intended for internal usage.
 		 * It is useful sometimes in subscription-related operations
 		 * because there is no need to do some actions for MPSC mboxes.
-		 *
-		 * \deprecated Will be removed in some future version.
 		 */
 		virtual mbox_type_t
 		type() const = 0;
@@ -871,7 +983,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * full and some kind of overflow reaction is specified (like waiting
 		 * for some time or throwing an exception) then it can lead to
 		 * undesired behaviour of the whole application. To take care about
-		 * these case a new method is introduced.
+		 * these cases a new method is introduced.
 		 *
 		 * Note that implementation of that method in abstract_message_box_t
 		 * class is just a proxy for do_deliver_message() method. It is done
@@ -890,14 +1002,42 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 template< class MESSAGE >
 inline void
 abstract_message_box_t::deliver_message(
+	std::type_index subscription_type,
 	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
 {
 	ensure_classical_message< MESSAGE >();
 	ensure_message_with_actual_data( msg_ref.get() );
 
 	deliver_message(
-		message_payload_type< MESSAGE >::payload_type_index(),
+		subscription_type,
 		msg_ref.template make_reference< message_t >() );
+}
+
+template< class MESSAGE >
+inline void
+abstract_message_box_t::deliver_message(
+	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
+{
+	deliver_message(
+		message_payload_type< MESSAGE >::subscription_type_index(),
+		msg_ref );
+}
+
+template< class MESSAGE >
+inline void
+abstract_message_box_t::deliver_message(
+	std::type_index subscription_type,
+	std::unique_ptr< MESSAGE > msg_unique_ptr,
+	message_mutability_t mutability ) const
+{
+	ensure_classical_message< MESSAGE >();
+	ensure_message_with_actual_data( msg_unique_ptr.get() );
+
+	change_message_mutability( *msg_unique_ptr, mutability );
+
+	deliver_message(
+		subscription_type,
+		message_ref_t( msg_unique_ptr.release() ) );
 }
 
 template< class MESSAGE >
@@ -905,12 +1045,9 @@ void
 abstract_message_box_t::deliver_message(
 	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
 {
-	ensure_classical_message< MESSAGE >();
-	ensure_message_with_actual_data( msg_unique_ptr.get() );
-
-	deliver_message(
-		message_payload_type< MESSAGE >::payload_type_index(),
-		message_ref_t( msg_unique_ptr.release() ) );
+	this->deliver_message(
+		message_payload_type< MESSAGE >::subscription_type_index(),
+		std::move( msg_unique_ptr.release() ) );
 }
 
 template< class MESSAGE >
@@ -928,7 +1065,7 @@ abstract_message_box_t::deliver_signal() const
 	ensure_signal< MESSAGE >();
 
 	deliver_message(
-		message_payload_type< MESSAGE >::payload_type_index(),
+		message_payload_type< MESSAGE >::subscription_type_index(),
 		message_ref_t() );
 }
 
@@ -957,21 +1094,23 @@ service_invoke_proxy_t<RESULT>::async() const
 		std::promise< RESULT > promise;
 		auto f = promise.get_future();
 
+		using envelope_type = typename message_payload_type< PARAM >::envelope_type;
+
 		message_ref_t ref(
-				new msg_service_request_t< RESULT, PARAM >(
+				new msg_service_request_t< RESULT, envelope_type >(
 						std::move(promise) ) );
 		m_mbox->deliver_service_request(
-				message_payload_type< PARAM >::payload_type_index(),
+				message_payload_type< PARAM >::subscription_type_index(),
 				ref );
 
 		return f;
 	}
 
 template< class RESULT >
-template< class PARAM >
+template< class REQUEST_TYPE, class ENVELOPE_TYPE >
 std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async(
-	intrusive_ptr_t< PARAM > msg_ref ) const
+service_invoke_proxy_t<RESULT>::async_2(
+	intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const
 	{
 		ensure_message_with_actual_data( msg_ref.get() );
 
@@ -979,15 +1118,26 @@ service_invoke_proxy_t<RESULT>::async(
 		auto f = promise.get_future();
 
 		message_ref_t ref(
-				new msg_service_request_t< RESULT, PARAM >(
+				new msg_service_request_t< RESULT, ENVELOPE_TYPE >(
 						std::move(promise),
 						msg_ref.template make_reference< message_t >() ) );
 
+		::so_5::details::mark_as_mutable_if_necessary< REQUEST_TYPE >( *ref );
+
 		m_mbox->deliver_service_request(
-				message_payload_type< PARAM >::payload_type_index(),
+				message_payload_type< REQUEST_TYPE >::subscription_type_index(),
 				ref );
 
 		return f;
+	}
+
+template< class RESULT >
+template< class REQUEST_TYPE >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::async(
+	intrusive_ptr_t< REQUEST_TYPE > msg_ref ) const
+	{
+		return this->async_2< REQUEST_TYPE >( std::move(msg_ref) );
 	}
 
 template< class RESULT >
@@ -1030,13 +1180,13 @@ template< class PARAM, typename... ARGS >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
 	{
-		using ENVELOPE = typename message_payload_type< PARAM >::envelope_type;
+		using envelope_type = typename message_payload_type< PARAM >::envelope_type;
 
-		intrusive_ptr_t< ENVELOPE > msg{
+		intrusive_ptr_t< envelope_type > msg{
 				details::make_message_instance< PARAM >(
 						std::forward<ARGS>(args)... ).release() };
 
-		return this->async( std::move( msg ) );
+		return this->async_2< PARAM >( std::move( msg ) );
 	}
 
 //
@@ -1059,12 +1209,23 @@ infinite_wait_service_invoke_proxy_t< RESULT >::sync_get() const
 	}
 
 template< class RESULT >
+template< class REQUEST_TYPE, class ENVELOPE_TYPE >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::sync_get_2(
+	intrusive_ptr_t< ENVELOPE_TYPE > msg ) const
+	{
+		ensure_classical_message< ENVELOPE_TYPE >();
+
+		return m_creator.template async_2< REQUEST_TYPE >( std::move(msg) ).get();
+	}
+
+template< class RESULT >
 template< class PARAM >
 RESULT
 infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
 	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
-		return m_creator.async( std::move(msg_ref) ).get();
+		return this->sync_get_2< PARAM >( std::move(msg_ref) );
 	}
 
 template< class RESULT >
@@ -1146,17 +1307,26 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get() const
 	}
 
 template< class RESULT, class DURATION >
+template< class REQUEST_TYPE, class ENVELOPE_TYPE >
+RESULT
+wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get_2(
+	intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const
+	{
+		ensure_classical_message< ENVELOPE_TYPE >();
+
+		auto f = m_creator.template async_2< REQUEST_TYPE >( std::move(msg_ref) );
+
+		return wait_for_service_invoke_proxy_details::wait_and_return
+				<RESULT, DURATION, decltype(f) >( m_timeout, f );
+	}
+
+template< class RESULT, class DURATION >
 template< class PARAM >
 RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
-		ensure_classical_message< PARAM >();
-
-		auto f = m_creator.async( std::move(msg_ref) );
-
-		return wait_for_service_invoke_proxy_details::wait_and_return
-				<RESULT, DURATION, decltype(f) >( m_timeout, f );
+		return this->sync_get_2< PARAM >( std::move(msg_ref) );
 	}
 
 template< class RESULT, class DURATION >
@@ -1194,7 +1364,7 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 				details::make_message_instance< PARAM >(
 						std::forward<ARGS>(args)... ).release() };
 
-		return this->sync_get( std::move( msg ) );
+		return this->sync_get_2< PARAM >( std::move( msg ) );
 	}
 
 namespace rt

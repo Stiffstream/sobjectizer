@@ -11,16 +11,11 @@
 
 #include <string>
 
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/declspec.hpp>
+#include <so_5/h/ret_code.hpp>
+#include <so_5/h/exception.hpp>
 
 namespace so_5
 {
-
-#if defined( SO_5_MSVC )
-	#pragma warning(push)
-	#pragma warning(disable: 4251)
-#endif
 
 //
 // nonempty_name_t
@@ -30,24 +25,41 @@ namespace so_5
 /*!
  * Checks value in the constructor. Throws an exception if the name is empty.
 */
-class SO_5_TYPE nonempty_name_t
+class nonempty_name_t
 {
 		// Note: clang-3.9 requires this on Windows platform.
 		nonempty_name_t( const nonempty_name_t & ) = delete;
-		nonempty_name_t( nonempty_name_t && ) = delete;
 		nonempty_name_t & operator=( const nonempty_name_t & ) = delete;
-		nonempty_name_t & operator=( nonempty_name_t && ) = delete;
 
 	public:
 		//! Constructor with check for the empty value.
-		nonempty_name_t(
-			const char * name );
+		nonempty_name_t( const char * name )
+			:	nonempty_name_t( std::string(name) )
+		{}
 
 		//! Constructor with check for the empty value.
-		nonempty_name_t(
-			const std::string & name );
+		nonempty_name_t( std::string name )
+			:	m_nonempty_name( std::move(name) )
+		{
+			if( m_nonempty_name.empty() )
+				SO_5_THROW_EXCEPTION( rc_empty_name, "empty string as argument" );
+		}
 
-		~nonempty_name_t();
+		nonempty_name_t( nonempty_name_t && o )
+			:	m_nonempty_name( std::move(o.m_nonempty_name) )
+		{}
+
+		friend void swap( nonempty_name_t & a, nonempty_name_t & b )
+		{
+			a.m_nonempty_name.swap( b.m_nonempty_name );
+		}
+
+		nonempty_name_t & operator=( nonempty_name_t && o )
+		{
+			nonempty_name_t tmp( std::move(o) );
+			swap( *this, o );
+			return *this;
+		}
 
 		//! Get the value.
 		inline const std::string &
@@ -56,14 +68,27 @@ class SO_5_TYPE nonempty_name_t
 			return m_nonempty_name;
 		}
 
+		/*!
+		 * \brief Get the value away from the object.
+		 *
+		 * \attention
+		 * After calling that method m_nonempty_name will become empty!
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		std::string
+		giveout_value()
+		{
+			std::string r;
+			r.swap( m_nonempty_name );
+			return r;
+		}
+
 	private:
 		//! Value.
 		std::string m_nonempty_name;
 };
-
-#if defined( SO_5_MSVC )
-	#pragma warning(pop)
-#endif
 
 namespace rt
 {

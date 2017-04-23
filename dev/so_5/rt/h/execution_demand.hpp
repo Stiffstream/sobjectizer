@@ -216,10 +216,19 @@ struct msg_type_and_handler_pair_t
 		std::type_index m_msg_type;
 		//! A handler for processing this message or signal.
 		event_handler_method_t m_handler;
+		//! What message is expected by handler: mutable or immutable.
+		/*!
+		 * By default immutable message is expected.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		message_mutability_t m_mutability;
 
 		//! Default constructor.
 		msg_type_and_handler_pair_t()
 			:	m_msg_type{ typeid(void) }
+			,	m_mutability{ message_mutability_t::immutable_message }
 			{}
 		//! Constructor for the case when only msg_type is known.
 		/*!
@@ -231,34 +240,44 @@ struct msg_type_and_handler_pair_t
 			//! Type of a message or signal.
 			std::type_index msg_type )
 			:	m_msg_type{ std::move(msg_type) }
+			,	m_mutability{ message_mutability_t::immutable_message }
 			{}
 		//! Initializing constructor.
 		msg_type_and_handler_pair_t(
 			//! Type of a message or signal.
 			std::type_index msg_type,
 			//! A handler for processing this message or signal.
-			event_handler_method_t handler )
+			event_handler_method_t handler,
+			//! What message is expected by handler: mutable or immutable?
+			message_mutability_t mutability )
 			:	m_msg_type{ std::move(msg_type) }
 			,	m_handler{ std::move(handler) }
+			,	m_mutability{ mutability }
 			{}
 		//! Copy constructor.
 		msg_type_and_handler_pair_t(
 			const msg_type_and_handler_pair_t & o )
 			:	m_msg_type{ o.m_msg_type }
 			,	m_handler{ o.m_handler }
+			,	m_mutability{ o.m_mutability }
 			{}
 		//! Move constructor.
 		msg_type_and_handler_pair_t(
-			msg_type_and_handler_pair_t && o )
+			msg_type_and_handler_pair_t && o ) SO_5_NOEXCEPT
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_handler{ std::move(o.m_handler) }
+			,	m_mutability{ std::move(o.m_mutability) }
 			{}
 
 		//! Swap operation.
-		void swap( msg_type_and_handler_pair_t & o ) SO_5_NOEXCEPT
+		friend void
+		swap(
+			msg_type_and_handler_pair_t & a,
+			msg_type_and_handler_pair_t & b ) SO_5_NOEXCEPT
 			{
-				std::swap( m_msg_type, o.m_msg_type );
-				m_handler.swap( o.m_handler );
+				std::swap( a.m_msg_type, b.m_msg_type );
+				a.m_handler.swap( b.m_handler );
+				std::swap( a.m_mutability, b.m_mutability );
 			}
 
 		//! Copy operator.
@@ -266,16 +285,16 @@ struct msg_type_and_handler_pair_t
 		operator=( const msg_type_and_handler_pair_t & o )
 			{
 				msg_type_and_handler_pair_t tmp{ o };
-				tmp.swap( *this );
+				swap( *this, tmp );
 				return *this;
 			}
 
 		//! Move operator.
 		msg_type_and_handler_pair_t &
-		operator=( msg_type_and_handler_pair_t && o )
+		operator=( msg_type_and_handler_pair_t && o ) SO_5_NOEXCEPT
 			{
 				msg_type_and_handler_pair_t tmp{ std::move(o) };
-				tmp.swap( *this );
+				swap( *this, tmp );
 				return *this;
 			}
 

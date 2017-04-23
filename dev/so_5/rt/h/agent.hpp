@@ -507,6 +507,23 @@ class subscription_bind_t
 			const std::type_index & msg_type,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) const;
+
+		/*!
+		 * \brief Additional check for subscription to a mutable message
+		 * from MPMC mbox.
+		 *
+		 * Such attempt must be disabled because delivery of mutable
+		 * messages via MPMC mboxes is prohibited.
+		 *
+		 * \throw so_5::exception_t if m_mbox_ref is a MPMC mbox and
+		 * \a handler is for mutable message.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		void
+		ensure_handler_can_be_used_with_mbox(
+			const so_5::details::msg_type_and_handler_pair_t & handler ) const;
 };
 
 //
@@ -669,6 +686,14 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename T >
 		using mhood_t = so_5::mhood_t< T >;
+		/*!
+		 * \since
+		 * v.5.5.19
+		 *
+		 * \brief Short alias for %so_5::mutable_mhood_t.
+		 */
+		template< typename T >
+		using mutable_mhood_t = so_5::mutable_mhood_t< T >;
 		/*!
 		 * \since
 		 * v.5.5.15
@@ -1135,7 +1160,7 @@ class SO_5_TYPE agent_t
 			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
 		{
 			do_drop_subscription( mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1160,7 +1185,7 @@ class SO_5_TYPE agent_t
 			void (AGENT::*)( mhood_t< MESSAGE > ) )
 		{
 			do_drop_subscription( mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1186,7 +1211,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1212,7 +1237,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1233,7 +1258,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1253,7 +1278,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1278,7 +1303,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1303,7 +1328,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1328,7 +1353,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1353,7 +1378,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1373,7 +1398,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1392,7 +1417,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index(),
+					message_payload_type< MESSAGE >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1418,7 +1443,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index() );
+					message_payload_type< MESSAGE >::subscription_type_index() );
 		}
 
 		/*!
@@ -1443,7 +1468,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index() );
+					message_payload_type< MESSAGE >::subscription_type_index() );
 		}
 
 		/*!
@@ -1468,7 +1493,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription_for_all_states(
 					mbox, 
-					message_payload_type< MESSAGE >::payload_type_index() );
+					message_payload_type< MESSAGE >::subscription_type_index() );
 		}
 
 		/*!
@@ -1488,7 +1513,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index() );
+					message_payload_type< MESSAGE >::subscription_type_index() );
 		}
 
 		/*!
@@ -1507,7 +1532,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::payload_type_index() );
+					message_payload_type< MESSAGE >::subscription_type_index() );
 		}
 		/*!
 		 * \}
@@ -1714,7 +1739,7 @@ class SO_5_TYPE agent_t
 
 				do_set_delivery_filter(
 						mbox,
-						message_payload_type< MESSAGE >::payload_type_index(),
+						message_payload_type< MESSAGE >::subscription_type_index(),
 						std::move(filter) );
 			}
 
@@ -1764,7 +1789,7 @@ class SO_5_TYPE agent_t
 			{
 				do_drop_delivery_filter(
 						mbox,
-						message_payload_type< MESSAGE >::payload_type_index() );
+						message_payload_type< MESSAGE >::subscription_type_index() );
 			}
 		/*!
 		 * \}
@@ -2449,7 +2474,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		// Because of that it is necessary to call another noexcept
 		// function from check().
 		bool
-		do_check( const MESSAGE & m ) const SO_5_NOEXCEPT
+		do_check( MESSAGE & m ) const SO_5_NOEXCEPT
 		{
 			return m_filter( m );
 		}
@@ -2463,7 +2488,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		virtual bool
 		check(
 			const agent_t & /*receiver*/,
-			const message_t & msg ) const SO_5_NOEXCEPT override
+			message_t & msg ) const SO_5_NOEXCEPT override
 			{
 				return do_check(message_payload_type< MESSAGE >::payload_reference( msg ));
 			}
@@ -2471,7 +2496,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		virtual bool
 		check(
 			const agent_t & receiver,
-			const message_t & msg ) const SO_5_NOEXCEPT override
+			message_t & msg ) const SO_5_NOEXCEPT override
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {
@@ -2482,7 +2507,7 @@ class lambda_as_filter_t : public delivery_filter_t
 							SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
 								serr << "An exception from delivery filter "
 									"for message type "
-									<< message_payload_type< MESSAGE >::payload_type_index().name()
+									<< message_payload_type< MESSAGE >::subscription_type_index().name()
 									<< ". Application will be aborted"
 									<< std::endl;
 							}
@@ -2509,7 +2534,7 @@ agent_t::so_set_delivery_filter(
 
 		do_set_delivery_filter(
 				mbox,
-				message_payload_type< argument_type >::payload_type_index(),
+				message_payload_type< argument_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{ 
 					new lambda_as_filter_t< LAMBDA, argument_type >(
 							std::move( lambda ) )
@@ -2557,6 +2582,7 @@ subscription_bind_t::event(
 
 	const auto ev = make_handler_with_arg_for_agent( cast_result, pfn );
 
+	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states( 
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2582,6 +2608,7 @@ subscription_bind_t::event(
 	const auto ev = handler< MESSAGE >(
 			[cast_result, pfn]() -> RESULT { return (cast_result->*pfn)(); } );
 
+	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2598,6 +2625,7 @@ subscription_bind_t::event(
 {
 	const auto ev = handler( std::forward<LAMBDA>(lambda) );
 
+	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2613,8 +2641,9 @@ subscription_bind_t::event(
 	LAMBDA && lambda,
 	thread_safety_t thread_safety )
 {
-	auto ev = handler< MESSAGE, LAMBDA >( std::forward<LAMBDA>(lambda) );
+	const auto ev = handler< MESSAGE, LAMBDA >( std::forward<LAMBDA>(lambda) );
 
+	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2717,6 +2746,18 @@ subscription_bind_t::create_subscription_for_states(
 					*s,
 					method,
 					thread_safety );
+}
+
+inline void
+subscription_bind_t::ensure_handler_can_be_used_with_mbox(
+	const so_5::details::msg_type_and_handler_pair_t & handler ) const
+{
+	if( message_mutability_t::mutable_message == handler.m_mutability &&
+			mbox_type_t::multi_producer_multi_consumer == m_mbox_ref->type() )
+		SO_5_THROW_EXCEPTION( rc_subscription_to_mutable_msg_from_mpmc_mbox,
+				std::string( "subscription to mutable message from MPMC mbox "
+						"is disabled, msg_type=" )
+				+ handler.m_msg_type.name() );
 }
 
 /*

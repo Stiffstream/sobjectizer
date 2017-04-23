@@ -225,7 +225,7 @@ class dispatcher_t
 		virtual void
 		start( environment_t & env ) override
 			{
-				m_data_source.start( env.stats_repository() );
+				m_data_source.start( outliving_mutable(env.stats_repository()) );
 
 				for( auto & t : m_threads )
 					t->start();

@@ -33,6 +33,7 @@ class state_switch_guard_t;
 class coop_dereg_reason_t;
 class state_t;
 class environment_t;
+class environment_params_t;
 class coop_t;
 class agent_t;
 

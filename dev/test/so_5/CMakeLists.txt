@@ -65,6 +65,11 @@ add_subdirectory(layer/extra_layer_errors)
 add_subdirectory(api/run_so_environment)
 
 add_subdirectory(svc)
+add_subdirectory(mutable_msg)
+
+add_subdirectory(internal_stats)
+
+add_subdirectory(env_infrastructure)
 
 add_subdirectory(bench/ping_pong)
 add_subdirectory(bench/same_msg_in_different_states)

@@ -15,7 +15,6 @@ set(SO_5_SRC exception.cpp
 	timers.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
-	rt/nonempty_name.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
@@ -28,6 +27,7 @@ set(SO_5_SRC exception.cpp
 	rt/agent_coop.cpp
 	rt/agent_coop_notifications.cpp
 	rt/queue_locks_defaults_manager.cpp
+	rt/environment_infrastructure.cpp
 	rt/environment.cpp
 	rt/disp.cpp
 	rt/disp_binder.cpp
@@ -42,10 +42,13 @@ set(SO_5_SRC exception.cpp
 	rt/impl/process_unhandled_exception.cpp
 	rt/impl/named_local_mbox.cpp
 	rt/impl/mbox_core.cpp
-	rt/impl/agent_core.cpp
+	rt/impl/coop_repository_basis.cpp
 	rt/impl/disp_repository.cpp
 	rt/impl/layer_core.cpp
 	rt/impl/state_listener_controller.cpp
+	rt/impl/mt_env_infrastructure.cpp
+	rt/impl/simple_mtsafe_st_env_infrastructure.cpp
+	rt/impl/simple_not_mtsafe_st_env_infrastructure.cpp
 	
 	rt/stats/controller.cpp
 	rt/stats/repository.cpp

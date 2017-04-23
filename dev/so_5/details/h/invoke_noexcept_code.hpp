@@ -18,6 +18,8 @@
 	#include <exception>
 #endif
 
+#include <utility>
+
 namespace so_5 {
 
 namespace details {
@@ -32,18 +34,18 @@ namespace details {
  * \tparam L type of lambda with main code to be invoked.
  */
 template< typename L >
-void
-invoke_noexcept_code( L lambda ) SO_5_NOEXCEPT
+auto
+invoke_noexcept_code( L lambda ) SO_5_NOEXCEPT -> decltype(lambda())
 	{
 #if defined(SO_5_HAVE_NOEXCEPT)
 		// We can just rely on C++ compiler features.
-		lambda();
+		return lambda();
 #else
 		// C++ compiler doesn't support noexcept.
 		// So we must intercept all exceptions by ourself.
 		try
 			{
-				lambda();
+				return lambda();
 			}
 		catch( ... )
 			{

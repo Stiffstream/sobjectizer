@@ -102,7 +102,7 @@ get_actual_service_request_pointer(
 template< typename MSG >
 struct event_handler_arg_maker
 {
-	using type = MSG;
+	using traits_type = message_payload_type< MSG >;
 
 	static void
 	ensure_appropriate_type()
@@ -128,7 +128,7 @@ struct event_handler_arg_maker
 template< typename MSG >
 struct event_handler_arg_maker< mhood_t< MSG > >
 {
-	using type = MSG;
+	using traits_type = message_payload_type< MSG >;
 
 	static void
 	ensure_appropriate_type()
@@ -141,6 +141,106 @@ struct event_handler_arg_maker< mhood_t< MSG > >
 		return mhood_t< MSG >{ mf };
 	}
 };
+
+/*!
+ * \brief A helper template for create an argument for event handler
+ * in the case when argument is passed as message hood.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename MSG >
+struct event_handler_arg_maker< mhood_t< immutable_msg<MSG> > >
+{
+	using traits_type = message_payload_type< immutable_msg<MSG> >;
+
+	static void
+	ensure_appropriate_type()
+	{
+	}
+
+	static mhood_t< immutable_msg<MSG> >
+	make_arg( message_ref_t & mf )
+	{
+		return { mf };
+	}
+};
+
+/*!
+ * \brief A helper template for create an argument for event handler
+ * in the case when argument is passed as message hood.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename MSG >
+struct event_handler_arg_maker< mhood_t< mutable_msg<MSG> > >
+{
+	using traits_type = message_payload_type< mutable_msg< MSG > >;
+
+	static void
+	ensure_appropriate_type()
+	{
+		ensure_not_signal<MSG>();
+	}
+
+	static mhood_t< mutable_msg<MSG> >
+	make_arg( message_ref_t & mf )
+	{
+		return { mf };
+	}
+};
+
+/*!
+ * \brief A helper template type to trigger static_assert.
+ *
+ * \since
+ * v.5.5.19
+ */
+template<typename T>
+struct always_false
+{
+	static const bool value = false;
+};
+
+/*
+ * Disable usage of mutable_msg<MSG> as parameter of an event handler.
+ */
+template< typename MSG >
+struct event_handler_arg_maker< mutable_msg<MSG> >
+{
+	using traits_type = message_payload_type< mutable_msg<MSG> >;
+
+	static void
+	ensure_appropriate_type()
+	{
+		static_assert(always_false<MSG>::value,
+				"mutable_msg<T> can't be used as type of event handler parameter");
+	}
+
+	static mutable_msg<MSG>
+	make_arg( message_ref_t & ) { return {}; }
+};
+
+/*
+ * Disable usage of mutable_msg<MSG> as parameter of an event handler.
+ */
+template< typename MSG >
+struct event_handler_arg_maker< immutable_msg<MSG> >
+{
+	using traits_type = message_payload_type< immutable_msg<MSG> >;
+
+	static void
+	ensure_appropriate_type()
+	{
+		static_assert(always_false<MSG>::value,
+				"immutable_msg<T> can't be used as type of event handler parameter");
+	}
+
+	static immutable_msg<MSG>
+	make_arg( message_ref_t & ) { return {}; }
+};
+
 
 /*!
  * \brief A helper for setting a result to a promise.
@@ -180,7 +280,7 @@ msg_type_and_handler_pair_t
 make_handler_with_arg( LAMBDA && lambda )
 	{
 		using arg_maker = event_handler_arg_maker< ARG >;
-		using payload_type = typename arg_maker::type;
+		using payload_type = typename arg_maker::traits_type::payload_type;
 
 		arg_maker::ensure_appropriate_type();
 
@@ -209,8 +309,9 @@ make_handler_with_arg( LAMBDA && lambda )
 			};
 
 		return msg_type_and_handler_pair_t{
-				message_payload_type< payload_type >::payload_type_index(),
-				method };
+				arg_maker::traits_type::subscription_type_index(),
+				method,
+				arg_maker::traits_type::mutability() };
 	}
 
 /*!
@@ -228,7 +329,7 @@ make_handler_with_arg_for_agent(
 	{
 		using arg_maker = event_handler_arg_maker<
 				typename so_5::details::lambda_traits::plain_argument_type< ARG >::type >;
-		using payload_type = typename arg_maker::type;
+		using payload_type = typename arg_maker::traits_type::payload_type;
 
 		arg_maker::ensure_appropriate_type();
 
@@ -257,8 +358,9 @@ make_handler_with_arg_for_agent(
 			};
 
 		return msg_type_and_handler_pair_t{
-				message_payload_type< payload_type >::payload_type_index(),
-				method };
+				arg_maker::traits_type::subscription_type_index(),
+				method,
+				arg_maker::traits_type::mutability() };
 	}
 
 /*!
@@ -298,8 +400,9 @@ make_handler_without_arg( LAMBDA && lambda )
 			};
 
 		return msg_type_and_handler_pair_t{
-				message_payload_type< SIG >::payload_type_index(),
-				method };
+				message_payload_type< SIG >::subscription_type_index(),
+				method,
+				message_payload_type< SIG >::mutability() };
 	}
 
 } /* namespace event_subscription_helpers */

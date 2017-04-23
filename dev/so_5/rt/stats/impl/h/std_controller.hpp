@@ -41,7 +41,7 @@ namespace impl
  *
  * \brief A standard implementation of controller for run-time monitoring.
  */
-class std_controller_t
+class std_controller_t final
 	:	public controller_t
 	,	public repository_t
 	{
@@ -106,7 +106,7 @@ class std_controller_t
 
 		//! Data-distribution period.
 		std::chrono::steady_clock::duration m_distribution_period =
-				{ std::chrono::seconds{ 2 } };
+				{ default_distribution_period() };
 		/*!
 		 * \}
 		 */

@@ -63,6 +63,19 @@ class SO_5_TYPE controller_t
 		set_distribution_period(
 			//! New period value.
 			std::chrono::steady_clock::duration period ) = 0;
+
+	protected :
+		/*!
+		 * \brief Default distribution period.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		inline static std::chrono::steady_clock::duration
+		default_distribution_period()
+			{
+				return std::chrono::seconds{ 2 };
+			}
 	};
 
 } /* namespace stats */

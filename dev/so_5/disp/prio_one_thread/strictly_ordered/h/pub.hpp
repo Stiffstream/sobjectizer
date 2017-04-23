@@ -71,7 +71,7 @@ class disp_params_t
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b )
+		friend inline void swap( disp_params_t & a, disp_params_t & b ) SO_5_NOEXCEPT
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
@@ -88,7 +88,7 @@ class disp_params_t
 				return *this;
 			}
 		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
+		disp_params_t & operator=( disp_params_t && o ) SO_5_NOEXCEPT
 			{
 				disp_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
@@ -127,7 +127,7 @@ class disp_params_t
 
 		//! Getter for queue parameters.
 		const queue_traits::queue_params_t &
-		queue_params() const
+		queue_params() const SO_5_NOEXCEPT
 			{
 				return m_queue_params;
 			}

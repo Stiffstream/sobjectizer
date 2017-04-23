@@ -39,6 +39,8 @@
 
 #include <so_5/rt/h/queue_locks_defaults_manager.hpp>
 
+#include <so_5/rt/h/environment_infrastructure.hpp>
+
 #include <so_5/disp/one_thread/h/params.hpp>
 
 
@@ -125,7 +127,7 @@ class SO_5_TYPE environment_params_t
 		environment_params_t &
 		add_named_dispatcher(
 			//! Dispatcher name.
-			const nonempty_name_t & name,
+			nonempty_name_t name,
 			//! Dispatcher.
 			dispatcher_unique_ptr_t dispatcher );
 
@@ -376,6 +378,31 @@ class SO_5_TYPE environment_params_t
 				return *this;
 			}
 
+		//! Get the current environment infrastructure factory.
+		/*!
+		 * \since
+		 * v.5.5.19
+		 */
+		const environment_infrastructure_factory_t &
+		infrastructure_factory() const
+			{
+				return m_infrastructure_factory;
+			}
+
+		//! Set new environment infrastructure factory.
+		/*!
+		 * \since
+		 * v.5.5.19
+		 */
+		environment_params_t &
+		infrastructure_factory(
+//FIXME: it is better to use something like gsl::not_null<environment_infrastructure_factory_t>!
+			environment_infrastructure_factory_t factory )
+			{
+				m_infrastructure_factory = std::move(factory);
+				return *this;
+			}
+
 		/*!
 		 * \name Methods for internal use only.
 		 * \{
@@ -530,6 +557,14 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
+
+		/*!
+		 * \brief A factory for environment infrastructure entity.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		environment_infrastructure_factory_t m_infrastructure_factory;
 };
 
 //
@@ -674,7 +709,7 @@ class SO_5_TYPE environment_t
 		mbox_t
 		create_mbox(
 			//! Mbox name.
-			const nonempty_name_t & mbox_name );
+			nonempty_name_t mbox_name );
 
 		/*!
 		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
@@ -690,9 +725,9 @@ class SO_5_TYPE environment_t
 		 */
 		inline mbox_t
 		create_local_mbox(
-			const nonempty_name_t & mbox_name )
+			nonempty_name_t mbox_name )
 			{
-				return create_mbox( mbox_name );
+				return create_mbox( std::move(mbox_name) );
 			}
 		/*!
 		 * \}
@@ -815,7 +850,7 @@ class SO_5_TYPE environment_t
 		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
-			const nonempty_name_t & name );
+			nonempty_name_t name );
 
 		//! Create a cooperation with automatically generated name.
 		/*!
@@ -851,7 +886,7 @@ class SO_5_TYPE environment_t
 		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
-			const nonempty_name_t & name,
+			nonempty_name_t name,
 			//! A default binder for this cooperation.
 			disp_binder_unique_ptr_t disp_binder );
 
@@ -906,10 +941,10 @@ class SO_5_TYPE environment_t
 		template< class A >
 		void
 		register_agent_as_coop(
-			const nonempty_name_t & coop_name,
+			nonempty_name_t coop_name,
 			std::unique_ptr< A > agent )
 		{
-			auto coop = create_coop( coop_name );
+			auto coop = create_coop( std::move(coop_name) );
 			coop->add_agent( std::move( agent ) );
 			register_coop( std::move( coop ) );
 		}
@@ -957,11 +992,11 @@ class SO_5_TYPE environment_t
 		 */
 		inline void
 		register_agent_as_coop(
-			const nonempty_name_t & coop_name,
+			nonempty_name_t coop_name,
 			agent_t * agent )
 		{
 			register_agent_as_coop(
-					coop_name,
+					std::move(coop_name),
 					std::unique_ptr< agent_t >( agent ) );
 		}
 
@@ -1012,11 +1047,12 @@ class SO_5_TYPE environment_t
 		template< class A >
 		void
 		register_agent_as_coop(
-			const nonempty_name_t & coop_name,
+			nonempty_name_t coop_name,
 			std::unique_ptr< A > agent,
 			disp_binder_unique_ptr_t disp_binder )
 		{
-			auto coop = create_coop( coop_name, std::move( disp_binder ) );
+			auto coop = create_coop(
+					std::move( coop_name ), std::move( disp_binder ) );
 			coop->add_agent( std::move( agent ) );
 			register_coop( std::move( coop ) );
 		}
@@ -1074,12 +1110,12 @@ class SO_5_TYPE environment_t
 		 */
 		inline void
 		register_agent_as_coop(
-			const nonempty_name_t & coop_name,
+			nonempty_name_t coop_name,
 			agent_t * agent,
 			disp_binder_unique_ptr_t disp_binder )
 		{
 			register_agent_as_coop(
-					coop_name,
+					std::move( coop_name ),
 					std::unique_ptr< agent_t >( agent ),
 					std::move( disp_binder ) );
 		}
@@ -1138,7 +1174,7 @@ class SO_5_TYPE environment_t
 		void
 		deregister_coop(
 			//! Name of the cooperation to be registered.
-			const nonempty_name_t & name,
+			nonempty_name_t name,
 			//! Deregistration reason.
 			int reason );
 		/*!
@@ -1149,6 +1185,43 @@ class SO_5_TYPE environment_t
 		 * \name Methods for working with timer events.
 		 * \{
 		 */
+
+		//! Schedule timer event.
+		/*!
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class MESSAGE >
+		so_5::timer_id_t
+		schedule_timer(
+			//! Message type for searching subscribers.
+			std::type_index subscription_type,
+			//! Message to be sent after timeout.
+			std::unique_ptr< MESSAGE > msg,
+			//! Message mutability.
+			message_mutability_t mutability,
+			//! Mbox to which message will be delivered.
+			const mbox_t & mbox,
+			//! Timeout before the first delivery.
+			std::chrono::steady_clock::duration pause,
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
+			*/
+			std::chrono::steady_clock::duration period )
+		{
+			ensure_classical_message< MESSAGE >();
+			ensure_message_with_actual_data( msg.get() );
+			change_message_mutability( *msg, mutability );
+
+			return schedule_timer(
+				subscription_type,
+				message_ref_t( msg.release() ),
+				mbox,
+				pause,
+				period );
+		}
 
 		//! Schedule timer event.
 		/*!
@@ -1175,7 +1248,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause,
@@ -1207,7 +1280,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1236,7 +1309,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				pause,
@@ -1265,7 +1338,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1290,7 +1363,39 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_ref_t( msg.release() ),
+				mbox,
+				pause );
+		}
+
+		//! Schedule a single shot timer event.
+		/*!
+		 * Intended to be used for delaying mutable messages.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		template< class MESSAGE >
+		void
+		single_timer(
+			//! Type to be used for searching subscribers.
+			std::type_index subscription_type,
+			//! Message to be sent after timeout.
+			std::unique_ptr< MESSAGE > msg,
+			//! Mutability flag for that message.
+			message_mutability_t mutability,
+			//! Mbox to which message will be delivered.
+			const mbox_t & mbox,
+			//! Timeout before delivery.
+			std::chrono::steady_clock::duration pause )
+		{
+			ensure_message_with_actual_data( msg.get() );
+
+			change_message_mutability( *msg, mutability );
+
+			single_timer(
+				subscription_type,
 				message_ref_t( msg.release() ),
 				mbox,
 				pause );
@@ -1315,7 +1420,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1337,7 +1442,33 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_ref_t(),
+				mbox,
+				pause );
+		}
+
+		//! Schedule a single shot timer event for a signal.
+		/*!
+		 * Intended to be used with mutable_msg<signal>.
+		 *
+		 * \since
+		 * v.5.5.0
+		 */
+		template< class MESSAGE >
+		void
+		single_timer(
+			//! Type to be used for searching subscribers.
+			std::type_index subscription_type,
+			//! Mbox to which signal will be delivered.
+			const mbox_t & mbox,
+			//! Timeout before delivery.
+			std::chrono::steady_clock::duration pause )
+		{
+			ensure_signal< MESSAGE >();
+
+			single_timer(
+				subscription_type,
 				message_ref_t(),
 				mbox,
 				pause );
@@ -1359,7 +1490,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				message_payload_type< MESSAGE >::payload_type_index(),
+				message_payload_type< MESSAGE >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1595,8 +1726,39 @@ class SO_5_TYPE environment_t
 		work_thread_activity_tracking_t
 		work_thread_activity_tracking() const;
 
-	private:
+		/*!
+		 * \brief Get binding to the default dispatcher.
+		 *
+		 * \note
+		 * This method is part of environment_t for possibility to
+		 * write custom implementations of environment_infrastructure_t.
+		 * Because of that this method can be changed or removed in 
+		 * future versions of SObjectizer.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		disp_binder_unique_ptr_t
+		so_make_default_disp_binder();
+
+		/*!
+		 * \brief Get autoshutdown_disabled flag.
+		 *
+		 * Autoshutdown feature is on by default. It can be turned off
+		 * in environment_params_t. This methods returns <i>true</i> if
+		 * autoshutdown is turned off.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		bool
+		autoshutdown_disabled() const;
+
 		//! Schedule timer event.
+		/*!
+		 * \note
+		 * Before v.5.5.19 this method was private.
+		 */
 		so_5::timer_id_t
 		schedule_timer(
 			//! Message type.
@@ -1615,6 +1777,10 @@ class SO_5_TYPE environment_t
 			std::chrono::steady_clock::duration period );
 
 		//! Schedule a single shot timer event.
+		/*!
+		 * \note
+		 * Before v.5.5.19 this method was private.
+		 */
 		void
 		single_timer(
 			//! Message type.
@@ -1626,6 +1792,7 @@ class SO_5_TYPE environment_t
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause );
 
+	private:
 		//! Access to an additional layer.
 		layer_t *
 		query_layer(
@@ -1674,37 +1841,13 @@ class SO_5_TYPE environment_t
 		impl__run_dispatcher_and_go_further();
 
 		/*!
-		 * \brief Run timer and call next run stage.
+		 * \brief Launch environment infrastructure and wait for finish.
+		 *
+		 * \since
+		 * v.5.5.19
 		 */
 		void
-		impl__run_timer_and_go_further();
-
-		/*!
-		 * \brief Run agent core and call next run stage.
-		 */
-		void
-		impl__run_agent_core_and_go_further();
-
-		/*!
-		 * \brief Run customer's initialization routine and wait for
-		 * start of deregistration procedure.
-		 */
-		void
-		impl__run_user_supplied_init_and_wait_for_stop();
-
-		/*!
-		 * \brief Templated implementation of one run stage.
-		 */
-		void
-		impl__do_run_stage(
-			//! Short description of stage.
-			const std::string & stage_name,
-			//! Stage initialization code.
-			std::function< void() > init_fn,
-			//! Stage deinitialization code.
-			std::function< void() > deinit_fn,
-			//! Next stage method.
-			std::function< void() > next_stage );
+		impl__run_infrastructure();
 		/*!
 		 * \}
 		 */

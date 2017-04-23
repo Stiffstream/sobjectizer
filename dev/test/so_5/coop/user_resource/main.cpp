@@ -66,11 +66,11 @@ class test_agent_coop_t
 	typedef so_5::coop_t base_type_t;
 	public :
 		test_agent_coop_t(
-			const so_5::nonempty_name_t & name,
+			so_5::nonempty_name_t name,
 			so_5::disp_binder_unique_ptr_t coop_disp_binder,
 			so_5::environment_t & env,
 			sequence_holder_t & sequence )
-			:	base_type_t( name, std::move(coop_disp_binder), env )
+			:	base_type_t( std::move(name), std::move(coop_disp_binder), env )
 			,	m_sequence( sequence )
 		{}
 

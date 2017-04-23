@@ -15,7 +15,7 @@
 so_5::atomic_counter_t g_agents_count;
 so_5::atomic_counter_t g_evt_count;
 
-so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
+const char * const g_test_mbox_name = "test_mbox";
 
 struct some_message : public so_5::signal_t {};
 

@@ -1,16 +1,23 @@
 /*
 	SObjectizer 5.
 */
-#include <so_5/rt/impl/h/agent_core.hpp>
 
-#include <cstdlib>
-#include <algorithm>
+/*!
+ * \file
+ * \brief Basic part of coop_repository functionality.
+ *
+ * \since
+ * v.5.5.19
+ */
+#include <so_5/rt/impl/h/coop_repository_basis.hpp>
 
 #include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/send_functions.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>
+
+#include <cstdlib>
+#include <algorithm>
 
 namespace so_5
 {
@@ -18,7 +25,7 @@ namespace so_5
 namespace impl
 {
 
-namespace agent_core_details
+namespace coop_repository_details
 {
 
 /*!
@@ -41,7 +48,7 @@ public :
 	//! Constructor.
 	deregistration_processor_t(
 		//! Owner of all data.
-		agent_core_t & core,
+		coop_repository_basis_t & core,
 		//! Name of root cooperation to be deregistered.
 		const std::string & root_coop_name,
 		//! Deregistration reason.
@@ -53,7 +60,7 @@ public :
 
 private :
 	//! Owner of all data to be handled.
-	agent_core_t & m_core;
+	coop_repository_basis_t & m_core;
 
 	//! Name of root cooperation to be deregistered.
 	const std::string & m_root_coop_name;
@@ -98,7 +105,7 @@ private :
 };
 
 deregistration_processor_t::deregistration_processor_t(
-	agent_core_t & core,
+	coop_repository_basis_t & core,
 	const std::string & root_coop_name,
 	coop_dereg_reason_t dereg_reason )
 	:	m_core( core )
@@ -118,7 +125,7 @@ deregistration_processor_t::process()
 void
 deregistration_processor_t::first_stage()
 {
-	std::lock_guard< std::mutex > lock( m_core.m_coop_operations_lock );
+	std::lock_guard< std::mutex > lock( m_core.lock() );
 
 	if( m_core.m_deregistered_coop.end() ==
 			m_core.m_deregistered_coop.find( m_root_coop_name ) )
@@ -142,21 +149,19 @@ deregistration_processor_t::second_stage()
 	try
 	{
 		// All cooperations should start deregistration actions.
-		for( auto it = m_coops_to_dereg.begin();
-				it != m_coops_to_dereg.end();
-				++it )
+		auto it = m_coops_to_dereg.begin();
+
+		// The first item in that vector is a root cooperation.
+		// So the actual coop_dereg_reason should be used for it.
+		coop_private_iface_t::do_deregistration_specific_actions(
+				**it, std::move( m_root_coop_dereg_reason ) );
+
+		// A special value must be used for all other coops.
+		for(++it; it != m_coops_to_dereg.end(); ++it )
 		{
-			// The first item in that vector is a root cooperation.
-			// So the actual coop_dereg_reason should be used for it.
-			if( it == m_coops_to_dereg.begin() )
-				coop_private_iface_t::
-					do_deregistration_specific_actions(
-						**it, std::move( m_root_coop_dereg_reason ) );
-			else
-				coop_private_iface_t::
-					do_deregistration_specific_actions(
-						**it,
-						coop_dereg_reason_t( dereg_reason::parent_deregistration ) );
+			coop_private_iface_t::do_deregistration_specific_actions(
+					**it,
+					coop_dereg_reason_t( dereg_reason::parent_deregistration ) );
 		}
 	}
 	catch( const std::exception & x )
@@ -207,7 +212,7 @@ deregistration_processor_t::collect_coops()
 {
 	for( size_t i = 0; i != m_coops_names_to_process.size(); ++i )
 	{
-		const agent_core_t::parent_child_coop_names_t relation(
+		const coop_repository_basis_t::parent_child_coop_names_t relation(
 				m_coops_names_to_process[ i ], std::string() );
 
 		for( auto f = m_core.m_parent_child_relations.lower_bound( relation );
@@ -272,7 +277,7 @@ deregistration_processor_t::initiate_abort_on_exception(
 
 } /* namespace agent_core_details */
 
-agent_core_t::agent_core_t(
+coop_repository_basis_t::coop_repository_basis_t(
 	environment_t & so_environment,
 	coop_listener_unique_ptr_t coop_listener )
 	:	m_so_environment( so_environment )
@@ -282,40 +287,8 @@ agent_core_t::agent_core_t(
 {
 }
 
-agent_core_t::~agent_core_t()
+coop_repository_basis_t::~coop_repository_basis_t()
 {
-}
-
-void
-agent_core_t::start()
-{
-	m_deregistration_started = false;
-
-	// mchain for final coop deregs must be created.
-	m_final_dereg_chain = m_so_environment.create_mchain(
-			make_unlimited_mchain_params().disable_msg_tracing() );
-	// A separate thread for doing the final dereg must be started.
-	m_final_dereg_thread = std::thread{ [this] {
-		// Process dereg demands until chain will be closed.
-		receive( from( m_final_dereg_chain ),
-			[]( coop_t * coop ) {
-				coop_t::call_final_deregister_coop( coop );
-			} );
-	} };
-}
-
-void
-agent_core_t::finish()
-{
-	// Deregistration of all cooperations should be initiated.
-	deregister_all_coop();
-
-	// Deregistration of all cooperations should be finished.
-	wait_all_coop_to_deregister();
-
-	// Notify a dedicated thread and wait while it will be stopped.
-	close_retain_content( m_final_dereg_chain );
-	m_final_dereg_thread.join();
 }
 
 namespace
@@ -347,7 +320,7 @@ namespace
 } /* namespace anonymous */
 
 void
-agent_core_t::register_coop(
+coop_repository_basis_t::register_coop(
 	coop_unique_ptr_t coop_ptr )
 {
 	/*!
@@ -405,11 +378,11 @@ agent_core_t::register_coop(
 }
 
 void
-agent_core_t::deregister_coop(
-	const nonempty_name_t & name,
+coop_repository_basis_t::deregister_coop(
+	nonempty_name_t name,
 	coop_dereg_reason_t dereg_reason )
 {
-	agent_core_details::deregistration_processor_t processor(
+	coop_repository_details::deregistration_processor_t processor(
 			*this,
 			name.query_name(),
 			std::move( dereg_reason ) );
@@ -417,21 +390,14 @@ agent_core_t::deregister_coop(
 	processor.process();
 }
 
-void
-agent_core_t::ready_to_deregister_notify(
-	coop_t * coop )
-{
-	so_5::send< coop_t * >( m_final_dereg_chain, coop );
-}
-
-bool
-agent_core_t::final_deregister_coop(
-	const std::string coop_name )
+coop_repository_basis_t::final_deregistration_resul_t
+coop_repository_basis_t::final_deregister_coop(
+	std::string coop_name )
 {
 	final_remove_result_t remove_result;
 
-	bool need_signal_dereg_finished;
-	bool ret_value = false;
+	bool has_live_coops = false;
+	bool need_signal_dereg_finished = false;
 	{
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
@@ -442,102 +408,82 @@ agent_core_t::final_deregister_coop(
 		need_signal_dereg_finished =
 			m_deregistration_started && m_deregistered_coop.empty();
 
-		ret_value = !m_registered_coop.empty() ||
+		has_live_coops = !m_registered_coop.empty() ||
 				!m_deregistered_coop.empty();
 	}
 
 	// Cooperation must be destroyed.
 	remove_result.m_coop.reset();
 
-	if( need_signal_dereg_finished )
-		m_deregistration_finished_cond.notify_one();
-
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
 			remove_result.m_notifications );
 
-	return ret_value;
+	return { has_live_coops, need_signal_dereg_finished };
 }
 
-void
-agent_core_t::start_deregistration()
+std::size_t
+coop_repository_basis_t::deregister_all_coop() SO_5_NOEXCEPT
 {
-	bool signal_deregistration_started = false;
+	// Because VC++ 12.0 doesn't support noexcept we use invoke_noexcept_code.
+	return so_5::details::invoke_noexcept_code( [this] {
+		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
+
+		for( auto & info : m_registered_coop )
+			coop_private_iface_t::do_deregistration_specific_actions(
+					*(info.second),
+					coop_dereg_reason_t( dereg_reason::shutdown ) );
+				
+		m_deregistered_coop.insert(
+			m_registered_coop.begin(),
+			m_registered_coop.end() );
+
+		m_registered_coop.clear();
+		m_deregistration_started = true;
+
+		return m_deregistered_coop.size();
+	} );
+}
+
+coop_repository_basis_t::initiate_deregistration_result_t
+coop_repository_basis_t::initiate_deregistration()
+{
+	initiate_deregistration_result_t result =
+			initiate_deregistration_result_t::already_in_progress;
 	{
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 		if( !m_deregistration_started )
 		{
 			m_deregistration_started = true;
-			signal_deregistration_started = true;
+			result = initiate_deregistration_result_t::initiated_first_time;
 		}
 	}
 
-	if( signal_deregistration_started )
-		m_deregistration_started_cond.notify_one();
-}
-
-void
-agent_core_t::wait_for_start_deregistration()
-{
-	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
-
-	m_deregistration_started_cond.wait( lock,
-			[this] { return m_deregistration_started; } );
-}
-
-void
-agent_core_t::deregister_all_coop()
-{
-	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
-
-	for( auto & info : m_registered_coop )
-		coop_private_iface_t::do_deregistration_specific_actions(
-				*(info.second),
-				coop_dereg_reason_t( dereg_reason::shutdown ) );
-			
-	m_deregistered_coop.insert(
-		m_registered_coop.begin(),
-		m_registered_coop.end() );
-
-	m_registered_coop.clear();
-	m_deregistration_started = true;
-}
-
-void
-agent_core_t::wait_all_coop_to_deregister()
-{
-	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
-
-	// Must wait for a signal is there are cooperations in
-	// the deregistration process.
-	m_deregistration_finished_cond.wait( lock,
-			[this] { return m_deregistered_coop.empty(); } );
+	return result;
 }
 
 environment_t &
-agent_core_t::environment()
+coop_repository_basis_t::environment()
 {
 	return m_so_environment;
 }
 
-agent_core_stats_t
-agent_core_t::query_stats()
+environment_infrastructure_t::coop_repository_stats_t
+coop_repository_basis_t::query_stats()
 {
-	const auto final_dereg_coops = m_final_dereg_chain->size();
-
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
-	return agent_core_stats_t{
+	return {
 			m_registered_coop.size(),
 			m_deregistered_coop.size(),
 			m_total_agent_count,
-			final_dereg_coops
+			0u
 		};
 }
 
 void
-agent_core_t::ensure_new_coop_name_unique(
+coop_repository_basis_t::ensure_new_coop_name_unique(
 	const std::string & coop_name ) const
 {
 	if( m_registered_coop.end() != m_registered_coop.find( coop_name ) ||
@@ -550,7 +496,7 @@ agent_core_t::ensure_new_coop_name_unique(
 }
 
 coop_t *
-agent_core_t::find_parent_coop_if_necessary(
+coop_repository_basis_t::find_parent_coop_if_necessary(
 	const coop_t & coop_to_be_registered ) const
 {
 	if( coop_to_be_registered.has_parent_coop() )
@@ -573,7 +519,7 @@ agent_core_t::find_parent_coop_if_necessary(
 }
 
 void
-agent_core_t::next_coop_reg_step__update_registered_coop_map(
+coop_repository_basis_t::next_coop_reg_step__update_registered_coop_map(
 	const coop_ref_t & coop_ref,
 	coop_t * parent_coop_ptr )
 {
@@ -595,12 +541,13 @@ agent_core_t::next_coop_reg_step__update_registered_coop_map(
 }
 
 void
-agent_core_t::next_coop_reg_step__parent_child_relation(
+coop_repository_basis_t::next_coop_reg_step__parent_child_relation(
 	const coop_ref_t & coop_ref,
 	coop_t * parent_coop_ptr )
 {
 	auto do_actions = [&] {
-			coop_ref->do_registration_specific_actions( parent_coop_ptr );
+			coop_private_iface_t::do_registration_specific_actions(
+				*coop_ref, parent_coop_ptr );
 		};
 
 	if( parent_coop_ptr )
@@ -623,8 +570,8 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 		do_actions();
 }
 
-agent_core_t::final_remove_result_t
-agent_core_t::finaly_remove_cooperation_info(
+coop_repository_basis_t::final_remove_result_t
+coop_repository_basis_t::finaly_remove_cooperation_info(
 	const std::string & coop_name )
 {
 	auto it = m_deregistered_coop.find( coop_name );
@@ -659,7 +606,7 @@ agent_core_t::finaly_remove_cooperation_info(
 }
 
 void
-agent_core_t::do_coop_reg_notification_if_necessary(
+coop_repository_basis_t::do_coop_reg_notification_if_necessary(
 	const std::string & coop_name,
 	const coop_reg_notificators_container_ref_t & notificators ) const
 {
@@ -671,7 +618,7 @@ agent_core_t::do_coop_reg_notification_if_necessary(
 }
 
 void
-agent_core_t::do_coop_dereg_notification_if_necessary(
+coop_repository_basis_t::do_coop_dereg_notification_if_necessary(
 	const std::string & coop_name,
 	const info_for_dereg_notification_t & notification_info ) const
 {
@@ -691,3 +638,4 @@ agent_core_t::do_coop_dereg_notification_if_necessary(
 } /* namespace impl */
 
 } /* namespace so_5 */
+

@@ -45,8 +45,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		# Run-time.
 		sources_root( 'rt' ) {
 
-			cpp_source 'nonempty_name.cpp'
-
 			cpp_source 'message.cpp'
 
 			cpp_source 'message_limit.cpp'
@@ -66,6 +64,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'agent_coop_notifications.cpp'
 
 			cpp_source 'queue_locks_defaults_manager.cpp'
+			cpp_source 'environment_infrastructure.cpp'
 			cpp_source 'environment.cpp'
 
 			cpp_source 'disp.cpp'
@@ -86,10 +85,16 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 				cpp_source 'named_local_mbox.cpp'
 				cpp_source 'mbox_core.cpp'
-				cpp_source 'agent_core.cpp'
+
+				cpp_source 'coop_repository_basis.cpp'
+
 				cpp_source 'disp_repository.cpp'
 				cpp_source 'layer_core.cpp'
 				cpp_source 'state_listener_controller.cpp'
+
+				cpp_source 'mt_env_infrastructure.cpp'
+				cpp_source 'simple_mtsafe_st_env_infrastructure.cpp'
+				cpp_source 'simple_not_mtsafe_st_env_infrastructure.cpp'
 			}
 
 			sources_root( 'stats' ) {

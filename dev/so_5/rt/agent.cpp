@@ -19,6 +19,8 @@
 
 #include <so_5/h/spinlocks.hpp>
 
+#include <so_5/h/stdcpp.hpp>
+
 #include <algorithm>
 #include <sstream>
 #include <cstdlib>
@@ -360,8 +362,13 @@ state_t::time_limit(
 				query_name() );
 
 	// Old time limit must be dropped if it exists.
-	drop_time_limit();
-	m_time_limit.reset( new time_limit_t{ timeout, state_to_switch } );
+	{
+		// As a defense from exception create new time_limit object first.
+		auto fresh_limit = stdcpp::make_unique< time_limit_t >(
+				timeout, std::cref(state_to_switch) );
+		drop_time_limit();
+		m_time_limit = std::move(fresh_limit);
+	}
 
 	// If this state is active then new time limit must be activated.
 	if( is_active() )

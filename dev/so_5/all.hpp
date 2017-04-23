@@ -15,6 +15,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/h/wrapped_env.hpp>
+#include <so_5/rt/h/env_infrastructures.hpp>
 
 #include <so_5/h/mchain_helper_functions.hpp>
 #include <so_5/h/thread_helper_functions.hpp>

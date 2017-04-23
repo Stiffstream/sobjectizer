@@ -2,6 +2,7 @@ project(sample)
 
 add_subdirectory(hello_world)
 add_subdirectory(hello_world_adhoc)
+add_subdirectory(hello_world_simple_not_mtsafe)
 
 add_subdirectory(hello_evt_handler)
 add_subdirectory(hello_evt_lambda)
@@ -61,3 +62,8 @@ add_subdirectory(state_deep_history)
 add_subdirectory(adv_thread_pool_fifo)
 
 add_subdirectory(mchain_select)
+
+add_subdirectory(wrapped_env_demo_3)
+
+add_subdirectory(mutable_msg_agents)
+add_subdirectory(modify_resend_as_immutable)

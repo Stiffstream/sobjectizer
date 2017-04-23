@@ -170,6 +170,8 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 			s << "[payload_ptr=" << pointer{payload} << "]";
 		else
 			s << "[signal]";
+		if( message_mutability_t::mutable_message == message_mutability(message) )
+			s << "[mutable]";
 	}
 
 inline void

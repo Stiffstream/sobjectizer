@@ -22,6 +22,8 @@
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 
+#include <so_5/h/stdcpp.hpp>
+
 #include <atomic>
 
 namespace so_5
@@ -413,19 +415,19 @@ class disp_binder_t
 			:	m_disp_name( disp_name )
 		{}
 
+		disp_binder_t(
+			std::string && disp_name )
+			:	m_disp_name( std::move(disp_name) )
+		{}
+
 		virtual disp_binding_activator_t
 		bind_agent(
 			environment_t & env,
 			agent_ref_t agent_ref ) override
 		{
-			if( m_disp_name.empty() )
-				return make_agent_binding(
-						&( env.query_default_dispatcher() ),
-						std::move( agent_ref ) );
-			else
-				return make_agent_binding( 
-					env.query_named_dispatcher( m_disp_name ).get(),
-					std::move( agent_ref ) );
+			return make_agent_binding( 
+				env.query_named_dispatcher( m_disp_name ).get(),
+				std::move( agent_ref ) );
 		}
 
 		virtual void
@@ -433,14 +435,9 @@ class disp_binder_t
 			environment_t & env,
 			agent_ref_t agent_ref ) override
 		{
-			if( m_disp_name.empty() )
-				return unbind_agent_from_disp(
-						&( env.query_default_dispatcher() ),
-						std::move( agent_ref ) );
-			else
-				return unbind_agent_from_disp( 
-					env.query_named_dispatcher( m_disp_name ).get(),
-					std::move( agent_ref ) );
+			return unbind_agent_from_disp( 
+				env.query_named_dispatcher( m_disp_name ).get(),
+				std::move( agent_ref ) );
 		}
 
 	private:
@@ -468,7 +465,7 @@ class disp_binder_t
 					m_disp_name,
 					[agent]( actual_disp_iface_t & d )
 					{
-						return do_bind( d, agent );
+						return do_bind( d, std::move(agent) );
 					} );
 		}
 
@@ -492,6 +489,46 @@ class disp_binder_t
 						do_unbind( d, std::move(agent) );
 					} );
 		}
+};
+
+//
+// disp_binder_for_specific_dispatcher_t
+//
+
+//! Agent dispatcher binder.
+/*!
+ * \since
+ * v.5.5.19
+ */
+class disp_binder_for_specific_dispatcher_t
+	:	public so_5::disp_binder_t
+	,	private binding_actions_mixin_t
+{
+	public:
+		explicit disp_binder_for_specific_dispatcher_t(
+			actual_disp_iface_t & dispatcher )
+			:	m_dispatcher( dispatcher )
+		{}
+
+		virtual disp_binding_activator_t
+		bind_agent(
+			environment_t & /*env*/,
+			agent_ref_t agent ) override
+		{
+			return do_bind( m_dispatcher, std::move(agent) );
+		}
+
+		virtual void
+		unbind_agent(
+			environment_t & /*env*/,
+			agent_ref_t agent ) override
+		{
+			do_unbind( m_dispatcher, std::move(agent) );
+		}
+
+	private:
+		//! Dispatcher to be bound to.
+		actual_disp_iface_t & m_dispatcher;
 };
 
 //
@@ -599,22 +636,32 @@ create_private_disp(
 // create_disp_binder
 //
 SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder( const std::string & disp_name )
+create_disp_binder( nonempty_name_t disp_name )
 {
 	return disp_binder_unique_ptr_t(
-		new impl::disp_binder_t( disp_name ) );
+		new impl::disp_binder_t( disp_name.giveout_value() ) );
 }
+
+namespace internals {
+
+disp_binder_unique_ptr_t
+create_binder_for_specific_dispatcher(
+	so_5::dispatcher_t & dispatcher )
+{
+	using namespace so_5::disp::one_thread::impl;
+
+	actual_disp_iface_t & actual_dispatcher =
+		dynamic_cast< actual_disp_iface_t & >(dispatcher);
+
+	return stdcpp::make_unique< disp_binder_for_specific_dispatcher_t >(
+			std::ref(actual_dispatcher) );
+}
+
+} /* namespace internals */
 
 } /* namespace one_thread */
 
 } /* namespace disp */
-
-SO_5_FUNC disp_binder_unique_ptr_t
-create_default_disp_binder()
-{
-	// Dispatcher with empty name means default dispatcher.
-	return so_5::disp::one_thread::create_disp_binder( std::string() );
-}
 
 } /* namespace so_5 */
 

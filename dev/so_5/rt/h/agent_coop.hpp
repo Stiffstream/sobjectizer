@@ -291,7 +291,7 @@ class SO_5_TYPE coop_t
 		//! Constructor.
 		coop_t(
 			//! Cooperation name.
-			const nonempty_name_t & name,
+			nonempty_name_t name,
 			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment.
@@ -435,7 +435,7 @@ class SO_5_TYPE coop_t
 		 */
 		void
 		set_parent_coop_name(
-			const nonempty_name_t & name );
+			nonempty_name_t name );
 
 		/*!
 		 * \since

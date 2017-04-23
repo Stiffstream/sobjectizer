@@ -27,9 +27,9 @@ namespace impl {
 // ds_mbox_core_stats_t
 //
 ds_mbox_core_stats_t::ds_mbox_core_stats_t(
-	repository_t & repo,
+	outliving_reference_t< repository_t > repo,
 	so_5::impl::mbox_core_t & what )
-	:	auto_registered_source_t( repo )
+	:	auto_registered_source_t( std::move(repo) )
 	,	m_what( what )
 	{}
 

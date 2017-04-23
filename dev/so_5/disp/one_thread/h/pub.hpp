@@ -15,6 +15,7 @@
 
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
+#include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/disp/one_thread/h/params.hpp>
 
@@ -172,7 +173,31 @@ create_private_disp( environment_t & env )
 SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher to be bound to.
-	const std::string & disp_name );
+	nonempty_name_t disp_name );
+
+namespace internals {
+
+//! Create binder for a specific dispatcher instance.
+/*!
+ * \note
+ * This function is intended for internal use only.
+ *
+ * \attention
+ * A \a dispatcher must be instance of one_thread dispatcher.
+ * An exception will be thrown otherwise.
+ *
+ * \attention
+ * A \a dispatcher must outlive the binder returned.
+ *
+ * \since
+ * v.5.5.19
+ */
+disp_binder_unique_ptr_t
+create_binder_for_specific_dispatcher(
+	//! A dispatcher to be used for binding of new agents.
+	so_5::dispatcher_t & dispatcher );
+
+} /* namespace internals */
 
 } /* namespace one_thread */
 

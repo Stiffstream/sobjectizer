@@ -59,6 +59,10 @@
  */
 
 /*!
+ * \example so_5/hello_world_simple_not_mtsafe/main.cpp
+ */
+
+/*!
  * \example so_5/svc/hello/main.cpp
  */
 
@@ -196,6 +200,7 @@
 
 /*!
  * \example so_5/wrapped_env_demo_2/main.cpp
+ * \example so_5/wrapped_env_demo_3/main.cpp
  */
 
 /*!
@@ -220,6 +225,11 @@
 
 /*!
  * \example so_5/mchain_select/main.cpp
+ */
+
+/*!
+ * \example so_5/mutable_msg_agents/main.cpp
+ * \example so_5/modify_resend_as_immutable/main.cpp
  */
 
 // vim:ft=cpp.doxygen

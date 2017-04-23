@@ -201,7 +201,7 @@ public :
 	//! Must a message be delivered to the subscriber?
 	delivery_possibility_t
 	must_be_delivered(
-		const message_t & msg ) const
+		message_t & msg ) const
 	{
 		// For the case when there are actual subscriptions.
 		// We assume that will be in 99.9% cases.
@@ -800,6 +800,8 @@ class local_mbox_template
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
 
+				ensure_immutable_message( msg_type, message );
+
 				do_deliver_message_impl(
 						tracer,
 						msg_type,
@@ -1035,7 +1037,7 @@ class local_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
 			{
-				const auto & svc_request_param =
+				auto & svc_request_param =
 					dynamic_cast< msg_service_request_base_t & >( *message )
 							.query_param();
 
@@ -1076,6 +1078,28 @@ class local_mbox_template
 								"no service handlers (no subscribers for message or "
 								"subscriber is blocked by delivery filter)" );
 					}
+			}
+
+		/*!
+		 * \brief Ensures that message is an immutable message.
+		 *
+		 * Checks mutability flag and throws an exception if message is
+		 * a mutable one.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		void
+		ensure_immutable_message(
+			const std::type_index & msg_type,
+			const message_ref_t & what ) const
+			{
+				if( message_mutability_t::immutable_message !=
+						message_mutability( what ) )
+					SO_5_THROW_EXCEPTION(
+							so_5::rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox,
+							"an attempt to deliver mutable message via MPMC mbox"
+							", msg_type=" + std::string(msg_type.name()) );
 			}
 	};
 

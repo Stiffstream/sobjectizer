@@ -9,16 +9,21 @@
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
 
 #include <so_5/rt/impl/h/mbox_core.hpp>
-#include <so_5/rt/impl/h/agent_core.hpp>
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
+
+#include <so_5/rt/impl/h/run_stage.hpp>
 
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
 #include <so_5/rt/stats/impl/h/ds_mbox_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_timer_thread_stats.hpp>
 
+#include <so_5/rt/h/env_infrastructures.hpp>
+
 #include <so_5/details/h/rollback_on_exception.hpp>
+
+#include <so_5/h/stdcpp.hpp>
 
 namespace so_5
 {
@@ -34,6 +39,7 @@ environment_params_t::environment_params_t()
 	,	m_error_logger( create_stderr_logger() )
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
+	,	m_infrastructure_factory( env_infrastructures::default_mt::factory() )
 {
 }
 
@@ -51,6 +57,7 @@ environment_params_t::environment_params_t(
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
+	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -85,11 +92,13 @@ environment_params_t::swap( environment_params_t & other )
 			other.m_work_thread_activity_tracking );
 
 	std::swap( m_queue_locks_defaults_manager, other.m_queue_locks_defaults_manager );
+
+	std::swap( m_infrastructure_factory, other.m_infrastructure_factory );
 }
 
 environment_params_t &
 environment_params_t::add_named_dispatcher(
-	const nonempty_name_t & name,
+	nonempty_name_t name,
 	dispatcher_unique_ptr_t dispatcher )
 {
 	m_named_dispatcher_map[ name.query_name() ] =
@@ -135,22 +144,6 @@ namespace
 {
 
 /*!
- * \brief Helper function for timer_thread creation.
- * \since
- * v.5.5.0
- */
-timer_thread_unique_ptr_t
-create_appropriate_timer_thread(
-	error_logger_shptr_t error_logger,
-	const timer_thread_factory_t & user_factory )
-{
-	if( user_factory )
-		return user_factory( std::move( error_logger ) );
-	else
-		return create_timer_heap_thread( std::move( error_logger ) );
-}
-
-/*!
  * \brief A bunch of data sources for core objects.
  * \since
  * v.5.5.4
@@ -159,13 +152,12 @@ class core_data_sources_t
 	{
 	public :
 		core_data_sources_t(
-			stats::repository_t & ds_repository,
+			outliving_reference_t< stats::repository_t > ds_repository,
 			impl::mbox_core_t & mbox_repository,
-			impl::agent_core_t & coop_repository,
-			so_5::timer_thread_t & timer_thread )
-			:	m_mbox_repository( ds_repository, mbox_repository )
-			,	m_coop_repository( ds_repository, coop_repository )
-			,	m_timer_thread( ds_repository, timer_thread )
+			so_5::environment_infrastructure_t & infrastructure )
+			:	m_mbox_repository( std::move(ds_repository), mbox_repository )
+			,	m_coop_repository( std::move(ds_repository), infrastructure )
+			,	m_timer_thread( std::move(ds_repository), infrastructure )
 			{}
 
 	private :
@@ -235,17 +227,22 @@ struct environment_t::internals_t
 	//! An utility for mboxes.
 	impl::mbox_core_ref_t m_mbox_core;
 
-	//! An utility for agents/cooperations.
-	impl::agent_core_t m_agent_core;
+	/*!
+	 * \brief A specific infrastructure for environment.
+	 *
+	 * Note: infrastructure takes care about coop repository,
+	 * timer threads/managers and default dispatcher.
+	 *
+	 * \since
+	 * v.5.5.19
+	 */
+	environment_infrastructure_unique_ptr_t m_infrastructure;
 
 	//! A repository of dispatchers.
 	impl::disp_repository_t m_dispatchers;
 
 	//! An utility for layers.
 	impl::layer_core_t m_layer_core;
-
-	//! Timer.
-	so_5::timer_thread_unique_ptr_t m_timer_thread;
 
 	/*!
 	 * \brief An exception reaction for the whole SO Environment.
@@ -273,19 +270,14 @@ struct environment_t::internals_t
 	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
 
 	/*!
-	 * \brief A controller for run-time monitoring.
-	 *
-	 * \since
-	 * v.5.5.4
-	 */
-	stats::impl::std_controller_t m_stats_controller;
-
-	/*!
 	 * \brief Data sources for core objects.
 	 *
-	 * \attention This instance must be created after m_stats_controller
+	 * \attention This instance must be created after stats_controller
 	 * and destroyed before it. Because of that m_core_data_sources declared
 	 * after m_stats_controller and after all corresponding objects.
+	 * NOTE: since v.5.5.19 stats_controller and stats_repository are parts
+	 * of environment_infrastructure. Because of that m_core_data_sources
+	 * declared and created after m_infrastructure.
 	 * 
 	 * \since
 	 * v.5.5.4
@@ -316,32 +308,26 @@ struct environment_t::internals_t
 				params.so5__giveout_message_delivery_tracer() }
 		,	m_mbox_core(
 				new impl::mbox_core_t{ m_message_delivery_tracer.get() } )
-		,	m_agent_core(
-				env,
-				params.so5__giveout_coop_listener() )
+		,	m_infrastructure(
+				(params.infrastructure_factory())(
+					env,
+					params,
+					// A special mbox for distributing monitoring information
+					// must be created and passed to stats_controller.
+					m_mbox_core->create_mbox() ) )
 		,	m_dispatchers(
 				env,
 				params.so5__giveout_named_dispatcher_map(),
-				params.so5__giveout_event_exception_logger(),
-				params.default_disp_params() )
+				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
 				env,
 				params.so5__layers_map() )
-		,	m_timer_thread(
-				create_appropriate_timer_thread(
-						m_error_logger,
-						params.so5__giveout_timer_thread_factory() ) )
 		,	m_exception_reaction( params.exception_reaction() )
 		,	m_autoshutdown_disabled( params.autoshutdown_disabled() )
-		,	m_stats_controller(
-				// A special mbox for distributing monitoring information
-				// must be created and passed to stats_controller.
-				m_mbox_core->create_mbox() )
 		,	m_core_data_sources(
-				m_stats_controller,
+				outliving_mutable(m_infrastructure->stats_repository()),
 				*m_mbox_core,
-				m_agent_core,
-				*m_timer_thread )
+				*m_infrastructure )
 		,	m_work_thread_activity_tracking(
 				params.work_thread_activity_tracking() )
 		,	m_queue_locks_defaults_manager(
@@ -379,9 +365,9 @@ environment_t::create_mbox( )
 
 mbox_t
 environment_t::create_mbox(
-	const nonempty_name_t & nonempty_name )
+	nonempty_name_t nonempty_name )
 {
-	return m_impl->m_mbox_core->create_mbox( nonempty_name );
+	return m_impl->m_mbox_core->create_mbox( std::move(nonempty_name) );
 }
 
 mchain_t
@@ -394,7 +380,7 @@ environment_t::create_mchain(
 dispatcher_t &
 environment_t::query_default_dispatcher()
 {
-	return m_impl->m_dispatchers.query_default_dispatcher();
+	return m_impl->m_infrastructure->query_default_dispatcher();
 }
 
 dispatcher_ref_t
@@ -423,10 +409,10 @@ environment_t::install_exception_logger(
 
 coop_unique_ptr_t
 environment_t::create_coop(
-	const nonempty_name_t & name )
+	nonempty_name_t name )
 {
 	return create_coop(
-		name,
+		std::move(name),
 		create_default_disp_binder() );
 }
 
@@ -439,11 +425,11 @@ environment_t::create_coop(
 
 coop_unique_ptr_t
 environment_t::create_coop(
-	const nonempty_name_t & name,
+	nonempty_name_t name,
 	disp_binder_unique_ptr_t disp_binder )
 {
-	return coop_unique_ptr_t(
-			new coop_t( name, std::move(disp_binder), self_ref() ) );
+	return coop_unique_ptr_t( new coop_t(
+			std::move(name), std::move(disp_binder), self_ref() ) );
 }
 
 coop_unique_ptr_t
@@ -452,28 +438,27 @@ environment_t::create_coop(
 	disp_binder_unique_ptr_t disp_binder )
 {
 	auto counter = ++(m_impl->m_autoname_counter);
-	std::string name = "__so5_autoname_" + std::to_string(counter) + "__";
-	return coop_unique_ptr_t(
-			new coop_t(
-					std::move(name),
-					std::move(disp_binder),
-					self_ref() ) );
+	nonempty_name_t name( "__so5_autoname_" + std::to_string(counter) + "__" );
+	return coop_unique_ptr_t( new coop_t(
+			std::move(name),
+			std::move(disp_binder),
+			self_ref() ) );
 }
 
 void
 environment_t::register_coop(
 	coop_unique_ptr_t agent_coop )
 {
-	m_impl->m_agent_core.register_coop( std::move( agent_coop ) );
+	m_impl->m_infrastructure->register_coop( std::move( agent_coop ) );
 }
 
 void
 environment_t::deregister_coop(
-	const nonempty_name_t & name,
+	nonempty_name_t name,
 	int reason )
 {
-	m_impl->m_agent_core.deregister_coop( name,
-			coop_dereg_reason_t( reason ) );
+	m_impl->m_infrastructure->deregister_coop(
+			std::move(name), coop_dereg_reason_t( reason ) );
 }
 
 so_5::timer_id_t
@@ -484,10 +469,27 @@ environment_t::schedule_timer(
 	std::chrono::steady_clock::duration pause,
 	std::chrono::steady_clock::duration period )
 {
-	return m_impl->m_timer_thread->schedule(
+	// If it is a mutable message then there must be some restrictions:
+	if( message_mutability_t::mutable_message == message_mutability(msg) )
+	{
+		// Mutable message can be sent only as delayed message.
+		if( std::chrono::steady_clock::duration::zero() != period )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_mutable_msg_cannot_be_periodic,
+					"unable to schedule periodic timer for mutable message,"
+					" msg_type=" + std::string(type_wrapper.name()) );
+		// Mutable message can't be passed to MPMC-mbox.
+		else if( mbox_type_t::multi_producer_multi_consumer == mbox->type() )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox,
+					"unable to schedule timer for mutable message and "
+					"MPMC mbox, msg_type=" + std::string(type_wrapper.name()) );
+	}
+
+	return m_impl->m_infrastructure->schedule_timer(
 			type_wrapper,
-			mbox,
 			msg,
+			mbox,
 			pause,
 			period );
 }
@@ -499,12 +501,19 @@ environment_t::single_timer(
 	const mbox_t & mbox,
 	std::chrono::steady_clock::duration pause )
 {
-	m_impl->m_timer_thread->schedule_anonymous(
+	// Mutable message can't be passed to MPMC-mbox.
+	if( message_mutability_t::mutable_message == message_mutability(msg) &&
+			mbox_type_t::multi_producer_multi_consumer == mbox->type() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox,
+				"unable to schedule single timer for mutable message and "
+				"MPMC mbox, msg_type=" + std::string(type_wrapper.name()) );
+
+	m_impl->m_infrastructure->single_timer(
 			type_wrapper,
-			mbox,
 			msg,
-			pause,
-			std::chrono::milliseconds::zero() );
+			mbox,
+			pause );
 }
 
 layer_t *
@@ -546,8 +555,7 @@ environment_t::run()
 void
 environment_t::stop()
 {
-	// Sends shutdown signal for all agents.
-	m_impl->m_agent_core.start_deregistration();
+	m_impl->m_infrastructure->stop();
 }
 
 void
@@ -573,13 +581,13 @@ environment_t::error_logger() const
 stats::controller_t &
 environment_t::stats_controller()
 {
-	return m_impl->m_stats_controller;
+	return m_impl->m_infrastructure->stats_controller();
 }
 
 stats::repository_t &
 environment_t::stats_repository()
 {
-	return m_impl->m_stats_controller;
+	return m_impl->m_infrastructure->stats_repository();
 }
 
 work_thread_activity_tracking_t
@@ -588,22 +596,34 @@ environment_t::work_thread_activity_tracking() const
 	return m_impl->m_work_thread_activity_tracking;
 }
 
+disp_binder_unique_ptr_t
+environment_t::so_make_default_disp_binder()
+{
+	return m_impl->m_infrastructure->make_default_disp_binder();
+}
+
+bool
+environment_t::autoshutdown_disabled() const
+{
+	return m_impl->m_autoshutdown_disabled;
+}
+
 void
 environment_t::impl__run_stats_controller_and_go_further()
 {
-	impl__do_run_stage(
+	impl::run_stage(
 			"run_stats_controller",
 			[this] {
 				/* there is no need to turn_on controller automatically */
 			},
-			[this] { m_impl->m_stats_controller.turn_off(); },
+			[this] { m_impl->m_infrastructure->stats_controller().turn_off(); },
 			[this] { impl__run_layers_and_go_further(); } );
 }
 
 void
 environment_t::impl__run_layers_and_go_further()
 {
-	impl__do_run_stage(
+	impl::run_stage(
 			"run_layers",
 			[this] { m_impl->m_layer_core.start(); },
 			[this] { m_impl->m_layer_core.finish(); },
@@ -613,31 +633,11 @@ environment_t::impl__run_layers_and_go_further()
 void
 environment_t::impl__run_dispatcher_and_go_further()
 {
-	impl__do_run_stage(
+	impl::run_stage(
 			"run_dispatcher",
 			[this] { m_impl->m_dispatchers.start(); },
 			[this] { m_impl->m_dispatchers.finish(); },
-			[this] { impl__run_timer_and_go_further(); } );
-}
-
-void
-environment_t::impl__run_timer_and_go_further()
-{
-	impl__do_run_stage(
-			"run_timer",
-			[this] { m_impl->m_timer_thread->start(); },
-			[this] { m_impl->m_timer_thread->finish(); },
-			[this] { impl__run_agent_core_and_go_further(); } );
-}
-
-void
-environment_t::impl__run_agent_core_and_go_further()
-{
-	impl__do_run_stage(
-			"run_agent_core",
-			[this] { m_impl->m_agent_core.start(); },
-			[this] { m_impl->m_agent_core.finish(); },
-			[this] { impl__run_user_supplied_init_and_wait_for_stop(); } );
+			[this] { impl__run_infrastructure(); } );
 }
 
 namespace autoshutdown_guard
@@ -686,10 +686,10 @@ namespace autoshutdown_guard
 }
 
 void
-environment_t::impl__run_user_supplied_init_and_wait_for_stop()
+environment_t::impl__run_infrastructure()
 {
-	so_5::details::do_with_rollback_on_exception(
-		[this]
+	m_impl->m_infrastructure->launch( 
+		[this]()
 		{
 			// init method must be protected from autoshutdown feature.
 			autoshutdown_guard::register_init_guard_cooperation(
@@ -703,68 +703,7 @@ environment_t::impl__run_user_supplied_init_and_wait_for_stop()
 			autoshutdown_guard::deregistr_init_guard_cooperation(
 					*this,
 					m_impl->m_autoshutdown_disabled );
-
-			m_impl->m_agent_core.wait_for_start_deregistration();
-		},
-		[this]
-		{
-			stop();
-			m_impl->m_agent_core.wait_for_start_deregistration();
 		} );
-}
-
-void
-environment_t::impl__do_run_stage(
-	const std::string & stage_name,
-	std::function< void() > init_fn,
-	std::function< void() > deinit_fn,
-	std::function< void() > next_stage )
-{
-	try
-	{
-		init_fn();
-	}
-	catch( const std::exception & x )
-	{
-		SO_5_THROW_EXCEPTION(
-				rc_unexpected_error,
-				stage_name + ": initialization failed, exception is: '" +
-				x.what() + "'" );
-	}
-
-	try
-	{
-		next_stage();
-	}
-	catch( const std::exception & x )
-	{
-		try
-		{
-			deinit_fn();
-		}
-		catch( const std::exception & nested )
-		{
-			SO_5_THROW_EXCEPTION(
-					rc_unexpected_error,
-					stage_name + ": deinitialization failed during "
-					"exception handling. Original exception is: '" + x.what() +
-					"', deinitialization exception is: '" + nested.what() + "'" );
-		}
-
-		throw;
-	}
-
-	try
-	{
-		deinit_fn();
-	}
-	catch( const std::exception & x )
-	{
-		SO_5_THROW_EXCEPTION(
-				rc_unexpected_error,
-				stage_name + ": deinitialization failed, exception is: '" +
-				x.what() + "'" );
-	}
 }
 
 namespace impl
@@ -784,7 +723,7 @@ void
 internal_env_iface_t::ready_to_deregister_notify(
 	coop_t * coop )
 {
-	m_env.m_impl->m_agent_core.ready_to_deregister_notify( coop );
+	m_env.m_impl->m_infrastructure->ready_to_deregister_notify( coop );
 }
 
 void
@@ -792,7 +731,7 @@ internal_env_iface_t::final_deregister_coop(
 	const std::string & coop_name )
 {
 	bool any_cooperation_alive = 
-			m_env.m_impl->m_agent_core.final_deregister_coop( coop_name );
+			m_env.m_impl->m_infrastructure->final_deregister_coop( coop_name );
 
 	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
 		m_env.stop();

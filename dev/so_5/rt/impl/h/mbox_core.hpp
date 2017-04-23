@@ -91,7 +91,7 @@ class mbox_core_t
 		mbox_t
 		create_mbox(
 			//! Mbox name.
-			const nonempty_name_t & mbox_name );
+			nonempty_name_t mbox_name );
 
 		/*!
 		 * \since
@@ -201,7 +201,7 @@ class mbox_core_t
 		mbox_t
 		create_named_mbox(
 			//! Mbox name.
-			const nonempty_name_t & nonempty_name,
+			nonempty_name_t nonempty_name,
 			//! Functional object to create new instance of mbox.
 			//! Must have a prototype: mbox_t factory().
 			const std::function< mbox_t() > & factory );

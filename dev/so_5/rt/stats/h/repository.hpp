@@ -16,6 +16,13 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
+#include <so_5/h/outliving.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
 namespace so_5
 {
 
@@ -131,7 +138,7 @@ class SO_5_TYPE repository_t
 class SO_5_TYPE auto_registered_source_t : public source_t
 	{
 	protected :
-		auto_registered_source_t( repository_t & repo );
+		auto_registered_source_t( outliving_reference_t< repository_t > repo );
 		~auto_registered_source_t();
 
 	public :
@@ -140,7 +147,7 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 			const mbox_t & distribution_mbox ) = 0;
 
 	private :
-		repository_t & m_repo;
+		outliving_reference_t< repository_t > m_repo;
 	};
 
 //
@@ -168,7 +175,7 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 			const mbox_t & distribution_mbox ) = 0;
 
 		void
-		start( repository_t & repo );
+		start( outliving_reference_t< repository_t > repo );
 
 		void
 		stop();
@@ -181,4 +188,8 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 

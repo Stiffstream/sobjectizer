@@ -152,7 +152,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
 
-				m_data_source.start( env.stats_repository() );
+				m_data_source.start( outliving_mutable(env.stats_repository()) );
 
 				so_5::details::do_with_rollback_on_exception(
 					[this] { m_shutdown_started = false; },

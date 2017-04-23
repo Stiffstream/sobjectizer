@@ -10,7 +10,7 @@
 
 #include <so_5/all.hpp>
 
-so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
+const char * const g_test_mbox_name = "test_mbox";
 
 struct some_message : public so_5::signal_t {};
 

@@ -27,9 +27,9 @@ namespace impl {
 // ds_timer_thread_stats_t
 //
 ds_timer_thread_stats_t::ds_timer_thread_stats_t(
-	repository_t & repo,
-	so_5::timer_thread_t & what )
-	:	auto_registered_source_t( repo )
+	outliving_reference_t< repository_t > repo,
+	so_5::environment_infrastructure_t & what )
+	:	auto_registered_source_t( std::move(repo) )
 	,	m_what( what )
 	{}
 
@@ -37,7 +37,7 @@ void
 ds_timer_thread_stats_t::distribute(
 	const mbox_t & distribution_mbox )
 	{
-		auto stats = m_what.query_stats();
+		const auto stats = m_what.query_timer_thread_stats();
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
 				prefixes::timer_thread(),

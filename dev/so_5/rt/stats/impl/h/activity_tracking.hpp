@@ -126,6 +126,35 @@ class external_lock
 		void unlock() { m_lock.unlock(); }
 	};
 
+/*!
+ * \brief A special class for cases where lock is not needed at all.
+ *
+ * Usage example:
+ * \code
+class real_activity_tracker_t final
+	{
+		so_5::stats::activity_tracking_stuff::stats_collector_t<
+						so_5::stats::activity_tracking_stuff::null_lock >
+				m_waiting{};
+
+		so_5::stats::activity_tracking_stuff::stats_collector_t<
+						so_5::stats::activity_tracking_stuff::null_lock >
+				m_working{};
+		...
+	};
+ * \endcode
+ *
+ * \since
+ * v.5.5.19
+ */
+struct null_lock
+	{
+	public :
+		using start_stop_lock_t = no_actual_lock< null_lock >;
+		using take_stats_lock_t = no_actual_lock< null_lock >;
+
+		null_lock() {}
+	};
 
 /*!
  * \brief Helper for collecting activity stats.
@@ -134,31 +163,45 @@ class external_lock
  * v.5.5.18
  */
 template< typename LOCK_HOLDER >
-class stats_collector_t
+class stats_collector_t : protected LOCK_HOLDER
 	{
-		using start_stop_lock_t = typename LOCK_HOLDER::start_stop_lock_t;
-		using take_stats_lock_t = typename LOCK_HOLDER::take_stats_lock_t;
+		LOCK_HOLDER &
+		lock_holder() { return *this; }
 
 	public :
 		template< typename... ARGS >
 		stats_collector_t( ARGS && ...args )
-			:	m_lock_holder( std::forward<ARGS>(args)... )
+			:	LOCK_HOLDER( std::forward<ARGS>(args)... )
 			{}
 
 		void
 		start()
 			{
-				start_stop_lock_t lock{ m_lock_holder };
+				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
 
-				m_is_in_working = true;
-				m_work_started_at = so_5::stats::clock_type_t::now();
-				m_work_activity.m_count += 1;
+				do_start();
+			}
+
+		/*!
+		 * \brief A helper method for safe start if start method hasn't been
+		 * called yet.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		void
+		start_if_not_started()
+			{
+				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
+
+				if( !m_is_in_working )
+					do_start();
 			}
 
 		void
 		stop()
 			{
-				start_stop_lock_t lock{ m_lock_holder };
+				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
 
 				m_is_in_working = false;
 				so_5::stats::details::update_stats_from_current_time(
@@ -174,7 +217,7 @@ class stats_collector_t
 				so_5::stats::clock_type_t::time_point work_started_at;
 
 				{
-					take_stats_lock_t lock{ m_lock_holder };
+					typename LOCK_HOLDER::take_stats_lock_t lock{ lock_holder() };
 
 					result = m_work_activity;
 					if( true == (is_in_working = m_is_in_working) )
@@ -190,8 +233,6 @@ class stats_collector_t
 			}
 
 	private :
-		LOCK_HOLDER m_lock_holder;
-
 		//! A flag for indicating work activity.
 		bool m_is_in_working{ false };
 
@@ -200,6 +241,14 @@ class stats_collector_t
 
 		//! A statistics for work activity.
 		so_5::stats::activity_stats_t m_work_activity{};
+
+		void
+		do_start()
+			{
+				m_is_in_working = true;
+				m_work_started_at = so_5::stats::clock_type_t::now();
+				m_work_activity.m_count += 1;
+			}
 	};
 
 /*!

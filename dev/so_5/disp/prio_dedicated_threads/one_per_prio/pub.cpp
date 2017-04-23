@@ -126,7 +126,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		virtual void
 		start( environment_t & env ) override
 			{
-				m_data_source.start( env.stats_repository() );
+				m_data_source.start( outliving_mutable(env.stats_repository()) );
 
 				so_5::details::do_with_rollback_on_exception(
 						[this] { launch_work_threads(); },

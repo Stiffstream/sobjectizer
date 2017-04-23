@@ -126,7 +126,7 @@ accept_one_indicator(
 	//! An instance of drop_indicator.
 	const drop_indicator_t< M > & indicator )
 	{
-		to.emplace_back( message_payload_type< M >::payload_type_index(),
+		to.emplace_back( message_payload_type< M >::subscription_type_index(),
 				indicator.m_limit,
 				&impl::drop_message_reaction );
 	}
@@ -182,7 +182,7 @@ accept_one_indicator(
 	//! An instance of abort_app_indicator to store.
 	const abort_app_indicator_t< M > & indicator )
 	{
-		to.emplace_back( message_payload_type< M >::payload_type_index(),
+		to.emplace_back( message_payload_type< M >::subscription_type_index(),
 				indicator.m_limit,
 				[]( const overlimit_context_t & ctx ) {
 					impl::abort_app_reaction( ctx );
@@ -294,7 +294,7 @@ accept_one_indicator(
 	{
 		auto lambda = indicator.m_lambda;
 
-		to.emplace_back( message_payload_type< M >::payload_type_index(),
+		to.emplace_back( message_payload_type< M >::subscription_type_index(),
 				indicator.m_limit,
 				[lambda]( const overlimit_context_t & ctx ) {
 					so_5::details::invoke_noexcept_code( [&] {
@@ -371,7 +371,7 @@ accept_one_indicator(
 	redirect_indicator_t< MSG, LAMBDA > indicator )
 	{
 		LAMBDA dest_getter = std::move( indicator.m_destination_getter );
-		to.emplace_back( message_payload_type< MSG >::payload_type_index(),
+		to.emplace_back( message_payload_type< MSG >::subscription_type_index(),
 				indicator.m_limit,
 				[dest_getter]( const overlimit_context_t & ctx ) {
 					impl::redirect_reaction( ctx, dest_getter() );
@@ -499,7 +499,7 @@ class transformed_message_t
 
 		//! Type of the transformed message.
 		std::type_index
-		msg_type() const { return message_payload_type< MSG >::payload_type_index(); }
+		msg_type() const { return message_payload_type< MSG >::subscription_type_index(); }
 
 		//! Instance of transformed message.
 		/*!
@@ -578,7 +578,7 @@ accept_one_indicator(
 	//! An instance of transform_indicator to be stored.
 	transform_indicator_t< M > indicator )
 	{
-		to.emplace_back( message_payload_type< M >::payload_type_index(),
+		to.emplace_back( message_payload_type< M >::subscription_type_index(),
 				indicator.m_limit,
 				std::move( indicator.m_action ) );
 	}

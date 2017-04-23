@@ -14,7 +14,7 @@
 
 #include <so_5/rt/stats/h/repository.hpp>
 
-#include <so_5/rt/impl/h/agent_core.hpp>
+#include <so_5/rt/h/environment_infrastructure.hpp>
 
 namespace so_5 {
 
@@ -36,23 +36,23 @@ namespace impl {
  *
  * \brief A data source for distributing information about agent_core.
  */
-class ds_agent_core_stats_t : public auto_registered_source_t
+class ds_agent_core_stats_t final : public auto_registered_source_t
 	{
 	public :
 		ds_agent_core_stats_t(
 			//! Repository for data source.
-			repository_t & repo,
+			outliving_reference_t< repository_t > repo,
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.
-			so_5::impl::agent_core_t & what );
+			so_5::environment_infrastructure_t & what );
 
 		virtual void
 		distribute(
 			const mbox_t & distribution_mbox ) override;
 
 	private :
-		so_5::impl::agent_core_t & m_what;
+		so_5::environment_infrastructure_t & m_what;
 	};
 
 #if defined(__clang__)

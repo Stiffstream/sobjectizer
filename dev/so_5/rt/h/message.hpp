@@ -25,6 +25,21 @@ namespace so_5
 {
 
 //
+// message_mutability_t
+//
+/*!
+ * \brief A enum with variants of message mutability or immutability.
+ *
+ * \since
+ * v.5.5.19
+ */
+enum class message_mutability_t
+	{
+		immutable_message,
+		mutable_message
+	};
+
+//
 // message_t
 //
 
@@ -35,20 +50,100 @@ namespace so_5
  * \attention This class should be used for all messages which
  * have an actual message data. For signals (messages without any data)
  * a signal_t class should be used as a base class.
+ *
+ * \note
+ * Class message_t is derived from atomic_refcounted_t.
+ * But atomic_refcounted_t is not Copyable or Movable class.
+ * It means that copy/move constructors and operators for message_t
+ * have no influence on the reference counter inside message_t.
  */
 class SO_5_TYPE message_t : public atomic_refcounted_t
 	{
 		friend class impl::internal_message_iface_t;
-
 	public:
 		message_t();
-		message_t( const message_t & );
+		message_t( const message_t & other );
+		message_t( message_t && other );
+
 		void
-		operator = ( const message_t & );
+		operator=( const message_t & other );
+		void
+		operator=( message_t && other );
 
 		virtual ~message_t();
 
+		/*!
+		 * \brief Helper method for safe get of message mutability flag.
+		 *
+		 * Use this method instead of direct call to so5_message_mutability()
+		 * because \a what will be nullptr for signals.
+		 */
+		friend message_mutability_t
+		message_mutability( const intrusive_ptr_t<message_t> & what )
+			{
+				message_mutability_t r = message_mutability_t::immutable_message;
+				if( what )
+					r = what->so5_message_mutability();
+				return r;
+			}
+
+		/*!
+		 * \brief Helper method for get message mutability flag.
+		 */
+		friend message_mutability_t
+		message_mutability( const message_t & what )
+			{
+				return what.so5_message_mutability();
+			}
+
+		/*!
+		 * \brief Helper method for safe change message mutability flag.
+		 *
+		 * Use this method instead of direct call to so5_change_mutability()
+		 * because \a what will be nullptr for signals.
+		 *
+		 * \note
+		 * This is a very dangerous operation. Don't do it by yourselt.
+		 * See message_t::so5_change_mutability() for more details.
+		 */
+		friend void
+		change_message_mutability(
+			//! Message instance to be modified if it is not a signal.
+			intrusive_ptr_t< message_t> & what,
+			//! New mutability flag for the message.
+			message_mutability_t mutability )
+			{
+				if( what )
+					what->so5_change_mutability( mutability );
+			}
+
+		/*!
+		 * \brief Helper method for change message mutability flag.
+		 *
+		 * \note
+		 * This is a very dangerous operation. Don't do it by yourselt.
+		 * See message_t::so5_change_mutability() for more details.
+		 */
+		friend void
+		change_message_mutability(
+			//! Message instance to be modified.
+			message_t & what,
+			//! New mutability flag for the message.
+			message_mutability_t mutability )
+			{
+				what.so5_change_mutability( mutability );
+			}
+
 	private :
+		/*!
+		 * \brief Is message mutable or immutable?
+		 *
+		 * By default the message is immutable.
+		 * \since
+		 * v.5.5.19
+		 */
+		message_mutability_t m_mutability;
+
 		/*!
 		 * \since
 		 * v.5.5.9
@@ -62,6 +157,56 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 */
 		virtual const void *
 		so5__payload_ptr() const;
+
+		/*!
+		 * \brief Get message mutability flag.
+		 *
+		 * \note
+		 * This method is intended to be used by SObjectizer and
+		 * low-level SObjectizer extension. Because of that it is not
+		 * guaranteed that this method is part of stable SObjectizer API.
+		 * It can be changed or even removed in any future versions
+		 * of SObjectizer.
+		 *
+		 * \note
+		 * This is a virual method because its behavious must be changed in
+		 * msg_service_request_t.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		virtual message_mutability_t
+		so5_message_mutability() const { return m_mutability; }
+
+		/*!
+		 * \brief Change message mutabilty flag.
+		 *
+		 * \attention
+		 * Changing mutability from message_mutability_t::immutable_message
+		 * to message_mutability_t::mutable_message is a very bad idea.
+		 * Please don't do this until you are know what you are doing.
+		 *
+		 * \note
+		 * This method is intended to be used by SObjectizer and
+		 * low-level SObjectizer extension. Because of that it is not
+		 * guaranteed that this method is part of stable SObjectizer API.
+		 * It can be changed or even removed in any future versions
+		 * of SObjectizer.
+		 *
+		 * \note
+		 * This is a virual method because its behavious must be changed in
+		 * msg_service_request_t.
+		 *
+		 * \since
+		 * v.5.5.19
+		 */
+		virtual void
+		so5_change_mutability(
+			//! New mutability flag for
+			message_mutability_t mutability )
+			{
+				m_mutability = mutability;
+			}
 	};
 
 //
@@ -120,7 +265,11 @@ template< typename T >
 struct user_type_message_t : public message_t
 {
 	//! Instance of user message.
-	const T m_payload;
+	/*!
+	 * \note
+	 * Since v.5.5.19 it is not a const object anymore.
+	 */
+	T m_payload;
 
 	//! Initializing constructor.
 	template< typename... ARGS >
@@ -147,6 +296,88 @@ private :
 	virtual const void *
 	so5__payload_ptr() const override { return &m_payload; }
 };
+
+//
+// immutable_msg
+//
+/*!
+ * \brief A special marker for immutable message.
+ *
+ * This marker tells that message can be sent to several receivers and
+ * nobody can change the message content.
+ *
+ * \tparam M type of the message.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename M >
+struct immutable_msg final {};
+
+//
+// mutable_msg
+//
+/*!
+ * \brief A special marker for mutable message.
+ *
+ * This marker tells that message can be sent only for one receiver.
+ * And that receiver will get an exclusive access to the message content.
+ * It means that receiver can change message's content. 
+ *
+ * \tparam M type of the message.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename M >
+struct mutable_msg final {};
+
+namespace details {
+
+//
+// message_mutability_traits
+//
+/*!
+ * \brief Detector of message type traits in dependency of message immutability
+ * or mutability.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename T >
+struct message_mutability_traits
+	{
+		using payload_type = typename std::decay<T>::type;
+		using subscription_type = payload_type;
+		using mhood_param_type = payload_type;
+
+		static const SO_5_CONSTEXPR message_mutability_t mutability =
+				message_mutability_t::immutable_message;
+	};
+
+template< typename T >
+struct message_mutability_traits< immutable_msg<T> >
+	{
+		using payload_type = T;
+		using subscription_type = T;
+		using mhood_param_type = T;
+
+		static const SO_5_CONSTEXPR message_mutability_t mutability =
+				message_mutability_t::immutable_message;
+	};
+
+template< typename T >
+struct message_mutability_traits< mutable_msg<T> >
+	{
+		using payload_type = T;
+		using subscription_type = mutable_msg<T>;
+		using mhood_param_type = mutable_msg<T>;
+
+		static const SO_5_CONSTEXPR message_mutability_t mutability =
+				message_mutability_t::mutable_message;
+	};
+
+} /* namespace details */
 
 //
 // is_user_type_message
@@ -183,7 +414,9 @@ struct is_user_type_message< user_type_message_t< M > >
 template< class T >
 struct is_signal
 	{
-		enum { value = std::is_base_of< signal_t, T >::value };
+		enum { value = std::is_base_of<
+				signal_t,
+				typename details::message_mutability_traits<T>::payload_type >::value };
 	};
 
 //
@@ -199,7 +432,30 @@ struct is_signal
 template< class T >
 struct is_classical_message
 	{
-		enum { value = std::is_base_of< message_t, T >::value };
+		enum { value = std::is_base_of<
+				message_t,
+				typename details::message_mutability_traits<T>::payload_type >::value };
+	};
+
+//
+// is_mutable_message
+//
+/*!
+ * \brief A helper class for checking that message is a mutable message.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< typename T >
+struct is_mutable_message
+	{
+		enum { value = false };
+	};
+
+template< typename T >
+struct is_mutable_message< mutable_msg<T> >
+	{
+		enum { value = true };
 	};
 
 //
@@ -248,6 +504,29 @@ ensure_message_with_actual_data( const MSG * m )
 }
 
 //
+// ensure_not_mutable_signal
+//
+/*!
+ * \brief A special compile-time checker to guarantee that S is not a
+ * mutable signal.
+ *
+ * This check is intended to prevent usage of mutable_msg<S> where S is 
+ * a signal type.
+ *
+ * \since
+ * v.5.5.19
+ */
+template< class S >
+void
+ensure_not_mutable_signal()
+{
+	static_assert( !is_signal<S>::value ||
+			message_mutability_t::immutable_message ==
+					details::message_mutability_traits<S>::mutability,
+			"usage of mutable_msg<S> where S is a signal is prohibited" );
+}
+
+//
 // ensure_signal
 //
 /*!
@@ -265,6 +544,10 @@ ensure_signal()
 {
 	static_assert( is_signal< MSG >::value,
 			"expected a type derived from the signal_t" );
+
+	// Added in v.5.5.19.
+	// MSG must not be a mutable_msg<S>.
+	ensure_not_mutable_signal<MSG>();
 }
 
 //
@@ -302,13 +585,27 @@ ensure_classical_message()
 template< typename T, bool is_classical_message >
 struct message_payload_type_impl
 	{
+		//! Mutability traits for this message type.
+		using mutability_traits = details::message_mutability_traits<T>;
+
 		//! Type visible to user.
-		using payload_type = T;
+		using payload_type = typename mutability_traits::payload_type;
 		//! Type for message delivery.
-		using envelope_type = T;
+		using envelope_type = payload_type;
+		//! Type to which subscription must be done.
+		using subscription_type = typename mutability_traits::subscription_type;
+
+		//! Is it a signal type or message type.
+		static const bool is_signal = ::so_5::is_signal<T>::value;
 
 		//! Type ID for subscription.
-		inline static std::type_index payload_type_index() { return typeid(T); }
+		inline static std::type_index subscription_type_index()
+			{
+				// T must not be a mutable_msg<T>.
+				ensure_not_mutable_signal<T>();
+
+				return typeid(subscription_type);
+			}
 
 		//! Helper for extraction of pointer to payload part.
 		/*!
@@ -332,10 +629,17 @@ struct message_payload_type_impl
 			}
 
 		//! Helper for getting a const reference to payload part.
-		inline static const payload_type &
-		payload_reference( const message_t & msg )
+		inline static payload_type &
+		payload_reference( message_t & msg )
 			{
-				return dynamic_cast< const payload_type & >( msg );
+				return dynamic_cast< payload_type & >( msg );
+			}
+
+		//! Helper for getting message mutability flag.
+		inline static message_mutability_t
+		mutability()
+			{
+				return mutability_traits::mutability;
 			}
 	};
 
@@ -351,20 +655,35 @@ struct message_payload_type_impl
 template< typename T >
 struct message_payload_type_impl< T, false >
 	{
+		//! Mutability traits for this message type.
+		using mutability_traits = details::message_mutability_traits<T>;
+
 		//! Type visible to user.
-		using payload_type = T;
+		using payload_type = typename mutability_traits::payload_type;
 		//! Type for message delivery.
-		using envelope_type = user_type_message_t< T >;
+		using envelope_type = user_type_message_t< payload_type >;
+		//! Type to which subscription must be done.
+		using subscription_type = typename mutability_traits::subscription_type;
+
+		//! Is it a signal type or message type.
+		/*!
+		 * \note
+		 * User-defined type can't be a signal.
+		 */
+		static const bool is_signal = false;
 
 		//! Type ID for subscription.
-		inline static std::type_index payload_type_index() { return typeid(T); }
+		inline static std::type_index subscription_type_index()
+			{
+				return typeid(subscription_type);
+			}
 
 		//! Helper for extraction of pointer to payload part.
 		/*!
 		 * \note This method return const pointer because payload is
 		 * a const object inside user_type_message_t<T> instance.
 		 */
-		inline static const payload_type *
+		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )
 			{
 				auto envelope = dynamic_cast< envelope_type * >( msg.get() );
@@ -383,11 +702,18 @@ struct message_payload_type_impl< T, false >
 			}
 
 		//! Helper for getting a const reference to payload part.
-		inline static const payload_type &
-		payload_reference( const message_t & msg )
+		inline static payload_type &
+		payload_reference( message_t & msg )
 			{
-				auto & envelope = dynamic_cast< const envelope_type & >( msg );
+				auto & envelope = dynamic_cast< envelope_type & >( msg );
 				return envelope.m_payload;
+			}
+
+		//! Helper for getting message mutability flag.
+		inline static message_mutability_t
+		mutability()
+			{
+				return mutability_traits::mutability;
 			}
 	};
 
@@ -404,7 +730,9 @@ struct message_payload_type_impl< T, false >
  */
 template< typename T >
 struct message_payload_type
-	:	public message_payload_type_impl< T, is_classical_message< T >::value >
+	:	public message_payload_type_impl< T,
+			is_classical_message<
+					typename ::so_5::details::message_mutability_traits<T>::payload_type >::value >
 	{
 	};
 
@@ -416,6 +744,24 @@ struct message_payload_type< user_type_message_t< T > >
 
 namespace details
 {
+
+template< typename MSG >
+typename std::enable_if<
+	message_mutability_t::mutable_message ==
+			::so_5::details::message_mutability_traits<MSG>::mutability >::type
+mark_as_mutable_if_necessary( message_t & msg )
+	{
+		change_message_mutability( msg, message_mutability_t::mutable_message );
+	}
+
+template< typename MSG >
+typename std::enable_if<
+	message_mutability_t::mutable_message !=
+			::so_5::details::message_mutability_traits<MSG>::mutability >::type
+mark_as_mutable_if_necessary( message_t & /*msg*/ )
+	{
+		// Nothing to do.
+	}
 
 template< bool is_signal, typename MSG >
 struct make_message_instance_impl
@@ -486,7 +832,7 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		 *
 		 * \brief Access to param of service_request.
 		 */
-		virtual const message_t &
+		virtual message_t &
 		query_param() const SO_5_NOEXCEPT = 0;
 
 		/*!
@@ -515,6 +861,15 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 				svc_request.set_exception( std::current_exception() );
 			}
 		}
+
+	private :
+		// This method must be reimplemented in derived types.
+		virtual message_mutability_t
+		so5_message_mutability() const = 0;
+
+		// This method must be reimplemented in derived types.
+		virtual void
+		so5_change_mutability( message_mutability_t ) = 0;
 };
 
 //
@@ -554,7 +909,7 @@ struct msg_service_request_t : public msg_service_request_base_t
 				m_promise.set_exception( what );
 			}
 
-		virtual const message_t &
+		virtual message_t &
 		query_param() const SO_5_NOEXCEPT override
 			{
 				return *m_param;
@@ -563,6 +918,18 @@ struct msg_service_request_t : public msg_service_request_base_t
 	private :
 		virtual const void *
 		so5__payload_ptr() const override { return m_param.get(); }
+
+		virtual message_mutability_t
+		so5_message_mutability() const override
+			{
+				return message_mutability( m_param );
+			}
+
+		virtual void
+		so5_change_mutability( message_mutability_t v ) override
+			{
+				change_message_mutability( *m_param, v );
+			}
 	};
 
 //

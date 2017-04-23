@@ -120,7 +120,7 @@ std_controller_t::body()
 				if( m_shutdown_initiated )
 					return;
 
-				auto actual_duration = distribute_current_data();
+				const auto actual_duration = distribute_current_data();
 
 				if( actual_duration < m_distribution_period )
 					// There is some time to sleep.

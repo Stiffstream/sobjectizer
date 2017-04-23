@@ -26,27 +26,16 @@ namespace impl
 disp_repository_t::disp_repository_t(
 	environment_t & env,
 	named_dispatcher_map_t named_dispatcher_map,
-	event_exception_logger_unique_ptr_t logger,
-	so_5::disp::one_thread::disp_params_t default_disp_params )
-	:
-		m_env( env ),
-		m_default_dispatcher(
-				so_5::disp::one_thread::create_disp(
-						std::move(default_disp_params) ) ),
-		m_named_dispatcher_map( std::move( named_dispatcher_map ) ),
-		m_event_exception_logger( std::move( logger ) ),
-		m_state( state_t::not_started )
+	event_exception_logger_unique_ptr_t logger )
+	:	m_env( env )
+	,	m_named_dispatcher_map( std::move( named_dispatcher_map ) )
+	,	m_event_exception_logger( std::move( logger ) )
+	,	m_state( state_t::not_started )
 {
 }
 
 disp_repository_t::~disp_repository_t()
 {
-}
-
-dispatcher_t &
-disp_repository_t::query_default_dispatcher()
-{
-	return *m_default_dispatcher;
 }
 
 dispatcher_ref_t
@@ -107,9 +96,6 @@ disp_repository_t::start()
 	std::lock_guard< default_rw_spinlock_t > lock( m_lock );
 	if( state_t::not_started == m_state )
 	{
-		m_default_dispatcher->set_data_sources_name_base( "DEFAULT" );
-		m_default_dispatcher->start( m_env );
-
 		auto it = m_named_dispatcher_map.begin();
 		auto it_end = m_named_dispatcher_map.end();
 
@@ -181,8 +167,6 @@ disp_repository_t::send_shutdown_signal()
 	{
 		it->second->shutdown();
 	}
-
-	m_default_dispatcher->shutdown();
 }
 
 void
@@ -195,8 +179,6 @@ disp_repository_t::wait_for_full_shutdown()
 	{
 		it->second->wait();
 	}
-
-	m_default_dispatcher->wait();
 }
 
 } /* namespace impl */

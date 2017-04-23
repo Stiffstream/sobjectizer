@@ -77,4 +77,10 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/svc_hello.ut.rb"
   required_prj "#{path}/svc_hello-static.ut.rb"
+
+  required_prj "#{path}/mutable_msg_agents.ut.rb"
+  required_prj "#{path}/mutable_msg_agents-static.ut.rb"
+
+  required_prj "#{path}/modify_resend_as_immutable.ut.rb"
+  required_prj "#{path}/modify_resend_as_immutable-static.ut.rb"
 }

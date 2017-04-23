@@ -14,7 +14,7 @@
 
 #include <so_5/rt/stats/h/repository.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/rt/h/environment_infrastructure.hpp>
 
 namespace so_5 {
 
@@ -41,18 +41,18 @@ class ds_timer_thread_stats_t : public auto_registered_source_t
 	public :
 		ds_timer_thread_stats_t(
 			//! Repository for data source.
-			repository_t & repo,
+			outliving_reference_t< repository_t > repo,
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.
-			so_5::timer_thread_t & what );
+			so_5::environment_infrastructure_t & what );
 
 		virtual void
 		distribute(
 			const mbox_t & distribution_mbox ) override;
 
 	private :
-		so_5::timer_thread_t & m_what;
+		so_5::environment_infrastructure_t & m_what;
 	};
 
 #if defined(__clang__)

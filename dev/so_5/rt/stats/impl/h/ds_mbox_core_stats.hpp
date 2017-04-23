@@ -41,7 +41,7 @@ class ds_mbox_core_stats_t : public auto_registered_source_t
 	public :
 		ds_mbox_core_stats_t(
 			//! Repository for data source.
-			repository_t & repo,
+			outliving_reference_t< repository_t > repo,
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.
