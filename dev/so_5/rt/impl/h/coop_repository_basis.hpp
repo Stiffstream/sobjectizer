@@ -28,6 +28,11 @@
 
 #include <so_5/rt/stats/h/repository.hpp>
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
 namespace so_5
 {
 
@@ -105,7 +110,7 @@ class coop_private_iface_t
  * \since
  * v.5.5.19
  */
-class coop_repository_basis_t
+class SO_5_TYPE coop_repository_basis_t
 {
 	coop_repository_basis_t( const coop_repository_basis_t & ) = delete;
 
@@ -518,3 +523,6 @@ protected:
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
