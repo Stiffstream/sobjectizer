@@ -14,8 +14,11 @@
 	is implemented. See \ref so_5_5_19__environment_infrastructures for
 	more details.
 
+	Function so_5::create_default_disp_binder() is deprecated.
+	New function so_5::make_default_disp_binder() must be used instead.
+
 	New examples: hello_world_simple_not_mtsafe, modify_resend_as_immutable,
-	mutable_msg_agents and wrapped_env_demo_3.
+	mutable_msg_agents, wrapped_env_demo_3, two_handlers.
 
 \section so_5__5_18 5.5.18 "Nevado Pisco"
 

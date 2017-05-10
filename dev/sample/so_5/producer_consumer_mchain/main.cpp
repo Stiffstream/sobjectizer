@@ -279,7 +279,7 @@ void fill_demo_coop( so_5::coop_t & coop )
 
 	// Shutdowner will work on the default dispatcher.
 	coop.make_agent_with_binder< shutdowner >(
-			so_5::create_default_disp_binder(),
+			so_5::make_default_disp_binder( coop.environment() ),
 			producers );
 
 	// Logger will work on its own context.

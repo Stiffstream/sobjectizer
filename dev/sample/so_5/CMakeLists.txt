@@ -67,3 +67,5 @@ add_subdirectory(wrapped_env_demo_3)
 
 add_subdirectory(mutable_msg_agents)
 add_subdirectory(modify_resend_as_immutable)
+add_subdirectory(two_handlers)
+

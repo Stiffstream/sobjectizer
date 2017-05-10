@@ -196,7 +196,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
  * \since
  * v.5.5.19
  */
-using coop_repo_t = reusable::coop_repo_t< so_5::details::actual_lock_holder_t >;
+using coop_repo_t = reusable::coop_repo_t;
 
 //
 // default_disp_impl_basis_t
@@ -407,7 +407,8 @@ class env_infrastructure_t
 			std::unique_lock< std::mutex > & acquired_lock );
 
 		void
-		perform_shutdown_related_actions_if_needed();
+		perform_shutdown_related_actions_if_needed(
+			std::unique_lock< std::mutex > & acquired_lock );
 
 		void
 		handle_expired_timers_if_any(
@@ -643,7 +644,7 @@ env_infrastructure_t< ACTIVITY_TRACKER >::run_main_loop()
 				process_final_deregs_if_any( lock );
 
 				// There can be pending shutdown operation. It must be handled.
-				perform_shutdown_related_actions_if_needed();
+				perform_shutdown_related_actions_if_needed( lock );
 				if( shutdown_status_t::completed == m_shutdown_status )
 					break;
 
@@ -679,7 +680,8 @@ env_infrastructure_t< ACTIVITY_TRACKER >::process_final_deregs_if_any(
 
 template< typename ACTIVITY_TRACKER >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::perform_shutdown_related_actions_if_needed()
+env_infrastructure_t< ACTIVITY_TRACKER >::perform_shutdown_related_actions_if_needed(
+	std::unique_lock< std::mutex > & acquired_lock )
 	{
 		if( shutdown_status_t::must_be_started == m_shutdown_status )
 			{
@@ -687,7 +689,12 @@ env_infrastructure_t< ACTIVITY_TRACKER >::perform_shutdown_related_actions_if_ne
 				m_shutdown_status = shutdown_status_t::in_progress;
 
 				// All registered cooperations must be deregistered now.
-				m_coop_repo.deregister_all_coop();
+				// We must unlock out main lock because there is a need to
+				// push a final event for deregisteing agents to event queue.
+				helpers::unlock_do_and_lock_again( acquired_lock,
+					[this] {
+						m_coop_repo.deregister_all_coop();
+					} );
 			}
 
 		if( shutdown_status_t::in_progress == m_shutdown_status )

@@ -84,7 +84,7 @@ init(
 			coop->add_agent( new a_sender_t( env, mbox, send_count ) );
 
 		coop->add_agent( new a_shutdowner_t( env, mbox, agent_count ),
-				so_5::create_default_disp_binder() );
+				so_5::make_default_disp_binder( env ) );
 
 		env.register_coop( std::move( coop ) );
 	}

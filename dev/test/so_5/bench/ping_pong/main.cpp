@@ -12,6 +12,13 @@
 
 using namespace std::chrono;
 
+enum class env_type_t
+{
+	default_mt,
+	simple_mtsafe,
+	simple_not_mtsafe
+};
+
 struct	cfg_t
 {
 	unsigned int	m_request_count = 1000;
@@ -24,6 +31,8 @@ struct	cfg_t
 	bool	m_message_limits = false;
 
 	bool	m_track_activity = false;
+
+	env_type_t m_env = env_type_t::default_mt;
 };
 
 cfg_t
@@ -48,6 +57,10 @@ try_parse_cmdline(
 							"-l, --message-limits use message limits for agents\n"
 							"-s, --simple-lock    use simple lock factory for event queue\n"
 							"-T, --track-activity turn work thread activity tracking on\n"
+							"-e, --env            environment infrastructure to be used:\n"
+							"                       default_mt (default),\n"
+							"                       simple_mtsafe,\n"
+							"                       simple_not_mtsafe\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -66,6 +79,25 @@ try_parse_cmdline(
 						"-r", "count of requests to send" );
 			else if( is_arg( *current, "-T", "--track-activity" ) )
 				tmp_cfg.m_simple_lock = true;
+			else if( is_arg( *current, "-e", "--env" ) )
+				{
+					std::string env_type_literal;
+					mandatory_arg_to_value(
+							env_type_literal,
+							++current, last,
+							"-e", "type of environment infrastructure" );
+					if( "default_mt" == env_type_literal )
+						tmp_cfg.m_env = env_type_t::default_mt;
+					else if( "simple_mtsafe" == env_type_literal )
+						tmp_cfg.m_env = env_type_t::simple_mtsafe;
+					else if( "simple_not_mtsafe" == env_type_literal )
+					{
+						tmp_cfg.m_env = env_type_t::simple_not_mtsafe;
+					}
+					else
+						throw std::runtime_error( "unknown type of "
+								"environment infrastructure: " + env_type_literal );
+				}
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -225,6 +257,9 @@ show_cfg(
 			<< ", locks: " << ( cfg.m_simple_lock ? "simple" : "combined" )
 			<< ", requests: " << cfg.m_request_count
 			<< ", activity tracking: " << ( cfg.m_track_activity ? "on" : "off" )
+			<< ", env: " << ( env_type_t::default_mt == cfg.m_env ?
+					"mt" : ( env_type_t::simple_mtsafe == cfg.m_env ?
+							"mtsafe" : "not_mtsafe" ) )
 			<< std::endl;
 	}
 
@@ -250,6 +285,14 @@ show_result(
 			", throughtput: " << throughtput << std::endl;
 	}
 
+void
+ensure_valid_cfg( const cfg_t & cfg )
+	{
+		if( cfg.m_active_objects && env_type_t::simple_not_mtsafe == cfg.m_env )
+			throw std::runtime_error( "invalid config: active objects can't be"
+					" used with simple_not_mtsafe environment infrastructure" );
+	}
+
 class test_env_t
 	{
 	public :
@@ -262,7 +305,7 @@ class test_env_t
 			{
 				auto binder = ( m_cfg.m_active_objects ?
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
-						so_5::create_default_disp_binder() );
+						so_5::make_default_disp_binder( env ) );
 
 				auto coop = env.create_coop( "test", std::move(binder) );
 
@@ -300,6 +343,7 @@ main( int argc, char ** argv )
 	try
 	{
 		cfg_t cfg = try_parse_cmdline( argc, argv );
+		ensure_valid_cfg( cfg );
 		show_cfg( cfg );
 
 		test_env_t test_env( cfg );
@@ -311,6 +355,17 @@ main( int argc, char ** argv )
 			},
 			[&]( so_5::environment_params_t & params )
 			{
+				if( env_type_t::simple_mtsafe == cfg.m_env )
+				{
+					using namespace so_5::env_infrastructures::simple_mtsafe;
+					params.infrastructure_factory( factory() );
+				}
+				else if( env_type_t::simple_not_mtsafe == cfg.m_env )
+				{
+					using namespace so_5::env_infrastructures::simple_not_mtsafe;
+					params.infrastructure_factory( factory() );
+				}
+
 				if( cfg.m_track_activity )
 					params.turn_work_thread_activity_tracking_on();
 

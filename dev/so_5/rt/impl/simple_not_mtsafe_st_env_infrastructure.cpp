@@ -110,7 +110,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
  * \since
  * v.5.5.19
  */
-using coop_repo_t = reusable::coop_repo_t< so_5::details::no_lock_holder_t >;
+using coop_repo_t = reusable::coop_repo_t;
 
 //
 // default_disp_impl_basis_t

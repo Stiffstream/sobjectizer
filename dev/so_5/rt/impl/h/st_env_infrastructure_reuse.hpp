@@ -159,17 +159,11 @@ send_thread_activity_stats(
  * \brief Implementation of coop_repository for
  * single-threaded environment infrastructure.
  *
- * \tparam LOCK_HOLDER a type for defense from multi-threaded access.
- * Expected to be so_5::details::actual_lock_holder_t or
- * so_5::details::no_lock_holder_t.
- *
  * \since
  * v.5.5.19
  */
-template< typename LOCK_HOLDER >
 class coop_repo_t final
 	:	public ::so_5::impl::coop_repository_basis_t
-	,	protected LOCK_HOLDER
 	{
 	public :
 		//! Initializing constructor.
@@ -185,9 +179,11 @@ class coop_repo_t final
 		bool
 		has_live_coop()
 			{
-				return this->lock_and_perform( [&] {
-					return !( m_registered_coop.empty() && m_deregistered_coop.empty() );
-				} );
+				// A lock is necessary here because coop_repo can be used
+				// in thread-safe environment where access to environment from
+				// different thread is allowed.
+				std::lock_guard< std::mutex > l{ lock() };
+				return !( m_registered_coop.empty() && m_deregistered_coop.empty() );
 			}
 	};
 

@@ -110,7 +110,7 @@ class a_test_starter_t : public so_5::agent_t
 			so_5::coop_unique_ptr_t coop(
 					new test_agent_coop_t(
 							"child_coop",
-							so_5::create_default_disp_binder(),
+							so_5::make_default_disp_binder( so_environment() ),
 							so_environment(),
 							m_sequence ) );
 			coop->set_parent_coop_name( so_coop_name() );

@@ -230,6 +230,7 @@
 /*!
  * \example so_5/mutable_msg_agents/main.cpp
  * \example so_5/modify_resend_as_immutable/main.cpp
+ * \example so_5/two_handlers/main.cpp
  */
 
 // vim:ft=cpp.doxygen

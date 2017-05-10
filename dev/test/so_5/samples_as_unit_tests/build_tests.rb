@@ -83,4 +83,7 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/modify_resend_as_immutable.ut.rb"
   required_prj "#{path}/modify_resend_as_immutable-static.ut.rb"
+
+  required_prj "#{path}/two_handlers.ut.rb"
+  required_prj "#{path}/two_handlers-static.ut.rb"
 }

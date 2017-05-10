@@ -8,6 +8,8 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/empty_init_fn/prj.ut.rb"
 	required_prj "#{path}/stop_in_init_fn/prj.ut.rb"
 	required_prj "#{path}/simple_agent/prj.ut.rb"
+	required_prj "#{path}/create_default_disp_binder/prj.ut.rb"
+	required_prj "#{path}/direct_env_stop/prj.ut.rb"
 	required_prj "#{path}/thread_id/prj.ut.rb"
 	required_prj "#{path}/delayed_msg/prj.ut.rb"
 	required_prj "#{path}/timer_factories/prj.ut.rb"

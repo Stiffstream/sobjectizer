@@ -164,6 +164,7 @@ struct demand_t
 		//! Default constructor.
 		demand_t()
 			:	m_msg_type( typeid(void) )
+			,	m_demand_type( invocation_type_t::event )
 			{}
 		//! Initializing constructor.
 		demand_t(
