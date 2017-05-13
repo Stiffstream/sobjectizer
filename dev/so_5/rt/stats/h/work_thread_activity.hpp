@@ -45,7 +45,7 @@ namespace details
 					"clock_type_t must be steady clock!" );
 		}
 	};
-};
+}
 
 /*!
  * \brief An alias for type for representing time duration.

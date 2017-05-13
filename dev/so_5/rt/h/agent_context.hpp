@@ -136,7 +136,7 @@ operator+( environment_t & env, OPTION arg )
 	{
 		agent_context_t result{ env };
 		return std::move(result) + std::move(arg);
-	};
+	}
 
 /*!
  * \name Operators for tuning agent_context.
@@ -159,7 +159,7 @@ operator+(
 	{
 		ctx.options().message_limits( limit );
 		return ctx;
-	};
+	}
 
 template< class M >
 agent_context_t
@@ -169,7 +169,7 @@ operator+(
 	{
 		ctx.options().message_limits( limit );
 		return ctx;
-	};
+	}
 
 template< class M, class L >
 agent_context_t
@@ -179,7 +179,7 @@ operator+(
 	{
 		ctx.options().message_limits( limit );
 		return ctx;
-	};
+	}
 
 template< class M, class L >
 agent_context_t
@@ -189,7 +189,7 @@ operator+(
 	{
 		ctx.options().message_limits( std::move( limit ) );
 		return ctx;
-	};
+	}
 
 template< class M >
 agent_context_t
@@ -199,7 +199,7 @@ operator+(
 	{
 		ctx.options().message_limits( std::move( limit ) );
 		return ctx;
-	};
+	}
 
 inline agent_context_t
 operator+(
