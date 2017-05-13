@@ -54,7 +54,7 @@ void define_shutdown_service(
 
 				env.stop();
 			} );
-	};
+	}
 
 class a_client_t : public so_5::agent_t
 	{
