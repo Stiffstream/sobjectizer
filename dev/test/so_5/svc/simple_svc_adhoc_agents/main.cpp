@@ -50,7 +50,7 @@ define_shutdown_service(
 		auto & env = coop.environment();
 		coop.define_agent()
 			.event< msg_shutdown >( self_mbox, [&env]() { env.stop(); } );
-	};
+	}
 
 void
 compare_and_abort_if_missmatch(

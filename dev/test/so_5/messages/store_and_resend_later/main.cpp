@@ -31,16 +31,18 @@ class controller_t
 		static const char *
 		state_name( state_t state )
 		{
+			const char * r = nullptr;
 			switch( state )
 			{
-				case INITIAL: return "INITIAL";
-				case MSG_CREATED: return "MSG_CREATED";
-				case MSG_SEND_1: return "MSG_SEND_1";
-				case MSG_RECEIVE_1: return "MSG_RECEIVE_1";
-				case MSG_SEND_2: return "MSG_SEND_2";
-				case MSG_RECEIVE_2: return "MSG_RECEIVE_2";
-				case MSG_DESTROYED: return "MSG_DESTROYED";
+				case INITIAL: r = "INITIAL"; break;
+				case MSG_CREATED: r = "MSG_CREATED"; break;
+				case MSG_SEND_1: r = "MSG_SEND_1"; break;
+				case MSG_RECEIVE_1: r = "MSG_RECEIVE_1"; break;
+				case MSG_SEND_2: r = "MSG_SEND_2"; break;
+				case MSG_RECEIVE_2: r = "MSG_RECEIVE_2"; break;
+				case MSG_DESTROYED: r = "MSG_DESTROYED"; break;
 			}
+			return r;
 		}
 
 		void
