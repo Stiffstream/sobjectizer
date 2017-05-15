@@ -15,7 +15,10 @@ MxxRu::Cpp::composite_target do
 
   if 'gcc' == toolset.name
     global_compiler_option '-Wextra'
+    global_compiler_option '-Wpedantic'
+    global_compiler_option '-Werror'
     global_compiler_option '-Wall'
+    global_compiler_option '-Wno-unused-function'
     global_linker_option "-Wl,-rpath='$ORIGIN'"
   end
 
@@ -23,6 +26,7 @@ MxxRu::Cpp::composite_target do
     global_linker_option "-Wl,-rpath='$ORIGIN'"
 
     global_compiler_option '-Werror'
+    global_compiler_option '-Wpedantic'
     global_compiler_option '-Weverything'
     global_compiler_option '-Wno-c++98-compat'
     global_compiler_option '-Wno-c++98-compat-pedantic'
