@@ -43,7 +43,7 @@ public :
 		this >>= st_first;
 
 		st_first
-			.time_limit( std::chrono::milliseconds( 250 ), st_second )
+			.time_limit( std::chrono::milliseconds( 750 ), st_second )
 			.on_exit( [this] {
 					so_environment().stats_controller().turn_off();
 				} )
@@ -59,12 +59,12 @@ public :
 		st_second
 			.on_enter( [this] {
 					so_5::send_delayed< start_second >( *this,
-							std::chrono::milliseconds( 200 ) );
+							std::chrono::milliseconds( 400 ) );
 				} )
 			.event< start_second >( [this] {
 					so_environment().stats_controller().turn_on();
 					so_5::send_delayed< finish_second >( *this,
-							std::chrono::milliseconds( 350 ) );
+							std::chrono::milliseconds( 1050 ) );
 				} )
 			.event< finish_second >( [this] {
 					so_deregister_agent_coop_normally();
@@ -83,7 +83,7 @@ public :
 	so_evt_start() override
 	{
 		auto & controller = so_environment().stats_controller();
-		controller.set_distribution_period( std::chrono::milliseconds( 100 ) );
+		controller.set_distribution_period( std::chrono::milliseconds( 300 ) );
 		controller.turn_on();
 	}
 };
