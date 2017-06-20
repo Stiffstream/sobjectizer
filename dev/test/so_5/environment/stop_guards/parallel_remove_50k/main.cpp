@@ -46,7 +46,7 @@ private :
 	const so_5::mbox_t m_owner;
 };
 
-const std::size_t N = 5000u;
+const std::size_t N = 50000u;
 
 class first_worker_t final : public so_5::agent_t
 {
