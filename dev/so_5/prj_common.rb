@@ -42,6 +42,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 		cpp_source 'wrapped_env.cpp'
 
+		cpp_source 'stop_guard.cpp'
+
 		# Run-time.
 		sources_root( 'rt' ) {
 

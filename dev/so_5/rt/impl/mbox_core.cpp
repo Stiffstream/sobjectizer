@@ -121,6 +121,14 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
+mbox_t
+mbox_core_t::create_custom_mbox(
+	::so_5::custom_mbox_details::creator_iface_t & creator )
+{
+	const auto id = ++m_mbox_id_counter;
+	return creator.create( mbox_creation_data_t( id, m_tracer ) );
+}
+
 namespace {
 
 template< typename Q, typename... A >

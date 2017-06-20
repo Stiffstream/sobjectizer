@@ -11,13 +11,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/details/build_tests.rb"
 
-	required_prj "#{path}/environment/moveable_params/prj.ut.rb"
-	required_prj "#{path}/environment/autoshutdown/prj.ut.rb"
-	required_prj "#{path}/environment/autoshutdown_in_init/prj.ut.rb"
-	required_prj "#{path}/environment/autoshutdown_disabled/prj.ut.rb"
-	required_prj "#{path}/environment/add_disp_after_start/prj.ut.rb"
-	required_prj "#{path}/environment/reg_coop_after_stop/prj.ut.rb"
-	required_prj "#{path}/environment/autoname_coop/prj.ut.rb"
+	required_prj "#{path}/environment/build_tests.rb"
 
 	required_prj "#{path}/wrapped_env/build_tests.rb"
 

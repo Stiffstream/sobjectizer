@@ -428,6 +428,15 @@ const int rc_mutable_msg_cannot_be_periodic = 173;
  */
 const int rc_subscription_to_mutable_msg_from_mpmc_mbox = 174;
 
+/*!
+ * \brief An attempt to set up a new stop_guard when the stop operation
+ * is already in progress.
+ *
+ * \since
+ * v.5.5.19.2
+ */
+const int rc_cannot_set_stop_guard_when_stop_is_started = 175;
+
 //! \name Common error codes.
 //! \{
 

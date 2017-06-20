@@ -1,0 +1,8 @@
+project(tests)
+
+add_subdirectory(parallel_remove)
+add_subdirectory(parallel_remove_50k)
+add_subdirectory(simple)
+add_subdirectory(some_actions_after_stop)
+add_subdirectory(stop_in_progress_nothrow)
+add_subdirectory(stop_in_progress_throw)

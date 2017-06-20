@@ -269,7 +269,7 @@ using default_disp_impl_t =
  * v.5.5.19
  */
 using stats_controller_t =
-	reusable::stats_controller_t< so_5::details::actual_lock_holder_t >;
+	reusable::stats_controller_t< so_5::details::actual_lock_holder_t<> >;
 
 //
 // env_infrastructure_t

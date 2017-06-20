@@ -69,3 +69,4 @@ add_subdirectory(mutable_msg_agents)
 add_subdirectory(modify_resend_as_immutable)
 add_subdirectory(two_handlers)
 
+add_subdirectory(stop_guard)

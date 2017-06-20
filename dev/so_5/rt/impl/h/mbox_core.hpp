@@ -16,14 +16,16 @@
 #include <functional>
 #include <mutex>
 
-#include <so_5/h/atomic_refcounted.hpp>
-#include <so_5/h/msg_tracing.hpp>
-
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/message_limit.hpp>
+
+#include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/h/msg_tracing.hpp>
+
+#include <so_5/h/custom_mbox.hpp>
 
 namespace so_5
 {
@@ -117,6 +119,16 @@ class mbox_core_t
 		destroy_mbox(
 			//! Mbox name.
 			const std::string & name );
+
+		/*!
+		 * \brief Create a custom mbox.
+		 *
+		 * \since
+		 * v.5.5.19.2
+		 */
+		mbox_t
+		create_custom_mbox(
+			::so_5::custom_mbox_details::creator_iface_t & creator );
 
 		/*!
 		 * \since

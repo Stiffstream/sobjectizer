@@ -21,6 +21,10 @@
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/msg_tracing.hpp>
 
+#include <so_5/h/custom_mbox.hpp>
+
+#include <so_5/h/stop_guard.hpp>
+
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/mchain.hpp>
@@ -1529,7 +1533,7 @@ class SO_5_TYPE environment_t
 					rc_layer_does_not_exist,
 					"layer does not exist" );
 
-			return dynamic_cast< SO_LAYER * >( layer );
+			return layer;
 		}
 
 		//! Add an additional layer.
@@ -1792,6 +1796,144 @@ class SO_5_TYPE environment_t
 			//! Timeout before the first delivery.
 			std::chrono::steady_clock::duration pause );
 
+		//! Create a custom mbox.
+		/*!
+		 * \tparam LAMBDA type of actual lambda with all creation actions.
+		 * The LAMBDA must be lambda-function or functional objects with
+		 * the following format:
+		 * \code
+		 * so_5::mbox_t lambda(const so_5::mbox_creation_data_t &);
+		 * \endcode
+		 *
+		 * \since
+		 * v.5.5.19.2
+		 */
+		template< typename LAMBDA >
+		mbox_t
+		make_custom_mbox( LAMBDA && lambda )
+			{
+				using namespace custom_mbox_details;
+
+				creator_template_t< LAMBDA > creator( std::forward<LAMBDA>(lambda) );
+				return do_make_custom_mbox( creator );
+			}
+
+		/*!
+		 * \name Methods for working with stop_guards.
+		 * \{
+		 */
+		//! Set up a new stop_guard.
+		/*!
+		 * Usage examples:
+		 * \code
+		 * // Add a stop_guard.
+		 * // Note: an exception can be thrown if stop is in progress
+		 * class my_stop_guard
+		 * 	: public so_5::stop_guard_t
+		 * 	, public std::enable_shared_from_this< my_stop_guard >
+		 * {...};
+		 *
+		 * class my_agent : public so_5::agent_t
+		 * {
+		 * 	...
+		 * 	void on_some_event()
+		 * 	{
+		 * 		// We need a stop_guard here.
+		 * 		m_my_guard = std::make_shared< my_stop_guard >(...);
+		 * 		so_environment().setup_stop_guard( m_my_guard );
+		 * 	}
+		 * private :
+		 * 	so_5::stop_guard_shptr_t m_my_guard;
+		 * };
+		 *
+		 * //
+		 * // Add a stop_guard without throwing an exception if stop is in progress
+		 * //
+		 * class my_stop_guard
+		 * 	: public so_5::stop_guard_t
+		 * 	, public std::enable_shared_from_this< my_stop_guard >
+		 * {...};
+		 *
+		 * class my_agent : public so_5::agent_t
+		 * {
+		 * 	...
+		 * 	void on_some_event()
+		 * 	{
+		 * 		// We need a stop_guard here.
+		 * 		m_my_guard = std::make_shared< my_stop_guard >(...);
+		 * 		const auto r = so_environment().setup_stop_guard(
+		 * 				m_my_guard,
+		 * 				so_5::stop_guard_t::what_if_stop_in_progress_t::return_negative_result );
+		 *			if( so_5::stop_guard_t::setup_result_t::stop_already_in_progress  == r )
+		 *				... // handle error here.
+		 * 	}
+		 * private :
+		 * 	so_5::stop_guard_shptr_t m_my_guard;
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * Uniqueness of stop_guard is not checked. It means that
+		 * it is possible to add the same stop_guard several times.
+		 * But it seems to be useless.
+		 *
+		 * \since
+		 * v.5.5.19.2
+		 */
+		stop_guard_t::setup_result_t
+		setup_stop_guard(
+			//! Stop guard to be set.
+			//! Should not be nullptr.
+			stop_guard_shptr_t guard,
+			//! What to do is the stop operation is already in progress?
+			stop_guard_t::what_if_stop_in_progress_t reaction_on_stop_in_progress
+				= stop_guard_t::what_if_stop_in_progress_t::throw_exception );
+
+		//! Remove stop_guard and complete the stop operation if necessary.
+		/*!
+		 * Every stop_guard which was added to the environment must be
+		 * explicitely removed from the environment. It is done by this method.
+		 * If there is no more stop_guard and the stop operation is in progress
+		 * then the environment will complete the stop operation.
+		 *
+		 * Usage examples:
+		 * \code
+		 * // Note: an exception can be thrown if stop is in progress
+		 * class my_stop_guard
+		 * 	: public so_5::stop_guard_t
+		 * 	, public std::enable_shared_from_this< my_stop_guard >
+		 * {...};
+		 *
+		 * class my_agent : public so_5::agent_t
+		 * {
+		 * 	...
+		 * 	void on_some_event()
+		 * 	{
+		 * 		// We need a stop_guard here.
+		 * 		m_my_guard = std::make_shared< my_stop_guard >(...);
+		 * 		so_environment().setup_stop_guard( m_my_guard );
+		 * 	}
+		 *
+		 * 	void on_work_finished_signal()
+		 * 	{
+		 * 		// Stop_guard must be removed now.
+		 * 		so_environment().remove_stop_guard( m_my_guard );
+		 * 	}
+		 * private :
+		 * 	so_5::stop_guard_shptr_t m_my_guard;
+		 * };
+		 * \endcode
+		 * \since
+		 * v.5.5.19.2
+		 */
+		void
+		remove_stop_guard(
+			//! Stop guard to be removed.
+			stop_guard_shptr_t guard );
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Access to an additional layer.
 		layer_t *
@@ -1808,6 +1950,15 @@ class SO_5_TYPE environment_t
 		void
 		remove_extra_layer(
 			const std::type_index & type );
+
+		//! Actual creation of a custom mbox.
+		/*!
+		 * \since
+		 * v.5.5.19.2
+		 */
+		mbox_t
+		do_make_custom_mbox(
+			custom_mbox_details::creator_iface_t & creator );
 
 		struct internals_t;
 

@@ -4,13 +4,7 @@ if( NOT CYGWIN )
   add_subdirectory(spinlocks/llvm_inspired_test)
 endif()
 
-add_subdirectory(environment/moveable_params)
-add_subdirectory(environment/autoshutdown)
-add_subdirectory(environment/autoshutdown_in_init)
-add_subdirectory(environment/autoshutdown_disabled)
-add_subdirectory(environment/add_disp_after_start)
-add_subdirectory(environment/reg_coop_after_stop)
-add_subdirectory(environment/autoname_coop)
+add_subdirectory(environment)
 
 add_subdirectory(wrapped_env)
 

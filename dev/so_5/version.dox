@@ -2,6 +2,25 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_19_2 5.5.19.2 "Nevado de Poquis"
+
+	A new entity so_5::stop_guard_t is added. See \ref so_5_5_19__stop_guards
+	for more details.
+
+	New methods: so_5::environment_t::setup_stop_guard() and
+	so_5::environment_t::remove_stop_guard().
+
+	New example stop_guard is added.
+
+	Method so_5::environment_t::make_custom_mbox() and new type
+	so_5::mbox_creation_data_t. See \ref so_5_5_19__custom_mbox for more
+	details.
+
+	Class so_5::null_mutex_t added.
+
+	Helper template so_5::details::lock_holder_detector added to simplify
+	development of SObjectizer's extensions and additional libraries.
+
 \section so_5__5_19 5.5.19 "Nevado de Poquis"
 
 	New format of send-functions, see \ref

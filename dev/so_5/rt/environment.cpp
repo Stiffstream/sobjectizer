@@ -11,6 +11,7 @@
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
+#include <so_5/rt/impl/h/stop_guard_repo.hpp>
 
 #include <so_5/rt/impl/h/run_stage.hpp>
 
@@ -226,6 +227,14 @@ struct environment_t::internals_t
 
 	//! An utility for mboxes.
 	impl::mbox_core_ref_t m_mbox_core;
+
+	/*!
+	 * \brief A repository of stop_guards.
+	 *
+	 * \since
+	 * v.5.5.19.2
+	 */
+	impl::stop_guard_repository_t m_stop_guards;
 
 	/*!
 	 * \brief A specific infrastructure for environment.
@@ -555,7 +564,10 @@ environment_t::run()
 void
 environment_t::stop()
 {
-	m_impl->m_infrastructure->stop();
+	// Since v.5.5.19.2 there is a new shutdown procedure:
+	const auto action = m_impl->m_stop_guards.initiate_stop();
+	if( impl::stop_guard_repository_t::action_t::do_actual_stop == action )
+		m_impl->m_infrastructure->stop();
 }
 
 void
@@ -606,6 +618,41 @@ bool
 environment_t::autoshutdown_disabled() const
 {
 	return m_impl->m_autoshutdown_disabled;
+}
+
+mbox_t
+environment_t::do_make_custom_mbox(
+	custom_mbox_details::creator_iface_t & creator )
+{
+	return m_impl->m_mbox_core->create_custom_mbox( creator );
+}
+
+stop_guard_t::setup_result_t
+environment_t::setup_stop_guard(
+	stop_guard_shptr_t guard,
+	stop_guard_t::what_if_stop_in_progress_t reaction_on_stop_in_progress )
+{
+	const auto result = m_impl->m_stop_guards.setup_guard( std::move(guard) );
+	if( stop_guard_t::setup_result_t::stop_already_in_progress == result 
+			&& stop_guard_t::what_if_stop_in_progress_t::throw_exception ==
+					reaction_on_stop_in_progress )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_cannot_set_stop_guard_when_stop_is_started,
+				"stop_guard can't be set because the stop operation is "
+				"already in progress" );
+	}
+
+	return result;
+}
+
+void
+environment_t::remove_stop_guard(
+	stop_guard_shptr_t guard )
+{
+	const auto action = m_impl->m_stop_guards.remove_guard( guard );
+	if( impl::stop_guard_repository_t::action_t::do_actual_stop == action )
+		m_impl->m_infrastructure->stop();
 }
 
 void

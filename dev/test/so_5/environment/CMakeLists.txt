@@ -1,0 +1,10 @@
+project(tests)
+
+add_subdirectory(add_disp_after_start)
+add_subdirectory(autoname_coop)
+add_subdirectory(autoshutdown)
+add_subdirectory(autoshutdown_disabled)
+add_subdirectory(autoshutdown_in_init)
+add_subdirectory(moveable_params)
+add_subdirectory(reg_coop_after_stop)
+add_subdirectory(stop_guards)

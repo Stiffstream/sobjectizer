@@ -16,6 +16,26 @@
 
 namespace so_5 {
 
+//
+// null_mutex_t
+//
+/*!
+ * \brief A class which is like std::mutex but does not do any real actions.
+ *
+ * \since
+ * v.5.5.19.2
+ */
+class null_mutex_t
+	{
+	public :
+		null_mutex_t() {}
+		null_mutex_t( const null_mutex_t & ) = delete;
+		null_mutex_t( null_mutex_t && ) = delete;
+
+		void lock() {}
+		void unlock() {}
+	};
+
 namespace details {
 
 //
@@ -39,9 +59,13 @@ namespace details {
 	using mtsafe_coop_repo_t = coop_repo_t< so_5::details::actual_lock_holder_t >;
  * \endcode
  *
+ * \tparam LOCK_TYPE type of lock to be used for object protection.
+ * Will be used with std::lock_guard.
+ *
  * \since
  * v.5.5.19
  */
+template< typename LOCK_TYPE = std::mutex >
 class actual_lock_holder_t
 	{
 		//! Actual lock.
@@ -50,7 +74,7 @@ class actual_lock_holder_t
 		 * This is mutable attibute because locking can be necessary
 		 * even in const methods of derived classes.
 		 */
-		mutable std::mutex m_lock;
+		mutable LOCK_TYPE m_lock;
 
 	public :
 		//! Do actual lock and perform necessary action.
@@ -58,7 +82,7 @@ class actual_lock_holder_t
 		auto
 		lock_and_perform( LAMBDA && l ) const -> decltype(l())
 			{
-				std::lock_guard< std::mutex > lock{ m_lock };
+				std::lock_guard< LOCK_TYPE > lock{ m_lock };
 				return l();
 			}
 	};
@@ -97,6 +121,41 @@ class no_lock_holder_t
 			{
 				return l();
 			}
+	};
+
+//
+// lock_holder_detector
+//
+/*!
+ * \brief A selector of actual lock_holder type in dependency of lock type.
+ *
+ * Usage example:
+ * \code
+ * template< typename LOCK_TYPE >
+ * class my_thread_safe_class
+ * 	: public so_5::details::lock_holder_detector<LOCK_TYPE>::type
+ * 	{
+ * 		void some_method() {
+ * 			this->lock_and_perform( [&] {
+ * 				... // Some actions.
+ * 			} );
+ * 		}
+ * 	};
+ * \endcode
+ *
+ * \since
+ * v.5.5.19.2
+ */
+template< typename LOCK_TYPE >
+struct lock_holder_detector
+	{
+		using type = actual_lock_holder_t<LOCK_TYPE>;
+	};
+
+template<>
+struct lock_holder_detector<null_mutex_t>
+	{
+		using type = no_lock_holder_t;
 	};
 
 } /* namespace details */

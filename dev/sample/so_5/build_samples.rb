@@ -74,4 +74,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'mutable_msg_agents' ]
 	example[ 'modify_resend_as_immutable' ]
 	example[ 'two_handlers' ]
+
+	example[ 'stop_guard' ]
 }

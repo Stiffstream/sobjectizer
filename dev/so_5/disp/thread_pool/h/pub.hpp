@@ -497,7 +497,8 @@ auto coop = env.create_coop( so_5::autoname,
 	private_disp->binder( so_5::disp::thread_pool::bind_params_t{} ) );
 \endcode
  *
- * \sincev.5.5.4
+ * \since
+ * v.5.5.4
  */
 inline private_dispatcher_handle_t
 create_private_disp(
