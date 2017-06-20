@@ -1,5 +1,8 @@
 /*
- * A test for parallel remove of 50K stop_guards.
+ * A test for parallel remove of 5K stop_guards.
+ *
+ * NOTE: count of agents is reduced to 5K because it takes
+ * to much time inside virtual machines.
  */
 
 #include <so_5/all.hpp>
@@ -43,7 +46,7 @@ private :
 	const so_5::mbox_t m_owner;
 };
 
-const std::size_t N = 50000u;
+const std::size_t N = 5000u;
 
 class first_worker_t final : public so_5::agent_t
 {

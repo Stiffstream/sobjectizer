@@ -15,6 +15,7 @@ set(SO_5_SRC exception.cpp
 	timers.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
+	stop_guard.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
