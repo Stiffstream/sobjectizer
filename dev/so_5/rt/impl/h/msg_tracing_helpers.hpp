@@ -256,6 +256,14 @@ struct tracing_disabled_base
 					const unsigned int )
 					{}
 
+				// NOTE: this dummy method added in v.5.5.19.3.
+				template< typename... ARGS >
+				void
+				make_trace(
+					const char * /*action_name_suffix*/,
+					ARGS &&... /*args*/ ) const
+					{}
+
 				void
 				no_subscribers() const {}
 
@@ -314,23 +322,6 @@ class tracing_enabled_base
 				const message_ref_t & m_message;
 				const details::overlimit_deep m_overlimit_deep;
 
-				template< typename... ARGS >
-				void
-				make_trace(
-					const char * action_name_suffix,
-					ARGS &&... args ) const
-					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name{
-										m_op_name, action_name_suffix },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
-								std::forward< ARGS >(args)... );
-					}
-
 			public :
 				deliver_op_tracer(
 					const tracing_enabled_base & tracing_base,
@@ -346,6 +337,24 @@ class tracing_enabled_base
 					,	m_message( message )
 					,	m_overlimit_deep( overlimit_reaction_deep )
 					{
+					}
+
+				// NOTE: since v.5.5.19.3 this is a public method.
+				template< typename... ARGS >
+				void
+				make_trace(
+					const char * action_name_suffix,
+					ARGS &&... args ) const
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name{
+										m_op_name, action_name_suffix },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								std::forward< ARGS >(args)... );
 					}
 
 				void

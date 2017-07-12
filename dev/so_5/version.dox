@@ -2,6 +2,14 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_19_3 5.5.19.3 "Nevado de Poquis"
+
+	Some version-specific macros are introduced: SO_5_VERSION_MAJOR,
+	SO_5_VERSION_MINOR, SO_5_VERSION_PATCH, SO_5_VERSION, SO_5_VERSION_MAKE.
+
+	Method make_trace in msg_tracing-implementation tracers is now public. It
+	simplifies implementation of custom mboxes.
+
 \section so_5__5_19_2 5.5.19.2 "Nevado de Poquis"
 
 	A new entity so_5::stop_guard_t is added. See \ref so_5_5_19__stop_guards

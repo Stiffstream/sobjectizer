@@ -29,3 +29,5 @@
 #include <so_5/disp/prio_one_thread/quoted_round_robin/h/pub.hpp>
 #include <so_5/disp/prio_dedicated_threads/one_per_prio/h/pub.hpp>
 
+#include <so_5/h/version.hpp>
+

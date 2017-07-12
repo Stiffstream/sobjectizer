@@ -17,7 +17,8 @@ class a_hello_t : public so_5::agent_t
 		// A reaction to start of work in SObjectizer.
 		virtual void so_evt_start() override
 		{
-			std::cout << "Hello, world! This is SObjectizer v.5." << std::endl;
+			std::cout << "Hello, world! This is SObjectizer v.5 ("
+					<< SO_5_VERSION << ")" << std::endl;
 
 			// Shutting down SObjectizer.
 			so_environment().stop();
