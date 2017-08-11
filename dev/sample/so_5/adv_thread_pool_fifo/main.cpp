@@ -34,10 +34,10 @@ void create_logger( so_5::environment_t & env )
 	} );
 }
 
-void trace( const so_5::agent_t & agent, const std::string what )
+void trace( const so_5::agent_t & agent, std::string what )
 {
 	so_5::send< trace_msg >( agent.so_environment().create_mbox( "log" ),
-		&agent, what, std::this_thread::get_id() );
+		&agent, std::move(what), std::this_thread::get_id() );
 }
 
 // Main part of the example.
