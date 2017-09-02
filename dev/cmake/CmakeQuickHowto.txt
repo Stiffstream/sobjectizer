@@ -104,4 +104,4 @@ Configuration=Release argument)
   :: or msbuild /m /p:Configuration=Release RUN_TESTS.vcxproj
 
 If You certain that You know better way to use cmake crossaplatform - let me know.
-san@masterspline.net or tell SObjectizer's core developers.
+san@masterspline.eu or tell SObjectizer's core developers.
