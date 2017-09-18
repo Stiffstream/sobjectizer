@@ -51,7 +51,7 @@ class storage_t : public subscription_storage_t
 			std::size_t threshold,
 			subscription_storage_unique_ptr_t small_storage,
 			subscription_storage_unique_ptr_t large_storage );
-		~storage_t();
+		~storage_t() override;
 
 		virtual void
 		create_event_subscription(

@@ -660,7 +660,7 @@ environment_t::impl__run_stats_controller_and_go_further()
 {
 	impl::run_stage(
 			"run_stats_controller",
-			[this] {
+			[] {
 				/* there is no need to turn_on controller automatically */
 			},
 			[this] { m_impl->m_infrastructure->stats_controller().turn_off(); },

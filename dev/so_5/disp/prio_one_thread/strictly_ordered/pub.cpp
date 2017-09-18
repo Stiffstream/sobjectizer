@@ -452,7 +452,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		/*!
 		 * Destructors shuts an instance down and waits for it.
 		 */
-		~real_private_dispatcher_t()
+		~real_private_dispatcher_t() override
 			{
 				m_disp->shutdown();
 				m_disp->wait();

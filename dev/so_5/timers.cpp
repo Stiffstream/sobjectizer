@@ -149,7 +149,7 @@ class actual_timer_t : public timer_t
 			:	m_thread( thread )
 			,	m_timer( thread->allocate() )
 			{}
-		virtual ~actual_timer_t()
+		virtual ~actual_timer_t() override
 			{
 				release();
 			}

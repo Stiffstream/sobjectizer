@@ -46,7 +46,7 @@ class storage_t : public subscription_storage_t
 	{
 	public :
 		storage_t( agent_t * owner );
-		~storage_t();
+		~storage_t() override;
 
 		virtual void
 		create_event_subscription(

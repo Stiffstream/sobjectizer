@@ -277,7 +277,7 @@ class data_source_t : public stats::manually_registered_source_t
 					} );
 
 				collector.for_each_queue(
-					[this, &mbox]( const queue_description_t & queue ) {
+					[&mbox]( const queue_description_t & queue ) {
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								queue.m_prefix,

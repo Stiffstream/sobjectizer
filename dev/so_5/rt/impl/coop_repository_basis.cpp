@@ -328,7 +328,7 @@ coop_repository_basis_t::register_coop(
 	 * coop_t::increment_usage_count().
 	 */
 
-	if( 0 == coop_ptr.get() )
+	if( nullptr == coop_ptr.get() )
 		SO_5_THROW_EXCEPTION(
 			rc_zero_ptr_to_coop,
 			"zero ptr to coop passed" );

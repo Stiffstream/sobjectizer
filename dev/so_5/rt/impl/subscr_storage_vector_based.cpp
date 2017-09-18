@@ -52,7 +52,7 @@ class storage_t : public subscription_storage_t
 		storage_t(
 			agent_t * owner,
 			std::size_t initial_capacity );
-		~storage_t();
+		~storage_t() override;
 
 		virtual void
 		create_event_subscription(

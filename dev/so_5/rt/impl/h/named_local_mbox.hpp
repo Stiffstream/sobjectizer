@@ -45,7 +45,7 @@ class named_local_mbox_t
 			impl::mbox_core_t & mbox_core );
 
 	public:
-		virtual ~named_local_mbox_t();
+		virtual ~named_local_mbox_t() override;
 
 		virtual mbox_id_t
 		id() const override;

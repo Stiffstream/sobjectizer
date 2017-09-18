@@ -494,7 +494,7 @@ agent_t::agent_t(
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
 	,	m_working_thread_id( so_5::query_current_thread_id() )
-	,	m_agent_coop( 0 )
+	,	m_agent_coop( nullptr )
 	,	m_priority( ctx.options().query_priority() )
 {
 }
@@ -534,7 +534,7 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const
 const std::string &
 agent_t::so_coop_name() const
 {
-	if( 0 == m_agent_coop )
+	if( nullptr == m_agent_coop )
 		throw exception_t(
 			"agent isn't bound to cooperation yet",
 			rc_agent_has_no_cooperation );
