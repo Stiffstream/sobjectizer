@@ -58,7 +58,7 @@ std::string create_agent_name( const std::string & base, int i )
 void init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.introduce_coop( [&env]( so_5::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		// Adding agents which will work on the default dispatcher.
 		for( int i = 0; i < 4; ++i )
 		{

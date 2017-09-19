@@ -24,7 +24,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 			{
 				std::cout << "test_mbox_t::ctor()" << std::endl;
 			}
-		virtual ~test_mbox_t()
+		virtual ~test_mbox_t() override
 			{
 				std::cout << "test_mbox_t::dtor()" << std::endl;
 

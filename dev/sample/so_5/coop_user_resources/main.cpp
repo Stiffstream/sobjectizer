@@ -49,7 +49,7 @@ class a_child_t :	public so_5::agent_t
 		{
 			m_logger.log( m_agent_name + ": created" );
 		}
-		~a_child_t()
+		~a_child_t() override
 		{
 			m_logger.log( m_agent_name + ": destroyed" );
 		}
@@ -82,7 +82,7 @@ class a_parent_t : public so_5::agent_t
 			m_logger.log( "parent created" );
 		}
 
-		~a_parent_t()
+		~a_parent_t() override
 		{
 			m_logger.log( "parent destroyed" );
 		}

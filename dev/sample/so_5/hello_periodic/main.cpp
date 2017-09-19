@@ -64,7 +64,7 @@ void a_hello_t::so_define_agent()
 
 void a_hello_t::so_evt_start()
 {
-	time_t t = time( 0 );
+	time_t t = time( nullptr );
 	std::cout << asctime( localtime( &t ) )
 		<< "a_hello_t::so_evt_start()" << std::endl;
 
@@ -89,7 +89,7 @@ void a_hello_t::so_evt_start()
 
 void a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 {
-	time_t t = time( 0 );
+	time_t t = time( nullptr );
 	std::cout << asctime( localtime( &t ) ) << msg.m_message << std::endl;
 
 	if( 5 == ++m_evt_count )
@@ -127,7 +127,7 @@ void create_shutdowner_coop( so_5::environment_t & env )
 		// Shutdowner agent.
 		coop.define_agent().event< msg_stop_signal >( mbox,
 			[&env, mbox]() {
-				time_t t = time( 0 );
+				time_t t = time( nullptr );
 				std::cout << asctime( localtime( &t ) )
 					<< "Stop SObjectizer..." << std::endl;
 

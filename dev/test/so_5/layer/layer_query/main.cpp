@@ -104,10 +104,10 @@ UT_UNIT_TEST( check_1_2_exist )
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 
-	test_environment_t so_env( tl1, tl2, 0 );
+	test_environment_t so_env( tl1, tl2, nullptr );
 
 	separate_so_thread::run_on( so_env, [&]() {
-			check_layers_match( tl1, tl2, 0, so_env );
+			check_layers_match( tl1, tl2, nullptr, so_env );
 		} );
 }
 
@@ -116,10 +116,10 @@ UT_UNIT_TEST( check_1_3_exist )
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
-	test_environment_t so_env( tl1, 0, tl3 );
+	test_environment_t so_env( tl1, nullptr, tl3 );
 
 	separate_so_thread::run_on( so_env, [&]() {
-			check_layers_match( tl1, 0, tl3, so_env );
+			check_layers_match( tl1, nullptr, tl3, so_env );
 		} );
 }
 
@@ -128,10 +128,10 @@ UT_UNIT_TEST( check_2_3_exist )
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
-	test_environment_t so_env( 0, tl2, tl3 );
+	test_environment_t so_env( nullptr, tl2, tl3 );
 
 	separate_so_thread::run_on( so_env, [&]() {
-			check_layers_match( 0, tl2, tl3, so_env );
+			check_layers_match( nullptr, tl2, tl3, so_env );
 		} );
 }
 

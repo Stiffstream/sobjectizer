@@ -29,7 +29,7 @@ void init( so_5::environment_t & env )
 class coop_listener_impl_t : public so_5::coop_listener_t
 {
 	public:
-		virtual ~coop_listener_impl_t()
+		virtual ~coop_listener_impl_t() override
 		{}
 
 		// A reaction to the cooperation registration.

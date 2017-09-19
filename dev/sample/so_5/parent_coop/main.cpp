@@ -44,7 +44,7 @@ class a_child_t : public so_5::agent_t
 			,	m_task_id( task_id )
 		{}
 
-		virtual ~a_child_t()
+		virtual ~a_child_t() override
 		{
 			std::cout << "Child: agent of the task " << m_task_id
 					<< " has destroyed." << std::endl;
@@ -97,7 +97,7 @@ class a_parent_t : public so_5::agent_t
 		a_parent_t( context_t ctx ) :	so_5::agent_t( ctx )
 		{}
 
-		virtual ~a_parent_t()
+		virtual ~a_parent_t() override
 		{
 			std::cout << "Parent: agent has destroyed." << std::endl;
 		}

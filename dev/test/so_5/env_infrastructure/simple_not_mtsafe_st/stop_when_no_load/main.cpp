@@ -30,7 +30,7 @@ main()
 									agent_started = true;
 									so_5::send< stop >(a);
 								} );
-							a.event( a, [&coop, &stop_received]( const stop & ) {
+							a.event( a, [&stop_received]( const stop & ) {
 									// Do nothing.
 									// Shutdown must be initiated anyway.
 									stop_received = true;

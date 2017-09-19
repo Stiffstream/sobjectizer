@@ -86,7 +86,7 @@ void a_hello_t::evt_stop_signal()
 
 void a_hello_t::show_message( const std::string & what )
 {
-	time_t t = time( 0 );
+	time_t t = time( nullptr );
 	std::cout << std::asctime( std::localtime( &t ) ) << what << std::endl;
 }
 

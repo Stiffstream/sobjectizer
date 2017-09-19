@@ -21,7 +21,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 			{
 			}
 
-		virtual ~test_mbox_t()
+		virtual ~test_mbox_t() override
 			{
 			}
 

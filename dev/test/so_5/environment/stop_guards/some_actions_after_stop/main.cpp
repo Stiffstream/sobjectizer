@@ -47,7 +47,7 @@ void make_stuff(
 		a.event( a, [a]( so_5::mhood_t<step_2> ) {
 			so_5::send_delayed< step_3 >( a, std::chrono::milliseconds(50) );
 		} );
-		a.event( a, [a, step_3_completed, &env, guard]( so_5::mhood_t<step_3> ) {
+		a.event( a, [step_3_completed, &env, guard]( so_5::mhood_t<step_3> ) {
 			step_3_completed.get() = true;
 			env.remove_stop_guard( guard );
 		} );

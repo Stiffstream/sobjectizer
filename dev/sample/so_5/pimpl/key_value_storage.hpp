@@ -42,7 +42,7 @@ class a_key_value_storage_t : public so_5::agent_t
 {
 public :
 	a_key_value_storage_t( context_t ctx );
-	~a_key_value_storage_t();
+	~a_key_value_storage_t() override;
 
 	virtual void so_define_agent() override;
 

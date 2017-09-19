@@ -94,7 +94,7 @@ class a_test_t : public so_5::agent_t
 			,	m_collector( collector )
 		{
 			so_subscribe_self().event< msg_hello >(
-				[this, shutdowner_mbox]() {
+				[shutdowner_mbox]() {
 					shutdowner_mbox->deliver_signal< msg_shutdown >();
 				} );
 		}

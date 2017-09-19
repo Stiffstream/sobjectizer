@@ -101,7 +101,7 @@ test_agent_t::evt_test_1(
 	const so_5::event_data_t< test_message_1 > &
 		msg )
 {
-	if( 0 == msg.get() )
+	if( nullptr == msg.get() )
 		throw std::runtime_error(
 			"evt_test_1: 0 == msg.get()" );
 
@@ -118,7 +118,7 @@ test_agent_t::evt_test_2(
 	const so_5::event_data_t< test_message_2 > &
 		msg )
 {
-	if( 0 == msg.get() )
+	if( nullptr == msg.get() )
 		throw std::runtime_error(
 			"evt_test_2: 0 == msg.get()" );
 
@@ -135,7 +135,7 @@ test_agent_t::evt_test_3(
 	const so_5::event_data_t< test_message_3 > &
 		msg )
 {
-	if( 0 == msg.get() )
+	if( nullptr == msg.get() )
 		throw std::runtime_error(
 			"evt_test_3: 0 == msg.get()" );
 

@@ -29,7 +29,7 @@ void make_stuff( so_5::environment_t & env )
 {
 	env.introduce_coop( [&]( so_5::coop_t & coop ) {
 		auto a = coop.define_agent();
-		a.on_start( [a, &env] {
+		a.on_start( [&env] {
 			env.stop();
 			const auto r = env.setup_stop_guard(
 					std::make_shared< empty_stop_guard_t >(),

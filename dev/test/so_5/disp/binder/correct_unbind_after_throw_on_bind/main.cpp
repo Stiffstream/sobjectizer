@@ -79,7 +79,7 @@ class dispatcher_t
 			:	m_bind_calls( 0 )
 			,	m_unbind_calls( 0 )
 		{}
-		~dispatcher_t()
+		~dispatcher_t() override
 		{
 			if( !m_agents.empty() )
 			{

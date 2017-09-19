@@ -39,7 +39,7 @@ public:
 	a_state_swither_t( context_t ctx ) : so_5::agent_t{ ctx }
 	{}
 
-	virtual ~a_state_swither_t()
+	virtual ~a_state_swither_t() override
 	{}
 
 	// Definition of the agent for SObjectizer.

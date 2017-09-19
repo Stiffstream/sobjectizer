@@ -129,7 +129,7 @@ class has_func_call_operator
 
 	public :
 		enum { value =
-			std::is_same< std::true_type, decltype(test<L>(0)) >::value };
+			std::is_same< std::true_type, decltype(test<L>(nullptr)) >::value };
 	};
 
 /*!

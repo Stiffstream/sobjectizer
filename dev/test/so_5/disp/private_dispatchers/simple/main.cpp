@@ -152,7 +152,7 @@ init( so_5::environment_t & env )
 	auto atp_agent = coop->define_agent( adv_thread_pool->binder( atp_params ) );
 	atp_agent
 		.event< msg_start >( start_mbox,
-				[collector, atp_agent]() {
+				[atp_agent]() {
 					for( int i = 0; i != 10; ++i )
 						so_5::send< msg_start >( atp_agent.direct_mbox() );
 				} )

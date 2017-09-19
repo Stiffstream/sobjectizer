@@ -252,7 +252,7 @@ class request_generator : public so_5::agent_t
 					}
 
 				auto make_result =
-					[this]( unsigned int & param, unsigned int l, unsigned int r ) {
+					[]( unsigned int & param, unsigned int l, unsigned int r ) {
 							param -= 1;
 							return random_value( l, r );
 					};

@@ -30,7 +30,7 @@ launch_with(
 										a,
 										std::chrono::milliseconds(250) );
 							} );
-						a.event( a, [&coop]( const stop & ) {
+						a.event( a, []( const stop & ) {
 								// Do nothing.
 								// Environment will be stopped anyway.
 							} );

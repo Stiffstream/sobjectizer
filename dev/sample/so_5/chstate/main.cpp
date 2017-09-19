@@ -61,9 +61,6 @@ class a_state_swither_t : public so_5::agent_t
 			:	so_5::agent_t{ ctx }
 		{}
 
-		virtual ~a_state_swither_t()
-		{}
-
 		// Definition of the agent for SObjectizer.
 		virtual void so_define_agent() override;
 
@@ -171,7 +168,7 @@ void a_state_swither_t::evt_handler_shutdown()
 
 void a_state_swither_t::show_event_invocation( const char * event_name )
 {
-	time_t t = time( 0 );
+	time_t t = time( nullptr );
 	std::cout << asctime( localtime( &t ) )
 		<< event_name << ", state: " << so_current_state().query_name()
 		<< std::endl;

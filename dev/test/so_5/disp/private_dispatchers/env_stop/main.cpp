@@ -53,7 +53,7 @@ make_stopper( so_5::environment_t & env )
 			struct msg_stop : public so_5::signal_t {};
 
 			auto a1 = coop.define_agent();
-			a1.on_start( [&coop, a1] { so_5::send_to_agent< msg_stop >( a1 ); } )
+			a1.on_start( [a1] { so_5::send_to_agent< msg_stop >( a1 ); } )
 				.event< msg_stop >( a1, [&coop] { coop.environment().stop(); } );
 
 		} );
