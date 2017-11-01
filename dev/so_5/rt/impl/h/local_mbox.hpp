@@ -1012,13 +1012,15 @@ class local_mbox_template
 
 								SO_5_THROW_EXCEPTION(
 										so_5::rc_no_svc_handlers,
-										"no service handlers (no subscribers for message)" );
+										std::string( "no service handlers (no subscribers for message)"
+										", msg_type: " ) + msg_type.name() );
 							}
 
 						if( 1 != it->second.size() )
 							SO_5_THROW_EXCEPTION(
 									so_5::rc_more_than_one_svc_handler,
-									"more than one service handler found" );
+									std::string( "more than one service handler found"
+											", msg_type: " ) + msg_type.name() );
 
 						do_deliver_service_request_to_subscriber(
 								tracer,
@@ -1075,8 +1077,10 @@ class local_mbox_template
 
 						SO_5_THROW_EXCEPTION(
 								so_5::rc_no_svc_handlers,
-								"no service handlers (no subscribers for message or "
-								"subscriber is blocked by delivery filter)" );
+								std::string( "no service handlers (no subscribers "
+									"for message or subscriber is blocked by "
+									"delivery filter), msg_type: " )
+								+ msg_type.name() );
 					}
 			}
 

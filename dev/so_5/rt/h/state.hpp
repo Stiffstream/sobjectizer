@@ -613,6 +613,151 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * \return true if subscription is present.
+		 *
+		 * Usage example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!some_state.has_subscription<some_message>(cmd->mbox()))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		some_state.event(cmd->mbox(), ...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \sa so_5::agent_t::so_has_subscription
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< typename MSG >
+		bool
+		has_subscription( const mbox_t & from ) const;
+
+		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * Type is deduced from the signature of event_handler.
+		 *
+		 * \return true if subscription is present.
+		 *
+		 * Usage example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!some_state.has_subscription(cmd->mbox(), &my_agent::some_event))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		some_state.event(cmd->mbox(), ...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \sa so_5::agent_t::so_has_subscription
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+		bool
+		has_subscription(
+			const mbox_t & from,
+			RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const;
+
+		/*!
+		 * \brief Drop subscription.
+		 *
+		 * Drops the subscription for the message/signal of type \a MSG for
+		 * the state (if this subscription is present). Do nothing if subscription
+		 * is not exists.
+		 *
+		 * Usage example:
+		 * \code
+		 * class my_agent : public so_5::agent_t
+		 * {
+		 * 	state_t some_state{ this };
+		 * 	...
+		 * 	virtual void so_define_agent() override
+		 * 	{
+		 * 		some_state.event(some_mbox, &my_agent::some_handler);
+		 * 		...
+		 * 	}
+		 * 	...
+		 * 	void evt_some_another_handler()
+		 * 	{
+		 * 		// A subscription is no more needed.
+		 * 		some_state.drop_subscription<msg>(some_mbox);
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * This method should be called only from the working context of the agent.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< typename MSG >
+		void
+		drop_subscription( const mbox_t & from ) const;
+
+		/*!
+		 * \brief Drop subscription.
+		 *
+		 * Drops the subscription for the message/signal for the state (if this
+		 * subscription is present). Do nothing if subscription is not exists.
+		 *
+		 * Type of a message is deduced from event handler signature.
+		 *
+		 * Usage example:
+		 * \code
+		 * class my_agent : public so_5::agent_t
+		 * {
+		 * 	state_t some_state{ this };
+		 * 	...
+		 * 	virtual void so_define_agent() override
+		 * 	{
+		 * 		some_state.event(some_mbox, &my_agent::some_handler);
+		 * 		...
+		 * 	}
+		 * 	...
+		 * 	void some_another_handler()
+		 * 	{
+		 * 		// A subscription is no more needed.
+		 * 		some_state.drop_subscription(some_mbox, &my_agent::some_handler);
+		 * 	}
+		 * 	void some_handler(mhood_t<msg> cmd)
+		 * 	{
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * This method should be called only from the working context of the agent.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+		void
+		drop_subscription(
+			const mbox_t & from,
+			RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const;
+
+		/*!
 		 * \since
 		 * v.5.5.15
 		 *

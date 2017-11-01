@@ -909,6 +909,16 @@ agent_t::do_drop_subscription_for_all_states(
 	m_subscriptions->drop_subscription_for_all_states( mbox, msg_type );
 }
 
+bool
+agent_t::do_check_subscription_presence(
+	const mbox_t & mbox,
+	const std::type_index & msg_type,
+	const state_t & target_state ) const
+{
+	return nullptr != m_subscriptions->find_handler(
+			mbox->id(), msg_type, target_state );
+}
+
 void
 agent_t::push_event(
 	const message_limit::control_block_t * limit,

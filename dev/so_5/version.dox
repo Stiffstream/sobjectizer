@@ -2,6 +2,18 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_19_5 5.5.19.5 "Nevado de Poquis"
+
+	Now it is possible to check presense of a subscription to a message.
+	See \ref so_5_5_19__has_subscription for more details.
+
+	New methods are introduced: so_5::agent_t::so_has_subscription(),
+	so_5::state_t::has_subscription(), so_5::state_t::drop_subscription().
+
+	Fix implementation of so_5::agent_t::so_drop_subscription() and
+	so_5::agent_t::so_drop_subscription_for_all_states() for cases when
+	an event-handler returns non-void.
+
 \section so_5__5_19_4 5.5.19.4 "Nevado de Poquis"
 
 	Fixes for warnings detected by clang-5.0.0 on high warning levels.

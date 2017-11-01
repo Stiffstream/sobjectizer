@@ -32,6 +32,7 @@
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
 #include <so_5/rt/h/handler_makers.hpp>
+#include <so_5/rt/h/message_handler_format_detector.hpp>
 
 #include <atomic>
 #include <map>
@@ -1152,92 +1153,19 @@ class SO_5_TYPE agent_t
 		 * The pointer to event routine is necessary only to
 		 * detect MSG type.
 		 */
-		template< class AGENT, class MESSAGE >
+		template< class RET, class AGENT, class HANDLER_ARGUMENT >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
+			RET (AGENT::*)(HANDLER_ARGUMENT) )
 		{
+			using message_type =
+					typename details::message_handler_format_detector<
+							HANDLER_ARGUMENT>::type;
+
 			do_drop_subscription( mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					target_state );
-		}
-
-		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * \brief Drop subscription for the state specified.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			const state_t & target_state,
-			void (AGENT::*)( mhood_t< MESSAGE > ) )
-		{
-			do_drop_subscription( mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					target_state );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for the state specified.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			const state_t & target_state,
-			void (AGENT::*)( const MESSAGE & ) )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					target_state );
-		}
-
-		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * \brief Drop subscription for the state specified.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			const state_t & target_state,
-			void (AGENT::*)( MESSAGE ) )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< message_type >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1295,90 +1223,19 @@ class SO_5_TYPE agent_t
 		 * The pointer to event routine is necessary only to
 		 * detect MSG type.
 		 */
-		template< class AGENT, class MESSAGE >
+		template< class RET, class AGENT, class HANDLER_ARGUMENT >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
-			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
+			RET (AGENT::*)(HANDLER_ARGUMENT) )
 		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					so_default_state() );
-		}
+			using message_type =
+					typename details::message_handler_format_detector<
+							HANDLER_ARGUMENT>::type;
 
-		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * \brief Drop subscription for the default agent state.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			void (AGENT::*)( mhood_t< MESSAGE > ) )
-		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					so_default_state() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for the default agent state.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			void (AGENT::*)( const MESSAGE & ) )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
-					so_default_state() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * \brief Drop subscription for the default agent state.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			void (AGENT::*)( MESSAGE ) )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< message_type >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1435,65 +1292,19 @@ class SO_5_TYPE agent_t
 		 * The pointer to event routine is necessary only to
 		 * detect MSG type.
 		 */
-		template< class AGENT, class MESSAGE >
+		template< class RET, class AGENT, class HANDLER_ARGUMENT >
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			void (AGENT::*)( const mhood_t< MESSAGE > & ) )
+			RET (AGENT::*)(HANDLER_ARGUMENT) )
 		{
+			using message_type =
+					typename details::message_handler_format_detector<
+							HANDLER_ARGUMENT>::type;
+
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * \brief Drop subscription for all states.
-		 *
-		 * \note Doesn't throw if there is no any subscription for
-		 * that mbox and message type.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription_for_all_states(
-			const mbox_t & mbox,
-			void (AGENT::*)( mhood_t< MESSAGE > ) )
-		{
-			do_drop_subscription_for_all_states(
-					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for all states.
-		 *
-		 * \note Doesn't throw if there is no any subscription for
-		 * that mbox and message type.
-		 *
-		 * \note Subscription is removed even if agent was subscribed
-		 * for this message type with different method pointer.
-		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
-		 */
-		template< class AGENT, class MESSAGE >
-		inline void
-		so_drop_subscription_for_all_states(
-			const mbox_t & mbox,
-			void (AGENT::*)( const MESSAGE & ) )
-		{
-			do_drop_subscription_for_all_states(
-					mbox, 
-					message_payload_type< MESSAGE >::subscription_type_index() );
+					message_payload_type< message_type >::subscription_type_index() );
 		}
 
 		/*!
@@ -1533,6 +1344,190 @@ class SO_5_TYPE agent_t
 			do_drop_subscription_for_all_states(
 					mbox,
 					message_payload_type< MESSAGE >::subscription_type_index() );
+		}
+
+		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * This method can be used to avoid an exception from so_subscribe()
+		 * in the case if the subscription is already present. For example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!so_has_subscription<message>(cmd->mbox(), so_default_state()))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		so_subscribe(cmd->mbox()).event(...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * Please do not call this method from outside of working context
+		 * of the agent.
+		 *
+		 * \return true if subscription is present for \a target_state.
+		 *
+		 * \tparam MESSAGE a type of message/signal subscription to which
+		 * must be checked.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< class MESSAGE >
+		bool
+		so_has_subscription(
+			//! A mbox from which message/signal of type \a MESSAGE is expected.
+			const mbox_t & mbox,
+			//! A target state for the subscription.
+			const state_t & target_state ) const
+		{
+			return do_check_subscription_presence(
+					mbox,
+					message_payload_type< MESSAGE >::subscription_type_index(),
+					target_state );
+		}
+
+		/*!
+		 * \brief Check the presence of a subscription in the default_state.
+		 *
+		 * This method can be used to avoid an exception from so_subscribe()
+		 * in the case if the subscription is already present. For example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!so_has_subscription<message>(cmd->mbox()))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		so_subscribe(cmd->mbox()).event(...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * Please do not call this method from outside of working context
+		 * of the agent.
+		 *
+		 * \return true if subscription is present for the default_state.
+		 *
+		 * \tparam MESSAGE a type of message/signal subscription to which
+		 * must be checked.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< class MESSAGE >
+		bool
+		so_has_subscription(
+			//! A mbox from which message/signal of type \a MESSAGE is expected.
+			const mbox_t & mbox ) const
+		{
+			return do_check_subscription_presence(
+					mbox,
+					message_payload_type< MESSAGE >::subscription_type_index(),
+					so_default_state() );
+		}
+
+		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * Type of message is deducted from event-handler signature.
+		 *
+		 * Usage example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!so_has_subscription(cmd->mbox(), my_state, &my_agent::my_event))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		so_subscribe(cmd->mbox()).event(...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * Please do not call this method from outside of working context
+		 * of the agent.
+		 *
+		 * \return true if subscription is present for \a target_state.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< class AGENT, class RET, class HANDLER_ARGUMENT >
+		bool
+		so_has_subscription(
+			//! A mbox from which message/signal of type \a HANDLER_ARGUMENT is expected.
+			const mbox_t & mbox,
+			//! A target state for the subscription.
+			const state_t & target_state,
+			RET (AGENT::*)(HANDLER_ARGUMENT) ) const
+		{
+			using message_type =
+					typename details::message_handler_format_detector<
+							HANDLER_ARGUMENT>::type;
+
+			return this->so_has_subscription<message_type>(
+					mbox, target_state );
+		}
+
+		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * Subscription is checked for the default agent state.
+		 *
+		 * Type of message is deducted from event-handler signature.
+		 *
+		 * Usage example:
+		 * \code
+		 * void my_agent::evt_create_new_subscription(mhood_t<data_source> cmd)
+		 * {
+		 * 	// cmd can contain mbox we have already subscribed to.
+		 * 	// If we just call so_subscribe() then an exception can be thrown.
+		 * 	// Because of that check the presence of subscription first.
+		 * 	if(!so_has_subscription(cmd->mbox(), &my_agent::my_event))
+		 * 	{
+		 * 		// There is no subscription yet. New subscription can be
+		 * 		// created.
+		 * 		so_subscribe(cmd->mbox()).event(...);
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * Please do not call this method from outside of working context
+		 * of the agent.
+		 *
+		 * \return true if subscription is present for the default state.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		template< class AGENT, class RET, class HANDLER_ARGUMENT >
+		bool
+		so_has_subscription(
+			//! A mbox from which message/signal of type \a HANDLER_ARGUMENT is expected.
+			const mbox_t & mbox,
+			RET (AGENT::*)(HANDLER_ARGUMENT) ) const
+		{
+			using message_type =
+					typename details::message_handler_format_detector<
+							HANDLER_ARGUMENT>::type;
+
+			return this->so_has_subscription<message_type>(
+					mbox, so_default_state() );
 		}
 		/*!
 		 * \}
@@ -2154,6 +2149,21 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			//! Message type.
 			const std::type_index & msg_type );
+
+		/*!
+		 * \brief Check the presence of a subscription.
+		 *
+		 * \since
+		 * v.5.5.19.5
+		 */
+		bool
+		do_check_subscription_presence(
+			//! Message's mbox.
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type,
+			//! State for the subscription.
+			const state_t & target_state ) const;
 		/*!
 		 * \}
 		 */
@@ -2802,6 +2812,38 @@ state_t::event( mbox_t from, ARGS&&... args ) const
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
 			std::forward< ARGS >(args)... );
+}
+
+template< typename MSG >
+bool
+state_t::has_subscription( const mbox_t & from ) const
+{
+	return m_target_agent->so_has_subscription< MSG >( from, *this );
+}
+
+template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+bool
+state_t::has_subscription(
+	const mbox_t & from,
+	RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const
+{
+	return m_target_agent->so_has_subscription( from, *this, event_handler );
+}
+
+template< typename MSG >
+void
+state_t::drop_subscription( const mbox_t & from ) const
+{
+	m_target_agent->so_drop_subscription< MSG >( from, *this );
+}
+
+template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+void
+state_t::drop_subscription(
+	const mbox_t & from,
+	RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const
+{
+	m_target_agent->so_drop_subscription( from, *this, event_handler );
 }
 
 template< typename MSG >

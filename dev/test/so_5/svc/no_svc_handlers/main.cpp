@@ -44,6 +44,7 @@ class a_client_t
 					}
 				catch( const so_5::exception_t & x )
 					{
+						std::cout << "An exception caught: " << x.what() << std::endl;
 						if( so_5::rc_no_svc_handlers != x.error_code() )
 							{
 								std::cerr << "Unexpected error_code: "
