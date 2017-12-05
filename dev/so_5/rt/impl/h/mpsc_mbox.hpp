@@ -44,18 +44,18 @@ namespace impl
  * \note Renamed from limitless_mpsc_mbox_t to limitless_mpsc_mbox_template
  * in v.5.5.9.
  */
-template< typename TRACING_BASE >
+template< typename Tracing_Base >
 class limitless_mpsc_mbox_template
 	:	public abstract_message_box_t
-	,	protected TRACING_BASE
+	,	protected Tracing_Base
 {
 	public:
-		template< typename... TRACING_ARGS >
+		template< typename... Tracing_Args >
 		limitless_mpsc_mbox_template(
 			mbox_id_t id,
 			agent_t * single_consumer,
-			TRACING_ARGS &&... tracing_args )
-			:	TRACING_BASE{ std::forward< TRACING_ARGS >( tracing_args )... }
+			Tracing_Args &&... tracing_args )
+			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
 			,	m_single_consumer{ single_consumer }
 			{}
@@ -119,8 +119,8 @@ class limitless_mpsc_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
@@ -143,8 +143,8 @@ class limitless_mpsc_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
@@ -225,7 +225,7 @@ class limitless_mpsc_mbox_template
 		void
 		do_delivery(
 			//! Tracer object to log the case of abscense of subscriptions.
-			typename TRACING_BASE::deliver_op_tracer const & tracer,
+			typename Tracing_Base::deliver_op_tracer const & tracer,
 			//! Lambda with actual delivery actions.
 			L l ) const
 		{
@@ -274,13 +274,13 @@ using limitless_mpsc_mbox_with_tracing =
  * this reference must remains correct till the end of the mbox's lifetime.
  *
  */
-template< typename TRACING_BASE >
+template< typename Tracing_Base >
 class limitful_mpsc_mbox_template
-	:	public limitless_mpsc_mbox_template< TRACING_BASE >
+	:	public limitless_mpsc_mbox_template< Tracing_Base >
 {
-		using base_type = limitless_mpsc_mbox_template< TRACING_BASE >;
+		using base_type = limitless_mpsc_mbox_template< Tracing_Base >;
 	public:
-		template< typename... TRACING_ARGS >
+		template< typename... Tracing_Args >
 		limitful_mpsc_mbox_template(
 			//! ID of that mbox.
 			mbox_id_t id,
@@ -289,12 +289,12 @@ class limitful_mpsc_mbox_template
 			//! This reference must remains correct till the end of
 			//! the mbox's lifetime.
 			const so_5::message_limit::impl::info_storage_t & limits_storage,
-			//! Optional arguments for TRACING_BASE.
-			TRACING_ARGS &&... tracing_args )
+			//! Optional arguments for Tracing_Base.
+			Tracing_Args &&... tracing_args )
 			:	base_type{
 					id,
 					single_consumer,
-					std::forward< TRACING_ARGS >( tracing_args )... }
+					std::forward< Tracing_Args >( tracing_args )... }
 			,	m_limits( limits_storage )
 			{}
 
@@ -304,8 +304,8 @@ class limitful_mpsc_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer(
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer(
+						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep );
@@ -342,8 +342,8 @@ class limitful_mpsc_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };

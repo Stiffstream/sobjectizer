@@ -419,9 +419,9 @@ class data_source_t : public stats::manually_registered_source_t
 						return m_agent_count;
 					}
 
-				template< typename LAMBDA >
+				template< typename Lambda >
 				void
-				for_each_queue( LAMBDA lambda ) const
+				for_each_queue( Lambda lambda ) const
 					{
 						const queue_description_holder_t * p =
 								m_queue_desc_head.get();
@@ -433,9 +433,9 @@ class data_source_t : public stats::manually_registered_source_t
 							}
 					}
 
-				template< typename LAMBDA >
+				template< typename Lambda >
 				void
-				for_each_thread_activity( LAMBDA lambda ) const
+				for_each_thread_activity( Lambda lambda ) const
 					{
 						for( const auto & wt : m_wt_activity )
 							lambda( wt.m_thread_id, wt.m_stats );

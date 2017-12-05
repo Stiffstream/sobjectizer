@@ -151,18 +151,18 @@ class SO_5_TYPE environment_params_t
 		 * 
 		 * The method distinguishes layers from each other by the type SO_LAYER.
 		*/
-		template< class SO_LAYER >
+		template< class SO_Layer >
 		environment_params_t &
 		add_layer(
 			//! A layer to be added.
-			std::unique_ptr< SO_LAYER > layer_ptr )
+			std::unique_ptr< SO_Layer > layer_ptr )
 		{
 			if( layer_ptr.get() )
 			{
 				layer_unique_ptr_t ptr( layer_ptr.release() );
 
 				add_layer(
-					std::type_index( typeid( SO_LAYER ) ),
+					std::type_index( typeid( SO_Layer ) ),
 					std::move( ptr ) );
 			}
 
@@ -177,13 +177,13 @@ class SO_5_TYPE environment_params_t
 		 * 
 		 * The method distinguishes layers from each other by the type SO_LAYER.
 		*/
-		template< class SO_LAYER >
+		template< class SO_Layer >
 		environment_params_t &
 		add_layer(
 			//! A layer to be added.
-			SO_LAYER * layer_raw_ptr )
+			SO_Layer * layer_raw_ptr )
 		{
-			return add_layer( std::unique_ptr< SO_LAYER >( layer_raw_ptr ) );
+			return add_layer( std::unique_ptr< SO_Layer >( layer_raw_ptr ) );
 		}
 
 		//! Set cooperation listener object.
@@ -1195,13 +1195,13 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		so_5::timer_id_t
 		schedule_timer(
 			//! Message type for searching subscribers.
 			std::type_index subscription_type,
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Message mutability.
 			message_mutability_t mutability,
 			//! Mbox to which message will be delivered.
@@ -1215,7 +1215,7 @@ class SO_5_TYPE environment_t
 			*/
 			std::chrono::steady_clock::duration period )
 		{
-			ensure_classical_message< MESSAGE >();
+			ensure_classical_message< Message >();
 			ensure_message_with_actual_data( msg.get() );
 			change_message_mutability( *msg, mutability );
 
@@ -1232,11 +1232,11 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.0
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		so_5::timer_id_t
 		schedule_timer(
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Mbox to which message will be delivered.
 			const mbox_t & mbox,
 			//! Timeout before the first delivery.
@@ -1248,11 +1248,11 @@ class SO_5_TYPE environment_t
 			*/
 			std::chrono::steady_clock::duration period )
 		{
-			ensure_classical_message< MESSAGE >();
+			ensure_classical_message< Message >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause,
@@ -1264,11 +1264,11 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		so_5::timer_id_t
 		schedule_timer(
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Mbox to which message will be delivered.
 			const mbox_t & mbox,
 			//! Timeout before the first delivery.
@@ -1280,11 +1280,11 @@ class SO_5_TYPE environment_t
 			*/
 			unsigned int period_msec )
 		{
-			ensure_classical_message< MESSAGE >();
+			ensure_classical_message< Message >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1296,7 +1296,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.0
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		so_5::timer_id_t
 		schedule_timer(
 			//! Mbox to which signal will be delivered.
@@ -1310,10 +1310,10 @@ class SO_5_TYPE environment_t
 			*/
 			std::chrono::steady_clock::duration period )
 		{
-			ensure_signal< MESSAGE >();
+			ensure_signal< Message >();
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				pause,
@@ -1325,7 +1325,7 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		so_5::timer_id_t
 		schedule_timer(
 			//! Mbox to which signal will be delivered.
@@ -1339,10 +1339,10 @@ class SO_5_TYPE environment_t
 			*/
 			unsigned int period_msec )
 		{
-			ensure_signal< MESSAGE >();
+			ensure_signal< Message >();
 
 			return schedule_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1354,11 +1354,11 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.0
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Mbox to which message will be delivered.
 			const mbox_t & mbox,
 			//! Timeout before delivery.
@@ -1367,7 +1367,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause );
@@ -1380,13 +1380,13 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Type to be used for searching subscribers.
 			std::type_index subscription_type,
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Mutability flag for that message.
 			message_mutability_t mutability,
 			//! Mbox to which message will be delivered.
@@ -1410,21 +1410,21 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > msg,
+			std::unique_ptr< Message > msg,
 			//! Mbox to which message will be delivered.
 			const mbox_t & mbox,
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
-			ensure_classical_message< MESSAGE >();
+			ensure_classical_message< Message >();
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1435,7 +1435,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.0
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Mbox to which signal will be delivered.
@@ -1443,10 +1443,10 @@ class SO_5_TYPE environment_t
 			//! Timeout before delivery.
 			std::chrono::steady_clock::duration pause )
 		{
-			ensure_signal< MESSAGE >();
+			ensure_signal< Message >();
 
 			single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				pause );
@@ -1459,7 +1459,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.0
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Type to be used for searching subscribers.
@@ -1469,7 +1469,7 @@ class SO_5_TYPE environment_t
 			//! Timeout before delivery.
 			std::chrono::steady_clock::duration pause )
 		{
-			ensure_signal< MESSAGE >();
+			ensure_signal< Message >();
 
 			single_timer(
 				subscription_type,
@@ -1483,7 +1483,7 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		void
 		single_timer(
 			//! Mbox to which signal will be delivered.
@@ -1491,10 +1491,10 @@ class SO_5_TYPE environment_t
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
-			ensure_signal< MESSAGE >();
+			ensure_signal< Message >();
 
 			single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1510,23 +1510,23 @@ class SO_5_TYPE environment_t
 
 		//! Get access to the layer without raising exception if layer
 		//! is not found.
-		template< class SO_LAYER >
-		SO_LAYER *
+		template< class SO_Layer >
+		SO_Layer *
 		query_layer_noexcept() const
 		{
-			static_assert( std::is_base_of< layer_t, SO_LAYER >::value,
-					"SO_LAYER must be derived from so_layer_t class" );
+			static_assert( std::is_base_of< layer_t, SO_Layer >::value,
+					"SO_Layer must be derived from so_layer_t class" );
 
-			return dynamic_cast< SO_LAYER * >(
-					query_layer( std::type_index( typeid( SO_LAYER ) ) ) );
+			return dynamic_cast< SO_Layer * >(
+					query_layer( std::type_index( typeid( SO_Layer ) ) ) );
 		}
 
 		//! Get access to the layer with exception if layer is not found.
-		template< class SO_LAYER >
-		SO_LAYER *
+		template< class SO_Layer >
+		SO_Layer *
 		query_layer() const
 		{
-			auto layer = query_layer_noexcept< SO_LAYER >();
+			auto layer = query_layer_noexcept< SO_Layer >();
 
 			if( !layer )
 				SO_5_THROW_EXCEPTION(
@@ -1537,13 +1537,13 @@ class SO_5_TYPE environment_t
 		}
 
 		//! Add an additional layer.
-		template< class SO_LAYER >
+		template< class SO_Layer >
 		void
 		add_extra_layer(
-			std::unique_ptr< SO_LAYER > layer_ptr )
+			std::unique_ptr< SO_Layer > layer_ptr )
 		{
 			add_extra_layer(
-				std::type_index( typeid( SO_LAYER ) ),
+				std::type_index( typeid( SO_Layer ) ),
 				layer_ref_t( layer_ptr.release() ) );
 		}
 
@@ -1553,12 +1553,12 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.2.0.4
 		 */
-		template< class SO_LAYER >
+		template< class SO_Layer >
 		void
 		add_extra_layer(
-			SO_LAYER * layer_raw_ptr )
+			SO_Layer * layer_raw_ptr )
 		{
-			add_extra_layer( std::unique_ptr< SO_LAYER >( layer_raw_ptr ) );
+			add_extra_layer( std::unique_ptr< SO_Layer >( layer_raw_ptr ) );
 		}
 		/*!
 		 * \}
@@ -1627,15 +1627,15 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.4
 		 *
-		 * \note Creates an instance of agent of type \a AGENT by using
+		 * \note Creates an instance of agent of type \a Agent by using
 		 * environment_t::make_agent() template function and adds it to
 		 * the cooperation. Uses the fact that most agent types use reference
 		 * to the environment object as the first argument.
 		 *
 		 * \return unique pointer to the new agent.
 		 *
-		 * \tparam AGENT type of agent to be created.
-		 * \tparam ARGS type of parameters list for agent constructor.
+		 * \tparam Agent type of agent to be created.
+		 * \tparam Args type of parameters list for agent constructor.
 		 *
 		 * \par Usage sample:
 		 \code
@@ -1648,12 +1648,12 @@ class SO_5_TYPE environment_t
 		 auto a3 = env.make_agent< their_agent >( "bye", a2->so_direct_mbox() );
 		 \endcode
 		 */
-		template< class AGENT, typename... ARGS >
-		std::unique_ptr< AGENT >
-		make_agent( ARGS &&... args )
+		template< class Agent, typename... Args >
+		std::unique_ptr< Agent >
+		make_agent( Args &&... args )
 		{
-			return std::unique_ptr< AGENT >(
-					new AGENT( *this, std::forward<ARGS>(args)... ) );
+			return std::unique_ptr< Agent >(
+					new Agent( *this, std::forward<Args>(args)... ) );
 		}
 
 		/*!
@@ -1717,9 +1717,9 @@ class SO_5_TYPE environment_t
 				} );
 			\endcode
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		void
-		introduce_coop( ARGS &&... args );
+		introduce_coop( Args &&... args );
 
 		/*!
 		 * \brief Get activity tracking flag for the whole SObjectizer Environment.
@@ -1798,8 +1798,8 @@ class SO_5_TYPE environment_t
 
 		//! Create a custom mbox.
 		/*!
-		 * \tparam LAMBDA type of actual lambda with all creation actions.
-		 * The LAMBDA must be lambda-function or functional objects with
+		 * \tparam Lambda type of actual lambda with all creation actions.
+		 * The Lambda must be lambda-function or functional objects with
 		 * the following format:
 		 * \code
 		 * so_5::mbox_t lambda(const so_5::mbox_creation_data_t &);
@@ -1808,13 +1808,13 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.19.2
 		 */
-		template< typename LAMBDA >
+		template< typename Lambda >
 		mbox_t
-		make_custom_mbox( LAMBDA && lambda )
+		make_custom_mbox( Lambda && lambda )
 			{
 				using namespace custom_mbox_details;
 
-				creator_template_t< LAMBDA > creator( std::forward<LAMBDA>(lambda) );
+				creator_template_t< Lambda > creator( std::forward<Lambda>(lambda) );
 				return do_make_custom_mbox( creator );
 			}
 
@@ -2134,12 +2134,12 @@ private :
 	 */
 	const std::string * m_parent_coop_name;
 
-	template< typename COOP_NAME, typename LAMBDA >
+	template< typename Coop_Name, typename Lambda >
 	void
 	build_and_register_coop(
-		COOP_NAME && name,
+		Coop_Name && name,
 		disp_binder_unique_ptr_t binder,
-		LAMBDA && lambda )
+		Lambda && lambda )
 	{
 		auto coop = m_env.create_coop( name, std::move( binder ) );
 		if( m_parent_coop_name )
@@ -2151,12 +2151,12 @@ private :
 
 } /* namespace details */
 
-template< typename... ARGS >
+template< typename... Args >
 void
-environment_t::introduce_coop( ARGS &&... args )
+environment_t::introduce_coop( Args &&... args )
 {
 	details::introduce_coop_helper_t helper{ *this };
-	helper.introduce( std::forward< ARGS >( args )... );
+	helper.introduce( std::forward< Args >( args )... );
 }
 
 /*!
@@ -2182,16 +2182,16 @@ environment_t::introduce_coop( ARGS &&... args )
 	};
 	\endcode
  */
-template< typename... ARGS >
+template< typename... Args >
 coop_unique_ptr_t
 create_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
 	//! Arguments for the environment_t::create_coop() method.
-	ARGS&&... args )
+	Args&&... args )
 {
 	auto coop = owner.so_environment().create_coop(
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 	coop->set_parent_coop_name( owner.so_coop_name() );
 
 	return coop;
@@ -2217,16 +2217,16 @@ create_child_coop(
 	} );
 	\endcode
  */
-template< typename... ARGS >
+template< typename... Args >
 coop_unique_ptr_t
 create_child_coop(
 	//! Parent cooperation.
 	const coop_t & parent,
 	//! Arguments for the environment_t::create_coop() method.
-	ARGS&&... args )
+	Args&&... args )
 {
 	auto coop = parent.environment().create_coop(
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 	coop->set_parent_coop_name( parent.query_coop_name() );
 
 	return coop;
@@ -2259,17 +2259,17 @@ create_child_coop(
  * examples with usage of introduce_coop() please see description of
  * that method.
  */
-template< typename... ARGS >
+template< typename... Args >
 void
 introduce_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
 	//! Arguments for the environment_t::introduce_coop() method.
-	ARGS&&... args )
+	Args&&... args )
 {
 	details::introduce_coop_helper_t{
 			owner.so_environment(),
-			owner.so_coop_name() }.introduce( std::forward< ARGS >(args)... );
+			owner.so_coop_name() }.introduce( std::forward< Args >(args)... );
 }
 
 /*!
@@ -2299,17 +2299,17 @@ introduce_child_coop(
  * examples with usage of introduce_coop() please see description of
  * that method.
  */
-template< typename... ARGS >
+template< typename... Args >
 void
 introduce_child_coop(
 	//! Parent cooperation.
 	const coop_t & parent,
 	//! Arguments for the environment_t::introduce_coop() method.
-	ARGS&&... args )
+	Args&&... args )
 {
 	details::introduce_coop_helper_t{
 			parent.environment(),
-			parent.query_coop_name() }.introduce( std::forward< ARGS >(args)... );
+			parent.query_coop_name() }.introduce( std::forward< Args >(args)... );
 }
 
 namespace rt
@@ -2343,22 +2343,22 @@ typedef so_5::environment_t so_environment_t;
  * \deprecated Will be removed in v.5.6.0. Use so_5::create_child_coop()
  * instead.
  */
-template< typename... ARGS >
+template< typename... Args >
 coop_unique_ptr_t
-create_child_coop( ARGS&&... args )
+create_child_coop( Args&&... args )
 {
-	return so_5::create_child_coop( std::forward<ARGS>(args)... );
+	return so_5::create_child_coop( std::forward<Args>(args)... );
 }
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::introduce_child_coop()
  * instead.
  */
-template< typename... ARGS >
+template< typename... Args >
 void
-introduce_child_coop( ARGS&&... args )
+introduce_child_coop( Args&&... args )
 {
-	so_5::introduce_child_coop( std::forward<ARGS>(args)... );
+	so_5::introduce_child_coop( std::forward<Args>(args)... );
 }
 
 } /* namespace rt */

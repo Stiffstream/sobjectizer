@@ -75,3 +75,15 @@
 	#define SO_5_CONSTEXPR constexpr
 #endif
 
+// Try to use __has_cpp_attribute if it is supported.
+#if defined(__has_cpp_attribute)
+	#if __has_cpp_attribute(nodiscard)
+		#define SO_5_NODISCARD [[nodiscard]]
+	#endif
+#endif
+
+// Handle the result of __has_cpp_attribute.
+#if !defined( SO_5_NODISCARD )
+	#define SO_5_NODISCARD
+#endif
+

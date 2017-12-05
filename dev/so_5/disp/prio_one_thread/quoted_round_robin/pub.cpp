@@ -104,7 +104,7 @@ send_thread_activity_stats(
  * \since
  * v.5.5.8, v.5.5.18
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class dispatcher_template_t : public actual_disp_iface_t
 	{
 		friend class disp_data_source_t;
@@ -278,7 +278,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		demand_queue_t m_demand_queue;
 
 		//! Working thread for the dispatcher.
-		WORK_THREAD m_work_thread;
+		Work_Thread m_work_thread;
 
 		//! Data source for run-time monitoring.
 		disp_data_source_t m_data_source;

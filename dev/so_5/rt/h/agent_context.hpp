@@ -130,9 +130,9 @@ class agent_context_t
  * \brief A plus operator for creating agent_context object from
  * a reference to Environment and single agent tuning option.
  */
-template< typename OPTION >
+template< typename Option >
 agent_context_t
-operator+( environment_t & env, OPTION arg )
+operator+( environment_t & env, Option arg )
 	{
 		agent_context_t result{ env };
 		return std::move(result) + std::move(arg);

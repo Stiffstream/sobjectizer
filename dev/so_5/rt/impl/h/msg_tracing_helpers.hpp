@@ -42,7 +42,7 @@ struct overlimit_deep
 	{
 		unsigned int m_deep;
 
-		// NOTE: this constructor is necessary for compatibility with MSVC++2013.
+		// Note: this constructor is necessary for compatibility with MSVC++2013.
 		overlimit_deep( unsigned int deep ) : m_deep{ deep } {}
 	};
 
@@ -201,19 +201,19 @@ make_trace_to_1( std::ostream & s, chain_size size )
 inline void
 make_trace_to( std::ostream & ) {}
 
-template< typename A, typename... OTHER >
+template< typename A, typename... Other >
 void
-make_trace_to( std::ostream & s, A && a, OTHER &&... other )
+make_trace_to( std::ostream & s, A && a, Other &&... other )
 	{
 		make_trace_to_1( s, std::forward< A >(a) );
-		make_trace_to( s, std::forward< OTHER >(other)... );
+		make_trace_to( s, std::forward< Other >(other)... );
 	}
 
-template< typename... ARGS >
+template< typename... Args >
 void
 make_trace(
 	so_5::msg_tracing::tracer_t & tracer,
-	ARGS &&... args ) SO_5_NOEXCEPT
+	Args &&... args ) SO_5_NOEXCEPT
 	{
 #if !defined( SO_5_HAVE_NOEXCEPT )
 		so_5::details::invoke_noexcept_code( [&] {
@@ -222,7 +222,7 @@ make_trace(
 
 				s << "[tid=" << query_current_thread_id() << "]";
 
-				make_trace_to( s, std::forward< ARGS >(args)... );
+				make_trace_to( s, std::forward< Args >(args)... );
 
 				tracer.trace( s.str() );
 #if !defined( SO_5_HAVE_NOEXCEPT )
@@ -257,11 +257,11 @@ struct tracing_disabled_base
 					{}
 
 				// NOTE: this dummy method added in v.5.5.19.3.
-				template< typename... ARGS >
+				template< typename... Args >
 				void
 				make_trace(
 					const char * /*action_name_suffix*/,
-					ARGS &&... /*args*/ ) const
+					Args &&... /*args*/ ) const
 					{}
 
 				void
@@ -339,12 +339,12 @@ class tracing_enabled_base
 					{
 					}
 
-				// NOTE: since v.5.5.19.3 this is a public method.
-				template< typename... ARGS >
+				// Note: since v.5.5.19.3 this is a public method.
+				template< typename... Args >
 				void
 				make_trace(
 					const char * action_name_suffix,
-					ARGS &&... args ) const
+					Args &&... args ) const
 					{
 						details::make_trace(
 								m_tracer,
@@ -354,7 +354,7 @@ class tracing_enabled_base
 								m_msg_type,
 								m_message,
 								m_overlimit_deep,
-								std::forward< ARGS >(args)... );
+								std::forward< Args >(args)... );
 					}
 
 				void
@@ -536,8 +536,8 @@ struct mchain_tracing_disabled_base
 					const invocation_type_t )
 					{}
 
-				template< typename QUEUE >
-				void stored( const QUEUE & /*queue*/ ) {}
+				template< typename Queue >
+				void stored( const Queue & /*queue*/ ) {}
 
 				void overflow_drop_newest() {}
 
@@ -622,11 +622,11 @@ class mchain_tracing_enabled_base
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
 
-				template< typename... ARGS >
+				template< typename... Args >
 				void
 				make_trace(
 					const char * action_name_suffix,
-					ARGS &&... args ) const
+					Args &&... args ) const
 					{
 						details::make_trace(
 								m_tracer,
@@ -635,7 +635,7 @@ class mchain_tracing_enabled_base
 										m_op_name, action_name_suffix },
 								m_msg_type,
 								m_message,
-								std::forward< ARGS >(args)... );
+								std::forward< Args >(args)... );
 					}
 
 			public :
@@ -652,9 +652,9 @@ class mchain_tracing_enabled_base
 					,	m_message( message )
 					{}
 
-				template< typename QUEUE >
+				template< typename Queue >
 				void
-				stored( const QUEUE & queue )
+				stored( const Queue & queue )
 					{
 						make_trace( "stored", details::chain_size{ queue.size() } );
 					}

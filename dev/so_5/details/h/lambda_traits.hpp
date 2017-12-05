@@ -127,10 +127,23 @@ class has_func_call_operator
 
 		template< typename D > static std::false_type test(...);
 
+		using actual_type = typename std::decay<L>::type;
+
 	public :
-		enum { value =
-			std::is_same< std::true_type, decltype(test<L>(nullptr)) >::value };
+		static const bool value =
+			std::is_same< std::true_type, decltype(test<actual_type>(nullptr)) >::value;
 	};
+
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+// MSVC2013 sometimes converts lambda to a pointer to a function.
+// This template specialization is used in such cases as a workaround.
+template<typename R, typename A>
+class has_func_call_operator<R(*)(A)>
+	{
+	public :
+		static const bool value = true;
+	};
+#endif
 
 /*!
  * \brief A detector of lambda argument type if the checked type is lambda.
@@ -159,6 +172,18 @@ struct argument_type_if_lambda
 	:	public impl::argument_if_lambda<
 			impl::has_func_call_operator< L >::value, L >
 	{};
+
+/*!
+ * \brief A detector that type is a lambda or functional object.
+ *
+ * \since
+ * v.5.5.20
+ */
+template<typename L>
+struct is_lambda
+	{
+		static const bool value = impl::has_func_call_operator<L>::value;
+	};
 
 } /* namespace lambda_traits */
 

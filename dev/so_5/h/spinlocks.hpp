@@ -50,7 +50,7 @@ class yield_backoff_t
  * This implemetation in based on description of std::atomic_flag:
  * \see http://en.cppreference.com/w/cpp/atomic/atomic_flag
  */
-template< class BACKOFF >
+template< class Backoff >
 class spinlock_t
 	{
 	public :
@@ -68,7 +68,7 @@ class spinlock_t
 		void
 		lock()
 			{
-				BACKOFF backoff;
+				Backoff backoff;
 				while( m_flag.test_and_set( std::memory_order_acquire ) )
 					backoff();
 			}
@@ -104,7 +104,7 @@ typedef spinlock_t< yield_backoff_t > default_spinlock_t;
  * from LLVM code base:
  * http://llvm.org/viewvc/llvm-project/compiler-rt/trunk/lib/tsan/rtl/tsan_mutex.cc?revision=210345&view=markup
  */
-template< class BACKOFF >
+template< class Backoff >
 class rw_spinlock_t
 	{
 	private :
@@ -127,7 +127,7 @@ class rw_spinlock_t
 		inline void
 		lock_shared()
 			{
-				BACKOFF backoff;
+				Backoff backoff;
 
 				std::uint_fast32_t previous = m_counters.fetch_add(
 						read_lock,
@@ -160,7 +160,7 @@ class rw_spinlock_t
 						std::memory_order_relaxed ) )
 					return;
 
-				BACKOFF backoff;
+				Backoff backoff;
 
 				while( true )
 					{
@@ -198,14 +198,14 @@ typedef rw_spinlock_t< yield_backoff_t > default_rw_spinlock_t;
  *
  * \brief Scoped guard for shared locks.
  */
-template< class LOCK >
+template< class Lock >
 class read_lock_guard_t
 	{
 	private :
-		LOCK & m_lock;
+		Lock & m_lock;
 
 	public :
-		read_lock_guard_t( LOCK & l ) : m_lock( l )
+		read_lock_guard_t( Lock & l ) : m_lock( l )
 			{
 				m_lock.lock_shared();
 			}

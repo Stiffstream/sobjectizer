@@ -40,13 +40,13 @@ class rollbacker_t
 		inline void commit() { m_commited = true; }
 	};
 
-template< typename RESULT, typename MAIN_ACTION, typename ROLLBACK_ACTION >
+template< typename Result, typename Main_Action, typename Rollback_Action >
 struct executor
 	{
-		static RESULT
+		static Result
 		exec(
-			MAIN_ACTION main_action,
-			rollbacker_t< ROLLBACK_ACTION > & rollback )
+			Main_Action main_action,
+			rollbacker_t< Rollback_Action > & rollback )
 			{
 				auto r = main_action();
 				rollback.commit();
@@ -55,13 +55,13 @@ struct executor
 			}
 	};
 
-template< typename MAIN_ACTION, typename ROLLBACK_ACTION >
-struct executor< void, MAIN_ACTION, ROLLBACK_ACTION >
+template< typename Main_Action, typename Rollback_Action >
+struct executor< void, Main_Action, Rollback_Action >
 	{
 		static void
 		exec( 
-			MAIN_ACTION main_action,
-			rollbacker_t< ROLLBACK_ACTION > & rollback )
+			Main_Action main_action,
+			rollbacker_t< Rollback_Action > & rollback )
 			{
 				main_action();
 				rollback.commit();
@@ -77,23 +77,23 @@ struct executor< void, MAIN_ACTION, ROLLBACK_ACTION >
  * \brief Helper function for do some action with rollback in the case of
  * an exception.
  *
- * \tparam MAIN_ACTION type of lambda with main action.
- * \tparam ROLLBACK_ACTION type of lambda with rollback action.
+ * \tparam Main_Action type of lambda with main action.
+ * \tparam Rollback_Action type of lambda with rollback action.
  */
-template< typename MAIN_ACTION, typename ROLLBACK_ACTION >
+template< typename Main_Action, typename Rollback_Action >
 auto
 do_with_rollback_on_exception(
-	MAIN_ACTION main_action,
-	ROLLBACK_ACTION rollback_action )
+	Main_Action main_action,
+	Rollback_Action rollback_action )
 	-> decltype(main_action())
 	{
 		using result_type = decltype(main_action());
 
 		using namespace rollback_on_exception_details;
 
-		rollbacker_t< ROLLBACK_ACTION > rollbacker{ rollback_action };
+		rollbacker_t< Rollback_Action > rollbacker{ rollback_action };
 
-		return executor< result_type, MAIN_ACTION, ROLLBACK_ACTION >::exec(
+		return executor< result_type, Main_Action, Rollback_Action >::exec(
 				main_action, rollbacker );
 	}
 

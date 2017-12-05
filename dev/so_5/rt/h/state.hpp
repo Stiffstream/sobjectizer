@@ -22,6 +22,8 @@
 #include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/fwd.hpp>
 
+#include <so_5/rt/h/message_handler_format_detector.hpp>
+
 namespace so_5
 {
 
@@ -466,20 +468,20 @@ class SO_5_TYPE state_t final
 			};
 			\endcode
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		const state_t &
-		event( ARGS&&... args ) const;
+		event( Args&&... args ) const;
 
 		/*!
 		 * \since
 		 * v.5.5.15
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		state_t &
-		event( ARGS&&... args )
+		event( Args&&... args )
 			{
 				const state_t & t = *this;
-				t.event( std::forward<ARGS>(args)... );
+				t.event( std::forward<Args>(args)... );
 				return *this;
 			}
 
@@ -509,20 +511,20 @@ class SO_5_TYPE state_t final
 			};
 			\endcode
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		const state_t &
-		event( mbox_t from, ARGS&&... args ) const;
+		event( mbox_t from, Args&&... args ) const;
 
 		/*!
 		 * \since
 		 * v.5.5.15
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		state_t &
-		event( mbox_t from, ARGS&&... args )
+		event( mbox_t from, Args&&... args )
 			{
 				const state_t & t = *this;
-				t.event( std::move(from), std::forward<ARGS>(args)... );
+				t.event( std::move(from), std::forward<Args>(args)... );
 				return *this;
 			}
 
@@ -551,20 +553,20 @@ class SO_5_TYPE state_t final
 			};
 			\endcode
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		const state_t &
-		event( ARGS&&... args ) const;
+		event( Args&&... args ) const;
 
 		/*!
 		 * \since
 		 * v.5.5.15
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		state_t &
-		event( ARGS&&... args )
+		event( Args&&... args )
 			{
 				const state_t & t = *this;
-				t.event< SIGNAL >( std::forward<ARGS>(args)... );
+				t.event< Signal >( std::forward<Args>(args)... );
 				return *this;
 			}
 
@@ -595,20 +597,20 @@ class SO_5_TYPE state_t final
 			};
 			\endcode
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		const state_t &
-		event( mbox_t from, ARGS&&... args ) const;
+		event( mbox_t from, Args&&... args ) const;
 
 		/*!
 		 * \since
 		 * v.5.5.15
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		state_t &
-		event( mbox_t from, ARGS&&... args )
+		event( mbox_t from, Args&&... args )
 			{
 				const state_t & t = *this;
-				t.event< SIGNAL >( std::move(from), std::forward<ARGS>(args)... );
+				t.event< Signal >( std::move(from), std::forward<Args>(args)... );
 				return *this;
 			}
 
@@ -638,7 +640,7 @@ class SO_5_TYPE state_t final
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		bool
 		has_subscription( const mbox_t & from ) const;
 
@@ -670,16 +672,16 @@ class SO_5_TYPE state_t final
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+		template< typename Method_Pointer >
 		bool
 		has_subscription(
 			const mbox_t & from,
-			RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const;
+			Method_Pointer && pfn ) const;
 
 		/*!
 		 * \brief Drop subscription.
 		 *
-		 * Drops the subscription for the message/signal of type \a MSG for
+		 * Drops the subscription for the message/signal of type \a Msg for
 		 * the state (if this subscription is present). Do nothing if subscription
 		 * is not exists.
 		 *
@@ -709,7 +711,7 @@ class SO_5_TYPE state_t final
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		void
 		drop_subscription( const mbox_t & from ) const;
 
@@ -751,11 +753,11 @@ class SO_5_TYPE state_t final
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+		template< typename Method_Pointer >
 		void
 		drop_subscription(
 			const mbox_t & from,
-			RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const;
+			Method_Pointer && pfn ) const;
 
 		/*!
 		 * \since
@@ -785,7 +787,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		transfer_to_state( mbox_t from, const state_t & target_state ) const;
 
@@ -817,7 +819,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		transfer_to_state( const state_t & target_state ) const;
 
@@ -849,12 +851,12 @@ class SO_5_TYPE state_t final
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		transfer_to_state( mbox_t from, const state_t & target_state )
 			{
 				const state_t & t = *this;
-				t.transfer_to_state< MSG >( std::move(from), target_state );
+				t.transfer_to_state< Msg >( std::move(from), target_state );
 				return *this;
 			}
 
@@ -886,12 +888,12 @@ class SO_5_TYPE state_t final
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		transfer_to_state( const state_t & target_state )
 			{
 				const state_t & t = *this;
-				t.transfer_to_state< MSG >( target_state );
+				t.transfer_to_state< Msg >( target_state );
 				return *this;
 			}
 
@@ -923,7 +925,7 @@ class SO_5_TYPE state_t final
 			}
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		just_switch_to( mbox_t from, const state_t & target_state ) const;
 
@@ -955,7 +957,7 @@ class SO_5_TYPE state_t final
 			}
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		just_switch_to( const state_t & target_state ) const;
 
@@ -987,12 +989,12 @@ class SO_5_TYPE state_t final
 			}
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		just_switch_to( mbox_t from, const state_t & target_state )
 			{
 				const state_t & t = *this;
-				t.just_switch_to< MSG >( std::move(from), target_state );
+				t.just_switch_to< Msg >( std::move(from), target_state );
 				return *this;
 			}
 
@@ -1024,12 +1026,12 @@ class SO_5_TYPE state_t final
 			}
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		just_switch_to( const state_t & target_state )
 			{
 				const state_t & t = *this;
-				t.just_switch_to< MSG >( target_state );
+				t.just_switch_to< Msg >( target_state );
 				return *this;
 			}
 
@@ -1076,7 +1078,7 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		suppress() const;
 
@@ -1123,7 +1125,7 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		const state_t &
 		suppress( mbox_t from ) const;
 
@@ -1170,12 +1172,12 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		suppress()
 			{
 				const state_t & t = *this;
-				t.suppress< MSG >();
+				t.suppress< Msg >();
 				return *this;
 			}
 
@@ -1222,12 +1224,12 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		state_t &
 		suppress( mbox_t from )
 			{
 				const state_t & t = *this;
-				t.suppress< MSG >( std::move(from) );
+				t.suppress< Msg >( std::move(from) );
 				return *this;
 			}
 
@@ -1310,9 +1312,11 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename AGENT >
-		state_t &
-		on_enter( void (AGENT::*pfn)() );
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				state_t & >::type
+		on_enter( Method_Pointer pfn );
 
 		/*!
 		 * \since
@@ -1433,9 +1437,11 @@ class SO_5_TYPE state_t final
 			};
 		 * \endcode
 		 */
-		template< typename AGENT >
-		state_t &
-		on_exit( void (AGENT::*pfn)() );
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				state_t & >::type
+		on_exit( Method_Pointer pfn );
 
 		/*!
 		 * \since
@@ -1781,11 +1787,11 @@ class SO_5_TYPE state_t final
 		 *
 		 * \brief A helper for handle-methods implementation.
 		 */
-		template< typename... ARGS >
+		template< typename... Args >
 		const state_t &
 		subscribe_message_handler(
 			const mbox_t & from,
-			ARGS&&... args ) const;
+			Args&&... args ) const;
 
 		/*!
 		 * \since
@@ -1793,11 +1799,11 @@ class SO_5_TYPE state_t final
 		 *
 		 * \brief A helper for handle-methods implementation.
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		const state_t &
 		subscribe_signal_handler(
 			const mbox_t & from,
-			ARGS&&... args ) const;
+			Args&&... args ) const;
 
 		/*!
 		 * \name Methods to be used by agents.

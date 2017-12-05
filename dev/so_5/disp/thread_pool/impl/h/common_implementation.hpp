@@ -45,13 +45,13 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
  * \since
  * v.5.5.18
  */
-template< typename PARAMS >
+template< typename Params >
 class ext_dispatcher_iface_t : public so_5::dispatcher_t
 	{
 	public :
 		//! Bind agent to the dispatcher.
 		virtual event_queue_t *
-		bind_agent( agent_ref_t agent, const PARAMS & params ) = 0;
+		bind_agent( agent_ref_t agent, const Params & params ) = 0;
 
 		//! Unbind agent from the dispatcher.
 		virtual void
@@ -67,17 +67,17 @@ class ext_dispatcher_iface_t : public so_5::dispatcher_t
  * v.5.5.4
  */
 template<
-	typename WORK_THREAD,
-	typename DISPATCHER_QUEUE,
-	typename AGENT_QUEUE,
-	typename PARAMS,
-	typename ADAPTATIONS >
+	typename Work_Thread,
+	typename Dispatcher_Queue,
+	typename Agent_Queue,
+	typename Params,
+	typename Adaptations >
 class dispatcher_t
-	:	public ext_dispatcher_iface_t< PARAMS >
+	:	public ext_dispatcher_iface_t< Params >
 	,	public tp_stats::stats_supplier_t
 	{
 	private :
-		using agent_queue_ref_t = so_5::intrusive_ptr_t< AGENT_QUEUE >;
+		using agent_queue_ref_t = so_5::intrusive_ptr_t< Agent_Queue >;
 
 		//! Data for one cooperation.
 		struct cooperation_data_t
@@ -218,8 +218,8 @@ class dispatcher_t
 				m_threads.reserve( thread_count );
 
 				for( std::size_t i = 0; i != m_thread_count; ++i )
-					m_threads.emplace_back( std::unique_ptr< WORK_THREAD >(
-								new WORK_THREAD( m_queue ) ) );
+					m_threads.emplace_back( std::unique_ptr< Work_Thread >(
+								new Work_Thread( m_queue ) ) );
 			}
 
 		virtual void
@@ -251,18 +251,18 @@ class dispatcher_t
 			const std::string & name_base ) override
 			{
 				m_data_source.set_data_sources_name_base(
-						ADAPTATIONS::dispatcher_type_name(),
+						Adaptations::dispatcher_type_name(),
 						name_base,
 						this );
 			}
 
 		//! Bind agent to the dispatcher.
 		virtual event_queue_t *
-		bind_agent( agent_ref_t agent, const PARAMS & params ) override
+		bind_agent( agent_ref_t agent, const Params & params ) override
 			{
 				std::lock_guard< std::mutex > lock( m_lock );
 
-				if( ADAPTATIONS::is_individual_fifo( params ) )
+				if( Adaptations::is_individual_fifo( params ) )
 					return bind_agent_with_inidividual_fifo(
 							std::move( agent ), params );
 
@@ -288,7 +288,7 @@ class dispatcher_t
 									{
 										// agent_queue object can be destroyed
 										// only when it is empty.
-										ADAPTATIONS::wait_for_queue_emptyness(
+										Adaptations::wait_for_queue_emptyness(
 												*(it_coop->second.m_queue) );
 
 										m_cooperations.erase( it_coop );
@@ -297,7 +297,7 @@ class dispatcher_t
 						else
 							// agent_queue object can be destroyed
 							// only when it is empty.
-							ADAPTATIONS::wait_for_queue_emptyness(
+							Adaptations::wait_for_queue_emptyness(
 									*(it->second.m_queue) );
 
 						m_agents.erase( it );
@@ -306,13 +306,13 @@ class dispatcher_t
 
 	private :
 		//! Queue for active agent's queues.
-		DISPATCHER_QUEUE m_queue;
+		Dispatcher_Queue m_queue;
 
 		//! Count of working threads.
 		const std::size_t m_thread_count;
 
 		//! Pool of work threads.
-		std::vector< std::unique_ptr< WORK_THREAD > > m_threads;
+		std::vector< std::unique_ptr< Work_Thread > > m_threads;
 
 		//! Object's lock.
 		std::mutex m_lock;
@@ -339,7 +339,7 @@ class dispatcher_t
 		event_queue_t *
 		bind_agent_with_inidividual_fifo(
 			agent_ref_t agent,
-			const PARAMS & params )
+			const Params & params )
 			{
 				auto queue = make_new_agent_queue( params );
 
@@ -361,7 +361,7 @@ class dispatcher_t
 		event_queue_t *
 		bind_agent_with_cooperation_fifo(
 			agent_ref_t agent,
-			const PARAMS & params )
+			const Params & params )
 			{
 				auto it = m_cooperations.find( agent->so_coop_name() );
 				if( it == m_cooperations.end() )
@@ -394,10 +394,10 @@ class dispatcher_t
 		//! Helper method for creating event queue for agents/cooperations.
 		agent_queue_ref_t
 		make_new_agent_queue(
-			const PARAMS & params )
+			const Params & params )
 			{
 				return agent_queue_ref_t(
-						new AGENT_QUEUE{ m_queue, params } );
+						new Agent_Queue{ m_queue, params } );
 			}
 
 		/*!
@@ -430,7 +430,7 @@ class dispatcher_t
 					{
 						using stats_t = so_5::stats::work_thread_activity_stats_t;
 
-						WORK_THREAD & wt = *t;
+						Work_Thread & wt = *t;
 						wt.take_activity_stats(
 							[&wt, &consumer]( const stats_t & st ) {
 								consumer.add_work_thread_activity( wt.thread_id(), st );

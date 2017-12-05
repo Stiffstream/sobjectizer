@@ -172,11 +172,13 @@ class subscription_bind_t
 			};
 		 * \endcode
 		 */
-		template< class RESULT, class ARG, class AGENT >
-		subscription_bind_t &
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				subscription_bind_t & >::type
 		event(
 			//! Event handling method.
-			RESULT (AGENT::*pfn)( ARG ),
+			Method_Pointer pfn,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
@@ -217,13 +219,15 @@ class subscription_bind_t
 		 *
 		 * \deprecated Will be removed in v.5.6.0.
 		 */
-		template< class RESULT, class MESSAGE, class AGENT >
-		subscription_bind_t &
+		template< typename Message, typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				subscription_bind_t & >::type
 		event(
 			//! Signal indicator.
-			signal_indicator_t< MESSAGE >(),
+			signal_indicator_t< Message >(),
 			//! Event handling method.
-			RESULT (AGENT::*pfn)(),
+			Method_Pointer pfn,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
@@ -235,10 +239,10 @@ class subscription_bind_t
 		 *
 		 * \attention Only lambda-function in the forms:
 		 * \code
-			RESULT (const MESSAGE &)
-			RESULT (MESSAGE)
-			RESULT (so_5::mhood_t<MESSAGE>)
-			RESULT (const so_5::mhood_t<MESSAGE> &)
+			Result (const Message &)
+			Result (Message)
+			Result (so_5::mhood_t<Message>)
+			Result (const so_5::mhood_t<Message> &)
 		 * \endcode
 		 * are supported.
 		 *
@@ -263,11 +267,13 @@ class subscription_bind_t
 			};
 		 * \endcode
 		 */
-		template< class LAMBDA >
-		subscription_bind_t &
+		template< class Lambda >
+		typename std::enable_if<
+				details::lambda_traits::is_lambda<Lambda>::value,
+				subscription_bind_t & >::type
 		event(
 			//! Event handler code.
-			LAMBDA && lambda,
+			Lambda && lambda,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
@@ -279,7 +285,7 @@ class subscription_bind_t
 		 *
 		 * \attention Only lambda-function in the form:
 		 * \code
-			RESULT ()
+			Result ()
 		 * \endcode
 		 * is supported.
 		 *
@@ -311,13 +317,15 @@ class subscription_bind_t
 		 * 
 		 * \deprecated Will be removed in v.5.6.0.
 		 */
-		template< class MESSAGE, class LAMBDA >
-		subscription_bind_t &
+		template< class Message, class Lambda >
+		typename std::enable_if<
+				details::lambda_traits::is_lambda<Lambda>::value,
+				subscription_bind_t & >::type
 		event(
 			//! Signal indicator.
-			signal_indicator_t< MESSAGE >(),
+			signal_indicator_t< Message >(),
 			//! Event handling lambda.
-			LAMBDA && lambda,
+			Lambda && lambda,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
@@ -336,12 +344,12 @@ class subscription_bind_t
 		   }
 		 * \endcode
 		 */
-		template< typename SIGNAL, typename... ARGS >
+		template< typename Signal, typename... Args >
 		subscription_bind_t &
-		event( ARGS&&... args )
+		event( Args&&... args )
 			{
-				return this->event( so_5::signal< SIGNAL >,
-						std::forward< ARGS >(args)... );
+				return this->event( so_5::signal< Signal >,
+						std::forward< Args >(args)... );
 			}
 
 		/*!
@@ -394,7 +402,7 @@ class subscription_bind_t
 		 * from one state to another. It means that an infinite loop can be
 		 * produced and there is no tools for preventing such infinite loops.
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		subscription_bind_t &
 		transfer_to_state(
 			const state_t & target_state );
@@ -439,7 +447,7 @@ class subscription_bind_t
 			};
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		subscription_bind_t &
 		suppress();
 
@@ -470,7 +478,7 @@ class subscription_bind_t
 			}
 		 * \endcode
 		 */
-		template< typename MSG >
+		template< typename Msg >
 		subscription_bind_t &
 		just_switch_to(
 			const state_t & target_state );
@@ -579,30 +587,41 @@ class subscription_bind_t
 	Any method with one of the following prototypes can be used as an event
 	handler:
 	\code
-		return_type handler( mhood_t< MESSAGE > msg );
-		return_type handler( const mhood_t< MESSAGE > & msg );
-		return_type handler( const MESSAGE & msg );
-		return_type handler( MESSAGE msg );
+		return_type handler( mhood_t< Message > msg );
+		return_type handler( const mhood_t< Message > & msg );
+		return_type handler( const Message & msg );
+		return_type handler( Message msg );
 		return_type handler();
+		// Since v.5.5.20:
+		return_type handler( mhood_t< Message > msg ) const;
+		return_type handler( const mhood_t< Message > & msg ) const;
+		return_type handler( const Message & msg ) const;
+		return_type handler( Message msg ) const;
+		return_type handler() const;
 	\endcode
-	Where \c evt_handler is a name of the event handler, \c MESSAGE is a 
+	Where \c evt_handler is a name of the event handler, \c Message is a 
 	message type.
 
 	The class mhood_t is a wrapper on pointer to an instance 
-	of the \c MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. 
-	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
+	of the \c Message. It is very similar to <tt>std::unique_ptr</tt>. 
+	The pointer to \c Message can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
 
 	Please note that handlers with the following prototypes can be used
 	only for messages, not signals:
 	\code
-		return_type handler( const MESSAGE & msg );
-		return_type handler( MESSAGE msg );
+		return_type handler( const Message & msg );
+		return_type handler( Message msg );
+		// Since v.5.5.20:
+		return_type handler( const Message & msg ) const;
+		return_type handler( Message msg ) const;
 	\endcode
 
 	This form is used only for signals (messages without actual data):
 	\code
 		return_type handler();
+		// Since v.5.5.20:
+		return_type handler() const;
 	\endcode
 
 	A subscription to the message is performed by the method so_subscribe().
@@ -1153,16 +1172,20 @@ class SO_5_TYPE agent_t
 		 * The pointer to event routine is necessary only to
 		 * detect MSG type.
 		 */
-		template< class RET, class AGENT, class HANDLER_ARGUMENT >
-		inline void
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				void >::type
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			RET (AGENT::*)(HANDLER_ARGUMENT) )
+			Method_Pointer /*pfn*/ )
 		{
+			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 			using message_type =
 					typename details::message_handler_format_detector<
-							HANDLER_ARGUMENT>::type;
+							typename pfn_traits::argument_type >::type;
 
 			do_drop_subscription( mbox,
 					message_payload_type< message_type >::subscription_type_index(),
@@ -1177,16 +1200,16 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
-			signal_indicator_t< MESSAGE >() )
+			signal_indicator_t< Message >() )
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1198,7 +1221,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
@@ -1206,7 +1229,7 @@ class SO_5_TYPE agent_t
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1221,17 +1244,21 @@ class SO_5_TYPE agent_t
 		 * \note Subscription is removed even if agent was subscribed
 		 * for this message type with different method pointer.
 		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
+		 * detect Msg type.
 		 */
-		template< class RET, class AGENT, class HANDLER_ARGUMENT >
-		inline void
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				void >::type
 		so_drop_subscription(
 			const mbox_t & mbox,
-			RET (AGENT::*)(HANDLER_ARGUMENT) )
+			Method_Pointer /*pfn*/ )
 		{
+			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 			using message_type =
 					typename details::message_handler_format_detector<
-							HANDLER_ARGUMENT>::type;
+							typename pfn_traits::argument_type >::type;
 
 			do_drop_subscription(
 					mbox,
@@ -1247,15 +1274,15 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox,
-			signal_indicator_t< MESSAGE >() )
+			signal_indicator_t< Message >() )
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1267,14 +1294,14 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription(
 			const mbox_t & mbox )
 		{
 			do_drop_subscription(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1290,17 +1317,21 @@ class SO_5_TYPE agent_t
 		 * \note Subscription is removed even if agent was subscribed
 		 * for this message type with different method pointer.
 		 * The pointer to event routine is necessary only to
-		 * detect MSG type.
+		 * detect Msg type.
 		 */
-		template< class RET, class AGENT, class HANDLER_ARGUMENT >
-		inline void
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				void >::type
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			RET (AGENT::*)(HANDLER_ARGUMENT) )
+			Method_Pointer /*pfn*/ )
 		{
+			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 			using message_type =
 					typename details::message_handler_format_detector<
-							HANDLER_ARGUMENT>::type;
+							typename pfn_traits::argument_type >::type;
 
 			do_drop_subscription_for_all_states(
 					mbox,
@@ -1316,15 +1347,15 @@ class SO_5_TYPE agent_t
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			signal_indicator_t< MESSAGE >() )
+			signal_indicator_t< Message >() )
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index() );
+					message_payload_type< Message >::subscription_type_index() );
 		}
 
 		/*!
@@ -1336,14 +1367,14 @@ class SO_5_TYPE agent_t
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox )
 		{
 			do_drop_subscription_for_all_states(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index() );
+					message_payload_type< Message >::subscription_type_index() );
 		}
 
 		/*!
@@ -1372,23 +1403,23 @@ class SO_5_TYPE agent_t
 		 *
 		 * \return true if subscription is present for \a target_state.
 		 *
-		 * \tparam MESSAGE a type of message/signal subscription to which
+		 * \tparam Message a type of message/signal subscription to which
 		 * must be checked.
 		 *
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		bool
 		so_has_subscription(
-			//! A mbox from which message/signal of type \a MESSAGE is expected.
+			//! A mbox from which message/signal of type \a Message is expected.
 			const mbox_t & mbox,
 			//! A target state for the subscription.
 			const state_t & target_state ) const
 		{
 			return do_check_subscription_presence(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					target_state );
 		}
 
@@ -1418,21 +1449,21 @@ class SO_5_TYPE agent_t
 		 *
 		 * \return true if subscription is present for the default_state.
 		 *
-		 * \tparam MESSAGE a type of message/signal subscription to which
+		 * \tparam Message a type of message/signal subscription to which
 		 * must be checked.
 		 *
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		bool
 		so_has_subscription(
-			//! A mbox from which message/signal of type \a MESSAGE is expected.
+			//! A mbox from which message/signal of type \a Message is expected.
 			const mbox_t & mbox ) const
 		{
 			return do_check_subscription_presence(
 					mbox,
-					message_payload_type< MESSAGE >::subscription_type_index(),
+					message_payload_type< Message >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1466,18 +1497,22 @@ class SO_5_TYPE agent_t
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< class AGENT, class RET, class HANDLER_ARGUMENT >
-		bool
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				bool >::type
 		so_has_subscription(
-			//! A mbox from which message/signal of type \a HANDLER_ARGUMENT is expected.
+			//! A mbox from which message/signal is expected.
 			const mbox_t & mbox,
 			//! A target state for the subscription.
 			const state_t & target_state,
-			RET (AGENT::*)(HANDLER_ARGUMENT) ) const
+			Method_Pointer /*pfn*/ ) const
 		{
+			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 			using message_type =
 					typename details::message_handler_format_detector<
-							HANDLER_ARGUMENT>::type;
+							typename pfn_traits::argument_type>::type;
 
 			return this->so_has_subscription<message_type>(
 					mbox, target_state );
@@ -1515,16 +1550,20 @@ class SO_5_TYPE agent_t
 		 * \since
 		 * v.5.5.19.5
 		 */
-		template< class AGENT, class RET, class HANDLER_ARGUMENT >
-		bool
+		template< typename Method_Pointer >
+		typename std::enable_if<
+				details::is_agent_method_pointer<Method_Pointer>::value,
+				bool >::type
 		so_has_subscription(
-			//! A mbox from which message/signal of type \a HANDLER_ARGUMENT is expected.
+			//! A mbox from which message/signal is expected.
 			const mbox_t & mbox,
-			RET (AGENT::*)(HANDLER_ARGUMENT) ) const
+			Method_Pointer /*pfn*/ ) const
 		{
+			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 			using message_type =
 					typename details::message_handler_format_detector<
-							HANDLER_ARGUMENT>::type;
+							typename pfn_traits::argument_type>::type;
 
 			return this->so_has_subscription<message_type>(
 					mbox, so_default_state() );
@@ -1719,9 +1758,9 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Set a delivery filter.
 		 *
-		 * \tparam MESSAGE type of message to be filtered.
+		 * \tparam Message type of message to be filtered.
 		 */
-		template< typename MESSAGE >
+		template< typename Message >
 		void
 		so_set_delivery_filter(
 			//! Message box from which message is expected.
@@ -1730,11 +1769,11 @@ class SO_5_TYPE agent_t
 			//! Delivery filter instance.
 			delivery_filter_unique_ptr_t filter )
 			{
-				ensure_not_signal< MESSAGE >();
+				ensure_not_signal< Message >();
 
 				do_set_delivery_filter(
 						mbox,
-						message_payload_type< MESSAGE >::subscription_type_index(),
+						message_payload_type< Message >::subscription_type_index(),
 						std::move(filter) );
 			}
 
@@ -1744,7 +1783,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Set a delivery filter.
 		 *
-		 * \tparam LAMBDA type of lambda-function or functional object which
+		 * \tparam Lambda type of lambda-function or functional object which
 		 * must be used as message filter.
 		 *
 		 * \par Usage sample:
@@ -1758,14 +1797,14 @@ class SO_5_TYPE agent_t
 		 }
 		 \endcode
 		 */
-		template< typename LAMBDA >
+		template< typename Lambda >
 		void
 		so_set_delivery_filter(
 			//! Message box from which message is expected.
 			//! This must be MPMC-mbox.
 			const mbox_t & mbox,
 			//! Delivery filter as lambda-function or functional object.
-			LAMBDA && lambda );
+			Lambda && lambda );
 
 		/*!
 		 * \since
@@ -1773,9 +1812,9 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Drop a delivery filter.
 		 *
-		 * \tparam MESSAGE type of message filtered.
+		 * \tparam Message type of message filtered.
 		 */
-		template< typename MESSAGE >
+		template< typename Message >
 		void
 		so_drop_delivery_filter(
 			//! Message box to which delivery filter was set.
@@ -1784,7 +1823,7 @@ class SO_5_TYPE agent_t
 			{
 				do_drop_delivery_filter(
 						mbox,
-						message_payload_type< MESSAGE >::subscription_type_index() );
+						message_payload_type< Message >::subscription_type_index() );
 			}
 		/*!
 		 * \}
@@ -2471,12 +2510,12 @@ namespace delivery_filter_templates
  * \brief An implementation of delivery filter represented by lambda-function
  * like object.
  *
- * \tparam LAMBDA type of lambda-function or functional object.
+ * \tparam Lambda type of lambda-function or functional object.
  */
-template< typename LAMBDA, typename MESSAGE >
+template< typename Lambda, typename Message >
 class lambda_as_filter_t : public delivery_filter_t
 	{
-		LAMBDA m_filter;
+		Lambda m_filter;
 
 		// NOTE: this is a workaround for strage behaviour of VC++ 19.0.23918
 		// (from Visual Studio 2015 Update 2).
@@ -2484,14 +2523,14 @@ class lambda_as_filter_t : public delivery_filter_t
 		// Because of that it is necessary to call another noexcept
 		// function from check().
 		bool
-		do_check( MESSAGE & m ) const SO_5_NOEXCEPT
+		do_check( Message & m ) const SO_5_NOEXCEPT
 		{
 			return m_filter( m );
 		}
 
 	public :
-		lambda_as_filter_t( LAMBDA && filter )
-			:	m_filter( std::forward< LAMBDA >( filter ) )
+		lambda_as_filter_t( Lambda && filter )
+			:	m_filter( std::forward< Lambda >( filter ) )
 			{}
 
 #if SO_5_HAVE_NOEXCEPT
@@ -2500,7 +2539,7 @@ class lambda_as_filter_t : public delivery_filter_t
 			const agent_t & /*receiver*/,
 			message_t & msg ) const SO_5_NOEXCEPT override
 			{
-				return do_check(message_payload_type< MESSAGE >::payload_reference( msg ));
+				return do_check(message_payload_type< Message >::payload_reference( msg ));
 			}
 #else
 		virtual bool
@@ -2510,14 +2549,14 @@ class lambda_as_filter_t : public delivery_filter_t
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {
-						return m_filter( message_payload_type< MESSAGE >::payload_reference( msg ) );
+						return m_filter( message_payload_type< Message >::payload_reference( msg ) );
 					},
 					[&] {
 						so_5::details::abort_on_fatal_error( [&] {
 							SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
 								serr << "An exception from delivery filter "
 									"for message type "
-									<< message_payload_type< MESSAGE >::subscription_type_index().name()
+									<< message_payload_type< Message >::subscription_type_index().name()
 									<< ". Application will be aborted"
 									<< std::endl;
 							}
@@ -2529,16 +2568,16 @@ class lambda_as_filter_t : public delivery_filter_t
 
 } /* namespace delivery_filter_templates */
 
-template< typename LAMBDA >
+template< typename Lambda >
 void
 agent_t::so_set_delivery_filter(
 	const mbox_t & mbox,
-	LAMBDA && lambda )
+	Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
 		using namespace delivery_filter_templates;
 
-		using argument_type = typename argument_type_if_lambda< LAMBDA >::type;
+		using argument_type = typename argument_type_if_lambda< Lambda >::type;
 
 		ensure_not_signal< argument_type >();
 
@@ -2546,7 +2585,7 @@ agent_t::so_set_delivery_filter(
 				mbox,
 				message_payload_type< argument_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{ 
-					new lambda_as_filter_t< LAMBDA, argument_type >(
+					new lambda_as_filter_t< Lambda, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
@@ -2579,16 +2618,21 @@ subscription_bind_t::in(
 	return *this;
 }
 
-template< class RESULT, class ARG, class AGENT >
-inline subscription_bind_t &
+template< typename Method_Pointer >
+typename std::enable_if<
+		details::is_agent_method_pointer<Method_Pointer>::value,
+		subscription_bind_t & >::type
 subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( ARG ),
+	Method_Pointer pfn,
 	thread_safety_t thread_safety )
 {
 	using namespace details::event_subscription_helpers;
 
+	using agent_type =
+			typename details::is_agent_method_pointer<Method_Pointer>::agent_type;
+
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
+	auto cast_result = get_actual_agent_pointer< agent_type >( *m_agent );
 
 	const auto ev = make_handler_with_arg_for_agent( cast_result, pfn );
 
@@ -2601,22 +2645,29 @@ subscription_bind_t::event(
 	return *this;
 }
 
-template< class RESULT, class MESSAGE, class AGENT >
-inline subscription_bind_t &
+template< typename Message, typename Method_Pointer >
+typename std::enable_if<
+		details::is_agent_method_pointer<Method_Pointer>::value,
+		subscription_bind_t & >::type
 subscription_bind_t::event(
-	signal_indicator_t< MESSAGE >(),
-	RESULT (AGENT::*pfn)(),
+	signal_indicator_t< Message >(),
+	Method_Pointer pfn,
 	thread_safety_t thread_safety )
 {
-	ensure_signal< MESSAGE >();
+	ensure_signal< Message >();
 
 	using namespace details::event_subscription_helpers;
 
+	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
+	using agent_type = typename pfn_traits::agent_type;
+	using result_type = typename pfn_traits::result_type;
+
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
+	auto cast_result = get_actual_agent_pointer< agent_type >( *m_agent );
 
-	const auto ev = handler< MESSAGE >(
-			[cast_result, pfn]() -> RESULT { return (cast_result->*pfn)(); } );
+	const auto ev = handler< Message >(
+			[cast_result, pfn]() -> result_type { return (cast_result->*pfn)(); } );
 
 	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
@@ -2627,13 +2678,15 @@ subscription_bind_t::event(
 	return *this;
 }
 
-template< class LAMBDA >
-inline subscription_bind_t &
+template<typename Lambda>
+typename std::enable_if<
+		details::lambda_traits::is_lambda<Lambda>::value,
+		subscription_bind_t & >::type
 subscription_bind_t::event(
-	LAMBDA && lambda,
+	Lambda && lambda,
 	thread_safety_t thread_safety )
 {
-	const auto ev = handler( std::forward<LAMBDA>(lambda) );
+	const auto ev = handler( std::forward<Lambda>(lambda) );
 
 	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
@@ -2644,14 +2697,16 @@ subscription_bind_t::event(
 	return *this;
 }
 
-template< class MESSAGE, class LAMBDA >
-inline subscription_bind_t &
+template< class Message, class Lambda >
+typename std::enable_if<
+		details::lambda_traits::is_lambda<Lambda>::value,
+		subscription_bind_t & >::type
 subscription_bind_t::event(
-	signal_indicator_t< MESSAGE > (*)(),
-	LAMBDA && lambda,
+	signal_indicator_t< Message > (*)(),
+	Lambda && lambda,
 	thread_safety_t thread_safety )
 {
-	const auto ev = handler< MESSAGE, LAMBDA >( std::forward<LAMBDA>(lambda) );
+	const auto ev = handler< Message, Lambda >( std::forward<Lambda>(lambda) );
 
 	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
@@ -2662,7 +2717,7 @@ subscription_bind_t::event(
 	return *this;
 }
 
-template< typename MSG >
+template< typename Msg >
 subscription_bind_t &
 subscription_bind_t::transfer_to_state(
 	const state_t & target_state )
@@ -2680,7 +2735,7 @@ subscription_bind_t::transfer_to_state(
 					agent_ptr,
 					nullptr, // Message limit is not actual here.
 					mbox_id,
-					typeid( MSG ),
+					typeid( Msg ),
 					msg,
 					invocation_type_t::event == invoke_type ?
 							agent_t::get_demand_handler_on_message_ptr() :
@@ -2691,14 +2746,14 @@ subscription_bind_t::transfer_to_state(
 		};
 
 	create_subscription_for_states(
-			typeid( MSG ),
+			typeid( Msg ),
 			method,
 			thread_safety_t::unsafe );
 
 	return *this;
 }
 
-template< typename MSG >
+template< typename Msg >
 subscription_bind_t &
 subscription_bind_t::suppress()
 {
@@ -2706,14 +2761,14 @@ subscription_bind_t::suppress()
 	auto method = []( invocation_type_t, message_ref_t & ) {};
 
 	create_subscription_for_states(
-			typeid( MSG ),
+			typeid( Msg ),
 			method,
 			thread_safety_t::safe );
 
 	return *this;
 }
 
-template< typename MSG >
+template< typename Msg >
 subscription_bind_t &
 subscription_bind_t::just_switch_to(
 	const state_t & target_state )
@@ -2727,7 +2782,7 @@ subscription_bind_t::just_switch_to(
 		};
 
 	create_subscription_for_states(
-			typeid( MSG ),
+			typeid( Msg ),
 			method,
 			thread_safety_t::unsafe );
 
@@ -2779,177 +2834,197 @@ state_t::is_active() const
 	return m_target_agent->so_is_active_state( *this );
 }
 
-template< typename... ARGS >
+template< typename... Args >
 const state_t &
-state_t::event( ARGS&&... args ) const
+state_t::event( Args&&... args ) const
 {
 	return this->subscribe_message_handler(
 			m_target_agent->so_direct_mbox(),
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 }
 
-template< typename... ARGS >
+template< typename... Args >
 const state_t &
-state_t::event( mbox_t from, ARGS&&... args ) const
+state_t::event( mbox_t from, Args&&... args ) const
 {
 	return this->subscribe_message_handler( from,
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 }
 
-template< typename SIGNAL, typename... ARGS >
+template< typename Signal, typename... Args >
 const state_t &
-state_t::event( ARGS&&... args ) const
+state_t::event( Args&&... args ) const
 {
-	return this->subscribe_signal_handler< SIGNAL >(
+	return this->subscribe_signal_handler< Signal >(
 			m_target_agent->so_direct_mbox(),
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 }
 
-template< typename SIGNAL, typename... ARGS >
+template< typename Signal, typename... Args >
 const state_t &
-state_t::event( mbox_t from, ARGS&&... args ) const
+state_t::event( mbox_t from, Args&&... args ) const
 {
-	return this->subscribe_signal_handler< SIGNAL >(
+	return this->subscribe_signal_handler< Signal >(
 			from,
-			std::forward< ARGS >(args)... );
+			std::forward< Args >(args)... );
 }
 
-template< typename MSG >
+template< typename Msg >
 bool
 state_t::has_subscription( const mbox_t & from ) const
 {
-	return m_target_agent->so_has_subscription< MSG >( from, *this );
+	return m_target_agent->so_has_subscription< Msg >( from, *this );
 }
 
-template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+template< typename Method_Pointer >
 bool
 state_t::has_subscription(
 	const mbox_t & from,
-	RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const
+	Method_Pointer && pfn ) const
 {
-	return m_target_agent->so_has_subscription( from, *this, event_handler );
+	return m_target_agent->so_has_subscription(
+			from,
+			*this,
+			std::forward<Method_Pointer>(pfn) );
 }
 
-template< typename MSG >
+template< typename Msg >
 void
 state_t::drop_subscription( const mbox_t & from ) const
 {
-	m_target_agent->so_drop_subscription< MSG >( from, *this );
+	m_target_agent->so_drop_subscription< Msg >( from, *this );
 }
 
-template< typename RET, typename AGENT, typename HANDLER_ARGUMENT >
+template< typename Method_Pointer >
 void
 state_t::drop_subscription(
 	const mbox_t & from,
-	RET (AGENT::*event_handler)(HANDLER_ARGUMENT) ) const
+	Method_Pointer && pfn ) const
 {
-	m_target_agent->so_drop_subscription( from, *this, event_handler );
+	m_target_agent->so_drop_subscription(
+			from,
+			*this,
+			std::forward<Method_Pointer>(pfn) );
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::transfer_to_state( mbox_t from, const state_t & target_state ) const
 {
 	m_target_agent->so_subscribe( from )
 			.in( *this )
-			.transfer_to_state< MSG >( target_state );
+			.transfer_to_state< Msg >( target_state );
 
 	return *this;
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::transfer_to_state( const state_t & target_state ) const
 {
-	return this->transfer_to_state< MSG >(
+	return this->transfer_to_state< Msg >(
 			m_target_agent->so_direct_mbox(),
 			target_state );
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::just_switch_to( mbox_t from, const state_t & target_state ) const
 {
 	m_target_agent->so_subscribe( from )
 			.in( *this )
-			.just_switch_to< MSG >( target_state );
+			.just_switch_to< Msg >( target_state );
 
 	return *this;
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::just_switch_to( const state_t & target_state ) const
 {
-	return this->just_switch_to< MSG >(
+	return this->just_switch_to< Msg >(
 			m_target_agent->so_direct_mbox(),
 			target_state );
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::suppress() const
 {
-	return this->suppress< MSG >( m_target_agent->so_direct_mbox() );
+	return this->suppress< Msg >( m_target_agent->so_direct_mbox() );
 }
 
-template< typename MSG >
+template< typename Msg >
 const state_t &
 state_t::suppress( mbox_t from ) const
 {
 	m_target_agent->so_subscribe( from )
 			.in( *this )
-			.suppress< MSG >();
+			.suppress< Msg >();
 
 	return *this;
 }
 
-template< typename AGENT >
-state_t &
-state_t::on_enter( void (AGENT::*pfn)() )
+template< typename Method_Pointer >
+typename std::enable_if<
+		details::is_agent_method_pointer<Method_Pointer>::value,
+		state_t & >::type
+state_t::on_enter( Method_Pointer pfn )
 {
 	using namespace details::event_subscription_helpers;
 
+	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+	auto cast_result =
+			get_actual_agent_pointer<
+					typename pfn_traits::agent_type >(
+			*m_target_agent );
 
 	return this->on_enter( [cast_result, pfn]() { (cast_result->*pfn)(); } );
 }
 
-template< typename AGENT >
-state_t &
-state_t::on_exit( void (AGENT::*pfn)() )
+template< typename Method_Pointer >
+typename std::enable_if<
+		details::is_agent_method_pointer<Method_Pointer>::value,
+		state_t & >::type
+state_t::on_exit( Method_Pointer pfn )
 {
 	using namespace details::event_subscription_helpers;
 
+	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+	auto cast_result =
+			get_actual_agent_pointer<
+					typename pfn_traits::agent_type >(
+			*m_target_agent );
 
 	return this->on_exit( [cast_result, pfn]() { (cast_result->*pfn)(); } );
 }
 
-template< typename... ARGS >
+template< typename... Args >
 const state_t &
 state_t::subscribe_message_handler(
 	const mbox_t & from,
-	ARGS&&... args ) const
+	Args&&... args ) const
 {
 	m_target_agent->so_subscribe( from ).in( *this )
-			.event( std::forward< ARGS >(args)... );
+			.event( std::forward< Args >(args)... );
 
 	return *this;
 }
 
-template< typename SIGNAL, typename... ARGS >
+template< typename Signal, typename... Args >
 const state_t &
 state_t::subscribe_signal_handler(
 	const mbox_t & from,
-	ARGS&&... args ) const
+	Args&&... args ) const
 {
 	m_target_agent->so_subscribe( from )
 			.in( *this ).event(
-					so_5::signal< SIGNAL >,
-					std::forward< ARGS >(args)... );
+					so_5::signal< Signal >,
+					std::forward< Args >(args)... );
 
 	return *this;
 }

@@ -174,16 +174,16 @@ private :
 	demand_queue_t is thread safe and is intended to be used by 
 	several concurrent threads.
 */
-template< typename IMPL >
+template< typename Impl >
 class queue_template_t
 	:	public event_queue_t
-	,	public IMPL
+	,	public Impl
 {
 public:
 	queue_template_t(
 		//! Lock object to be used by queue.
 		queue_traits::lock_unique_ptr_t lock )
-		:	IMPL( std::move(lock) )
+		:	Impl( std::move(lock) )
 	{}
 
 	/*!
@@ -354,7 +354,7 @@ enum class status_t : int
  * \since
  * v.5.5.18
  */
-template< typename DEMAND_QUEUE >
+template< typename Demand_Queue >
 struct common_data_t
 {
 	//! Working thread.
@@ -364,7 +364,7 @@ struct common_data_t
 	std::atomic< status_t > m_status{ status_t::stopped };
 
 	//! Demands queue.
-	DEMAND_QUEUE m_queue;
+	Demand_Queue m_queue;
 
 	/*!
 	 * \brief ID of working thread.
@@ -543,14 +543,14 @@ private :
  * \since
  * v.5.5.18
  */
-template< typename IMPL >
-class work_thread_template_t : public IMPL
+template< typename Impl >
+class work_thread_template_t : public Impl
 {
 public :
 	work_thread_template_t(
 		//! Factory for creation of lock object for demand queue.
 		queue_traits::lock_factory_t queue_lock_factory )
-		:	IMPL( std::move(queue_lock_factory) )
+		:	Impl( std::move(queue_lock_factory) )
 	{}
 
 	//! Start the working thread.

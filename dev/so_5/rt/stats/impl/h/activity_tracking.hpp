@@ -61,11 +61,11 @@ struct no_actual_lock
  * \since
  * v.5.5.18
  */
-template< typename LOCK_HOLDER >
+template< typename Lock_Holder >
 struct default_lock_policy
 	{
-		using start_stop_lock_t = std::lock_guard< LOCK_HOLDER >;
-		using take_stats_lock_t = std::lock_guard< LOCK_HOLDER >;
+		using start_stop_lock_t = std::lock_guard< Lock_Holder >;
+		using take_stats_lock_t = std::lock_guard< Lock_Holder >;
 	};
 
 /*!
@@ -76,11 +76,11 @@ struct default_lock_policy
  * \since
  * v.5.5.18
  */
-template< typename LOCK_HOLDER >
+template< typename Lock_Holder >
 struct no_lock_at_start_stop_policy
 	{
-		using start_stop_lock_t = no_actual_lock< LOCK_HOLDER >;
-		using take_stats_lock_t = std::lock_guard< LOCK_HOLDER >;
+		using start_stop_lock_t = no_actual_lock< Lock_Holder >;
+		using take_stats_lock_t = std::lock_guard< Lock_Holder >;
 	};
 
 /*!
@@ -109,18 +109,18 @@ class internal_lock
  * v.5.5.18
  */
 template<
-	typename LOCK_TYPE = traits::lock_t,
-	template<class> class LOCK_POLICY = default_lock_policy >
+	typename Lock_Type = traits::lock_t,
+	template<class> class Lock_Policy = default_lock_policy >
 class external_lock
 	{
-		LOCK_TYPE & m_lock;
+		Lock_Type & m_lock;
 	public :
 		using start_stop_lock_t =
-				typename LOCK_POLICY< external_lock >::start_stop_lock_t;
+				typename Lock_Policy< external_lock >::start_stop_lock_t;
 		using take_stats_lock_t =
-				typename LOCK_POLICY< external_lock >::take_stats_lock_t;
+				typename Lock_Policy< external_lock >::take_stats_lock_t;
 
-		external_lock( LOCK_TYPE & lock ) : m_lock( lock ) {}
+		external_lock( Lock_Type & lock ) : m_lock( lock ) {}
 
 		void lock() { m_lock.lock(); }
 		void unlock() { m_lock.unlock(); }
@@ -162,22 +162,22 @@ struct null_lock
  * \since
  * v.5.5.18
  */
-template< typename LOCK_HOLDER >
-class stats_collector_t : protected LOCK_HOLDER
+template< typename Lock_Holder >
+class stats_collector_t : protected Lock_Holder
 	{
-		LOCK_HOLDER &
+		Lock_Holder &
 		lock_holder() { return *this; }
 
 	public :
-		template< typename... ARGS >
-		stats_collector_t( ARGS && ...args )
-			:	LOCK_HOLDER( std::forward<ARGS>(args)... )
+		template< typename... Args >
+		stats_collector_t( Args && ...args )
+			:	Lock_Holder( std::forward<Args>(args)... )
 			{}
 
 		void
 		start()
 			{
-				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
+				typename Lock_Holder::start_stop_lock_t lock{ lock_holder() };
 
 				do_start();
 			}
@@ -192,7 +192,7 @@ class stats_collector_t : protected LOCK_HOLDER
 		void
 		start_if_not_started()
 			{
-				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
+				typename Lock_Holder::start_stop_lock_t lock{ lock_holder() };
 
 				if( !m_is_in_working )
 					do_start();
@@ -201,7 +201,7 @@ class stats_collector_t : protected LOCK_HOLDER
 		void
 		stop()
 			{
-				typename LOCK_HOLDER::start_stop_lock_t lock{ lock_holder() };
+				typename Lock_Holder::start_stop_lock_t lock{ lock_holder() };
 
 				m_is_in_working = false;
 				so_5::stats::details::update_stats_from_current_time(
@@ -217,7 +217,7 @@ class stats_collector_t : protected LOCK_HOLDER
 				so_5::stats::clock_type_t::time_point work_started_at;
 
 				{
-					typename LOCK_HOLDER::take_stats_lock_t lock{ lock_holder() };
+					typename Lock_Holder::take_stats_lock_t lock{ lock_holder() };
 
 					result = m_work_activity;
 					if( true == (is_in_working = m_is_in_working) )
@@ -260,19 +260,19 @@ class stats_collector_t : protected LOCK_HOLDER
  * v.5.5.18
  */
 template<
-	typename COMMON_DISP_IFACE_TYPE,
-	typename DISP_NO_TRACKING,
-	typename DISP_WITH_TRACKING,
-	typename ENV,
-	typename DISP_PARAMS,
-	typename... ARGS >
-std::unique_ptr< COMMON_DISP_IFACE_TYPE >
+	typename Common_Disp_Iface_Type,
+	typename Disp_No_Tracking,
+	typename Disp_With_Tracking,
+	typename Env,
+	typename Disp_Params,
+	typename... Args >
+std::unique_ptr< Common_Disp_Iface_Type >
 create_appropriate_disp(
-	ENV & env,
-	const DISP_PARAMS & disp_params,
-	ARGS && ...args )
+	Env & env,
+	const Disp_Params & disp_params,
+	Args && ...args )
 	{
-		std::unique_ptr< COMMON_DISP_IFACE_TYPE > disp;
+		std::unique_ptr< Common_Disp_Iface_Type > disp;
 
 		auto tracking = disp_params.work_thread_activity_tracking();
 		if( work_thread_activity_tracking_t::unspecified == tracking )
@@ -280,10 +280,10 @@ create_appropriate_disp(
 
 		if( work_thread_activity_tracking_t::on == tracking )
 			disp.reset(
-				new DISP_WITH_TRACKING{ std::forward<ARGS>(args)... } );
+				new Disp_With_Tracking{ std::forward<Args>(args)... } );
 		else
 			disp.reset(
-				new DISP_NO_TRACKING{ std::forward<ARGS>(args)... } );
+				new Disp_No_Tracking{ std::forward<Args>(args)... } );
 
 		return disp;
 	}

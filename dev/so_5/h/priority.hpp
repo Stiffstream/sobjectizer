@@ -169,7 +169,7 @@ prev( priority_t p )
  * \note Performs enumeration from priority_t::p_min to priority_t::p_max
  * (inclusive).
  *
- * \tparam LAMBDA a lambda with the prototype:
+ * \tparam Lambda a lambda with the prototype:
  * \code
 	return_type lambda(so_5::priority_t);
  * \endcode
@@ -188,9 +188,9 @@ prev( priority_t p )
 		} );
 	\endcode
  */
-template< typename LAMBDA >
+template< typename Lambda >
 void
-for_each_priority( LAMBDA l )
+for_each_priority( Lambda l )
 	{
 		using ut = std::underlying_type< priority_t >::type;
 		const auto min = static_cast< ut >( priority_t::p_min );

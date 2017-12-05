@@ -46,8 +46,8 @@ namespace details {
  *
  * Usage example:
  * \code
-   template< typename LOCK_HOLDER >
-	class coop_repo_t final : protected LOCK_HOLDER
+   template< typename Lock_Holder >
+	class coop_repo_t final : protected Lock_Holder
 	{
 	public :
 		bool has_live_coop()
@@ -59,13 +59,13 @@ namespace details {
 	using mtsafe_coop_repo_t = coop_repo_t< so_5::details::actual_lock_holder_t >;
  * \endcode
  *
- * \tparam LOCK_TYPE type of lock to be used for object protection.
+ * \tparam Lock_Type type of lock to be used for object protection.
  * Will be used with std::lock_guard.
  *
  * \since
  * v.5.5.19
  */
-template< typename LOCK_TYPE = std::mutex >
+template< typename Lock_Type = std::mutex >
 class actual_lock_holder_t
 	{
 		//! Actual lock.
@@ -74,15 +74,15 @@ class actual_lock_holder_t
 		 * This is mutable attibute because locking can be necessary
 		 * even in const methods of derived classes.
 		 */
-		mutable LOCK_TYPE m_lock;
+		mutable Lock_Type m_lock;
 
 	public :
 		//! Do actual lock and perform necessary action.
-		template< typename LAMBDA >
+		template< typename Lambda >
 		auto
-		lock_and_perform( LAMBDA && l ) const -> decltype(l())
+		lock_and_perform( Lambda && l ) const -> decltype(l())
 			{
-				std::lock_guard< LOCK_TYPE > lock{ m_lock };
+				std::lock_guard< Lock_Type > lock{ m_lock };
 				return l();
 			}
 	};
@@ -95,8 +95,8 @@ class actual_lock_holder_t
  *
  * Usage example:
  * \code
-   template< typename LOCK_HOLDER >
-	class coop_repo_t final : protected LOCK_HOLDER
+   template< typename Lock_Holder >
+	class coop_repo_t final : protected Lock_Holder
 	{
 	public :
 		bool has_live_coop()
@@ -115,9 +115,9 @@ class no_lock_holder_t
 	{
 	public :
 		//! Perform necessary action.
-		template< typename LAMBDA >
+		template< typename Lambda >
 		auto
-		lock_and_perform( LAMBDA && l ) const -> decltype(l())
+		lock_and_perform( Lambda && l ) const -> decltype(l())
 			{
 				return l();
 			}
@@ -131,9 +131,9 @@ class no_lock_holder_t
  *
  * Usage example:
  * \code
- * template< typename LOCK_TYPE >
+ * template< typename Lock_Type >
  * class my_thread_safe_class
- * 	: public so_5::details::lock_holder_detector<LOCK_TYPE>::type
+ * 	: public so_5::details::lock_holder_detector<Lock_Type>::type
  * 	{
  * 		void some_method() {
  * 			this->lock_and_perform( [&] {
@@ -146,10 +146,10 @@ class no_lock_holder_t
  * \since
  * v.5.5.19.2
  */
-template< typename LOCK_TYPE >
+template< typename Lock_Type >
 struct lock_holder_detector
 	{
-		using type = actual_lock_holder_t<LOCK_TYPE>;
+		using type = actual_lock_holder_t<Lock_Type>;
 	};
 
 template<>

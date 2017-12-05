@@ -398,11 +398,11 @@ struct mhood_mutability_detector
  * \since
  * v.5.5.19
  */
-template< typename MSG >
+template< typename Msg >
 using actual_mhood_base_type = mhood_base_t<
-		MSG,
-		mhood_type_detector<MSG>::mhood_type,
-		mhood_mutability_detector<MSG>::mutability >;
+		Msg,
+		mhood_type_detector<Msg>::mhood_type,
+		mhood_mutability_detector<Msg>::mutability >;
 
 } /* namespace details */
 
@@ -549,8 +549,8 @@ using mutable_mhood_t = mhood_t< mutable_msg<M> >;
  * \brief An alias for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */
-template< class MSG >
-using event_data_t = mhood_t< MSG >;
+template< class Msg >
+using event_data_t = mhood_t< Msg >;
 
 namespace rt
 {
@@ -558,8 +558,8 @@ namespace rt
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::mhood_t instead.
  */
-template< class MSG >
-using event_data_t = so_5::event_data_t< MSG >;
+template< class Msg >
+using event_data_t = so_5::event_data_t< Msg >;
 
 } /* namespace rt */
 

@@ -582,11 +582,11 @@ public :
 				insert_to_map( std::move( info ) );
 		}
 
-	template< typename... ARGS >
+	template< typename... Args >
 	void
-	emplace( ARGS &&... args )
+	emplace( Args &&... args )
 		{
-			insert( subscriber_info_t{ std::forward<ARGS>( args )... } );
+			insert( subscriber_info_t{ std::forward<Args>( args )... } );
 		}
 
 	void
@@ -716,24 +716,24 @@ struct data_t
  * \since
  * v.5.5.9
  *
- * \tparam TRACING_BASE base class with implementation of message
+ * \tparam Tracing_Base base class with implementation of message
  * delivery tracing methods.
  */
-template< typename TRACING_BASE >
+template< typename Tracing_Base >
 class local_mbox_template
 	:	public abstract_message_box_t
 	,	private local_mbox_details::data_t
-	,	private TRACING_BASE
+	,	private Tracing_Base
 	{
 	public:
-		template< typename... TRACING_ARGS >
+		template< typename... Tracing_Args >
 		local_mbox_template(
 			//! ID of this mbox.
 			mbox_id_t id,
-			//! Optional parameters for TRACING_BASE's constructor.
-			TRACING_ARGS &&... args )
+			//! Optional parameters for Tracing_Base's constructor.
+			Tracing_Args &&... args )
 			:	local_mbox_details::data_t{ id }
-			,	TRACING_BASE{ std::forward< TRACING_ARGS >(args)... }
+			,	Tracing_Base{ std::forward< Tracing_Args >(args)... }
 			{}
 
 		virtual mbox_id_t
@@ -794,8 +794,8 @@ class local_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_base
 						*this, // as abstract_message_box_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
@@ -815,8 +815,8 @@ class local_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
-						*this, // as TRACING_BASE
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
@@ -860,13 +860,13 @@ class local_mbox_template
 			}
 
 	private :
-		template< typename INFO_MAKER, typename INFO_CHANGER >
+		template< typename Info_Maker, typename Info_Changer >
 		void
 		insert_or_modify_subscriber(
 			const std::type_index & type_wrapper,
 			agent_t * subscriber,
-			INFO_MAKER maker,
-			INFO_CHANGER changer )
+			Info_Maker maker,
+			Info_Changer changer )
 			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
@@ -897,12 +897,12 @@ class local_mbox_template
 				}
 			}
 
-		template< typename INFO_CHANGER >
+		template< typename Info_Changer >
 		void
 		modify_and_remove_subscriber_if_needed(
 			const std::type_index & type_wrapper,
 			agent_t * subscriber,
-			INFO_CHANGER changer )
+			Info_Changer changer )
 			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
@@ -930,7 +930,7 @@ class local_mbox_template
 
 		void
 		do_deliver_message_impl(
-			typename TRACING_BASE::deliver_op_tracer const & tracer,
+			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -955,7 +955,7 @@ class local_mbox_template
 		void
 		do_deliver_message_to_subscriber(
 			const local_mbox_details::subscriber_info_t & agent_info,
-			typename TRACING_BASE::deliver_op_tracer const & tracer,
+			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -993,7 +993,7 @@ class local_mbox_template
 
 		void
 		do_deliver_service_request_impl(
-			typename TRACING_BASE::deliver_op_tracer const & tracer,
+			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -1033,7 +1033,7 @@ class local_mbox_template
 
 		void
 		do_deliver_service_request_to_subscriber(
-			typename TRACING_BASE::deliver_op_tracer const & tracer,
+			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const local_mbox_details::subscriber_info_t & agent_info,
 			const std::type_index & msg_type,
 			const message_ref_t & message,

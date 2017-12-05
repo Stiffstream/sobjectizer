@@ -105,7 +105,7 @@ class actual_disp_iface_t : public so_5::dispatcher_t
  * \since
  * v.5.5.8, v.5.5.18
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class dispatcher_template_t : public actual_disp_iface_t
 	{
 	public:
@@ -116,7 +116,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
 						auto lock_factory = params.queue_params().lock_factory();
 
-						auto t = so_5::stdcpp::make_unique< WORK_THREAD >(
+						auto t = so_5::stdcpp::make_unique< Work_Thread >(
 								std::move(lock_factory) );
 
 						m_threads.push_back( std::move(t) );
@@ -248,7 +248,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 					const mbox_t & mbox,
 					priority_t priority,
 					std::size_t agents_count,
-					WORK_THREAD & wt )
+					Work_Thread & wt )
 					{
 						std::ostringstream ss;
 						ss << m_base_prefix.c_str() << "/wt-p" << to_size_t(priority);
@@ -279,7 +279,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		disp_data_source_t m_data_source;
 
 		//! Working threads for every priority.
-		std::vector< std::unique_ptr< WORK_THREAD > > m_threads;
+		std::vector< std::unique_ptr< Work_Thread > > m_threads;
 
 		//! Counters for agent count for every priority.
 		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
@@ -303,7 +303,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 
 				// This helper vector will be used for shutdown of
 				// started threads in the case of an exception.
-				WORK_THREAD * started_threads[ total_priorities_count ];
+				Work_Thread * started_threads[ total_priorities_count ];
 				// Initially all items must be NULL.
 				fill( begin(started_threads), end(started_threads), nullptr );
 

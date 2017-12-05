@@ -17,4 +17,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/has_subscription_4/prj.ut.rb" )
 	required_prj( "#{path}/has_subscription_5/prj.ut.rb" )
 	required_prj( "#{path}/has_subscription_6/prj.ut.rb" )
+	required_prj( "#{path}/has_subscription_7/prj.ut.rb" )
+	required_prj( "#{path}/has_subscription_8/prj.ut.rb" )
 }

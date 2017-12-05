@@ -223,7 +223,7 @@ namespace impl
  *
  * \brief Helper class for calling pre-abort action.
  */
-template< bool IS_MESSAGE, typename M, typename L >
+template< bool is_message, typename M, typename L >
 struct call_pre_abort_action_impl
 	{
 		static void
@@ -333,23 +333,23 @@ redirect_reaction(
  *
  * \brief Indication that a message must be redirected on overlimit.
  *
- * \tparam MSG Message type of message/signal to be redirected.
- * \tparam LAMBDA Type of lambda- or functional object which returns
+ * \tparam Msg Message type of message/signal to be redirected.
+ * \tparam Lambda Type of lambda- or functional object which returns
  * actual mbox for redirection.
  */
-template< typename MSG, typename LAMBDA >
+template< typename Msg, typename Lambda >
 struct redirect_indicator_t
 	{
 		//! Max count of waiting messages.
 		const unsigned int m_limit;
 
 		//! A lambda/functional object which returns mbox for redirection.
-		LAMBDA m_destination_getter;
+		Lambda m_destination_getter;
 
 		//! Initializing constructor.
 		redirect_indicator_t(
 			unsigned int limit,
-			LAMBDA destination_getter )
+			Lambda destination_getter )
 			:	m_limit( limit )
 			,	m_destination_getter( std::move( destination_getter ) )
 			{}
@@ -362,16 +362,16 @@ struct redirect_indicator_t
  * \brief Helper function for accepting redirect_indicator and storing
  * the corresponding description into the limits container.
  */
-template< typename MSG, typename LAMBDA >
+template< typename Msg, typename Lambda >
 void
 accept_one_indicator(
 	//! Container for storing new description to.
 	description_container_t & to,
 	//! An instance of redirect_indicator to be stored.
-	redirect_indicator_t< MSG, LAMBDA > indicator )
+	redirect_indicator_t< Msg, Lambda > indicator )
 	{
-		LAMBDA dest_getter = std::move( indicator.m_destination_getter );
-		to.emplace_back( message_payload_type< MSG >::subscription_type_index(),
+		Lambda dest_getter = std::move( indicator.m_destination_getter );
+		to.emplace_back( message_payload_type< Msg >::subscription_type_index(),
 				indicator.m_limit,
 				[dest_getter]( const overlimit_context_t & ctx ) {
 					impl::redirect_reaction( ctx, dest_getter() );
@@ -421,21 +421,21 @@ transform_reaction(
  * \brief A helper function to call appropriate constructor of
  * resulting type in dependence of message or signal.
  *
- * \tparam is_signal true if MSG is a signal.
- * \tparam RESULT Result type object of that will be created by make() method.
- * \tparam MSG Type of message to be instantiated.
- * \tparam ARGS Type of parameters to message constructor.
+ * \tparam is_signal true if Msg is a signal.
+ * \tparam Result Result type object of that will be created by make() method.
+ * \tparam Msg Type of message to be instantiated.
+ * \tparam Args Type of parameters to message constructor.
  */
-template< bool is_signal, typename RESULT, typename MSG, typename... ARGS >
+template< bool is_signal, typename Result, typename Msg, typename... Args >
 struct transformed_message_maker
 	{
 		//! Create a message instance.
-		static RESULT
-		make( mbox_t mbox, ARGS &&... args )
+		static Result
+		make( mbox_t mbox, Args &&... args )
 			{
-				return RESULT( std::move( mbox ),
-						so_5::details::make_message_instance< MSG >(
-								std::forward<ARGS>( args )... ) );
+				return Result( std::move( mbox ),
+						so_5::details::make_message_instance< Msg >(
+								std::forward<Args>( args )... ) );
 			}
 	};
 
@@ -445,13 +445,13 @@ struct transformed_message_maker
  *
  * \brief A specialization of signal.
  */
-template< typename RESULT, typename MSG >
-struct transformed_message_maker< true, RESULT, MSG >
+template< typename Result, typename Msg >
+struct transformed_message_maker< true, Result, Msg >
 	{
-		static RESULT
+		static Result
 		make( mbox_t mbox )
 			{
-				return RESULT( std::move( mbox ) );
+				return Result( std::move( mbox ) );
 			}
 	};
 
@@ -466,31 +466,31 @@ struct transformed_message_maker< true, RESULT, MSG >
  *
  * \brief A result of message transformation.
  *
- * \tparam MSG Type of result (transformed) message.
+ * \tparam Msg Type of result (transformed) message.
  */
-template< typename MSG >
+template< typename Msg >
 class transformed_message_t
 	{
 	public :
-		//! Initializing constructor for the case when MSG is a message type.
+		//! Initializing constructor for the case when Msg is a message type.
 		transformed_message_t(
 			//! Message box to which transformed message to be sent.
 			mbox_t mbox,
 			//! New message instance.
-			std::unique_ptr< typename message_payload_type< MSG >::envelope_type > msg )
+			std::unique_ptr< typename message_payload_type< Msg >::envelope_type > msg )
 			:	m_mbox( std::move( mbox ) )
 			{
 				ensure_message_with_actual_data( msg.get() );
 
 				m_message = message_ref_t( msg.release() );
 			}
-		//! Initializing constructor for the case when MSG is a signal type.
+		//! Initializing constructor for the case when Msg is a signal type.
 		transformed_message_t(
 			//! Message box to which signal to be sent.
 			mbox_t mbox )
 			:	m_mbox( std::move( mbox ) )
 			{
-				ensure_signal< MSG >();
+				ensure_signal< Msg >();
 			}
 
 		//! Destination message box.
@@ -499,7 +499,7 @@ class transformed_message_t
 
 		//! Type of the transformed message.
 		std::type_index
-		msg_type() const { return message_payload_type< MSG >::subscription_type_index(); }
+		msg_type() const { return message_payload_type< Msg >::subscription_type_index(); }
 
 		//! Instance of transformed message.
 		/*!
@@ -509,18 +509,18 @@ class transformed_message_t
 		message() const { return m_message; }
 
 		//! A helper method for transformed_message construction.
-		template< typename... ARGS >
-		static transformed_message_t< MSG >
-		make( mbox_t mbox, ARGS &&... args )
+		template< typename... Args >
+		static transformed_message_t< Msg >
+		make( mbox_t mbox, Args &&... args )
 			{
 				return impl::transformed_message_maker<
-							is_signal< MSG >::value,
+							is_signal< Msg >::value,
 							transformed_message_t,
-							MSG,
-							ARGS...
+							Msg,
+							Args...
 						>::make(
 								std::move( mbox ),
-								std::forward<ARGS>( args )... );
+								std::forward<Args>( args )... );
 			}
 
 	private :
@@ -543,9 +543,9 @@ class transformed_message_t
  *
  * \brief An indicator of transform reaction on message overlimit.
  *
- * \tparam SOURCE Type of message to be transformed.
+ * \tparam Source Type of message to be transformed.
  */
-template< typename SOURCE >
+template< typename Source >
 struct transform_indicator_t
 	{
 		//! Limit value.
@@ -593,16 +593,16 @@ accept_one_indicator(
  * \brief Helper function for constructing limits description from
  * a series of limit indicators.
  */
-template< typename I, typename... ARGS >
+template< typename I, typename... Args >
 void
 accept_indicators(
 	description_container_t & to,
 	I && indicator,
-	ARGS &&... others )
+	Args &&... others )
 	{
 		accept_one_indicator( to, std::forward< I >( indicator ) );
 
-		accept_indicators( to, std::forward< ARGS >( others )... );
+		accept_indicators( to, std::forward< Args >( others )... );
 	}
 
 inline void
@@ -628,11 +628,11 @@ struct message_limit_methods_mixin_t
 		 *
 		 * \brief A helper function for creating drop_indicator.
 		 */
-		template< typename MSG >
-		static drop_indicator_t< MSG >
+		template< typename Msg >
+		static drop_indicator_t< Msg >
 		limit_then_drop( unsigned int limit )
 			{
-				return drop_indicator_t< MSG >( limit );
+				return drop_indicator_t< Msg >( limit );
 			}
 
 		/*!
@@ -641,11 +641,11 @@ struct message_limit_methods_mixin_t
 		 *
 		 * \brief A helper function for creating abort_app_indicator.
 		 */
-		template< typename MSG >
-		static abort_app_indicator_t< MSG >
+		template< typename Msg >
+		static abort_app_indicator_t< Msg >
 		limit_then_abort( unsigned int limit )
 			{
-				return abort_app_indicator_t< MSG >( limit );
+				return abort_app_indicator_t< Msg >( limit );
 			}
 
 		/*!
@@ -681,13 +681,13 @@ struct message_limit_methods_mixin_t
 		 *
 		 * \brief A helper function for creating redirect_indicator.
 		 */
-		template< typename MSG, typename LAMBDA >
-		static redirect_indicator_t< MSG, LAMBDA >
+		template< typename Msg, typename Lambda >
+		static redirect_indicator_t< Msg, Lambda >
 		limit_then_redirect(
 			unsigned int limit,
-			LAMBDA dest_getter )
+			Lambda dest_getter )
 			{
-				return redirect_indicator_t< MSG, LAMBDA >(
+				return redirect_indicator_t< Msg, Lambda >(
 						limit,
 						std::move( dest_getter ) );
 			}
@@ -723,15 +723,15 @@ struct message_limit_methods_mixin_t
 		 * \endcode
 		 */
 		template<
-				typename LAMBDA,
-				typename ARG = typename so_5::details::lambda_traits::
-						argument_type_if_lambda< LAMBDA >::type >
-		static transform_indicator_t< ARG >
+				typename Lambda,
+				typename Arg = typename so_5::details::lambda_traits::
+						argument_type_if_lambda< Lambda >::type >
+		static transform_indicator_t< Arg >
 		limit_then_transform(
 			unsigned int limit,
-			LAMBDA transformator )
+			Lambda transformator )
 			{
-				ensure_not_signal< ARG >();
+				ensure_not_signal< Arg >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
 						// Service request cannot be transformed.
@@ -739,14 +739,14 @@ struct message_limit_methods_mixin_t
 						impl::ensure_event_transform_reaction( ctx );
 
 						const auto & msg =
-								message_payload_type< ARG >::payload_reference(
+								message_payload_type< Arg >::payload_reference(
 										*ctx.m_message.get() );
 						auto r = transformator( msg );
 						impl::transform_reaction(
 								ctx, r.mbox(), r.msg_type(), r.message() );
 					};
 
-				return transform_indicator_t< ARG >{ limit, std::move( act ) };
+				return transform_indicator_t< Arg >{ limit, std::move( act ) };
 			}
 
 		/*!
@@ -758,13 +758,13 @@ struct message_limit_methods_mixin_t
 		 * Must be used for signal transformation. Type of signal must be
 		 * explicitely specified.
 		 */
-		template< typename SOURCE, typename LAMBDA >
-		static transform_indicator_t< SOURCE >
+		template< typename Source, typename Lambda >
+		static transform_indicator_t< Source >
 		limit_then_transform(
 			unsigned int limit,
-			LAMBDA transformator )
+			Lambda transformator )
 			{
-				ensure_signal< SOURCE >();
+				ensure_signal< Source >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
 						// Service request cannot be transformed.
@@ -776,7 +776,7 @@ struct message_limit_methods_mixin_t
 								ctx, r.mbox(), r.msg_type(), r.message() );
 					};
 
-				return transform_indicator_t< SOURCE >{ limit, std::move( act ) };
+				return transform_indicator_t< Source >{ limit, std::move( act ) };
 			}
 
 		/*!
@@ -810,13 +810,13 @@ struct message_limit_methods_mixin_t
 				};
 			\endcode
 		 */
-		template< typename MSG, typename... ARGS >
-		static transformed_message_t< MSG >
-		make_transformed( mbox_t mbox, ARGS &&... args )
+		template< typename Msg, typename... Args >
+		static transformed_message_t< Msg >
+		make_transformed( mbox_t mbox, Args &&... args )
 			{
-				return transformed_message_t< MSG >::make(
+				return transformed_message_t< Msg >::make(
 						std::move( mbox ),
-						std::forward<ARGS>( args )... );
+						std::forward<Args>( args )... );
 			}
 	};
 
@@ -852,8 +852,8 @@ using description_container_t = so_5::message_limit::description_container_t;
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::message_limit::transformed_message_t instead.
  */
-template< typename MSG >
-using transformed_message_t = so_5::message_limit::transformed_message_t< MSG >;
+template< typename Msg >
+using transformed_message_t = so_5::message_limit::transformed_message_t< Msg >;
 
 } /* namespace message_limit */
 

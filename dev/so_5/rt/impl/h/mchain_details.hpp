@@ -296,17 +296,17 @@ enum class status
  *
  * \brief Template-based implementation of message chain.
  *
- * \tparam QUEUE type of demand queue for message chain.
- * \tparam TRACING_BASE type with message tracing implementation details.
+ * \tparam Queue type of demand queue for message chain.
+ * \tparam Tracing_Base type with message tracing implementation details.
  */
-template< typename QUEUE, typename TRACING_BASE >
+template< typename Queue, typename Tracing_Base >
 class mchain_template
 	:	public abstract_message_chain_t
-	,	private TRACING_BASE
+	,	private Tracing_Base
 	{
 	public :
 		//! Initializing constructor.
-		template< typename... TRACING_ARGS >
+		template< typename... Tracing_Args >
 		mchain_template(
 			//! SObjectizer Environment for which message chain is created.
 			so_5::environment_t & env,
@@ -314,9 +314,9 @@ class mchain_template
 			mbox_id_t id,
 			//! Chain parameters.
 			const mchain_params_t & params,
-			//! Arguments for TRACING_BASE's constructor.
-			TRACING_ARGS &&... tracing_args )
-			:	TRACING_BASE( std::forward<TRACING_ARGS>(tracing_args)... )
+			//! Arguments for Tracing_Base's constructor.
+			Tracing_Args &&... tracing_args )
+			:	Tracing_Base( std::forward<Tracing_Args>(tracing_args)... )
 			,	m_env( env )
 			,	m_id( id )
 			,	m_capacity( params.capacity() )
@@ -597,7 +597,7 @@ class mchain_template
 		const not_empty_notification_func_t m_not_empty_notificator;
 
 		//! Chain's demands queue.
-		mutable QUEUE m_queue;
+		mutable Queue m_queue;
 
 		//! Chain's lock.
 		mutable std::mutex m_lock;
@@ -639,7 +639,7 @@ class mchain_template
 			const message_ref_t & message,
 			invocation_type_t demand_type )
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
+				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as tracing base.
 						*this, // as chain.
 						msg_type,
@@ -739,7 +739,7 @@ class mchain_template
 			const message_ref_t & message,
 			invocation_type_t demand_type )
 			{
-				typename TRACING_BASE::deliver_op_tracer tracer{
+				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as tracing base.
 						*this, // as chain.
 						msg_type,
@@ -852,7 +852,7 @@ class mchain_template
 		 */
 		void
 		complete_store_message_to_queue(
-			typename TRACING_BASE::deliver_op_tracer & tracer,
+			typename Tracing_Base::deliver_op_tracer & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			invocation_type_t demand_type )

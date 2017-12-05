@@ -86,19 +86,19 @@ class creator_iface_t
 /*!
  * \brief Template-based implementation of creator interface.
  *
- * \tparam LAMBDA type of actual lambda with all creation actions.
+ * \tparam Lambda type of actual lambda with all creation actions.
  *
  * \since
  * v.5.5.19.2
  */
-template< typename LAMBDA >
+template< typename Lambda >
 class creator_template_t : public creator_iface_t 
 	{
 		//! Lambda or functional object to be used for custom mbox creation.
-		LAMBDA m_lambda;
+		Lambda m_lambda;
 
 	public :
-		creator_template_t( LAMBDA && lambda ) : m_lambda(std::move(lambda))
+		creator_template_t( Lambda && lambda ) : m_lambda(std::move(lambda))
 			{}
 		~creator_template_t()
 			{}

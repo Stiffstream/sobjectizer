@@ -35,11 +35,11 @@ namespace impl {
 
 namespace helpers {
 
-template< typename ACTION >
+template< typename Action >
 auto
 unlock_do_and_lock_again(
 	std::unique_lock< std::mutex > & acquired_lock,
-	ACTION && action ) -> decltype(action())
+	Action && action ) -> decltype(action())
 	{
 		acquired_lock.unlock();
 		auto relock_again = so_5::details::at_scope_exit( [&acquired_lock]{
@@ -245,17 +245,17 @@ struct disp_ds_name_parts_t
  * \brief An implementation of dispatcher interface to be used in
  * places where default dispatcher is needed.
  *
- * \tparam ACTIVITY_TRACKER a type of activity tracker to be used
+ * \tparam Activity_Tracker a type of activity tracker to be used
  * for run-time statistics.
  *
  * \since
  * v.5.5.19
  */
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 using default_disp_impl_t =
 	reusable::default_disp_impl_t<
 			event_queue_impl_t,
-			ACTIVITY_TRACKER,
+			Activity_Tracker,
 			disp_ds_name_parts_t >;
 
 //
@@ -277,12 +277,12 @@ using stats_controller_t =
 /*!
  * \brief Default implementation of multithreaded environment infrastructure.
  *
- * \tparam ACTIVITY_TRACKER A type for tracking activity of main working thread.
+ * \tparam Activity_Tracker A type for tracking activity of main working thread.
  *
  * \since
  * v.5.5.19
  */
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 class env_infrastructure_t
 	: public environment_infrastructure_t
 	{
@@ -383,10 +383,10 @@ class env_infrastructure_t
 		coop_repo_t m_coop_repo;
 
 		//! Actual activity tracker for main working thread.
-		ACTIVITY_TRACKER m_activity_tracker;
+		Activity_Tracker m_activity_tracker;
 
 		//! Dispatcher to be used as default dispatcher.
-		default_disp_impl_t< ACTIVITY_TRACKER > m_default_disp;
+		default_disp_impl_t< Activity_Tracker > m_default_disp;
 
 		//! Stats controller for this environment.
 		stats_controller_t m_stats_controller;
@@ -419,8 +419,8 @@ class env_infrastructure_t
 			std::unique_lock< std::mutex > & acquired_lock );
 	};
 
-template< typename ACTIVITY_TRACKER >
-env_infrastructure_t< ACTIVITY_TRACKER >::env_infrastructure_t(
+template< typename Activity_Tracker >
+env_infrastructure_t< Activity_Tracker >::env_infrastructure_t(
 	environment_t & env,
 	timer_manager_factory_t timer_factory,
 	error_logger_shptr_t error_logger,
@@ -442,16 +442,16 @@ env_infrastructure_t< ACTIVITY_TRACKER >::env_infrastructure_t(
 			stats::impl::st_env_stuff::next_turn_mbox_t::make() )
 	{}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::launch( env_init_t init_fn )
+env_infrastructure_t< Activity_Tracker >::launch( env_init_t init_fn )
 	{
 		run_default_dispatcher_and_go_further( std::move(init_fn) );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::stop()
+env_infrastructure_t< Activity_Tracker >::stop()
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 
@@ -462,26 +462,26 @@ env_infrastructure_t< ACTIVITY_TRACKER >::stop()
 			}
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::register_coop(
+env_infrastructure_t< Activity_Tracker >::register_coop(
 	coop_unique_ptr_t coop )
 	{
 		m_coop_repo.register_coop( std::move(coop) );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::deregister_coop(
+env_infrastructure_t< Activity_Tracker >::deregister_coop(
 	nonempty_name_t name,
 	coop_dereg_reason_t dereg_reason )
 	{
 		m_coop_repo.deregister_coop( std::move(name), dereg_reason );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::ready_to_deregister_notify(
+env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 	coop_t * coop )
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
@@ -490,18 +490,18 @@ env_infrastructure_t< ACTIVITY_TRACKER >::ready_to_deregister_notify(
 		wakeup_if_waiting( m_sync_objects );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 bool
-env_infrastructure_t< ACTIVITY_TRACKER >::final_deregister_coop(
+env_infrastructure_t< Activity_Tracker >::final_deregister_coop(
 	std::string coop_name )
 	{
 		return m_coop_repo.final_deregister_coop( std::move(coop_name) )
 				.m_has_live_coop;
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 so_5::timer_id_t
-env_infrastructure_t< ACTIVITY_TRACKER >::schedule_timer(
+env_infrastructure_t< Activity_Tracker >::schedule_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_t & mbox,
@@ -522,9 +522,9 @@ env_infrastructure_t< ACTIVITY_TRACKER >::schedule_timer(
 		return timer;
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::single_timer(
+env_infrastructure_t< Activity_Tracker >::single_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_t & mbox,
@@ -542,30 +542,30 @@ env_infrastructure_t< ACTIVITY_TRACKER >::single_timer(
 		wakeup_if_waiting( m_sync_objects );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 stats::controller_t &
-env_infrastructure_t< ACTIVITY_TRACKER >::stats_controller() SO_5_NOEXCEPT
+env_infrastructure_t< Activity_Tracker >::stats_controller() SO_5_NOEXCEPT
 	{
 		return m_stats_controller;
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 stats::repository_t &
-env_infrastructure_t< ACTIVITY_TRACKER >::stats_repository() SO_5_NOEXCEPT
+env_infrastructure_t< Activity_Tracker >::stats_repository() SO_5_NOEXCEPT
 	{
 		return m_stats_controller;
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 dispatcher_t &
-env_infrastructure_t< ACTIVITY_TRACKER >::query_default_dispatcher()
+env_infrastructure_t< Activity_Tracker >::query_default_dispatcher()
 	{
 		return m_default_disp;
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 so_5::environment_infrastructure_t::coop_repository_stats_t
-env_infrastructure_t< ACTIVITY_TRACKER >::query_coop_repository_stats()
+env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 
@@ -579,26 +579,26 @@ env_infrastructure_t< ACTIVITY_TRACKER >::query_coop_repository_stats()
 		};
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 timer_thread_stats_t
-env_infrastructure_t< ACTIVITY_TRACKER >::query_timer_thread_stats()
+env_infrastructure_t< Activity_Tracker >::query_timer_thread_stats()
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 
 		return m_timer_manager->query_stats();
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 disp_binder_unique_ptr_t
-env_infrastructure_t< ACTIVITY_TRACKER >::make_default_disp_binder()
+env_infrastructure_t< Activity_Tracker >::make_default_disp_binder()
 	{
 		return stdcpp::make_unique< default_disp_binder_t >(
 				outliving_mutable(m_default_disp) );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::run_default_dispatcher_and_go_further(
+env_infrastructure_t< Activity_Tracker >::run_default_dispatcher_and_go_further(
 	env_init_t init_fn )
 	{
 		::so_5::impl::run_stage(
@@ -616,18 +616,18 @@ env_infrastructure_t< ACTIVITY_TRACKER >::run_default_dispatcher_and_go_further(
 				} );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::run_user_supplied_init_and_do_main_loop(
+env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loop(
 	env_init_t init_fn )
 	{
 		init_fn();
 		run_main_loop();
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::run_main_loop()
+env_infrastructure_t< Activity_Tracker >::run_main_loop()
 	{
 		// Assume that waiting for new demands is started.
 		// This call is necessary because if there is a demand
@@ -657,9 +657,9 @@ env_infrastructure_t< ACTIVITY_TRACKER >::run_main_loop()
 			}
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::process_final_deregs_if_any(
+env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 	std::unique_lock< std::mutex > & acquired_lock )
 	{
 		// This loop is necessary because it is possible that new
@@ -678,9 +678,9 @@ env_infrastructure_t< ACTIVITY_TRACKER >::process_final_deregs_if_any(
 			}
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::perform_shutdown_related_actions_if_needed(
+env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_needed(
 	std::unique_lock< std::mutex > & acquired_lock )
 	{
 		if( shutdown_status_t::must_be_started == m_shutdown_status )
@@ -705,9 +705,9 @@ env_infrastructure_t< ACTIVITY_TRACKER >::perform_shutdown_related_actions_if_ne
 			}
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::handle_expired_timers_if_any(
+env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any(
 	std::unique_lock< std::mutex > & acquired_lock )
 	{
 		// All expired timers must be collected.
@@ -726,9 +726,9 @@ env_infrastructure_t< ACTIVITY_TRACKER >::handle_expired_timers_if_any(
 				} );
 	}
 
-template< typename ACTIVITY_TRACKER >
+template< typename Activity_Tracker >
 void
-env_infrastructure_t< ACTIVITY_TRACKER >::try_handle_next_demand(
+env_infrastructure_t< Activity_Tracker >::try_handle_next_demand(
 	std::unique_lock< std::mutex > & acquired_lock )
 	{
 		execution_demand_t demand;

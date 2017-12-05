@@ -29,8 +29,8 @@ namespace so_5 {
  *
  * \brief A template which allows to use tuples as messages.
  *
- * \tparam TAG a type tag for distinguish messages with the same fields list.
- * \tparam TYPES types for message fields.
+ * \tparam Tag a type tag for distinguish messages with the same fields list.
+ * \tparam Types types for message fields.
  *
  * This template is added to allow a user to use simple constructs for
  * very simple messages, when there is no need to define a full class
@@ -90,12 +90,12 @@ namespace so_5 {
 	}
 	\endcode
  */
-template< typename TAG, typename... TYPES >
+template< typename Tag, typename... Types >
 struct tuple_as_message_t
-	:	public std::tuple< TYPES... >
+	:	public std::tuple< Types... >
 	,	public so_5::message_t
 {
-	using base_tuple_type = std::tuple< TYPES... >;
+	using base_tuple_type = std::tuple< Types... >;
 
 	tuple_as_message_t() 
 		{}
@@ -112,13 +112,13 @@ struct tuple_as_message_t
 	operator=( tuple_as_message_t && ) = default;
 #endif
 
-	explicit tuple_as_message_t( const TYPES &... args )
+	explicit tuple_as_message_t( const Types &... args )
 		:	base_tuple_type( args... )
 	{}
 
-	template< typename... UTYPES >
-	tuple_as_message_t( UTYPES &&... args )
-		:	base_tuple_type( std::forward< UTYPES >( args )... )
+	template< typename... Utypes >
+	tuple_as_message_t( Utypes &&... args )
+		:	base_tuple_type( std::forward< Utypes >( args )... )
 	{}
 };
 
@@ -217,8 +217,8 @@ namespace rt {
  * \deprecated Will be removed in v.5.6.0. Use so_5::tuple_as_message_t
  * instead.
  */
-template< typename TAG, typename... TYPES >
-using tuple_as_message_t = so_5::tuple_as_message_t< TAG, TYPES... >;
+template< typename Tag, typename... Types >
+using tuple_as_message_t = so_5::tuple_as_message_t< Tag, Types... >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::mtag instead.

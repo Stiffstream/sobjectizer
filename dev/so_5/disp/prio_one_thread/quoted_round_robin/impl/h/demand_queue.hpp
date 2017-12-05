@@ -248,9 +248,9 @@ class demand_queue_t
 
 		//! A special method for handling statistical data for
 		//! every subqueue.
-		template< class LAMBDA >
+		template< class Lambda >
 		void
-		handle_stats_for_each_prio( LAMBDA handler )
+		handle_stats_for_each_prio( Lambda handler )
 			{
 				so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 						const auto & subqueue = m_priorities[ to_size_t(p) ];

@@ -307,13 +307,13 @@ class SO_5_TYPE coop_t
 		 *
 		 * Default dispatcher binding is used for the agent.
 		 */
-		template< class AGENT >
-		inline AGENT *
+		template< class Agent >
+		inline Agent *
 		add_agent(
 			//! Agent.
-			std::unique_ptr< AGENT > agent )
+			std::unique_ptr< Agent > agent )
 		{
-			AGENT * p = agent.get();
+			Agent * p = agent.get();
 			this->do_add_agent( agent_ref_t( agent.release() ) );
 
 			return p;
@@ -325,11 +325,11 @@ class SO_5_TYPE coop_t
 		 *
 		 * Default dispatcher binding is used for the agent.
 		 */
-		template< class AGENT >
-		inline AGENT *
+		template< class Agent >
+		inline Agent *
 		add_agent(
 			//! Agent.
-			AGENT * agent )
+			Agent * agent )
 		{
 			this->do_add_agent( agent_ref_t( agent ) );
 
@@ -341,15 +341,15 @@ class SO_5_TYPE coop_t
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
 		 */
-		template< class AGENT >
-		inline AGENT *
+		template< class Agent >
+		inline Agent *
 		add_agent(
 			//! Agent.
-			std::unique_ptr< AGENT > agent,
+			std::unique_ptr< Agent > agent,
 			//! Agent to dispatcher binder.
 			disp_binder_unique_ptr_t disp_binder )
 		{
-			AGENT * p = agent.get();
+			Agent * p = agent.get();
 
 			this->do_add_agent(
 				agent_ref_t( agent.release() ),
@@ -364,11 +364,11 @@ class SO_5_TYPE coop_t
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
 		 */
-		template< class AGENT >
-		inline AGENT *
+		template< class Agent >
+		inline Agent *
 		add_agent(
 			//! Agent.
-			AGENT * agent,
+			Agent * agent,
 			//! Agent to dispatcher binder.
 			disp_binder_unique_ptr_t disp_binder )
 		{
@@ -584,7 +584,7 @@ class SO_5_TYPE coop_t
 				// Subscribe to message from a mbox.
 				.event( mbox, []() { ... } );
 				// Subscribe to signal from a mbox.
-				.event( mbox, so_5::signal< SIG >, []() { ... } );
+				.event( mbox, so_5::signal< Sig >, []() { ... } );
 		 \endcode
 		 */
 		inline adhoc_agent_definition_proxy_t
@@ -610,7 +610,7 @@ class SO_5_TYPE coop_t
 				// Subscribe to message from a mbox.
 				.event( mbox, []() { ... } );
 				// Subscribe to signal from a mbox.
-				.event( mbox, so_5::signal< SIG >, []() { ... } );
+				.event( mbox, so_5::signal< Sig >, []() { ... } );
 		 \endcode
 		 */
 		inline adhoc_agent_definition_proxy_t
@@ -642,7 +642,7 @@ class SO_5_TYPE coop_t
 				// Subscribe to message from a mbox.
 				.event( mbox, []() { ... } );
 				// Subscribe to signal from a mbox.
-				.event( mbox, so_5::signal< SIG >, []() { ... } );
+				.event( mbox, so_5::signal< Sig >, []() { ... } );
 		 \endcode
 		 */
 		inline adhoc_agent_definition_proxy_t
@@ -672,7 +672,7 @@ class SO_5_TYPE coop_t
 				// Subscribe to message from a mbox.
 				.event( mbox, []() { ... } );
 				// Subscribe to signal from a mbox.
-				.event( mbox, so_5::signal< SIG >, []() { ... } );
+				.event( mbox, so_5::signal< Sig >, []() { ... } );
 		 \endcode
 		 */
 		inline adhoc_agent_definition_proxy_t
@@ -705,13 +705,13 @@ class SO_5_TYPE coop_t
 		 *
 		 * \brief Helper method for simplification of agents creation.
 		 *
-		 * \note Creates an instance of agent of type \a AGENT and adds it to
+		 * \note Creates an instance of agent of type \a Agent and adds it to
 		 * the cooperation.
 		 *
 		 * \return pointer to the new agent.
 		 *
-		 * \tparam AGENT type of agent to be created.
-		 * \tparam ARGS type of parameters list for agent constructor.
+		 * \tparam Agent type of agent to be created.
+		 * \tparam Args type of parameters list for agent constructor.
 		 *
 		 * \par Usage sample:
 		 \code
@@ -724,12 +724,12 @@ class SO_5_TYPE coop_t
 		 coop->make_agent< their_agent >( "bye", ya->so_direct_mbox() );
 		 \endcode
 		 */
-		template< class AGENT, typename... ARGS >
-		AGENT *
-		make_agent( ARGS &&... args )
+		template< class Agent, typename... Args >
+		Agent *
+		make_agent( Args &&... args )
 		{
-			auto a = std::unique_ptr< AGENT >(
-					new AGENT( environment(), std::forward<ARGS>(args)... ) );
+			auto a = std::unique_ptr< Agent >(
+					new Agent( environment(), std::forward<Args>(args)... ) );
 
 			return this->add_agent( std::move( a ) );
 		}
@@ -741,13 +741,13 @@ class SO_5_TYPE coop_t
 		 * \brief Helper method for simplification of agents creation and
 		 * binding to the specified dispatcher.
 		 *
-		 * \note Creates an instance of agent of type \a AGENT and adds it to
+		 * \note Creates an instance of agent of type \a Agent and adds it to
 		 * the cooperation with the specified binder.
 		 *
 		 * \return pointer to the new agent.
 		 *
-		 * \tparam AGENT type of agent to be created.
-		 * \tparam ARGS type of parameters list for agent constructor.
+		 * \tparam Agent type of agent to be created.
+		 * \tparam Args type of parameters list for agent constructor.
 		 *
 		 * \par Usage sample:
 		 \code
@@ -762,16 +762,16 @@ class SO_5_TYPE coop_t
 		 coop->make_agent_with_binder< their_agent >( disp->binder(), "bye", ya->so_direct_mbox() );
 		 \endcode
 		 */
-		template< class AGENT, typename... ARGS >
-		AGENT *
+		template< class Agent, typename... Args >
+		Agent *
 		make_agent_with_binder(
 			//! A dispatcher binder for the new agent.
 			so_5::disp_binder_unique_ptr_t binder,
 			//! Arguments to be passed to the agent's constructor.
-			ARGS &&... args )
+			Args &&... args )
 		{
-			auto a = std::unique_ptr< AGENT >(
-					new AGENT( environment(), std::forward<ARGS>(args)... ) );
+			auto a = std::unique_ptr< Agent >(
+					new Agent( environment(), std::forward<Args>(args)... ) );
 
 			return this->add_agent( std::move( a ), std::move( binder ) );
 		}
@@ -901,22 +901,22 @@ class SO_5_TYPE coop_t
 		 *
 		 * \brief Registration status.
 		 */
-		enum registration_status_t
+		enum class registration_status_t
 		{
 			//! Cooperation is not registered yet.
-			COOP_NOT_REGISTERED,
+			coop_not_registered,
 			//! Cooperation is registered.
 			/*!
 			 * Reference count for cooperation in that state should
 			 * be greater than zero.
 			 */
-			COOP_REGISTERED,
+			coop_registered,
 			//! Cooperation is in deregistration process.
 			/*!
 			 * Reference count for cooperation in that state should
 			 * be zero.
 			 */
-			COOP_DEREGISTERING
+			coop_deregistering
 		};
 
 		/*!

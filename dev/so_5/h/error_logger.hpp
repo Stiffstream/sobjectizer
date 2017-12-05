@@ -93,8 +93,8 @@ class conductor_t
 			,	m_line( line )
 			{}
 
-		template< class ENV >
-		conductor_t( const ENV & env,
+		template< class Env >
+		conductor_t( const Env & env,
 			const char * file,
 			unsigned int line )
 			:	m_logger( env.error_logger() )

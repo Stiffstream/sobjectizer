@@ -96,13 +96,13 @@ class agent_tuning_options_t
 				return std::move( m_message_limits );
 			}
 
-		template< typename... ARGS >
+		template< typename... Args >
 		agent_tuning_options_t &
-		message_limits( ARGS &&... args )
+		message_limits( Args &&... args )
 			{
 				message_limit::accept_indicators(
 						m_message_limits,
-						std::forward< ARGS >( args )... );
+						std::forward< Args >( args )... );
 
 				return *this;
 			}

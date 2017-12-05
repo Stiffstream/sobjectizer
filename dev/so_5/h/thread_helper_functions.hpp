@@ -83,9 +83,9 @@ class auto_joiner_t
  * \since
  * v.5.5.16
  */
-template< typename JOINER >
+template< typename Joiner >
 void
-add_to_joiner( JOINER & to, std::size_t index, std::thread & t )
+add_to_joiner( Joiner & to, std::size_t index, std::thread & t )
 	{
 		to.set_thread( index, t );
 	}
@@ -96,16 +96,16 @@ add_to_joiner( JOINER & to, std::size_t index, std::thread & t )
  * \since
  * v.5.5.16
  */
-template< typename JOINER, typename... TAIL >
+template< typename Joiner, typename... Tail >
 void
 add_to_joiner(
-	JOINER & to,
+	Joiner & to,
 	std::size_t index,
 	std::thread & t,
-	TAIL &&... tail )
+	Tail &&... tail )
 	{
 		add_to_joiner( to, index, t );
-		add_to_joiner( to, index + 1, std::forward< TAIL >(tail)... );
+		add_to_joiner( to, index + 1, std::forward< Tail >(tail)... );
 	}
 
 } /* namespace thread_auto_join_details */
@@ -127,18 +127,18 @@ add_to_joiner(
  * \since
  * v.5.5.16
  */
-template< typename... TAIL >
-thread_auto_join_details::auto_joiner_t< 1 + sizeof...(TAIL) >
+template< typename... Tail >
+thread_auto_join_details::auto_joiner_t< 1 + sizeof...(Tail) >
 auto_join(
 	//! The first thread to be closed.
 	std::thread & first_thread,
 	//! Other threads to be closed.
-	TAIL &&... tail )
+	Tail &&... tail )
 	{
 		using namespace thread_auto_join_details;
 
 		auto_joiner_t< 1 + sizeof...(tail) > joiner;
-		add_to_joiner( joiner, 0, first_thread, std::forward< TAIL >(tail)... );
+		add_to_joiner( joiner, 0, first_thread, std::forward< Tail >(tail)... );
 
 		return joiner;
 	}

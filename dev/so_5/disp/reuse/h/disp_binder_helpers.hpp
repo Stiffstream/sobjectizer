@@ -36,23 +36,23 @@ namespace reuse
  * \since
  * v.5.5.4
  */
-template< class DISPATCHER, class ACTION > 
+template< class Dispatcher, class Action > 
 auto
 do_with_dispatcher_of_type(
 	dispatcher_t * disp_pointer,
 	const std::string & disp_name,
-	ACTION action )
-	-> decltype(action(*static_cast<DISPATCHER *>(nullptr)))
+	Action action )
+	-> decltype(action(*static_cast<Dispatcher *>(nullptr)))
 	{
 		// It should be our dispatcher.
-		DISPATCHER * disp = dynamic_cast< DISPATCHER * >(
+		Dispatcher * disp = dynamic_cast< Dispatcher * >(
 				disp_pointer );
 
 		if( nullptr == disp )
 			SO_5_THROW_EXCEPTION(
 					rc_disp_type_mismatch,
 					"type of dispatcher with name '" + disp_name +
-					"' is not '" + typeid(DISPATCHER).name() + "'" );
+					"' is not '" + typeid(Dispatcher).name() + "'" );
 
 		return action( *disp );
 	}
@@ -63,13 +63,13 @@ do_with_dispatcher_of_type(
  * \since
  * v.5.4.0
  */
-template< class DISPATCHER, class ACTION > 
+template< class Dispatcher, class Action > 
 auto
 do_with_dispatcher(
 	environment_t & env,
 	const std::string & disp_name,
-	ACTION action )
-	-> decltype(action(*static_cast<DISPATCHER *>(nullptr)))
+	Action action )
+	-> decltype(action(*static_cast<Dispatcher *>(nullptr)))
 	{
 		dispatcher_ref_t disp_ref = env.query_named_dispatcher(
 				disp_name );
@@ -80,7 +80,7 @@ do_with_dispatcher(
 					rc_named_disp_not_found,
 					"dispatcher with name '" + disp_name + "' not found" );
 
-		return do_with_dispatcher_of_type< DISPATCHER >(
+		return do_with_dispatcher_of_type< Dispatcher >(
 				disp_ref.get(),
 				disp_name,
 				action );
@@ -95,26 +95,26 @@ do_with_dispatcher(
  * 
  * \brief A template of binder for a named dispatcher.
  *
- * \tparam DISPATCHER type of a dispatcher.
- * \tparam BINDER_MIXIN type of a mixin with implementation of
+ * \tparam Dispatcher type of a dispatcher.
+ * \tparam Binder_Mixin type of a mixin with implementation of
  * do_bind and do_unbind methods.
  */
 template<
-	typename DISPATCHER,
-	typename BINDER_MIXIN >
+	typename Dispatcher,
+	typename Binder_Mixin >
 class binder_for_public_disp_template_t
 	:	public disp_binder_t
-	,	protected BINDER_MIXIN
+	,	protected Binder_Mixin
 	{
 	public:
 		/*!
-		 * \tparam BINDER_MIXIN_ARGS arguments for constructor of BINDER_MIXIN class.
+		 * \tparam Binder_Mixin_Args arguments for constructor of Binder_Mixin class.
 		 */
-		template< typename... BINDER_MIXIN_ARGS >
+		template< typename... Binder_Mixin_Args >
 		binder_for_public_disp_template_t(
 			std::string disp_name,
-			BINDER_MIXIN_ARGS &&... args )
-			:	BINDER_MIXIN( std::forward<BINDER_MIXIN_ARGS>(args)... )
+			Binder_Mixin_Args &&... args )
+			:	Binder_Mixin( std::forward<Binder_Mixin_Args>(args)... )
 			,	m_disp_name( std::move( disp_name ) )
 			{}
 
@@ -123,10 +123,10 @@ class binder_for_public_disp_template_t
 			environment_t & env,
 			agent_ref_t agent ) override
 			{
-				return do_with_dispatcher< DISPATCHER >(
+				return do_with_dispatcher< Dispatcher >(
 					env,
 					m_disp_name,
-					[this, agent]( DISPATCHER & disp )
+					[this, agent]( Dispatcher & disp )
 					{
 						return this->do_bind( disp, std::move( agent ) );
 					} );
@@ -139,8 +139,8 @@ class binder_for_public_disp_template_t
 			{
 				using namespace so_5::disp::reuse;
 
-				do_with_dispatcher< DISPATCHER >( env, m_disp_name,
-					[this, agent]( DISPATCHER & disp )
+				do_with_dispatcher< Dispatcher >( env, m_disp_name,
+					[this, agent]( Dispatcher & disp )
 					{
 						this->do_unbind( disp, std::move( agent ) );
 					} );
@@ -161,33 +161,33 @@ class binder_for_public_disp_template_t
  *
  * \brief A template of binder for a private dispatcher.
  *
- * \tparam HANDLE type of a smart pointer to private dispatcher.
- * \tparam DISPATCHER type of an actual dispatcher.
- * \tparam BINDER_MIXIN type of a mixin with implementation of
+ * \tparam Handle type of a smart pointer to private dispatcher.
+ * \tparam Dispatcher type of an actual dispatcher.
+ * \tparam Binder_Mixin type of a mixin with implementation of
  * do_bind and do_unbind methods.
  */
 template<
-	typename HANDLE,
-	typename DISPATCHER,
-	typename BINDER_MIXIN >
+	typename Handle,
+	typename Dispatcher,
+	typename Binder_Mixin >
 class binder_for_private_disp_template_t
 	:	public disp_binder_t
-	,	protected BINDER_MIXIN
+	,	protected Binder_Mixin
 	{
 	public:
 		/*!
-		 * \tparam BINDER_MIXIN_ARGS arguments for constructor of BINDER_MIXIN class.
+		 * \tparam Binder_Mixin_Args arguments for constructor of Binder_Mixin class.
 		 */
-		template< typename... BINDER_MIXIN_ARGS >
+		template< typename... Binder_Mixin_Args >
 		binder_for_private_disp_template_t(
 			//! A handle for private dispatcher.
 			//! It is necessary to manage lifetime of the dispatcher instance.
-			HANDLE handle,
+			Handle handle,
 			//! A dispatcher instance to work with.
-			DISPATCHER & instance,
+			Dispatcher & instance,
 			//! Binding parameters for the agent.
-			BINDER_MIXIN_ARGS &&... params )
-			:	BINDER_MIXIN( std::forward< BINDER_MIXIN_ARGS >(params)... )
+			Binder_Mixin_Args &&... params )
+			:	Binder_Mixin( std::forward< Binder_Mixin_Args >(params)... )
 			,	m_handle( std::move( handle ) )
 			,	m_instance( instance )
 			{}
@@ -213,9 +213,9 @@ class binder_for_private_disp_template_t
 		/*!
 		 * It is necessary to manage lifetime of the dispatcher instance.
 		 */
-		HANDLE m_handle;
+		Handle m_handle;
 		//! A dispatcher instance to work with.
-		DISPATCHER & m_instance;
+		Dispatcher & m_instance;
 	};
 
 } /* namespace reuse */

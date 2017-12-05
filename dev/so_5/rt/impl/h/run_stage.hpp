@@ -26,13 +26,13 @@ namespace impl {
  * \since
  * v.5.5.19
  */
-template< typename INIT_FN, typename DEINIT_FN, typename NEXT_STAGE >
+template< typename Init_Fn, typename Deinit_Fn, typename Next_Stage >
 void
 run_stage(
 	const std::string & stage_name,
-	INIT_FN && init_fn,
-	DEINIT_FN && deinit_fn,
-	NEXT_STAGE && next_stage )
+	Init_Fn && init_fn,
+	Deinit_Fn && deinit_fn,
+	Next_Stage && next_stage )
 {
 	try
 	{

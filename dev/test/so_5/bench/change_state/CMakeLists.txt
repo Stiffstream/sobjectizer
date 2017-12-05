@@ -1,2 +1,2 @@
 add_executable(_test.bench.so_5.change_state main.cpp)
-target_link_libraries(_test.bench.so_5.change_state so.${SO_5_VERSION})
+target_link_libraries(_test.bench.so_5.change_state so_5::SharedLib)

@@ -8,6 +8,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/change_state/prj.ut.rb"
 	required_prj "#{path}/composite_state_change/prj.ut.rb"
 	required_prj "#{path}/enter_exit_handlers/prj.ut.rb"
+	required_prj "#{path}/const_enter_exit_handlers/prj.ut.rb"
 	required_prj "#{path}/on_exit_on_dereg_1/prj.ut.rb"
 	required_prj "#{path}/on_exit_on_dereg_2/prj.ut.rb"
 	required_prj "#{path}/nesting_deep/prj.ut.rb"

@@ -41,11 +41,11 @@ namespace work_thread_details {
  * \since
  * v.5.5.18
  */
-template< typename DEMAND_QUEUE >
+template< typename Demand_Queue >
 struct common_data_t
 	{
 		//! Demands queue to work for.
-		DEMAND_QUEUE & m_queue;
+		Demand_Queue & m_queue;
 
 		//! Thread object.
 		std::thread m_thread;
@@ -57,7 +57,7 @@ struct common_data_t
 		 */
 		so_5::current_thread_id_t m_thread_id;
 
-		common_data_t( DEMAND_QUEUE & queue ) : m_queue( queue ) {}
+		common_data_t( Demand_Queue & queue ) : m_queue( queue ) {}
 	};
 
 //
@@ -69,13 +69,13 @@ struct common_data_t
  * \since
  * v.5.5.18
  */
-template< typename DEMAND_QUEUE >
-class no_activity_tracking_impl_t : protected common_data_t< DEMAND_QUEUE >
+template< typename Demand_Queue >
+class no_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
 	{
-		using base_type_t = common_data_t< DEMAND_QUEUE >;
+		using base_type_t = common_data_t< Demand_Queue >;
 
 	public :
-		no_activity_tracking_impl_t( DEMAND_QUEUE & queue )
+		no_activity_tracking_impl_t( Demand_Queue & queue )
 			:	base_type_t( queue )
 			{}
 
@@ -102,13 +102,13 @@ class no_activity_tracking_impl_t : protected common_data_t< DEMAND_QUEUE >
  * \since
  * v.5.5.18
  */
-template< typename DEMAND_QUEUE >
-class with_activity_tracking_impl_t : protected common_data_t< DEMAND_QUEUE >
+template< typename Demand_Queue >
+class with_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
 	{
-		using base_type_t = common_data_t< DEMAND_QUEUE >;
+		using base_type_t = common_data_t< Demand_Queue >;
 
 	public :
-		with_activity_tracking_impl_t( DEMAND_QUEUE & queue )
+		with_activity_tracking_impl_t( Demand_Queue & queue )
 			:	base_type_t( queue )
 			{}
 
@@ -160,15 +160,15 @@ class with_activity_tracking_impl_t : protected common_data_t< DEMAND_QUEUE >
  * v.5.5.8, v.5.5.18
  */
 template<
-	typename DEMAND_QUEUE,
-	template<class> class WORK_THREAD >
-class work_thread_template_t : public WORK_THREAD< DEMAND_QUEUE >
+	typename Demand_Queue,
+	template<class> class Work_Thread >
+class work_thread_template_t : public Work_Thread< Demand_Queue >
 	{
-		using base_type_t = WORK_THREAD< DEMAND_QUEUE >;
+		using base_type_t = Work_Thread< Demand_Queue >;
 
 	public :
 		//! Initializing constructor.
-		work_thread_template_t( DEMAND_QUEUE & queue )
+		work_thread_template_t( Demand_Queue & queue )
 			:	base_type_t( queue )
 			{}
 
@@ -204,12 +204,12 @@ class work_thread_template_t : public WORK_THREAD< DEMAND_QUEUE >
 								this->call_handler( *d );
 							}
 					}
-				catch( const typename DEMAND_QUEUE::shutdown_ex_t & )
+				catch( const typename Demand_Queue::shutdown_ex_t & )
 					{}
 			}
 
 		auto
-		pop_demand() -> decltype(std::declval<DEMAND_QUEUE>().pop())
+		pop_demand() -> decltype(std::declval<Demand_Queue>().pop())
 			{
 				this->wait_started();
 				auto wait_meter_stopper = so_5::details::at_scope_exit(
@@ -232,19 +232,19 @@ class work_thread_template_t : public WORK_THREAD< DEMAND_QUEUE >
 //
 // work_thread_no_activity_tracking_t
 //
-template< typename DEMAND_QUEUE >
+template< typename Demand_Queue >
 using work_thread_no_activity_tracking_t =
 	work_thread_template_t<
-			DEMAND_QUEUE,
+			Demand_Queue,
 			work_thread_details::no_activity_tracking_impl_t >;
 
 //
 // work_thread_with_activity_tracking_t
 //
-template< typename DEMAND_QUEUE >
+template< typename Demand_Queue >
 using work_thread_with_activity_tracking_t =
 	work_thread_template_t<
-			DEMAND_QUEUE,
+			Demand_Queue,
 			work_thread_details::with_activity_tracking_impl_t >;
 
 } /* namespace reuse */

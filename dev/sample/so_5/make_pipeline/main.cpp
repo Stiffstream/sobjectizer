@@ -61,11 +61,11 @@ using stage_result_t = intrusive_ptr_t< M >;
 // Just a helper function for creating new message instance.
 // Something like std::make_shared or std::make_unique.
 //
-template< typename M, typename... ARGS >
+template< typename M, typename... Args >
 stage_result_t< M >
-make_result( ARGS &&... args )
+make_result( Args &&... args )
 {
-	return stage_result_t< M >( new M(forward< ARGS >(args)...) );
+	return stage_result_t< M >( new M(forward< Args >(args)...) );
 }
 
 //
@@ -89,17 +89,17 @@ make_empty()
 // This template with specialization defines `input` and `output`
 // aliases for both cases.
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 struct handler_traits_t
 {
-	using input = IN;
-	using output = stage_result_t< OUT >;
+	using input = In;
+	using output = stage_result_t< Out >;
 };
 
-template< typename IN >
-struct handler_traits_t< IN, void >
+template< typename In >
+struct handler_traits_t< In, void >
 {
-	using input = IN;
+	using input = In;
 	using output = void;
 };
 
@@ -110,19 +110,19 @@ struct handler_traits_t< IN, void >
 // object with operator() or as lambda function. The actual handler will
 // be stored as instance of std::function.
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 class stage_handler_t
 {
 public :
-	using traits = handler_traits_t< IN, OUT >;
+	using traits = handler_traits_t< In, Out >;
 	using func_type = function< typename traits::output(const typename traits::input &) >;
 
 	stage_handler_t( func_type handler )
 		: m_handler( move(handler) )
 	{}
 
-	template< typename CALLABLE >
-	stage_handler_t( CALLABLE handler ) : m_handler( handler ) {}
+	template< typename Callable >
+	stage_handler_t( Callable handler ) : m_handler( handler ) {}
 
 	typename traits::output
 	operator()( const typename traits::input & a ) const
@@ -139,13 +139,13 @@ private :
 // It will receive input message, call the stage handler and pass
 // handler result to the next stage (if any).
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 class a_stage_point_t : public agent_t
 {
 public :
 	a_stage_point_t(
 		context_t ctx,
-		stage_handler_t< IN, OUT > handler,
+		stage_handler_t< In, Out > handler,
 		mbox_t next_stage )
 		:	agent_t{ ctx }
 		,	m_handler{ move( handler ) }
@@ -157,7 +157,7 @@ public :
 		if( m_next )
 			// Because there is the next stage the appropriate
 			// message handler will be used.
-			so_subscribe_self().event( [=]( const IN & evt ) {
+			so_subscribe_self().event( [=]( const In & evt ) {
 					auto r = m_handler( evt );
 					if( r )
 						m_next->deliver_message( move( r ) );
@@ -165,13 +165,13 @@ public :
 		else
 			// There is no next stage. A very simple message handler
 			// will be used for that case.
-			so_subscribe_self().event( [=]( const IN & evt ) {
+			so_subscribe_self().event( [=]( const In & evt ) {
 					m_handler( evt );
 				} );
 	}
 
 private :
-	const stage_handler_t< IN, OUT > m_handler;
+	const stage_handler_t< In, Out > m_handler;
 	const mbox_t m_next;
 };
 
@@ -180,13 +180,13 @@ private :
 // a pipeline. This type will be used for stage handlers with void
 // return type.
 //
-template< typename IN >
-class a_stage_point_t< IN, void > : public agent_t
+template< typename In >
+class a_stage_point_t< In, void > : public agent_t
 {
 public :
 	a_stage_point_t(
 		context_t ctx,
-		stage_handler_t< IN, void > handler,
+		stage_handler_t< In, void > handler,
 		mbox_t next_stage )
 		:	agent_t{ ctx }
 		,	m_handler{ move( handler ) }
@@ -197,13 +197,13 @@ public :
 
 	virtual void so_define_agent() override
 	{
-		so_subscribe_self().event( [=]( const IN & evt ) {
+		so_subscribe_self().event( [=]( const In & evt ) {
 				m_handler( evt );
 			} );
 	}
 
 private :
-	const stage_handler_t< IN, void > m_handler;
+	const stage_handler_t< In, void > m_handler;
 };
 
 //
@@ -213,7 +213,7 @@ private :
 //
 // An agent of such type should be used only for terminal stages.
 //
-template< typename IN >
+template< typename In >
 class a_broadcaster_t : public agent_t
 {
 public :
@@ -232,7 +232,7 @@ public :
 private :
 	const vector< mbox_t > m_next_stages;
 
-	void evt_broadcast( mhood_t< IN > evt )
+	void evt_broadcast( mhood_t< In > evt )
 	{
 		// The same message instance will be redirected to subsequent stages.
 		auto msg = evt.make_reference();
@@ -260,7 +260,7 @@ using stage_builder_t = function< mbox_t(coop_t &, mbox_t) >;
 //
 // Description of one pipeline stage.
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 struct stage_t
 {
 	stage_builder_t m_builder;
@@ -332,19 +332,19 @@ struct callable_traits_t< void(*)(const A &) >
 // Main function for defining intermediate of terminal stage of a pipeline.
 //
 template<
-	typename CALLABLE,
-	typename IN = typename callable_traits_t< CALLABLE >::arg_type,
-	typename OUT = typename callable_traits_t< CALLABLE >::result_type >
-stage_handler_t< IN, OUT >
-stage( CALLABLE handler )
+	typename Callable,
+	typename In = typename callable_traits_t< Callable >::arg_type,
+	typename Out = typename callable_traits_t< Callable >::result_type >
+stage_handler_t< In, Out >
+stage( Callable handler )
 {
-	return stage_handler_t< IN, OUT >{ move(handler) };
+	return stage_handler_t< In, Out >{ move(handler) };
 }
 	
 //
 // Description for `broadcast` stage.
 //
-template< typename IN >
+template< typename In >
 struct broadcast_sinks_t
 {
 	vector< stage_builder_t > m_builders;
@@ -357,25 +357,25 @@ struct broadcast_sinks_t
 // Those functions are used for collecting
 // `builders` functions for every child pipeline.
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 void
 move_sink_builder_to(
-	stage_t< IN, OUT > && first,
+	stage_t< In, Out > && first,
 	vector< stage_builder_t > & receiver )
 {
 	receiver.emplace_back( move( first.m_builder ) );
 }
 
-template< typename IN, typename OUT1, typename OUT2, typename... REST >
+template< typename In, typename Out1, typename Out2, typename... Rest >
 void
 move_sink_builder_to(
-	stage_t< IN, OUT1 > && first,
+	stage_t< In, Out1 > && first,
 	vector< stage_builder_t > & receiver,
-	stage_t< IN, OUT2 > && second,
-	REST &&... rest )
+	stage_t< In, Out2 > && second,
+	Rest &&... rest )
 {
 	receiver.emplace_back( move( first.m_builder ) );
-	move_sink_builder_to( move(second), receiver, forward< REST >(rest)... );
+	move_sink_builder_to( move(second), receiver, forward< Rest >(rest)... );
 }
 
 //
@@ -383,28 +383,28 @@ move_sink_builder_to(
 // for every child pipeline.
 //
 // Please note that this functions checks that each child pipeline has the
-// same IN type.
+// same In type.
 //
-template< typename IN, typename OUT >
+template< typename In, typename Out >
 vector< stage_builder_t >
-collect_sink_builders( stage_t< IN, OUT > && first )
+collect_sink_builders( stage_t< In, Out > && first )
 {
 	vector< stage_builder_t > receiver;
 	move_sink_builder_to( move(first), receiver );
 	return receiver;
 }
 
-template< typename IN, typename OUT1, typename OUT2, typename... REST >
+template< typename In, typename Out1, typename Out2, typename... Rest >
 vector< stage_builder_t >
 collect_sink_builders(
-	stage_t< IN, OUT1 > && first,
-	stage_t< IN, OUT2 > && second,
-	REST &&... stages )
+	stage_t< In, Out1 > && first,
+	stage_t< In, Out2 > && second,
+	Rest &&... stages )
 {
 	vector< stage_builder_t > receiver;
 	receiver.reserve( 2 + sizeof...(stages) );
 
-	move_sink_builder_to( move(first), receiver, move(second), forward< REST >(stages)... );
+	move_sink_builder_to( move(first), receiver, move(second), forward< Rest >(stages)... );
 
 	return receiver;
 }
@@ -412,29 +412,29 @@ collect_sink_builders(
 //
 // Main helper function for building `broadcast` stage.
 //
-template< typename IN, typename OUT, typename... REST >
-broadcast_sinks_t< IN >
-broadcast( stage_t< IN, OUT > && first, REST &&... stages )
+template< typename In, typename Out, typename... Rest >
+broadcast_sinks_t< In >
+broadcast( stage_t< In, Out > && first, Rest &&... stages )
 {
-	return broadcast_sinks_t< IN >{
-		collect_sink_builders( move(first), forward< REST >(stages)... )
+	return broadcast_sinks_t< In >{
+		collect_sink_builders( move(first), forward< Rest >(stages)... )
 	};
 }
 
 //
 // Helper `operator|` for initiation of a pipeline definition.
 //
-template< typename IN, typename OUT >
-stage_t< IN, OUT >
+template< typename In, typename Out >
+stage_t< In, Out >
 operator|(
 	const source_t & /* dummy source arg */,
-	stage_handler_t< IN, OUT > && handler )
+	stage_handler_t< In, Out > && handler )
 {
-	return stage_t< IN, OUT >{
+	return stage_t< In, Out >{
 		stage_builder_t{
 			[handler]( coop_t & coop, mbox_t next_stage ) -> mbox_t
 			{
-				auto stage_agent = coop.make_agent< a_stage_point_t< IN, OUT > >(
+				auto stage_agent = coop.make_agent< a_stage_point_t< In, Out > >(
 						move(handler), move(next_stage) );
 				return stage_agent->so_direct_mbox();
 			}
@@ -445,17 +445,17 @@ operator|(
 //
 // Helper `operator|` for continuation of a pipeline definition.
 //
-template< typename IN, typename OUT1, typename OUT2 >
-stage_t< IN, OUT2 >
+template< typename In, typename Out1, typename Out2 >
+stage_t< In, Out2 >
 operator|(
-	stage_t< IN, OUT1 > && prev,
-	stage_handler_t< OUT1, OUT2 > && next )
+	stage_t< In, Out1 > && prev,
+	stage_handler_t< Out1, Out2 > && next )
 {
-	return stage_t< IN, OUT2 >{
+	return stage_t< In, Out2 >{
 		stage_builder_t{
 			[prev, next]( coop_t & coop, mbox_t next_stage ) -> mbox_t
 			{
-				auto stage_agent = coop.make_agent< a_stage_point_t< OUT1, OUT2 > >(
+				auto stage_agent = coop.make_agent< a_stage_point_t< Out1, Out2 > >(
 						move(next), move(next_stage) );
 				return prev.m_builder( coop, stage_agent->so_direct_mbox() );
 			}
@@ -467,13 +467,13 @@ operator|(
 // Helper `operator|` for termination of a pipeline definition by
 // adding a `broadcast` stage as terminator.
 //
-template< typename IN, typename BROADCAST_IN >
-stage_t< IN, void >
+template< typename In, typename Broadcast_In >
+stage_t< In, void >
 operator|(
-	stage_t< IN, BROADCAST_IN > && prev,
-	broadcast_sinks_t< BROADCAST_IN > && broadcasts )
+	stage_t< In, Broadcast_In > && prev,
+	broadcast_sinks_t< Broadcast_In > && broadcasts )
 {
-	return stage_t< IN, void >{
+	return stage_t< In, void >{
 		stage_builder_t{
 			[prev, broadcasts]( coop_t & coop, mbox_t ) -> mbox_t
 			{
@@ -483,7 +483,7 @@ operator|(
 				for( const auto & b : broadcasts.m_builders )
 					mboxes.emplace_back( b( coop, mbox_t{} ) );
 
-				auto broadcaster = coop.make_agent< a_broadcaster_t< BROADCAST_IN > >(
+				auto broadcaster = coop.make_agent< a_broadcaster_t< Broadcast_In > >(
 						move(mboxes) );
 				return prev.m_builder( coop, broadcaster->so_direct_mbox() );
 			}
@@ -494,17 +494,17 @@ operator|(
 //
 // Main function for creation of all pipeline-related stuff.
 //
-template< typename IN, typename OUT, typename... ARGS >
+template< typename In, typename Out, typename... Args >
 mbox_t
 make_pipeline(
 	// Agent who will own a cooperation with pipeline-related agent.
 	agent_t & owner,
 	// Definition of a pipeline.
-	stage_t< IN, OUT > && sink,
+	stage_t< In, Out > && sink,
 	// Optional args to be passed to so_5::create_child_coop function.
-	ARGS &&... args )
+	Args &&... args )
 {
-	auto coop = create_child_coop( owner, forward< ARGS >(args)... );
+	auto coop = create_child_coop( owner, forward< Args >(args)... );
 
 	auto mbox = sink.m_builder( *coop, mbox_t{} );
 

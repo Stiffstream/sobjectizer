@@ -269,9 +269,9 @@ struct decrement_on_exception_t
  * \brief A helper function for pushing a message or a service
  * request to agent with respect to message limit.
  *
- * \tparam LAMBDA lambda-function to do actual pushing.
+ * \tparam Lambda lambda-function to do actual pushing.
  */
-template< typename LAMBDA >
+template< typename Lambda >
 void
 try_to_deliver_to_agent(
 	//! It is a message or service request?
@@ -290,7 +290,7 @@ try_to_deliver_to_agent(
 	//! Message delivery tracer to be used inside overlimit reaction.
 	const message_limit::impl::action_msg_tracer_t * tracer,
 	//! Actual delivery action.
-	LAMBDA delivery_action )
+	Lambda delivery_action )
 {
 	if( limit && ( limit->m_limit < ++(limit->m_count) ) )
 	{

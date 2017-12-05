@@ -127,7 +127,7 @@ coop_t::coop_t(
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )
 	,	m_parent_coop_ptr( nullptr )
-	,	m_registration_status( COOP_NOT_REGISTERED )
+	,	m_registration_status( registration_status_t::coop_not_registered )
 	,	m_exception_reaction( inherit_exception_reaction )
 {
 	m_reference_count = 0l;
@@ -268,7 +268,7 @@ coop_t::do_registration_specific_actions(
 		m_parent_coop_ptr->m_reference_count += 1;
 
 	// Cooperation should assume that it is registered now.
-	m_registration_status = COOP_REGISTERED;
+	m_registration_status = registration_status_t::coop_registered;
 	// Increment reference count to reflect that cooperation is registered.
 	// This is necessary in v.5.5.12 to prevent automatic deregistration
 	// of the cooperation right after finish of registration process for
@@ -432,10 +432,10 @@ coop_t::decrement_usage_count()
 		// NOTE: usage counter incremented and decremented during
 		// registration process even if registration of cooperation failed.
 		// So decrement_usage_count() could be called when cooperation
-		// has COOP_NOT_REGISTERED status.
-		if( COOP_REGISTERED == m_registration_status )
+		// has coop_not_registered status.
+		if( registration_status_t::coop_registered == m_registration_status )
 		{
-			m_registration_status = COOP_DEREGISTERING;
+			m_registration_status = registration_status_t::coop_deregistering;
 			impl::internal_env_iface_t{ m_env }.ready_to_deregister_notify( this );
 		}
 	}

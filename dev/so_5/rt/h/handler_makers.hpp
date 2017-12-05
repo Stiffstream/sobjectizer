@@ -18,6 +18,7 @@
 #include <so_5/details/h/lambda_traits.hpp>
 
 #include <so_5/rt/h/execution_demand.hpp>
+#include <so_5/rt/h/message_handler_format_detector.hpp>
 
 #include <algorithm>
 
@@ -39,21 +40,21 @@ namespace event_subscription_helpers
  *
  * \throw exception_t if dynamic_cast fails.
  */
-template< class AGENT >
-AGENT *
+template< class Agent >
+Agent *
 get_actual_agent_pointer( agent_t & agent )
 {
 	// Agent must have right type.
-	AGENT * cast_result = dynamic_cast< AGENT * >( &agent );
+	Agent * cast_result = dynamic_cast< Agent * >( &agent );
 
 	// Was conversion successful?
 	if( nullptr == cast_result )
 	{
-		// No. Actual type of the agent is not convertible to the AGENT.
+		// No. Actual type of the agent is not convertible to the Agent.
 		SO_5_THROW_EXCEPTION(
 			rc_agent_incompatible_type_conversion,
 			std::string( "Unable convert agent to type: " ) +
-				typeid(AGENT).name() );
+				typeid(Agent).name() );
 	}
 
 	return cast_result;
@@ -64,17 +65,17 @@ get_actual_agent_pointer( agent_t & agent )
  *
  * \throw exception_t if dynamic_cast fails.
  */
-template< class RESULT, class MESSAGE >
+template< class Result, class Message >
 msg_service_request_t<
-		RESULT,
-		typename message_payload_type< MESSAGE >::envelope_type > *
+		Result,
+		typename message_payload_type< Message >::envelope_type > *
 get_actual_service_request_pointer(
 	const message_ref_t & message_ref )
 {
 	using actual_request_msg_t =
 			msg_service_request_t<
-					RESULT,
-					typename message_payload_type< MESSAGE >::envelope_type >;
+					Result,
+					typename message_payload_type< Message >::envelope_type >;
 
 	auto actual_request_ptr = dynamic_cast< actual_request_msg_t * >(
 			message_ref.get() );
@@ -94,26 +95,26 @@ get_actual_service_request_pointer(
  * \brief A helper template for create an argument for event handler
  * in the case when argument is passed as value or const reference.
  *
- * \note MSG can't be a type of a signal.
+ * \note Msg can't be a type of a signal.
  *
  * \since
  * v.5.5.14
  */
-template< typename MSG >
+template< typename Msg >
 struct event_handler_arg_maker
 {
-	using traits_type = message_payload_type< MSG >;
+	using traits_type = message_payload_type< Msg >;
 
 	static void
 	ensure_appropriate_type()
 	{
-		ensure_not_signal< MSG >();
+		ensure_not_signal< Msg >();
 	}
 
-	static const MSG &
+	static const Msg &
 	make_arg( message_ref_t & mf )
 	{
-		auto msg = message_payload_type< MSG >::extract_payload_ptr( mf );
+		auto msg = message_payload_type< Msg >::extract_payload_ptr( mf );
 
 		return *msg;
 	}
@@ -125,20 +126,20 @@ struct event_handler_arg_maker
  * \since
  * v.5.5.14
  */
-template< typename MSG >
-struct event_handler_arg_maker< mhood_t< MSG > >
+template< typename Msg >
+struct event_handler_arg_maker< mhood_t< Msg > >
 {
-	using traits_type = message_payload_type< MSG >;
+	using traits_type = message_payload_type< Msg >;
 
 	static void
 	ensure_appropriate_type()
 	{
 	}
 
-	static mhood_t< MSG >
+	static mhood_t< Msg >
 	make_arg( message_ref_t & mf )
 	{
-		return mhood_t< MSG >{ mf };
+		return mhood_t< Msg >{ mf };
 	}
 };
 
@@ -149,17 +150,17 @@ struct event_handler_arg_maker< mhood_t< MSG > >
  * \since
  * v.5.5.19
  */
-template< typename MSG >
-struct event_handler_arg_maker< mhood_t< immutable_msg<MSG> > >
+template< typename Msg >
+struct event_handler_arg_maker< mhood_t< immutable_msg<Msg> > >
 {
-	using traits_type = message_payload_type< immutable_msg<MSG> >;
+	using traits_type = message_payload_type< immutable_msg<Msg> >;
 
 	static void
 	ensure_appropriate_type()
 	{
 	}
 
-	static mhood_t< immutable_msg<MSG> >
+	static mhood_t< immutable_msg<Msg> >
 	make_arg( message_ref_t & mf )
 	{
 		return { mf };
@@ -173,18 +174,18 @@ struct event_handler_arg_maker< mhood_t< immutable_msg<MSG> > >
  * \since
  * v.5.5.19
  */
-template< typename MSG >
-struct event_handler_arg_maker< mhood_t< mutable_msg<MSG> > >
+template< typename Msg >
+struct event_handler_arg_maker< mhood_t< mutable_msg<Msg> > >
 {
-	using traits_type = message_payload_type< mutable_msg< MSG > >;
+	using traits_type = message_payload_type< mutable_msg< Msg > >;
 
 	static void
 	ensure_appropriate_type()
 	{
-		ensure_not_signal<MSG>();
+		ensure_not_signal<Msg>();
 	}
 
-	static mhood_t< mutable_msg<MSG> >
+	static mhood_t< mutable_msg<Msg> >
 	make_arg( message_ref_t & mf )
 	{
 		return { mf };
@@ -204,40 +205,40 @@ struct always_false
 };
 
 /*
- * Disable usage of mutable_msg<MSG> as parameter of an event handler.
+ * Disable usage of mutable_msg<Msg> as parameter of an event handler.
  */
-template< typename MSG >
-struct event_handler_arg_maker< mutable_msg<MSG> >
+template< typename Msg >
+struct event_handler_arg_maker< mutable_msg<Msg> >
 {
-	using traits_type = message_payload_type< mutable_msg<MSG> >;
+	using traits_type = message_payload_type< mutable_msg<Msg> >;
 
 	static void
 	ensure_appropriate_type()
 	{
-		static_assert(always_false<MSG>::value,
+		static_assert(always_false<Msg>::value,
 				"mutable_msg<T> can't be used as type of event handler parameter");
 	}
 
-	static mutable_msg<MSG>
+	static mutable_msg<Msg>
 	make_arg( message_ref_t & ) { return {}; }
 };
 
 /*
- * Disable usage of mutable_msg<MSG> as parameter of an event handler.
+ * Disable usage of mutable_msg<Msg> as parameter of an event handler.
  */
-template< typename MSG >
-struct event_handler_arg_maker< immutable_msg<MSG> >
+template< typename Msg >
+struct event_handler_arg_maker< immutable_msg<Msg> >
 {
-	using traits_type = message_payload_type< immutable_msg<MSG> >;
+	using traits_type = message_payload_type< immutable_msg<Msg> >;
 
 	static void
 	ensure_appropriate_type()
 	{
-		static_assert(always_false<MSG>::value,
+		static_assert(always_false<Msg>::value,
 				"immutable_msg<T> can't be used as type of event handler parameter");
 	}
 
-	static immutable_msg<MSG>
+	static immutable_msg<Msg>
 	make_arg( message_ref_t & ) { return {}; }
 };
 
@@ -275,11 +276,13 @@ set_promise( std::promise< void > & to, L result_provider )
  * \since
  * v.5.5.14
  */
-template< typename LAMBDA, typename RESULT, typename ARG >
-msg_type_and_handler_pair_t
-make_handler_with_arg( LAMBDA && lambda )
+template< typename Lambda, typename Result, typename Arg >
+typename std::enable_if<
+		!is_agent_method_pointer<Lambda>::value,
+		msg_type_and_handler_pair_t >::type
+make_handler_with_arg( Lambda && lambda )
 	{
-		using arg_maker = event_handler_arg_maker< ARG >;
+		using arg_maker = event_handler_arg_maker< Arg >;
 		using payload_type = typename arg_maker::traits_type::payload_type;
 
 		arg_maker::ensure_appropriate_type();
@@ -292,7 +295,7 @@ make_handler_with_arg( LAMBDA && lambda )
 					{
 						auto actual_request_ptr =
 								get_actual_service_request_pointer<
-											RESULT, payload_type >( message_ref );
+											Result, payload_type >( message_ref );
 
 						set_promise(
 								actual_request_ptr->m_promise,
@@ -321,15 +324,25 @@ make_handler_with_arg( LAMBDA && lambda )
  * \since
  * v.5.5.14
  */
-template< typename AGENT, typename RESULT, typename ARG >
-msg_type_and_handler_pair_t
+template< typename Agent, typename Method_Pointer >
+typename std::enable_if<
+		is_agent_method_pointer<Method_Pointer>::value,
+		msg_type_and_handler_pair_t >::type
 make_handler_with_arg_for_agent(
-	AGENT * agent,
-	RESULT (AGENT::*pfn)( ARG ) )
+	Agent * agent,
+	Method_Pointer pfn )
 	{
+		using pfn_traits = is_agent_method_pointer<Method_Pointer>;
+
+		static_assert( std::is_same<Agent, typename pfn_traits::agent_type>::value,
+				"Agent type must be the same" );
+
 		using arg_maker = event_handler_arg_maker<
-				typename so_5::details::lambda_traits::plain_argument_type< ARG >::type >;
+				typename so_5::details::lambda_traits::plain_argument_type<
+						typename pfn_traits::argument_type>::type >;
+
 		using payload_type = typename arg_maker::traits_type::payload_type;
+		using result_type = typename pfn_traits::result_type;
 
 		arg_maker::ensure_appropriate_type();
 
@@ -341,7 +354,7 @@ make_handler_with_arg_for_agent(
 					{
 						auto actual_request_ptr =
 								get_actual_service_request_pointer<
-											RESULT, payload_type >( message_ref );
+											result_type, payload_type >( message_ref );
 
 						set_promise(
 								actual_request_ptr->m_promise,
@@ -367,16 +380,16 @@ make_handler_with_arg_for_agent(
  * \brief Helper template for creation of event handler without actual
  * argument.
  *
- * \note This helper must be used only if SIG is derived from signal_t.
+ * \note This helper must be used only if Sig is derived from signal_t.
  *
  * \since
  * v.5.5.14
  */
-template< typename LAMBDA, typename RESULT, typename SIG >
+template< typename Lambda, typename Result, typename Sig >
 msg_type_and_handler_pair_t
-make_handler_without_arg( LAMBDA && lambda )
+make_handler_without_arg( Lambda && lambda )
 	{
-		ensure_signal< SIG >();
+		ensure_signal< Sig >();
 
 		auto method = [lambda](
 				invocation_type_t invocation_type,
@@ -386,7 +399,7 @@ make_handler_without_arg( LAMBDA && lambda )
 					{
 						auto actual_request_ptr =
 								get_actual_service_request_pointer<
-											RESULT, SIG >(
+											Result, Sig >(
 										message_ref );
 
 						set_promise(
@@ -400,9 +413,9 @@ make_handler_without_arg( LAMBDA && lambda )
 			};
 
 		return msg_type_and_handler_pair_t{
-				message_payload_type< SIG >::subscription_type_index(),
+				message_payload_type< Sig >::subscription_type_index(),
 				method,
-				message_payload_type< SIG >::mutability() };
+				message_payload_type< Sig >::mutability() };
 	}
 
 } /* namespace event_subscription_helpers */
@@ -422,19 +435,19 @@ make_handler_without_arg( LAMBDA && lambda )
  * \since
  * v.5.5.13
  */
-template< class LAMBDA >
+template< class Lambda >
 details::msg_type_and_handler_pair_t
-handler( LAMBDA && lambda )
+handler( Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
 
-		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
-		typedef typename TRAITS::result_type RESULT;
-		typedef typename TRAITS::argument_type MESSAGE;
+		typedef traits< typename std::decay< Lambda >::type > Traits;
+		typedef typename Traits::result_type Result;
+		typedef typename Traits::argument_type Message;
 
-		return make_handler_with_arg< LAMBDA, RESULT, MESSAGE >(
-				std::forward< LAMBDA >(lambda) );
+		return make_handler_with_arg< Lambda, Result, Message >(
+				std::forward< Lambda >(lambda) );
 	}
 
 //
@@ -450,20 +463,20 @@ handler( LAMBDA && lambda )
  * \since
  * v.5.5.13
  */
-template< class SIGNAL, class LAMBDA >
+template< class Signal, class Lambda >
 details::msg_type_and_handler_pair_t
-handler( LAMBDA && lambda )
+handler( Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
 
-		ensure_signal< SIGNAL >();
+		ensure_signal< Signal >();
 
-		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
-		typedef typename TRAITS::result_type RESULT;
+		typedef traits< typename std::decay< Lambda >::type > Traits;
+		typedef typename Traits::result_type Result;
 
-		return make_handler_without_arg< LAMBDA, RESULT, SIGNAL >(
-				std::forward< LAMBDA >(lambda) );
+		return make_handler_without_arg< Lambda, Result, Signal >(
+				std::forward< Lambda >(lambda) );
 	}
 
 namespace details {
@@ -647,46 +660,46 @@ class handlers_bunch_t< 0 >
 // fill_handlers_bunch
 //
 
-template< typename BUNCH >
+template< typename Bunch >
 void
-fill_handlers_bunch( BUNCH & bunch, std::size_t )
+fill_handlers_bunch( Bunch & bunch, std::size_t )
 	{
 		bunch.prepare();
 	}
 
-template< typename BUNCH, typename... OTHERS >
+template< typename Bunch, typename... Others >
 void
 fill_handlers_bunch(
 	//! What to fill.
-	BUNCH & bunch,
+	Bunch & bunch,
 	//! An index for next handler.
 	std::size_t index,
 	//! Next handler to be inserted.
 	msg_type_and_handler_pair_t && handler,
 	//! All other handlers.
-	OTHERS &&... other_handlers )
+	Others &&... other_handlers )
 	{
 		bunch.add_handler( index, std::move(handler) );
 		fill_handlers_bunch( bunch, index + 1,
-				std::forward< OTHERS >(other_handlers)... );
+				std::forward< Others >(other_handlers)... );
 	}
 
-template< typename BUNCH, typename LAMBDA, typename... OTHERS >
+template< typename Bunch, typename Lambda, typename... Others >
 void
 fill_handlers_bunch(
 	//! What to fill.
-	BUNCH & bunch,
+	Bunch & bunch,
 	//! An index for next handler.
 	std::size_t index,
 	//! Next handler to be inserted.
-	LAMBDA && lambda,
+	Lambda && lambda,
 	//! All other handlers.
-	OTHERS &&... other_handlers )
+	Others &&... other_handlers )
 	{
 		bunch.add_handler( index,
-				handler( std::forward<LAMBDA>( lambda ) ) );
+				handler( std::forward<Lambda>( lambda ) ) );
 		fill_handlers_bunch( bunch, index + 1,
-				std::forward< OTHERS >(other_handlers)... );
+				std::forward< Others >(other_handlers)... );
 	}
 
 } /* namespace details */

@@ -70,17 +70,17 @@ class proxy_dispatcher_t : public proxy_dispatcher_base_t
 
  * \endcode
  *
- * \tparam DISP_IFACE_TYPE type of actual dispatcher interface.
- * \tparam DISP_PARAMS_TYPE type of dispatcher parameters.
+ * \tparam Disp_Iface_Type type of actual dispatcher interface.
+ * \tparam Disp_Params_Type type of dispatcher parameters.
  *
  * \since
  * v.5.5.18
  */
-template< typename DISP_IFACE_TYPE, typename DISP_PARAMS_TYPE >
-class proxy_dispatcher_template_t : public DISP_IFACE_TYPE
+template< typename Disp_Iface_Type, typename Disp_Params_Type >
+class proxy_dispatcher_template_t : public Disp_Iface_Type
 	{
 	public :
-		proxy_dispatcher_template_t( DISP_PARAMS_TYPE disp_params )
+		proxy_dispatcher_template_t( Disp_Params_Type disp_params )
 			:	m_disp_params( std::move(disp_params) )
 			{}
 
@@ -114,10 +114,10 @@ class proxy_dispatcher_template_t : public DISP_IFACE_TYPE
 
 	protected :
 		//! Actual dispatcher instance.
-		std::unique_ptr< DISP_IFACE_TYPE > m_disp;
+		std::unique_ptr< Disp_Iface_Type > m_disp;
 
 		//! Parameters for actual dispatcher.
-		DISP_PARAMS_TYPE m_disp_params;
+		Disp_Params_Type m_disp_params;
 
 		//! Base name for data sources.
 		std::string m_data_source_base_name;
@@ -132,29 +132,29 @@ class proxy_dispatcher_template_t : public DISP_IFACE_TYPE
 
 		//! Finish initialization of actual dispatcher and run it.
 		/*!
-		 * \tparam DISP_NO_TRACKING type of dispatcher without activity tracking.
-		 * \tparam DISP_WITH_TRACKING type of dispatcher with activity tracking.
-		 * \tparam ENV just a short alias for so_5::environment_t.
-		 * \tparam ARGS a list of additional arguments for dispatcher's constructor.
+		 * \tparam Disp_No_Tracking type of dispatcher without activity tracking.
+		 * \tparam Disp_With_Tracking type of dispatcher with activity tracking.
+		 * \tparam Env just a short alias for so_5::environment_t.
+		 * \tparam Args a list of additional arguments for dispatcher's constructor.
 		 */
 		template<
-			typename DISP_NO_TRACKING,
-			typename DISP_WITH_TRACKING,
-			typename ENV,
-			typename... ARGS >
+			typename Disp_No_Tracking,
+			typename Disp_With_Tracking,
+			typename Env,
+			typename... Args >
 		void
 		make_actual_dispatcher(
-			ENV & env,
-			ARGS && ...args )
+			Env & env,
+			Args && ...args )
 			{
 				using so_5::stats::activity_tracking_stuff::create_appropriate_disp;
 				auto disp = create_appropriate_disp<
-						DISP_IFACE_TYPE,
-						DISP_NO_TRACKING,
-						DISP_WITH_TRACKING >(
+						Disp_Iface_Type,
+						Disp_No_Tracking,
+						Disp_With_Tracking >(
 					env,
 					m_disp_params,
-					std::forward<ARGS>(args)... );
+					std::forward<Args>(args)... );
 
 				disp->set_data_sources_name_base( m_data_source_base_name );
 				disp->start( env );

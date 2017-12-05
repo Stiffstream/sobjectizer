@@ -28,7 +28,7 @@ namespace reuse {
  * \since
  * v.5.5.18
  */
-template< typename PARAMS >
+template< typename Params >
 class work_thread_activity_tracking_flag_mixin_t
 	{
 		work_thread_activity_tracking_t m_flag{
@@ -50,12 +50,12 @@ class work_thread_activity_tracking_flag_mixin_t
 			}
 
 		//! Setter for work thread activity tracking.
-		PARAMS &
+		Params &
 		work_thread_activity_tracking(
 			work_thread_activity_tracking_t v )
 			{
 				m_flag = v;
-				return static_cast< PARAMS & >(*this);
+				return static_cast< Params & >(*this);
 			}
 
 		//! Helper for turning work thread activity tracking on.
@@ -63,7 +63,7 @@ class work_thread_activity_tracking_flag_mixin_t
 		 * \since
 		 * v.5.5.18
 		 */
-		PARAMS &
+		Params &
 		turn_work_thread_activity_tracking_on()
 			{
 				return work_thread_activity_tracking(
@@ -75,7 +75,7 @@ class work_thread_activity_tracking_flag_mixin_t
 		 * \since
 		 * v.5.5.18
 		 */
-		PARAMS &
+		Params &
 		turn_work_thread_activity_tracking_off()
 			{
 				return work_thread_activity_tracking(

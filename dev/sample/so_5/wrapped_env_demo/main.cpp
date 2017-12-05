@@ -46,10 +46,10 @@ private :
 };
 
 // Helper wrapper for doing some action and handling exceptions.
-template< typename LAMBDA >
+template< typename Lambda >
 void do_action(
 	const std::string & action_name,
-	LAMBDA && lambda )
+	Lambda && lambda )
 {
 	try
 	{

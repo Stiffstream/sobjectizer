@@ -23,11 +23,11 @@ namespace stdcpp {
 //
 // make_unique
 //
-template< typename T, typename... ARGS >
+template< typename T, typename... Args >
 std::unique_ptr< T >
-make_unique( ARGS && ...args )
+make_unique( Args && ...args )
 	{
-		return std::unique_ptr< T >( new T( std::forward<ARGS>(args)... ) );
+		return std::unique_ptr< T >( new T( std::forward<Args>(args)... ) );
 	}
 
 } /* namespace stdcpp */

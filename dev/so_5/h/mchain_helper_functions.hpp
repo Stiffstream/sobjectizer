@@ -318,9 +318,9 @@ class auto_closer_t
  * \since
  * v.5.5.16
  */
-template< typename CLOSER >
+template< typename Closer >
 void
-add_to_closer( CLOSER & to, std::size_t index, mchain_t ch )
+add_to_closer( Closer & to, std::size_t index, mchain_t ch )
 	{
 		to.set_mchain( index, std::move(ch) );
 	}
@@ -331,16 +331,16 @@ add_to_closer( CLOSER & to, std::size_t index, mchain_t ch )
  * \since
  * v.5.5.16
  */
-template< typename CLOSER, typename... TAIL >
+template< typename Closer, typename... Tail >
 void
 add_to_closer(
-	CLOSER & to,
+	Closer & to,
 	std::size_t index,
 	mchain_t ch,
-	TAIL &&... tail )
+	Tail &&... tail )
 	{
 		add_to_closer( to, index, std::move(ch) );
-		add_to_closer( to, index + 1, std::forward< TAIL >(tail)... );
+		add_to_closer( to, index + 1, std::forward< Tail >(tail)... );
 	}
 
 } /* namespace mchain_auto_close_details */
@@ -374,19 +374,19 @@ add_to_closer(
  * \since
  * v.5.5.16
  */
-template< typename... TAIL >
-mchain_auto_close_details::auto_closer_t< sizeof...(TAIL) >
+template< typename... Tail >
+mchain_auto_close_details::auto_closer_t< sizeof...(Tail) >
 auto_close_mchains(
 	//! Close mode for all mchains.
 	//! This value will be passed to all close() calls.
 	mchain_props::close_mode_t close_mode,
 	//! Chains to be closed.
-	TAIL &&... tail )
+	Tail &&... tail )
 	{
 		using namespace mchain_auto_close_details;
 
 		auto_closer_t< sizeof...(tail) > closer{ close_mode };
-		add_to_closer( closer, 0, std::forward< TAIL >(tail)... );
+		add_to_closer( closer, 0, std::forward< Tail >(tail)... );
 
 		return closer;
 	}
@@ -410,18 +410,18 @@ auto_close_mchains(
 		so_5::mchain_props::close_mode_t::retain_content, chains... );
  * \endcode
  *
- * \tparam TAIL List of mchains.
+ * \tparam Tail List of mchains.
  *
  * \since
  * v.5.5.16
  */
-template< typename... TAIL >
-mchain_auto_close_details::auto_closer_t< sizeof...(TAIL) >
-auto_close_retain_content( TAIL &&... tail )
+template< typename... Tail >
+mchain_auto_close_details::auto_closer_t< sizeof...(Tail) >
+auto_close_retain_content( Tail &&... tail )
 	{
 		return auto_close_mchains(
 				mchain_props::close_mode_t::retain_content,
-				std::forward< TAIL >(tail)... );
+				std::forward< Tail >(tail)... );
 	}
 
 /*!
@@ -443,18 +443,18 @@ auto_close_retain_content( TAIL &&... tail )
 		so_5::mchain_props::close_mode_t::drop_content, chains... );
  * \endcode
  *
- * \tparam TAIL List of mchains.
+ * \tparam Tail List of mchains.
  *
  * \since
  * v.5.5.16
  */
-template< typename... TAIL >
-mchain_auto_close_details::auto_closer_t< sizeof...(TAIL) >
-auto_close_drop_content( TAIL &&... tail )
+template< typename... Tail >
+mchain_auto_close_details::auto_closer_t< sizeof...(Tail) >
+auto_close_drop_content( Tail &&... tail )
 	{
 		return auto_close_mchains(
 				mchain_props::close_mode_t::drop_content,
-				std::forward< TAIL >(tail)... );
+				std::forward< Tail >(tail)... );
 	}
 
 //

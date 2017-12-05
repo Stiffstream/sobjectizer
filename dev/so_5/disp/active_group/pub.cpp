@@ -140,7 +140,7 @@ class actual_disp_iface_t : public so_5::dispatcher_t
 /*!
  * \brief Implementation of active object dispatcher in form of template class.
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class dispatcher_template_t : public actual_disp_iface_t
 	{
 	public:
@@ -219,7 +219,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 					}
 
 				// New thread should be created.
-				auto thread = std::make_shared< WORK_THREAD >(
+				auto thread = std::make_shared< Work_Thread >(
 						m_params.queue_params().lock_factory() );
 
 				thread->start();
@@ -247,7 +247,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		friend class disp_data_source_t;
 
 		//! An alias for shared pointer to work thread.
-		using work_thread_shptr_t = std::shared_ptr< WORK_THREAD >;
+		using work_thread_shptr_t = std::shared_ptr< Work_Thread >;
 
 		//! Auxiliary class for the working agent counting.
 		struct thread_with_refcounter_t

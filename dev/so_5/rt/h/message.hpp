@@ -272,9 +272,9 @@ struct user_type_message_t : public message_t
 	T m_payload;
 
 	//! Initializing constructor.
-	template< typename... ARGS >
-	user_type_message_t( ARGS &&... args )
-		:	m_payload( T{ std::forward< ARGS >( args )... } )
+	template< typename... Args >
+	user_type_message_t( Args &&... args )
+		:	m_payload( T{ std::forward< Args >( args )... } )
 		{}
 
 	//! Initialization from const T object.
@@ -468,11 +468,11 @@ struct is_mutable_message< mutable_msg<T> >
  * \brief A special compile-time checker to guarantee that the message
  * class is not a signal class.
  */
-template< class MSG >
+template< class Msg >
 void
 ensure_not_signal()
 {
-	static_assert( !is_signal< MSG >::value,
+	static_assert( !is_signal< Msg >::value,
 			"message class must be derived from the message_t" );
 }
 
@@ -489,13 +489,13 @@ ensure_not_signal()
  *
  * \note A check for the inheritance from the message_t is done at compile-time.
  *
- * \tparam MSG message type to be checked.
+ * \tparam Msg message type to be checked.
  */
-template< class MSG >
+template< class Msg >
 void
-ensure_message_with_actual_data( const MSG * m )
+ensure_message_with_actual_data( const Msg * m )
 {
-	ensure_not_signal< MSG >();
+	ensure_not_signal< Msg >();
 
 	if( !m )
 		throw so_5::exception_t(
@@ -533,21 +533,21 @@ ensure_not_mutable_signal()
  * \since
  * v.5.2.0
  *
- * \brief A special compile-time checker to guarantee that the MSG is derived
+ * \brief A special compile-time checker to guarantee that the Msg is derived
  * from the signal_t.
  *
- * \tparam MSG signal type to be checked.
+ * \tparam Msg signal type to be checked.
  */
-template< class MSG >
+template< class Msg >
 void
 ensure_signal()
 {
-	static_assert( is_signal< MSG >::value,
+	static_assert( is_signal< Msg >::value,
 			"expected a type derived from the signal_t" );
 
 	// Added in v.5.5.19.
-	// MSG must not be a mutable_msg<S>.
-	ensure_not_mutable_signal<MSG>();
+	// Msg must not be a mutable_msg<S>.
+	ensure_not_mutable_signal<Msg>();
 }
 
 //
@@ -557,16 +557,16 @@ ensure_signal()
  * \since
  * v.5.5.9
  *
- * \brief A special compile-time checker to guarantee that MSG is derived from
+ * \brief A special compile-time checker to guarantee that Msg is derived from
  * %message_t.
  *
- * \tparam MSG type to be checked.
+ * \tparam Msg type to be checked.
  */
-template< typename MSG >
+template< typename Msg >
 void
 ensure_classical_message()
 	{
-		static_assert( is_classical_message< MSG >::value,
+		static_assert( is_classical_message< Msg >::value,
 				"expected a type derived from the message_t" );
 	}
 
@@ -745,48 +745,48 @@ struct message_payload_type< user_type_message_t< T > >
 namespace details
 {
 
-template< typename MSG >
+template< typename Msg >
 typename std::enable_if<
 	message_mutability_t::mutable_message ==
-			::so_5::details::message_mutability_traits<MSG>::mutability >::type
+			::so_5::details::message_mutability_traits<Msg>::mutability >::type
 mark_as_mutable_if_necessary( message_t & msg )
 	{
 		change_message_mutability( msg, message_mutability_t::mutable_message );
 	}
 
-template< typename MSG >
+template< typename Msg >
 typename std::enable_if<
 	message_mutability_t::mutable_message !=
-			::so_5::details::message_mutability_traits<MSG>::mutability >::type
+			::so_5::details::message_mutability_traits<Msg>::mutability >::type
 mark_as_mutable_if_necessary( message_t & /*msg*/ )
 	{
 		// Nothing to do.
 	}
 
-template< bool is_signal, typename MSG >
+template< bool is_signal, typename Msg >
 struct make_message_instance_impl
 	{
-		using E = typename message_payload_type< MSG >::envelope_type;
+		using E = typename message_payload_type< Msg >::envelope_type;
 
-		template< typename... ARGS >
+		template< typename... Args >
 		static std::unique_ptr< E >
-		make( ARGS &&... args )
+		make( Args &&... args )
 			{
-				ensure_not_signal< MSG >();
+				ensure_not_signal< Msg >();
 
-				return std::unique_ptr< E >( new E( std::forward< ARGS >(args)... ) );
+				return std::unique_ptr< E >( new E( std::forward< Args >(args)... ) );
 			}
 	};
 
-template< typename MSG >
-struct make_message_instance_impl< true, MSG >
+template< typename Msg >
+struct make_message_instance_impl< true, Msg >
 	{
-		static std::unique_ptr< MSG >
+		static std::unique_ptr< Msg >
 		make()
 			{
-				ensure_signal< MSG >();
+				ensure_signal< Msg >();
 
-				return std::unique_ptr< MSG >();
+				return std::unique_ptr< Msg >();
 			}
 	};
 
@@ -796,14 +796,14 @@ struct make_message_instance_impl< true, MSG >
  *
  * \brief A helper for allocate instance of a message.
  */
-template< typename MSG, typename... ARGS >
+template< typename Msg, typename... Args >
 auto
-make_message_instance( ARGS &&... args )
-	-> std::unique_ptr< typename message_payload_type< MSG >::envelope_type >
+make_message_instance( Args &&... args )
+	-> std::unique_ptr< typename message_payload_type< Msg >::envelope_type >
 	{
 		return make_message_instance_impl<
-						is_signal< MSG >::value, MSG
-				>::make( std::forward< ARGS >( args )... );
+						is_signal< Msg >::value, Msg
+				>::make( std::forward< Args >( args )... );
 	}
 
 } /* namespace details */
@@ -842,11 +842,11 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		 * \brief Helper wrapper for handling exceptions during
 		 * service request dispatching.
 		 */
-		template< class LAMBDA >
+		template< class Lambda >
 		static void
 		dispatch_wrapper(
 			const message_ref_t & what,
-			LAMBDA handler )
+			Lambda handler )
 		{
 			try
 			{
@@ -881,23 +881,23 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
  *
  * \brief A concrete message with information about service request.
  */
-template< class RESULT, class PARAM >
+template< class Result, class Param >
 struct msg_service_request_t : public msg_service_request_base_t
 	{
 		//! A promise object for result of service function.
-		std::promise< RESULT > m_promise;
+		std::promise< Result > m_promise;
 		//! A parameter for service function.
 		message_ref_t m_param;
 
-		//! Constructor for the case where PARAM is a signal.
+		//! Constructor for the case where Param is a signal.
 		msg_service_request_t(
-			std::promise< RESULT > && promise )
+			std::promise< Result > && promise )
 			:	m_promise( std::move( promise ) )
 			{}
 
-		//! Constructor for the case where PARAM is a message.
+		//! Constructor for the case where Param is a message.
 		msg_service_request_t(
-			std::promise< RESULT > && promise,
+			std::promise< Result > && promise,
 			message_ref_t && param )
 			:	m_promise( std::move( promise ) )
 			,	m_param( std::move( param ) )
@@ -1156,31 +1156,31 @@ using is_classical_message = so_5::is_classical_message< T >;
  * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_not_signal
  * instead.
  */
-template< class MSG >
-void ensure_not_signal() { so_5::ensure_not_signal< MSG >(); }
+template< class Msg >
+void ensure_not_signal() { so_5::ensure_not_signal< Msg >(); }
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::ensure_message_with_actual_data instead.
  */
-template< class MSG >
-void ensure_message_with_actual_data( const MSG * m ) {
+template< class Msg >
+void ensure_message_with_actual_data( const Msg * m ) {
 	so_5::ensure_message_with_actual_data( m );
 }
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_signal instead.
  */
-template< class MSG >
-void ensure_signal() { so_5::ensure_signal< MSG >(); }
+template< class Msg >
+void ensure_signal() { so_5::ensure_signal< Msg >(); }
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::ensure_classical_message
  * instead.
  */
-template< typename MSG >
+template< typename Msg >
 void ensure_classical_message() {
-	so_5::ensure_classical_message< MSG >();
+	so_5::ensure_classical_message< Msg >();
 }
 
 /*!
@@ -1200,8 +1200,8 @@ using msg_service_request_base_t = so_5::msg_service_request_base_t;
  * \deprecated Will be removed in v.5.6.0. Use so_5::msg_service_request_t
  * instead.
  */
-template< class RESULT, class PARAM >
-using msg_service_request_t = so_5::msg_service_request_t< RESULT, PARAM >;
+template< class Result, class Param >
+using msg_service_request_t = so_5::msg_service_request_t< Result, Param >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::invocation_type_t

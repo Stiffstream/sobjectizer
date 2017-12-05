@@ -14,6 +14,8 @@
 
 #include <so_5/rt/h/environment.hpp>
 
+#include <so_5/h/compiler_features.hpp>
+
 namespace so_5
 {
 
@@ -24,64 +26,64 @@ namespace impl
 	 * This is helpers for so_5::send implementation.
 	 */
 
-	template< class MESSAGE, bool IS_SIGNAL >
+	template< class Message, bool Is_Signal >
 	struct instantiator_and_sender_base
 		{
-			template< typename... ARGS >
+			template< typename... Args >
 			static void
 			send(
 				const so_5::mbox_t & to,
-				ARGS &&... args )
+				Args &&... args )
 				{
 					to->deliver_message(
-						message_payload_type< MESSAGE >::subscription_type_index(),
-						so_5::details::make_message_instance< MESSAGE >(
-								std::forward< ARGS >( args )...),
-						message_payload_type< MESSAGE >::mutability() );
+						message_payload_type< Message >::subscription_type_index(),
+						so_5::details::make_message_instance< Message >(
+								std::forward< Args >( args )...),
+						message_payload_type< Message >::mutability() );
 				}
 
-			template< typename... ARGS >
+			template< typename... Args >
 			static void
 			send_delayed(
 				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
-				ARGS &&... args )
+				Args &&... args )
 				{
 					env.single_timer(
-							message_payload_type< MESSAGE >::subscription_type_index(),
-							so_5::details::make_message_instance< MESSAGE >(
-									std::forward<ARGS>(args)...),
-							message_payload_type< MESSAGE >::mutability(),
+							message_payload_type< Message >::subscription_type_index(),
+							so_5::details::make_message_instance< Message >(
+									std::forward<Args>(args)...),
+							message_payload_type< Message >::mutability(),
 							to,
 							pause );
 				}
 
-			template< typename... ARGS >
-			static timer_id_t
+			template< typename... Args >
+			SO_5_NODISCARD static timer_id_t
 			send_periodic(
 				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period,
-				ARGS &&... args )
+				Args &&... args )
 				{
 					return env.schedule_timer( 
-							message_payload_type< MESSAGE >::subscription_type_index(),
-							so_5::details::make_message_instance< MESSAGE >(
-								std::forward< ARGS >( args )...),
-							message_payload_type< MESSAGE >::mutability(),
+							message_payload_type< Message >::subscription_type_index(),
+							so_5::details::make_message_instance< Message >(
+								std::forward< Args >( args )...),
+							message_payload_type< Message >::mutability(),
 							to,
 							pause,
 							period );
 				}
 		};
 
-	template< class MESSAGE >
-	struct instantiator_and_sender_base< MESSAGE, true >
+	template< class Message >
+	struct instantiator_and_sender_base< Message, true >
 		{
 			//! Type of signal to be delivered.
-			using actual_signal_type = typename message_payload_type< MESSAGE >::subscription_type;
+			using actual_signal_type = typename message_payload_type< Message >::subscription_type;
 
 			static void
 			send( const so_5::mbox_t & to )
@@ -96,12 +98,12 @@ namespace impl
 				std::chrono::steady_clock::duration pause )
 				{
 					env.single_timer< actual_signal_type >(
-							message_payload_type<MESSAGE>::subscription_type_index(),
+							message_payload_type<Message>::subscription_type_index(),
 							to,
 							pause );
 				}
 
-			static timer_id_t
+			SO_5_NODISCARD static timer_id_t
 			send_periodic(
 				so_5::environment_t & env,
 				const so_5::mbox_t & to,
@@ -112,11 +114,11 @@ namespace impl
 				}
 		};
 
-	template< class MESSAGE >
+	template< class Message >
 	struct instantiator_and_sender
 		:	public instantiator_and_sender_base<
-				MESSAGE,
-				is_signal< typename message_payload_type< MESSAGE >::payload_type >::value >
+				Message,
+				is_signal< typename message_payload_type< Message >::payload_type >::value >
 		{};
 
 } /* namespace impl */
@@ -163,12 +165,12 @@ arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
  *
  * \note Since v.5.5.13 can send also a signal.
  *
- * \tparam MESSAGE type of message to be sent.
- * \tparam TARGET identification of request processor. Could be reference to
+ * \tparam Message type of message to be sent.
+ * \tparam Target identification of request processor. Could be reference to
  * so_5::mbox_t, to so_5::agent_t or
  * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
- * \tparam ARGS arguments for MESSAGE's constructor.
+ * \tparam Args arguments for Message's constructor.
  *
  * \par Usage samples:
  * \code
@@ -227,21 +229,21 @@ arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
 	} );
  * \endcode
  */
-template< typename MESSAGE, typename TARGET, typename... ARGS >
+template< typename Message, typename Target, typename... Args >
 void
-send( TARGET && to, ARGS&&... args )
+send( Target && to, Args&&... args )
 	{
-		so_5::impl::instantiator_and_sender< MESSAGE >::send(
-				send_functions_details::arg_to_mbox( std::forward<TARGET>(to) ),
-				std::forward<ARGS>(args)... );
+		so_5::impl::instantiator_and_sender< Message >::send(
+				send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
+				std::forward<Args>(args)... );
 	}
 
 /*!
  * \brief A version of %send function for redirection of a message
  * from exising message hood.
  *
- * \tparam MESSAGE a type of message to be redirected (it can be
- * in form of MSG, so_5::immutable_msg<MSG> or so_5::mutable_msg<MSG>).
+ * \tparam Message a type of message to be redirected (it can be
+ * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -254,7 +256,7 @@ send( TARGET && to, ARGS&&... args )
 
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
 			so_5::send(another_mbox, std::move(cmd));
-			// NOTE: cmd is nullptr now, it can't be used anymore.
+			// Note: cmd is nullptr now, it can't be used anymore.
 			...
 		}
 	};
@@ -263,13 +265,13 @@ send( TARGET && to, ARGS&&... args )
  * \since
  * v.5.5.19
  */
-template< typename TARGET, typename MESSAGE >
-typename std::enable_if< !is_signal< MESSAGE >::value >::type
-send( TARGET && to, mhood_t< MESSAGE > what )
+template< typename Target, typename Message >
+typename std::enable_if< !is_signal< Message >::value >::type
+send( Target && to, mhood_t< Message > what )
 	{
-		send_functions_details::arg_to_mbox( std::forward<TARGET>(to) )->
+		send_functions_details::arg_to_mbox( std::forward<Target>(to) )->
 				deliver_message(
-						message_payload_type<MESSAGE>::subscription_type_index(),
+						message_payload_type<Message>::subscription_type_index(),
 						what.make_reference() );
 	}
 
@@ -277,8 +279,8 @@ send( TARGET && to, mhood_t< MESSAGE > what )
  * \brief A version of %send function for redirection of a signal
  * from exising message hood.
  *
- * \tparam MESSAGE a type of signal to be redirected (it can be
- * in form of SIG or so_5::immutable_msg<SIG>).
+ * \tparam Message a type of signal to be redirected (it can be
+ * in form of Sig or so_5::immutable_msg<Sig>).
  *
  * Usage example:
  * \code
@@ -294,13 +296,13 @@ send( TARGET && to, mhood_t< MESSAGE > what )
  * \since
  * v.5.5.19
  */
-template< typename TARGET, typename MESSAGE >
-typename std::enable_if< is_signal< MESSAGE >::value >::type
-send( TARGET && to, mhood_t< MESSAGE > /*what*/ )
+template< typename Target, typename Message >
+typename std::enable_if< is_signal< Message >::value >::type
+send( Target && to, mhood_t< Message > /*what*/ )
 	{
-		send_functions_details::arg_to_mbox( std::forward<TARGET>(to) )->
+		send_functions_details::arg_to_mbox( std::forward<Target>(to) )->
 				template deliver_signal<
-						typename message_payload_type<MESSAGE>::subscription_type >();
+						typename message_payload_type<Message>::subscription_type >();
 	}
 
 /*!
@@ -310,11 +312,11 @@ send( TARGET && to, mhood_t< MESSAGE > /*what*/ )
  * \brief A utility function for creating and delivering a message to
  * the agent's direct mbox.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
-send_to_agent( const so_5::agent_t & receiver, ARGS&&... args )
+send_to_agent( const so_5::agent_t & receiver, Args&&... args )
 	{
-		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
+		send< Message >( receiver, std::forward<Args>(args)... );
 	}
 
 /*!
@@ -324,13 +326,13 @@ send_to_agent( const so_5::agent_t & receiver, ARGS&&... args )
  * \brief A utility function for creating and delivering a message to
  * the ad-hoc agent's direct mbox.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
 send_to_agent(
 	const so_5::adhoc_agent_definition_proxy_t & receiver,
-	ARGS&&... args )
+	Args&&... args )
 	{
-		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
+		send< Message >( receiver, std::forward<Args>(args)... );
 	}
 
 /*!
@@ -339,7 +341,7 @@ send_to_agent(
  *
  * \brief A utility function for creating and delivering a delayed message.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
 send_delayed(
 	//! An environment to be used for timer.
@@ -349,10 +351,10 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		so_5::impl::instantiator_and_sender< MESSAGE >::send_delayed(
-				env, to, pause, std::forward<ARGS>(args)... );
+		so_5::impl::instantiator_and_sender< Message >::send_delayed(
+				env, to, pause, std::forward<Args>(args)... );
 	}
 
 /*!
@@ -361,31 +363,31 @@ send_delayed(
  *
  * Agent, ad-hoc agent or mchain can be used as \a target.
  *
- * \tparam MESSAGE type of message or signal to be sent.
- * \tparam TARGET can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
+ * \tparam Message type of message or signal to be sent.
+ * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
  * so_5::mchain_t.
- * \tparam ARGS list of arguments for MESSAGE's constructor.
+ * \tparam Args list of arguments for Message's constructor.
  *
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE, typename TARGET, typename... ARGS >
+template< typename Message, typename Target, typename... Args >
 void
 send_delayed(
 	//! A target for delayed message.
-	TARGET && target,
+	Target && target,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
 		using namespace send_functions_details;
 
-		send_delayed< MESSAGE >(
+		send_delayed< Message >(
 				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -398,7 +400,7 @@ send_delayed(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
 send_delayed(
 	//! An agent whos environment must be used.
@@ -408,18 +410,18 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		send_delayed< MESSAGE >( agent.so_environment(), to, pause,
-				std::forward< ARGS >(args)... );
+		send_delayed< Message >( agent.so_environment(), to, pause,
+				std::forward< Args >(args)... );
 	}
 
 /*!
  * \brief A utility function for delayed redirection of a message
  * from existing message hood.
  *
- * \tparam MESSAGE a type of message to be redirected (it can be
- * in form of MSG, so_5::immutable_msg<MSG> or so_5::mutable_msg<MSG>).
+ * \tparam Message a type of message to be redirected (it can be
+ * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -432,7 +434,7 @@ send_delayed(
 
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
 			so_5::send_delayed(so_environment(), another_mbox, std::chrono::seconds(1), std::move(cmd));
-			// NOTE: cmd is nullptr now, it can't be used anymore.
+			// Note: cmd is nullptr now, it can't be used anymore.
 			...
 		}
 	};
@@ -441,8 +443,8 @@ send_delayed(
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE >
-typename std::enable_if< !message_payload_type<MESSAGE>::is_signal >::type
+template< typename Message >
+typename std::enable_if< !message_payload_type<Message>::is_signal >::type
 send_delayed(
 	//! An environment to be used for timer.
 	so_5::environment_t & env,
@@ -451,10 +453,10 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message instance owner.
-	mhood_t< MESSAGE > msg )
+	mhood_t< Message > msg )
 	{
 		env.single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				msg.make_reference(),
 				to,
 				pause );
@@ -464,8 +466,8 @@ send_delayed(
  * \brief A utility function for delayed redirection of a signal
  * from existing message hood.
  *
- * \tparam MESSAGE a type of signal to be redirected (it can be
- * in form of SIG or so_5::immutable_msg<SIG>).
+ * \tparam Message a type of signal to be redirected (it can be
+ * in form of Sig or so_5::immutable_msg<Sig>).
  *
  * Usage example:
  * \code
@@ -481,8 +483,8 @@ send_delayed(
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE >
-typename std::enable_if< message_payload_type<MESSAGE>::is_signal >::type
+template< typename Message >
+typename std::enable_if< message_payload_type<Message>::is_signal >::type
 send_delayed(
 	//! An environment to be used for timer.
 	so_5::environment_t & env,
@@ -491,10 +493,10 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message instance owner.
-	mhood_t< MESSAGE > /*msg*/ )
+	mhood_t< Message > /*msg*/ )
 	{
 		env.single_timer(
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				to,
 				pause );
@@ -511,7 +513,7 @@ send_delayed(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
@@ -519,13 +521,69 @@ send_delayed_to_agent(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		send_delayed< MESSAGE >(
+		send_delayed< Message >(
 				agent.so_environment(),
 				agent.so_direct_mbox(),
 				pause,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
+	}
+
+/*!
+ * \brief A helper function for redirection of a message/signal as a delayed
+ * message/signal.
+ *
+ * This function can be used if \a target is a reference to agent or if
+ * \a target is a mchain. In such cases instead of writing:
+ * \code
+ * periodic_id = so_5::send_delayed(
+ * 		target_agent.so_environment(),
+ * 		target_agent.so_direct_mbox(),
+ * 		pause,
+ * 		std::move(msg));
+ * \endcode
+ * it is possible to write:
+ * \code
+ * periodic_id = so_5::send_delayed(
+ * 		target_agent,
+ * 		pause,
+ * 		std::move(msg));
+ * \endcode
+ * 
+ * Example usage:
+ * \code
+ * class my_agent : public so_5::agent_t {
+ * ...
+ * 	so_5::mchain_t target_mchain_;
+ * ...
+ * 	void on_some_msg(mhood_t<some_msg> cmd) {
+ * 		if( ... )
+ * 			// Message should be resend as a delayed message.
+ * 			so_5::send_delayed(target_mchain_, 10s, 20s, std::move(cmd));
+ * 	}
+ * \endcode
+ *
+ * \since
+ * v.5.5.20
+ */
+template< typename Target, typename Message >
+void
+send_delayed(
+	//! A target for delayed message/signal.
+	//! It can be a reference to a target agent or a mchain_t.
+	Target && target,
+	//! Pause for the next occurence of the message/signal.
+	std::chrono::steady_clock::duration pause,
+	//! Existing message hood for message/signal to be sent.
+	mhood_t< Message > mhood )
+	{
+		using namespace send_functions_details;
+		send_delayed< Message >(
+				arg_to_env( target ),
+				arg_to_mbox( target ),
+				pause,
+				std::move(mhood) );
 	}
 
 /*!
@@ -539,7 +597,7 @@ send_delayed_to_agent(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename Message, typename... Args >
 void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
@@ -547,13 +605,13 @@ send_delayed_to_agent(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		send_delayed< MESSAGE >(
+		send_delayed< Message >(
 				agent.environment(),
 				agent.direct_mbox(),
 				pause,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -562,8 +620,8 @@ send_delayed_to_agent(
  *
  * \brief A utility function for creating and delivering a periodic message.
  */
-template< typename MESSAGE, typename... ARGS >
-timer_id_t
+template< typename Message, typename... Args >
+SO_5_NODISCARD timer_id_t
 send_periodic(
 	//! An environment to be used for timer.
 	so_5::environment_t & env,
@@ -574,10 +632,10 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		return so_5::impl::instantiator_and_sender< MESSAGE >::send_periodic(
-				env, to, pause, period, std::forward< ARGS >( args )... );
+		return so_5::impl::instantiator_and_sender< Message >::send_periodic(
+				env, to, pause, period, std::forward< Args >( args )... );
 	}
 
 /*!
@@ -590,8 +648,8 @@ send_periodic(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
-timer_id_t
+template< typename Message, typename... Args >
+SO_5_NODISCARD timer_id_t
 send_periodic(
 	//! An agent whos environment must be used.
 	so_5::agent_t & agent,
@@ -602,14 +660,14 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		return send_periodic< MESSAGE >(
+		return send_periodic< Message >(
 				agent.so_environment(),
 				to,
 				pause,
 				period,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -622,33 +680,33 @@ send_periodic(
  * Message chains with overload control must be used for periodic messages
  * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
  *
- * \tparam MESSAGE type of message or signal to be sent.
- * \tparam TARGET can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
+ * \tparam Message type of message or signal to be sent.
+ * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
  * so_5::mchain_t.
- * \tparam ARGS list of arguments for MESSAGE's constructor.
+ * \tparam Args list of arguments for Message's constructor.
  *
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE, typename TARGET, typename... ARGS >
-timer_id_t
+template< typename Message, typename Target, typename... Args >
+SO_5_NODISCARD timer_id_t
 send_periodic(
 	//! A destination for the periodic message.
-	TARGET && target,
+	Target && target,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
 		using namespace send_functions_details;
-		return send_periodic< MESSAGE >(
+		return send_periodic< Message >(
 				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
 				period,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -658,8 +716,8 @@ send_periodic(
  * \attention Message must not be a mutable message if \a period is not 0.
  * Otherwise an exception will be thrown.
  *
- * \tparam MESSAGE a type of message to be redirected (it can be
- * in form of MSG, so_5::immutable_msg<MSG> or so_5::mutable_msg<MSG>).
+ * \tparam Message a type of message to be redirected (it can be
+ * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -676,9 +734,9 @@ send_periodic(
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
 			timer_id = so_5::send_periodic(so_environment(), another_mbox,
 					std::chrono::seconds(1),
-					std::chrono::seconds::zero(), // NOTE: period is 0!
+					std::chrono::seconds::zero(), // Note: period is 0!
 					std::move(cmd));
-			// NOTE: cmd is nullptr now, it can't be used anymore.
+			// Note: cmd is nullptr now, it can't be used anymore.
 			...
 		}
 	};
@@ -687,8 +745,8 @@ send_periodic(
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE >
-typename std::enable_if< !is_signal< MESSAGE >::value, timer_id_t >::type
+template< typename Message >
+SO_5_NODISCARD typename std::enable_if< !is_signal< Message >::value, timer_id_t >::type
 send_periodic(
 	//! An environment to be used for timer.
 	so_5::environment_t & env,
@@ -699,10 +757,10 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Existing message hood for message to be sent.
-	mhood_t< MESSAGE > mhood )
+	mhood_t< Message > mhood )
 	{
 		return env.schedule_timer( 
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				mhood.make_reference(),
 				to,
 				pause,
@@ -713,8 +771,8 @@ send_periodic(
  * \brief A utility function for periodic redirection of a signal
  * from existing message hood.
  *
- * \tparam MESSAGE a type of signal to be redirected (it can be
- * in form of SIG or so_5::immutable_msg<SIG>).
+ * \tparam Message a type of signal to be redirected (it can be
+ * in form of Sig or so_5::immutable_msg<Sig>).
  *
  * Usage example:
  * \code
@@ -733,8 +791,8 @@ send_periodic(
  * \since
  * v.5.5.19
  */
-template< typename MESSAGE >
-typename std::enable_if< is_signal< MESSAGE >::value, timer_id_t >::type
+template< typename Message >
+SO_5_NODISCARD typename std::enable_if< is_signal< Message >::value, timer_id_t >::type
 send_periodic(
 	//! An environment to be used for timer.
 	so_5::environment_t & env,
@@ -745,14 +803,76 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Existing message hood for message to be sent.
-	mhood_t< MESSAGE > /*mhood*/ )
+	mhood_t< Message > /*mhood*/ )
 	{
 		return env.schedule_timer( 
-				message_payload_type< MESSAGE >::subscription_type_index(),
+				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				to,
 				pause,
 				period );
+	}
+
+/*!
+ * \brief A helper function for redirection of a message/signal as a periodic
+ * message/signal.
+ *
+ * This function can be used if \a target is a reference to agent or if
+ * \a target is a mchain. In such cases instead of writing:
+ * \code
+ * periodic_id = so_5::send_periodic(
+ * 		target_agent.so_environment(),
+ * 		target_agent.so_direct_mbox(),
+ * 		pause,
+ * 		period,
+ * 		std::move(msg));
+ * \endcode
+ * it is possible to write:
+ * \code
+ * periodic_id = so_5::send_periodic(
+ * 		target_agent,
+ * 		pause,
+ * 		period,
+ * 		std::move(msg));
+ * \endcode
+ * 
+ * Example usage:
+ * \code
+ * class my_agent : public so_5::agent_t {
+ * ...
+ * 	so_5::mchain_t target_mchain_;
+ * 	so_5::timer_id_t periodic_msg_id_;
+ * ...
+ * 	void on_some_msg(mhood_t<some_msg> cmd) {
+ * 		if( ... )
+ * 			// Message should be resend as a periodic message.
+ * 			periodic_msg_id_ = so_5::send_periodic(target_mchain_, 10s, 20s, std::move(cmd));
+ * 	}
+ * \endcode
+ *
+ * \since
+ * v.5.5.20
+ */
+template< typename Target, typename Message >
+SO_5_NODISCARD timer_id_t
+send_periodic(
+	//! A target for periodic message/signal.
+	//! It can be a reference to a target agent or a mchain_t.
+	Target && target,
+	//! Pause for the first occurence of the message/signal.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Existing message hood for message/signal to be sent.
+	mhood_t< Message > mhood )
+	{
+		using namespace send_functions_details;
+		return send_periodic< Message >(
+				arg_to_env( target ),
+				arg_to_mbox( target ),
+				pause,
+				period,
+				std::move(mhood) );
 	}
 
 /*!
@@ -766,8 +886,8 @@ send_periodic(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
-timer_id_t
+template< typename Message, typename... Args >
+SO_5_NODISCARD timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
 	so_5::agent_t & agent,
@@ -776,14 +896,14 @@ send_periodic_to_agent(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		return send_periodic< MESSAGE >(
+		return send_periodic< Message >(
 				agent.so_environment(),
 				agent.so_direct_mbox(),
 				pause,
 				period,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -797,8 +917,8 @@ send_periodic_to_agent(
  *
  * \deprecated Will be removed in v.5.6.0.
  */
-template< typename MESSAGE, typename... ARGS >
-timer_id_t
+template< typename Message, typename... Args >
+SO_5_NODISCARD timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
 	const so_5::adhoc_agent_definition_proxy_t & agent,
@@ -807,14 +927,14 @@ send_periodic_to_agent(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Message constructor parameters.
-	ARGS&&... args )
+	Args&&... args )
 	{
-		return send_periodic< MESSAGE >(
+		return send_periodic< Message >(
 				agent.environment(),
 				agent.direct_mbox(),
 				pause,
 				period,
-				std::forward< ARGS >(args)... );
+				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -829,14 +949,14 @@ send_periodic_to_agent(
  * \brief Make a synchronous request and receive result in form of a future
  * object. Intended to use with messages.
  *
- * \tparam RESULT type of expected result. The std::future<RESULT> will be
+ * \tparam Result type of expected result. The std::future<Result> will be
  * returned.
- * \tparam MSG type of message to be sent to request processor.
- * \tparam TARGET identification of request processor. Could be reference to
+ * \tparam Msg type of message to be sent to request processor.
+ * \tparam Target identification of request processor. Could be reference to
  * so_5::mbox_t, to so_5::agent_t or
  * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
- * \tparam ARGS arguments for MSG's constructors.
+ * \tparam Args arguments for Msg's constructors.
  *
  * \par Usage example:
  * \code
@@ -861,32 +981,32 @@ send_periodic_to_agent(
 	} );
  * \endcode
  */
-template< typename RESULT, typename MSG, typename TARGET, typename... ARGS >
-std::future< RESULT >
+template< typename Result, typename Msg, typename Target, typename... Args >
+std::future< Result >
 request_future(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
-	//! Arguments for MSG's constructor params.
-	ARGS &&... args )
+	Target && who,
+	//! Arguments for Msg's constructor params.
+	Args &&... args )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< Msg >();
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
-				.template make_async< MSG >( std::forward< ARGS >(args)... );
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
+				.template make_async< Msg >( std::forward< Args >(args)... );
 	}
 
 /*!
  * \brief A version of %request_future function for initiating of a
  * synchonous request from exising message hood.
  *
- * \tparam RESULT type of an expected result.
- * \tparam TARGET type of a destination (it can be agent, adhoc-agent,
+ * \tparam Result type of an expected result.
+ * \tparam Target type of a destination (it can be agent, adhoc-agent,
  * mbox or mchain).
- * \tparam MSG type of a message to be used as request (it can be
- * in form of MSG, so_5::immutable_msg<MSG> or so_5::mutable_msg<MSG>).
+ * \tparam Msg type of a message to be used as request (it can be
+ * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -899,7 +1019,7 @@ request_future(
 
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
 			auto f = so_5::request_future<result>(another_mbox, std::move(cmd));
-			// NOTE: cmd is nullptr now, it can't be used anymore.
+			// Note: cmd is nullptr now, it can't be used anymore.
 			...
 		}
 	};
@@ -908,23 +1028,23 @@ request_future(
  * \since
  * v.5.5.19
  */
-template< typename RESULT, typename MSG, typename TARGET >
-typename std::enable_if< !is_signal<MSG>::value, std::future<RESULT> >::type
+template< typename Result, typename Msg, typename Target >
+typename std::enable_if< !is_signal<Msg>::value, std::future<Result> >::type
 request_future(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Already existing message.
-	mhood_t< MSG > mhood )
+	mhood_t< Msg > mhood )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< Msg >();
 
 		using subscription_type =
-				typename message_payload_type<MSG>::subscription_type;
+				typename message_payload_type<Msg>::subscription_type;
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.template async_2< subscription_type >( mhood.make_reference() );
 	}
 
@@ -932,11 +1052,11 @@ request_future(
  * \brief A version of %request_future function for initiating of a
  * synchonous request from exising message hood.
  *
- * \tparam RESULT type of an expected result.
- * \tparam TARGET type of a destination (it can be agent, adhoc-agent,
+ * \tparam Result type of an expected result.
+ * \tparam Target type of a destination (it can be agent, adhoc-agent,
  * mbox or mchain).
- * \tparam MSG type of a signal to be used as request (it can be
- * in form of MSG or so_5::immutable_msg<MSG>).
+ * \tparam Msg type of a signal to be used as request (it can be
+ * in form of Msg or so_5::immutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -952,23 +1072,23 @@ request_future(
  * \since
  * v.5.5.19
  */
-template< typename RESULT, typename MSG, typename TARGET >
-typename std::enable_if< is_signal<MSG>::value, std::future<RESULT> >::type
+template< typename Result, typename Msg, typename Target >
+typename std::enable_if< is_signal<Msg>::value, std::future<Result> >::type
 request_future(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Already existing message.
-	mhood_t< MSG > /*mhood*/ )
+	mhood_t< Msg > /*mhood*/ )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_signal< MSG >();
+		so_5::ensure_signal< Msg >();
 
 		using subscription_type =
-				typename message_payload_type<MSG>::subscription_type;
+				typename message_payload_type<Msg>::subscription_type;
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.template async< subscription_type >();
 	}
 
@@ -979,15 +1099,15 @@ request_future(
  * \brief Make a synchronous request and receive result in form of a future
  * object. Intended to use with signals.
  *
- * \tparam RESULT type of expected result. The std::future<RESULT> will be
+ * \tparam Result type of expected result. The std::future<Result> will be
  * returned.
- * \tparam SIGNAL type of signal to be sent to request processor.
+ * \tparam Signal type of signal to be sent to request processor.
  * This type must be derived from so_5::signal_t.
- * \tparam TARGET identification of request processor. Could be reference to
+ * \tparam Target identification of request processor. Could be reference to
  * so_5::mbox_t, to so_5::agent_t or
  * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
- * \tparam FUTURE_TYPE type of funtion return value (detected automatically).
+ * \tparam Future_Type type of funtion return value (detected automatically).
  *
  * \par Usage example:
  * \code
@@ -1015,25 +1135,25 @@ request_future(
  * \endcode
  */
 template<
-		typename RESULT,
-		typename SIGNAL,
-		typename TARGET,
-		typename FUTURE_TYPE =
+		typename Result,
+		typename Signal,
+		typename Target,
+		typename Future_Type =
 				typename std::enable_if<
-						so_5::is_signal< SIGNAL >::value, std::future< RESULT >
+						so_5::is_signal< Signal >::value, std::future< Result >
 				>::type >
-FUTURE_TYPE
+Future_Type
 request_future(
 	//! Target for sending a synchronous request to.
-	TARGET && who )
+	Target && who )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_signal< SIGNAL >();
+		so_5::ensure_signal< Signal >();
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
-				.template async< SIGNAL >();
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
+				.template async< Signal >();
 	}
 
 /*!
@@ -1043,15 +1163,15 @@ request_future(
  * \brief Make a synchronous request and receive result in form of a value
  * with waiting for some time. Intended to use with messages.
  *
- * \tparam RESULT type of expected result.
- * \tparam MSG type of message to be sent to request processor.
- * \tparam TARGET identification of request processor. Could be reference to
+ * \tparam Result type of expected result.
+ * \tparam Msg type of message to be sent to request processor.
+ * \tparam Target identification of request processor. Could be reference to
  * so_5::mbox_t, to so_5::agent_t or
  * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
- * \tparam DURATION type of waiting indicator. Can be
+ * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
- * \tparam ARGS arguments for MSG's constructors.
+ * \tparam Args arguments for Msg's constructors.
  *
  * \par Usage example:
  * \code
@@ -1074,41 +1194,41 @@ request_future(
  * \endcode
  */
 template<
-		typename RESULT,
-		typename MSG,
-		typename TARGET,
-		typename DURATION,
-		typename... ARGS >
-RESULT
+		typename Result,
+		typename Msg,
+		typename Target,
+		typename Duration,
+		typename... Args >
+Result
 request_value(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Time to wait.
-	DURATION timeout,
-	//! Arguments for MSG's constructor params.
-	ARGS &&... args )
+	Duration timeout,
+	//! Arguments for Msg's constructor params.
+	Args &&... args )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< Msg >();
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.get_wait_proxy( timeout )
-				.template make_sync_get< MSG >( std::forward< ARGS >(args)... );
+				.template make_sync_get< Msg >( std::forward< Args >(args)... );
 	}
 
 /*!
  * \brief A version of %request_value function for initiating of a
  * synchonous request from exising message hood.
  *
- * \tparam RESULT type of an expected result.
- * \tparam TARGET type of a destination (it can be agent, adhoc-agent,
+ * \tparam Result type of an expected result.
+ * \tparam Target type of a destination (it can be agent, adhoc-agent,
  * mbox or mchain).
- * \tparam DURATION type of waiting indicator. Can be
+ * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
- * \tparam MSG type of a message to be used as request (it can be
- * in form of MSG, so_5::immutable_msg<MSG> or so_5::mutable_msg<MSG>).
+ * \tparam Msg type of a message to be used as request (it can be
+ * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -1121,7 +1241,7 @@ request_value(
 
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
 			auto r = so_5::request_value<result>(another_mbox, std::chrono::seconds(5), std::move(cmd));
-			// NOTE: cmd is nullptr now, it can't be used anymore.
+			// Note: cmd is nullptr now, it can't be used anymore.
 			...
 		}
 	};
@@ -1131,27 +1251,27 @@ request_value(
  * v.5.5.19
  */
 template<
-		typename RESULT,
-		typename TARGET,
-		typename DURATION,
-		typename MSG >
-typename std::enable_if< !so_5::is_signal<MSG>::value, RESULT >::type
+		typename Result,
+		typename Target,
+		typename Duration,
+		typename Msg >
+typename std::enable_if< !so_5::is_signal<Msg>::value, Result >::type
 request_value(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Time to wait.
-	DURATION timeout,
+	Duration timeout,
 	//! Message hood with existed message instance.
-	mhood_t< MSG > mhood )
+	mhood_t< Msg > mhood )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_not_signal< MSG >();
+		so_5::ensure_not_signal< Msg >();
 
-		using subscription_type = typename message_payload_type<MSG>::subscription_type;
+		using subscription_type = typename message_payload_type<Msg>::subscription_type;
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.get_wait_proxy( timeout )
 				.template sync_get_2< subscription_type >( mhood.make_reference() );
 	}
@@ -1163,17 +1283,17 @@ request_value(
  * \brief Make a synchronous request and receive result in form of a value with
  * waiting for some time. Intended to use with signals.
  *
- * \tparam RESULT type of expected result.
+ * \tparam Result type of expected result.
  * returned.
- * \tparam SIGNAL type of signal to be sent to request processor.
+ * \tparam Signal type of signal to be sent to request processor.
  * This type must be derived from so_5::signal_t.
- * \tparam TARGET identification of request processor. Could be reference to
+ * \tparam Target identification of request processor. Could be reference to
  * so_5::mbox_t, to so_5::agent_t or
  * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
  * mbox will be used).
- * \tparam DURATION type of waiting indicator. Can be
+ * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
- * \tparam RESULT_TYPE type of funtion return value (detected automatically).
+ * \tparam Result_Type type of funtion return value (detected automatically).
  *
  * \par Usage example:
  * \code
@@ -1198,29 +1318,29 @@ request_value(
  * \endcode
  */
 template<
-		typename RESULT,
-		typename SIGNAL,
-		typename TARGET,
-		typename DURATION,
-		typename RESULT_TYPE =
+		typename Result,
+		typename Signal,
+		typename Target,
+		typename Duration,
+		typename Result_Type =
 				typename std::enable_if<
-						so_5::is_signal< SIGNAL >::value, RESULT
+						so_5::is_signal< Signal >::value, Result
 				>::type >
-RESULT_TYPE
+Result_Type
 request_value(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Time for waiting for a result.
-	DURATION timeout )
+	Duration timeout )
 	{
 		using namespace send_functions_details;
 
-		so_5::ensure_signal< SIGNAL >();
+		so_5::ensure_signal< Signal >();
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.get_wait_proxy( timeout )
-				.template sync_get< SIGNAL >();
+				.template sync_get< Signal >();
 	}
 
 /*!
@@ -1229,13 +1349,13 @@ request_value(
  *
  * Intended to be used with signals.
  *
- * \tparam RESULT type of an expected result.
- * \tparam TARGET type of a destination (it can be agent, adhoc-agent,
+ * \tparam Result type of an expected result.
+ * \tparam Target type of a destination (it can be agent, adhoc-agent,
  * mbox or mchain).
- * \tparam DURATION type of waiting indicator. Can be
+ * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
- * \tparam MSG type of a signal to be used as request (it can be
- * in form of MSG or so_5::immutable_msg<MSG>).
+ * \tparam Msg type of a signal to be used as request (it can be
+ * in form of Msg or so_5::immutable_msg<Msg>).
  *
  * Usage example:
  * \code
@@ -1252,27 +1372,27 @@ request_value(
  * v.5.5.19
  */
 template<
-		typename RESULT,
-		typename TARGET,
-		typename DURATION,
-		typename MSG >
-typename std::enable_if< so_5::is_signal<MSG>::value, RESULT >::type
+		typename Result,
+		typename Target,
+		typename Duration,
+		typename Msg >
+typename std::enable_if< so_5::is_signal<Msg>::value, Result >::type
 request_value(
 	//! Target for sending a synchronous request to.
-	TARGET && who,
+	Target && who,
 	//! Time to wait.
-	DURATION timeout,
+	Duration timeout,
 	//! Message hood with existed message instance.
-	mhood_t< MSG > /*mhood*/ )
+	mhood_t< Msg > /*mhood*/ )
 	{
 		using namespace send_functions_details;
 
-		using subscription_type = typename message_payload_type<MSG>::subscription_type;
+		using subscription_type = typename message_payload_type<Msg>::subscription_type;
 
 		so_5::ensure_signal< subscription_type >();
 
-		return arg_to_mbox( std::forward< TARGET >(who) )
-				->template get_one< RESULT >()
+		return arg_to_mbox( std::forward< Target >(who) )
+				->template get_one< Result >()
 				.get_wait_proxy( timeout )
 				.template sync_get< subscription_type >();
 	}

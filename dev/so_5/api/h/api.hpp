@@ -35,7 +35,7 @@ namespace impl
 /*!
  * It is used as wrapper on various types of initialization routines.
  */
-template< class INIT >
+template< class Init >
 class so_quick_environment_t
 	:
 		public so_5::environment_t
@@ -45,7 +45,7 @@ class so_quick_environment_t
 	public:
 		so_quick_environment_t(
 			//! Initialization routine.
-			INIT init,
+			Init init,
 			//! SObjectizer Environment parameters.
 			so_5::environment_params_t && env_params )
 			:
@@ -63,7 +63,7 @@ class so_quick_environment_t
 
 	private:
 		//! Initialization routine.
-		INIT m_init;
+		Init m_init;
 };
 
 } /* namespace impl */
@@ -294,16 +294,16 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-template< class INIT, class PARAM_TYPE >
+template< class Init, class Param_Type >
 void
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
 		The prototype: <i>void init( env, my_param )</i> is required.
 	*/
-	INIT init_func,
+	Init init_func,
 	//! Initialization routine argument.
-	const PARAM_TYPE & param,
+	const Param_Type & param,
 	//! SObjectizer Environment parameters.
 	so_5::environment_params_t && env_params )
 {
@@ -378,16 +378,16 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-template< class INIT, class PARAM_TYPE >
+template< class Init, class Param_Type >
 void
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
 		The prototype: <i>void init( env, my_param )</i> is required.
 	*/
-	INIT init_func,
+	Init init_func,
 	//! Initialization routine argument.
-	const PARAM_TYPE & param )
+	const Param_Type & param )
 {
 	run_so_environment_with_parameter(
 			init_func,
@@ -463,14 +463,14 @@ main( int argc, char ** argv )
 
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-template< class OBJECT, class METHOD >
+template< class Object, class Method >
 void
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
 	//! the initialization routine.
-	OBJECT & obj,
+	Object & obj,
 	//! Initialization routine.
-	METHOD init_func,
+	Method init_func,
 	//! SObjectizer Environment parameters.
 	so_5::environment_params_t && env_params )
 {
@@ -488,14 +488,14 @@ run_so_environment_on_object(
 /*!
 \deprecated Obsolete in v.5.5.0. Use so_5::launch() instead.
 */
-template< class OBJECT, class METHOD >
+template< class Object, class Method >
 void
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
 	//! the initialization routine.
-	OBJECT & obj,
+	Object & obj,
 	//! Initialization routine.
-	METHOD init_func )
+	Method init_func )
 {
 	run_so_environment_on_object(
 			obj,

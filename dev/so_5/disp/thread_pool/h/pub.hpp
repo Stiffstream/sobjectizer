@@ -287,11 +287,11 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 		 * This method allows parameters tuning via lambda-function
 		 * or other functional objects.
 		 */
-		template< typename SETTER >
+		template< typename Setter >
 		inline disp_binder_unique_ptr_t
 		binder(
 			//! Function for the parameters tuning.
-			SETTER params_setter )
+			Setter params_setter )
 			{
 				bind_params_t p;
 				params_setter( p );
@@ -571,13 +571,13 @@ create_disp_binder( "tpool",
  * \since
  * v.5.4.0
  */
-template< typename SETTER >
+template< typename Setter >
 inline disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher.
 	std::string disp_name,
 	//! Function for setting the binding's params.
-	SETTER params_setter )
+	Setter params_setter )
 	{
 		bind_params_t params;
 		params_setter( params );

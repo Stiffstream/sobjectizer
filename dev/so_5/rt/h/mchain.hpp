@@ -929,15 +929,15 @@ class mchain_receive_result_t
 		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
  * \endcode
  */
-template< typename TIMEOUT, typename... HANDLERS >
+template< typename Timeout, typename... Handlers >
 inline mchain_receive_result_t
 receive(
 	//! Message chain from which a message must be extracted.
 	const so_5::mchain_t & chain,
 	//! Maximum timeout for waiting for message on empty bag.
-	TIMEOUT waiting_timeout,
+	Timeout waiting_timeout,
 	//! Handlers for message processing.
-	HANDLERS &&... handlers )
+	Handlers &&... handlers )
 	{
 		using namespace so_5::details;
 		using namespace so_5::mchain_props;
@@ -945,7 +945,7 @@ receive(
 
 		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
-				std::forward< HANDLERS >(handlers)... );
+				std::forward< Handlers >(handlers)... );
 
 		demand_t extracted_demand;
 		const auto status = chain->extract(
@@ -974,12 +974,12 @@ receive(
  * \since
  * v.5.5.16
  */
-template< typename DERIVED >
+template< typename Derived >
 class mchain_bulk_processing_params_t
 	{
 	public :
 		//! Actual type of params.
-		using actual_type = DERIVED;
+		using actual_type = Derived;
 
 		//! Type of stop-predicate.
 		/*!
@@ -1061,9 +1061,9 @@ class mchain_bulk_processing_params_t
 		 * \note Argument \a v can be of type duration_t or
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
-		template< typename TIMEOUT >
+		template< typename Timeout >
 		actual_type &
-		empty_timeout( TIMEOUT v )
+		empty_timeout( Timeout v )
 			{
 				m_empty_timeout = mchain_props::details::actual_timeout( v );
 				return self_reference();
@@ -1099,9 +1099,9 @@ class mchain_bulk_processing_params_t
 		 * \note Argument \a v can be of type duration_t or
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
-		template< typename TIMEOUT >
+		template< typename Timeout >
 		actual_type &
-		total_time( TIMEOUT v )
+		total_time( Timeout v )
 			{
 				m_total_time = mchain_props::details::actual_timeout( v );
 				return self_reference();
@@ -1255,11 +1255,11 @@ namespace details {
  * \brief Helper class with implementation of main actions of
  * advanced receive operation.
  */
-template< typename BUNCH >
+template< typename Bunch >
 class receive_actions_performer_t
 	{
 		const mchain_receive_params_t & m_params;
-		const BUNCH & m_bunch;
+		const Bunch & m_bunch;
 
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
@@ -1268,7 +1268,7 @@ class receive_actions_performer_t
 	public :
 		receive_actions_performer_t(
 			const mchain_receive_params_t & params,
-			const BUNCH & bunch )
+			const Bunch & bunch )
 			:	m_params( params )
 			,	m_bunch( bunch )
 			{}
@@ -1344,13 +1344,13 @@ class receive_actions_performer_t
  * \brief An implementation of advanced receive when a limit for total
  * operation time is defined.
  */
-template< typename BUNCH >
+template< typename Bunch >
 inline mchain_receive_result_t
 receive_with_finite_total_time(
 	const mchain_receive_params_t & params,
-	const BUNCH & bunch )
+	const Bunch & bunch )
 	{
-		receive_actions_performer_t< BUNCH > performer( params, bunch );
+		receive_actions_performer_t< Bunch > performer( params, bunch );
 
 		so_5::details::remaining_time_counter_t remaining_time(
 				params.total_time() );
@@ -1373,13 +1373,13 @@ receive_with_finite_total_time(
  * \brief An implementation of advanced receive when there is no
  * limit for total operation time is defined.
  */
-template< typename BUNCH >
+template< typename Bunch >
 inline mchain_receive_result_t
 receive_without_total_time(
 	const mchain_receive_params_t & params,
-	const BUNCH & bunch )
+	const Bunch & bunch )
 	{
-		receive_actions_performer_t< BUNCH > performer{ params, bunch };
+		receive_actions_performer_t< Bunch > performer{ params, bunch };
 
 		do
 			{
@@ -1404,11 +1404,11 @@ receive_without_total_time(
  * \since
  * v.5.5.17
  */
-template< typename BUNCH >
+template< typename Bunch >
 inline mchain_receive_result_t
 perform_receive(
 	const mchain_receive_params_t & params,
-	const BUNCH & bunch )
+	const Bunch & bunch )
 	{
 		if( !is_infinite_wait_timevalue( params.total_time() ) )
 			return receive_with_finite_total_time( params, bunch );
@@ -1495,13 +1495,13 @@ perform_receive(
 		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
  * \endcode
  */
-template< typename... HANDLERS >
+template< typename... Handlers >
 inline mchain_receive_result_t
 receive(
 	//! Parameters for receive.
 	const mchain_receive_params_t & params,
 	//! Handlers for message processing.
-	HANDLERS &&... handlers )
+	Handlers &&... handlers )
 	{
 		using namespace so_5::details;
 		using namespace so_5::mchain_props;
@@ -1509,7 +1509,7 @@ receive(
 
 		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
-				std::forward< HANDLERS >(handlers)... );
+				std::forward< Handlers >(handlers)... );
 
 		return perform_receive( params, bunch );
 	}
@@ -1534,14 +1534,14 @@ receive(
  * \since
  * v.5.5.17
  */
-template< std::size_t HANDLERS_COUNT >
+template< std::size_t Handlers_Count >
 class prepared_receive_t
 	{
 		//! Parameters for receive.
 		mchain_receive_params_t m_params;
 
 		//! Cases for receive.
-		so_5::details::handlers_bunch_t< HANDLERS_COUNT > m_bunch;
+		so_5::details::handlers_bunch_t< Handlers_Count > m_bunch;
 
 	public :
 		prepared_receive_t( const prepared_receive_t & ) = delete;
@@ -1549,17 +1549,17 @@ class prepared_receive_t
 		operator=( const prepared_receive_t & ) = delete;
 
 		//! Initializing constructor.
-		template< typename... HANDLERS >
+		template< typename... Handlers >
 		prepared_receive_t(
 			mchain_receive_params_t params,
-			HANDLERS &&... cases )
+			Handlers &&... cases )
 			:	m_params( std::move(params) )
 			{
-				static_assert( sizeof...(HANDLERS) == HANDLERS_COUNT,
-						"HANDLERS_COUNT and sizeof...(HANDLERS) mismatch" );
+				static_assert( sizeof...(Handlers) == Handlers_Count,
+						"Handlers_count and sizeof...(Handlers) mismatch" );
 
 				fill_handlers_bunch(
-						m_bunch, 0u, std::forward<HANDLERS>(cases)... );
+						m_bunch, 0u, std::forward<Handlers>(cases)... );
 			}
 
 		//! Move constructor.
@@ -1593,7 +1593,7 @@ class prepared_receive_t
 		const mchain_receive_params_t &
 		params() const { return m_params; }
 
-		const so_5::details::handlers_bunch_t< HANDLERS_COUNT > &
+		const so_5::details::handlers_bunch_t< Handlers_Count > &
 		handlers() const { return m_bunch; }
 		/*!
 		 * \}
@@ -1632,17 +1632,17 @@ class prepared_receive_t
  * \since
  * v.5.5.17
  */
-template< typename... HANDLERS >
-prepared_receive_t< sizeof...(HANDLERS) >
+template< typename... Handlers >
+prepared_receive_t< sizeof...(Handlers) >
 prepare_receive(
 	//! Parameters for advanced receive.
 	const mchain_receive_params_t & params,
 	//! Handlers
-	HANDLERS &&... handlers )
+	Handlers &&... handlers )
 	{
-		return prepared_receive_t< sizeof...(HANDLERS) >(
+		return prepared_receive_t< sizeof...(Handlers) >(
 				params,
-				std::forward<HANDLERS>(handlers)... );
+				std::forward<Handlers>(handlers)... );
 	}
 
 /*!
@@ -1670,10 +1670,10 @@ prepare_receive(
  * \since
  * v.5.5.17
  */
-template< std::size_t HANDLERS_COUNT >
+template< std::size_t Handlers_Count >
 mchain_receive_result_t
 receive(
-	const prepared_receive_t< HANDLERS_COUNT > & prepared )
+	const prepared_receive_t< Handlers_Count > & prepared )
 	{
 		return mchain_props::details::perform_receive(
 				prepared.params(),

@@ -98,9 +98,9 @@ class internal_env_iface_t
  *
  * \note Intended to be used in template code:
  * \code
-template< typename DISP_PARAMS >
+template< typename Disp_Params >
 auto
-safe_get_lock_factory( so_5::environment_t & env, DISP_PARAMS & params )
+safe_get_lock_factory( so_5::environment_t & env, Disp_Params & params )
 {
 	auto lf = params.queue_params().lock_factory();
 	if( !lf )
@@ -127,9 +127,9 @@ default_lock_factory(
  *
  * \note Intended to be used in template code:
  * \code
-template< typename DISP_PARAMS >
+template< typename Disp_Params >
 auto
-safe_get_lock_factory( so_5::environment_t & env, DISP_PARAMS & params )
+safe_get_lock_factory( so_5::environment_t & env, Disp_Params & params )
 {
 	auto lf = params.queue_params().lock_factory();
 	if( !lf )

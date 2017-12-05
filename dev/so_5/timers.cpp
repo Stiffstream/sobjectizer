@@ -133,19 +133,19 @@ namespace timers_details
  * Since v.5.5.19 this template can be used with timer_thread and
  * with timer_manager.
  * 
- * \tparam TIMER A type of timertt-based thread/manager which implements timers.
+ * \tparam Timer A type of timertt-based thread/manager which implements timers.
  */
-template< class TIMER >
+template< class Timer >
 class actual_timer_t : public timer_t
 	{
 	public :
 		//! The actual type of timer holder for timertt.
 		using timer_holder_t = timertt::timer_object_holder<
-				typename TIMER::thread_safety >;
+				typename Timer::thread_safety >;
 
 		//! Initialized constructor.
 		actual_timer_t(
-			TIMER * thread )
+			Timer * thread )
 			:	m_thread( thread )
 			,	m_timer( thread->allocate() )
 			{}
@@ -182,10 +182,44 @@ class actual_timer_t : public timer_t
 		/*!
 		 * nullptr means that timer is deactivated.
 		 */
-		TIMER * m_thread;
+		Timer * m_thread;
 
 		//! Underlying timer object reference.
 		timer_holder_t m_timer;
+	};
+
+//
+// timer_action_for_timer_thread_t
+//
+/*!
+ * \brief A functor to be used as timer action in implementation
+ * of timer thread.
+ *
+ * \since
+ * v.5.5.20
+ */
+class timer_action_for_timer_thread_t
+	{
+		std::type_index m_type_index;
+		mbox_t m_mbox;
+		message_ref_t m_msg;
+
+	public:
+		timer_action_for_timer_thread_t(
+			std::type_index type_index,
+			mbox_t mbox,
+			message_ref_t msg )
+			:	m_type_index( std::move(type_index) )
+			,	m_mbox( std::move(mbox) )
+			,	m_msg( std::move(msg) )
+			{}
+
+		void
+		operator()() SO_5_NOEXCEPT
+			{
+				::so_5::rt::impl::mbox_iface_for_timers_t{ m_mbox }
+						.deliver_message_from_timer( m_type_index, m_msg );
+			}
 	};
 
 //
@@ -197,18 +231,18 @@ class actual_timer_t : public timer_t
  *
  * \brief An actual implementation of timer thread.
  * 
- * \tparam TIMER_THREAD A type of timertt-based thread which implements timers.
+ * \tparam Timer_Thread A type of timertt-based thread which implements timers.
  */
-template< class TIMER_THREAD >
+template< class Timer_Thread >
 class actual_thread_t : public timer_thread_t
 	{
-		typedef actual_timer_t< TIMER_THREAD > timer_demand_t;
+		typedef actual_timer_t< Timer_Thread > timer_demand_t;
 
 	public :
 		//! Initializing constructor.
 		actual_thread_t(
 			//! Real timer thread.
-			std::unique_ptr< TIMER_THREAD > thread )
+			std::unique_ptr< Timer_Thread > thread )
 			:	m_thread( std::move( thread ) )
 			{}
 
@@ -237,11 +271,7 @@ class actual_thread_t : public timer_thread_t
 				m_thread->activate( timer->timer_holder(),
 						pause,
 						period,
-						[type_index, mbox, msg]()
-						{
-							::so_5::rt::impl::mbox_iface_for_timers_t{ mbox }
-									.deliver_message_from_timer( type_index, msg );
-						} );
+						timer_action_for_timer_thread_t( type_index, mbox, msg ) );
 
 				return timer_id_t( timer.release() );
 			}
@@ -257,11 +287,7 @@ class actual_thread_t : public timer_thread_t
 				m_thread->activate(
 						pause,
 						period,
-						[type_index, mbox, msg]()
-						{
-							::so_5::rt::impl::mbox_iface_for_timers_t{ mbox }
-									.deliver_message_from_timer( type_index, msg );
-						} );
+						timer_action_for_timer_thread_t( type_index, mbox, msg ) );
 			}
 
 		virtual timer_thread_stats_t
@@ -276,7 +302,45 @@ class actual_thread_t : public timer_thread_t
 			}
 
 	private :
-		std::unique_ptr< TIMER_THREAD > m_thread;
+		std::unique_ptr< Timer_Thread > m_thread;
+	};
+
+//
+// timer_action_for_timer_manager_t
+//
+/*!
+ * \brief A functor to be used as timer action in implementation
+ * of timer thread.
+ *
+ * \since
+ * v.5.5.20
+ */
+class timer_action_for_timer_manager_t
+	{
+		outliving_reference_t< timer_manager_t::elapsed_timers_collector_t >
+				m_collector;
+		std::type_index m_type_index;
+		mbox_t m_mbox;
+		message_ref_t m_msg;
+
+	public:
+		timer_action_for_timer_manager_t(
+			outliving_reference_t< timer_manager_t::elapsed_timers_collector_t >
+				collector,
+			std::type_index type_index,
+			mbox_t mbox,
+			message_ref_t msg )
+			:	m_collector( collector )
+			,	m_type_index( std::move(type_index) )
+			,	m_mbox( std::move(mbox) )
+			,	m_msg( std::move(msg) )
+			{}
+
+		void
+		operator()() SO_5_NOEXCEPT
+			{
+				m_collector.get().accept( m_type_index, m_mbox, m_msg );
+			}
 	};
 
 //
@@ -285,21 +349,21 @@ class actual_thread_t : public timer_thread_t
 /*!
  * \brief An actual implementation of timer_manager.
  * 
- * \tparam TIMER_MANAGER A type of timertt-based manager which implements timers.
+ * \tparam Timer_Manager A type of timertt-based manager which implements timers.
  *
  * \since
  * v.5.5.19
  */
-template< class TIMER_MANAGER >
+template< class Timer_Manager >
 class actual_manager_t : public timer_manager_t
 	{
-		typedef actual_timer_t< TIMER_MANAGER > timer_demand_t;
+		typedef actual_timer_t< Timer_Manager > timer_demand_t;
 
 	public :
 		//! Initializing constructor.
 		actual_manager_t(
 			//! Real timer thread.
-			std::unique_ptr< TIMER_MANAGER > manager,
+			std::unique_ptr< Timer_Manager > manager,
 			//! Collector for elapsed timers.
 			outliving_reference_t< timer_manager_t::elapsed_timers_collector_t >
 				collector )
@@ -333,10 +397,8 @@ class actual_manager_t : public timer_manager_t
 				m_manager->activate( timer->timer_holder(),
 						pause,
 						period,
-						[this, type_index, mbox, msg]()
-						{
-							m_collector.get().accept( type_index, mbox, msg );
-						} );
+						timer_action_for_timer_manager_t(
+								m_collector, type_index, mbox, msg ) );
 
 				return timer_id_t( timer.release() );
 			}
@@ -352,10 +414,8 @@ class actual_manager_t : public timer_manager_t
 				m_manager->activate(
 						pause,
 						period,
-						[this, type_index, mbox, msg]()
-						{
-							m_collector.get().accept( type_index, mbox, msg );
-						} );
+						timer_action_for_timer_manager_t(
+								m_collector, type_index, mbox, msg ) );
 			}
 
 		virtual bool
@@ -376,7 +436,7 @@ class actual_manager_t : public timer_manager_t
 			}
 
 	private :
-		std::unique_ptr< TIMER_MANAGER > m_manager;
+		std::unique_ptr< Timer_Manager > m_manager;
 		outliving_reference_t< timer_manager_t::elapsed_timers_collector_t >
 				m_collector;
 	};
@@ -473,34 +533,40 @@ create_exception_handler_for_timertt_manager( error_logger_shptr_t logger )
  */
 //! timer_wheel thread type.
 using timer_wheel_thread_t = timertt::timer_wheel_thread_template<
+		timer_action_for_timer_thread_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_heap thread type.
 using timer_heap_thread_t = timertt::timer_heap_thread_template<
+		timer_action_for_timer_thread_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_list thread type.
 using timer_list_thread_t = timertt::timer_list_thread_template<
+		timer_action_for_timer_thread_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_wheel manager type.
 using timer_wheel_manager_t = timertt::timer_wheel_manager_template<
 		timertt::thread_safety::unsafe,
+		timer_action_for_timer_manager_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_heap manager type.
 using timer_heap_manager_t = timertt::timer_heap_manager_template<
 		timertt::thread_safety::unsafe,
+		timer_action_for_timer_manager_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
 //! timer_list manager type.
 using timer_list_manager_t = timertt::timer_list_manager_template<
 		timertt::thread_safety::unsafe,
+		timer_action_for_timer_manager_t,
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 /*!

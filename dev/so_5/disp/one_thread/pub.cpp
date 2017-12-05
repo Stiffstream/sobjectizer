@@ -49,7 +49,7 @@ namespace stats = so_5::stats;
 namespace data_source_details
 {
 
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 struct common_data_t
 	{
 		//! Prefix for dispatcher-related data.
@@ -58,13 +58,13 @@ struct common_data_t
 		stats::prefix_t m_work_thread_prefix;
 
 		//! Working thread of the dispatcher.
-		WORK_THREAD & m_work_thread;
+		Work_Thread & m_work_thread;
 
 		//! Count of agents bound to the dispatcher.
 		std::atomic< std::size_t > & m_agents_bound;
 
 		common_data_t(
-			WORK_THREAD & work_thread,
+			Work_Thread & work_thread,
 			std::atomic< std::size_t > & agents_bound )
 			:	m_work_thread( work_thread )
 			,	m_agents_bound( agents_bound )
@@ -95,13 +95,13 @@ track_activity(
 /*!
  * \brief Data source for one-thread dispatcher.
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class data_source_t
 	:	public stats::source_t
-	,	protected data_source_details::common_data_t< WORK_THREAD >
+	,	protected data_source_details::common_data_t< Work_Thread >
 	{
 	public :
-		using actual_work_thread_type_t = WORK_THREAD;
+		using actual_work_thread_type_t = Work_Thread;
 
 		//! SObjectizer Environment to work in.
 		environment_t * m_env = { nullptr };
@@ -110,7 +110,7 @@ class data_source_t
 		data_source_t(
 			actual_work_thread_type_t & work_thread,
 			std::atomic< std::size_t > & agents_bound )
-			:	data_source_details::common_data_t< WORK_THREAD >(
+			:	data_source_details::common_data_t< Work_Thread >(
 					work_thread, agents_bound )
 			{}
 
@@ -212,7 +212,7 @@ class actual_disp_iface_t : public so_5::dispatcher_t
 /*!
 	\brief A dispatcher with the single working thread and an event queue.
 */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class actual_dispatcher_t : public actual_disp_iface_t
 	{
 	public:
@@ -277,7 +277,7 @@ class actual_dispatcher_t : public actual_disp_iface_t
 
 	private:
 		//! Working thread for the dispatcher.
-		WORK_THREAD m_work_thread;
+		Work_Thread m_work_thread;
 
 		/*!
 		 * \since
@@ -293,7 +293,7 @@ class actual_dispatcher_t : public actual_disp_iface_t
 		 *
 		 * \brief Data source for run-time monitoring.
 		 */
-		data_source_t< WORK_THREAD > m_data_source;
+		data_source_t< Work_Thread > m_data_source;
 	};
 
 //

@@ -12,4 +12,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/overloaded_mchain/prj.ut.rb" 
 	required_prj "#{path}/overloaded_mchain_2/prj.ut.rb" 
 	required_prj "#{path}/resend_periodic_signal_via_mhood/prj.ut.rb" 
+	required_prj "#{path}/resend_periodic_via_mhood_to_mchain/prj.ut.rb" 
+	required_prj "#{path}/resend_delayed_via_mhood_to_mchain/prj.ut.rb" 
 }

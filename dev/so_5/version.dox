@@ -2,6 +2,23 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_20 5.5.20 "Nevado Aguas Blancas"
+
+	Const methods of agents can now be used as event handlers.
+
+	Const methods of agents can now be used as on_enter/on_exit handlers
+	for agent's states.
+
+	Support for CMake has been enhanced.
+
+	New overloads for so_5::send_delayed(target, pause, mhood)
+	and so_5::send_periodic(target, pause, period, mhood) have been added.
+
+	Timers' implementation has been switched to timertt-1.2.2.
+
+	If a compiler supports `[[nodiscard]]` attribute then this attribute
+	will be used for `so_5::send_periodic` functions.
+
 \section so_5__5_19_5 5.5.19.5 "Nevado de Poquis"
 
 	Now it is possible to check presense of a subscription to a message.

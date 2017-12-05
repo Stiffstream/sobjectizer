@@ -71,12 +71,12 @@ call_wait( T & agent_thread )
 	agent_thread.second->wait();
 }
 
-template< class WORK_THREAD >
+template< class Work_Thread >
 void
 send_demands_count_stats(
 	const so_5::mbox_t & mbox,
 	const stats::prefix_t & prefix,
-	WORK_THREAD & wt )
+	Work_Thread & wt )
 	{
 		so_5::send< stats::messages::quantity< std::size_t > >(
 				mbox,
@@ -138,7 +138,7 @@ class actual_disp_iface_t : public so_5::dispatcher_t
 /*!
  * \brief Implementation of active object dispatcher in form of template class.
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 class dispatcher_template_t : public actual_disp_iface_t
 	{
 	public:
@@ -207,7 +207,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 						rc_disp_create_failed );
 
 				auto lock_factory = m_params.queue_params().lock_factory();
-				auto thread = std::make_shared< WORK_THREAD >(
+				auto thread = std::make_shared< Work_Thread >(
 						std::move(lock_factory) );
 
 				thread->start();
@@ -230,7 +230,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		friend class disp_data_source_t;
 
 		//! An alias for shared pointer to work thread object.
-		using work_thread_shptr_t = std::shared_ptr< WORK_THREAD >;
+		using work_thread_shptr_t = std::shared_ptr< Work_Thread >;
 
 		//! Typedef for mapping from agents to their working threads.
 		using agent_thread_map_t =
@@ -294,7 +294,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 				distribute_value_for_work_thread(
 					const mbox_t & mbox,
 					const agent_t * agent,
-					WORK_THREAD & wt )
+					Work_Thread & wt )
 					{
 						std::ostringstream ss;
 						ss << m_base_prefix.c_str() << "/wt-"

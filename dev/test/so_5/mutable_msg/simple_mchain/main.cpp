@@ -58,15 +58,27 @@ do_test( so_5::environment_t & env )
 			std::chrono::milliseconds::zero(),
 			"uhp" );
 
+	const auto send_mutable_periodic_helper =
+		[](so_5::mchain_t chain_to_send,
+			std::chrono::milliseconds pause,
+			std::chrono::milliseconds period,
+			const char * str) {
+			auto t = so_5::send_periodic< so_5::mutable_msg<sobj_hello> >(
+					chain_to_send,
+					pause,
+					period,
+					str );
+		};
+
 	UT_CHECK_THROW( so_5::exception_t,
-		so_5::send_periodic< so_5::mutable_msg<sobj_hello> >(
+		send_mutable_periodic_helper(
 				ch,
 				std::chrono::milliseconds(220),
 				std::chrono::milliseconds(200),
 				"shp2" ) );
 
 	UT_CHECK_THROW( so_5::exception_t,
-		so_5::send_periodic< so_5::mutable_msg<user_hello> >(
+		send_mutable_periodic_helper(
 				ch,
 				std::chrono::milliseconds(225),
 				std::chrono::milliseconds(200),

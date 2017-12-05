@@ -436,13 +436,13 @@ class with_activity_tracking_impl_t : protected common_data_t
  * \since
  * v.5.5.18
  */
-template< typename IMPL >
-class work_thread_template_t : public IMPL
+template< typename Impl >
+class work_thread_template_t : public Impl
 	{
 	public :
 		//! Initializing constructor.
 		work_thread_template_t( dispatcher_queue_t & queue )
-			:	IMPL( queue )
+			:	Impl( queue )
 			{}
 
 		void
@@ -640,10 +640,10 @@ struct adaptation_t
  * \since
  * v.5.5.18
  */
-template< typename WORK_THREAD >
+template< typename Work_Thread >
 using dispatcher_template_t =
 		common_implementation::dispatcher_t<
-				WORK_THREAD,
+				Work_Thread,
 				dispatcher_queue_t,
 				agent_queue_t,
 				params_t,

@@ -89,11 +89,11 @@ class adhoc_agent_definition_proxy_t
 		/*!
 		 * Subscription of event- or service-handler to message.
 		 */
-		template< class LAMBDA >
+		template< class Lambda >
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const mbox_t & mbox,
-			LAMBDA lambda,
+			Lambda lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
 				m_agent->so_subscribe( mbox ).event( lambda, thread_safety );
@@ -116,11 +116,11 @@ class adhoc_agent_definition_proxy_t
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
 		 */
-		template< class LAMBDA >
+		template< class Lambda >
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const adhoc_agent_definition_proxy_t & self,
-			LAMBDA lambda,
+			Lambda lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
 				return this->event( self.direct_mbox(), lambda, thread_safety );
@@ -129,12 +129,12 @@ class adhoc_agent_definition_proxy_t
 		/*!
 		 * Subscription of event- or service-handler to signal.
 		 */
-		template< class MESSAGE, class LAMBDA >
+		template< class Message, class Lambda >
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const mbox_t & mbox,
-			signal_indicator_t< MESSAGE > (*indicator)(),
-			LAMBDA lambda,
+			signal_indicator_t< Message > (*indicator)(),
+			Lambda lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
 				m_agent->so_subscribe( mbox )
@@ -156,14 +156,14 @@ class adhoc_agent_definition_proxy_t
 		   	.event< msg_my_signal >( mbox, [=] { ... } );
 		 * \endcode
 		 */
-		template< class SIGNAL, typename... ARGS >
+		template< class Signal, typename... Args >
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const mbox_t & mbox,
-			ARGS&&... args )
+			Args&&... args )
 			{
-				return this->event( mbox, signal< SIGNAL >,
-						std::forward< ARGS >(args)... );
+				return this->event( mbox, signal< Signal >,
+						std::forward< Args >(args)... );
 			}
 
 		/*!
@@ -181,15 +181,15 @@ class adhoc_agent_definition_proxy_t
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
 		 */
-		template< class SIGNAL, typename... ARGS >
+		template< class Signal, typename... Args >
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const adhoc_agent_definition_proxy_t & self,
-			ARGS&&... args )
+			Args&&... args )
 			{
 				return this->event( self.direct_mbox(),
-						signal< SIGNAL >,
-						std::forward< ARGS >(args)... );
+						signal< Signal >,
+						std::forward< Args >(args)... );
 			}
 
 		/*!

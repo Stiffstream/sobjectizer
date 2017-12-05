@@ -78,21 +78,21 @@ class actual_select_case_t : public select_case_t
 	public :
 		//! Initializing constructor.
 		/*!
-		 * \tparam HANDLERS list of message handlers for messages extracted
+		 * \tparam Handlers list of message handlers for messages extracted
 		 * from the mchain.
 		 */
-		template< typename... HANDLERS >
+		template< typename... Handlers >
 		actual_select_case_t(
 			//! Chain to be used for select.
 			mchain_t chain,
 			//! Message handlers.
-			HANDLERS &&... handlers )
+			Handlers &&... handlers )
 			:	select_case_t( std::move(chain) )
 			{
 				so_5::details::fill_handlers_bunch(
 						m_handlers,
 						0,
-						std::forward< HANDLERS >(handlers)... );
+						std::forward< Handlers >(handlers)... );
 			}
 
 	protected :
@@ -124,11 +124,11 @@ class actual_select_case_t : public select_case_t
  * \since
  * v.5.5.16
  */
-template< std::size_t CASES_COUNT >
+template< std::size_t Cases_Count >
 class select_cases_holder_t
 	{
 		//! Type of array for holding select_cases.
-		using array_type_t = std::array< select_case_unique_ptr_t, CASES_COUNT >;
+		using array_type_t = std::array< select_case_unique_ptr_t, Cases_Count >;
 		//! Storage for select_cases.
 		array_type_t m_cases;
 
@@ -158,7 +158,7 @@ class select_cases_holder_t
 		void
 		swap( select_cases_holder_t & o ) SO_5_NOEXCEPT
 			{
-				for( std::size_t i = 0; i != CASES_COUNT; ++i )
+				for( std::size_t i = 0; i != Cases_Count; ++i )
 					m_cases[ i ] = std::move(o.m_cases[ i ]);
 			}
 
@@ -174,7 +174,7 @@ class select_cases_holder_t
 
 		//! Get count of select_cases in holder.
 		std::size_t
-		size() const { return CASES_COUNT; }
+		size() const { return Cases_Count; }
 
 		//! Iterator class for accessing select_cases.
 		/*!
@@ -214,27 +214,27 @@ class select_cases_holder_t
 // fill_select_cases_holder
 //
 
-template< typename HOLDER >
+template< typename Holder >
 void
 fill_select_cases_holder(
-	HOLDER & holder,
+	Holder & holder,
 	std::size_t index,
 	select_case_unique_ptr_t c )
 	{
 		holder.set_case( index, std::move(c) );
 	}
 
-template< typename HOLDER, typename... CASES >
+template< typename Holder, typename... Cases >
 void
 fill_select_cases_holder(
-	HOLDER & holder,
+	Holder & holder,
 	std::size_t index,
 	select_case_unique_ptr_t c,
-	CASES &&... other_cases )
+	Cases &&... other_cases )
 	{
 		fill_select_cases_holder( holder, index, std::move(c));
 		fill_select_cases_holder(
-				holder, index + 1, std::forward< CASES >(other_cases)... );
+				holder, index + 1, std::forward< Cases >(other_cases)... );
 	}
 
 #if defined(__clang__)
@@ -279,8 +279,8 @@ class actual_select_notificator_t : public select_notificator_t
 		 * Every select_case is automatically added to the list of notified
 		 * select_cases.
 		 */
-		template< typename FWD_IT >
-		actual_select_notificator_t( FWD_IT b, FWD_IT e )
+		template< typename Fwd_it >
+		actual_select_notificator_t( Fwd_it b, Fwd_it e )
 			{
 				// All select_cases from range [b,e) must be included in
 				// ready_cases list.
@@ -362,16 +362,16 @@ class actual_select_notificator_t : public select_notificator_t
 /*!
  * \brief Helper class for performing select-specific operations.
  *
- * \tparam HOLDER type of actual select_cases_holder_t.
+ * \tparam Holder type of actual select_cases_holder_t.
  *
  * \since
  * v.5.5.16
  */
-template< typename HOLDER >
+template< typename Holder >
 class select_actions_performer_t
 	{
 		const mchain_select_params_t & m_params;
-		const HOLDER & m_select_cases;
+		const Holder & m_select_cases;
 		actual_select_notificator_t m_notificator;
 
 		std::size_t m_closed_chains = 0;
@@ -383,7 +383,7 @@ class select_actions_performer_t
 	public :
 		select_actions_performer_t(
 			const mchain_select_params_t & params,
-			const HOLDER & select_cases )
+			const Holder & select_cases )
 			:	m_params( params )
 			,	m_select_cases( select_cases )
 			,	m_notificator( select_cases.begin(), select_cases.end() )
@@ -490,15 +490,15 @@ class select_actions_performer_t
 			}
 	};
 
-template< typename HOLDER >
+template< typename Holder >
 mchain_receive_result_t
 do_adv_select_with_total_time(
 	const mchain_select_params_t & params,
-	const HOLDER & select_cases )
+	const Holder & select_cases )
 	{
 		using namespace so_5::details;
 
-		select_actions_performer_t< HOLDER > performer{ params, select_cases };
+		select_actions_performer_t< Holder > performer{ params, select_cases };
 
 		remaining_time_counter_t time_counter{ params.total_time() };
 		do
@@ -511,15 +511,15 @@ do_adv_select_with_total_time(
 		return performer.make_result();
 	}
 
-template< typename HOLDER >
+template< typename Holder >
 mchain_receive_result_t
 do_adv_select_without_total_time(
 	const mchain_select_params_t & params,
-	const HOLDER & select_cases )
+	const Holder & select_cases )
 	{
 		using namespace so_5::details;
 
-		select_actions_performer_t< HOLDER > performer{ params, select_cases };
+		select_actions_performer_t< Holder > performer{ params, select_cases };
 
 		remaining_time_counter_t wait_time{ params.empty_timeout() };
 		do
@@ -555,13 +555,13 @@ do_adv_select_without_total_time(
  * \since
  * v.5.5.17
  */
-template< typename CASES_HOLDER >
+template< typename Cases_Holder >
 mchain_receive_result_t
 perform_select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t & params,
 	//! Select cases.
-	const CASES_HOLDER & cases_holder )
+	const Cases_Holder & cases_holder )
 	{
 		if( is_infinite_wait_timevalue( params.total_time() ) )
 			return do_adv_select_without_total_time( params, cases_holder );
@@ -588,13 +588,13 @@ perform_select(
  * \since
  * v.5.5.16
  */
-template< typename... HANDLERS >
+template< typename... Handlers >
 mchain_props::select_case_unique_ptr_t
 case_(
 	//! Message chain to be used in select.
 	mchain_t chain,
 	//! Message handlers for messages extracted from that chain.
-	HANDLERS &&... handlers )
+	Handlers &&... handlers )
 	{
 		using namespace mchain_props;
 		using namespace mchain_props::details;
@@ -602,7 +602,7 @@ case_(
 		return select_case_unique_ptr_t{
 				new actual_select_case_t< sizeof...(handlers) >{
 						std::move(chain),
-						std::forward< HANDLERS >(handlers)... } };
+						std::forward< Handlers >(handlers)... } };
 	}
 
 /*!
@@ -688,20 +688,20 @@ case_(
  * \since
  * v.5.5.16
  */
-template< typename... CASES >
+template< typename... Cases >
 mchain_receive_result_t
 select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t & params,
 	//! Select cases.
-	CASES &&... cases )
+	Cases &&... cases )
 	{
 		using namespace mchain_props;
 		using namespace mchain_props::details;
 
 		select_cases_holder_t< sizeof...(cases) > cases_holder;
 		fill_select_cases_holder(
-				cases_holder, 0, std::forward< CASES >(cases)... );
+				cases_holder, 0, std::forward< Cases >(cases)... );
 
 		return perform_select( params, cases_holder );
 	}
@@ -733,13 +733,13 @@ select(
  * \since
  * v.5.5.16
  */
-template< typename DURATION, typename... CASES >
+template< typename Duration, typename... Cases >
 mchain_receive_result_t
-select( DURATION wait_time, CASES &&... cases )
+select( Duration wait_time, Cases &&... cases )
 	{
 		return select(
 				mchain_select_params_t{}.extract_n( 1 ).empty_timeout( wait_time ),
-				std::forward< CASES >(cases)... );
+				std::forward< Cases >(cases)... );
 	}
 
 //
@@ -764,14 +764,14 @@ select( DURATION wait_time, CASES &&... cases )
  * \since
  * v.5.5.17
  */
-template< std::size_t CASES_COUNT >
+template< std::size_t Cases_Count >
 class prepared_select_t
 	{
 		//! Parameters for select.
 		mchain_select_params_t m_params;
 
 		//! Cases for select.
-		mchain_props::details::select_cases_holder_t< CASES_COUNT > m_cases_holder;
+		mchain_props::details::select_cases_holder_t< Cases_Count > m_cases_holder;
 
 	public :
 		prepared_select_t( const prepared_select_t & ) = delete;
@@ -779,17 +779,17 @@ class prepared_select_t
 		operator=( const prepared_select_t & ) = delete;
 
 		//! Initializing constructor.
-		template< typename... CASES >
+		template< typename... Cases >
 		prepared_select_t(
 			mchain_select_params_t params,
-			CASES &&... cases )
+			Cases &&... cases )
 			:	m_params( std::move(params) )
 			{
-				static_assert( sizeof...(CASES) == CASES_COUNT,
-						"CASES_COUNT and sizeof...(CASES) mismatch" );
+				static_assert( sizeof...(Cases) == Cases_Count,
+						"Cases_Count and sizeof...(Cases) mismatch" );
 
 				mchain_props::details::fill_select_cases_holder(
-						m_cases_holder, 0u, std::forward<CASES>(cases)... );
+						m_cases_holder, 0u, std::forward<Cases>(cases)... );
 			}
 
 		//! Move constructor.
@@ -823,7 +823,7 @@ class prepared_select_t
 		const mchain_select_params_t &
 		params() const { return m_params; }
 
-		const mchain_props::details::select_cases_holder_t< CASES_COUNT > &
+		const mchain_props::details::select_cases_holder_t< Cases_Count > &
 		cases() const { return m_cases_holder; }
 		/*!
 		 * \}
@@ -872,17 +872,17 @@ class prepared_select_t
  * \since
  * v.5.5.17
  */
-template< typename... CASES >
-prepared_select_t< sizeof...(CASES) >
+template< typename... Cases >
+prepared_select_t< sizeof...(Cases) >
 prepare_select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t & params,
 	//! Select cases.
-	CASES &&... cases )
+	Cases &&... cases )
 	{
-		return prepared_select_t< sizeof...(CASES) >(
+		return prepared_select_t< sizeof...(Cases) >(
 				params,
-				std::forward<CASES>(cases)... );
+				std::forward<Cases>(cases)... );
 	}
 
 /*!
@@ -913,10 +913,10 @@ prepare_select(
  * \since
  * v.5.5.17
  */
-template< std::size_t CASES_COUNT >
+template< std::size_t Cases_Count >
 mchain_receive_result_t
 select(
-	const prepared_select_t< CASES_COUNT > & prepared )
+	const prepared_select_t< Cases_Count > & prepared )
 	{
 		return mchain_props::details::perform_select(
 				prepared.params(),

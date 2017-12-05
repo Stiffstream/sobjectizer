@@ -41,7 +41,7 @@ enum class delivery_possibility_t
 	disabled_by_delivery_filter
 };
 
-template< class RESULT >
+template< class Result >
 class service_invoke_proxy_t;
 
 /*!
@@ -50,11 +50,11 @@ class service_invoke_proxy_t;
  *
  * \brief A special helper class for infinite waiting of service call.
  */
-template< class RESULT >
+template< class Result >
 class infinite_wait_service_invoke_proxy_t
 	{
 		//! Type of creator of that object.
-		typedef service_invoke_proxy_t< RESULT > creator_t;
+		typedef service_invoke_proxy_t< Result > creator_t;
 
 	public :
 		infinite_wait_service_invoke_proxy_t(
@@ -62,9 +62,9 @@ class infinite_wait_service_invoke_proxy_t
 
 		//! Make synchronous service request call.
 		/*!
-		 * This method should be used for the case where PARAM is a signal.
+		 * This method should be used for the case where Param is a signal.
 		 *
-		 * \tparam PARAM type of signal to be sent to distination.
+		 * \tparam Param type of signal to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -72,13 +72,13 @@ class infinite_wait_service_invoke_proxy_t
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get< status_signal >();
 		 * \endcode
 		 */
-		template< class PARAM >
-		RESULT
+		template< class Param >
+		Result
 		sync_get() const;
 
 		//! Make synchronous service request call with parameter.
 		/*!
-		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * This method should be used for the case where Envelope_Type is a
 		 * message.
 		 *
 		 * \note
@@ -91,21 +91,21 @@ class infinite_wait_service_invoke_proxy_t
 		 * the future version of SObjectizer. Use so_5::request_value() or
 		 * so_5::request_future() instead.
 		 *
-		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
-		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 * \tparam Request_Type type to which receiver must be subscribed.
+		 * \tparam Envelope_Type type of message object to be sent.
 		 *
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-		RESULT
-		sync_get_2( intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
+		template< class Request_Type, class Envelope_Type >
+		Result
+		sync_get_2( intrusive_ptr_t< Envelope_Type > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -116,15 +116,15 @@ class infinite_wait_service_invoke_proxy_t
 			}
 		 * \endcode
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( intrusive_ptr_t< PARAM > msg_ref ) const;
+		template< class Param >
+		Result
+		sync_get( intrusive_ptr_t< Param > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -132,15 +132,15 @@ class infinite_wait_service_invoke_proxy_t
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get( std::make_unique< request >(...) );
 		 * \endcode
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( std::unique_ptr< PARAM > msg_unique_ptr ) const;
+		template< class Param >
+		Result
+		sync_get( std::unique_ptr< Param > msg_unique_ptr ) const;
 
 		//! Make synchronous service request call with parameter.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -149,16 +149,16 @@ class infinite_wait_service_invoke_proxy_t
 			\endcode
 		 *
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( PARAM * msg ) const;
+		template< class Param >
+		Result
+		sync_get( Param * msg ) const;
 
 		//! Create param and make service request call.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
-		 * \tparam ARGS types of PARAM's constructor arguments.
+		 * \tparam Param type of message to be sent to distination.
+		 * \tparam Args types of Param's constructor arguments.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -166,9 +166,9 @@ class infinite_wait_service_invoke_proxy_t
 			std::string result = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...) );
 		 * \endcode
 		 */
-		template< class PARAM, typename... ARGS >
-		RESULT
-		make_sync_get( ARGS&&... args ) const;
+		template< class Param, typename... Args >
+		Result
+		make_sync_get( Args&&... args ) const;
 
 	private :
 		const creator_t m_creator;
@@ -181,23 +181,23 @@ class infinite_wait_service_invoke_proxy_t
  * \brief A special helper class for waiting of service call for
  * the specified timeout.
  */
-template< class RESULT, class DURATION >
+template< class Result, class Duration >
 class wait_for_service_invoke_proxy_t
 	{
 		//! Type of creator of that object.
-		typedef service_invoke_proxy_t< RESULT > creator_t;
+		typedef service_invoke_proxy_t< Result > creator_t;
 
 	public :
 		wait_for_service_invoke_proxy_t(
 			const creator_t & creator,
-			const DURATION & timeout );
+			const Duration & timeout );
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
 		/*!
-		 * This method should be used for the case where PARAM is a signal.
+		 * This method should be used for the case where Param is a signal.
 		 *
-		 * \tparam PARAM type of signal to be sent to distination.
+		 * \tparam Param type of signal to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -209,14 +209,14 @@ class wait_for_service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
-		template< class PARAM >
-		RESULT
+		template< class Param >
+		Result
 		sync_get() const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
 		/*!
-		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * This method should be used for the case where Envelope_Type is a
 		 * message.
 		 *
 		 * \note
@@ -229,8 +229,8 @@ class wait_for_service_invoke_proxy_t
 		 * the future version of SObjectizer. Use so_5::request_value() or
 		 * so_5::request_future() instead.
 		 *
-		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
-		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 * \tparam Request_Type type to which receiver must be subscribed.
+		 * \tparam Envelope_Type type of message object to be sent.
 		 *
 		 * \throw so_5::exception_t with error code
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
@@ -239,16 +239,16 @@ class wait_for_service_invoke_proxy_t
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-		RESULT
-		sync_get_2( intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
+		template< class Request_Type, class Envelope_Type >
+		Result
+		sync_get_2( intrusive_ptr_t< Envelope_Type > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -263,16 +263,16 @@ class wait_for_service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( intrusive_ptr_t< PARAM > msg_ref ) const;
+		template< class Param >
+		Result
+		sync_get( intrusive_ptr_t< Param > msg_ref ) const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -284,16 +284,16 @@ class wait_for_service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( std::unique_ptr< PARAM > msg_unique_ptr ) const;
+		template< class Param >
+		Result
+		sync_get( std::unique_ptr< Param > msg_unique_ptr ) const;
 
 		//! Make synchronous service request call with parameter and
 		//! wait timeout.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -305,16 +305,16 @@ class wait_for_service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
-		template< class PARAM >
-		RESULT
-		sync_get( PARAM * msg ) const;
+		template< class Param >
+		Result
+		sync_get( Param * msg ) const;
 
 		//! Create param and make service request call.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
-		 * \tparam ARGS types of PARAM's constructor arguments.
+		 * \tparam Param type of message to be sent to distination.
+		 * \tparam Args types of Param's constructor arguments.
 		 *
 		 * \par Usage example:
 		 	\code
@@ -326,13 +326,13 @@ class wait_for_service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
-		template< class PARAM, typename... ARGS >
-		RESULT
-		make_sync_get( ARGS&&... args ) const;
+		template< class Param, typename... Args >
+		Result
+		make_sync_get( Args&&... args ) const;
 
 	private :
 		const creator_t m_creator;
-		const DURATION m_timeout;
+		const Duration m_timeout;
 	};
 
 /*!
@@ -341,7 +341,7 @@ class wait_for_service_invoke_proxy_t
  *
  * \brief A special proxy for service request invocation.
  */
-template< class RESULT >
+template< class Result >
 class service_invoke_proxy_t
 	{
 	public :
@@ -350,9 +350,9 @@ class service_invoke_proxy_t
 
 		//! Make asynchronous service request.
 		/*!
-		 * This method should be used for the cases where PARAM is a signal.
+		 * This method should be used for the cases where Param is a signal.
 		 *
-		 * \tparam PARAM type of signal to be sent to distination.
+		 * \tparam Param type of signal to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -360,13 +360,13 @@ class service_invoke_proxy_t
 			std::future< std::string > result = dest.get_one< std::string >().async< status_signal >();
 		 * \endcode
 		 */
-		template< class PARAM >
-		std::future< RESULT >
+		template< class Param >
+		std::future< Result >
 		async() const;
 
 		//! Make service request call with param.
 		/*!
-		 * This method should be used for the case where ENVELOPE_TYPE is a
+		 * This method should be used for the case where Envelope_Type is a
 		 * message.
 		 *
 		 * \note
@@ -379,22 +379,22 @@ class service_invoke_proxy_t
 		 * the future version of SObjectizer. Use so_5::request_value() or
 		 * so_5::request_future() instead.
 		 *
-		 * \tparam REQUEST_TYPE type to which receiver must be subscribed.
-		 * \tparam ENVELOPE_TYPE type of message object to be sent.
+		 * \tparam Request_Type type to which receiver must be subscribed.
+		 * \tparam Envelope_Type type of message object to be sent.
 		 *
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-		std::future< RESULT >
+		template< class Request_Type, class Envelope_Type >
+		std::future< Result >
 		async_2(
-			intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const;
+			intrusive_ptr_t< Envelope_Type > msg_ref ) const;
 
 		//! Make service request call with param.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Request_Type type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -405,15 +405,15 @@ class service_invoke_proxy_t
 			}
 		 * \endcode
 		 */
-		template< class REQUEST_TYPE >
-		std::future< RESULT >
-		async( intrusive_ptr_t< REQUEST_TYPE > msg_ref ) const;
+		template< class Request_Type >
+		std::future< Result >
+		async( intrusive_ptr_t< Request_Type > msg_ref ) const;
 
 		//! Make service request call with param.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -421,15 +421,15 @@ class service_invoke_proxy_t
 			std::future< std::string > result = dest.get_one< std::string >().async( std::make_unique< request >(...) );
 		 * \endcode
 		 */
-		template< class PARAM >
-		std::future< RESULT >
-		async( std::unique_ptr< PARAM > msg_unique_ptr ) const;
+		template< class Param >
+		std::future< Result >
+		async( std::unique_ptr< Param > msg_unique_ptr ) const;
 
 		//! Make service request call with param.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam Param type of message to be sent to distination.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -437,9 +437,9 @@ class service_invoke_proxy_t
 			std::future< std::string > result = dest.get_one< std::string >().async( new request(...) );
 		 * \endcode
 		 */
-		template< class PARAM >
-		std::future< RESULT >
-		async( PARAM * msg ) const;
+		template< class Param >
+		std::future< Result >
+		async( Param * msg ) const;
 
 		//! Make another proxy for time-unlimited synchronous
 		//! service request calls.
@@ -463,7 +463,7 @@ class service_invoke_proxy_t
 		 	std::string r = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
 		 * \endcode
 		 */
-		infinite_wait_service_invoke_proxy_t< RESULT >
+		infinite_wait_service_invoke_proxy_t< Result >
 		wait_forever() const;
 
 		/*!
@@ -473,7 +473,7 @@ class service_invoke_proxy_t
 		 * \brief A helper method for create a proxy for infinite waiting
 		 * on service request.
 		 */
-		infinite_wait_service_invoke_proxy_t< RESULT >
+		infinite_wait_service_invoke_proxy_t< Result >
 		get_wait_proxy( infinite_wait_indication ) const
 			{
 				return this->wait_forever();
@@ -505,11 +505,11 @@ class service_invoke_proxy_t
 		 	std::string r = dest.get_one< std::string >().wait_for(std::chrono::milliseconds(50)).make_sync_get< request >(...);
 		 * \endcode
 		 */
-		template< class DURATION >
-		wait_for_service_invoke_proxy_t< RESULT, DURATION >
+		template< class Duration >
+		wait_for_service_invoke_proxy_t< Result, Duration >
 		wait_for(
 			//! Timeout for std::future::wait_for().
-			const DURATION & timeout ) const;
+			const Duration & timeout ) const;
 
 		/*!
 		 * \since
@@ -518,21 +518,21 @@ class service_invoke_proxy_t
 		 * \brief A helper method to create a proxy for waiting on
 		 * service request for a timeout.
 		 */
-		template< class DURATION >
-		wait_for_service_invoke_proxy_t< RESULT, DURATION >
+		template< class Duration >
+		wait_for_service_invoke_proxy_t< Result, Duration >
 		get_wait_proxy(
 			//! Timeout for std::future::wait_for().
-			const DURATION & timeout ) const
+			const Duration & timeout ) const
 			{
 				return this->wait_for( timeout );
 			}
 
 		//! Create param and make service request call.
 		/*!
-		 * This method should be used for the case where PARAM is a message.
+		 * This method should be used for the case where Param is a message.
 		 *
-		 * \tparam PARAM type of message to be sent to distination.
-		 * \tparam ARGS types of PARAM's constructor arguments.
+		 * \tparam Param type of message to be sent to distination.
+		 * \tparam Args types of Param's constructor arguments.
 		 *
 		 * \par Usage example:
 		 * \code
@@ -540,9 +540,9 @@ class service_invoke_proxy_t
 			std::future< std::string > result = dest.get_one< std::string >().make_async< request >(...) );
 		 * \endcode
 		 */
-		template< class PARAM, typename... ARGS >
-		std::future< RESULT >
-		make_async( ARGS&&... args ) const;
+		template< class Param, typename... Args >
+		std::future< Result >
+		make_async( Args&&... args ) const;
 
 	private :
 		mbox_t m_mbox;
@@ -676,13 +676,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_message(
 			//! Subscription type for that message.
 			std::type_index subscription_type,
 			//! Message data.
-			const intrusive_ptr_t< MESSAGE > & msg_ref ) const;
+			const intrusive_ptr_t< Message > & msg_ref ) const;
 
 		//! Deliver message.
 		/*!
@@ -691,11 +691,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * Mbox takes care about destroying a message object.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_message(
 			//! Message data.
-			const intrusive_ptr_t< MESSAGE > & msg_ref ) const;
+			const intrusive_ptr_t< Message > & msg_ref ) const;
 
 		//! Deliver message.
 		/*!
@@ -704,13 +704,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \since
 		 * v.5.5.19
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_message(
 			//! Subscription type for that message.
 			std::type_index subscription_type,
 			//! Message data.
-			std::unique_ptr< MESSAGE > msg_unique_ptr,
+			std::unique_ptr< Message > msg_unique_ptr,
 			//! Actual mutability for this message instance.
 			message_mutability_t mutability ) const;
 
@@ -718,24 +718,24 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		/*!
 		 * Mbox takes care about destroying a message object.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_message(
 			//! Message data.
-			std::unique_ptr< MESSAGE > msg_unique_ptr ) const;
+			std::unique_ptr< Message > msg_unique_ptr ) const;
 
 		//! Deliver message.
 		/*!
 		 * Mbox takes care about destroying a message object.
 		 */
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_message(
 			//! Message data.
-			MESSAGE * msg_raw_ptr ) const;
+			Message * msg_raw_ptr ) const;
 
 		//! Deliver signal.
-		template< class MESSAGE >
+		template< class Message >
 		inline void
 		deliver_signal() const;
 
@@ -745,7 +745,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Create a special proxy for service request invocation.
 		 *
-		 * \tparam RESULT type of result to be received as result of
+		 * \tparam Result type of result to be received as result of
 		 * service request.
 		 *
 		 * \note That method starts methods call chain for synchonous
@@ -782,11 +782,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 					dest.get_one< std::string >().wait_for( std::chrono::milliseconds(50) ).sync_get( std::move( request ) );
 		 * \endcode
 		 */
-		template< class RESULT >
-		inline service_invoke_proxy_t< RESULT >
+		template< class Result >
+		inline service_invoke_proxy_t< Result >
 		get_one()
 			{
-				return service_invoke_proxy_t< RESULT >(
+				return service_invoke_proxy_t< Result >(
 						mbox_t( this ) );
 			}
 
@@ -797,7 +797,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \brief Create a special proxy for service request invocation
 		 * where return type is void.
 		 *
-		 * \tparam RESULT type of result to be received as result of
+		 * \tparam Result type of result to be received as result of
 		 * service request.
 		 *
 		 * \note This method could useful for waiting a completion of
@@ -837,9 +837,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 		inline void
 		deliver_service_request(
-			//! This is type_index for service PARAM type.
+			//! This is type_index for service Param type.
 			const std::type_index & msg_type,
-			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
+			//! This is reference to msg_service_request_t<Result,Param> instance.
 			const message_ref_t & message ) const
 			{
 				this->do_deliver_service_request( msg_type, message, 1 );
@@ -925,9 +925,9 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 		virtual void
 		do_deliver_service_request(
-			//! This is type_index for service PARAM type.
+			//! This is type_index for service Param type.
 			const std::type_index & msg_type,
-			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
+			//! This is reference to msg_service_request_t<Result,Param> instance.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
 			unsigned int overlimit_reaction_deep ) const = 0;
@@ -999,13 +999,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const message_ref_t & message );
 };
 
-template< class MESSAGE >
+template< class Message >
 inline void
 abstract_message_box_t::deliver_message(
 	std::type_index subscription_type,
-	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
+	const intrusive_ptr_t< Message > & msg_ref ) const
 {
-	ensure_classical_message< MESSAGE >();
+	ensure_classical_message< Message >();
 	ensure_message_with_actual_data( msg_ref.get() );
 
 	deliver_message(
@@ -1013,24 +1013,24 @@ abstract_message_box_t::deliver_message(
 		msg_ref.template make_reference< message_t >() );
 }
 
-template< class MESSAGE >
+template< class Message >
 inline void
 abstract_message_box_t::deliver_message(
-	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
+	const intrusive_ptr_t< Message > & msg_ref ) const
 {
 	deliver_message(
-		message_payload_type< MESSAGE >::subscription_type_index(),
+		message_payload_type< Message >::subscription_type_index(),
 		msg_ref );
 }
 
-template< class MESSAGE >
+template< class Message >
 inline void
 abstract_message_box_t::deliver_message(
 	std::type_index subscription_type,
-	std::unique_ptr< MESSAGE > msg_unique_ptr,
+	std::unique_ptr< Message > msg_unique_ptr,
 	message_mutability_t mutability ) const
 {
-	ensure_classical_message< MESSAGE >();
+	ensure_classical_message< Message >();
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 
 	change_message_mutability( *msg_unique_ptr, mutability );
@@ -1040,234 +1040,234 @@ abstract_message_box_t::deliver_message(
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
-template< class MESSAGE >
+template< class Message >
 void
 abstract_message_box_t::deliver_message(
-	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
+	std::unique_ptr< Message > msg_unique_ptr ) const
 {
 	this->deliver_message(
-		message_payload_type< MESSAGE >::subscription_type_index(),
+		message_payload_type< Message >::subscription_type_index(),
 		std::move( msg_unique_ptr.release() ) );
 }
 
-template< class MESSAGE >
+template< class Message >
 void
 abstract_message_box_t::deliver_message(
-	MESSAGE * msg_raw_ptr ) const
+	Message * msg_raw_ptr ) const
 {
-	this->deliver_message( std::unique_ptr< MESSAGE >( msg_raw_ptr ) );
+	this->deliver_message( std::unique_ptr< Message >( msg_raw_ptr ) );
 }
 
-template< class MESSAGE >
+template< class Message >
 void
 abstract_message_box_t::deliver_signal() const
 {
-	ensure_signal< MESSAGE >();
+	ensure_signal< Message >();
 
 	deliver_message(
-		message_payload_type< MESSAGE >::subscription_type_index(),
+		message_payload_type< Message >::subscription_type_index(),
 		message_ref_t() );
 }
 
 //
 // service_invoke_proxy_t implementation.
 //
-template< class RESULT >
-service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
+template< class Result >
+service_invoke_proxy_t<Result>::service_invoke_proxy_t(
 	const mbox_t & mbox )
 	:	m_mbox( mbox )
 	{}
 
-template< class RESULT >
-service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
+template< class Result >
+service_invoke_proxy_t<Result>::service_invoke_proxy_t(
 	mbox_t && mbox )
 	:	m_mbox( std::move(mbox) )
 	{}
 
-template< class RESULT >
-template< class PARAM >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async() const
+template< class Result >
+template< class Param >
+std::future< Result >
+service_invoke_proxy_t<Result>::async() const
 	{
-		ensure_signal< PARAM >();
+		ensure_signal< Param >();
 
-		std::promise< RESULT > promise;
+		std::promise< Result > promise;
 		auto f = promise.get_future();
 
-		using envelope_type = typename message_payload_type< PARAM >::envelope_type;
+		using envelope_type = typename message_payload_type< Param >::envelope_type;
 
 		message_ref_t ref(
-				new msg_service_request_t< RESULT, envelope_type >(
+				new msg_service_request_t< Result, envelope_type >(
 						std::move(promise) ) );
 		m_mbox->deliver_service_request(
-				message_payload_type< PARAM >::subscription_type_index(),
+				message_payload_type< Param >::subscription_type_index(),
 				ref );
 
 		return f;
 	}
 
-template< class RESULT >
-template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async_2(
-	intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const
+template< class Result >
+template< class Request_Type, class Envelope_Type >
+std::future< Result >
+service_invoke_proxy_t<Result>::async_2(
+	intrusive_ptr_t< Envelope_Type > msg_ref ) const
 	{
 		ensure_message_with_actual_data( msg_ref.get() );
 
-		std::promise< RESULT > promise;
+		std::promise< Result > promise;
 		auto f = promise.get_future();
 
 		message_ref_t ref(
-				new msg_service_request_t< RESULT, ENVELOPE_TYPE >(
+				new msg_service_request_t< Result, Envelope_Type >(
 						std::move(promise),
 						msg_ref.template make_reference< message_t >() ) );
 
-		::so_5::details::mark_as_mutable_if_necessary< REQUEST_TYPE >( *ref );
+		::so_5::details::mark_as_mutable_if_necessary< Request_Type >( *ref );
 
 		m_mbox->deliver_service_request(
-				message_payload_type< REQUEST_TYPE >::subscription_type_index(),
+				message_payload_type< Request_Type >::subscription_type_index(),
 				ref );
 
 		return f;
 	}
 
-template< class RESULT >
-template< class REQUEST_TYPE >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async(
-	intrusive_ptr_t< REQUEST_TYPE > msg_ref ) const
+template< class Result >
+template< class Request_Type >
+std::future< Result >
+service_invoke_proxy_t<Result>::async(
+	intrusive_ptr_t< Request_Type > msg_ref ) const
 	{
-		return this->async_2< REQUEST_TYPE >( std::move(msg_ref) );
+		return this->async_2< Request_Type >( std::move(msg_ref) );
 	}
 
-template< class RESULT >
-template< class PARAM >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async(
-	std::unique_ptr< PARAM > msg_unique_ptr ) const
+template< class Result >
+template< class Param >
+std::future< Result >
+service_invoke_proxy_t<Result>::async(
+	std::unique_ptr< Param > msg_unique_ptr ) const
 	{
-		return this->async( intrusive_ptr_t< PARAM >(
+		return this->async( intrusive_ptr_t< Param >(
 					msg_unique_ptr.release() ) );
 	}
 
-template< class RESULT >
-template< class PARAM >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::async( PARAM * msg ) const
+template< class Result >
+template< class Param >
+std::future< Result >
+service_invoke_proxy_t<Result>::async( Param * msg ) const
 	{
-		return this->async( intrusive_ptr_t< PARAM >( msg ) );
+		return this->async( intrusive_ptr_t< Param >( msg ) );
 	}
 
-template< class RESULT >
-infinite_wait_service_invoke_proxy_t< RESULT >
-service_invoke_proxy_t<RESULT>::wait_forever() const
+template< class Result >
+infinite_wait_service_invoke_proxy_t< Result >
+service_invoke_proxy_t<Result>::wait_forever() const
 	{
-		return infinite_wait_service_invoke_proxy_t< RESULT >( *this );
+		return infinite_wait_service_invoke_proxy_t< Result >( *this );
 	}
 
-template< class RESULT >
-template< class DURATION >
-wait_for_service_invoke_proxy_t< RESULT, DURATION >
-service_invoke_proxy_t<RESULT>::wait_for(
-	const DURATION & timeout ) const
+template< class Result >
+template< class Duration >
+wait_for_service_invoke_proxy_t< Result, Duration >
+service_invoke_proxy_t<Result>::wait_for(
+	const Duration & timeout ) const
 	{
-		return wait_for_service_invoke_proxy_t< RESULT, DURATION >(
+		return wait_for_service_invoke_proxy_t< Result, Duration >(
 				*this, timeout );
 	}
 
-template< class RESULT >
-template< class PARAM, typename... ARGS >
-std::future< RESULT >
-service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
+template< class Result >
+template< class Param, typename... Args >
+std::future< Result >
+service_invoke_proxy_t<Result>::make_async( Args&&... args ) const
 	{
-		using envelope_type = typename message_payload_type< PARAM >::envelope_type;
+		using envelope_type = typename message_payload_type< Param >::envelope_type;
 
 		intrusive_ptr_t< envelope_type > msg{
-				details::make_message_instance< PARAM >(
-						std::forward<ARGS>(args)... ).release() };
+				details::make_message_instance< Param >(
+						std::forward<Args>(args)... ).release() };
 
-		return this->async_2< PARAM >( std::move( msg ) );
+		return this->async_2< Param >( std::move( msg ) );
 	}
 
 //
 // implementation of infinite_wait_service_invoke_proxy_t
 //
 
-template< class RESULT >
-infinite_wait_service_invoke_proxy_t< RESULT >::
+template< class Result >
+infinite_wait_service_invoke_proxy_t< Result >::
 infinite_wait_service_invoke_proxy_t(
 	const creator_t & creator )
 	:	m_creator( creator )
 	{}
 
-template< class RESULT >
-template< class PARAM >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::sync_get() const
+template< class Result >
+template< class Param >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::sync_get() const
 	{
-		return m_creator.template async< PARAM >().get();
+		return m_creator.template async< Param >().get();
 	}
 
-template< class RESULT >
-template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::sync_get_2(
-	intrusive_ptr_t< ENVELOPE_TYPE > msg ) const
+template< class Result >
+template< class Request_Type, class Envelope_Type >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::sync_get_2(
+	intrusive_ptr_t< Envelope_Type > msg ) const
 	{
-		ensure_classical_message< ENVELOPE_TYPE >();
+		ensure_classical_message< Envelope_Type >();
 
-		return m_creator.template async_2< REQUEST_TYPE >( std::move(msg) ).get();
+		return m_creator.template async_2< Request_Type >( std::move(msg) ).get();
 	}
 
-template< class RESULT >
-template< class PARAM >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
-	intrusive_ptr_t< PARAM > msg_ref ) const
+template< class Result >
+template< class Param >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::sync_get(
+	intrusive_ptr_t< Param > msg_ref ) const
 	{
-		return this->sync_get_2< PARAM >( std::move(msg_ref) );
+		return this->sync_get_2< Param >( std::move(msg_ref) );
 	}
 
-template< class RESULT >
-template< class PARAM >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
-	std::unique_ptr< PARAM > msg_unique_ptr ) const
+template< class Result >
+template< class Param >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::sync_get(
+	std::unique_ptr< Param > msg_unique_ptr ) const
 	{
-		ensure_classical_message< PARAM >();
+		ensure_classical_message< Param >();
 
 		return this->sync_get(
-				intrusive_ptr_t< PARAM >( msg_unique_ptr.release() ) );
+				intrusive_ptr_t< Param >( msg_unique_ptr.release() ) );
 	}
 
-template< class RESULT >
-template< class PARAM >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::sync_get( PARAM * msg ) const
+template< class Result >
+template< class Param >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::sync_get( Param * msg ) const
 	{
-		ensure_classical_message< PARAM >();
+		ensure_classical_message< Param >();
 
 		return this->sync_get(
-				intrusive_ptr_t< PARAM >( msg ) );
+				intrusive_ptr_t< Param >( msg ) );
 	}
 
-template< class RESULT >
-template< class PARAM, typename... ARGS >
-RESULT
-infinite_wait_service_invoke_proxy_t< RESULT >::make_sync_get(
-	ARGS&&... args ) const
+template< class Result >
+template< class Param, typename... Args >
+Result
+infinite_wait_service_invoke_proxy_t< Result >::make_sync_get(
+	Args&&... args ) const
 	{
-		return m_creator.template make_async< PARAM, ARGS... >(
-				std::forward<ARGS>(args)... ).get();
+		return m_creator.template make_async< Param, Args... >(
+				std::forward<Args>(args)... ).get();
 	}
 
 //
 // implemetation of wait_for_service_invoke_proxy_t
 //
-template< class RESULT, class DURATION >
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::wait_for_service_invoke_proxy_t(
+template< class Result, class Duration >
+wait_for_service_invoke_proxy_t< Result, Duration >::wait_for_service_invoke_proxy_t(
 	const creator_t & creator,
-	const DURATION & timeout )
+	const Duration & timeout )
 	:	m_creator( creator )
 	,	m_timeout( timeout )
 	{}
@@ -1277,9 +1277,9 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::wait_for_service_invoke_pro
  */
 namespace wait_for_service_invoke_proxy_details
 {
-	template< class RESULT, class DURATION, class FUTURE >
-	RESULT
-	wait_and_return( const DURATION & timeout, FUTURE & f )
+	template< class Result, class Duration, class Future >
+	Result
+	wait_and_return( const Duration & timeout, Future & f )
 		{
 #if defined( SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED )
 	#pragma message("THERE IS ERROR IN MSVC 11.0: std::future::wait_for returns std::future_status::deffered almost always")
@@ -1295,76 +1295,76 @@ namespace wait_for_service_invoke_proxy_details
 
 } /* namespace wait_for_service_invoke_proxy_details */
 
-template< class RESULT, class DURATION >
-template< class PARAM >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get() const
+template< class Result, class Duration >
+template< class Param >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::sync_get() const
 	{
-		auto f = m_creator.template async< PARAM >();
+		auto f = m_creator.template async< Param >();
 
 		return wait_for_service_invoke_proxy_details::wait_and_return
-				<RESULT, DURATION, decltype(f) >( m_timeout, f );
+				<Result, Duration, decltype(f) >( m_timeout, f );
 	}
 
-template< class RESULT, class DURATION >
-template< class REQUEST_TYPE, class ENVELOPE_TYPE >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get_2(
-	intrusive_ptr_t< ENVELOPE_TYPE > msg_ref ) const
+template< class Result, class Duration >
+template< class Request_Type, class Envelope_Type >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::sync_get_2(
+	intrusive_ptr_t< Envelope_Type > msg_ref ) const
 	{
-		ensure_classical_message< ENVELOPE_TYPE >();
+		ensure_classical_message< Envelope_Type >();
 
-		auto f = m_creator.template async_2< REQUEST_TYPE >( std::move(msg_ref) );
+		auto f = m_creator.template async_2< Request_Type >( std::move(msg_ref) );
 
 		return wait_for_service_invoke_proxy_details::wait_and_return
-				<RESULT, DURATION, decltype(f) >( m_timeout, f );
+				<Result, Duration, decltype(f) >( m_timeout, f );
 	}
 
-template< class RESULT, class DURATION >
-template< class PARAM >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
-	intrusive_ptr_t< PARAM > msg_ref ) const
+template< class Result, class Duration >
+template< class Param >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::sync_get(
+	intrusive_ptr_t< Param > msg_ref ) const
 	{
-		return this->sync_get_2< PARAM >( std::move(msg_ref) );
+		return this->sync_get_2< Param >( std::move(msg_ref) );
 	}
 
-template< class RESULT, class DURATION >
-template< class PARAM >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
-	std::unique_ptr< PARAM > msg_unique_ptr ) const
+template< class Result, class Duration >
+template< class Param >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::sync_get(
+	std::unique_ptr< Param > msg_unique_ptr ) const
 	{
-		ensure_classical_message< PARAM >();
+		ensure_classical_message< Param >();
 
 		return this->sync_get(
-				intrusive_ptr_t< PARAM >(
+				intrusive_ptr_t< Param >(
 						msg_unique_ptr.release() ) );
 	}
 
-template< class RESULT, class DURATION >
-template< class PARAM >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
-	PARAM * msg ) const
+template< class Result, class Duration >
+template< class Param >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::sync_get(
+	Param * msg ) const
 	{
 		return this->sync_get(
-				intrusive_ptr_t< PARAM >( msg ) );
+				intrusive_ptr_t< Param >( msg ) );
 	}
 
-template< class RESULT, class DURATION >
-template< class PARAM, typename... ARGS >
-RESULT
-wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
-	ARGS&&... args ) const
+template< class Result, class Duration >
+template< class Param, typename... Args >
+Result
+wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
+	Args&&... args ) const
 	{
-		using ENVELOPE = typename message_payload_type< PARAM >::envelope_type;
+		using Envelope = typename message_payload_type< Param >::envelope_type;
 
-		intrusive_ptr_t< ENVELOPE > msg{
-				details::make_message_instance< PARAM >(
-						std::forward<ARGS>(args)... ).release() };
+		intrusive_ptr_t< Envelope > msg{
+				details::make_message_instance< Param >(
+						std::forward<Args>(args)... ).release() };
 
-		return this->sync_get_2< PARAM >( std::move( msg ) );
+		return this->sync_get_2< Param >( std::move( msg ) );
 	}
 
 namespace rt
@@ -1380,23 +1380,23 @@ using delivery_possibility_t = so_5::delivery_possibility_t;
  * \deprecated Will be removed in v.5.6.0. Use so_5::service_invoke_proxy_t
  * instead.
  */
-template< class RESULT >
-using service_invoke_proxy_t = so_5::service_invoke_proxy_t< RESULT >;
+template< class Result >
+using service_invoke_proxy_t = so_5::service_invoke_proxy_t< Result >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::infinite_wait_service_invoke_proxy_t instead.
  */
-template< class RESULT >
-using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t< RESULT >;
+template< class Result >
+using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t< Result >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::wait_for_service_invoke_proxy_t instead.
  */
-template< class RESULT, class DURATION >
+template< class Result, class Duration >
 using wait_for_service_invoke_proxy_t =
-	so_5::wait_for_service_invoke_proxy_t< RESULT, DURATION >;
+	so_5::wait_for_service_invoke_proxy_t< Result, Duration >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_filter_t

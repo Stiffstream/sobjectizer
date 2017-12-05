@@ -35,9 +35,9 @@ namespace chrono_helpers
 	 * \brief Translation from std::chrono::duration to millisecons.
 	 * \deprecated Obsolete in v.5.5.0
 	 */
-	template< class REP, class PERIOD >
+	template< class Rep, class Period >
 	inline unsigned int
-	to_ms( const std::chrono::duration< REP, PERIOD > & d )
+	to_ms( const std::chrono::duration< Rep, Period > & d )
 		{
 			return static_cast< unsigned int >(
 					std::chrono::duration_cast< std::chrono::milliseconds >(d)

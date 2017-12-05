@@ -198,17 +198,17 @@ class coop_repo_t final
  * This part is not dependent of activity tracking policy which can be used in
  * derived classes.
  *
- * \tparam EVENT_QUEUE_TYPE An actual type of event queue.
+ * \tparam Event_Queue_Type An actual type of event queue.
  *
  * \since
  * v.5.5.19
  */
-template< typename EVENT_QUEUE_TYPE >
+template< typename Event_Queue_Type >
 class default_disp_impl_basis_t : public dispatcher_t
 	{
 	public :
 		default_disp_impl_basis_t(
-			outliving_reference_t< EVENT_QUEUE_TYPE > event_queue )
+			outliving_reference_t< Event_Queue_Type > event_queue )
 			:	m_event_queue( std::move(event_queue) )
 			{}
 
@@ -219,7 +219,7 @@ class default_disp_impl_basis_t : public dispatcher_t
 				demand.call_handler( m_thread_id );
 			}
 
-		EVENT_QUEUE_TYPE &
+		Event_Queue_Type &
 		event_queue() const SO_5_NOEXCEPT
 			{
 				return m_event_queue.get();
@@ -251,7 +251,7 @@ class default_disp_impl_basis_t : public dispatcher_t
 
 	protected :
 		//! Event queue for that dispatcher.
-		outliving_reference_t< EVENT_QUEUE_TYPE > m_event_queue;
+		outliving_reference_t< Event_Queue_Type > m_event_queue;
 
 		//! ID of the main thread.
 		/*!
@@ -274,18 +274,18 @@ class default_disp_impl_basis_t : public dispatcher_t
  * \brief An implementation of disp_binder interface for default dispatcher
  * for this environment infrastructure.
  *
- * \tparam DISP_IFACE An actual dispatcher interface type.
+ * \tparam Disp_Iface An actual dispatcher interface type.
  * Expected to be default_disp_impl_basis_t<EQ>.
  *
  * \since
  * v.5.5.19
  */
-template< typename DISP_IFACE >
+template< typename Disp_Iface >
 class default_disp_binder_t final : public so_5::disp_binder_t
 	{
 	public :
 		default_disp_binder_t(
-			outliving_reference_t< DISP_IFACE > actual_disp )
+			outliving_reference_t< Disp_Iface > actual_disp )
 			:	m_actual_disp( std::move(actual_disp) )
 			{}
 
@@ -315,7 +315,7 @@ class default_disp_binder_t final : public so_5::disp_binder_t
 
 	private :
 		//! Actual default dispatcher implementation.
-		outliving_reference_t< DISP_IFACE > m_actual_disp;
+		outliving_reference_t< Disp_Iface > m_actual_disp;
 	};
 
 //
@@ -325,12 +325,12 @@ class default_disp_binder_t final : public so_5::disp_binder_t
  * \brief An implementation of dispatcher interface to be used in
  * places where default dispatcher is needed.
  *
- * \tparam EVENT_QUEUE_TYPE a type of actual event queue for the dispatcher.
+ * \tparam Event_Queue_Type a type of actual event queue for the dispatcher.
  *
- * \tparam ACTIVITY_TRACKER a type of activity tracker to be used
+ * \tparam Activity_Tracker a type of activity tracker to be used
  * for run-time statistics.
  *
- * \tparam DATA_SOURCE_NAME_PARTS a type with methods for generation
+ * \tparam Data_Source_Name_Parts a type with methods for generation
  * of names for dispatcher's data sources. Must be a type like that:
  * \code
    struct disp_ds_name_parts_t
@@ -343,17 +343,17 @@ class default_disp_binder_t final : public so_5::disp_binder_t
  * v.5.5.19
  */
 template<
-	typename EVENT_QUEUE_TYPE,
-	typename ACTIVITY_TRACKER,
-	typename DATA_SOURCE_NAME_PARTS >
+	typename Event_Queue_Type,
+	typename Activity_Tracker,
+	typename Data_Source_Name_Parts >
 class default_disp_impl_t final
-	: public default_disp_impl_basis_t< EVENT_QUEUE_TYPE >
+	: public default_disp_impl_basis_t< Event_Queue_Type >
 	{
 	public :
 		default_disp_impl_t(
-			outliving_reference_t< EVENT_QUEUE_TYPE > event_queue,
-			outliving_reference_t< ACTIVITY_TRACKER > activity_tracker )
-			:	default_disp_impl_basis_t< EVENT_QUEUE_TYPE >( std::move(event_queue) )
+			outliving_reference_t< Event_Queue_Type > event_queue,
+			outliving_reference_t< Activity_Tracker > activity_tracker )
+			:	default_disp_impl_basis_t< Event_Queue_Type >( std::move(event_queue) )
 			,	m_data_source( outliving_mutable( *this ) )
 			,	m_activity_tracker( std::move(activity_tracker) )
 			{}
@@ -385,7 +385,7 @@ class default_disp_impl_t final
 				m_data_source.set_data_sources_name_base( name );
 			}
 
-		ACTIVITY_TRACKER &
+		Activity_Tracker &
 		activity_tracker() SO_5_NOEXCEPT
 			{
 				return m_activity_tracker;
@@ -449,7 +449,7 @@ class default_disp_impl_t final
 						using namespace so_5::disp::reuse;
 
 						m_base_prefix = make_disp_prefix(
-								DATA_SOURCE_NAME_PARTS::disp_type_part(),
+								Data_Source_Name_Parts::disp_type_part(),
 								name_base,
 								&m_dispatcher.get() );
 					}
@@ -463,7 +463,7 @@ class default_disp_impl_t final
 		disp_data_source_t m_data_source;
 
 		//! Activity tracker.
-		outliving_reference_t< ACTIVITY_TRACKER > m_activity_tracker;
+		outliving_reference_t< Activity_Tracker > m_activity_tracker;
 	};
 
 
@@ -587,19 +587,19 @@ class direct_delivery_elapsed_timers_collector_t final
  * \brief Implementation of stats_controller for that type of
  * single-threaded environment.
  *
- * \tparam LOCK_HOLDER a type for defense from multi-threaded access.
+ * \tparam Lock_Holder a type for defense from multi-threaded access.
  * Expected to be so_5::details::actual_lock_holder_t or
  * so_5::details::no_lock_holder_t.
  *
  * \since
  * v.5.5.19
  */
-template< typename LOCK_HOLDER >
+template< typename Lock_Holder >
 class stats_controller_t final
 	:	public stats::controller_t
 	,	public stats::repository_t
 	,	public stats::impl::st_env_stuff::next_turn_handler_t
-	,	protected LOCK_HOLDER
+	,	protected Lock_Holder
 	{
 	public :
 		//! Initializing constructor.
@@ -798,6 +798,4 @@ class stats_controller_t final
 } /* namespace env_infrastructures */
 
 } /* namespace so_5 */
-
-
 

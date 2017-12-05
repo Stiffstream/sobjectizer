@@ -395,7 +395,7 @@ private :
 };
 
 // A class for machine controllers.
-template< class LOGIC >
+template< class Logic >
 class a_machine_controller_t : public so_5::agent_t
 {
 public :
@@ -428,7 +428,7 @@ private :
 
 	const machine_dictionary_t & m_machines;
 
-	const LOGIC m_logic;
+	const Logic m_logic;
 };
 
 //
