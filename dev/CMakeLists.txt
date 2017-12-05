@@ -20,6 +20,11 @@ if (ANDROID)
     endif()
 endif()
 
+if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+	set(CMAKE_CXX_STANDARD 11)
+	set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
 add_subdirectory(so_5)
 if(BUILD_ALL OR BUILD_EXAMPLES)
     add_subdirectory(sample/so_5)
