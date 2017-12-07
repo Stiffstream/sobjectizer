@@ -4,6 +4,27 @@ option(BUILD_ALL      "Enable building examples and tests [default: OFF]" OFF)
 option(BUILD_EXAMPLES "Enable building examples [default: OFF]"           OFF)
 option(BUILD_TESTS    "Enable building tests    [default: OFF]"           OFF)
 
+option(SOBJECTIZER_BUILD_STATIC "Build static SObjectizer library [default: ON]" ON)
+option(SOBJECTIZER_BUILD_SHARED "Build shared SObjectizer library [default: ON]" ON)
+
+if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
+	message(FATAL_ERROR "at least one of SOBJECTIZER_BUILD_STATIC/SOBJECTIZER_BUILD_SHARED must be defined")
+endif()
+
+if(NOT SOBJECTIZER_BUILD_STATIC)
+	if(BUILD_ALL OR BUILD_EXAMPLES OR BUILD_TESTS)
+		message(FATAL_ERROR "BUILD_ALL/BUILD_EXAMPLES/BUILD_TESTS can't be used"
+			" if SOBJECTIZER_BUILD_STATIC is OFF")
+	endif()
+endif()
+
+if(NOT SOBJECTIZER_BUILD_SHARED)
+	if(BUILD_ALL OR BUILD_EXAMPLES OR BUILD_TESTS)
+		message(FATAL_ERROR "BUILD_ALL/BUILD_EXAMPLES/BUILD_TESTS can't be used"
+			" if SOBJECTIZER_BUILD_SHARED is OFF")
+	endif()
+endif()
+
 if (ANDROID AND NOT CRYSTAX)
     message(FATAL_ERROR "You should use CrystaX-enabled CMake toolchain")
 endif()

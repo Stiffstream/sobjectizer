@@ -107,36 +107,48 @@ To get and build SObjectizer under Linux/FreeBSD in command line run:
   cd so-5.5.20
   mkdir cmake_build
   cd cmake_build
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release ../dev
   cmake --build . --config Release
   cmake --build . --config Release --target install
 
 Those commands will create all necessary Makefile, then build SObjectizer. If
 it necessary to build examples and tests too, use
 
-  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../dev
+  cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=target ../dev
 
-When 'make install' finished './installed_files' will contain two subfolders
+When 'make install' finished './target' will contain two subfolders
 './bin' with samples and './lib' with shared libso.5.x.x.so
 
 CMake build system currently supports this options:
 
+  SOBJECTIZER_BUILD_STATIC   Enable building SObjectizer as a static library [default: ON]
+  SOBJECTIZER_BUILD_SHARED   Enable building SObjectizer as a shared library [default: ON]
+
   BUILD_ALL      Enable building examples and tests [default: OFF]
   BUILD_EXAMPLES Enable building examples [default: OFF]
   BUILD_TESTS    Enable building tests    [default: OFF]
+
+Please note that if BUILD_ALL or BUILD_EXAMPLES or BUILD_TESTS is turned ON
+then both SOBJECTIZER_BUILD_STATIC and SOBJECTIZER_BUILD_SHARED must be turned
+ON. It means that if SOBJECTIZER_BUILD_STATIC or SOBJECTIZER_BUILD_SHARED is
+turned OFF then BUILD_ALL/BUILD_EXAMPLES/BUILD_TESTS all must be turned OFF.
 
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
   cd so-5.5.20
   mkdir cmake_build
   cd cmake_build
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -G "Visual Studio 14 2015" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 14 2015" ../dev
   cmake --build . --config Release
   cmake --build . --config Release --target install
 
 If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
-  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
+  cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
+
+Since v.5.5.20 SObjectizer provides sobjectizer-config.cmake files.
+These files are automatically installed into <target>/lib/cmake/sobjectizer
+subfolder. It allows to use SObjectizer via CMake's find_package command.
 
 Building for Android
 --------------------

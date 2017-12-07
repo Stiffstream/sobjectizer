@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.1)
 
+if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
+  set(SOBJECTIZER_BUILD_STATIC ON)
+  set(SOBJECTIZER_BUILD_SHARED ON)
+endif()
+
 include(cmake/target.cmake)
 
 set(PTHREDS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-project(so_5)
+project(sobjectizer)
 
 set(SO_5_DEFS "-DSO_5_PRJ")
 
@@ -95,52 +100,63 @@ function(setup_target_cxx_std TARGET_NAME)
 	endif()
 endfunction()
 
-add_library(${SO_5_SHARED_LIB} SHARED ${SO_5_SRC})
-add_library(so_5::SharedLib ALIAS ${SO_5_SHARED_LIB})
-set_property(TARGET ${SO_5_SHARED_LIB} PROPERTY EXPORT_NAME SharedLib)
-setup_target_cxx_std(${SO_5_SHARED_LIB})
-target_compile_definitions(${SO_5_SHARED_LIB}
-	PRIVATE ${SO_5_DEFS}
-)
-target_include_directories(${SO_5_SHARED_LIB}
-	PUBLIC
-		$<BUILD_INTERFACE:${SO_5_INCLUDE_PATH}>
-		$<INSTALL_INTERFACE:include>
-)
-target_link_libraries(${SO_5_SHARED_LIB} ${CMAKE_THREAD_LIBS_INIT})
+set(SO_5_TARGETS_TO_INSTALL)
 
-add_library(${SO_5_STATIC_LIB} STATIC ${SO_5_SRC})
-add_library(so_5::StaticLib ALIAS ${SO_5_STATIC_LIB})
-set_property(TARGET ${SO_5_STATIC_LIB} PROPERTY EXPORT_NAME StaticLib)
-setup_target_cxx_std(${SO_5_STATIC_LIB})
-target_compile_definitions(${SO_5_STATIC_LIB}
-	PRIVATE ${SO_5_DEFS}
-)
-target_compile_definitions(${SO_5_STATIC_LIB}
-	PUBLIC -DSO_5_STATIC_LIB
-)
-target_include_directories(${SO_5_STATIC_LIB}
-	PUBLIC
-		$<BUILD_INTERFACE:${SO_5_INCLUDE_PATH}>
-		$<INSTALL_INTERFACE:include>
-)
-target_link_libraries(${SO_5_STATIC_LIB} ${CMAKE_THREAD_LIBS_INIT})
+if(SOBJECTIZER_BUILD_SHARED)
+	add_library(${SO_5_SHARED_LIB} SHARED ${SO_5_SRC})
+	add_library(sobjectizer::SharedLib ALIAS ${SO_5_SHARED_LIB})
+	set_property(TARGET ${SO_5_SHARED_LIB} PROPERTY EXPORT_NAME SharedLib)
+	setup_target_cxx_std(${SO_5_SHARED_LIB})
+	target_compile_definitions(${SO_5_SHARED_LIB}
+		PRIVATE ${SO_5_DEFS}
+	)
+	target_include_directories(${SO_5_SHARED_LIB}
+		PUBLIC
+			$<BUILD_INTERFACE:${SO_5_INCLUDE_PATH}>
+			$<INSTALL_INTERFACE:include>
+	)
+	target_link_libraries(${SO_5_SHARED_LIB} ${CMAKE_THREAD_LIBS_INIT})
 
-set(SO_5_EXT_LIBS )
-if( ANDROID )
-	list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBCRYSTAX_FILE})
-	list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBSTDCXX_FILE})
+	set(SO_5_EXT_LIBS )
+	if( ANDROID )
+		list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBCRYSTAX_FILE})
+		list(APPEND SO_5_EXT_LIBS ${ANDROID_LIBSTDCXX_FILE})
+	endif()
+
+	foreach(__extLibrary ${SO_5_EXT_LIBS})
+		add_custom_command(TARGET ${SO_5_SHARED_LIB} PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${__extLibrary} $<TARGET_FILE_DIR:${SO_5_SHARED_LIB}>)
+	endforeach()
+
+	list(APPEND SO_5_TARGETS_TO_INSTALL ${SO_5_SHARED_LIB})
 endif()
 
-foreach(__extLibrary ${SO_5_EXT_LIBS})
-	add_custom_command(TARGET ${SO_5_SHARED_LIB} PRE_LINK
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${__extLibrary} $<TARGET_FILE_DIR:${SO_5_SHARED_LIB}>)
-endforeach()
+if(SOBJECTIZER_BUILD_STATIC)
+	add_library(${SO_5_STATIC_LIB} STATIC ${SO_5_SRC})
+	add_library(sobjectizer::StaticLib ALIAS ${SO_5_STATIC_LIB})
+	set_property(TARGET ${SO_5_STATIC_LIB} PROPERTY EXPORT_NAME StaticLib)
+	setup_target_cxx_std(${SO_5_STATIC_LIB})
+	target_compile_definitions(${SO_5_STATIC_LIB}
+		PRIVATE ${SO_5_DEFS}
+	)
+	target_compile_definitions(${SO_5_STATIC_LIB}
+		PUBLIC -DSO_5_STATIC_LIB
+	)
+	target_include_directories(${SO_5_STATIC_LIB}
+		PUBLIC
+			$<BUILD_INTERFACE:${SO_5_INCLUDE_PATH}>
+			$<INSTALL_INTERFACE:include>
+	)
+	target_link_libraries(${SO_5_STATIC_LIB} ${CMAKE_THREAD_LIBS_INIT})
 
-set(SO_5_CMAKE_FILES_DEST "lib/cmake/so_5")
+	list(APPEND SO_5_TARGETS_TO_INSTALL ${SO_5_STATIC_LIB})
+endif()
+
+
+set(SO_5_CMAKE_FILES_DEST "lib/cmake/sobjectizer")
 
 install(
-	TARGETS ${SO_5_SHARED_LIB} ${SO_5_STATIC_LIB}
+	TARGETS ${SO_5_TARGETS_TO_INSTALL}
 	EXPORT SO_5_ALL_TARGETS
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
@@ -148,14 +164,16 @@ install(
 )
 install(
 	EXPORT SO_5_ALL_TARGETS
-	FILE so_5-targets.cmake
-	NAMESPACE so_5::
+	FILE sobjectizer-targets.cmake
+	NAMESPACE sobjectizer::
 	DESTINATION ${SO_5_CMAKE_FILES_DEST}
 )
 
-foreach(__extLibrary ${SO_5_EXT_LIBS})
-	install(FILES ${__extLibrary} DESTINATION lib)
-endforeach()
+if(SOBJECTIZER_BUILD_SHARED)
+	foreach(__extLibrary ${SO_5_EXT_LIBS})
+		install(FILES ${__extLibrary} DESTINATION lib)
+	endforeach()
+endif()
 
 file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 
@@ -166,8 +184,8 @@ foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
 	endif()
 endforeach()
 
-set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/so_5-config-version.cmake")
-set(SO_5_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/so_5-config.cmake")
+set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config-version.cmake")
+set(SO_5_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config.cmake")
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
@@ -176,7 +194,7 @@ write_basic_package_version_file(
 	COMPATIBILITY ExactVersion 
 )
 configure_package_config_file(
-	"cmake/so_5-config.cmake.in"
+	"cmake/sobjectizer-config.cmake.in"
 	${SO_5_CONFIG_FILE}
 	INSTALL_DESTINATION ${SO_5_CMAKE_FILES_DEST}
 	PATH_VARS SO_5_VERSION
