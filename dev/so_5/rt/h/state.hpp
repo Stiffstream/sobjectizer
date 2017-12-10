@@ -365,7 +365,17 @@ class SO_5_TYPE state_t final
 		~state_t();
 
 		bool
-		operator == ( const state_t & state ) const;
+		operator==( const state_t & state ) const;
+
+		/*!
+		 * \since
+		 * v.5.5.20.1
+		 */
+		bool
+		operator!=( const state_t & state ) const
+			{
+				return !(*this == state);
+			}
 
 		//! Get textual name of the state.
 		/*!

@@ -1,3 +1,4 @@
+add_subdirectory(state_comparison)
 add_subdirectory(change_state)
 add_subdirectory(composite_state_change)
 add_subdirectory(enter_exit_handlers)
