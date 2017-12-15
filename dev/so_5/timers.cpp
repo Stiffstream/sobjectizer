@@ -26,35 +26,35 @@ namespace so_5
 //
 // timer_t
 //
-timer_t::~timer_t()
+timer_t::~timer_t() SO_5_NOEXCEPT
 	{}
 
 //
 // timer_id_t
 //
-timer_id_t::timer_id_t()
+timer_id_t::timer_id_t() SO_5_NOEXCEPT
 	{}
 
 timer_id_t::timer_id_t(
-	so_5::intrusive_ptr_t< timer_t > && timer )
+	so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT
 	:	m_timer( std::move( timer ) )
 	{}
 
 timer_id_t::timer_id_t(
-	const timer_id_t & o )
+	const timer_id_t & o ) SO_5_NOEXCEPT
 	:	m_timer( o.m_timer )
 	{}
 
 timer_id_t::timer_id_t(
-	timer_id_t && o )
+	timer_id_t && o ) SO_5_NOEXCEPT
 	:	m_timer( std::move( o.m_timer ) )
 	{}
 
-timer_id_t::~timer_id_t()
+timer_id_t::~timer_id_t() SO_5_NOEXCEPT
 	{}
 
 timer_id_t &
-timer_id_t::operator=( const timer_id_t & o )
+timer_id_t::operator=( const timer_id_t & o ) SO_5_NOEXCEPT
 	{
 		timer_id_t t( o );
 		t.swap( *this );
@@ -62,7 +62,7 @@ timer_id_t::operator=( const timer_id_t & o )
 	}
 
 timer_id_t &
-timer_id_t::operator=( timer_id_t && o )
+timer_id_t::operator=( timer_id_t && o ) SO_5_NOEXCEPT
 	{
 		timer_id_t t( std::move( o ) );
 		t.swap( *this );
@@ -70,19 +70,19 @@ timer_id_t::operator=( timer_id_t && o )
 	}
 
 void
-timer_id_t::swap( timer_id_t & o )
+timer_id_t::swap( timer_id_t & o ) SO_5_NOEXCEPT
 	{
 		m_timer.swap( o.m_timer );
 	}
 
 bool
-timer_id_t::is_active() const
+timer_id_t::is_active() const SO_5_NOEXCEPT
 	{
 		return ( m_timer && m_timer->is_active() );
 	}
 
 void
-timer_id_t::release()
+timer_id_t::release() SO_5_NOEXCEPT
 	{
 		if( m_timer )
 			m_timer->release();
@@ -149,25 +149,25 @@ class actual_timer_t : public timer_t
 			:	m_thread( thread )
 			,	m_timer( thread->allocate() )
 			{}
-		virtual ~actual_timer_t() override
+		virtual ~actual_timer_t() SO_5_NOEXCEPT override
 			{
 				release();
 			}
 
 		timer_holder_t &
-		timer_holder()
+		timer_holder() SO_5_NOEXCEPT
 			{
 				return m_timer;
 			}
 
 		virtual bool
-		is_active() const override
+		is_active() const SO_5_NOEXCEPT override
 			{
 				return (m_thread != nullptr);
 			}
 
 		virtual void
-		release() override
+		release() SO_5_NOEXCEPT override
 			{
 				if( m_thread )
 				{

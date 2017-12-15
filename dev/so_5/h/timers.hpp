@@ -16,6 +16,7 @@
 #include <functional>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
@@ -48,15 +49,15 @@ class SO_5_TYPE timer_t
 		friend class intrusive_ptr_t< timer_t >;
 
 	public :
-		virtual ~timer_t();
+		virtual ~timer_t() SO_5_NOEXCEPT;
 
 		//! Is this timer event is active?
 		virtual bool
-		is_active() const = 0;
+		is_active() const SO_5_NOEXCEPT = 0;
 
 		//! Release the timer event.
 		virtual void
-		release() = 0;
+		release() SO_5_NOEXCEPT = 0;
 	};
 
 //
@@ -72,36 +73,36 @@ class SO_5_TYPE timer_id_t
 	{
 	public :
 		//! Default constructor.
-		timer_id_t();
+		timer_id_t() SO_5_NOEXCEPT;
 		//! Initializing constructor.
 		timer_id_t(
-			so_5::intrusive_ptr_t< timer_t > && timer );
+			so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT;
 		//! Copy constructor.
 		timer_id_t(
-			const timer_id_t & o );
+			const timer_id_t & o ) SO_5_NOEXCEPT;
 		//! Move constructor.
 		timer_id_t(
-			timer_id_t && o );
-		~timer_id_t();
+			timer_id_t && o ) SO_5_NOEXCEPT;
+		~timer_id_t() SO_5_NOEXCEPT;
 
 		//! Copy operator.
 		timer_id_t &
-		operator=( const timer_id_t & o );
+		operator=( const timer_id_t & o ) SO_5_NOEXCEPT;
 		//! Move operator.
 		timer_id_t &
-		operator=( timer_id_t && o );
+		operator=( timer_id_t && o ) SO_5_NOEXCEPT;
 
 		//! Swapping.
 		void
-		swap( timer_id_t & o );
+		swap( timer_id_t & o ) SO_5_NOEXCEPT;
 
 		//! Is this timer event is active?
 		bool
-		is_active() const;
+		is_active() const SO_5_NOEXCEPT;
 
 		//! Release the timer event.
 		void
-		release();
+		release() SO_5_NOEXCEPT;
 
 	private :
 		//! Actual timer.

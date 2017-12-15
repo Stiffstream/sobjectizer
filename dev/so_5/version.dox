@@ -2,6 +2,13 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_20_1 5.5.20.1 "Nevado Aguas Blancas"
+
+	Operator so_5::state_t::operator!=() added.
+
+	`noexcept` marks are set for so_5::intrusive_ptr_t and
+	so_5::timer_id_t classes.
+
 \section so_5__5_20 5.5.20 "Nevado Aguas Blancas"
 
 	Const methods of agents can now be used as event handlers.
