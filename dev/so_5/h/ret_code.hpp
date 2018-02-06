@@ -437,6 +437,31 @@ const int rc_subscription_to_mutable_msg_from_mpmc_mbox = 174;
  */
 const int rc_cannot_set_stop_guard_when_stop_is_started = 175;
 
+/*!
+ * \brief An attempt to use negative value for pause argument for
+ * delayed or periodic message/signal.
+ *
+ * A value of `pause` argument for so_5::send_delayed() and
+ * so_5::send_periodic() (also for so_5::environment_t::schedule_timer()
+ * and so_5::environment_t::single_timer()) must be non-negative.
+ *
+ * \since
+ * v.5.5.21
+ */
+const int rc_negative_value_for_pause = 176;
+
+/*!
+ * \brief An attempt to use negative value for period argument for
+ * periodic message/signal.
+ *
+ * A value of `pause` argument for so_5::send_periodic() (also for
+ * so_5::environment_t::schedule_timer()) must be non-negative.
+ *
+ * \since
+ * v.5.5.21
+ */
+const int rc_negative_value_for_period = 177;
+
 //! \name Common error codes.
 //! \{
 

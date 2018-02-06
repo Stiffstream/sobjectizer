@@ -418,6 +418,26 @@ make_handler_without_arg( Lambda && lambda )
 				message_payload_type< Sig >::mutability() };
 	}
 
+/*!
+ * \brief Ensure that mutability of message is compatible with
+ * mutability of target mbox.
+ *
+ * \since
+ * v.5.5.21
+ */
+inline void
+ensure_handler_can_be_used_with_mbox(
+	const ::so_5::details::msg_type_and_handler_pair_t & handler,
+	const ::so_5::mbox_t & target_mbox )
+{
+	if( message_mutability_t::mutable_message == handler.m_mutability &&
+			mbox_type_t::multi_producer_multi_consumer == target_mbox->type() )
+		SO_5_THROW_EXCEPTION( rc_subscription_to_mutable_msg_from_mpmc_mbox,
+				std::string( "subscription to mutable message from MPMC mbox "
+						"is disabled, msg_type=" )
+				+ handler.m_msg_type.name() );
+}
+
 } /* namespace event_subscription_helpers */
 
 } /* namespace details */
@@ -477,6 +497,75 @@ handler( Lambda && lambda )
 
 		return make_handler_without_arg< Lambda, Result, Signal >(
 				std::forward< Lambda >(lambda) );
+	}
+
+//
+// preprocess_agent_event_handler
+//
+//FIXME: document this!
+//FIXME: SO_5_NODISCARD should be used.
+/*!
+ * \since
+ * v.5.5.21
+ */
+template< typename Method_Pointer >
+typename std::enable_if<
+		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::msg_type_and_handler_pair_t >::type
+preprocess_agent_event_handler(
+	const mbox_t & mbox,
+	agent_t & agent,
+	Method_Pointer pfn )
+	{
+		using namespace details::event_subscription_helpers;
+
+		using agent_type =
+				typename details::is_agent_method_pointer<Method_Pointer>::agent_type;
+
+		// Agent must have right type.
+		auto cast_result = get_actual_agent_pointer< agent_type >( agent );
+
+		const auto ev = make_handler_with_arg_for_agent( cast_result, pfn );
+
+		ensure_handler_can_be_used_with_mbox( ev, mbox );
+
+		return ev;
+	}
+
+//
+// preprocess_agent_event_handler
+//
+//FIXME: document this!
+//FIXME: SO_5_NODISCARD should be used.
+/*!
+ * \attention
+ * Only lambda functions or functional objects in the following format
+ * are supported:
+ * \code
+ * ret_type (message_type);
+ * ret_type (const message_type &);
+ * ret_type (mhood_t<message_type>);
+ * \endcode
+ *
+ * \since
+ * v.5.5.21
+ */
+template< typename Lambda >
+typename std::enable_if<
+		details::lambda_traits::is_lambda<Lambda>::value,
+		details::msg_type_and_handler_pair_t >::type
+preprocess_agent_event_handler(
+	const mbox_t & mbox,
+	agent_t & /*agent*/,
+	Lambda && lambda )
+	{
+		using namespace details::event_subscription_helpers;
+
+		const auto ev = handler( std::forward<Lambda>(lambda) );
+
+		ensure_handler_can_be_used_with_mbox( ev, mbox );
+
+		return ev;
 	}
 
 namespace details {

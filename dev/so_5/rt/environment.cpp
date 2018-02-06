@@ -478,6 +478,18 @@ environment_t::schedule_timer(
 	std::chrono::steady_clock::duration pause,
 	std::chrono::steady_clock::duration period )
 {
+	// Since v.5.5.21 pause and period should be checked for negative
+	// values.
+	using duration = std::chrono::steady_clock::duration;
+	if( pause < duration::zero() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_negative_value_for_pause,
+				"an attempt to call schedule_timer() with negative pause value" );
+	if( period < duration::zero() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_negative_value_for_period,
+				"an attempt to call schedule_timer() with negative period value" );
+
 	// If it is a mutable message then there must be some restrictions:
 	if( message_mutability_t::mutable_message == message_mutability(msg) )
 	{
@@ -510,6 +522,13 @@ environment_t::single_timer(
 	const mbox_t & mbox,
 	std::chrono::steady_clock::duration pause )
 {
+	// Since v.5.5.21 pause should be checked for negative values.
+	using duration = std::chrono::steady_clock::duration;
+	if( pause < duration::zero() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_negative_value_for_pause,
+				"an attempt to call single_timer() with negative pause value" );
+
 	// Mutable message can't be passed to MPMC-mbox.
 	if( message_mutability_t::mutable_message == message_mutability(msg) &&
 			mbox_type_t::multi_producer_multi_consumer == mbox->type() )

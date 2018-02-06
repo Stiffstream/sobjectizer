@@ -31,7 +31,7 @@ namespace impl {
  * \brief A helper class for accessing the functionality of
  * environment-class which is specific for SObjectizer internals only.
  */
-class internal_env_iface_t
+class SO_5_TYPE internal_env_iface_t
 	{
 		//! Environment instance to work with.
 		environment_t & m_env;

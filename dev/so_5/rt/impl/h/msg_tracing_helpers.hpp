@@ -458,6 +458,29 @@ trace_event_handler_search_result(
 	}
 
 /*!
+ * \brief Helper for tracing the result of search of deadletter handler.
+ *
+ * \since
+ * v.5.5.21
+ */
+inline void
+trace_deadletter_handler_search_result(
+	const execution_demand_t & demand,
+	const char * context_marker,
+	const event_handler_data_t * search_result )
+	{
+		details::make_trace(
+			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracer(),
+			demand.m_receiver,
+			details::composed_action_name{ context_marker, "deadletter_handler" },
+			details::mbox_identification{ demand.m_mbox_id },
+			demand.m_msg_type,
+			demand.m_message_ref,
+			&(demand.m_receiver->so_current_state()),
+			search_result );
+	}
+
+/*!
  * \since
  * v.5.5.15
  *

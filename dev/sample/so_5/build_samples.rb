@@ -76,4 +76,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'two_handlers' ]
 
 	example[ 'stop_guard' ]
+
+	example[ 'deadletter_handler' ]
 }

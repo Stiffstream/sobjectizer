@@ -124,7 +124,89 @@ enum exception_reaction_t
 
 /*!
  * \brief A class for creating a subscription to messages from the mbox.
-*/
+ *
+ * This type provides one of the ways to subscribe an agent's event handlers.
+ * There are two way to do that. The first one uses so_5::state_t::event()
+ * methods:
+ * \code
+ * class subscribe_demo : public so_5::agent_t
+ * {
+ * 	// Some states for the agent.
+ * 	state_t st_first{this}, st_second{this}, st_third{this};
+ * 	...
+ * 	virtual void so_define_agent() override {
+ * 		// Subscribe just one event handler for st_first.
+ * 		st_first.event(some_mbox, &subscribe_demo::event_handler_1);
+ *
+ * 		// Subscribe two event handlers for st_second.
+ * 		st_second
+ * 			.event(some_mbox, &subscribe_demo::event_handler_1)
+ * 			.event(some_mbox, &subscribe_demo::event_handler_2);
+ *
+ * 		// Subscribe two event handlers for st_third.
+ * 		st_third
+ * 			.event(some_mbox, &subscribe_demo::event_handler_1)
+ * 			.event(some_mbox, &subscribe_demo::event_handler_3)
+ * 	}
+ * };
+ * \endcode
+ * But this way do not allow to subscribe the same event handler for
+ * several states in the compact way.
+ *
+ * This can be done via agent_t::so_subscribe(), agent_t::so_subscribe_self()
+ * and subscription_bind_t object:
+ * \code
+ * class subscribe_demo : public so_5::agent_t
+ * {
+ * 	// Some states for the agent.
+ * 	state_t st_first{this}, st_second{this}, st_third{this};
+ * 	...
+ * 	virtual void so_define_agent() override {
+ * 		// Subscribe event_handler_1 for all three states
+ * 		so_subscribe(some_mbox)
+ * 			.in(st_first)
+ * 			.in(st_second)
+ * 			.in(st_third)
+ * 			.event(&subscribe_demo::event_handler_1);
+ *
+ * 		// Subscribe just one event handler for st_second and st_third.
+ * 		so_subscribe(some_mbox)
+ * 			.in(st_second)
+ * 			.event(&subscribe_demo::event_handler_2);
+ *
+ * 		// Subscribe two event handlers for st_third.
+ * 		so_subscribe(some_mbox)
+ * 			.in(st_third)
+ * 			.event(&subscribe_demo::event_handler_3)
+ * 	}
+ * };
+ * \endcode
+ *
+ * \par Some words about binder logic...
+ * An object of type subscription_bind_t collects list of states
+ * enumerated by calls to subscription_bind_t::in() method.
+ * Every call to in() method add a state to that list. It means:
+ * \code
+ * so_subscribe(some_mbox) // list is: {}
+ * 	.in(st_first) // list is: {st_first}
+ * 	.in(st_second) // list is: {st_first, st_second}
+ * 	.in(st_third) // list is: {st_first, st_second, st_third}
+ * 	...
+ * \endcode
+ * A call to event() or suppress() or just_switch_to() applies subscription
+ * to all states which are currently in the list. But these calls do not
+ * remove the content of that list. It means:
+ * \code
+ * so_subscribe(some_mbox) // list is: {}
+ * 	.in(st_first) // list is: {st_first}
+ * 	.event(handler_1) // subscribe for state st_first only.
+ * 	.in(st_second) // list is: {st_first, st_second}
+ * 	.event(handler_2) // subscribe for state st_first and for st_second.
+ * 	.in(st_third) // list is: {st_first, st_second, st_third}
+ * 	.event(handler_3) // subscribe for state st_first, st_second and st_third.
+ * 	...
+ * \endcode
+ */
 class subscription_bind_t
 {
 	public:
@@ -587,17 +669,17 @@ class subscription_bind_t
 	Any method with one of the following prototypes can be used as an event
 	handler:
 	\code
-		return_type handler( mhood_t< Message > msg );
-		return_type handler( const mhood_t< Message > & msg );
-		return_type handler( const Message & msg );
-		return_type handler( Message msg );
-		return_type handler();
+		return_type evt_handler( mhood_t< Message > msg );
+		return_type evt_handler( const mhood_t< Message > & msg );
+		return_type evt_handler( const Message & msg );
+		return_type evt_handler( Message msg );
+		return_type evt_handler();
 		// Since v.5.5.20:
-		return_type handler( mhood_t< Message > msg ) const;
-		return_type handler( const mhood_t< Message > & msg ) const;
-		return_type handler( const Message & msg ) const;
-		return_type handler( Message msg ) const;
-		return_type handler() const;
+		return_type evt_handler( mhood_t< Message > msg ) const;
+		return_type evt_handler( const mhood_t< Message > & msg ) const;
+		return_type evt_handler( const Message & msg ) const;
+		return_type evt_handler( Message msg ) const;
+		return_type evt_handler() const;
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c Message is a 
 	message type.
@@ -610,25 +692,60 @@ class subscription_bind_t
 	Please note that handlers with the following prototypes can be used
 	only for messages, not signals:
 	\code
-		return_type handler( const Message & msg );
-		return_type handler( Message msg );
+		return_type evt_handler( const Message & msg );
+		return_type evt_handler( Message msg );
 		// Since v.5.5.20:
-		return_type handler( const Message & msg ) const;
-		return_type handler( Message msg ) const;
+		return_type evt_handler( const Message & msg ) const;
+		return_type evt_handler( Message msg ) const;
 	\endcode
 
 	This form is used only for signals (messages without actual data):
 	\code
-		return_type handler();
+		return_type evt_handler();
 		// Since v.5.5.20:
-		return_type handler() const;
+		return_type evt_handler() const;
 	\endcode
 
-	A subscription to the message is performed by the method so_subscribe().
+	A subscription to the message is performed by the methods so_subscribe()
+	and so_subscribe_self().
 	This method returns an instance of the so_5::subscription_bind_t which
 	does all actual actions of the subscription process. This instance already
 	knows agents and message mbox and uses the default agent state for
 	the event subscription (binding to different state is also possible). 
+
+	The presence of a subscription can be checked by so_has_subscription()
+	method.
+
+	A subscription can be dropped (removed) by so_drop_subscription() and
+	so_drop_subscription_for_all_states() methods.
+
+	<b>Deadletter handlers subscription and unsubscription</b>
+
+	Since v.5.5.21 SObjectizer supports deadletter handlers. Such handlers
+	are called if there is no any ordinary event handler for a specific
+	messages from a specific mbox.
+
+	Deadletter handler can be implemented by an agent method or by lambda
+	function. Deadletter handler can have one of the following formats:
+	\code
+		return_type evt_handler( mhood_t< Message > msg );
+		return_type evt_handler( mhood_t< Message > msg ) const;
+		return_type evt_handler( const mhood_t< Message > & msg );
+		return_type evt_handler( const mhood_t< Message > & msg ) const;
+		return_type evt_handler( const Message & msg );
+		return_type evt_handler( const Message & msg ) const;
+		return_type evt_handler( Message msg );
+		return_type evt_handler( Message msg ) const;
+	\endcode
+
+	Subscription for a deadletter handler can be created by
+	so_subscribe_deadletter_handler() method.
+
+	The presence of a deadletter handler can be checked by
+	so_has_deadletter_handler() method.
+
+	A deadletter can be dropped (removed) by so_drop_deadletter_handler()
+	and so_drop_subscription_for_all_states() methods.
 
 	<b>Methods for working with an agent state</b>
 
@@ -1119,14 +1236,38 @@ class SO_5_TYPE agent_t
 
 		//! Initiate subscription.
 		/*!
+			This method starts a subscription procedure by returning
+			an instance of subscription_bind_t. The subscription details and
+			the completion of a subscription is controlled by this
+			subscription_bind_t object.
+
 			Usage sample:
 			\code
-			void
-			a_sample_t::so_define_agent() override
+			void a_sample_t::so_define_agent()
 			{
-				so_subscribe( m_mbox_target )
-					.in( m_state_one )
-						.event( &a_sample_t::evt_sample_handler );
+				// Subscription for state `state_one`
+				so_subscribe( mbox_target )
+					.in( state_one )
+					.event( &a_sample_t::evt_sample_handler );
+
+				// Subscription for the default state.
+				so_subscribe( another_mbox )
+					.event( &a_sample_t::evt_another_handler );
+
+				// Subscription for several event handlers in the default state.
+				so_subscribe( yet_another_mbox )
+					.event( &a_sample_t::evt_yet_another_handler )
+					// Lambda-function can be used as event handler too.
+					.event( [this](mhood_t<some_message> cmd) {...} );
+
+				// Subscription for several event handlers.
+				// All of them will be subscribed for states first_state and second_state.
+				so_subscribe( some_mbox )
+					.in( first_state )
+					.in( second_state )
+					.event( &a_sample_t::evt_some_handler_1 )
+					.event( &a_sample_t::evt_some_handler_2 )
+					.event( &a_sample_t::evt_some_handler_3 );
 			}
 			\endcode
 		*/
@@ -1144,12 +1285,47 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Initiate subscription to agent's direct mbox.
 		 *
+		 * Note that is just a short form of:
+		 * \code
+		 * void a_sample_t::so_define_agent()
+		 * {
+		 * 	so_subscribe( so_direct_mbox() )
+		 * 		.in( some_state )
+		 * 		.in( another_state )
+		 * 		.event( some_event_handler )
+		 * 		.event( some_another_handler );
+		 * }
+		 * \endcode
+		 * Instead of writting `so_subscribe(so_direct_mbox())` it is possible
+		 * to write just `so_subscribe_self()`.
+		 *
 		 * \par Usage sample:
 			\code
-			void a_sample_t::so_define_agent() override
+			void a_sample_t::so_define_agent()
 			{
-				so_subscribe_self().in( m_state_one ).event( ... );
-				so_subscribe_self().in( m_state_two ).event( ... );
+				// Subscription for state `state_one`
+				so_subscribe_self()
+					.in( state_one )
+					.event( &a_sample_t::evt_sample_handler );
+
+				// Subscription for the default state.
+				so_subscribe_self()
+					.event( &a_sample_t::evt_another_handler );
+
+				// Subscription for several event handlers in the default state.
+				so_subscribe_self()
+					.event( &a_sample_t::evt_yet_another_handler )
+					// Lambda-function can be used as event handler too.
+					.event( [this](mhood_t<some_message> cmd) {...} );
+
+				// Subscription for several event handlers.
+				// All of them will be subscribed for states first_state and second_state.
+				so_subscribe_self()
+					.in( first_state )
+					.in( second_state )
+					.event( &a_sample_t::evt_some_handler_1 )
+					.event( &a_sample_t::evt_some_handler_2 )
+					.event( &a_sample_t::evt_some_handler_3 );
 			}
 			\endcode
 		 */
@@ -1158,6 +1334,56 @@ class SO_5_TYPE agent_t
 		{
 			return so_subscribe( so_direct_mbox() );
 		}
+
+		/*!
+		 * \brief Create a subscription for an event.
+		 *
+		 * \note
+		 * Before v.5.5.21 it was a private method. Since v.5.5.21
+		 * it is a public method with a standard so_-prefix.
+		 * It was made public to allow creation of subscriptions
+		 * to agent from outside of agent.
+		 */
+		void
+		so_create_event_subscription(
+			//! Message's mbox.
+			const mbox_t & mbox_ref,
+			//! Message type.
+			std::type_index type_index,
+			//! State for event.
+			const state_t & target_state,
+			//! Event handler caller.
+			const event_handler_method_t & method,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety );
+
+		/*!
+		 * \brief Destroy event subscription.
+		 *
+		 * \note
+		 * This method was introduced in v.5.5.21 to allow manipulation
+		 * of agent's subscriptions from outside of an agent.
+		 *
+		 * \note
+		 * It is safe to try to destroy nonexistent subscription.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		void
+		so_destroy_event_subscription(
+			//! Message's mbox.
+			const mbox_t & mbox,
+			//! Message's type.
+			const std::type_index & subscription_type,
+			//! Target state of a subscription.
+			const state_t & target_state )
+			{
+				do_drop_subscription(
+						mbox,
+						subscription_type,
+						target_state );
+			}
 
 		/*!
 		 * \since
@@ -1318,6 +1544,10 @@ class SO_5_TYPE agent_t
 		 * for this message type with different method pointer.
 		 * The pointer to event routine is necessary only to
 		 * detect Msg type.
+		 *
+		 * \note
+		 * Since v.5.5.21 this method also drops the subscription
+		 * for a deadletter handler for that type of message/signal.
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -1346,6 +1576,13 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
+		 *
+		 * \note
+		 * Since v.5.5.21 this method also drops the subscription
+		 * for a deadletter handler for that type of signal.
+		 *
+		 * \deprecated Do not use methods which requires signal_indicator_t.
+		 * They will be removed in future versions of SObjectizer.
 		 */
 		template< class Message >
 		inline void
@@ -1366,6 +1603,10 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
+		 *
+		 * \note
+		 * Since v.5.5.21 this method also drops the subscription
+		 * for a deadletter handler for that type of message/signal.
 		 */
 		template< class Message >
 		inline void
@@ -1415,7 +1656,7 @@ class SO_5_TYPE agent_t
 			//! A mbox from which message/signal of type \a Message is expected.
 			const mbox_t & mbox,
 			//! A target state for the subscription.
-			const state_t & target_state ) const
+			const state_t & target_state ) const SO_5_NOEXCEPT
 		{
 			return do_check_subscription_presence(
 					mbox,
@@ -1459,7 +1700,7 @@ class SO_5_TYPE agent_t
 		bool
 		so_has_subscription(
 			//! A mbox from which message/signal of type \a Message is expected.
-			const mbox_t & mbox ) const
+			const mbox_t & mbox ) const SO_5_NOEXCEPT
 		{
 			return do_check_subscription_presence(
 					mbox,
@@ -1506,7 +1747,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			//! A target state for the subscription.
 			const state_t & target_state,
-			Method_Pointer /*pfn*/ ) const
+			Method_Pointer /*pfn*/ ) const SO_5_NOEXCEPT
 		{
 			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
 
@@ -1557,7 +1798,7 @@ class SO_5_TYPE agent_t
 		so_has_subscription(
 			//! A mbox from which message/signal is expected.
 			const mbox_t & mbox,
-			Method_Pointer /*pfn*/ ) const
+			Method_Pointer /*pfn*/ ) const SO_5_NOEXCEPT
 		{
 			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
 
@@ -1568,6 +1809,218 @@ class SO_5_TYPE agent_t
 			return this->so_has_subscription<message_type>(
 					mbox, so_default_state() );
 		}
+		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Methods for dealing with deadletter subscriptions.
+		 * \{
+		 */
+		/*!
+		 * \brief Create a subscription for a deadletter handler.
+		 *
+		 * \note
+		 * This is low-level method intended to be used by libraries writters.
+		 * Do not call it directly if you don't understand its purpose and
+		 * what its arguments mean. Use so_subscribe_deadletter_handler()
+		 * instead.
+		 *
+		 * This method actually creates a subscription to deadletter handler
+		 * for messages/signal of type \a msg_type from mbox \a mbox.
+		 *
+		 * \throw so_5::exception_t in the case when the subscription 
+		 * of a deadletter handler for type \a msg_type from \a mbox is
+		 * already exists.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		void
+		so_create_deadletter_subscription(
+			//! Message's mbox.
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type,
+			//! Event handler caller.
+			const event_handler_method_t & method,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety );
+
+		/*!
+		 * \brief Destroy a subscription for a deadletter handler.
+		 *
+		 * \note
+		 * This is low-level method intended to be used by libraries writters.
+		 * Do not call it directly if you don't understand its purpose and
+		 * what its arguments mean. Use so_drop_deadletter_handler() instead.
+		 *
+		 * This method actually destroys a subscription to deadletter handler
+		 * for messages/signal of type \a msg_type from mbox \a mbox.
+		 *
+		 * \note
+		 * It is safe to call this method if there is no such
+		 * deadletter handler. It will do nothing in such case.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		void
+		so_destroy_deadletter_subscription(
+			//! Message's mbox.
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type );
+
+		/*!
+		 * \brief Create a subscription for deadletter handler for
+		 * a specific message from a specific mbox.
+		 *
+		 * Type of a message for deadletter handler will be detected
+		 * automatically from the signature of the \a handler.
+		 *
+		 * A deadletter handler can be a pointer to method of agent or
+		 * lambda-function. The handler should have one of the following
+		 * format:
+		 * \code
+		 * ret_type deadletter_handler(message_type);
+		 * ret_type deadletter_handler(const message_type &);
+		 * ret_type deadletter_handler(mhood_t<message_type>);
+		 * \endcode
+		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_some_message(mhood_t<some_message> cmd) {...}
+		 * 	...
+		 * 	virtual void so_define_agent() override {
+		 * 		// Create deadletter handler via pointer to method.
+		 * 		// Event handler will be not-thread-safe.
+		 * 		so_subscribe_deadletter_handler(
+		 * 			so_direct_mbox(),
+		 * 			&demo::on_some_message );
+		 *
+		 * 		// Create deadletter handler via lambda-function.
+		 * 		so_subscribe_deadletter_handler(
+		 * 			status_mbox(), // Any mbox can be used, not only agent's direct mbox.
+		 * 			[](mhood_t<status_request>) -> std::string {
+		 * 				return "working";
+		 * 			},
+		 *				// This handler will be thread-safe one.
+		 *				so_5::thread_safe );
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \throw so_5::exception_t in the case when the subscription 
+		 * of a deadletter handler for type \a msg_type from \a mbox is
+		 * already exists.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		template< typename Event_Handler >
+		void
+		so_subscribe_deadletter_handler(
+			const so_5::mbox_t & mbox,
+			Event_Handler && handler,
+			thread_safety_t thread_safety = thread_safety_t::unsafe )
+			{
+				using namespace details::event_subscription_helpers;
+
+				const auto ev = preprocess_agent_event_handler(
+						mbox,
+						*this,
+						std::forward<Event_Handler>(handler) );
+
+				so_create_deadletter_subscription(
+						mbox,
+						ev.m_msg_type,
+						ev.m_handler,
+						thread_safety );
+			}
+
+		/*!
+		 * \brief Drops the subscription for deadletter handler.
+		 *
+		 * A message type must be specified explicitely via template
+		 * parameter.
+		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void some_deadletter_handler(mhood_t<some_message> cmd) {
+		 * 		... // Do some stuff.
+		 * 		// There is no need for deadletter handler.
+		 * 		so_drop_deadletter_handler<some_message>(some_mbox);
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * Is is safe to call this method if there is no a deadletter
+		 * handler for message of type \a Message from message box
+		 * \a mbox.
+		 *
+		 * \tparam Message Type of a message or signal for deadletter
+		 * handler.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		template< typename Message >
+		void
+		so_drop_deadletter_handler(
+			//! A mbox from which the message is expected.
+			const so_5::mbox_t & mbox )
+			{
+				so_destroy_deadletter_subscription(
+						mbox,
+						message_payload_type< Message >::subscription_type_index() );
+			}
+
+		/*!
+		 * \brief Checks the presence of deadletter handler for a message of
+		 * a specific type from a specific mbox.
+		 *
+		 * Message type must be specified explicitely via template
+		 * parameter \a Message.
+		 *
+		 * \return true if a deadletter for a message/signal of type
+		 * \a Message from message mbox \a mbox exists.
+		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_some_request(mhood_t<request_data> cmd) {
+		 * 		if(!so_has_deadletter_handler<some_message>(some_mbox))
+		 * 			// There is no deadletter handler yet.
+		 * 			// It should be created now.
+		 * 			so_subscribe_deadletter_handler(
+		 * 				some_mbox,
+		 * 				[this](mhood_t<some_message> cmd) {...});
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \tparam Message Type of a message or signal for deadletter
+		 * handler.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		template< typename Message >
+		bool
+		so_has_deadletter_handler(
+			//! A mbox from which the message is expected.
+			const so_5::mbox_t & mbox ) const SO_5_NOEXCEPT
+			{
+				return do_check_deadletter_presence(
+						mbox,
+						message_payload_type< Message >::subscription_type_index() );
+			}
 		/*!
 		 * \}
 		 */
@@ -2132,20 +2585,6 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 
-		//! Create binding between agent and mbox.
-		void
-		create_event_subscription(
-			//! Message's mbox.
-			const mbox_t & mbox_ref,
-			//! Message type.
-			std::type_index type_index,
-			//! State for event.
-			const state_t & target_state,
-			//! Event handler caller.
-			const event_handler_method_t & method,
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety );
-
 		/*!
 		 * \since
 		 * v.5.5.4
@@ -2202,10 +2641,24 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & msg_type,
 			//! State for the subscription.
-			const state_t & target_state ) const;
+			const state_t & target_state ) const SO_5_NOEXCEPT;
+
+		/*!
+		 * \brief Check the presence of a deadletter handler.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		bool
+		do_check_deadletter_presence(
+			//! Message's mbox.
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type ) const SO_5_NOEXCEPT;
 		/*!
 		 * \}
 		 */
+
 
 		/*!
 		 * \name Event handling implementation details.
@@ -2465,6 +2918,18 @@ class SO_5_TYPE agent_t
 			execution_demand_t & demand );
 
 		/*!
+		 * \brief Search for event handler between deadletter handlers.
+		 *
+		 * \return nullptr if event handler is not found.
+		 *
+		 * \since
+		 * v.5.5.21
+		 */
+		static const impl::event_handler_data_t *
+		find_deadletter_handler(
+			execution_demand_t & demand );
+
+		/*!
 		 * \since
 		 * v.5.5.15
 		 *
@@ -2628,15 +3093,7 @@ subscription_bind_t::event(
 {
 	using namespace details::event_subscription_helpers;
 
-	using agent_type =
-			typename details::is_agent_method_pointer<Method_Pointer>::agent_type;
-
-	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< agent_type >( *m_agent );
-
-	const auto ev = make_handler_with_arg_for_agent( cast_result, pfn );
-
-	ensure_handler_can_be_used_with_mbox( ev );
+	const auto ev = preprocess_agent_event_handler( m_mbox_ref, *m_agent, pfn );
 	create_subscription_for_states( 
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2686,9 +3143,13 @@ subscription_bind_t::event(
 	Lambda && lambda,
 	thread_safety_t thread_safety )
 {
-	const auto ev = handler( std::forward<Lambda>(lambda) );
+	using namespace details::event_subscription_helpers;
+	
+	const auto ev = preprocess_agent_event_handler(
+			m_mbox_ref,
+			*m_agent,
+			std::forward<Lambda>(lambda) );
 
-	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,
@@ -2797,7 +3258,7 @@ subscription_bind_t::create_subscription_for_states(
 {
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
-		m_agent->create_event_subscription(
+		m_agent->so_create_event_subscription(
 			m_mbox_ref,
 			msg_type,
 			m_agent->so_default_state(),
@@ -2805,7 +3266,7 @@ subscription_bind_t::create_subscription_for_states(
 			thread_safety );
 	else
 		for( auto s : m_states )
-			m_agent->create_event_subscription(
+			m_agent->so_create_event_subscription(
 					m_mbox_ref,
 					msg_type,
 					*s,
@@ -2817,12 +3278,9 @@ inline void
 subscription_bind_t::ensure_handler_can_be_used_with_mbox(
 	const so_5::details::msg_type_and_handler_pair_t & handler ) const
 {
-	if( message_mutability_t::mutable_message == handler.m_mutability &&
-			mbox_type_t::multi_producer_multi_consumer == m_mbox_ref->type() )
-		SO_5_THROW_EXCEPTION( rc_subscription_to_mutable_msg_from_mpmc_mbox,
-				std::string( "subscription to mutable message from MPMC mbox "
-						"is disabled, msg_type=" )
-				+ handler.m_msg_type.name() );
+	::so_5::details::event_subscription_helpers::ensure_handler_can_be_used_with_mbox(
+			handler,
+			m_mbox_ref );
 }
 
 /*

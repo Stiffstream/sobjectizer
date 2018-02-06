@@ -339,6 +339,9 @@ send_to_agent(
  * \since
  * v.5.5.1
  *
+ * \attention
+ * Value of \a pause should be non-negative.
+ *
  * \brief A utility function for creating and delivering a delayed message.
  */
 template< typename Message, typename... Args >
@@ -362,6 +365,9 @@ send_delayed(
  * to the specified destination.
  *
  * Agent, ad-hoc agent or mchain can be used as \a target.
+ *
+ * \attention
+ * Value of \a pause should be non-negative.
  *
  * \tparam Message type of message or signal to be sent.
  * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
@@ -397,6 +403,9 @@ send_delayed(
  * \brief A utility function for creating and delivering a delayed message.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \attention
+ * Value of \a pause should be non-negative.
  *
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -440,6 +449,9 @@ send_delayed(
 	};
  * \endcode
  *
+ * \attention
+ * Value of \a pause should be non-negative.
+ *
  * \since
  * v.5.5.19
  */
@@ -480,6 +492,9 @@ send_delayed(
 	};
  * \endcode
  *
+ * \attention
+ * Value of \a pause should be non-negative.
+ *
  * \since
  * v.5.5.19
  */
@@ -510,6 +525,9 @@ send_delayed(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \attention
+ * Value of \a pause should be non-negative.
  *
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -564,6 +582,9 @@ send_delayed_to_agent(
  * 	}
  * \endcode
  *
+ * \attention
+ * Value of \a pause should be non-negative.
+ *
  * \since
  * v.5.5.20
  */
@@ -595,6 +616,9 @@ send_delayed(
  *
  * Gets the Environment from the agent specified.
  *
+ * \attention
+ * Value of \a pause should be non-negative.
+ *
  * \deprecated Will be removed in v.5.6.0.
  */
 template< typename Message, typename... Args >
@@ -619,6 +643,9 @@ send_delayed_to_agent(
  * v.5.5.1
  *
  * \brief A utility function for creating and delivering a periodic message.
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
  */
 template< typename Message, typename... Args >
 SO_5_NODISCARD timer_id_t
@@ -645,6 +672,9 @@ send_periodic(
  * \brief A utility function for creating and delivering a periodic message.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
  *
  * \deprecated Will be removed in v.5.6.0.
  */
@@ -679,6 +709,9 @@ send_periodic(
  * \note
  * Message chains with overload control must be used for periodic messages
  * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
  *
  * \tparam Message type of message or signal to be sent.
  * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
@@ -742,6 +775,9 @@ send_periodic(
 	};
  * \endcode
  *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
+ *
  * \since
  * v.5.5.19
  */
@@ -787,6 +823,9 @@ send_periodic(
 		}
 	};
  * \endcode
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
  *
  * \since
  * v.5.5.19
@@ -850,6 +889,9 @@ send_periodic(
  * 	}
  * \endcode
  *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
+ *
  * \since
  * v.5.5.20
  */
@@ -884,6 +926,9 @@ send_periodic(
  *
  * Gets the Environment from the agent specified.
  *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
+ *
  * \deprecated Will be removed in v.5.6.0.
  */
 template< typename Message, typename... Args >
@@ -914,6 +959,9 @@ send_periodic_to_agent(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
  *
  * \deprecated Will be removed in v.5.6.0.
  */

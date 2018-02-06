@@ -2,6 +2,19 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_21 5.5.21 "Cerro de La Isla"
+
+	Deadletter handlers are introduced.
+	See \ref so_5_5_21__deadletter_handlers for more details.
+
+	Negative values of `pause` and `period` for so_5::send_delayed(),
+	so_5::send_periodic(), so_5::environment_t::schedule_timer() and
+	so_5::environment_t::single_timer() are now explicitely disabled.
+	Values of `pause` and `period` are checked at run-time and
+	an exception is thrown if a value is negative.
+	There are new error codes so_5::rc_negative_value_for_pause and
+	so_5::rc_negative_value_for_period for such cases.
+
 \section so_5__5_20_1 5.5.20.1 "Nevado Aguas Blancas"
 
 	Operator so_5::state_t::operator!=() added.

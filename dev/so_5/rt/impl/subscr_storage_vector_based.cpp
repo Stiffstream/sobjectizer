@@ -78,7 +78,7 @@ class storage_t : public subscription_storage_t
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
-			const state_t & current_state ) const override;
+			const state_t & current_state ) const SO_5_NOEXCEPT override;
 
 		void
 		debug_dump( std::ostream & to ) const override;
@@ -276,7 +276,7 @@ const event_handler_data_t *
 storage_t::find_handler(
 	mbox_id_t mbox_id,
 	const std::type_index & msg_type,
-	const state_t & current_state ) const
+	const state_t & current_state ) const SO_5_NOEXCEPT
 	{
 		auto it = find( m_events, mbox_id, msg_type, current_state );
 

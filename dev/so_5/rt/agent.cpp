@@ -328,6 +328,18 @@ namespace {
 const state_t awaiting_deregistration_state(
 		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
 
+/*!
+ * \since
+ * v.5.5.21
+ *
+ * \brief A special object to be used as state for make subscriptions
+ * for deadletter handlers.
+ *
+ * This object will be shared between all agents.
+ */
+const state_t deadletter_state(
+		nullptr, "<DEADLETTER_STATE>" );
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
@@ -837,7 +849,7 @@ agent_t::shutdown_agent() SO_5_NOEXCEPT
 }
 
 void
-agent_t::create_event_subscription(
+agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
 	std::type_index msg_type,
 	const state_t & target_state,
@@ -848,7 +860,7 @@ agent_t::create_event_subscription(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	ensure_operation_is_on_working_thread( "create_event_subscription" );
+	ensure_operation_is_on_working_thread( "so_create_event_subscription" );
 
 	m_subscriptions->create_event_subscription(
 			mbox_ref,
@@ -857,6 +869,38 @@ agent_t::create_event_subscription(
 			target_state,
 			method,
 			thread_safety );
+}
+
+void
+agent_t::so_create_deadletter_subscription(
+	const mbox_t & mbox,
+	const std::type_index & msg_type,
+	const event_handler_method_t & method,
+	thread_safety_t thread_safety )
+{
+	ensure_operation_is_on_working_thread( "so_create_deadletter_subscription" );
+
+	m_subscriptions->create_event_subscription(
+			mbox,
+			msg_type,
+			detect_limit_for_message_type( msg_type ),
+			deadletter_state,
+			method,
+			thread_safety );
+}
+
+void
+agent_t::so_destroy_deadletter_subscription(
+	const mbox_t & mbox,
+	const std::type_index & msg_type )
+{
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
+
+	ensure_operation_is_on_working_thread( "do_drop_deadletter_handler" );
+
+	m_subscriptions->drop_subscription( mbox, msg_type, deadletter_state );
 }
 
 const message_limit::control_block_t *
@@ -885,11 +929,11 @@ agent_t::do_drop_subscription(
 	const std::type_index & msg_type,
 	const state_t & target_state )
 {
-	ensure_operation_is_on_working_thread( "do_drop_subscription" );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
+
+	ensure_operation_is_on_working_thread( "do_drop_subscription" );
 
 	m_subscriptions->drop_subscription( mbox, msg_type, target_state );
 }
@@ -913,10 +957,19 @@ bool
 agent_t::do_check_subscription_presence(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state ) const
+	const state_t & target_state ) const SO_5_NOEXCEPT
 {
 	return nullptr != m_subscriptions->find_handler(
 			mbox->id(), msg_type, target_state );
+}
+
+bool
+agent_t::do_check_deadletter_presence(
+	const mbox_t & mbox,
+	const std::type_index & msg_type ) const SO_5_NOEXCEPT
+{
+	return nullptr != m_subscriptions->find_handler(
+			mbox->id(), msg_type, deadletter_state );
 }
 
 void
@@ -1131,7 +1184,9 @@ agent_t::process_service_request(
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "
-								"the current agent state" );
+								"the current agent state; state: " +
+						d.m_receiver->so_current_state().query_name() +
+						", msg_type: " + d.m_msg_type.name() );
 		} );
 }
 
@@ -1198,7 +1253,12 @@ agent_t::handler_finder_msg_tracing_disabled(
 	execution_demand_t & d,
 	const char * /*context_marker*/ )
 {
-	return find_event_handler_for_current_state( d );
+	auto search_result = find_event_handler_for_current_state( d );
+	if( !search_result )
+		// Since v.5.5.21 we should check for deadletter handler for that demand.
+		search_result = find_deadletter_handler( d );
+
+	return search_result;
 }
 
 const impl::event_handler_data_t *
@@ -1206,8 +1266,27 @@ agent_t::handler_finder_msg_tracing_enabled(
 	execution_demand_t & d,
 	const char * context_marker )
 {
-	const auto search_result = find_event_handler_for_current_state( d );
+	auto search_result = find_event_handler_for_current_state( d );
 
+	if( !search_result )
+	{
+		// Since v.5.5.21 we should check for deadletter handler for that demand.
+		search_result = find_deadletter_handler( d );
+
+		if( search_result )
+		{
+			// Deadletter handler found. This must be reflected in trace.
+			impl::msg_tracing_helpers::trace_deadletter_handler_search_result(
+					d,
+					context_marker,
+					search_result );
+
+			return search_result;
+		}
+	}
+
+	// This trace will be made if an event_handler is found for the
+	// current state or not found at all (including deadletter handlers).
 	impl::msg_tracing_helpers::trace_event_handler_search_result(
 			d,
 			context_marker,
@@ -1235,6 +1314,16 @@ agent_t::find_event_handler_for_current_state(
 	} while( search_result == nullptr && s != nullptr );
 
 	return search_result;
+}
+
+const impl::event_handler_data_t *
+agent_t::find_deadletter_handler(
+	execution_demand_t & demand )
+{
+	return demand.m_receiver->m_subscriptions->find_handler(
+			demand.m_mbox_id,
+			demand.m_msg_type,
+			deadletter_state );
 }
 
 void

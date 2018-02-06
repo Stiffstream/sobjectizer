@@ -70,3 +70,5 @@ add_subdirectory(modify_resend_as_immutable)
 add_subdirectory(two_handlers)
 
 add_subdirectory(stop_guard)
+
+add_subdirectory(deadletter_handler)

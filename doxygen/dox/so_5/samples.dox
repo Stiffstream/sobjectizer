@@ -232,6 +232,7 @@
  * \example so_5/modify_resend_as_immutable/main.cpp
  * \example so_5/two_handlers/main.cpp
  * \example so_5/stop_guard/main.cpp
+ * \example so_5/deadletter_handler/main.cpp
  */
 
 // vim:ft=cpp.doxygen

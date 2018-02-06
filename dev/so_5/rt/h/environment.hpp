@@ -1192,6 +1192,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule timer event.
 		/*!
+		 * \attention
+		 * Values of \a pause and \a period should be non-negative.
+		 *
 		 * \since
 		 * v.5.5.19
 		 */
@@ -1229,6 +1232,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule timer event.
 		/*!
+		 * \attention
+		 * Values of \a pause and \a period should be non-negative.
+		 *
 		 * \since
 		 * v.5.5.0
 		 */
@@ -1293,6 +1299,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule a timer event for a signal.
 		/*!
+		 * \attention
+		 * Values of \a pause and \a period should be non-negative.
+		 *
 		 * \since
 		 * v.5.5.0
 		 */
@@ -1351,6 +1360,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule a single shot timer event.
 		/*!
+		 * \attention
+		 * Value of \a pause should be non-negative.
+		 *
 		 * \since
 		 * v.5.5.0
 		 */
@@ -1760,6 +1772,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule timer event.
 		/*!
+		 * \attention
+		 * Values of \a pause and \a period should be non-negative.
+		 *
 		 * \note
 		 * Before v.5.5.19 this method was private.
 		 */
@@ -1782,6 +1797,9 @@ class SO_5_TYPE environment_t
 
 		//! Schedule a single shot timer event.
 		/*!
+		 * \attention
+		 * Value of \a pause should be non-negative.
+		 *
 		 * \note
 		 * Before v.5.5.19 this method was private.
 		 */
