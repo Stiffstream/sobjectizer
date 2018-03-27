@@ -24,6 +24,7 @@
 
 #include <so_5/h/atomic_refcounted.hpp>
 #include <so_5/h/msg_tracing.hpp>
+#include <so_5/h/outliving.hpp>
 
 #include <so_5/h/custom_mbox.hpp>
 
@@ -71,9 +72,8 @@ class mbox_core_t
 
 	public:
 		mbox_core_t(
-			//! Optional tracer for message delivery tracing.
-			//! Value nullptr means that message delivery tracing is disabled.
-			so_5::msg_tracing::tracer_t * tracer );
+			//! Message delivery tracing stuff.
+			outliving_reference_t< so_5::msg_tracing::holder_t > msg_tracing_stuff );
 		virtual ~mbox_core_t();
 
 		//! Create local anonymous mbox.
@@ -156,14 +156,12 @@ class mbox_core_t
 
 	private:
 		/*!
+		 * \brief Data related to message delivery tracing.
+		 *
 		 * \since
-		 * v.5.5.9
-		 *
-		 * \brief Optional tracer for message delivery tracing.
-		 *
-		 * \note Value nullptr means that message delivery tracing is disabled.
+		 * v.5.5.22
 		 */
-		so_5::msg_tracing::tracer_t * const m_tracer;
+		outliving_reference_t< so_5::msg_tracing::holder_t > m_msg_tracing_stuff;
 
 		//! Named mbox map's lock.
 		std::mutex m_dictionary_lock;

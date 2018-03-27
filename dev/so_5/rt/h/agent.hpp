@@ -1391,6 +1391,29 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Drop subscription for the state specified.
 		 *
+		 * This overload is indended to be used when there is an event-handler in
+		 * the form of agent's method. And there is a need to unsubscribe this
+		 * event handler.
+		 * For example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_some_event(mhood_t<some_msg> cmd) {
+		 * 		if(cmd->some_condition)
+		 * 			// New subscription must be created.
+		 * 			so_subscribe(some_mbox).in(some_state)
+		 * 				.event(&demo::one_shot_message_handler);
+		 * 		...
+		 * 	}
+		 *
+		 * 	void one_shot_message_handler(mhood_t<another_msg> cmd) {
+		 * 		... // Some actions.
+		 * 		// Subscription is no more needed.
+		 * 		so_drop_subscription(some_mbox, some_state,
+		 * 			&demo::one_shot_message_handler);
+		 * 	}
+		 * };
+		 * \endcode
+		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 *
 		 * \note Subscription is removed even if agent was subscribed
@@ -1425,6 +1448,9 @@ class SO_5_TYPE agent_t
 		 * \brief Drop subscription for the state specified.
 		 *
 		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \deprecated Will be removed in v.5.6.0
+		 * Do not use methods which accepts signal_indicator_t.
 		 */
 		template< class Message >
 		inline void
@@ -1445,6 +1471,24 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Drop subscription for the state specified.
 		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_turn_listening_on(mhood_t<turn_on> cmd) {
+		 * 		// New subscription must be created.
+		 * 		so_subscribe(cmd->listeting_mbox()).in(some_state)
+		 * 			.event([this](mhood_t<state_change_notify> cmd) {...});
+		 * 		...
+		 * 	}
+		 *
+		 * 	void on_turn_listening_off(mhood_t<turn_off> cmd) {
+		 * 		// Subscription is no more needed.
+		 * 		so_drop_subscription<state_change_notify>(cmd->listening_mbox(), some_state);
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
 		template< class Message >
@@ -1464,6 +1508,29 @@ class SO_5_TYPE agent_t
 		 * v.5.2.3
 		 *
 		 * \brief Drop subscription for the default agent state.
+		 *
+		 * This overload is indended to be used when there is an event-handler in
+		 * the form of agent's method. And there is a need to unsubscribe this
+		 * event handler.
+		 * For example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_some_event(mhood_t<some_msg> cmd) {
+		 * 		if(cmd->some_condition)
+		 * 			// New subscription must be created.
+		 * 			so_subscribe(some_mbox)
+		 * 				.event(&demo::one_shot_message_handler);
+		 * 		...
+		 * 	}
+		 *
+		 * 	void one_shot_message_handler(mhood_t<another_msg> cmd) {
+		 * 		... // Some actions.
+		 * 		// Subscription is no more needed.
+		 * 		so_drop_subscription(some_mbox,
+		 * 			&demo::one_shot_message_handler);
+		 * 	}
+		 * };
+		 * \endcode
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 *
@@ -1499,6 +1566,9 @@ class SO_5_TYPE agent_t
 		 * \brief Drop subscription for the default agent state.
 		 *
 		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \deprecated Will be removed in v.5.6.0
+		 * Do not use methods which accepts signal_indicator_t.
 		 */
 		template< class Message >
 		inline void
@@ -1518,6 +1588,24 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Drop subscription for the default agent state.
 		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	void on_turn_listening_on(mhood_t<turn_on> cmd) {
+		 * 		// New subscription must be created.
+		 * 		so_subscribe(cmd->listening_mbox())
+		 * 			.event([this](mhood_t<state_change_notify> cmd) {...});
+		 * 		...
+		 * 	}
+		 *
+		 * 	void on_turn_listening_off(mhood_t<turn_off> cmd) {
+		 * 		// Subscription is no more needed.
+		 * 		so_drop_subscription<state_change_notify>(cmd->listening_mbox());
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
 		template< class Message >
@@ -1536,6 +1624,35 @@ class SO_5_TYPE agent_t
 		 * v.5.2.3
 		 *
 		 * \brief Drop subscription for all states.
+		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	state_t st_working{this}, st_waiting{this}, st_stopping{this};
+		 * 	...
+		 * 	void on_turn_listening_on(mhood_t<turn_on> cmd) {
+		 * 		// Make subscriptions for message of type state_change_notify.
+		 * 		st_working.event(cmd->listening_mbox(),
+		 * 				&demo::on_state_notify_when_working);
+		 * 		st_waiting.event(cmd->listening_mbox(),
+		 * 				&demo::on_state_notify_when_waiting);
+		 * 		st_waiting.event(cmd->listening_mbox(),
+		 * 				&demo::on_state_notify_when_stopping);
+		 * 		...
+		 * 	}
+		 * 	void on_turn_listening_off(mhood_t<turn_off> cmd) {
+		 * 		// Subscriptions are no more needed.
+		 * 		// All three event handlers for state_change_notify
+		 * 		// will be unsubscribed.
+		 * 		so_drop_subscription_for_all_states(cmd->listening_mbox(),
+		 * 				&demo::on_state_notify_when_working);
+		 * 	}
+		 * 	...
+		 *		void on_state_notify_when_working(mhood_t<state_change_notify> cmd) {...}
+		 *		void on_state_notify_when_waiting(mhood_t<state_change_notify> cmd) {...}
+		 *		void on_state_notify_when_stopping(mhood_t<state_change_notify> cmd) {...}
+		 * };
+		 * \endcode
 		 *
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
@@ -1601,6 +1718,30 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Drop subscription for all states.
 		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * 	state_t st_working{this}, st_waiting{this}, st_stopping{this};
+		 * 	...
+		 * 	void on_turn_listening_on(mhood_t<turn_on> cmd) {
+		 * 		// Make subscriptions for message of type state_change_notify.
+		 * 		st_working.event(cmd->listening_mbox(),
+		 * 				[this](mhood_t<state_change_notify> cmd) {...});
+		 * 		st_waiting.event(cmd->listening_mbox(),
+		 * 				[this](mhood_t<state_change_notify> cmd) {...});
+		 * 		st_waiting.event(cmd->listening_mbox(),
+		 * 				[this](mhood_t<state_change_notify> cmd) {...});
+		 * 		...
+		 * 	}
+		 * 	void on_turn_listening_off(mhood_t<turn_off> cmd) {
+		 * 		// Subscriptions are no more needed.
+		 * 		// All three event handlers for state_change_notify
+		 * 		// will be unsubscribed.
+		 * 		so_drop_subscription_for_all_states<state_change_notify>(cmd->listening_mbox());
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
 		 * \note Doesn't throw if there is no any subscription for
 		 * that mbox and message type.
 		 *

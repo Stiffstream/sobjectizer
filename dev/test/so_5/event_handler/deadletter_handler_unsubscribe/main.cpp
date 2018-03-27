@@ -7,46 +7,18 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 #include <various_helpers_1/ensure.hpp>
 
-class direct_mbox_case_t
-{
-	const so_5::agent_t & m_owner;
-public :
-	direct_mbox_case_t(
-		so_5::environment_t & /*env*/,
-		const so_5::agent_t & owner )
-		:	m_owner(owner)
-	{}
-
-	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_owner.so_direct_mbox(); }
-};
-
-class mpmc_mbox_case_t
-{
-	const so_5::mbox_t m_mbox;
-public:
-	mpmc_mbox_case_t(
-		so_5::environment_t & env,
-		const so_5::agent_t & /*owner*/ )
-		:	m_mbox( env.create_mbox() )
-	{}
-
-	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_mbox; }
-};
+#include "../deadletter_handler_common.hpp"
 
 class test_message final : public so_5::message_t {};
 
 class test_signal final : public so_5::signal_t {};
 
-class next_step final : public so_5::signal_t {};
 class finish final : public so_5::signal_t {};
 
 class nontemplate_basic_part_t : public so_5::agent_t
 {
 protected:
 	state_t st_test{ this, "test" };
-	state_t st_test_passed{ this, "test_passed" };
 
 	int m_deadletters{ 0 };
 
@@ -55,11 +27,13 @@ protected:
 	{
 		ensure_or_die( 0 == m_deadletters, "m_deadletters must be 0" );
 		++m_deadletters;
-		this >>= st_test_passed;
+
+		do_next_step();
+		so_5::send<finish>(*this);
 	}
 
 	virtual void
-	on_next_step( mhood_t<next_step> ) = 0;
+	do_next_step() = 0;
 
 public:
 	nontemplate_basic_part_t( context_t ctx )
@@ -71,17 +45,9 @@ public:
 	{
 		this >>= st_test;
 
-		st_test_passed
-				.on_enter( [this]{ so_5::send< next_step >( *this ); } )
-				.event( &nontemplate_basic_part_t::on_finish )
-				.event( &nontemplate_basic_part_t::on_next_step );
-	}
-
-private:
-	void
-	on_finish( mhood_t<finish> )
-	{
-		so_deregister_agent_coop_normally();
+		st_test.event( [this](mhood_t<finish>) {
+				so_deregister_agent_coop_normally();
+			} );
 	}
 };
 
@@ -92,18 +58,17 @@ protected:
 	const Mbox_Case m_mbox_holder;
 
 	virtual void
-	on_next_step( mhood_t< next_step > ) override
+	do_next_step() override
 	{
 		so_drop_deadletter_handler< Msg_Type >( m_mbox_holder.mbox() );
 
 		so_5::send< Msg_Type >( *this );
-		so_5::send< finish >( *this );
 	}
 
 public:
 	template_basic_part_t( context_t ctx )
 		:	nontemplate_basic_part_t( std::move(ctx) )
-		,	m_mbox_holder( so_environment(), *self_ptr() )
+		,	m_mbox_holder( *self_ptr() )
 	{}
 
 	virtual void
@@ -159,18 +124,6 @@ public:
 				} );
 	}
 };
-
-template<
-	typename Mbox_Case,
-	typename Msg_Type,
-	template <class, class> class Test_Agent >
-void
-introduce_test_agent( so_5::environment_t & env )
-{
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-			coop.make_agent< Test_Agent<Mbox_Case, Msg_Type> >();
-		} );
-}
 
 int
 main()

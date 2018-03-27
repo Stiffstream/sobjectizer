@@ -38,6 +38,84 @@ namespace details {
 
 using namespace so_5::details::ios_helpers;
 
+//
+// actual_trace_data_t
+//
+/*!
+ * \brief An actual implementation of trace data interface.
+ *
+ * \since
+ * v.5.5.22
+ */
+class actual_trace_data_t : public so_5::msg_tracing::trace_data_t
+	{
+	public :
+		actual_trace_data_t();
+		~actual_trace_data_t() override;
+
+		virtual optional<current_thread_id_t>
+		tid() const SO_5_NOEXCEPT override;
+
+		virtual optional<const agent_t *>
+		agent() const SO_5_NOEXCEPT override;
+
+		virtual optional<std::type_index>
+		msg_type() const SO_5_NOEXCEPT override;
+
+		virtual optional<so_5::msg_tracing::msg_source_t>
+		msg_source() const SO_5_NOEXCEPT override;
+
+		virtual optional<so_5::msg_tracing::message_or_signal_flag_t>
+		message_or_signal() const SO_5_NOEXCEPT override;
+
+		virtual optional<so_5::msg_tracing::message_instance_info_t>
+		message_instance_info() const SO_5_NOEXCEPT override;
+
+		virtual optional<so_5::msg_tracing::compound_action_description_t>
+		compound_action() const SO_5_NOEXCEPT override;
+
+		virtual optional<const so_5::impl::event_handler_data_t *>
+		event_handler_data_ptr() const SO_5_NOEXCEPT override;
+
+		void
+		set_tid( current_thread_id_t tid ) SO_5_NOEXCEPT;
+
+		void
+		set_agent( const agent_t * agent ) SO_5_NOEXCEPT;
+
+		void
+		set_msg_type( const std::type_index & msg_type ) SO_5_NOEXCEPT;
+
+		void
+		set_msg_source( so_5::msg_tracing::msg_source_t info ) SO_5_NOEXCEPT;
+
+		void
+		set_message_or_signal(
+			so_5::msg_tracing::message_or_signal_flag_t flag ) SO_5_NOEXCEPT;
+
+		void
+		set_message_instance_info(
+			so_5::msg_tracing::message_instance_info_t info ) SO_5_NOEXCEPT;
+
+		void
+		set_compound_action(
+			so_5::msg_tracing::compound_action_description_t desc ) SO_5_NOEXCEPT;
+
+		void
+		set_event_handler_data_ptr(
+			const so_5::impl::event_handler_data_t * ptr ) SO_5_NOEXCEPT;
+
+	private :
+		optional<current_thread_id_t> m_tid;
+		optional<const agent_t *> m_agent;
+		optional<std::type_index> m_msg_type;
+		optional<so_5::msg_tracing::msg_source_t> m_msg_source;
+		optional<so_5::msg_tracing::message_or_signal_flag_t> m_message_or_signal;
+		optional<so_5::msg_tracing::message_instance_info_t> m_message_instance_info;
+		optional<so_5::msg_tracing::compound_action_description_t> m_compound_action;
+		optional<const so_5::impl::event_handler_data_t *> m_event_handler_data_ptr;
+	};
+
 struct overlimit_deep
 	{
 		unsigned int m_deep;
@@ -49,6 +127,21 @@ struct overlimit_deep
 struct mbox_identification
 	{
 		mbox_id_t m_id;
+	};
+
+struct mbox_as_msg_source
+	{
+		const abstract_message_box_t & m_mbox;
+	};
+
+struct mbox_as_msg_destination
+	{
+		const abstract_message_box_t & m_mbox;
+	};
+
+struct mchain_as_msg_source
+	{
+		const abstract_message_chain_t & m_mchain;
 	};
 
 struct mchain_identification
@@ -72,11 +165,48 @@ struct chain_size
 		std::size_t m_size;
 	};
 
+struct original_msg_type
+	{
+		const std::type_index & m_type;
+	};
+
+struct type_of_removed_msg
+	{
+		const std::type_index & m_type;
+	};
+
+struct type_of_transformed_msg
+	{
+		const std::type_index & m_type;
+	};
+
+inline void
+make_trace_to_1( std::ostream & s, current_thread_id_t tid )
+	{
+		s << "[tid=" << tid << "]";
+	}
+
+inline void
+fill_trace_data_1( actual_trace_data_t & d, current_thread_id_t tid )
+	{
+		d.set_tid( tid );
+	}
+
 inline void
 make_trace_to_1( std::ostream & s, mbox_identification id )
 	{
 		s << "[mbox_id=" << id.m_id << "]";
 	}
+
+inline void
+fill_trace_data_1( actual_trace_data_t & d, mbox_identification id )
+	{
+		d.set_msg_source(
+				so_5::msg_tracing::msg_source_t{
+						id.m_id,
+						so_5::msg_tracing::msg_source_type_t::unknown } );
+	}
+
 
 inline void
 make_trace_to_1( std::ostream & s, mchain_identification id )
@@ -85,9 +215,47 @@ make_trace_to_1( std::ostream & s, mchain_identification id )
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const abstract_message_box_t & mbox )
+fill_trace_data_1( actual_trace_data_t & d, mchain_identification id )
 	{
-		make_trace_to_1( s, mbox_identification{ mbox.id() } );
+		d.set_msg_source(
+				so_5::msg_tracing::msg_source_t{
+						id.m_id,
+						so_5::msg_tracing::msg_source_type_t::mchain } );
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	const mbox_as_msg_source mbox )
+	{
+		make_trace_to_1( s, mbox_identification{ mbox.m_mbox.id() } );
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const mbox_as_msg_source & mbox )
+	{
+		d.set_msg_source(
+				so_5::msg_tracing::msg_source_t{
+						mbox.m_mbox.id(),
+						so_5::msg_tracing::msg_source_type_t::mbox } );
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	const mbox_as_msg_destination mbox )
+	{
+		make_trace_to_1( s, mbox_identification{ mbox.m_mbox.id() } );
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const mbox_as_msg_destination & /*mbox*/ )
+	{
+		// Just for compilation.
 	}
 
 inline void
@@ -97,9 +265,59 @@ make_trace_to_1( std::ostream & s, const abstract_message_chain_t & chain )
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const std::type_index & msg_type )
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const abstract_message_chain_t & chain )
 	{
-		s << "[msg_type=" << msg_type.name() << "]";
+		fill_trace_data_1( d, mchain_identification{ chain.id() } );
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	const original_msg_type msg_type )
+	{
+		s << "[msg_type=" << msg_type.m_type.name() << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const original_msg_type msg_type )
+	{
+		d.set_msg_type( msg_type.m_type );
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	const type_of_removed_msg msg_type )
+	{
+		s << "removed:[msg_type=" << msg_type.m_type.name() << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const type_of_removed_msg /*msg_type*/ )
+	{
+		// Just for compilation.
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	const type_of_transformed_msg msg_type )
+	{
+		s << "[msg_type=" << msg_type.m_type.name() << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const type_of_transformed_msg /*msg_type*/ )
+	{
+		// Just for compilation.
 	}
 
 inline void
@@ -109,9 +327,23 @@ make_trace_to_1( std::ostream & s, const agent_t * agent )
 	}
 
 inline void
+fill_trace_data_1( actual_trace_data_t & d, const agent_t * agent )
+	{
+		d.set_agent( agent );
+	}
+
+inline void
 make_trace_to_1( std::ostream & s, const state_t * state )
 	{
 		s << "[state=" << state->query_name() << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const state_t * /*state*/ )
+	{
+		// Just for compilation.
 	}
 
 inline void
@@ -126,6 +358,14 @@ make_trace_to_1( std::ostream & s, const event_handler_data_t * handler )
 	}
 
 inline void
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const event_handler_data_t * handler )
+	{
+		d.set_event_handler_data_ptr( handler );
+	}
+
+inline void
 make_trace_to_1(
 	std::ostream & s,
 	const so_5::message_limit::control_block_t * limit )
@@ -134,35 +374,44 @@ make_trace_to_1(
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const message_ref_t & message )
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const so_5::message_limit::control_block_t * /*limit*/ )
+	{
+		// Just for compilation.
+	}
+
+inline std::tuple<const void *, const void *>
+detect_message_pointers( const message_ref_t & message )
 	{
 		// The first pointer is a pointer to envelope.
 		// The second pointer is a pointer to payload.
 		using msg_pointers = std::tuple< const void *, const void * >;
+		if( const message_t * envelope = message.get() )
+			{
+				// We can try cases with service requests and user-type messages.
+				const void * payload =
+						internal_message_iface_t{ *envelope }.payload_ptr();
 
-		auto detect_pointers = [&message]() -> msg_pointers {
-			if( const message_t * envelope = message.get() )
-				{
-					// We can try cases with service requests and user-type messages.
-					const void * payload =
-							internal_message_iface_t{ *envelope }.payload_ptr();
+				if( payload != envelope )
+					// There are an envelope and payload inside it.
+					return msg_pointers{ envelope, payload };
+				else
+					// There is only payload.
+					return msg_pointers{ nullptr, envelope };
+			}
+		else
+			// It is a signal there is nothing.
+			return msg_pointers{ nullptr, nullptr };
+	}
 
-					if( payload != envelope )
-						// There are an envelope and payload inside it.
-						return msg_pointers{ envelope, payload };
-					else
-						// There is only payload.
-						return msg_pointers{ nullptr, envelope };
-				}
-			else
-				// It is a signal there is nothing.
-				return msg_pointers{ nullptr, nullptr };
-		};
-
+inline void
+make_trace_to_1( std::ostream & s, const message_ref_t & message )
+	{
 		const void * envelope = nullptr;
 		const void * payload = nullptr;
 
-		std::tie(envelope,payload) = detect_pointers();
+		std::tie(envelope,payload) = detect_message_pointers(message);
 
 		if( envelope )
 			s << "[envelope_ptr=" << pointer{envelope} << "]";
@@ -175,9 +424,47 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	}
 
 inline void
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const message_ref_t & message )
+	{
+		const void * envelope = nullptr;
+		const void * payload = nullptr;
+
+		std::tie(envelope,payload) = detect_message_pointers(message);
+
+		if( !envelope && !payload )
+			{
+				// This is a signal.
+				d.set_message_or_signal(
+						so_5::msg_tracing::message_or_signal_flag_t::signal );
+			}
+		else
+			{
+				// This is a message.
+				d.set_message_or_signal(
+						so_5::msg_tracing::message_or_signal_flag_t::message );
+
+				d.set_message_instance_info(
+						so_5::msg_tracing::message_instance_info_t{
+								envelope,
+								payload,
+								message_mutability(message) } );
+			}
+	}
+
+inline void
 make_trace_to_1( std::ostream & s, const overlimit_deep limit )
 	{
 		s << "[overlimit_deep=" << limit.m_deep << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const overlimit_deep /*limit*/ )
+	{
+		// Just for compilation.
 	}
 
 inline void
@@ -187,9 +474,27 @@ make_trace_to_1( std::ostream & s, const composed_action_name name )
 	}
 
 inline void
+fill_trace_data_1(
+	actual_trace_data_t & d,
+	const composed_action_name name )
+	{
+		d.set_compound_action(
+				so_5::msg_tracing::compound_action_description_t{
+						name.m_1, name.m_2 } );
+	}
+
+inline void
 make_trace_to_1( std::ostream & s, const text_separator text )
 	{
 		s << " " << text.m_text << " ";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	const text_separator /*text*/ )
+	{
+		// Just for compilation.
 	}
 
 inline void
@@ -199,7 +504,18 @@ make_trace_to_1( std::ostream & s, chain_size size )
 	}
 
 inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	chain_size /*size*/ )
+	{
+		// Just for compilation.
+	}
+
+inline void
 make_trace_to( std::ostream & ) {}
+
+inline void
+fill_trace_data( actual_trace_data_t & ) {}
 
 template< typename A, typename... Other >
 void
@@ -209,22 +525,46 @@ make_trace_to( std::ostream & s, A && a, Other &&... other )
 		make_trace_to( s, std::forward< Other >(other)... );
 	}
 
+template< typename A, typename... Other >
+void
+fill_trace_data( actual_trace_data_t & d, A && a, Other &&... other )
+	{
+		fill_trace_data_1( d, std::forward< A >(a) );
+		fill_trace_data( d, std::forward< Other >(other)... );
+	}
+
 template< typename... Args >
 void
 make_trace(
-	so_5::msg_tracing::tracer_t & tracer,
+	so_5::msg_tracing::holder_t & msg_tracing_stuff,
 	Args &&... args ) SO_5_NOEXCEPT
 	{
 #if !defined( SO_5_HAVE_NOEXCEPT )
 		so_5::details::invoke_noexcept_code( [&] {
 #endif
-				std::ostringstream s;
+				const auto tid = query_current_thread_id();
 
-				s << "[tid=" << query_current_thread_id() << "]";
+				// Since v.5.5.22 we should check the presence of filter.
+				// If filter is present then we should pass a trace via filter.
+				auto filter = msg_tracing_stuff.take_filter();
+				bool need_trace = true;
+				if( filter )
+					{
+						actual_trace_data_t data;
+						fill_trace_data( data, tid, std::forward<Args>(args)... );
 
-				make_trace_to( s, std::forward< Args >(args)... );
+						need_trace = filter->filter( data );
+					}
 
-				tracer.trace( s.str() );
+				if( need_trace )
+					{
+						// Trace message should go to the tracer.
+						std::ostringstream s;
+
+						make_trace_to( s, tid, std::forward< Args >(args)... );
+
+						msg_tracing_stuff.tracer().trace( s.str() );
+					}
 #if !defined( SO_5_HAVE_NOEXCEPT )
 			} );
 #endif
@@ -293,14 +633,14 @@ struct tracing_disabled_base
 class tracing_enabled_base
 	{
 	private :
-		so_5::msg_tracing::tracer_t & m_tracer;
+		so_5::msg_tracing::holder_t & m_tracer;
 
 	public :
-		tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
+		tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
 			:	m_tracer( tracer )
 			{}
 
-		so_5::msg_tracing::tracer_t &
+		so_5::msg_tracing::holder_t &
 		tracer() const
 			{
 				return m_tracer;
@@ -315,7 +655,7 @@ class tracing_enabled_base
 			:	protected so_5::message_limit::impl::action_msg_tracer_t
 			{
 			private :
-				so_5::msg_tracing::tracer_t & m_tracer;
+				so_5::msg_tracing::holder_t & m_tracer;
 				const abstract_message_box_t & m_mbox;
 				const char * m_op_name;
 				const std::type_index & m_msg_type;
@@ -348,10 +688,10 @@ class tracing_enabled_base
 					{
 						details::make_trace(
 								m_tracer,
-								m_mbox,
+								details::mbox_as_msg_source{ m_mbox },
 								details::composed_action_name{
 										m_op_name, action_name_suffix },
-								m_msg_type,
+								details::original_msg_type{ m_msg_type },
 								m_message,
 								m_overlimit_deep,
 								std::forward< Args >(args)... );
@@ -408,7 +748,7 @@ class tracing_enabled_base
 								"overlimit.redirect",
 								subscriber,
 								details::text_separator{ "==>" },
-								*target );
+								details::mbox_as_msg_destination{ *target } );
 					}
 
 				virtual void
@@ -422,8 +762,8 @@ class tracing_enabled_base
 								"overlimit.transform",
 								subscriber,
 								details::text_separator{ "==>" },
-								*target,
-								msg_type,
+								details::mbox_as_msg_destination{ *target },
+								details::type_of_transformed_msg{ msg_type },
 								transformed );
 					}
 			};
@@ -447,11 +787,11 @@ trace_event_handler_search_result(
 	const event_handler_data_t * search_result )
 	{
 		details::make_trace(
-			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracer(),
+			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracing_stuff(),
 			demand.m_receiver,
 			details::composed_action_name{ context_marker, "find_handler" },
 			details::mbox_identification{ demand.m_mbox_id },
-			demand.m_msg_type,
+			details::original_msg_type{ demand.m_msg_type },
 			demand.m_message_ref,
 			&(demand.m_receiver->so_current_state()),
 			search_result );
@@ -470,11 +810,11 @@ trace_deadletter_handler_search_result(
 	const event_handler_data_t * search_result )
 	{
 		details::make_trace(
-			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracer(),
+			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracing_stuff(),
 			demand.m_receiver,
 			details::composed_action_name{ context_marker, "deadletter_handler" },
 			details::mbox_identification{ demand.m_mbox_id },
-			demand.m_msg_type,
+			details::original_msg_type{ demand.m_msg_type },
 			demand.m_message_ref,
 			&(demand.m_receiver->so_current_state()),
 			search_result );
@@ -498,7 +838,7 @@ safe_trace_state_leaving(
 
 	if( env.is_msg_tracing_enabled() )
 		details::make_trace(
-				env.msg_tracer(),
+				env.msg_tracing_stuff(),
 				&state_owner,
 				details::composed_action_name{ "state", "leaving" },
 				&state );
@@ -522,7 +862,7 @@ safe_trace_state_entering(
 
 	if( env.is_msg_tracing_enabled() )
 		details::make_trace(
-				env.msg_tracer(),
+				env.msg_tracing_stuff(),
 				&state_owner,
 				details::composed_action_name{ "state", "entering" },
 				&state );
@@ -585,7 +925,7 @@ struct mchain_tracing_disabled_base
 class mchain_tracing_enabled_base
 	{
 	private :
-		so_5::msg_tracing::tracer_t & m_tracer;
+		so_5::msg_tracing::holder_t & m_tracer;
 
 		static const char *
 		message_or_svc_request(
@@ -596,11 +936,11 @@ class mchain_tracing_enabled_base
 			}
 
 	public :
-		mchain_tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
+		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
 			:	m_tracer( tracer )
 			{}
 
-		so_5::msg_tracing::tracer_t &
+		so_5::msg_tracing::holder_t &
 		tracer() const
 			{
 				return m_tracer;
@@ -617,7 +957,7 @@ class mchain_tracing_enabled_base
 						details::composed_action_name{
 								message_or_svc_request( d.m_demand_type ),
 								"extracted" },
-						d.m_msg_type,
+						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
 			}
 
@@ -632,14 +972,14 @@ class mchain_tracing_enabled_base
 						details::composed_action_name{
 								message_or_svc_request( d.m_demand_type ),
 								"dropped_on_close" },
-						d.m_msg_type,
+						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
 			}
 
 		class deliver_op_tracer
 			{
 			private :
-				so_5::msg_tracing::tracer_t & m_tracer;
+				so_5::msg_tracing::holder_t & m_tracer;
 				const abstract_message_chain_t & m_chain;
 				const char * m_op_name;
 				const std::type_index & m_msg_type;
@@ -656,7 +996,7 @@ class mchain_tracing_enabled_base
 								m_chain,
 								details::composed_action_name{
 										m_op_name, action_name_suffix },
-								m_msg_type,
+								details::original_msg_type{ m_msg_type },
 								m_message,
 								std::forward< Args >(args)... );
 					}
@@ -692,8 +1032,7 @@ class mchain_tracing_enabled_base
 				overflow_remove_oldest( const so_5::mchain_props::demand_t & d )
 					{
 						make_trace( "overflow.remove_oldest",
-								details::text_separator{ "removed:" },
-								d.m_msg_type,
+								details::type_of_removed_msg{ d.m_msg_type },
 								d.m_message_ref );
 					}
 

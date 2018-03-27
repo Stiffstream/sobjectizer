@@ -23,8 +23,8 @@ namespace impl
 //
 
 mbox_core_t::mbox_core_t(
-	so_5::msg_tracing::tracer_t * tracer )
-	:	m_tracer{ tracer }
+	outliving_reference_t< so_5::msg_tracing::holder_t > msg_tracing_stuff )
+	:	m_msg_tracing_stuff{ msg_tracing_stuff }
 	,	m_mbox_id_counter{ 1 }
 {
 }
@@ -38,10 +38,10 @@ mbox_t
 mbox_core_t::create_mbox()
 {
 	auto id = ++m_mbox_id_counter;
-	if( !m_tracer )
+	if( !m_msg_tracing_stuff.get().is_msg_tracing_enabled() )
 		return mbox_t{ new local_mbox_without_tracing{ id } };
 	else
-		return mbox_t{ new local_mbox_with_tracing{ id, *m_tracer } };
+		return mbox_t{ new local_mbox_with_tracing{ id, m_msg_tracing_stuff } };
 }
 
 mbox_t
@@ -58,14 +58,18 @@ namespace {
 template< typename M1, typename M2, typename... A >
 std::unique_ptr< abstract_message_box_t >
 make_actual_mbox(
-	so_5::msg_tracing::tracer_t * tracer,
+	outliving_reference_t<so_5::msg_tracing::holder_t> msg_tracing_stuff,
 	A &&... args )
 	{
 		std::unique_ptr< abstract_message_box_t > result;
-		if( !tracer )
+
+		if( !msg_tracing_stuff.get().is_msg_tracing_enabled() )
 			result.reset( new M1{ std::forward<A>(args)... } );
 		else
-			result.reset( new M2{ std::forward<A>(args)..., *tracer } );
+			result.reset(
+					new M2{ std::forward<A>(args)...,
+							msg_tracing_stuff.get() } );
+
 		return result;
 	}
 
@@ -85,7 +89,7 @@ mbox_core_t::create_mpsc_mbox(
 				make_actual_mbox<
 						limitful_mpsc_mbox_without_tracing,
 						limitful_mpsc_mbox_with_tracing >(
-					m_tracer,
+					m_msg_tracing_stuff,
 					id,
 					single_consumer,
 					*limits_storage );
@@ -96,7 +100,7 @@ mbox_core_t::create_mpsc_mbox(
 				make_actual_mbox<
 						limitless_mpsc_mbox_without_tracing,
 						limitless_mpsc_mbox_with_tracing >(
-					m_tracer,
+					m_msg_tracing_stuff,
 					id,
 					single_consumer );
 	}
@@ -126,7 +130,8 @@ mbox_core_t::create_custom_mbox(
 	::so_5::custom_mbox_details::creator_iface_t & creator )
 {
 	const auto id = ++m_mbox_id_counter;
-	return creator.create( mbox_creation_data_t( id, m_tracer ) );
+	return creator.create(
+			mbox_creation_data_t( id, m_msg_tracing_stuff ) );
 }
 
 namespace {
@@ -134,7 +139,7 @@ namespace {
 template< typename Q, typename... A >
 mchain_t
 make_mchain(
-	so_5::msg_tracing::tracer_t * tracer,
+	outliving_reference_t< so_5::msg_tracing::holder_t > tracer,
 	const mchain_params_t & params,
 	A &&... args )
 	{
@@ -143,12 +148,13 @@ make_mchain(
 		using D = mchain_tracing_disabled_base;
 		using E = mchain_tracing_enabled_base;
 
-		if( tracer && !params.msg_tracing_disabled() )
+		if( tracer.get().is_msg_tracing_enabled()
+				&& !params.msg_tracing_disabled() )
 			return mchain_t{
 					new mchain_template< Q, E >{
 						std::forward<A>(args)...,
 						params,
-						*tracer } };
+						tracer } };
 		else
 			return mchain_t{
 					new mchain_template< Q, D >{
@@ -169,13 +175,13 @@ mbox_core_t::create_mchain(
 
 	if( params.capacity().unlimited() )
 		return make_mchain< unlimited_demand_queue >(
-				m_tracer, params, env, id );
+				m_msg_tracing_stuff, params, env, id );
 	else if( memory_usage_t::dynamic == params.capacity().memory_usage() )
 		return make_mchain< limited_dynamic_demand_queue >(
-				m_tracer, params, env, id );
+				m_msg_tracing_stuff, params, env, id );
 	else
 		return make_mchain< limited_preallocated_demand_queue >(
-				m_tracer, params, env, id );
+				m_msg_tracing_stuff, params, env, id );
 }
 
 mbox_core_stats_t

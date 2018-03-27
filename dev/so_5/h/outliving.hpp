@@ -142,5 +142,17 @@ template< typename T >
 outliving_reference_t< const T >
 outliving_const( T const & r ) { return outliving_reference_t<const T>(r); }
 
+/*!
+ * \brief Make outliving_reference wrapper for const reference.
+ *
+ * \sa outliving_reference_t
+ *
+ * \since
+ * v.5.5.22
+ */
+template< typename T >
+outliving_reference_t< const T >
+outliving_const( outliving_reference_t<T> r ) { return outliving_reference_t<const T>(r.get()); }
+
 } /* namespace so_5 */
 

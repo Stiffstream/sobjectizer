@@ -35,17 +35,8 @@ using clock_type_t = std::conditional<
 				std::chrono::steady_clock
 		>::type;
 
-namespace details 
-{
-	struct clock_type_requirements_checker__
-	{
-		clock_type_requirements_checker__()
-		{
-			static_assert( clock_type_t::is_steady,
-					"clock_type_t must be steady clock!" );
-		}
-	};
-}
+static_assert( clock_type_t::is_steady,
+		"clock_type_t must be steady clock!" );
 
 /*!
  * \brief An alias for type for representing time duration.

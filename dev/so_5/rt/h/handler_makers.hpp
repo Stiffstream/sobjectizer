@@ -503,7 +503,6 @@ handler( Lambda && lambda )
 // preprocess_agent_event_handler
 //
 //FIXME: document this!
-//FIXME: SO_5_NODISCARD should be used.
 /*!
  * \since
  * v.5.5.21
@@ -536,7 +535,6 @@ preprocess_agent_event_handler(
 // preprocess_agent_event_handler
 //
 //FIXME: document this!
-//FIXME: SO_5_NODISCARD should be used.
 /*!
  * \attention
  * Only lambda functions or functional objects in the following format

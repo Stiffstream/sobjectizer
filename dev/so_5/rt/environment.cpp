@@ -12,6 +12,7 @@
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 #include <so_5/rt/impl/h/stop_guard_repo.hpp>
+#include <so_5/rt/impl/h/std_msg_tracer_holder.hpp>
 
 #include <so_5/rt/impl/h/run_stage.hpp>
 
@@ -55,6 +56,8 @@ environment_params_t::environment_params_t(
 	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
 	,	m_error_logger( std::move( other.m_error_logger ) )
 	,	m_message_delivery_tracer( std::move( other.m_message_delivery_tracer ) )
+	,	m_message_delivery_tracer_filter(
+			std::move( other.m_message_delivery_tracer_filter ) )
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
@@ -88,6 +91,7 @@ environment_params_t::swap( environment_params_t & other )
 
 	m_error_logger.swap( other.m_error_logger );
 	m_message_delivery_tracer.swap( other.m_message_delivery_tracer );
+	m_message_delivery_tracer_filter.swap( other.m_message_delivery_tracer_filter );
 
 	std::swap( m_work_thread_activity_tracking,
 			other.m_work_thread_activity_tracking );
@@ -215,15 +219,16 @@ struct environment_t::internals_t
 	error_logger_shptr_t m_error_logger;
 
 	/*!
-	 * \since
-	 * v.5.5.9
+	 * \brief Holder of stuff related to message delivery tracing.
 	 *
-	 * \brief Tracer object for message delivery tracing.
 	 * \attention This field must be declared and initialized
-	 * before m_mbox_core because a pointer to tracer will be passed
+	 * before m_mbox_core because a reference to that object will be passed
 	 * to the constructor of m_mbox_core.
+	 *
+	 * \since
+	 * v.5.5.22
 	 */
-	so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
+	so_5::msg_tracing::impl::std_holder_t m_msg_tracing_stuff;
 
 	//! An utility for mboxes.
 	impl::mbox_core_ref_t m_mbox_core;
@@ -313,10 +318,12 @@ struct environment_t::internals_t
 		environment_t & env,
 		environment_params_t && params )
 		:	m_error_logger( params.so5__error_logger() )
-		,	m_message_delivery_tracer{
+		,	m_msg_tracing_stuff{
+				params.so5__giveout_message_delivery_tracer_filter(),
 				params.so5__giveout_message_delivery_tracer() }
 		,	m_mbox_core(
-				new impl::mbox_core_t{ m_message_delivery_tracer.get() } )
+				new impl::mbox_core_t{
+						outliving_mutable( m_msg_tracing_stuff ) } )
 		,	m_infrastructure(
 				(params.infrastructure_factory())(
 					env,
@@ -675,6 +682,19 @@ environment_t::remove_stop_guard(
 }
 
 void
+environment_t::change_message_delivery_tracer_filter(
+	so_5::msg_tracing::filter_shptr_t filter )
+{
+	if( !m_impl->m_msg_tracing_stuff.is_msg_tracing_enabled() )
+		SO_5_THROW_EXCEPTION(
+				rc_msg_tracing_disabled,
+				"msg_tracing's filter can't be changed when msg_tracing "
+				"is disabled" );
+
+	m_impl->m_msg_tracing_stuff.change_filter( std::move(filter) );
+}
+
+void
 environment_t::impl__run_stats_controller_and_go_further()
 {
 	impl::run_stage(
@@ -806,17 +826,17 @@ internal_env_iface_t::final_deregister_coop(
 bool
 internal_env_iface_t::is_msg_tracing_enabled() const
 {
-	return nullptr != m_env.m_impl->m_message_delivery_tracer.get();
+	return m_env.m_impl->m_msg_tracing_stuff.is_msg_tracing_enabled();
 }
 
-so_5::msg_tracing::tracer_t &
-internal_env_iface_t::msg_tracer() const
+so_5::msg_tracing::holder_t &
+internal_env_iface_t::msg_tracing_stuff() const
 {
 	if( !is_msg_tracing_enabled() )
 		SO_5_THROW_EXCEPTION( rc_msg_tracing_disabled,
 				"msg_tracer cannot be accessed because msg_tracing is disabled" );
 
-	return *(m_env.m_impl->m_message_delivery_tracer);
+	return m_env.m_impl->m_msg_tracing_stuff;
 }
 
 so_5::disp::mpsc_queue_traits::lock_factory_t

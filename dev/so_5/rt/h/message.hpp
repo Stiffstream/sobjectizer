@@ -12,6 +12,7 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/h/types.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 
@@ -23,21 +24,6 @@
 
 namespace so_5
 {
-
-//
-// message_mutability_t
-//
-/*!
- * \brief A enum with variants of message mutability or immutability.
- *
- * \since
- * v.5.5.19
- */
-enum class message_mutability_t
-	{
-		immutable_message,
-		mutable_message
-	};
 
 //
 // message_t

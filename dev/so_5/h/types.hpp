@@ -81,5 +81,20 @@ enum class work_thread_activity_tracking_t
 		on
 	};
 
+//
+// message_mutability_t
+//
+/*!
+ * \brief A enum with variants of message mutability or immutability.
+ *
+ * \since
+ * v.5.5.19
+ */
+enum class message_mutability_t
+	{
+		immutable_message,
+		mutable_message
+	};
+
 } /* namespace so_5 */
 

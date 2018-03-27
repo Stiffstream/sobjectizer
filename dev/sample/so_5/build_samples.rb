@@ -17,6 +17,8 @@ MxxRu::Cpp::composite_target {
 	example[ 'hello_periodic' ]
 	example[ 'chstate' ]
 	example[ 'chstate_msg_tracing' ]
+	example[ 'selective_msg_tracing' ]
+	example[ 'nohandler_msg_tracing' ]
 	example[ 'disp' ]
 	example[ 'coop_listener' ]
 	example[ 'exception_logger' ]

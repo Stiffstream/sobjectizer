@@ -15,4 +15,9 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/overlimit_drop/prj.ut.rb"
 	required_prj "#{path}/overlimit_redirect/prj.ut.rb"
 	required_prj "#{path}/overlimit_transform/prj.ut.rb"
+
+	required_prj "#{path}/simple_deny_all_filter/prj.ut.rb"
+	required_prj "#{path}/simple_deny_msg_filter/prj.ut.rb"
+	required_prj "#{path}/overlimit_redirect_with_filter/prj.ut.rb"
+	required_prj "#{path}/change_filter_1/prj.ut.rb"
 }

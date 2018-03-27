@@ -15,6 +15,7 @@
 #include <so_5/rt/h/mbox.hpp>
 
 #include <so_5/h/msg_tracing.hpp>
+#include <so_5/h/outliving.hpp>
 
 namespace so_5 {
 
@@ -31,16 +32,13 @@ struct mbox_creation_data_t
 	{
 		//! ID for a new mbox.
 		mbox_id_t m_id;
-		//! Tracer object to be used for message tracing.
-		/*!
-		 * Can be nullptr. In that case message tracing must not be used.
-		 */
-		msg_tracing::tracer_t * m_tracer;
+		//! Stuff to be used for message delivery tracing.
+		outliving_reference_t< msg_tracing::holder_t > m_tracer;
 
 		//! Initializing constructor.
 		mbox_creation_data_t(
 			mbox_id_t id,
-			msg_tracing::tracer_t * tracer )
+			outliving_reference_t< msg_tracing::holder_t > tracer )
 			:	m_id(id)
 			,	m_tracer(tracer)
 			{}

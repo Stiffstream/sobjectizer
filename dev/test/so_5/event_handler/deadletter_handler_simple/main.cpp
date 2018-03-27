@@ -7,33 +7,7 @@
 #include <various_helpers_1/time_limited_execution.hpp>
 #include <various_helpers_1/ensure.hpp>
 
-class direct_mbox_case_t
-{
-	const so_5::agent_t & m_owner;
-public :
-	direct_mbox_case_t(
-		so_5::environment_t & /*env*/,
-		const so_5::agent_t & owner )
-		:	m_owner(owner)
-	{}
-
-	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_owner.so_direct_mbox(); }
-};
-
-class mpmc_mbox_case_t
-{
-	const so_5::mbox_t m_mbox;
-public:
-	mpmc_mbox_case_t(
-		so_5::environment_t & env,
-		const so_5::agent_t & /*owner*/ )
-		:	m_mbox( env.create_mbox() )
-	{}
-
-	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_mbox; }
-};
+#include "../deadletter_handler_common.hpp"
 
 class test_message final : public so_5::message_t {};
 
@@ -49,7 +23,7 @@ class pfn_test_case_t final : public so_5::agent_t
 public:
 	pfn_test_case_t( context_t ctx )
 		:	so_5::agent_t( std::move(ctx) )
-		,	m_mbox_holder( so_environment(), *self_ptr() )
+		,	m_mbox_holder( *self_ptr() )
 	{}
 
 	virtual void
@@ -85,7 +59,7 @@ class lambda_test_case_t final : public so_5::agent_t
 public:
 	lambda_test_case_t( context_t ctx )
 		:	so_5::agent_t( std::move(ctx) )
-		,	m_mbox_holder( so_environment(), *self_ptr() )
+		,	m_mbox_holder( *self_ptr() )
 	{}
 
 	virtual void
@@ -105,18 +79,6 @@ public:
 		so_5::send<Msg_Type>( m_mbox_holder.mbox() );
 	}
 };
-
-template<
-	typename Mbox_Case,
-	typename Msg_Type,
-	template <class, class> class Test_Agent >
-void
-introduce_test_agent( so_5::environment_t & env )
-{
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-			coop.make_agent< Test_Agent<Mbox_Case, Msg_Type> >();
-		} );
-}
 
 int
 main()

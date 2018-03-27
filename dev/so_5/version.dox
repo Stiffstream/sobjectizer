@@ -2,6 +2,20 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_22 5.5.22 "Pico Cristobal Colon"
+
+	A new experimental mechanism for filtering msg_tracing messages
+	is introduced. It includes new types
+	so_5::msg_tracing::trace_data_t, so_5::msg_tracing::filter_t (and some
+	more related types in so_5::msg_tracing namespace),
+	new methods so_5::environment_t::change_message_delivery_tracer_filter()
+	and so_5::environment_params_t::message_delivery_tracer_filter(),
+	and new free functions like so_5::msg_tracing::make_filter(),
+	so_5::msg_tracing::make_disable_all_filter(),
+	so_5::msg_tracing::make_enable_all_filter().
+
+	New examples selective_msg_tracing and nohandler_msg_tracing added.
+
 \section so_5__5_21 5.5.21 "Cerro de La Isla"
 
 	Deadletter handlers are introduced.

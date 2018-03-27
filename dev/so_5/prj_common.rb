@@ -77,6 +77,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'coop_listener.cpp'
 
 			sources_root( 'impl' ) {
+				cpp_source 'msg_tracing_helpers.cpp'
+
 				cpp_source 'subscription_storage_iface.cpp'
 				cpp_source 'subscr_storage_vector_based.cpp'
 				cpp_source 'subscr_storage_map_based.cpp'

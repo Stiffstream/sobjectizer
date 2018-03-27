@@ -69,12 +69,12 @@ class SO_5_TYPE internal_env_iface_t
 		bool
 		is_msg_tracing_enabled() const;
 
-		//! Get access to message delivery tracer object.
+		//! Get access to message delivery tracer stuff holder.
 		/*!
-		 * \throw exception_t if (!is_msg_tracing_enabled()).
+		 * \throw exception_t if message delivery tracing is disabled.
 		 */
-		so_5::msg_tracing::tracer_t &
-		msg_tracer() const;
+		so_5::msg_tracing::holder_t &
+		msg_tracing_stuff() const;
 
 		//! Get default lock_factory for MPSC queues.
 		/*!

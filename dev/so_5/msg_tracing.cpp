@@ -87,6 +87,29 @@ std_clog_tracer()
 		return tracer_unique_ptr_t{ new impl::std_stream_tracer_t{ std::clog } };
 	}
 
+//
+// trace_data_t
+//
+trace_data_t::trace_data_t()
+	{}
+
+trace_data_t::~trace_data_t()
+	{}
+
+//
+// filter_t
+//
+filter_t::~filter_t()
+	{}
+
+//
+// holder_t
+//
+holder_t::holder_t()
+	{}
+holder_t::~holder_t()
+	{}
+
 } /* namespace msg_tracing */
 
 } /* namespace so_5 */

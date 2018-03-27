@@ -51,6 +51,7 @@ set(SO_5_SRC exception.cpp
 	rt/so_layer.cpp
 	rt/coop_listener.cpp
 
+	rt/impl/msg_tracing_helpers.cpp
 	rt/impl/subscription_storage_iface.cpp
 	rt/impl/subscr_storage_vector_based.cpp
 	rt/impl/subscr_storage_map_based.cpp

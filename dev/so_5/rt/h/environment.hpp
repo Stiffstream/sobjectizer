@@ -285,6 +285,20 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \brief Set message tracer filter for the environment.
+		 *
+		 * \since
+		 * v.5.5.22
+		 */
+		environment_params_t &
+		message_delivery_tracer_filter(
+			so_5::msg_tracing::filter_shptr_t filter )
+		{
+			m_message_delivery_tracer_filter = std::move( filter );
+			return *this;
+		}
+
+		/*!
 		 * \since
 		 * v.5.5.10
 		 * \brief Set parameters for the default dispatcher.
@@ -465,6 +479,18 @@ class SO_5_TYPE environment_params_t
 			return std::move( m_message_delivery_tracer );
 		}
 
+		/*!
+		 * \brief Get message delivery tracer filter for the environment.
+		 *
+		 * \since
+		 * v.5.5.22
+		 */
+		so_5::msg_tracing::filter_shptr_t
+		so5__giveout_message_delivery_tracer_filter()
+		{
+			return std::move( m_message_delivery_tracer_filter );
+		}
+
 		//! Take out queue locks defaults manager.
 		/*!
 		 * \since
@@ -539,6 +565,13 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
+
+		/*!
+		 * \brief Message delivery tracer filter to be used with environment.
+		 * \since
+		 * v.5.5.22
+		 */
+		so_5::msg_tracing::filter_shptr_t m_message_delivery_tracer_filter;
 
 		/*!
 		 * \brief Parameters for the default dispatcher.
@@ -1948,6 +1981,61 @@ class SO_5_TYPE environment_t
 		remove_stop_guard(
 			//! Stop guard to be removed.
 			stop_guard_shptr_t guard );
+		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Methods for working with msg_tracing's filters.
+		 * \{
+		 */
+		/*!
+		 * \brief Change the current msg_tracing's filter to a new one.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::launch([](so_5::environment_t & env) {...},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		// Turn message delivery tracing on.
+		 * 		params.message_delivery_tracer(
+		 * 			so_5::msg_tracing::std_cout_tracer());
+		 * 		// Disable all trace messages.
+		 * 		// It is expected that trace filter will be changed in the future.
+		 * 		params.message_delivery_tracer_filter(
+		 * 			so_5::msg_tracing::make_disable_all_filter());
+		 * 		...
+		 * 	} );
+		 * ...
+		 * void some_agent_t::turn_msg_tracing_on() {
+		 * 	// Remove trace filter. As result all trace messages will be printed.
+		 * 	so_environment().change_message_delivery_tracer_filter(
+		 * 		so_5::msg_tracing::no_filter());
+		 * 	...
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * It is possible that there are active calls to
+		 * so_5::msg_tracing::filter_t::filter() methods at the time of
+		 * invocation of change_message_delivery_tracer_filter(). In this
+		 * case all active calls will be completed with the previous
+		 * filter. This could lead to mixture of messages in the trace:
+		 * some of them will be enabled by old filter and some of them
+		 * will be enabled by new filter. And it is possible that
+		 * messages enabled by new filter will precede messages enabled
+		 * by old filter.
+		 *
+		 * \throw exception_t if message delivery tracing is disabled.
+		 *
+		 * \since
+		 * v.5.5.22
+		 */
+		void
+		change_message_delivery_tracer_filter(
+			//! A new filter to be used.
+			//! It can be an empty pointer. In this case all trace messages
+			//! will be passed to tracer object.
+			so_5::msg_tracing::filter_shptr_t filter );
 		/*!
 		 * \}
 		 */

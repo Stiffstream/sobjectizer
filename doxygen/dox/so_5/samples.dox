@@ -233,6 +233,8 @@
  * \example so_5/two_handlers/main.cpp
  * \example so_5/stop_guard/main.cpp
  * \example so_5/deadletter_handler/main.cpp
+ * \example so_5/selective_msg_tracing/main.cpp
+ * \example so_5/nohandler_msg_tracing/main.cpp
  */
 
 // vim:ft=cpp.doxygen
