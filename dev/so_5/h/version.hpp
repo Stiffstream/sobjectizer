@@ -12,7 +12,7 @@
 
 #pragma once
 
-// The current version is 5.5.21
+// The current version is 5.5.22
 //
 /*!
  * A number next to generation number in SObjectizer's version.
@@ -32,7 +32,7 @@
  * When minor version is changed some new features are added to SObjectizer
  * but SObjectizer API is compatible on source-code level.
  */
-#define SO_5_VERSION_MINOR 21ull
+#define SO_5_VERSION_MINOR 22ull
 
 /*!
  * A number next to minor version in SObjectizer's version.

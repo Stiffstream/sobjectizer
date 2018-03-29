@@ -28,6 +28,11 @@
 #include <sstream>
 #include <tuple>
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
 namespace so_5 {
 
 namespace impl {
@@ -47,7 +52,7 @@ using namespace so_5::details::ios_helpers;
  * \since
  * v.5.5.22
  */
-class actual_trace_data_t : public so_5::msg_tracing::trace_data_t
+class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 	{
 	public :
 		actual_trace_data_t();
@@ -1055,4 +1060,8 @@ class mchain_tracing_enabled_base
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
