@@ -153,56 +153,57 @@ if(SOBJECTIZER_BUILD_STATIC)
 	list(APPEND SO_5_TARGETS_TO_INSTALL ${SO_5_STATIC_LIB})
 endif()
 
+if(SOBJECTIZER_INSTALL)
+	set(SO_5_CMAKE_FILES_DEST "lib/cmake/sobjectizer")
 
-set(SO_5_CMAKE_FILES_DEST "lib/cmake/sobjectizer")
+	install(
+		TARGETS ${SO_5_TARGETS_TO_INSTALL}
+		EXPORT SO_5_ALL_TARGETS
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+		RUNTIME DESTINATION bin
+	)
+	install(
+		EXPORT SO_5_ALL_TARGETS
+		FILE sobjectizer-targets.cmake
+		NAMESPACE sobjectizer::
+		DESTINATION ${SO_5_CMAKE_FILES_DEST}
+	)
 
-install(
-	TARGETS ${SO_5_TARGETS_TO_INSTALL}
-	EXPORT SO_5_ALL_TARGETS
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	RUNTIME DESTINATION bin
-)
-install(
-	EXPORT SO_5_ALL_TARGETS
-	FILE sobjectizer-targets.cmake
-	NAMESPACE sobjectizer::
-	DESTINATION ${SO_5_CMAKE_FILES_DEST}
-)
-
-if(SOBJECTIZER_BUILD_SHARED)
-	foreach(__extLibrary ${SO_5_EXT_LIBS})
-		install(FILES ${__extLibrary} DESTINATION lib)
-	endforeach()
-endif()
-
-file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
-
-foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
-	if(NOT HEADER_FILE MATCHES "[\\/]impl[\\/]")
-		get_filename_component( DIR ${HEADER_FILE} PATH )
-		install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+	if(SOBJECTIZER_BUILD_SHARED)
+		foreach(__extLibrary ${SO_5_EXT_LIBS})
+			install(FILES ${__extLibrary} DESTINATION lib)
+		endforeach()
 	endif()
-endforeach()
 
-set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config-version.cmake")
-set(SO_5_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config.cmake")
+	file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-	${SO_5_CONFIG_VERSION_FILE}
-	VERSION ${SO_5_VERSION}
-	COMPATIBILITY ExactVersion 
-)
-configure_package_config_file(
-	"cmake/sobjectizer-config.cmake.in"
-	${SO_5_CONFIG_FILE}
-	INSTALL_DESTINATION ${SO_5_CMAKE_FILES_DEST}
-	PATH_VARS SO_5_VERSION
-)
+	foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
+		if(NOT HEADER_FILE MATCHES "[\\/]impl[\\/]")
+			get_filename_component( DIR ${HEADER_FILE} PATH )
+			install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+		endif()
+	endforeach()
 
-install(
-	FILES ${SO_5_CONFIG_FILE} ${SO_5_CONFIG_VERSION_FILE}
-	DESTINATION ${SO_5_CMAKE_FILES_DEST}
-)
+	set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config-version.cmake")
+	set(SO_5_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config.cmake")
+
+	include(CMakePackageConfigHelpers)
+	write_basic_package_version_file(
+		${SO_5_CONFIG_VERSION_FILE}
+		VERSION ${SO_5_VERSION}
+		COMPATIBILITY ExactVersion 
+	)
+	configure_package_config_file(
+		"cmake/sobjectizer-config.cmake.in"
+		${SO_5_CONFIG_FILE}
+		INSTALL_DESTINATION ${SO_5_CMAKE_FILES_DEST}
+		PATH_VARS SO_5_VERSION
+	)
+
+	install(
+		FILES ${SO_5_CONFIG_FILE} ${SO_5_CONFIG_VERSION_FILE}
+		DESTINATION ${SO_5_CMAKE_FILES_DEST}
+	)
+endif()
 

@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 
+set(MASTER_PROJECT OFF)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	set(MASTER_PROJECT ON)
+endif()
+
 option(BUILD_ALL      "Enable building examples and tests [default: OFF]" OFF)
 option(BUILD_EXAMPLES "Enable building examples [default: OFF]"           OFF)
 option(BUILD_TESTS    "Enable building tests    [default: OFF]"           OFF)
 
 option(SOBJECTIZER_BUILD_STATIC "Build static SObjectizer library [default: ON]" ON)
 option(SOBJECTIZER_BUILD_SHARED "Build shared SObjectizer library [default: ON]" ON)
+option(SOBJECTIZER_INSTALL "Generate install target for SObjectizer" ${MASTER_PROJECT})
 
 if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
 	message(FATAL_ERROR "at least one of SOBJECTIZER_BUILD_STATIC/SOBJECTIZER_BUILD_SHARED must be defined")
