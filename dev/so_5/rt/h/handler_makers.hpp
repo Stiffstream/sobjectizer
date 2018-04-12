@@ -280,7 +280,7 @@ template< typename Lambda, typename Result, typename Arg >
 typename std::enable_if<
 		!is_agent_method_pointer<Lambda>::value,
 		msg_type_and_handler_pair_t >::type
-make_handler_with_arg( Lambda && lambda )
+make_handler_with_arg( Lambda lambda )
 	{
 		using arg_maker = event_handler_arg_maker< Arg >;
 		using payload_type = typename arg_maker::traits_type::payload_type;
@@ -465,8 +465,9 @@ handler( Lambda && lambda )
 		typedef traits< typename std::decay< Lambda >::type > Traits;
 		typedef typename Traits::result_type Result;
 		typedef typename Traits::argument_type Message;
+		typedef typename Traits::pass_by_type Transformed_Lambda;
 
-		return make_handler_with_arg< Lambda, Result, Message >(
+		return make_handler_with_arg< Transformed_Lambda, Result, Message >(
 				std::forward< Lambda >(lambda) );
 	}
 

@@ -14,6 +14,9 @@
 	so_5::msg_tracing::make_disable_all_filter(),
 	so_5::msg_tracing::make_enable_all_filter().
 
+	Free functions can be used as handlers for so_5::receive()
+	and so_5::select() functions.
+
 	New examples selective_msg_tracing and nohandler_msg_tracing added.
 
 \section so_5__5_21 5.5.21 "Cerro de La Isla"

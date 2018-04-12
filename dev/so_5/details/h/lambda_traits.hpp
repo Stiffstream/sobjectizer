@@ -40,7 +40,14 @@ struct plain_argument_type
 template< typename L >
 struct traits
 	: 	public traits< decltype(&L::operator()) >
-	{};
+	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = L;
+	};
 
 /*!
  * \brief Specialization of lambda traits for const-lambda.
@@ -48,6 +55,13 @@ struct traits
 template< class L, class R, class M >
 struct traits< R (L::*)(M) const >
 	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(L::*)(M) const;
+
 		//! Type of lambda result value.
 		using result_type = R;
 		//! Type of lambda argument.
@@ -66,6 +80,13 @@ struct traits< R (L::*)(M) const >
 template< class L, class R, class M >
 struct traits< R (L::*)(M) >
 	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(L::*)(M);
+
 		//! Type of lambda result value.
 		using result_type = R;
 		//! Type of lambda argument.
@@ -84,6 +105,13 @@ struct traits< R (L::*)(M) >
 template< class L, class R >
 struct traits< R (L::*)() const >
 	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(L::*)() const;
+
 		//! Type of lambda result value.
 		using result_type = R;
 
@@ -100,6 +128,13 @@ struct traits< R (L::*)() const >
 template< class L, class R >
 struct traits< R (L::*)() >
 	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(L::*)();
+		
 		//! Type of lambda result value.
 		using result_type = R;
 
@@ -109,6 +144,60 @@ struct traits< R (L::*)() >
 				return l();
 			}
 	};
+
+/*!
+ * \brief Specialization of lambda traits for ordinary function pointer.
+ */
+template< class R, class M >
+struct traits< R(*)(M) >
+	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(*)(M);
+
+		//! Type of lambda result value.
+		using result_type = R;
+		//! Type of lambda argument.
+		using argument_type = typename plain_argument_type< M >::type;
+
+		//! Helper for calling a lambda.
+		static R call_with_arg( R (*l)(M), M m )
+			{
+				return l(m);
+			}
+	};
+
+/*!
+ * \brief Specialization of lambda traits for reference to ordinary function.
+ */
+template< class R, class M >
+struct traits< R(&)(M) >
+	{
+		//! Type to be used to pass lambda as argument to another function.
+		/*!
+		 * \since
+		 * v.5.5.22
+		 */
+		using pass_by_type = R(*)(M);
+
+		//! Type of lambda result value.
+		using result_type = R;
+		//! Type of lambda argument.
+		using argument_type = typename plain_argument_type< M >::type;
+
+		//! Helper for calling a lambda.
+		static R call_with_arg( R (*l)(M), M m )
+			{
+				return l(m);
+			}
+	};
+
+// Please note: there are no traits for R(*)() and R(&)().
+// It is because argument-less handlers is going to be disabled in
+// the next major version of SObjectizer.
 
 namespace impl
 {
