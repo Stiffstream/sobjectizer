@@ -1032,9 +1032,30 @@ class SO_5_TYPE agent_t
 
 		//! Access to the current agent state.
 		/*!
-		 * \note Be carefull when calling this method from on_enter/on_exit
-		 * state handlers. During state switch operation this method can
-		 * return reference to old current state.
+		 * \note
+		 * There is a change in behaviour of this methon in v.5.5.22.
+		 * If some on_enter/on_exit handler calls this method during
+		 * the state change procedure this method will return the state
+		 * for which this on_enter/on_exit handler is called. For example:
+		 * \code
+		 * class demo final : public so_5::agent_t {
+		 * 	state_t st_1{ this };
+		 * 	state_t st_1_1{ initial_substate_of{st_1} };
+		 * 	state_t st_1_2{ substate_of{st_1}};
+		 * 	...
+		 * 	virtual void so_define_agent() override {
+		 * 		st_1.on_enter([this]{
+		 * 			assert(st_1 == so_current_state());
+		 * 			...
+		 * 		});
+		 * 		st_1_1.on_enter([this]{
+		 * 			assert(st_1_1 == so_current_state());
+		 * 			...
+		 * 		});
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
 		 */
 		inline const state_t &
 		so_current_state() const
@@ -3079,7 +3100,7 @@ class SO_5_TYPE agent_t
 		void
 		do_state_switch(
 			//! New state to be set as the current state.
-			const state_t & state_to_be_set );
+			const state_t & state_to_be_set ) SO_5_NOEXCEPT;
 
 		/*!
 		 * \since

@@ -1328,18 +1328,22 @@ agent_t::find_deadletter_handler(
 
 void
 agent_t::do_state_switch(
-	const state_t & state_to_be_set )
+	const state_t & state_to_be_set ) SO_5_NOEXCEPT
 {
 	state_t::path_t old_path;
 	state_t::path_t new_path;
 
-	m_current_state_ptr->fill_path( old_path );
+	// Since v.5.5.22 we will change the value of m_current_state_ptr
+	// during state change procedure.
+	auto current_st = m_current_state_ptr;
+
+	current_st->fill_path( old_path );
 	state_to_be_set.fill_path( new_path );
 
 	// Find the first item which is different in the paths.
 	std::size_t first_diff = 0;
 	for(; first_diff < std::min(
-				m_current_state_ptr->nested_level(),
+				current_st->nested_level(),
 				state_to_be_set.nested_level() );
 			++first_diff )
 		if( old_path[ first_diff ] != new_path[ first_diff ] )
@@ -1350,10 +1354,14 @@ agent_t::do_state_switch(
 	so_5::details::invoke_noexcept_code( [&] {
 
 		impl::msg_tracing_helpers::safe_trace_state_leaving(
-				*this, *m_current_state_ptr );
-		for( std::size_t i = m_current_state_ptr->nested_level();
+				*this, *current_st );
+
+		for( std::size_t i = current_st->nested_level();
 				i >= first_diff; )
 			{
+				// Modify current state before calling on_exit handler.
+				m_current_state_ptr = old_path[ i ];
+				// Perform on_exit actions.
 				old_path[ i ]->call_on_exit();
 				if( i )
 					--i;
@@ -1363,10 +1371,15 @@ agent_t::do_state_switch(
 
 		impl::msg_tracing_helpers::safe_trace_state_entering(
 				*this, state_to_be_set );
+
 		for( std::size_t i = first_diff;
 				i <= state_to_be_set.nested_level();
 				++i )
 			{
+				// Modify current state before calling on_exit handler.
+				m_current_state_ptr = new_path[ i ];
+
+				// Perform on_enter actions.
 				new_path[ i ]->call_on_enter();
 			}
 	} );

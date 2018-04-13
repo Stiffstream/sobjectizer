@@ -16,6 +16,43 @@
 
 	Free functions can be used as handlers for so_5::receive()
 	and so_5::select() functions.
+	For example it is possible to write something like:
+	\code
+	void first_handler(const some_msg & msg) {...}
+	void second_handler(another_msg msg) {...}
+	void third_handler(so_5::mhood_t<third_msg> cmd) {...}
+	void forth_handler(so_5::mutable_mhood_t<third_msg> cmd) {...}
+	...
+	auto ch = so_5::create_mchain(env);
+	so_5::receive(ch, so_5::infinite_wait,
+		 first_handler,
+		 second_handler,
+		 third_handler,
+		 forth_handler);
+	\endcode
+
+	Method so_5::agent_t::so_current_state() now returns expected value
+	in on_enter/on_exit state's handlers. For example, the following
+	asserts will work correctly since v.5.5.22:
+	\code
+	class demo final : public so_5::agent_t {
+		state_t st_1{ this };
+		state_t st_1_1{ initial_substate_of{st_1} };
+		state_t st_1_2{ substate_of{st_1}};
+		...
+		virtual void so_define_agent() override {
+			st_1.on_enter([this]{
+				assert(st_1 == so_current_state());
+				...
+			});
+			st_1_1.on_enter([this]{
+				assert(st_1_1 == so_current_state());
+				...
+			});
+			...
+		}
+	};
+	\endcode
 
 	New examples selective_msg_tracing and nohandler_msg_tracing added.
 
