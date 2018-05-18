@@ -1134,6 +1134,24 @@ class mchain_bulk_processing_params_t
 		/*!
 		 * If there is a previously set handler the old handler will be lost.
 		 *
+		 * Usage example:
+		 * \code
+		 * so_5::mchain_t ch1 = so_5::create_mchain(...);
+		 * so_5::mchain_t ch2 = so_5::create_mchain(...);
+		 * ...
+		 * // Stop reading channels when any of channels is closed. 
+		 * bool some_ch_closed = false;
+		 * so_5::select(
+		 * 	so_5::from_all()
+		 * 		.on_close([&some_ch_closed](const so_5::mchain_t &) {
+		 * 				some_ch_closed = true;
+		 * 			})
+		 * 		.stop_on([&some_ch_closed]{ return some_ch_closed; }),
+		 * 	case_(ch1, ...)
+		 * 	case_(ch2, ...)
+		 * 	...);
+		 * \endcode
+		 *
 		 * \since
 		 * v.5.5.17
 		 */
