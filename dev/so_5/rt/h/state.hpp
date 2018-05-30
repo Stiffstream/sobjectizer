@@ -796,6 +796,10 @@ class SO_5_TYPE state_t final
 		 * \endcode
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
+		 *
+		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
+		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
+		 * error code if a loop in transfer_to_state is detected.
 		 */
 		template< typename Msg >
 		const state_t &
@@ -828,6 +832,10 @@ class SO_5_TYPE state_t final
 		 * \endcode
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
+		 *
+		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
+		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
+		 * error code if a loop in transfer_to_state is detected.
 		 */
 		template< typename Msg >
 		const state_t &
@@ -860,6 +868,10 @@ class SO_5_TYPE state_t final
 		 * \endcode
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
+		 *
+		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
+		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
+		 * error code if a loop in transfer_to_state is detected.
 		 */
 		template< typename Msg >
 		state_t &
@@ -897,6 +909,10 @@ class SO_5_TYPE state_t final
 		 * \endcode
 		 *
 		 * \note For more details see subscription_bind_t::transfer_to_state().
+		 *
+		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
+		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
+		 * error code if a loop in transfer_to_state is detected.
 		 */
 		template< typename Msg >
 		state_t &

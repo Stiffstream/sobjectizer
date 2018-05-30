@@ -2,6 +2,11 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_22_1 5.5.22.1 "Pico Cristobal Colon"
+
+	An error code so_5::rc_transfer_to_state_loop added and run-time
+	detection of transfer_to_state loops is implemented.
+
 \section so_5__5_22 5.5.22 "Pico Cristobal Colon"
 
 	A new experimental mechanism for filtering msg_tracing messages

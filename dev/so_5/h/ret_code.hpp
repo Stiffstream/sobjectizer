@@ -466,6 +466,56 @@ const int rc_negative_value_for_period = 177;
 /*!
  * \brief A loop in transfer_to_state detected.
  *
+ * There could be a case when usage of transfer_to_state leads to a loop.
+ * For a very simple example:
+ * \code
+ * class a_simple_case_t final : public so_5::agent_t
+ * {
+ * 	state_t st_base{ this, "base" };
+ * 	state_t st_disconnected{ initial_substate_of{st_base}, "disconnected" };
+ * 	state_t st_connected{ substate_of{st_base}, "connected" };
+ * 
+ * 	struct message {};
+ * 
+ * public :
+ * 	a_simple_case_t(context_t ctx) : so_5::agent_t{ctx} {
+ * 		this >>= st_base;
+ * 
+ * 		st_base.transfer_to_state<message>(st_disconnected);
+ * 	}
+ * 
+ * 	virtual void so_evt_start() override {
+ * 		so_5::send<message>(*this);
+ * 	}
+ * };
+ * \endcode
+ * Since v.5.5.22.1 an attempt to handle `message` in the example above
+ * will lead to an exception with this error code.
+ *
+ * Note that there could be more tricky examples when hierarchical states
+ * are used:
+ * \code
+ * class a_hsm_case_t final : public so_5::agent_t
+ * {
+ * 	state_t st_base{ this, "base" };
+ * 	state_t st_disconnected{ initial_substate_of{st_base}, "disconnected" };
+ * 	state_t st_connected{ substate_of{st_base}, "connected" };
+ * 
+ * 	struct message {};
+ * 
+ * public :
+ * 	a_hsm_case_t(context_t ctx) : so_5::agent_t{ctx} {
+ * 		this >>= st_base;
+ * 
+ * 		st_base.transfer_to_state<message>(st_disconnected);
+ * 	}
+ * 
+ * 	virtual void so_evt_start() override {
+ * 		so_5::send<message>(*this);
+ * 	}
+ * };
+ * \endcode
+ *
  * \since
  * v.5.5.22.1
  */

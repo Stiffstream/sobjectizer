@@ -482,9 +482,9 @@ class subscription_bind_t
 			};
 		 * \endcode
 		 *
-		 * \attention There is no hard limit for deep of transfering an event
-		 * from one state to another. It means that an infinite loop can be
-		 * produced and there is no tools for preventing such infinite loops.
+		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
+		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
+		 * error code if a loop in transfer_to_state is detected.
 		 */
 		template< typename Msg >
 		subscription_bind_t &
