@@ -43,7 +43,7 @@
  * or API fixes are added to SObjectizer but SObjectizer API is compatible on
  * source-code level.
  */
-#define SO_5_VERSION_PATCH 0ull
+#define SO_5_VERSION_PATCH 1ull
 
 /*!
  * Helper macro for make single number representation of SObjectizer's version.

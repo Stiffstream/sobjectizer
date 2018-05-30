@@ -15,12 +15,14 @@
 #include <so_5/h/current_thread_id.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
 #include <so_5/h/spinlocks.hpp>
+#include <so_5/h/outliving.hpp>
 
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/h/at_scope_exit.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
 
@@ -3345,19 +3347,114 @@ subscription_bind_t &
 subscription_bind_t::transfer_to_state(
 	const state_t & target_state )
 {
-	agent_t * agent_ptr = m_agent;
-	mbox_id_t mbox_id = m_mbox_ref->id();
+	/*
+	 * Note. Since v.5.5.22.1 there is a new implementation of transfer_to_state.
+	 * New implementation protects from loops in transfer_to_state calls.
+	 * For example in the following cases:
+	 * 
+	 * \code
+		class a_simple_case_t final : public so_5::agent_t
+		{
+			state_t st_base{ this, "base" };
+			state_t st_disconnected{ initial_substate_of{st_base}, "disconnected" };
+			state_t st_connected{ substate_of{st_base}, "connected" };
 
-	auto method = [agent_ptr, mbox_id, &target_state](
+			struct message {};
+
+		public :
+			a_simple_case_t(context_t ctx) : so_5::agent_t{ctx} {
+				this >>= st_base;
+
+				st_base.transfer_to_state<message>(st_disconnected);
+			}
+
+			virtual void so_evt_start() override {
+				so_5::send<message>(*this);
+			}
+		};
+
+		class a_two_state_loop_t final : public so_5::agent_t
+		{
+			state_t st_one{ this, "one" };
+			state_t st_two{ this, "two" };
+
+			struct message {};
+
+		public :
+			a_two_state_loop_t(context_t ctx) : so_5::agent_t{ctx} {
+				this >>= st_one;
+
+				st_one.transfer_to_state<message>(st_two);
+				st_two.transfer_to_state<message>(st_one);
+			}
+
+			virtual void so_evt_start() override {
+				so_5::send<message>(*this);
+			}
+		};
+	 * \endcode
+	 *
+	 * For such protection an additional objects with the current state
+	 * of transfer_to_state operation is necessary. There will be a boolean
+	 * flag in that state. When transfer_to_state will be started this
+	 * flag will should be 'false'. But if it is already 'true' then there is
+	 * a loop in transfer_to_state calls.
+	 */
+
+	// This is the state of transfer_to_state operation.
+	struct transfer_op_state_t
+	{
+		agent_t * m_agent;
+		mbox_id_t m_mbox_id;
+		const state_t & m_target_state;
+		bool m_in_progress;
+
+		transfer_op_state_t(
+			agent_t * agent,
+			mbox_id_t mbox_id,
+			outliving_reference_t<const state_t> target_state)
+			:	m_agent( agent )
+			,	m_mbox_id( mbox_id )
+			,	m_target_state( target_state.get() )
+			,	m_in_progress( false )
+		{}
+	};
+
+	//NOTE: shared_ptr is used because C++11 doesn't support
+	//initializer lists in lambda captures.
+	//
+	//FIXME: this should be changed to make_unique in v.5.6.0.
+	auto op_state = std::make_shared< transfer_op_state_t >(
+			m_agent, m_mbox_ref->id(), outliving_const(target_state) );
+
+	auto method = [op_state](
 			invocation_type_t invoke_type,
 			message_ref_t & msg )
 		{
-			agent_ptr->so_change_state( target_state );
+			// The current transfer_to_state operation should be inactive.
+			if( op_state->m_in_progress )
+				SO_5_THROW_EXCEPTION( rc_transfer_to_state_loop,
+						"transfer_to_state loop detected. target_state: " +
+						op_state->m_target_state.query_name() +
+						", current_state: " +
+						op_state->m_agent->so_current_state().query_name() );
+
+			// Activate transfer_to_state operation and make sure that it 
+			// will be deactivated on return automatically.
+			op_state->m_in_progress = true;
+			auto in_progress_reset = details::at_scope_exit( [&op_state] {
+					op_state->m_in_progress = false;
+				} );
+
+			//
+			// The main logic of transfer_to_state operation.
+			//
+			op_state->m_agent->so_change_state( op_state->m_target_state );
 
 			execution_demand_t demand{
-					agent_ptr,
+					op_state->m_agent,
 					nullptr, // Message limit is not actual here.
-					mbox_id,
+					op_state->m_mbox_id,
 					typeid( Msg ),
 					msg,
 					invocation_type_t::event == invoke_type ?

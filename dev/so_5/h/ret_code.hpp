@@ -462,6 +462,15 @@ const int rc_negative_value_for_pause = 176;
  */
 const int rc_negative_value_for_period = 177;
 
+//FIXME: include an example here!
+/*!
+ * \brief A loop in transfer_to_state detected.
+ *
+ * \since
+ * v.5.5.22.1
+ */
+const int rc_transfer_to_state_loop = 178;
+
 //! \name Common error codes.
 //! \{
 
