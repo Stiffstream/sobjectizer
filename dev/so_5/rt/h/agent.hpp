@@ -3412,10 +3412,10 @@ subscription_bind_t::transfer_to_state(
 		transfer_op_state_t(
 			agent_t * agent,
 			mbox_id_t mbox_id,
-			outliving_reference_t<const state_t> target_state)
+			outliving_reference_t<const state_t> tgt_state)
 			:	m_agent( agent )
 			,	m_mbox_id( mbox_id )
-			,	m_target_state( target_state.get() )
+			,	m_target_state( tgt_state.get() )
 			,	m_in_progress( false )
 		{}
 	};
