@@ -462,26 +462,25 @@ const int rc_negative_value_for_pause = 176;
  */
 const int rc_negative_value_for_period = 177;
 
-//FIXME: include an example here!
 /*!
  * \brief A loop in transfer_to_state detected.
  *
  * There could be a case when usage of transfer_to_state leads to a loop.
  * For a very simple example:
  * \code
- * class a_simple_case_t final : public so_5::agent_t
+ * class a_two_state_loop_t final : public so_5::agent_t
  * {
- * 	state_t st_base{ this, "base" };
- * 	state_t st_disconnected{ initial_substate_of{st_base}, "disconnected" };
- * 	state_t st_connected{ substate_of{st_base}, "connected" };
+ * 	state_t st_one{ this, "one" };
+ * 	state_t st_two{ this, "two" };
  * 
  * 	struct message {};
  * 
  * public :
- * 	a_simple_case_t(context_t ctx) : so_5::agent_t{ctx} {
- * 		this >>= st_base;
+ * 	a_two_state_loop_t(context_t ctx) : so_5::agent_t{ctx} {
+ * 		this >>= st_one;
  * 
- * 		st_base.transfer_to_state<message>(st_disconnected);
+ * 		st_one.transfer_to_state<message>(st_two);
+ * 		st_two.transfer_to_state<message>(st_one);
  * 	}
  * 
  * 	virtual void so_evt_start() override {
