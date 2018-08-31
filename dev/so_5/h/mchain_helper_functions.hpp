@@ -61,7 +61,7 @@ create_mchain( environment_t & env )
 inline mchain_t
 create_mchain( wrapped_env_t & sobj )
 	{
-		return sobj.environment().create_mchain( so_5::make_unlimited_mchain_params() );
+		return create_mchain( sobj.environment() );
 	}
 
 /*!

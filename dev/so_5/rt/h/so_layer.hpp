@@ -9,14 +9,15 @@
 
 #pragma once
 
-#include <memory>
-#include <map>
-#include <typeindex>
-
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/ret_code.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
+
+#include <memory>
+#include <map>
+#include <typeindex>
 
 namespace so_5
 {
@@ -37,8 +38,8 @@ class SO_5_TYPE layer_t
 		layer_t & operator=( layer_t && ) = delete;
 
 	public:
-		layer_t();
-		virtual ~layer_t();
+		layer_t() = default;
+		virtual ~layer_t() SO_5_NOEXCEPT = default;
 
 
 		//! Start hook.
@@ -81,7 +82,7 @@ class SO_5_TYPE layer_t
 		 * Pointer has the actual value only after binding 
 		 * to the SObjectizer Environment.
 		 */
-		environment_t * m_env;
+		environment_t * m_env{};
 };
 
 //! Typedef for the layer's autopointer.

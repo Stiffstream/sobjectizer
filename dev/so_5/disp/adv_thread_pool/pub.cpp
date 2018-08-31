@@ -246,12 +246,6 @@ adjust_thread_count( disp_params_t & params )
 } /* namespace anonymous */
 
 //
-// private_dispatcher_t
-//
-private_dispatcher_t::~private_dispatcher_t()
-	{}
-
-//
 // create_disp
 //
 SO_5_FUNC dispatcher_unique_ptr_t

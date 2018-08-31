@@ -2,12 +2,12 @@
 	SObjectizer 5.
 */
 
-#include <algorithm>
-#include <iterator>
-
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
+
+#include <algorithm>
+#include <iterator>
 
 namespace so_5
 {
@@ -64,10 +64,6 @@ layer_core_t::layer_core_t(
 		{
 			item.m_layer->bind_to_environment( &m_env );
 		} );
-}
-
-layer_core_t::~layer_core_t()
-{
 }
 
 //! Find layer in container.

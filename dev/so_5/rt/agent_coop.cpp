@@ -21,19 +21,6 @@ namespace so_5
 //
 // coop_reg_notificators_container_t
 //
-coop_reg_notificators_container_t::coop_reg_notificators_container_t()
-{}
-
-coop_reg_notificators_container_t::~coop_reg_notificators_container_t()
-{}
-
-void
-coop_reg_notificators_container_t::add(
-	const coop_reg_notificator_t & notificator )
-{
-	m_notificators.push_back( notificator );
-}
-
 void
 coop_reg_notificators_container_t::call_all(
 	environment_t & env,
@@ -59,19 +46,6 @@ coop_reg_notificators_container_t::call_all(
 //
 // coop_dereg_notificators_container_t
 //
-coop_dereg_notificators_container_t::coop_dereg_notificators_container_t()
-{}
-
-coop_dereg_notificators_container_t::~coop_dereg_notificators_container_t()
-{}
-
-void
-coop_dereg_notificators_container_t::add(
-	const coop_dereg_notificator_t & notificator )
-{
-	m_notificators.push_back( notificator );
-}
-
 void
 coop_dereg_notificators_container_t::call_all(
 	environment_t & env,
@@ -94,6 +68,7 @@ coop_dereg_notificators_container_t::call_all(
 		}
 	}
 }
+
 //
 // coop_t
 //

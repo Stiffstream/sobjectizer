@@ -32,7 +32,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		# ./
 		cpp_source 'exception.cpp'
 		cpp_source 'current_thread_id.cpp'
-		cpp_source 'atomic_refcounted.cpp'
 
 		cpp_source 'error_logger.cpp'
 
@@ -41,8 +40,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		cpp_source 'msg_tracing.cpp'
 
 		cpp_source 'wrapped_env.cpp'
-
-		cpp_source 'stop_guard.cpp'
 
 		# Run-time.
 		sources_root( 'rt' ) {
@@ -54,27 +51,20 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'mbox.cpp'
 			cpp_source 'mchain.cpp'
 
-			cpp_source 'event_queue.cpp'
-
 			cpp_source 'event_exception_logger.cpp'
 
 			cpp_source 'agent.cpp'
-			cpp_source 'agent_state_listener.cpp'
-			cpp_source 'adhoc_agent_wrapper.cpp'
 
 			cpp_source 'agent_coop.cpp'
 			cpp_source 'agent_coop_notifications.cpp'
 
 			cpp_source 'queue_locks_defaults_manager.cpp'
-			cpp_source 'environment_infrastructure.cpp'
 			cpp_source 'environment.cpp'
 
 			cpp_source 'disp.cpp'
 			cpp_source 'disp_binder.cpp'
 
 			cpp_source 'so_layer.cpp'
-
-			cpp_source 'coop_listener.cpp'
 
 			sources_root( 'impl' ) {
 				cpp_source 'msg_tracing_helpers.cpp'
@@ -102,7 +92,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			}
 
 			sources_root( 'stats' ) {
-				cpp_source 'controller.cpp'
 				cpp_source 'repository.cpp'
 				cpp_source 'std_names.cpp'
 

@@ -26,12 +26,6 @@ namespace disp {
 
 namespace mpsc_queue_traits {
 
-//
-// lock_t
-//
-lock_t::lock_t() {}
-lock_t::~lock_t() {}
-
 namespace impl {
 
 //

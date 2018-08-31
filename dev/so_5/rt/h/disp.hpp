@@ -14,6 +14,7 @@
 #include <string>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/ret_code.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
@@ -47,9 +48,9 @@ class SO_5_TYPE dispatcher_t
 
 	public:
 		/*! Do nothing. */
-		dispatcher_t();
+		dispatcher_t() = default;
 		/*! Do nothing. */
-		virtual ~dispatcher_t();
+		virtual ~dispatcher_t() SO_5_NOEXCEPT = default;
 
 		/*! Auxiliary method. */
 		inline dispatcher_t *

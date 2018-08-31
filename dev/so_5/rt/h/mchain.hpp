@@ -486,8 +486,8 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		operator=( const abstract_message_chain_t & ) = delete;
 
 	protected :
-		abstract_message_chain_t();
-		virtual ~abstract_message_chain_t();
+		abstract_message_chain_t() = default;
+		virtual ~abstract_message_chain_t() SO_5_NOEXCEPT = default;
 
 	public :
 		using abstract_message_box_t::id;

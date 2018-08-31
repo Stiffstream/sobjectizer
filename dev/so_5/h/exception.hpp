@@ -24,8 +24,6 @@ namespace so_5
 	#pragma warning(disable: 4275)
 #endif
 
-#define SO_5_NORETURN [[noreturn]]
-
 //
 // exception_t
 //
@@ -38,18 +36,39 @@ class SO_5_TYPE exception_t : public std::runtime_error
 	public:
 		exception_t(
 			const std::string & error_descr,
-			int error_code );
-		exception_t( const exception_t & );
-		exception_t( exception_t && );
-
-		virtual ~exception_t();
+			int error_code )
+			:	base_type_t( error_descr )
+			,	m_error_code( error_code )
+			{}
+		exception_t( const exception_t & ) = default;
+#if defined(SO_5_NEED_MSVC_12_WORKAROUNDS)
+		exception_t( exception_t && o )
+			:	base_type_t( std::move(o) )
+			,	m_error_code( o.m_error_code )
+			{}
+#else
+		exception_t( exception_t && ) = default;
+#endif
 
 		exception_t &
-		operator=( exception_t o );
+		operator=( exception_t & o ) = default;
+
+#if defined(SO_5_NEED_MSVC_12_WORKAROUNDS)
+		exception_t &
+		operator=( exception_t && o )
+			{
+				base_type_t::operator=( std::move(o) );
+				m_error_code = o.m_error_code;
+				return *this;
+			}
+#else
+		exception_t &
+		operator=( exception_t && o ) = default;
+#endif
 
 		//! Error code getter.
 		int
-		error_code() const;
+		error_code() const SO_5_NOEXCEPT { return m_error_code; }
 
 		static void
 		raise(

@@ -67,8 +67,8 @@ class SO_5_TYPE tracer_t
 		tracer_t & operator=( const tracer_t & ) = delete;
 		tracer_t & operator=( tracer_t && ) = delete;
 	public :
-		tracer_t();
-		virtual ~tracer_t();
+		tracer_t() = default;
+		virtual ~tracer_t() SO_5_NOEXCEPT = default;
 
 		//! Store a description of message delivery action to the
 		//! appropriate storage/stream.
@@ -252,8 +252,8 @@ class SO_5_TYPE trace_data_t
 		trace_data_t(const trace_data_t &) = delete;
 		trace_data_t& operator=(const trace_data_t &) = delete;
 
-		trace_data_t();
-		virtual ~trace_data_t();
+		trace_data_t() = default;
+		virtual ~trace_data_t() SO_5_NOEXCEPT = default;
 
 	public :
 		//! Get the Thread ID from trace message.
@@ -342,7 +342,7 @@ class SO_5_TYPE filter_t : private so_5::atomic_refcounted_t
 		friend class so_5::intrusive_ptr_t<filter_t>;
 
 	public :
-		virtual ~filter_t();
+		virtual ~filter_t() SO_5_NOEXCEPT = default;
 
 		//! Filter the current message.
 		/*!
@@ -535,8 +535,8 @@ no_filter() { return {}; }
 class SO_5_TYPE holder_t
 	{
 	public :
-		holder_t();
-		virtual ~holder_t();
+		holder_t() = default;
+		virtual ~holder_t() SO_5_NOEXCEPT = default;
 
 		holder_t(const holder_t &) = delete;
 		holder_t & operator=(const holder_t &) = delete;

@@ -23,100 +23,6 @@
 namespace so_5
 {
 
-//
-// timer_t
-//
-timer_t::~timer_t() SO_5_NOEXCEPT
-	{}
-
-//
-// timer_id_t
-//
-timer_id_t::timer_id_t() SO_5_NOEXCEPT
-	{}
-
-timer_id_t::timer_id_t(
-	so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT
-	:	m_timer( std::move( timer ) )
-	{}
-
-timer_id_t::timer_id_t(
-	const timer_id_t & o ) SO_5_NOEXCEPT
-	:	m_timer( o.m_timer )
-	{}
-
-timer_id_t::timer_id_t(
-	timer_id_t && o ) SO_5_NOEXCEPT
-	:	m_timer( std::move( o.m_timer ) )
-	{}
-
-timer_id_t::~timer_id_t() SO_5_NOEXCEPT
-	{}
-
-timer_id_t &
-timer_id_t::operator=( const timer_id_t & o ) SO_5_NOEXCEPT
-	{
-		timer_id_t t( o );
-		t.swap( *this );
-		return *this;
-	}
-
-timer_id_t &
-timer_id_t::operator=( timer_id_t && o ) SO_5_NOEXCEPT
-	{
-		timer_id_t t( std::move( o ) );
-		t.swap( *this );
-		return *this;
-	}
-
-void
-timer_id_t::swap( timer_id_t & o ) SO_5_NOEXCEPT
-	{
-		m_timer.swap( o.m_timer );
-	}
-
-bool
-timer_id_t::is_active() const SO_5_NOEXCEPT
-	{
-		return ( m_timer && m_timer->is_active() );
-	}
-
-void
-timer_id_t::release() SO_5_NOEXCEPT
-	{
-		if( m_timer )
-			m_timer->release();
-	}
-
-//
-// timer_thread_t
-//
-
-timer_thread_t::timer_thread_t()
-	{}
-
-timer_thread_t::~timer_thread_t()
-	{}
-
-//
-// timer_manager_t::elapsed_timers_collector_t
-//
-timer_manager_t::elapsed_timers_collector_t::elapsed_timers_collector_t()
-	{}
-
-timer_manager_t::elapsed_timers_collector_t::~elapsed_timers_collector_t()
-	{}
-
-//
-// timer_manager_t
-//
-
-timer_manager_t::timer_manager_t()
-	{}
-
-timer_manager_t::~timer_manager_t()
-	{}
-
 namespace timers_details
 {
 
@@ -462,7 +368,7 @@ using error_logger_for_timertt_t = std::function< void(const std::string &) >;
 #endif
 
 error_logger_for_timertt_t
-create_error_logger_for_timertt( error_logger_shptr_t logger )
+create_error_logger_for_timertt( const error_logger_shptr_t & logger )
 	{
 		return [logger]( const std::string & msg ) {
 			SO_5_LOG_ERROR( *logger, stream ) {
@@ -497,7 +403,8 @@ using exception_handler_for_timertt_t =
 #endif
 
 exception_handler_for_timertt_t
-create_exception_handler_for_timertt_thread( error_logger_shptr_t logger )
+create_exception_handler_for_timertt_thread(
+	const error_logger_shptr_t & logger )
 	{
 		return [logger]( const std::exception & x ) {
 			so_5::details::abort_on_fatal_error( [&] {
@@ -511,7 +418,8 @@ create_exception_handler_for_timertt_thread( error_logger_shptr_t logger )
 	}
 
 exception_handler_for_timertt_t
-create_exception_handler_for_timertt_manager( error_logger_shptr_t logger )
+create_exception_handler_for_timertt_manager(
+	const error_logger_shptr_t & logger )
 	{
 		return [logger]( const std::exception & x ) {
 			so_5::details::abort_on_fatal_error( [&] {
@@ -523,6 +431,7 @@ create_exception_handler_for_timertt_manager( error_logger_shptr_t logger )
 			} );
 		};
 	}
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
@@ -582,7 +491,7 @@ create_timer_wheel_thread(
 		using timertt_thread_t = timers_details::timer_wheel_thread_t;
 
 		return create_timer_wheel_thread(
-				logger,
+				std::move(logger),
 				timertt_thread_t::default_wheel_size(),
 				timertt_thread_t::default_granularity() );
 	}
@@ -614,7 +523,7 @@ create_timer_heap_thread(
 		using timertt_thread_t = timers_details::timer_heap_thread_t;
 
 		return create_timer_heap_thread(
-				logger,
+				std::move(logger),
 				timertt_thread_t::default_initial_heap_capacity() );
 	}
 
@@ -661,8 +570,8 @@ create_timer_wheel_manager(
 		using timertt_manager_t = timers_details::timer_wheel_manager_t;
 
 		return create_timer_wheel_manager(
-				logger,
-				std::move(collector),
+				std::move(logger),
+				collector,
 				timertt_manager_t::default_wheel_size(),
 				timertt_manager_t::default_granularity() );
 	}
@@ -686,7 +595,7 @@ create_timer_wheel_manager(
 
 		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
 						std::move( manager ),
-						std::move( collector ) );
+						collector );
 	}
 
 SO_5_FUNC timer_manager_unique_ptr_t
@@ -698,8 +607,8 @@ create_timer_heap_manager(
 		using timertt_manager_t = timers_details::timer_heap_manager_t;
 
 		return create_timer_heap_manager(
-				logger,
-				std::move(collector),
+				std::move(logger),
+				collector,
 				timertt_manager_t::default_initial_heap_capacity() );
 	}
 
@@ -720,7 +629,7 @@ create_timer_heap_manager(
 
 		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
 				std::move( manager ),
-				std::move( collector ) );
+				collector );
 	}
 
 SO_5_FUNC timer_manager_unique_ptr_t
@@ -738,7 +647,7 @@ create_timer_list_manager(
 
 		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
 				std::move( manager ),
-				std::move( collector ) );
+				collector );
 	}
 
 } /* namespace so_5 */

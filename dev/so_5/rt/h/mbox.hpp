@@ -566,8 +566,8 @@ class SO_5_TYPE delivery_filter_t
 		delivery_filter_t & operator=( const delivery_filter_t & ) = delete;
 		delivery_filter_t & operator=( delivery_filter_t && ) = delete;
 	public :
-		delivery_filter_t();
-		virtual ~delivery_filter_t();
+		delivery_filter_t() = default;
+		virtual ~delivery_filter_t() SO_5_NOEXCEPT = default;
 
 		//! Checker for a message instance.
 		/*!
@@ -652,13 +652,16 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 		friend class so_5::rt::impl::mbox_iface_for_timers_t;
 
-		abstract_message_box_t( const abstract_message_box_t & );
-		void
-		operator = ( const abstract_message_box_t & );
+		abstract_message_box_t( const abstract_message_box_t & ) = delete;
+		abstract_message_box_t( abstract_message_box_t && ) = delete;
+		abstract_message_box_t &
+		operator=( const abstract_message_box_t & ) = delete;
+		abstract_message_box_t &
+		operator=( abstract_message_box_t && ) = delete;
 
 	public:
-		abstract_message_box_t();
-		virtual ~abstract_message_box_t();
+		abstract_message_box_t() = default;
+		virtual ~abstract_message_box_t() SO_5_NOEXCEPT = default;
 
 		/*!
 		 * \since
@@ -884,9 +887,15 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \name Comparision.
 		 * \{
 		 */
-		bool operator==( const abstract_message_box_t & o ) const;
+		bool operator==( const abstract_message_box_t & o ) const SO_5_NOEXCEPT
+		{
+			return id() == o.id();
+		}
 
-		bool operator<( const abstract_message_box_t & o ) const;
+		bool operator<( const abstract_message_box_t & o ) const SO_5_NOEXCEPT
+		{
+			return id() < o.id();
+		}
 		/*!
 		 * \}
 		 */

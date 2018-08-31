@@ -16,6 +16,12 @@
 #include <thread>
 #include <cstdint>
 
+#if defined(_MSC_VER) && defined(__SSE2__)
+	#define SO_5_ARCH_MSC_WITH_SSE2
+
+	#include <intrin.h>
+#endif
+
 namespace so_5
 {
 
@@ -26,7 +32,7 @@ namespace so_5
  * \since
  * v.5.4.0
  *
- * \brief A implementation of backoff object with usage of std::yield.
+ * \brief An implementation of backoff object with usage of std::yield.
  */
 class yield_backoff_t
 	{
@@ -39,6 +45,37 @@ class yield_backoff_t
 	};
 
 //
+// pause_backoff_t
+//
+/*!
+ * \since
+ * v.5.5.22.2
+ *
+ * \brief An implementation of backoff object using assembly instruction.
+ *
+ * \note
+ * This implementation is provided by Pavel Begunkov.
+ */
+class pause_backoff_t
+	{
+	public :
+		inline void
+		operator()()
+			{
+#if (defined(__GNUC__) || defined(__clang__)) && \
+	(defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || \
+	defined(__amd64) || \
+	defined(_M_IX86) || defined(__i386__) || defined(__i386))
+				asm( "pause;" );
+#elif defined(SO_5_ARCH_MSC_WITH_SSE2)
+				_mm_pause();
+#else
+				;
+#endif
+			}
+	};
+
+//
 // spinlock_t
 //
 /*!
@@ -47,8 +84,9 @@ class yield_backoff_t
  *
  * \brief A simple spinlock (analog of std::mutex).
  *
- * This implemetation in based on description of std::atomic_flag:
- * \see http://en.cppreference.com/w/cpp/atomic/atomic_flag
+ * \note
+ * Since v.5.5.22.2 a TATAS spinlock implementation is used.
+ * Implementation is provided by Pavel Begunkov.
  */
 template< class Backoff >
 class spinlock_t
@@ -56,7 +94,7 @@ class spinlock_t
 	public :
 		spinlock_t()
 			{
-				m_flag.clear( std::memory_order_release );
+				m_flag.store( false, std::memory_order_release );
 			}
 		spinlock_t( const spinlock_t & ) = delete;
 		spinlock_t( spinlock_t && ) = delete;
@@ -69,26 +107,31 @@ class spinlock_t
 		lock()
 			{
 				Backoff backoff;
-				while( m_flag.test_and_set( std::memory_order_acquire ) )
-					backoff();
+
+				do
+					{
+						while( m_flag.load( std::memory_order_relaxed ) )
+							backoff();
+					}
+				while( m_flag.exchange( true, std::memory_order_acquire ) );
 			}
 
 		//! Unlock object.
 		void
 		unlock()
 			{
-				m_flag.clear( std::memory_order_release );
+				m_flag.store( false, std::memory_order_release );
 			}
 
 	private :
 		//! Atomic flag which is used as actual lock.
-		std::atomic_flag m_flag;
+		std::atomic_bool m_flag;
 	};
 
 //
 // default_spinlock_t
 //
-typedef spinlock_t< yield_backoff_t > default_spinlock_t;
+typedef spinlock_t< pause_backoff_t > default_spinlock_t;
 
 //
 // rw_spinlock_t
@@ -187,7 +230,7 @@ class rw_spinlock_t
 			}
 	};
 
-typedef rw_spinlock_t< yield_backoff_t > default_rw_spinlock_t;
+typedef rw_spinlock_t< pause_backoff_t > default_rw_spinlock_t;
 
 //
 // read_lock_guard_t

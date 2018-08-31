@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/spinlocks/combined_queue_lock'
+path = 'test/so_5/api/several_dlls'
 
 Mxx_ru::setup_target(
 	Mxx_ru::Binary_unittest_target.new(

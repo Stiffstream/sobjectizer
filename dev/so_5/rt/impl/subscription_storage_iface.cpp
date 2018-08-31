@@ -22,9 +22,6 @@ subscription_storage_t::subscription_storage_t( agent_t * owner )
 	:	m_owner( owner )
 	{}
 
-subscription_storage_t::~subscription_storage_t()
-	{}
-
 agent_t *
 subscription_storage_t::owner() const
 	{

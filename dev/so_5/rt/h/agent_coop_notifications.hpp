@@ -41,8 +41,9 @@ struct SO_5_TYPE msg_coop_registered : public message_t
 	msg_coop_registered & operator=( msg_coop_registered && ) = delete;
 
 	msg_coop_registered(
-		const std::string & coop_name );
-	virtual ~msg_coop_registered();
+		std::string coop_name )
+		:	m_coop_name( std::move(coop_name) )
+		{}
 
 	const std::string m_coop_name;
 };
@@ -65,9 +66,11 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 	msg_coop_deregistered & operator=( msg_coop_deregistered && ) = delete;
 
 	msg_coop_deregistered(
-		const std::string & coop_name,
-		coop_dereg_reason_t reason );
-	virtual ~msg_coop_deregistered();
+		std::string coop_name,
+		coop_dereg_reason_t reason )
+		:	m_coop_name( std::move(coop_name) )
+		,	m_reason( reason )
+		{}
 
 	const std::string m_coop_name;
 	const coop_dereg_reason_t m_reason;

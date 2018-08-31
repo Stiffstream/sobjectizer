@@ -2,9 +2,9 @@
 	SObjectizer 5.
 */
 
-#include <iostream>
-
 #include <so_5/rt/h/event_exception_logger.hpp>
+
+#include <iostream>
 
 namespace so_5
 {
@@ -12,12 +12,6 @@ namespace so_5
 //
 // event_exception_logger_t
 //
-
-event_exception_logger_t::event_exception_logger_t()
-{}
-
-event_exception_logger_t::~event_exception_logger_t()
-{}
 
 void
 event_exception_logger_t::on_install(

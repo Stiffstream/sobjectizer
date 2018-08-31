@@ -14,6 +14,7 @@
 #include <so_5/h/compiler_features.hpp>
 
 #include <type_traits>
+#include <utility>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -30,27 +31,35 @@ namespace so_5
 */
 class SO_5_TYPE atomic_refcounted_t
 {
+	public:
 		/*! Disabled. */
 		atomic_refcounted_t(
-			const atomic_refcounted_t & );
+			const atomic_refcounted_t & ) = delete;
 
 		/*! Disabled. */
 		atomic_refcounted_t &
 		operator = (
-			const atomic_refcounted_t & );
+			const atomic_refcounted_t & ) = delete;
 
-	public:
 		//! Default constructor.
 		/*!
 		 * Sets reference counter to 0.
 		 */
-		atomic_refcounted_t() SO_5_NOEXCEPT;
+#if defined(SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR)
+		atomic_refcounted_t() SO_5_NOEXCEPT
+		{
+			m_ref_counter = 0;
+		}
+#else
+		atomic_refcounted_t() SO_5_NOEXCEPT : m_ref_counter(0)
+		{}
+#endif
 
 		//! Destructor.
 		/*!
 		 * Do nothing.
 		 */
-		~atomic_refcounted_t() SO_5_NOEXCEPT;
+		~atomic_refcounted_t() SO_5_NOEXCEPT = default;
 
 		//! Increments reference count.
 		inline void
@@ -152,8 +161,7 @@ class intrusive_ptr_t
 		intrusive_ptr_t &
 		operator=( const intrusive_ptr_t & o ) SO_5_NOEXCEPT
 		{
-			intrusive_ptr_t t( o );
-			swap( t );
+			intrusive_ptr_t( o ).swap( *this );
 			return *this;
 		}
 
@@ -161,12 +169,7 @@ class intrusive_ptr_t
 		intrusive_ptr_t &
 		operator=( intrusive_ptr_t && o ) SO_5_NOEXCEPT
 		{
-			if( &o != this )
-			{
-				dismiss_object();
-				m_obj = o.m_obj;
-				o.m_obj = nullptr;
-			}
+			intrusive_ptr_t( std::move(o) ).swap( *this );
 			return *this;
 		}
 
@@ -174,9 +177,7 @@ class intrusive_ptr_t
 		void
 		swap( intrusive_ptr_t & o ) SO_5_NOEXCEPT
 		{
-			T * t = m_obj;
-			m_obj = o.m_obj;
-			o.m_obj = t;
+			std::swap( m_obj, o.m_obj );
 		}
 
 		/*!
@@ -249,24 +250,20 @@ class intrusive_ptr_t
 		{
 			T * p1 = get();
 			T * p2 = o.get();
-			if( p1 == nullptr && p2 == nullptr )
-				return true;
 			if( p1 != nullptr && p2 != nullptr )
 				return (*p1) == (*p2);
-			return false;
+			else
+				return p1 == p2;
 		}
 
 		bool operator<( const intrusive_ptr_t & o ) const
 		{
 			T * p1 = get();
 			T * p2 = o.get();
-			if( p1 == nullptr && p2 == nullptr )
-				return false;
 			if( p1 != nullptr && p2 != nullptr )
 				return (*p1) < (*p2);
-			if( p1 == nullptr && p2 != nullptr )
-				return true;
-			return false;
+			else
+				return p1 < p2;
 		}
 		/*!
 		 * \}

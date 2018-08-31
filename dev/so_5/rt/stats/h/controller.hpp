@@ -39,8 +39,8 @@ class SO_5_TYPE controller_t
 		controller_t & operator=( const controller_t & ) = delete;
 		controller_t & operator=( controller_t && ) = delete;
 
-		controller_t();
-		~controller_t();
+		controller_t() = default;
+		~controller_t() = default;
 
 	public :
 		//! Get the mbox for receiving monitoring information.

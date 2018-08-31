@@ -38,30 +38,58 @@ namespace so_5
 class SO_5_TYPE adhoc_agent_wrapper_t : public agent_t
 	{
 	public :
-		adhoc_agent_wrapper_t( agent_context_t ctx );
-		virtual ~adhoc_agent_wrapper_t();
+		adhoc_agent_wrapper_t( agent_context_t ctx )
+			:	agent_t( std::move( ctx ) )
+			,	m_exception_reaction(
+						exception_reaction_t::inherit_exception_reaction )
+			{}
 
 		//! Set function for reaction on work start.
 		void
-		set_on_evt_start( std::function< void() > handler );
+		set_on_evt_start( std::function< void() > handler )
+			{
+				m_on_start = std::move(handler);
+			}
 
 		//! Set function for reaction on work finish.
 		void
-		set_on_evt_finish( std::function< void() > handler );
+		set_on_evt_finish( std::function< void() > handler )
+			{
+				m_on_finish = std::move(handler);
+			}
 
 		//! Set reaction for non-handled exceptions.
 		void
 		set_exception_reaction(
-			exception_reaction_t reaction );
+			exception_reaction_t reaction ) SO_5_NOEXCEPT
+			{
+				m_exception_reaction = reaction;
+			}
 
 		virtual void
-		so_evt_start();
+		so_evt_start() override
+			{
+				if( m_on_start )
+					m_on_start();
+			}
 
 		virtual void
-		so_evt_finish();
+		so_evt_finish() override
+			{
+				if( m_on_finish )
+					m_on_finish();
+			}
 
 		virtual exception_reaction_t
-		so_exception_reaction() const;
+		so_exception_reaction() const override
+			{
+				if( exception_reaction_t::inherit_exception_reaction !=
+						m_exception_reaction )
+					return m_exception_reaction;
+				else
+					// Let's basic implementation handle this case.
+					return agent_t::so_exception_reaction();
+			}
 
 	private :
 		std::function< void() > m_on_start;

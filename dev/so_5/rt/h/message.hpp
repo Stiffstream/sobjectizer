@@ -51,12 +51,12 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		message_t( const message_t & other );
 		message_t( message_t && other );
 
-		void
+		message_t &
 		operator=( const message_t & other );
-		void
+		message_t &
 		operator=( message_t && other );
 
-		virtual ~message_t();
+		virtual ~message_t() SO_5_NOEXCEPT = default;
 
 		/*!
 		 * \brief Helper method for safe get of message mutability flag.
@@ -229,10 +229,10 @@ class SO_5_TYPE signal_t
 		 * Private constructor to disable creation of instances of
 		 * derived classes.
 		 */
-		signal_t();
+		signal_t() = default;
 
 	public :
-		virtual ~signal_t();
+		~signal_t() SO_5_NOEXCEPT override = default;
 };
 
 //

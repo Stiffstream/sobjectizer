@@ -43,8 +43,8 @@ class SO_5_TYPE agent_state_listener_t
 		operator=( const agent_state_listener_t & ) = delete;
 
 	public:
-		agent_state_listener_t();
-		virtual ~agent_state_listener_t();
+		agent_state_listener_t() = default;
+		virtual ~agent_state_listener_t() SO_5_NOEXCEPT = default;
 
 		//! Hook method for state changes.
 		/*!

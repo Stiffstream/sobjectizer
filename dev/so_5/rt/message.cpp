@@ -28,20 +28,18 @@ message_t::message_t( message_t && other )
 {
 }
 
-message_t::~message_t()
-{
-}
-
-void
+message_t &
 message_t::operator=( const message_t & other )
 {
 	m_mutability = other.m_mutability;
+	return *this;
 }
 
-void
+message_t &
 message_t::operator=( message_t && other )
 {
 	m_mutability = other.m_mutability;
+	return *this;
 }
 
 const void *
@@ -49,16 +47,6 @@ message_t::so5__payload_ptr() const
 {
 	return this;
 }
-
-//
-// signal_t
-//
-
-signal_t::signal_t()
-{}
-
-signal_t::~signal_t()
-{}
 
 } /* namespace so_5 */
 

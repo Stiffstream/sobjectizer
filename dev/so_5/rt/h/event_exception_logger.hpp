@@ -9,11 +9,12 @@
 
 #pragma once
 
+#include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
+
 #include <exception>
 #include <string>
 #include <memory>
-
-#include <so_5/h/declspec.hpp>
 
 namespace so_5
 {
@@ -46,8 +47,8 @@ class SO_5_TYPE event_exception_logger_t
 		event_exception_logger_t & operator=( event_exception_logger_t && ) = delete;
 
 	public:
-		event_exception_logger_t();
-		virtual ~event_exception_logger_t();
+		event_exception_logger_t() = default;
+		virtual ~event_exception_logger_t() SO_5_NOEXCEPT = default;
 
 		/*!
 		 * \brief Log the exception caught.

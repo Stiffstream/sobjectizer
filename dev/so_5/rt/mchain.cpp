@@ -17,11 +17,6 @@ namespace so_5 {
 //
 // abstract_message_chain_t
 //
-abstract_message_chain_t::abstract_message_chain_t()
-	{}
-abstract_message_chain_t::~abstract_message_chain_t()
-	{}
-
 mbox_t
 abstract_message_chain_t::as_mbox()
 	{

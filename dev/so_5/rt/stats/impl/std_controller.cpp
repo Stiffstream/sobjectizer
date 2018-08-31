@@ -34,9 +34,6 @@ std_controller_t::std_controller_t(
 	:	m_mbox( std::move( mbox ) )
 	{}
 
-std_controller_t::~std_controller_t()
-	{}
-
 const mbox_t &
 std_controller_t::mbox() const
 	{

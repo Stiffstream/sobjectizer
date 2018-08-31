@@ -268,11 +268,6 @@ class dispatcher_template_t : public actual_disp_iface_t
 		typedef std::map< std::string, thread_with_refcounter_t >
 			active_group_map_t;
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
 		/*!
 		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 *
@@ -292,8 +287,8 @@ class dispatcher_template_t : public actual_disp_iface_t
 					:	m_dispatcher( disp )
 					{}
 
-				virtual void
-				distribute( const so_5::mbox_t & mbox )
+				void
+				distribute( const so_5::mbox_t & mbox ) override
 					{
 						std::lock_guard< std::mutex > lock{ m_dispatcher.m_lock };
 
@@ -363,10 +358,6 @@ class dispatcher_template_t : public actual_disp_iface_t
 								*(wt.m_thread) );
 					}
 			};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 		//! Parameters for the dispatcher.
 		const disp_params_t m_params;
@@ -619,12 +610,6 @@ class real_private_dispatcher_t : public private_dispatcher_t
 	};
 
 } /* namespace impl */
-
-//
-// private_dispatcher_t
-//
-private_dispatcher_t::~private_dispatcher_t()
-	{}
 
 //
 // create_disp

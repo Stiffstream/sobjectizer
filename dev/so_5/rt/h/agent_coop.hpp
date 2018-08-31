@@ -137,13 +137,13 @@ class SO_5_TYPE coop_reg_notificators_container_t
 	:	public atomic_refcounted_t
 {
 	public :
-		coop_reg_notificators_container_t();
-		~coop_reg_notificators_container_t();
-
 		//! Add a notificator.
 		void
 		add(
-			const coop_reg_notificator_t & notificator );
+			coop_reg_notificator_t notificator )
+		{
+			m_notificators.push_back( std::move(notificator) );
+		}
 
 		//! Call all notificators.
 		/*!
@@ -212,13 +212,13 @@ class SO_5_TYPE coop_dereg_notificators_container_t
 	:	public atomic_refcounted_t
 {
 	public :
-		coop_dereg_notificators_container_t();
-		~coop_dereg_notificators_container_t();
-
 		//! Add a notificator.
 		void
 		add(
-			const coop_dereg_notificator_t & notificator );
+			coop_dereg_notificator_t notificator )
+		{
+			m_notificators.push_back( std::move(notificator) );
+		}
 
 		//! Call all notificators.
 		/*!

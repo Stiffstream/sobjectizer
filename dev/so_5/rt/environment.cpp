@@ -676,7 +676,7 @@ void
 environment_t::remove_stop_guard(
 	stop_guard_shptr_t guard )
 {
-	const auto action = m_impl->m_stop_guards.remove_guard( guard );
+	const auto action = m_impl->m_stop_guards.remove_guard( std::move(guard) );
 	if( impl::stop_guard_repository_t::action_t::do_actual_stop == action )
 		m_impl->m_infrastructure->stop();
 }

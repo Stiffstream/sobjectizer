@@ -393,11 +393,6 @@ class default_disp_impl_t final
 
 	private :
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
 		/*!
 		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 *
@@ -418,7 +413,7 @@ class default_disp_impl_t final
 					:	m_dispatcher( std::move(disp) )
 					{}
 
-				virtual void
+				void
 				distribute( const mbox_t & mbox ) override
 					{
 						so_5::send< stats::messages::quantity< std::size_t > >(
@@ -454,10 +449,6 @@ class default_disp_impl_t final
 								&m_dispatcher.get() );
 					}
 			};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 		//! Data source for speading run-time stats.
 		disp_data_source_t m_data_source;

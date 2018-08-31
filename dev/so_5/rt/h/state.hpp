@@ -362,6 +362,9 @@ class SO_5_TYPE state_t final
 		 */
 		state_t( state_t && other );
 
+		// Explicitely defined destructor is necessary because
+		// time_limit_t is incomplete type at this point and
+		// compiler can't generate the destructor for unique_ptr<time_limit_t>.
 		~state_t();
 
 		bool

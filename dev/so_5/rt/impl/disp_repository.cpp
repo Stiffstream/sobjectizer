@@ -2,16 +2,16 @@
 	SObjectizer 5.
 */
 
-#include <algorithm>
-#include <mutex>
+#include <so_5/rt/impl/h/disp_repository.hpp>
 
 #include <so_5/h/ret_code.hpp>
-
-#include <so_5/rt/impl/h/disp_repository.hpp>
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
+
+#include <algorithm>
+#include <mutex>
 
 namespace so_5
 {
@@ -31,10 +31,6 @@ disp_repository_t::disp_repository_t(
 	,	m_named_dispatcher_map( std::move( named_dispatcher_map ) )
 	,	m_event_exception_logger( std::move( logger ) )
 	,	m_state( state_t::not_started )
-{
-}
-
-disp_repository_t::~disp_repository_t()
 {
 }
 

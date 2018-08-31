@@ -36,15 +36,6 @@ namespace so_5
 {
 
 //
-// error_logger_t
-//
-error_logger_t::error_logger_t()
-	{}
-
-error_logger_t::~error_logger_t()
-	{}
-
-//
 // stderr_logger_t
 //
 /*!

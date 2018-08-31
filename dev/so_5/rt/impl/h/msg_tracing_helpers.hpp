@@ -55,9 +55,6 @@ using namespace so_5::details::ios_helpers;
 class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 	{
 	public :
-		actual_trace_data_t();
-		~actual_trace_data_t() override;
-
 		virtual optional<current_thread_id_t>
 		tid() const SO_5_NOEXCEPT override;
 

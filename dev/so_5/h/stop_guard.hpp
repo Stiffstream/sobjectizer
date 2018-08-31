@@ -53,11 +53,11 @@ class SO_5_FUNC stop_guard_t
 				return_negative_result
 			};
 
-		stop_guard_t();
+		stop_guard_t() = default;
 		stop_guard_t( const stop_guard_t & ) = delete;
 		stop_guard_t( stop_guard_t && ) = delete;
 
-		virtual ~stop_guard_t();
+		virtual ~stop_guard_t() SO_5_NOEXCEPT = default;
 
 		stop_guard_t & operator=( const stop_guard_t & ) = delete;
 		stop_guard_t & operator=( stop_guard_t && ) = delete;

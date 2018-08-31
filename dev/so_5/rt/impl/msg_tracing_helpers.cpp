@@ -23,10 +23,6 @@ namespace details {
 //
 // actual_trace_data_t
 //
-actual_trace_data_t::actual_trace_data_t()
-	{}
-actual_trace_data_t::~actual_trace_data_t()
-	{}
 
 optional<current_thread_id_t>
 actual_trace_data_t::tid() const SO_5_NOEXCEPT

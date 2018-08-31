@@ -2,15 +2,16 @@
 	SObjectizer 5.
 */
 
-#include <algorithm>
+#include <so_5/rt/impl/h/mbox_core.hpp>
 
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/impl/h/local_mbox.hpp>
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
 #include <so_5/rt/impl/h/mpsc_mbox.hpp>
-#include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/mchain_details.hpp>
+
+#include <algorithm>
 
 namespace so_5
 {
@@ -28,11 +29,6 @@ mbox_core_t::mbox_core_t(
 	,	m_mbox_id_counter{ 1 }
 {
 }
-
-mbox_core_t::~mbox_core_t()
-{
-}
-
 
 mbox_t
 mbox_core_t::create_mbox()

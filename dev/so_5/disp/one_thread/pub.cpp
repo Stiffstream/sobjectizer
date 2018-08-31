@@ -41,11 +41,6 @@ namespace impl
 namespace work_thread = so_5::disp::reuse::work_thread;
 namespace stats = so_5::stats;
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
 namespace data_source_details
 {
 
@@ -114,14 +109,14 @@ class data_source_t
 					work_thread, agents_bound )
 			{}
 
-		~data_source_t()
+		~data_source_t() override
 			{
 				if( m_env )
 					stop();
 			}
 
-		virtual void
-		distribute( const mbox_t & mbox )
+		void
+		distribute( const mbox_t & mbox ) override
 			{
 				so_5::send< stats::messages::quantity< std::size_t > >(
 						mbox,
@@ -170,10 +165,6 @@ class data_source_t
 				m_env = nullptr;
 			}
 	};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 //
 // actual_disp_iface_t
@@ -599,12 +590,6 @@ class real_private_dispatcher_t : public private_dispatcher_t
 	};
 
 } /* namespace impl */
-
-//
-// private_dispatcher_t
-//
-private_dispatcher_t::~private_dispatcher_t()
-	{}
 
 //
 // create_disp

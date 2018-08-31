@@ -124,8 +124,6 @@ public:
 		//! Cooperation action listener.
 		coop_listener_unique_ptr_t coop_listener );
 
-	~coop_repository_basis_t();
-
 	//! Register cooperation.
 	void
 	register_coop(

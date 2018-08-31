@@ -32,8 +32,8 @@ class SO_5_TYPE event_queue_t
 		event_queue_t & operator=( event_queue_t && ) = delete;
 
 	public :
-		event_queue_t();
-		virtual ~event_queue_t();
+		event_queue_t() = default;
+		virtual ~event_queue_t() SO_5_NOEXCEPT = default;
 
 		//! Enqueue new event to the queue.
 		virtual void

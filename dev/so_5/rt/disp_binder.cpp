@@ -13,18 +13,6 @@
 namespace so_5
 {
 
-//
-// disp_binder_t
-//
-
-disp_binder_t::disp_binder_t()
-{
-}
-
-disp_binder_t::~disp_binder_t()
-{
-}
-
 namespace impl {
 
 //

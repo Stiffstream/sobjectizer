@@ -145,7 +145,7 @@ class subscription_storage_t
 	{
 	public :
 		subscription_storage_t( agent_t * owner );
-		virtual ~subscription_storage_t();
+		virtual ~subscription_storage_t() SO_5_NOEXCEPT = default;
 
 		virtual void
 		create_event_subscription(

@@ -206,11 +206,6 @@ class stats_supplier_t
 		supply( stats_consumer_t & consumer ) = 0;
 	};
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
 /*!
  * \since
  * v.5.5.4
@@ -244,7 +239,7 @@ class data_source_t : public stats::manually_registered_source_t
 			}
 
 		//! Distribution of statistical information.
-		virtual void
+		void
 		distribute(
 			const mbox_t & mbox ) override
 			{
@@ -343,6 +338,11 @@ class data_source_t : public stats::manually_registered_source_t
 		 * v.5.5.18
 		 */
 		wt_activity_info_container_t m_wt_activity;
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 		//! Actual type of statical information collector.
 		class collector_t : public stats_consumer_t
@@ -452,6 +452,10 @@ class data_source_t : public stats::manually_registered_source_t
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_tail;
 			};
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 		stats::prefix_t
 		make_work_thread_prefix( const so_5::current_thread_id_t & tid )
 			{
@@ -462,10 +466,6 @@ class data_source_t : public stats::manually_registered_source_t
 				return stats::prefix_t{ ss.str() };
 			}
 	};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 } /* namespace thread_pool_stats */
 

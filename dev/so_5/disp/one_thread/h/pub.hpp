@@ -41,7 +41,7 @@ namespace one_thread
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	{
 	public :
-		virtual ~private_dispatcher_t();
+		virtual ~private_dispatcher_t() SO_5_NOEXCEPT = default;
 
 		//! Create a binder for that private dispatcher.
 		virtual disp_binder_unique_ptr_t

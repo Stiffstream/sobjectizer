@@ -26,30 +26,23 @@ unset(CURRENT_FILE_DIR)
 set(SO_5_SRC exception.cpp
 	exception.cpp
 	current_thread_id.cpp
-	atomic_refcounted.cpp
 	error_logger.cpp
 	timers.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
-	stop_guard.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/mchain.cpp
-	rt/event_queue.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
-	rt/agent_state_listener.cpp
-	rt/adhoc_agent_wrapper.cpp
 	rt/agent_coop.cpp
 	rt/agent_coop_notifications.cpp
 	rt/queue_locks_defaults_manager.cpp
-	rt/environment_infrastructure.cpp
 	rt/environment.cpp
 	rt/disp.cpp
 	rt/disp_binder.cpp
 	rt/so_layer.cpp
-	rt/coop_listener.cpp
 
 	rt/impl/msg_tracing_helpers.cpp
 	rt/impl/subscription_storage_iface.cpp
@@ -68,7 +61,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/simple_mtsafe_st_env_infrastructure.cpp
 	rt/impl/simple_not_mtsafe_st_env_infrastructure.cpp
 	
-	rt/stats/controller.cpp
 	rt/stats/repository.cpp
 	rt/stats/std_names.cpp
 

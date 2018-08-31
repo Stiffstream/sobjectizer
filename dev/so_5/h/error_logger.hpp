@@ -12,10 +12,11 @@
 
 #pragma once
 
+#include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
+
 #include <memory>
 #include <sstream>
-
-#include <so_5/h/declspec.hpp>
 
 namespace so_5
 {
@@ -36,8 +37,8 @@ class SO_5_TYPE error_logger_t
 		operator=( error_logger_t & ) = delete;
 
 	public :
-		error_logger_t();
-		virtual ~error_logger_t();
+		error_logger_t() = default;
+		virtual ~error_logger_t() SO_5_NOEXCEPT = default;
 
 		//! A method for logging message.
 		/*!

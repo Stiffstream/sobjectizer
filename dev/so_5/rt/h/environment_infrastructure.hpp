@@ -60,7 +60,7 @@ using environment_infrastructure_deleter_fnptr_t =
 class SO_5_TYPE environment_infrastructure_t
 	{
 	public :
-		environment_infrastructure_t();
+		environment_infrastructure_t() = default;
 
 		environment_infrastructure_t(
 			const environment_infrastructure_t & ) = delete;
@@ -72,7 +72,7 @@ class SO_5_TYPE environment_infrastructure_t
 		environment_infrastructure_t &
 		operator=( environment_infrastructure_t && ) = delete;
 
-		virtual ~environment_infrastructure_t();
+		virtual ~environment_infrastructure_t() SO_5_NOEXCEPT = default;
 
 		//! Default deleter for environment_infrastructure object.
 		/*!

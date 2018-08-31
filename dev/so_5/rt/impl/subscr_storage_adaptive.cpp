@@ -51,7 +51,6 @@ class storage_t : public subscription_storage_t
 			std::size_t threshold,
 			subscription_storage_unique_ptr_t small_storage,
 			subscription_storage_unique_ptr_t large_storage );
-		~storage_t() override;
 
 		virtual void
 		create_event_subscription(
@@ -118,10 +117,6 @@ storage_t::storage_t(
 	,	m_large_storage( std::move( large_storage ) )
 	{
 		m_current_storage = m_small_storage.get();
-	}
-
-storage_t::~storage_t()
-	{
 	}
 
 void

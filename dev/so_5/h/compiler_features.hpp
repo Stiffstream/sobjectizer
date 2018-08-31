@@ -32,6 +32,15 @@
 
 		// Visual C++ 2012 and 2013 have no constexpr
 		#define SO_5_CONSTEXPR
+
+		// Visual C++ 2013 have no normal initializing constructor
+		// for std::atomic.
+		#define SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR
+
+		// Visual C++ 2013 doesn't understand move constructor as a
+		// special function and can't defaulted such constructors.
+		#define SO_5_NEED_MSVC_12_WORKAROUNDS
+
 	#endif
 
 	#if _MSC_VER == 1700

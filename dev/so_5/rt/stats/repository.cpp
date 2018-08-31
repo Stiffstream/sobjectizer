@@ -19,25 +19,8 @@ namespace stats
 {
 
 //
-// source_t
-//
-source_t::source_t()
-	:	m_prev{ nullptr }
-	,	m_next{ nullptr }
-	{}
-
-source_t::~source_t()
-	{}
-
-//
 // repository_t
 //
-repository_t::repository_t()
-	{}
-
-repository_t::~repository_t()
-	{}
-
 void
 repository_t::source_list_add(
 	source_t & what,
@@ -94,7 +77,7 @@ auto_registered_source_t::auto_registered_source_t(
 		m_repo.get().add( *this );
 	}
 
-auto_registered_source_t::~auto_registered_source_t()
+auto_registered_source_t::~auto_registered_source_t() SO_5_NOEXCEPT
 	{
 		m_repo.get().remove( *this );
 	}
@@ -106,7 +89,7 @@ manually_registered_source_t::manually_registered_source_t()
 	:	m_repo{ nullptr }
 	{}
 
-manually_registered_source_t::~manually_registered_source_t()
+manually_registered_source_t::~manually_registered_source_t() SO_5_NOEXCEPT
 	{
 		if( m_repo )
 			stop();

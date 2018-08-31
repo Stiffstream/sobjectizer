@@ -40,8 +40,8 @@ class SO_5_TYPE condition_t
 		condition_t( condition_t && ) = delete;
 		condition_t & operator=( const condition_t & ) = delete;
 		condition_t & operator=( condition_t && ) = delete;
-		condition_t();
-		virtual ~condition_t();
+		condition_t() = default;
+		virtual ~condition_t() SO_5_NOEXCEPT = default;
 
 		/*!
 		 * \brief Waiting on condition.
@@ -91,8 +91,8 @@ class SO_5_TYPE lock_t
 		lock_t & operator=( const lock_t & ) = delete;
 		lock_t & operator=( lock_t && ) = delete;
 
-		lock_t();
-		virtual ~lock_t();
+		lock_t() = default;
+		virtual ~lock_t() SO_5_NOEXCEPT = default;
 
 		//! Lock object in exclusive mode.
 		virtual void

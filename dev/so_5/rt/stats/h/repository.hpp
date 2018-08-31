@@ -45,8 +45,8 @@ class SO_5_TYPE source_t
 		source_t( source_t && ) = delete;
 		source_t & operator=( const source_t & ) = delete;
 		source_t & operator=( source_t && ) = delete;
-		source_t();
-		~source_t();
+		source_t() = default;
+		virtual ~source_t() SO_5_NOEXCEPT = default;
 
 	public :
 		//! Send appropriate notification about the current value.
@@ -57,9 +57,9 @@ class SO_5_TYPE source_t
 
 	private :
 		//! Previous item in the data sources list.
-		source_t * m_prev;
+		source_t * m_prev{};
 		//! Next item in the data sources list.
-		source_t * m_next;
+		source_t * m_next{};
 	};
 
 /*!
@@ -77,8 +77,8 @@ class SO_5_TYPE repository_t
 		repository_t & operator=( const repository_t & ) = delete;
 		repository_t & operator=( repository_t && ) = delete;
 
-		repository_t();
-		~repository_t();
+		repository_t() = default;
+		virtual ~repository_t() SO_5_NOEXCEPT = default;
 
 	public :
 		//! Registration of new data source.
@@ -139,12 +139,7 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 	{
 	protected :
 		auto_registered_source_t( outliving_reference_t< repository_t > repo );
-		~auto_registered_source_t();
-
-	public :
-		virtual void
-		distribute(
-			const mbox_t & distribution_mbox ) = 0;
+		~auto_registered_source_t() SO_5_NOEXCEPT override;
 
 	private :
 		outliving_reference_t< repository_t > m_repo;
@@ -167,13 +162,9 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 	{
 	protected :
 		manually_registered_source_t();
-		~manually_registered_source_t();
+		~manually_registered_source_t() SO_5_NOEXCEPT override;
 
 	public :
-		virtual void
-		distribute(
-			const mbox_t & distribution_mbox ) = 0;
-
 		void
 		start( outliving_reference_t< repository_t > repo );
 

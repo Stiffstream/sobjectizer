@@ -41,8 +41,8 @@ class SO_5_TYPE coop_listener_t
 		coop_listener_t & operator=( coop_listener_t && ) = delete;
 
 	public:
-		coop_listener_t();
-		virtual ~coop_listener_t();
+		coop_listener_t() = default;
+		virtual ~coop_listener_t() SO_5_NOEXCEPT = default;
 
 		//! Hook for the cooperation registration event.
 		/*!

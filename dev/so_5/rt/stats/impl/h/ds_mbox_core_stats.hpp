@@ -22,11 +22,6 @@ namespace stats {
 
 namespace impl {
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
 //
 // ds_mbox_core_stats_t
 //
@@ -47,17 +42,13 @@ class ds_mbox_core_stats_t : public auto_registered_source_t
 			//! the data source object.
 			so_5::impl::mbox_core_t & what );
 
-		virtual void
+		void
 		distribute(
 			const mbox_t & distribution_mbox ) override;
 
 	private :
 		so_5::impl::mbox_core_t & m_what;
 	};
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 } /* namespace impl */
 

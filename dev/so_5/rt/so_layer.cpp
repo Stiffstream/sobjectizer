@@ -2,21 +2,12 @@
 	SObjectizer 5.
 */
 
-#include <so_5/h/exception.hpp>
-
 #include <so_5/rt/h/so_layer.hpp>
+
+#include <so_5/h/exception.hpp>
 
 namespace so_5
 {
-
-layer_t::layer_t()
-	:	m_env( nullptr )
-{
-}
-
-layer_t::~layer_t()
-{
-}
 
 void
 layer_t::start()

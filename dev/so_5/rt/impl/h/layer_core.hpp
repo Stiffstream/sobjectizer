@@ -90,7 +90,6 @@ class layer_core_t
 			environment_t & env,
 			//! Layers which are known before SObjectizer start.
 			const layer_map_t & so_layers );
-		~layer_core_t();
 
 		//! Get a layer.
 		/*!

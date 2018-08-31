@@ -50,8 +50,8 @@ class SO_5_TYPE disp_binder_t
 		disp_binder_t & operator=( disp_binder_t && ) = delete;
 
 	public:
-		disp_binder_t();
-		virtual ~disp_binder_t();
+		disp_binder_t() = default;
+		virtual ~disp_binder_t() SO_5_NOEXCEPT = default;
 
 		//! Allocate resources in dispatcher for new agent.
 		virtual disp_binding_activator_t

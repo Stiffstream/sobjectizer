@@ -16,16 +16,6 @@
 
 namespace so_5 {
 
-//
-// queue_locks_defaults_manager_t
-//
-
-queue_locks_defaults_manager_t::queue_locks_defaults_manager_t()
-	{}
-
-queue_locks_defaults_manager_t::~queue_locks_defaults_manager_t()
-	{}
-
 namespace {
 
 //
@@ -36,9 +26,6 @@ class manager_for_simple_locks_t
 	:	public queue_locks_defaults_manager_t
 	{
 	public :
-		manager_for_simple_locks_t()
-			{}
-
 		virtual so_5::disp::mpsc_queue_traits::lock_factory_t
 		mpsc_queue_lock_factory() override
 			{
@@ -60,9 +47,6 @@ class manager_for_combined_locks_t
 	:	public queue_locks_defaults_manager_t
 	{
 	public :
-		manager_for_combined_locks_t()
-			{}
-
 		virtual so_5::disp::mpsc_queue_traits::lock_factory_t
 		mpsc_queue_lock_factory() override
 			{

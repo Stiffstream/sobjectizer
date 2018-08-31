@@ -287,10 +287,6 @@ coop_repository_basis_t::coop_repository_basis_t(
 {
 }
 
-coop_repository_basis_t::~coop_repository_basis_t()
-{
-}
-
 namespace
 {
 	/*!

@@ -6,7 +6,9 @@ MxxRu::Cpp::composite_target {
 	path = 'test/so_5'
 
 	if 'cygwin' != toolset.tag( 'gcc_port', 'NOTGCC' )
-		required_prj "test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb"
+		if !ENV.has_key?( 'SO_5_NO_SPINLOCKS_TEST' )
+			required_prj "test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb"
+		end
 	end
 
 	required_prj "#{path}/details/build_tests.rb"
@@ -44,6 +46,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/layer/build_tests.rb" 
 
 	required_prj "#{path}/api/run_so_environment/prj.ut.rb" 
+	required_prj "#{path}/api/several_dlls/prj.ut.rb" 
 
 	required_prj "#{path}/svc/build_tests.rb" 
 	required_prj "#{path}/mutable_msg/build_tests.rb" 
@@ -52,18 +55,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/env_infrastructure/build_tests.rb" 
 
-	required_prj "#{path}/bench/ping_pong/prj.rb" 
-	required_prj "#{path}/bench/same_msg_in_different_states/prj.rb" 
-	required_prj "#{path}/bench/parallel_send_to_same_mbox/prj.rb" 
-	required_prj "#{path}/bench/change_state/prj.rb" 
-	required_prj "#{path}/bench/many_mboxes/prj.rb" 
-	required_prj "#{path}/bench/thread_pool_disp/prj.rb" 
-	required_prj "#{path}/bench/no_workload/prj.rb" 
-	required_prj "#{path}/bench/agent_ring/prj.rb" 
-	required_prj "#{path}/bench/coop_dereg/prj.rb" 
-	required_prj "#{path}/bench/skynet1m/prj.rb" 
-	required_prj "#{path}/bench/prepared_receive/prj.rb" 
-	required_prj "#{path}/bench/prepared_select/prj.rb" 
+	required_prj "#{path}/bench/build_benchmarks.rb" 
 
 	required_prj "#{path}/samples_as_unit_tests/build_tests.rb" 
 }

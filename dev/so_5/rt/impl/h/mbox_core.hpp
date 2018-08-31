@@ -74,7 +74,6 @@ class mbox_core_t
 		mbox_core_t(
 			//! Message delivery tracing stuff.
 			outliving_reference_t< so_5::msg_tracing::holder_t > msg_tracing_stuff );
-		virtual ~mbox_core_t();
 
 		//! Create local anonymous mbox.
 		/*!

@@ -38,8 +38,6 @@ class disp_repository_t
 			named_dispatcher_map_t named_dispatcher_map,
 			event_exception_logger_unique_ptr_t logger );
 
-		virtual ~disp_repository_t();
-
 		//! Get a named dispatcher.
 		/*!
 			\retval null-reference if dispatcher with \a disp_name

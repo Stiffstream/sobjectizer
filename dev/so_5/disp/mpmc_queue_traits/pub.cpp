@@ -23,24 +23,6 @@ namespace disp {
 
 namespace mpmc_queue_traits {
 
-//
-// condition_t
-//
-condition_t::condition_t()
-	{}
-
-condition_t::~condition_t()
-	{}
-
-//
-// lock_t
-//
-lock_t::lock_t()
-	{}
-
-lock_t::~lock_t()
-	{}
-
 namespace combined_lock
 {
 

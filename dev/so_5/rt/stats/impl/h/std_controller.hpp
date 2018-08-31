@@ -46,9 +46,7 @@ class std_controller_t final
 	,	public repository_t
 	{
 	public :
-		std_controller_t(
-			mbox_t mbox );
-		~std_controller_t();
+		std_controller_t( mbox_t mbox );
 
 		// Implementation of controller_t interface.
 		virtual const mbox_t &
