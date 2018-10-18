@@ -520,6 +520,21 @@ const int rc_negative_value_for_period = 177;
  */
 const int rc_transfer_to_state_loop = 178;
 
+/*!
+ * \brief An attempt to cast message to message envelope when
+ * a pointer to message is NULL.
+ *
+ * Envelopes were introduced in v.5.5.23. Envelopes are sent and
+ * delivered as ordinary messages (it means that pointer to envelope
+ * will be sent as pointer to message_t). For processing of an envelope
+ * it is necessary to cast a pointer from message_t to envelope_t.
+ * But it is impossible if a pointer to message_t is null.
+ *
+ * \since
+ * v.5.5.23
+ */
+const int rc_attempt_to_cast_to_envelope_on_nullptr = 180;
+
 //! \name Common error codes.
 //! \{
 

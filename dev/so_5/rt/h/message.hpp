@@ -47,6 +47,13 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 	{
 		friend class impl::internal_message_iface_t;
 	public:
+		//! A short typedef for kind of message.
+		/*!
+		 * \since
+		 * v.5.5.23
+		 */
+		using kind_t = ::so_5::message_kind_t;
+
 		message_t();
 		message_t( const message_t & other );
 		message_t( message_t && other );
@@ -91,6 +98,11 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * \note
 		 * This is a very dangerous operation. Don't do it by yourselt.
 		 * See message_t::so5_change_mutability() for more details.
+		 *
+		 * \attention
+		 * This function can throw.
+		 * For example underlying message object can prohibit changing
+		 * of message mutability.
 		 */
 		friend void
 		change_message_mutability(
@@ -109,6 +121,11 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * \note
 		 * This is a very dangerous operation. Don't do it by yourselt.
 		 * See message_t::so5_change_mutability() for more details.
+		 *
+		 * \attention
+		 * This function can throw.
+		 * For example underlying message object can prohibit changing
+		 * of message mutability.
 		 */
 		friend void
 		change_message_mutability(
@@ -118,6 +135,49 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 			message_mutability_t mutability )
 			{
 				what.so5_change_mutability( mutability );
+			}
+
+		/*!
+		 * \brief Helper method for quering kind of the message.
+		 *
+		 * This helper function is necessary because it correctly
+		 * handles case when message is a signal. In that case pointer
+		 * to message instance will be null.
+		 *
+		 * \note
+		 * This function is part of internal implementation of SObjectizer.
+		 * Don't use it directly. It can be a subject of changes in some
+		 * future versions.
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		friend message_kind_t
+		message_kind(
+			const so_5::intrusive_ptr_t< message_t > & what )
+			{
+				if( what )
+					return what->so5_message_kind();
+				else
+					return message_kind_t::signal;
+			}
+
+		/*!
+		 * \brief Helper method for quering kind of the message.
+		 *
+		 * \note
+		 * This function is part of internal implementation of SObjectizer.
+		 * Don't use it directly. It can be a subject of changes in some
+		 * future versions.
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		friend message_kind_t
+		message_kind(
+			const message_t & what )
+			{
+				return what.so5_message_kind();
 			}
 
 	private :
@@ -144,6 +204,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		virtual const void *
 		so5__payload_ptr() const;
 
+		//FIXME: this method should be marked as noexcept in v.5.6.0
 		/*!
 		 * \brief Get message mutability flag.
 		 *
@@ -183,6 +244,11 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * This is a virual method because its behavious must be changed in
 		 * msg_service_request_t.
 		 *
+		 * \attention
+		 * This function can throw.
+		 * For example a derived class can prohibit changing
+		 * of message mutability.
+		 *
 		 * \since
 		 * v.5.5.19
 		 */
@@ -192,6 +258,25 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 			message_mutability_t mutability )
 			{
 				m_mutability = mutability;
+			}
+
+		/*!
+		 * \brief Detect the kind of the message.
+		 *
+		 * \note
+		 * This method is intended to be used by SObjectizer and
+		 * low-level SObjectizer extension. Because of that it is not
+		 * guaranteed that this method is part of stable SObjectizer API.
+		 * It can be changed or even removed in any future versions
+		 * of SObjectizer.
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		virtual kind_t
+		so5_message_kind() const SO_5_NOEXCEPT
+			{
+				return kind_t::classical_message;
 			}
 	};
 
@@ -230,6 +315,15 @@ class SO_5_TYPE signal_t
 		 * derived classes.
 		 */
 		signal_t() = default;
+
+		// Note: this method has no sence in v.5.5, becasue instances
+		// of that class are not created at all.
+		// But that can be changed in v.5.6.0.
+		kind_t
+		so5_message_kind() const SO_5_NOEXCEPT override
+			{
+				return kind_t::classical_message;
+			}
 
 	public :
 		~signal_t() SO_5_NOEXCEPT override = default;
@@ -281,6 +375,12 @@ struct user_type_message_t : public message_t
 private :
 	virtual const void *
 	so5__payload_ptr() const override { return &m_payload; }
+
+	kind_t
+	so5_message_kind() const SO_5_NOEXCEPT override
+		{
+			return kind_t::user_type_message;
+		}
 };
 
 //
@@ -851,11 +951,17 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 	private :
 		// This method must be reimplemented in derived types.
 		virtual message_mutability_t
-		so5_message_mutability() const = 0;
+		so5_message_mutability() const override = 0;
 
 		// This method must be reimplemented in derived types.
 		virtual void
-		so5_change_mutability( message_mutability_t ) = 0;
+		so5_change_mutability( message_mutability_t ) override = 0;
+
+		kind_t
+		so5_message_kind() const SO_5_NOEXCEPT override
+			{
+				return kind_t::service_request;
+			}
 };
 
 //
@@ -918,6 +1024,8 @@ struct msg_service_request_t : public msg_service_request_base_t
 			}
 	};
 
+// Note: after introduction of message_kind_t this enumeration
+// is seems to be obsolete. It will probably be removed in v.5.6.0
 //
 // invocation_type_t
 //
@@ -937,8 +1045,72 @@ enum class invocation_type_t : int
 		 * Return value of service handler should be stored into
 		 * underlying std::promise object.
 		 */
-		service_request
+		service_request,
+		//! Enveloped message.
+		/*!
+		 * This is a special envelope with some message/signal inside.
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		enveloped_msg
 	};
+
+//NOTE: this function should probably be removed in v.5.6.0.
+/*!
+ * \brief Detect invocation type by analyzing message_kind value.
+ *
+ * \since
+ * v.5.5.23
+ */
+inline invocation_type_t
+detect_invocation_type_for_message_kind(
+	message_t::kind_t kind )
+	{
+		invocation_type_t result = invocation_type_t::event;
+		switch( kind )
+			{
+			case message_t::kind_t::signal: /* event */ break;
+			case message_t::kind_t::classical_message: /* event */ break;
+			case message_t::kind_t::user_type_message: /* event */ break;
+
+			case message_t::kind_t::service_request:
+				result = invocation_type_t::service_request;
+			break;
+
+			case message_t::kind_t::enveloped_msg:
+				result = invocation_type_t::enveloped_msg;
+			break;
+			}
+
+		return result;
+	}
+
+/*!
+ * \brief Detect invocation_type for a message.
+ *
+ * \since
+ * v.5.5.23
+ */
+inline invocation_type_t
+detect_invocation_type_for_message(
+	const message_t & msg )
+	{
+		return detect_invocation_type_for_message_kind( message_kind(msg) );
+	}
+
+/*!
+ * \brief Detect invocation_type for a message.
+ *
+ * \since
+ * v.5.5.23
+ */
+inline invocation_type_t
+detect_invocation_type_for_message(
+	const message_ref_t & msg )
+	{
+		return detect_invocation_type_for_message_kind( message_kind(msg) );
+	}
 
 namespace message_limit
 {
@@ -960,6 +1132,13 @@ class action_msg_tracer_t;
  */
 struct overlimit_context_t
 	{
+		//! ID of mbox which is used for message delivery.
+		/*!
+		 * Added in v.5.5.23 because it is necessary for
+		 * so_5::enveloped_msg::handling_context_t.
+		 */
+		const mbox_id_t m_mbox_id;
+
 		//! Receiver of the message or service request.
 		const agent_t & m_receiver;
 
@@ -993,6 +1172,7 @@ struct overlimit_context_t
 		//! Initializing constructor.
 		inline
 		overlimit_context_t(
+			mbox_id_t mbox_id,
 			const agent_t & receiver,
 			const control_block_t & limit,
 			invocation_type_t event_type,
@@ -1000,7 +1180,8 @@ struct overlimit_context_t
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			const impl::action_msg_tracer_t * msg_tracer )
-			:	m_receiver( receiver )
+			:	m_mbox_id( mbox_id )
+			,	m_receiver( receiver )
 			,	m_limit( limit )
 			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )

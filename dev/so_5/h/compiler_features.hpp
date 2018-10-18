@@ -28,6 +28,10 @@
 			// Visual C++2013 has problems with inheriting deleted
 			// copy constructors and copy operators.
 			#define SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR
+
+			// Visual C++2013 can't handle =default for
+			// move-constructor.
+			#define SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR
 		#endif
 
 		// Visual C++ 2012 and 2013 have no constexpr

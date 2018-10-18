@@ -19,6 +19,7 @@ add_subdirectory(disp)
 add_subdirectory(event_handler)
 
 add_subdirectory(messages)
+add_subdirectory(enveloped_msg)
 
 add_subdirectory(state)
 

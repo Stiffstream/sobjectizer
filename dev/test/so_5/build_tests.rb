@@ -28,6 +28,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/event_handler/build_tests.rb" 
 
 	required_prj "#{path}/messages/build_tests.rb" 
+	required_prj "#{path}/enveloped_msg/build_tests.rb" 
 
 	required_prj "#{path}/state/build_tests.rb" 
 

@@ -13,9 +13,12 @@
 
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/enveloped_msg.hpp>
 
 #include <so_5/details/h/lambda_traits.hpp>
 #include <so_5/details/h/invoke_noexcept_code.hpp>
+
+#include <so_5/h/optional.hpp>
 
 #include <so_5/h/declspec.hpp>
 
@@ -390,7 +393,11 @@ namespace impl
 SO_5_FUNC
 void
 ensure_event_transform_reaction(
+	//! Invocation type to be checked.
+	invocation_type_t invocation_type,
 	//! Context on which overlimit must be handled.
+	//! This context is necessary to make description for
+	//! exception to be thrown.
 	const overlimit_context_t & ctx );
 
 /*!
@@ -734,16 +741,42 @@ struct message_limit_methods_mixin_t
 				ensure_not_signal< Arg >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
-						// Service request cannot be transformed.
-						// So ensure that is event, not service request.
-						impl::ensure_event_transform_reaction( ctx );
+						const auto actual_transform =
+								[&]( const message_ref_t & msg_to_transform ) {
+									const auto & msg =
+											message_payload_type< Arg >::payload_reference(
+													*msg_to_transform.get() );
+									auto r = transformator( msg );
+									impl::transform_reaction(
+											ctx, r.mbox(), r.msg_type(), r.message() );
+								};
 
-						const auto & msg =
-								message_payload_type< Arg >::payload_reference(
-										*ctx.m_message.get() );
-						auto r = transformator( msg );
-						impl::transform_reaction(
-								ctx, r.mbox(), r.msg_type(), r.message() );
+						// Envelopes should be handled a special way.
+						// Payload must be extrected and checked for presence.
+						if( invocation_type_t::enveloped_msg == ctx.m_event_type )
+							{
+								const auto opt_payload = ::so_5::enveloped_msg::
+										extract_payload_for_message_transformation(
+												ctx.m_message );
+
+								// Payload can be optional. Se we will perform
+								// transformation only if payload is present.
+								if( opt_payload )
+									{
+										impl::ensure_event_transform_reaction(
+												detect_invocation_type_for_message(
+														opt_payload->message() ),
+												ctx );
+										actual_transform( opt_payload->message() );
+									}
+							}
+						else
+							{
+								impl::ensure_event_transform_reaction(
+										ctx.m_event_type,
+										ctx );
+								actual_transform( ctx.m_message );
+							}
 					};
 
 				return transform_indicator_t< Arg >{ limit, std::move( act ) };
@@ -767,13 +800,39 @@ struct message_limit_methods_mixin_t
 				ensure_signal< Source >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
-						// Service request cannot be transformed.
-						// So ensure that is event, not service request.
-						impl::ensure_event_transform_reaction( ctx );
+						const auto actual_transform = [&]() {
+								auto r = transformator();
+								impl::transform_reaction(
+										ctx, r.mbox(), r.msg_type(), r.message() );
+							};
 
-						auto r = transformator();
-						impl::transform_reaction(
-								ctx, r.mbox(), r.msg_type(), r.message() );
+						// Envelopes should be handled a special way.
+						// Payload must be extrected and checked for presence.
+						if( invocation_type_t::enveloped_msg == ctx.m_event_type )
+							{
+								const auto opt_payload = ::so_5::enveloped_msg::
+										extract_payload_for_message_transformation(
+												ctx.m_message );
+
+								// Payload can be optional. Se we will perform
+								// transformation only if payload is present.
+								if( opt_payload )
+									{
+										impl::ensure_event_transform_reaction(
+												detect_invocation_type_for_message(
+														opt_payload->message() ),
+												ctx );
+										actual_transform();
+									}
+							}
+						else
+							{
+								impl::ensure_event_transform_reaction(
+										ctx.m_event_type,
+										ctx );
+								actual_transform();
+							}
+
 					};
 
 				return transform_indicator_t< Source >{ limit, std::move( act ) };

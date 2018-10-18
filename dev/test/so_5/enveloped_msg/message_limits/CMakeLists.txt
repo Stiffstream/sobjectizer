@@ -1,0 +1,6 @@
+project(tests)
+
+add_subdirectory(transform_normal)
+add_subdirectory(transform_normal_user_msg)
+add_subdirectory(transform_signal)
+add_subdirectory(transform_svc_req)

@@ -802,6 +802,8 @@ class SO_5_TYPE agent_t
 		friend class so_5::impl::mpsc_mbox_t;
 		friend class so_5::impl::state_switch_guard_t;
 
+		friend class so_5::enveloped_msg::impl::agent_demand_handler_invoker_t;
+
 	public:
 		/*!
 		 * \since
@@ -1183,6 +1185,10 @@ class SO_5_TYPE agent_t
 		 * v.5.3.0
 		 *
 		 * \brief Push service request to the agent's event queue.
+		 *
+		 * \deprecated Obsolete in v.5.5.23 and will be removed in v.5.6.0
+		 * Use call_push_event() instead. Since v.5.5.23 event type is
+		 * automatically detected via message_kind().
 		 */
 		static inline void
 		call_push_service_request(
@@ -1192,7 +1198,7 @@ class SO_5_TYPE agent_t
 			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_service_request( limit, mbox_id, msg_type, message );
+			agent.push_event( limit, mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -2840,23 +2846,6 @@ class SO_5_TYPE agent_t
 			std::type_index msg_type,
 			//! Event message.
 			const message_ref_t & message );
-
-		/*!
-		 * \since
-		 * v.5.3.0
-		 *
-		 * \brief Push service request to event queue.
-		 */
-		void
-		push_service_request(
-			//! Optional message limit.
-			const message_limit::control_block_t * limit,
-			//! ID of mbox for this event.
-			mbox_id_t mbox_id,
-			//! Message type for event.
-			std::type_index msg_type,
-			//! Event message.
-			const message_ref_t & message );
 		/*!
 		 * \}
 		 */
@@ -2942,10 +2931,13 @@ class SO_5_TYPE agent_t
 		 * \since
 		 * v.5.3.0
 		 *
+		 * \note
+		 * Name of that method changed in v.5.5.23.
+		 *
 		 * \brief Calls request handler for message.
 		 */
 		static void
-		service_request_handler_on_message(
+		demand_handler_on_service_request(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
 
@@ -2958,6 +2950,16 @@ class SO_5_TYPE agent_t
 		static demand_handler_pfn_t
 		get_service_request_handler_on_message_ptr();
 
+		/*!
+		 * \since
+		 * v.5.5.23
+		 *
+		 * \brief Handles the enveloped message.
+		 */
+		static void
+		demand_handler_on_enveloped_msg(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
 		/*!
 		 * \}
 		 */
@@ -3002,6 +3004,23 @@ class SO_5_TYPE agent_t
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
 			std::pair< bool, const impl::event_handler_data_t * > handler_data );
+
+		/*!
+		 * \brief Actual implementation of enveloped message handling.
+		 *
+		 * \note
+		 * handler_data can be nullptr. It means that an event handler
+		 * for that message type if not found and special hook will
+		 * be called for the envelope.
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		static void
+		process_enveloped_msg(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d,
+			const impl::event_handler_data_t * handler_data );
 
 		/*!
 		 * \since

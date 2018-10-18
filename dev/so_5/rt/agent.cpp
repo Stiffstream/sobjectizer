@@ -4,6 +4,7 @@
 
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/enveloped_msg.hpp>
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
@@ -14,6 +15,8 @@
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
 #include <so_5/rt/impl/h/delivery_filter_storage.hpp>
 #include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
+
+#include <so_5/rt/impl/h/enveloped_msg_details.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -720,19 +723,27 @@ execution_hint_t
 agent_t::so_create_execution_hint(
 	execution_demand_t & d )
 {
-	static const demand_handler_pfn_t message_handler =
-			&agent_t::demand_handler_on_message;
+	enum class demand_type_t {
+			message, service_request, enveloped_msg, other
+	};
 
-	const bool is_message_demand = (message_handler == d.m_demand_handler);
-	const bool is_service_demand = !is_message_demand &&
-			(&agent_t::service_request_handler_on_message == d.m_demand_handler);
+	// We can't use message_kind_t here because there are special
+	// demands like demands for so_evt_start/so_evt_finish.
+	// Because of that a pointer to demand handler will be analyzed.
+	const auto demand_type =
+			(d.m_demand_handler == &agent_t::demand_handler_on_message ?
+				demand_type_t::message :
+				(d.m_demand_handler == &agent_t::demand_handler_on_service_request ?
+					demand_type_t::service_request :
+					(d.m_demand_handler == &agent_t::demand_handler_on_enveloped_msg ?
+						demand_type_t::enveloped_msg : demand_type_t::other)));
 
-	if( is_message_demand || is_service_demand )
+	if( demand_type_t::other != demand_type )
 		{
 			// Try to find handler for the demand.
 			auto handler = d.m_receiver->m_handler_finder(
 					d, "create_execution_hint" );
-			if( is_message_demand )
+			if( demand_type_t::message == demand_type )
 				{
 					if( handler )
 						return execution_hint_t(
@@ -750,25 +761,48 @@ agent_t::so_create_execution_hint(
 						// Handler not found.
 						return execution_hint_t::create_empty_execution_hint( d );
 				}
+			else if( demand_type_t::service_request == demand_type )
+				{
+					// There must be a special hint for service requests
+					// because absence of service handler processed by
+					// different way than absence of event handler.
+					return execution_hint_t(
+							d,
+							[handler](
+									execution_demand_t & demand,
+									current_thread_id_t thread_id ) {
+								process_service_request(
+										thread_id,
+										demand,
+										std::make_pair( true, handler ) );
+							},
+							handler ? handler->m_thread_safety :
+								// If there is no real handler then
+								// there will be only error processing.
+								// That processing is thread safe.
+								thread_safe );
+				}
 			else
-				// There must be a special hint for service requests
-				// because absence of service handler processed by
-				// different way than absence of event handler.
-				return execution_hint_t(
-						d,
-						[handler](
-								execution_demand_t & demand,
-								current_thread_id_t thread_id ) {
-							process_service_request(
-									thread_id,
-									demand,
-									std::make_pair( true, handler ) );
-						},
-						handler ? handler->m_thread_safety :
-							// If there is no real handler then
-							// there will be only error processing.
-							// That processing is thread safe.
-							thread_safe );
+				{
+					// Execution hint for enveloped message is
+					// very similar to hint for service request.
+					return execution_hint_t(
+							d,
+							[handler](
+									execution_demand_t & demand,
+									current_thread_id_t thread_id ) {
+								process_enveloped_msg(
+										thread_id,
+										demand,
+										handler );
+							},
+							handler ? handler->m_thread_safety :
+								// If there is no real handler then
+								// there will only be actions from
+								// envelope.
+								// These actions should be thread safe.
+								thread_safe );
+				}
 		}
 	else
 		// This is demand_handler_on_start or demand_handler_on_finish.
@@ -972,6 +1006,57 @@ agent_t::do_check_deadletter_presence(
 			mbox->id(), msg_type, deadletter_state );
 }
 
+namespace {
+
+/*!
+ * \brief A helper function to select actual demand handler in
+ * dependency of message kind.
+ *
+ * \since
+ * v.5.5.23
+ */
+inline demand_handler_pfn_t
+select_demand_handler_for_message(
+	const agent_t & agent,
+	const message_ref_t & msg )
+{
+	demand_handler_pfn_t result = &agent_t::demand_handler_on_message;
+	if( msg )
+	{
+		switch( message_kind( *msg ) )
+		{
+		case message_t::kind_t::classical_message : // Already has value.
+		break;
+
+		case message_t::kind_t::user_type_message : // Already has value.
+		break;
+
+		case message_t::kind_t::service_request :
+			result = &agent_t::demand_handler_on_service_request;
+		break;
+
+		case message_t::kind_t::enveloped_msg :
+			result = &agent_t::demand_handler_on_enveloped_msg;
+		break;
+
+		case message_t::kind_t::signal :
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( agent.so_environment(), log_stream )
+				{
+					log_stream << "message that has data and message_kind_t::signal!"
+							"Signals can't have data. Application will be aborted!"
+							<< std::endl;
+				}
+			} );
+		break;
+		}
+	}
+
+	return result;
+}
+
+} /* namespace anonymous */
+
 void
 agent_t::push_event(
 	const message_limit::control_block_t * limit,
@@ -979,6 +1064,8 @@ agent_t::push_event(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
+	const auto handler = select_demand_handler_for_message( *this, message );
+
 	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
 	if( m_event_queue )
@@ -989,27 +1076,7 @@ agent_t::push_event(
 					mbox_id,
 					msg_type,
 					message,
-					&agent_t::demand_handler_on_message ) );
-}
-
-void
-agent_t::push_service_request(
-	const message_limit::control_block_t * limit,
-	mbox_id_t mbox_id,
-	std::type_index msg_type,
-	const message_ref_t & message )
-{
-	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
-
-	if( m_event_queue )
-		m_event_queue->push(
-				execution_demand_t(
-						this,
-						limit,
-						mbox_id,
-						msg_type,
-						message,
-						&agent_t::service_request_handler_on_message ) );
+					handler ) );
 }
 
 void
@@ -1105,7 +1172,7 @@ agent_t::get_demand_handler_on_message_ptr()
 }
 
 void
-agent_t::service_request_handler_on_message(
+agent_t::demand_handler_on_service_request(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
@@ -1122,7 +1189,19 @@ agent_t::service_request_handler_on_message(
 demand_handler_pfn_t
 agent_t::get_service_request_handler_on_message_ptr()
 {
-	return &agent_t::service_request_handler_on_message;
+	return &agent_t::demand_handler_on_service_request;
+}
+
+void
+agent_t::demand_handler_on_enveloped_msg(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	message_limit::control_block_t::decrement( d.m_limit );
+
+	auto handler = d.m_receiver->m_handler_finder(
+			d, "demand_handler_on_enveloped_msg" );
+	process_enveloped_msg( working_thread_id, d, handler );
 }
 
 void
@@ -1188,6 +1267,30 @@ agent_t::process_service_request(
 						d.m_receiver->so_current_state().query_name() +
 						", msg_type: " + d.m_msg_type.name() );
 		} );
+}
+
+void
+agent_t::process_enveloped_msg(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d,
+	const impl::event_handler_data_t * handler_data )
+{
+	using namespace enveloped_msg::impl;
+
+	// We don't expect exceptions here and can't restore after them.
+	so_5::details::invoke_noexcept_code( [&] {
+		auto & envelope = message_to_envelope( d.m_message_ref );
+
+		if( handler_data )
+		{
+			agent_demand_handler_invoker_t invoker{
+					working_thread_id,
+					d,
+					*handler_data
+			};
+			envelope.handler_found_hook( invoker );
+		}
+	} );
 }
 
 void

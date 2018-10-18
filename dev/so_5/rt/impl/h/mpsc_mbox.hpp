@@ -154,13 +154,37 @@ class limitless_mpsc_mbox_template
 						[&] {
 							tracer.push_to_queue( m_single_consumer );
 
-							agent_t::call_push_service_request(
+							agent_t::call_push_event(
 									*m_single_consumer,
 									so_5::message_limit::control_block_t::none(),
 									m_id,
 									msg_type,
 									message );
 						} );
+				} );
+			}
+
+		void
+		do_deliver_enveloped_msg(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) override
+			{
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_Base
+						*this, // as abstract_message_box_t
+						"deliver_enveloped_msg",
+						msg_type, message, overlimit_reaction_deep };
+
+				this->do_delivery( tracer, [&] {
+					tracer.push_to_queue( m_single_consumer );
+
+					agent_t::call_push_event(
+							*m_single_consumer,
+							message_limit::control_block_t::none(),
+							m_id,
+							msg_type,
+							message );
 				} );
 			}
 
@@ -316,6 +340,7 @@ class limitful_mpsc_mbox_template
 					auto limit = m_limits.find( msg_type );
 
 					try_to_deliver_to_agent(
+							this->m_id,
 							invocation_type_t::event,
 							*(this->m_single_consumer),
 							limit,
@@ -356,6 +381,7 @@ class limitful_mpsc_mbox_template
 							auto limit = m_limits.find( msg_type );
 
 							try_to_deliver_to_agent(
+									this->m_id,
 									invocation_type_t::service_request,
 									*(this->m_single_consumer),
 									limit,
@@ -366,7 +392,7 @@ class limitful_mpsc_mbox_template
 									[&] {
 										tracer.push_to_queue( this->m_single_consumer );
 
-										agent_t::call_push_service_request(
+										agent_t::call_push_event(
 												*(this->m_single_consumer),
 												limit,
 												this->m_id,
@@ -374,6 +400,51 @@ class limitful_mpsc_mbox_template
 												message );
 									} );
 						} );
+				} );
+			}
+
+		void
+		do_deliver_enveloped_msg(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) override 
+			{
+				// NOTE: this implementation is just a copy-and-paste
+				// from do_deliver_message method.
+				// But at this moment is seems to be simpler to
+				// make a slightly different copy than try to make
+				// template-based common implementation.
+
+				typename Tracing_Base::deliver_op_tracer tracer(
+						*this, // as Tracing_Base
+						*this, // as abstract_message_box_t
+						"deliver_enveloped_msg",
+						msg_type, message, overlimit_reaction_deep );
+
+				this->do_delivery( tracer, [&] {
+					using namespace so_5::message_limit::impl;
+
+					auto limit = m_limits.find( msg_type );
+
+					try_to_deliver_to_agent(
+							this->m_id,
+							invocation_type_t::enveloped_msg,
+							*(this->m_single_consumer),
+							limit,
+							msg_type,
+							message,
+							overlimit_reaction_deep,
+							tracer.overlimit_tracer(),
+							[&] {
+								tracer.push_to_queue( this->m_single_consumer );
+
+								agent_t::call_push_event(
+										*(this->m_single_consumer),
+										limit,
+										this->m_id,
+										msg_type,
+										message );
+							} );
 				} );
 			}
 

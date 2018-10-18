@@ -806,7 +806,8 @@ class local_mbox_template
 						tracer,
 						msg_type,
 						message,
-						overlimit_reaction_deep );
+						overlimit_reaction_deep,
+						invocation_type_t::event );
 			}
 
 		virtual void
@@ -826,6 +827,28 @@ class local_mbox_template
 						msg_type,
 						message,
 						overlimit_reaction_deep );
+			}
+
+		void
+		do_deliver_enveloped_msg(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) override
+			{
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as Tracing_base
+						*this, // as abstract_message_box_t
+						"deliver_enveloped_msg",
+						msg_type, message, overlimit_reaction_deep };
+
+				ensure_immutable_message( msg_type, message );
+
+				do_deliver_message_impl(
+						tracer,
+						msg_type,
+						message,
+						overlimit_reaction_deep,
+						invocation_type_t::enveloped_msg );
 			}
 
 		virtual void
@@ -933,7 +956,8 @@ class local_mbox_template
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const
+			unsigned int overlimit_reaction_deep,
+			invocation_type_t invocation_type ) const
 			{
 				read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
@@ -946,19 +970,26 @@ class local_mbox_template
 									tracer,
 									msg_type,
 									message,
-									overlimit_reaction_deep );
+									overlimit_reaction_deep,
+									invocation_type );
 					}
 				else
 					tracer.no_subscribers();
 			}
 
+		/*
+		 * Note. Since v.5.5.23 there is a postman argument.
+		 * This is a functor that calls agent_t::call_push_event or
+		 * agent_t::call_push_enveloped_msg methods.
+		 */
 		void
 		do_deliver_message_to_subscriber(
 			const local_mbox_details::subscriber_info_t & agent_info,
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const
+			unsigned int overlimit_reaction_deep,
+			invocation_type_t invocation_type ) const
 			{
 				const auto delivery_status =
 						agent_info.must_be_delivered( *(message.get()) );
@@ -968,7 +999,8 @@ class local_mbox_template
 						using namespace so_5::message_limit::impl;
 
 						try_to_deliver_to_agent(
-								invocation_type_t::event,
+								this->m_id,
+								invocation_type,
 								agent_info.subscriber_reference(),
 								agent_info.limit(),
 								msg_type,
@@ -981,7 +1013,7 @@ class local_mbox_template
 									agent_t::call_push_event(
 											agent_info.subscriber_reference(),
 											agent_info.limit(),
-											m_id,
+											this->m_id,
 											msg_type,
 											message );
 								} );
@@ -1051,6 +1083,7 @@ class local_mbox_template
 						using namespace so_5::message_limit::impl;
 
 						try_to_deliver_to_agent(
+								this->m_id,
 								invocation_type_t::service_request,
 								agent_info.subscriber_reference(),
 								agent_info.limit(),
@@ -1061,7 +1094,7 @@ class local_mbox_template
 								[&] {
 									tracer.push_to_queue( agent_info.subscriber_pointer() );
 
-									agent_t::call_push_service_request(
+									agent_t::call_push_event(
 											agent_info.subscriber_reference(),
 											agent_info.limit(),
 											m_id,

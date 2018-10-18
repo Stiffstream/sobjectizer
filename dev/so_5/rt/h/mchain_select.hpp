@@ -152,6 +152,8 @@ class select_cases_holder_t
 			{
 				select_cases_holder_t tmp( std::move( o ) );
 				swap( tmp );
+
+				return *this;
 			}
 
 		//! Swap operation.

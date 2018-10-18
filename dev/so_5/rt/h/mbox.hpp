@@ -942,6 +942,28 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			unsigned int overlimit_reaction_deep ) const = 0;
 
 		/*!
+		 * \brief Deliver enveloped message.
+		 *
+		 * \note
+		 * To keep source-code compatibility with previous versions
+		 * this method is not pure virtual. It has an implementation
+		 * that throws an exception with rc_not_implemented error code.
+		 * This method will be marked as pure virtual in v.5.6.0
+		 *
+		 * \since
+		 * v.5.5.23
+		 */
+		virtual void
+		do_deliver_enveloped_msg(
+			//! This is type_index for service Param type.
+			const std::type_index & msg_type,
+			//! This is reference to instance of an envelope.
+			//! This pointer can't be null.
+			const message_ref_t & message,
+			//! Current deep of overlimit reaction recursion.
+			unsigned int overlimit_reaction_deep );
+
+		/*!
 		 * \name Methods for working with delivery filters.
 		 * \{
 		 */
@@ -1006,6 +1028,48 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const std::type_index & msg_type,
 			//! A message instance to be delivered.
 			const message_ref_t & message );
+
+		/*!
+		 * \brief Helper for calling do_deliver_message_from_timer in
+		 * derived classes.
+		 *
+		 * Sometimes an user want to implement its own mbox on top
+		 * of an existing mbox. Something like that:
+		 * \code
+		 * class my_custom_mbox : public so_5::abstract_message_box_t
+		 * {
+		 * 	// Actual mbox to perform all work.
+		 * 	const so_5::mbox_t actual_mbox_;
+		 * 	...
+		 * 	void do_deliver_message_from_timer(
+		 * 		const std::type_index & msg_type,
+		 * 		const so_5::message_ref_t & message )
+		 * 	{
+		 * 		... // Do some specific stuff.
+		 * 		// Work should be delegated to actual_mbox_ but we
+		 * 		// can't simply call actual_mbox_->do_deliver_message_from_timer()
+		 * 		// because it is a protected method.
+		 * 		// But we can call delegate_deliver_message_from_timer():
+		 * 		delegate_deliver_message_from_timer(
+		 * 				actual_mbox_, msg_type, message );
+		 * 	}
+		 * };
+		 * \endcode
+		 * 
+		 * \since
+		 * v.5.5.23
+		 */
+		static void
+		delegate_deliver_message_from_timer(
+			//! Mbox to be used for message delivery.
+			abstract_message_box_t & mbox,
+			//! Type of the message to deliver.
+			const std::type_index & msg_type,
+			//! A message instance to be delivered.
+			const message_ref_t & message )
+		{
+			mbox.do_deliver_message_from_timer( msg_type, message );
+		}
 };
 
 template< class Message >

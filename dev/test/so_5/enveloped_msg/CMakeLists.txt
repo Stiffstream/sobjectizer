@@ -1,0 +1,11 @@
+project(tests)
+
+add_subdirectory(simplest)
+add_subdirectory(simple_svc_req)
+add_subdirectory(adv_thread_pool)
+add_subdirectory(simple_timer)
+add_subdirectory(simple_mchain_delivery)
+add_subdirectory(simple_mchain_timer)
+add_subdirectory(mchain_handled_count)
+
+add_subdirectory(message_limits)

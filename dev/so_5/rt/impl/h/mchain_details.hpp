@@ -392,6 +392,18 @@ class mchain_template
 							invocation_type_t::service_request );
 			}
 
+		void
+		do_deliver_enveloped_msg(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int /*overlimit_reaction_deep*/ ) override
+			{
+				try_to_store_message_to_queue(
+						msg_type,
+						message,
+						invocation_type_t::enveloped_msg );
+			}
+
 		/*!
 		 * \attention Will throw an exception because delivery
 		 * filter is not applicable to MPSC-mboxes.
@@ -574,10 +586,16 @@ class mchain_template
 			const std::type_index & msg_type,
 			const message_ref_t & message ) override
 			{
+				// Since v.5.5.23 we should detect actual invocation type
+				// for a timer event.
+				const auto invocation_type =
+						message_t::kind_t::enveloped_msg == message_kind( message ) ?
+						invocation_type_t::enveloped_msg : invocation_type_t::event;
+
 				try_to_store_message_from_timer_to_queue(
 						msg_type,
 						message,
-						invocation_type_t::event );
+						invocation_type );
 			}
 
 	private :

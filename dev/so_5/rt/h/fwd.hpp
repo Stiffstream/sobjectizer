@@ -37,5 +37,15 @@ class environment_params_t;
 class coop_t;
 class agent_t;
 
+namespace enveloped_msg {
+
+namespace impl {
+
+class agent_demand_handler_invoker_t;
+
+} /* namespace impl */
+
+} /* namespace enveloped_msg */
+
 } /* namespace so_5 */
 

@@ -31,6 +31,8 @@ set(SO_5_SRC exception.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
 	rt/message.cpp
+	rt/enveloped_msg.cpp
+	rt/handler_makers.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
 	rt/mchain.cpp

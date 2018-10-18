@@ -12,8 +12,10 @@
 #include <so_5/rt/h/message_limit.hpp>
 
 #include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
+#include <so_5/rt/impl/h/enveloped_msg_details.hpp>
 
 #include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/h/enveloped_msg.hpp>
 
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/ret_code.hpp>
@@ -91,35 +93,58 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
-				if( invocation_type_t::event == ctx.m_event_type )
-					to->do_deliver_message(
-							ctx.m_msg_type,
-							ctx.m_message,
-							ctx.m_reaction_deep + 1 );
-				else if( invocation_type_t::service_request == ctx.m_event_type )
-					to->do_deliver_service_request(
-							ctx.m_msg_type,
-							ctx.m_message,
-							ctx.m_reaction_deep + 1 );
+				switch( ctx.m_event_type )
+					{
+					case invocation_type_t::event:
+						to->do_deliver_message(
+								ctx.m_msg_type,
+								ctx.m_message,
+								ctx.m_reaction_deep + 1 );
+					break;
+
+					case invocation_type_t::service_request:
+						to->do_deliver_service_request(
+								ctx.m_msg_type,
+								ctx.m_message,
+								ctx.m_reaction_deep + 1 );
+					break;
+
+					case invocation_type_t::enveloped_msg:
+						to->do_deliver_enveloped_msg(
+								ctx.m_msg_type,
+								ctx.m_message,
+								ctx.m_reaction_deep + 1 );
+					break;
+					}
 			}
 	}
+
+namespace {
+
+void
+throw_exception_about_service_request_transformation(
+	const overlimit_context_t & ctx )
+	{
+		std::ostringstream ss;
+		ss << "service_request cannot be transformed;"
+				<< " msg_type: " << ctx.m_msg_type.name()
+				<< ", limit: " << ctx.m_limit.m_limit
+				<< ", agent: " << &(ctx.m_receiver);
+		SO_5_THROW_EXCEPTION(
+				rc_svc_request_cannot_be_transfomred_on_overlimit,
+				ss.str() );
+	}
+
+} /* namespace anonymous */
 
 SO_5_FUNC
 void
 ensure_event_transform_reaction(
+	invocation_type_t invocation_type,
 	const overlimit_context_t & ctx )
 {
-	if( invocation_type_t::service_request == ctx.m_event_type )
-		{
-			std::ostringstream ss;
-			ss << "service_request cannot be transformed;"
-					<< " msg_type: " << ctx.m_msg_type.name()
-					<< ", limit: " << ctx.m_limit.m_limit
-					<< ", agent: " << &(ctx.m_receiver);
-			SO_5_THROW_EXCEPTION(
-					rc_svc_request_cannot_be_transfomred_on_overlimit,
-					ss.str() );
-		}
+	if( invocation_type_t::service_request == invocation_type )
+		throw_exception_about_service_request_transformation( ctx );
 }
 
 SO_5_FUNC

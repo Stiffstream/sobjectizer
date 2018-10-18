@@ -96,5 +96,30 @@ enum class message_mutability_t
 		mutable_message
 	};
 
+//
+// message_kind_t
+//
+/*!
+ * \brief A enum with variants of message kinds.
+ *
+ * \since
+ * v.5.5.23
+ */
+enum class message_kind_t
+	{
+		//! Message is a signal. It means there is no data associated
+		//! with the message instance.
+		signal,
+		//! Message is a classical message. It means that message is
+		//! an instance of class derived from message_t.
+		classical_message,
+		//! Message is an user type message.
+		user_type_message,
+		//! Message is a service request.
+		service_request,
+		//! Message is an envelope with some other message inside.
+		enveloped_msg
+	};
+
 } /* namespace so_5 */
 

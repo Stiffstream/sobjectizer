@@ -19,6 +19,7 @@
 
 #include <so_5/rt/h/execution_demand.hpp>
 #include <so_5/rt/h/message_handler_format_detector.hpp>
+#include <so_5/rt/h/mbox.hpp>
 
 #include <algorithm>
 
@@ -503,8 +504,17 @@ handler( Lambda && lambda )
 //
 // preprocess_agent_event_handler
 //
-//FIXME: document this!
 /*!
+ * \brief Do preprocessing and some verification of event handler
+ * and return msg_type_and_handler_pair for it.
+ *
+ * This overload is intended to be used for pointers to members.
+ *
+ * \note
+ * Throws is handler can't be used with this type of mbox
+ * (for example: handler is for mutable message but mbox is
+ * Multi-Consumer one).
+ *
  * \since
  * v.5.5.21
  */
@@ -535,8 +545,12 @@ preprocess_agent_event_handler(
 //
 // preprocess_agent_event_handler
 //
-//FIXME: document this!
 /*!
+ * \brief Do preprocessing and some verification of event handler
+ * and return msg_type_and_handler_pair for it.
+ *
+ * This overload is intended to be used for lambdas or functional objects.
+ *
  * \attention
  * Only lambda functions or functional objects in the following format
  * are supported:
@@ -617,37 +631,14 @@ struct handlers_bunch_basics_t
 		 * \retval true if handler has been found
 		 * \retval false if handler has not been found.
 		 */
-		static inline bool
+		SO_5_FUNC
+		static bool
 		find_and_use_handler(
 			const msg_type_and_handler_pair_t * left,
 			const msg_type_and_handler_pair_t * right,
 			const std::type_index & msg_type,
 			message_ref_t & message,
-			invocation_type_t invocation )
-			{
-				bool ret_value = false;
-
-				msg_type_and_handler_pair_t key{ msg_type };
-				auto it = std::lower_bound( left, right, key );
-				if( it != right && it->m_msg_type == key.m_msg_type )
-					{
-						// Handler is found and must be called.
-						ret_value = true;
-						if( invocation_type_t::event == invocation )
-							// This is a async message.
-							// Simple call is enough.
-							it->m_handler( invocation, message );
-						else if( invocation_type_t::service_request == invocation )
-							// Invocation should be done in a special wrapper.
-							msg_service_request_base_t::dispatch_wrapper(
-									message,
-									[&it, &message, invocation] {
-										it->m_handler( invocation, message );
-									} );
-					}
-
-				return ret_value;
-			}
+			invocation_type_t invocation );
 	};
 
 //

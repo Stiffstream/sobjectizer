@@ -45,6 +45,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		sources_root( 'rt' ) {
 
 			cpp_source 'message.cpp'
+			cpp_source 'enveloped_msg.cpp'
+			cpp_source 'handler_makers.cpp'
 
 			cpp_source 'message_limit.cpp'
 

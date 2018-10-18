@@ -67,8 +67,7 @@ class creator_iface_t
 	protected :
 		// Non-virtual destructor to prevent creation of dynamically
 		// allocated objects of that type.
-		~creator_iface_t()
-			{}
+		~creator_iface_t() = default;
 
 	public :
 		//! Creation of custom mbox.
@@ -98,8 +97,7 @@ class creator_template_t : public creator_iface_t
 	public :
 		creator_template_t( Lambda && lambda ) : m_lambda(std::move(lambda))
 			{}
-		~creator_template_t()
-			{}
+		~creator_template_t() = default;
 
 		virtual mbox_t
 		create(

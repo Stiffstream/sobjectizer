@@ -15,6 +15,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <memory>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -146,6 +147,21 @@ class intrusive_ptr_t
 		intrusive_ptr_t(
 			const intrusive_ptr_t< Y > & o ) SO_5_NOEXCEPT
 			:	m_obj( o.get() )
+		{
+			ensure_right_T();
+			take_object();
+		}
+
+		/*!
+		 * \since
+		 * v.5.5.23
+		 *
+		 * \brief Constructor from unique_ptr instance.
+		 */
+		template< class Y >
+		intrusive_ptr_t(
+			std::unique_ptr< Y > o ) SO_5_NOEXCEPT
+			:	m_obj( o.release() )
 		{
 			ensure_right_T();
 			take_object();
