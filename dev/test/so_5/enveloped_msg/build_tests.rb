@@ -9,6 +9,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/simple_svc_req/prj.ut.rb"
 	required_prj "#{path}/adv_thread_pool/prj.ut.rb"
 	required_prj "#{path}/simple_timer/prj.ut.rb"
+	required_prj "#{path}/simple_delivery_filter/prj.ut.rb"
 
 	required_prj "#{path}/simple_mchain_delivery/prj.ut.rb"
 	required_prj "#{path}/simple_mchain_timer/prj.ut.rb"

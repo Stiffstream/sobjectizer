@@ -37,14 +37,8 @@ public:
 	}
 
 	void
-	handler_found_hook(
-		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
-	{
-		invoke_if_enabled( invoker );
-	}
-
-	void
-	transformation_hook(
+	access_hook(
+		access_context_t,
 		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
 	{
 		invoke_if_enabled( invoker );

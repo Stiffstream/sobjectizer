@@ -26,22 +26,28 @@ namespace {
 #endif
 
 //
-// on_transform_handler_invoker_t
+// payload_access_handler_invoker_t
 //
 /*!
  * \brief An implementation of handler_invoker interface for
- * the case of message transformation.
+ * extraction of payload because of various reasons.
  *
  * \since
  * v.5.5.23
  */
-class on_transform_handler_invoker_t final : public handler_invoker_t
+class payload_access_handler_invoker_t final : public handler_invoker_t
 	{
+		const access_context_t m_context;
+
 		optional< ::so_5::enveloped_msg::payload_info_t > m_payload;
 
 	public:
-		on_transform_handler_invoker_t() = default;
-		~on_transform_handler_invoker_t() = default;
+		payload_access_handler_invoker_t(
+			access_context_t context )
+			:	m_context{ context }
+			{}
+
+		~payload_access_handler_invoker_t() = default;
 
 		void
 		invoke(
@@ -61,15 +67,21 @@ class on_transform_handler_invoker_t final : public handler_invoker_t
 
 					case invocation_type_t::enveloped_msg :
 						auto & envelope = message_to_envelope( payload.message() );
-						envelope.transformation_hook( *this );
+						envelope.access_hook( m_context, *this );
 					break;
 					}
 			}
 
 		SO_5_NODISCARD
-		optional< ::so_5::enveloped_msg::payload_info_t >
-		payload() const SO_5_NOEXCEPT
+		optional< so_5::enveloped_msg::payload_info_t >
+		try_get_payload(
+			const message_ref_t & envelope_to_process ) SO_5_NOEXCEPT
 			{
+				using namespace so_5::enveloped_msg::impl;
+
+				auto & actual_envelope = message_to_envelope( envelope_to_process );
+				actual_envelope.access_hook( m_context, *this );
+
 				return m_payload;
 			}
 	};
@@ -86,16 +98,47 @@ optional< payload_info_t >
 extract_payload_for_message_transformation(
 	const message_ref_t & envelope_to_process )
 	{
-		using namespace so_5::enveloped_msg::impl;
-
-		auto & actual_envelope = message_to_envelope( envelope_to_process );
-		on_transform_handler_invoker_t invoker;
-
-		actual_envelope.transformation_hook( invoker );
-
-		return invoker.payload();
+		return payload_access_handler_invoker_t{
+						access_context_t::transformation
+				}.try_get_payload( envelope_to_process );
 	}
 	
+SO_5_FUNC
+SO_5_NODISCARD
+optional< message_ref_t >
+message_to_be_inspected(
+	const message_ref_t & msg_or_envelope )
+	{
+		message_ref_t result = msg_or_envelope;
+		switch( message_kind( msg_or_envelope ) )
+			{
+			case message_t::kind_t::signal: // Already has a value.
+			break;
+
+			case message_t::kind_t::classical_message: // Already has a value.
+			break;
+
+			case message_t::kind_t::user_type_message: // Already has a value.
+			break;
+
+			case message_t::kind_t::service_request: // Already has a value.
+			break;
+
+			case message_t::kind_t::enveloped_msg:
+				{
+					auto opt_payload = payload_access_handler_invoker_t{
+									access_context_t::inspection
+							}.try_get_payload( msg_or_envelope );
+
+					if( opt_payload )
+						result = opt_payload->message();
+				}
+			break;
+			}
+
+		return { result };
+	}
+
 } /* namespace enveloped_msg */
 
 } /* namespace so_5 */

@@ -21,6 +21,7 @@
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/enveloped_msg.hpp>
 
 #include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
@@ -199,9 +200,11 @@ public :
 	}
 
 	//! Must a message be delivered to the subscriber?
+	template< typename Msg_Ref_Extractor >
 	delivery_possibility_t
 	must_be_delivered(
-		message_t & msg ) const
+		const message_ref_t & msg,
+		Msg_Ref_Extractor msg_extractor ) const
 	{
 		// For the case when there are actual subscriptions.
 		// We assume that will be in 99.9% cases.
@@ -212,10 +215,20 @@ public :
 			// No message delivery for that case.
 			need_deliver = delivery_possibility_t::no_subscription;
 		else if( state_t::subscriptions_and_filter == m_state )
+		{
 			// Delivery must be checked by delivery filter.
-			need_deliver = m_filter->check( subscriber_reference(), msg ) ?
-					delivery_possibility_t::must_be_delivered :
-					delivery_possibility_t::disabled_by_delivery_filter;
+			// But message must be extracted from an envelope first.
+			auto opt_msg = so_5::enveloped_msg::message_to_be_inspected( msg );
+			if( opt_msg )
+			{
+				message_t & actual_msg = msg_extractor( *opt_msg );
+				need_deliver = m_filter->check( subscriber_reference(), actual_msg ) ?
+						delivery_possibility_t::must_be_delivered :
+						delivery_possibility_t::disabled_by_delivery_filter;
+			}
+			else
+				need_deliver = delivery_possibility_t::hidden_by_envelope;
+		}
 
 		return need_deliver;
 	}
@@ -977,11 +990,6 @@ class local_mbox_template
 					tracer.no_subscribers();
 			}
 
-		/*
-		 * Note. Since v.5.5.23 there is a postman argument.
-		 * This is a functor that calls agent_t::call_push_event or
-		 * agent_t::call_push_enveloped_msg methods.
-		 */
 		void
 		do_deliver_message_to_subscriber(
 			const local_mbox_details::subscriber_info_t & agent_info,
@@ -992,7 +1000,11 @@ class local_mbox_template
 			invocation_type_t invocation_type ) const
 			{
 				const auto delivery_status =
-						agent_info.must_be_delivered( *(message.get()) );
+						agent_info.must_be_delivered(
+								message,
+								[]( const message_ref_t & m ) -> message_t & {
+									return *m;
+								} );
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
@@ -1071,12 +1083,13 @@ class local_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
 			{
-				auto & svc_request_param =
-					dynamic_cast< msg_service_request_base_t & >( *message )
-							.query_param();
-
 				const auto delivery_status =
-						agent_info.must_be_delivered( svc_request_param );
+						agent_info.must_be_delivered(
+								message,
+								[]( const message_ref_t & m ) -> message_t & {
+									return dynamic_cast< msg_service_request_base_t & >(
+											*m ).query_param();
+								} );
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{

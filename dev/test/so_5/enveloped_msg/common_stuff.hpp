@@ -56,20 +56,28 @@ public:
 		{}
 
 	void
-	handler_found_hook(
+	access_hook(
+		access_context_t context,
 		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
 	{
-		append_text( "pre_invoke;" );
-		invoker.invoke( payload_info_t{ m_payload } );
-		append_text( "post_invoke;" );
-	}
+		switch( context )
+		{
+		case access_context_t::handler_found:
+			append_text( "pre_invoke;" );
+			invoker.invoke( payload_info_t{ m_payload } );
+			append_text( "post_invoke;" );
+		break;
 
-	void
-	transformation_hook(
-		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
-	{
-		append_text( "transform;" );
-		invoker.invoke( payload_info_t{ m_payload } );
+		case access_context_t::transformation:
+			append_text( "transform;" );
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+
+		case access_context_t::inspection:
+			append_text( "inspect;" );
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+		}
 	}
 };
 

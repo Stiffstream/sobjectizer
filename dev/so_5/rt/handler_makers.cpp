@@ -34,7 +34,9 @@ process_envelope_when_handler_found(
 			auto & envelope = message_to_envelope( message );
 
 			mchain_demand_handler_invoker_t invoker{ handler };
-			envelope.handler_found_hook( invoker );
+			envelope.access_hook(
+					so_5::enveloped_msg::access_context_t::handler_found,
+					invoker );
 
 			result = invoker.was_handled();
 		} );

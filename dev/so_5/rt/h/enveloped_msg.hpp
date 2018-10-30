@@ -102,6 +102,31 @@ class SO_5_TYPE handler_invoker_t
 	};
 
 //
+// access_context_t
+//
+/*!
+ * \brief Information about context on that enveloped message is handled.
+ *
+ * \since
+ * v.5.5.23
+ */
+enum class access_context_t
+	{
+		//! Enveloped message is delivered to a receiver and the payload
+		//! is necessary for calling event handler.
+		handler_found,
+		//! The content of enveloped message should be transformed to
+		//! another representation.
+		//! For example it can be necessary for limit_then_transform
+		//! overload reaction.
+		transformation,
+		//! The content of enveloped message should be analyzed for
+		//! the further delivery.
+		//! For example it can be necessary for delivery filters.
+		inspection
+	};
+
+//
 // envelope_t
 //
 /*!
@@ -117,28 +142,28 @@ class SO_5_TYPE handler_invoker_t
  * This interface describes 'envelope' for such containers. All envelopes
  * should implement this interface.
  *
- * Method handler_found_hook() is called by SObjectizer when envelope
- * is delivered to a receiver and receiver is ready to handle a message
- * from envelope. Envelope should check the availability of the payload and,
- * if the payload is available for processing, should pass the payload info
- * to handler_invoker_t::invoke() method.
+ * Method access_hook() is called by SObjectizer when the payload
+ * of enveloped message should be accessed. For example:
  *
- * Method transformation_hook() is called by SObjectizer when envelope can't
- * be delivered to a receiver in its current form and there is a need to
- * transform the message/signal from the envelope to another type
- * of message/signal. For example it can happen when limit_then_transform
- * is used for overload control. In that case the payload should be extracted
- * and passed to a transformation function.
+ * - envelope is delivered to a receiver and receiver is ready to handle a
+ *   message from envelope;
+ * - envelope can't be delivered to a receiver in its current form and there is
+ *   a need to transform the message/signal from the envelope to another type
+ *   of message/signal. For example it can happen when limit_then_transform is
+ *   used for overload control. In that case the payload should be extracted
+ *   and passed to a transformation function;
+ * - envelope should be analyzed by a delivery filter for further delivery
+ *   of message.
  * 
- * When transformation_hook() is called the envelope should check the
+ * When access_hook() is called the envelope should check the
  * availability of the payload and, if the payload is available for processing,
  * should pass the payload info to handler_invoker_t::invoke() method.
  *
  * Please note that call of handler_invoker_t::invoke() is not guaranteed.
  * Envelope can check some conditions (like payload expiration or revocation)
  * and does call to invoke() only if these conditions are meet. But if some
- * conditions are not fulfilled then handler_found_hook() and
- * transformation_hook() won't call handler_invoker_t::invoke() method.
+ * conditions are not fulfilled then access_hook() won't call
+ * handler_invoker_t::invoke() method.
  *
  * \since
  * v.5.5.23
@@ -150,6 +175,7 @@ class SO_5_TYPE envelope_t : public message_t
 		// be easily used in derived classes outside so_5 namespace.
 		using payload_info_t = ::so_5::enveloped_msg::payload_info_t;
 		using handler_invoker_t = ::so_5::enveloped_msg::handler_invoker_t;
+		using access_context_t = ::so_5::enveloped_msg::access_context_t;
 
 		// clang requires this.
 		envelope_t() = default;
@@ -163,20 +189,11 @@ class SO_5_TYPE envelope_t : public message_t
 
 		virtual ~envelope_t() override = default;
 
-		//! Hook for the case when there is an event handler for 
-		//! the enveloped message/signal for a particular receiver.
 		virtual void
-		handler_found_hook(
+		access_hook(
+			//! Why this hook is called.
+			access_context_t context,
 			//! Proxy object which can call an actual event handler.
-			handler_invoker_t & invoker ) SO_5_NOEXCEPT = 0;
-
-		//! Hook for the case when a message will be transformed to
-		//! some other message object.
-		virtual void
-		transformation_hook(
-			//! Proxy object which should receive an actual payload
-			//! (or should not be called at all if there is no more
-			//! payload inside the envelope).
 			handler_invoker_t & invoker ) SO_5_NOEXCEPT = 0;
 
 	private :
@@ -187,6 +204,9 @@ class SO_5_TYPE envelope_t : public message_t
 			}
 	};
 
+//
+// extract_payload_for_message_transformation
+//
 /*!
  * \brief Helper function for extraction of a payload
  * from enveloped message.
@@ -214,6 +234,30 @@ optional< payload_info_t >
 extract_payload_for_message_transformation(
 	//! Envelope with message inside.
 	const message_ref_t & envelope );
+
+//
+// message_to_be_inspected
+//
+/*!
+ * \brief Helper function for extraction of a payload from enveloped
+ * message.
+ *
+ * This function checks the kind of \a msg_or_envelope. If this is
+ * an enveloped message message_to_be_inspected() will try to extract
+ * the payload and return it. In that case an empty \a optional object
+ * can be returned.
+ *
+ * If \a msg_or_envelope is not an envelope then \a msg_or_envelope
+ * is returned as a result.
+ *
+ * \since
+ * v.5.5.23
+ */
+SO_5_FUNC
+SO_5_NODISCARD
+optional< message_ref_t >
+message_to_be_inspected(
+	const message_ref_t & msg_or_envelope );
 	
 } /* namespace enveloped_msg */
 

@@ -224,7 +224,9 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 							// nested call.
 							auto & nested_envelope = message_to_envelope(
 									payload.message() );
-							nested_envelope.handler_found_hook( *this );
+							nested_envelope.access_hook(
+									access_context_t::handler_found,
+									*this );
 						}
 					break;
 					}

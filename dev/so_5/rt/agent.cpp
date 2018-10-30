@@ -1288,7 +1288,9 @@ agent_t::process_enveloped_msg(
 					d,
 					*handler_data
 			};
-			envelope.handler_found_hook( invoker );
+			envelope.access_hook(
+					so_5::enveloped_msg::access_context_t::handler_found,
+					invoker );
 		}
 	} );
 }

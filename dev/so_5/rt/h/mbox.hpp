@@ -38,7 +38,14 @@ enum class delivery_possibility_t
 {
 	must_be_delivered,
 	no_subscription,
-	disabled_by_delivery_filter
+	disabled_by_delivery_filter,
+	/*!
+	 * The actual message is hidden by an envelope.
+	 *
+	 * \since
+	 * v.5.5.23
+	 */
+	hidden_by_envelope
 };
 
 template< class Result >

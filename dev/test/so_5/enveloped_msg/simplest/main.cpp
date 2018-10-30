@@ -39,20 +39,28 @@ public:
 		{}
 
 	void
-	handler_found_hook(
-		so_5::enveloped_msg::handler_invoker_t & invoker ) SO_5_NOEXCEPT override
-	{
-		append_text( "pre_invoke;" );
-		invoker.invoke( so_5::enveloped_msg::payload_info_t{ m_payload } );
-		append_text( "post_invoke;" );
-	}
-
-	void
-	transformation_hook(
+	access_hook(
+		access_context_t context,
 		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
 	{
-		append_text( "transform;" );
-		return invoker.invoke( payload_info_t{ m_payload } );
+		switch( context )
+		{
+		case access_context_t::handler_found:
+			append_text( "pre_invoke;" );
+			invoker.invoke( so_5::enveloped_msg::payload_info_t{ m_payload } );
+			append_text( "post_invoke;" );
+		break;
+
+		case access_context_t::transformation:
+			append_text( "transform;" );
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+
+		case access_context_t::inspection:
+			append_text( "inspect;" );
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+		}
 	}
 };
 

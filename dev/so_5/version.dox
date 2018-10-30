@@ -9,7 +9,8 @@
 	so_5::message_kind_t, so_5::message_t::kind_t,
 	so_5::message_t::so5_message_kind() and related stuff are introduced.
 
-	A new namespace so_5::enveloped_msg is introduced.
+	A new namespace so_5::enveloped_msg is introduced. See \ref so_5_5_23__enveloped_msg
+	for more details.
 
 	so_5::abstract_message_box_t::do_deliver_enveloped_msg() introduced.
 
