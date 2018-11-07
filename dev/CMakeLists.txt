@@ -31,10 +31,6 @@ if(NOT SOBJECTIZER_BUILD_SHARED)
 	endif()
 endif()
 
-if (ANDROID AND NOT CRYSTAX)
-    message(FATAL_ERROR "You should use CrystaX-enabled CMake toolchain")
-endif()
-
 if (ANDROID)
     if (ANDROID_NDK_ABI_NAME STREQUAL "armeabi")
         message(FATAL_ERROR "'${ANDROID_NDK_ABI_NAME}' target is not supported due to lack of the lock-free atomics")
