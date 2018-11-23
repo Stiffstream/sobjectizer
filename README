@@ -1,7 +1,7 @@
 SObjectizer is an in-process message dispatching framework with implementation
 of Actor Model, Publish-Subscribe Model and CSP-like channels.
 
-Sobjectizer allows the creation of a concurrent app as a set of agent-objects
+SObjectizer allows the creation of a concurrent app as a set of agent-objects
 which interact with each other through asynchronous messages. It handles
 message dispatching and provides a working context for message processing. And
 allows to tune those things by supplying various ready-to-use dispatchers.
@@ -17,6 +17,9 @@ tool. The second one by using CMake[3].
 
 NOTE. Since v.5.5.15.2 there is a support of Android platform.  Building for
 Android is possible by CMake only. See the corresponding section below.
+
+SObjectizer can also be installed and used via vcpkg and Conan dependency
+managers. See the appropriate sections below.
 
 Building via Mxx_ru
 ===================
@@ -192,6 +195,62 @@ is used for building SObjectizer:
   make
   make test
   make install
+
+Using C++ Dependency Managers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using via vcpkg
+---------------
+
+To use SObjectizer via [vcpkg](https://github.com/Microsoft/vcpkg) it is necessary to do the following steps.
+
+Install `sobjectizer` package:
+
+    vcpkg install sobjectizer
+
+Add the following lines into your CMakeLists.txt file:
+
+    find_package(sobjectizer CONFIG REQUIRED)
+    target_link_libraries(your_target sobjectizer::SharedLib) # or sobjectizer::StaticLib
+
+Using via Conan
+---------------
+
+Installing SObjectizer And Adding It To conanfile.txt
+`````````````````````````````````````````````````````
+
+To use SObjectizer via Conan it is necessary to do the following steps:
+
+Add the corresponding remote to your conan:
+
+    conan remote add stiffstream https://api.bintray.com/conan/stiffstream/public
+
+Add SObjectizer to `conanfile.txt` of your project:
+
+    [requires]
+    sobjectizer/5.5.23@stiffstream/testing
+
+It also may be necessary to specify `shared` option for SObjectizer. For example, for build SObjectizer as a static library:
+
+    [options]
+    sobjectizer:shared=False
+
+Install dependencies for your project:
+
+    conan install SOME_PATH --build=missing
+
+Adding SObjectizer To Your CMakeLists.txt
+`````````````````````````````````````````
+
+Please note that SObjectizer should be added to your `CMakeLists.txt` via `find_package` command:
+
+    ...
+    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup()
+
+    find_package(sobjectizer CONFIG REQUIRED)
+    ...
+    target_link_libraries(your_target sobjectizer::SharedLib) # Or sobjectizer::StaticLib
 
 License
 =======
