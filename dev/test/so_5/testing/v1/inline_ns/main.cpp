@@ -60,7 +60,7 @@ public :
 	void so_evt_start() override
 	{
 		so_5::send_delayed< start_work >( *this,
-				std::chrono::milliseconds(50) );
+				std::chrono::milliseconds(75) );
 	}
 };
 
@@ -96,7 +96,7 @@ UT_UNIT_TEST( workers_and_manager )
 							& tests::store_state_name( "second" ) )
 				.constraints(
 						tests::not_before( std::chrono::milliseconds(50) ),
-						tests::not_after( std::chrono::milliseconds(100) ) );
+						tests::not_after( std::chrono::milliseconds(150) ) );
 
 			scenario.define_step( "release" )
 				.when_all(
@@ -107,7 +107,7 @@ UT_UNIT_TEST( workers_and_manager )
 							& tests::reacts_to< worker_t::release >( control_mbox )
 							& tests::store_state_name( "second" ) )
 				.constraints(
-						tests::not_before( std::chrono::milliseconds(80) ) );
+						tests::not_before( std::chrono::milliseconds(50) ) );
 
 			scenario.run_for( std::chrono::seconds(1) );
 

@@ -190,7 +190,7 @@ UT_UNIT_TEST( not_before_not_after_2 )
 			so_5::agent_t * test_agent;
 			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
 					test_agent = coop.make_agent< test_agent_t >(
-							std::chrono::milliseconds(250) );
+							std::chrono::milliseconds(300) );
 				} );
 
 			define_hello_1_step( env, *test_agent );
@@ -218,7 +218,7 @@ UT_UNIT_TEST( not_before_not_after_3 )
 			so_5::agent_t * test_agent;
 			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
 					test_agent = coop.make_agent< test_agent_t >(
-							std::chrono::milliseconds(150) );
+							std::chrono::milliseconds(250) );
 				} );
 
 			define_hello_1_step( env, *test_agent );
@@ -226,7 +226,7 @@ UT_UNIT_TEST( not_before_not_after_3 )
 			env.scenario().define_step( "hello_2" )
 				.constraints(
 						tests::not_before( std::chrono::milliseconds(100) ),
-						tests::not_after( std::chrono::milliseconds(200) ) )
+						tests::not_after( std::chrono::milliseconds(400) ) )
 				.when( *test_agent & tests::reacts_to<hello_2>() );
 
 			env.scenario().run_for( std::chrono::milliseconds(500) );
