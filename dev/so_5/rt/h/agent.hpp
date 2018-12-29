@@ -2885,7 +2885,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_start_ptr();
+		get_demand_handler_on_start_ptr() SO_5_NOEXCEPT;
 
 		/*!
 		 * \since
@@ -2905,7 +2905,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_finish_ptr();
+		get_demand_handler_on_finish_ptr() SO_5_NOEXCEPT;
 
 		/*!
 		 * \since
@@ -2925,7 +2925,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_message_ptr();
+		get_demand_handler_on_message_ptr() SO_5_NOEXCEPT;
 
 		/*!
 		 * \since
@@ -2948,7 +2948,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_service_request_handler_on_message_ptr();
+		get_service_request_handler_on_message_ptr() SO_5_NOEXCEPT;
 
 		/*!
 		 * \since
@@ -2960,6 +2960,13 @@ class SO_5_TYPE agent_t
 		demand_handler_on_enveloped_msg(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since
+		 * v.5.5.24
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_on_enveloped_msg_ptr() SO_5_NOEXCEPT;
 		/*!
 		 * \}
 		 */

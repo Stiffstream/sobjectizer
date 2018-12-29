@@ -34,6 +34,7 @@ set(SO_5_SRC exception.cpp
 	rt/enveloped_msg.cpp
 	rt/handler_makers.cpp
 	rt/message_limit.cpp
+	rt/event_queue_hook.cpp
 	rt/mbox.cpp
 	rt/mchain.cpp
 	rt/event_exception_logger.cpp
@@ -81,6 +82,8 @@ set(SO_5_SRC exception.cpp
 	disp/prio_one_thread/strictly_ordered/pub.cpp
 	disp/prio_one_thread/quoted_round_robin/pub.cpp
 	disp/prio_dedicated_threads/one_per_prio/pub.cpp
+
+	experimental/testing/v1/all.cpp
 )
 
 function(setup_target_cxx_std TARGET_NAME)

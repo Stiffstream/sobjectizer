@@ -697,26 +697,33 @@ void
 agent_t::so_bind_to_dispatcher(
 	event_queue_t & queue )
 {
-	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
-
-	// Cooperation usage counter should be incremented.
-	// It will be decremented during final agent event execution.
-	coop_t::increment_usage_count( *m_agent_coop );
-
+	// We don't expect exceptions here.
+	// And can't restore after them
 	so_5::details::invoke_noexcept_code( [&] {
-			// A starting demand must be sent first.
-			queue.push(
-					execution_demand_t(
-							this,
-							message_limit::control_block_t::none(),
-							0,
-							typeid(void),
-							message_ref_t(),
-							&agent_t::demand_handler_on_start ) );
-			
-			// Only then pointer to the queue could be stored.
-			m_event_queue = &queue;
-		} );
+		// Since v.5.5.24 we should use event_queue_hook to get an
+		// actual event_queue.
+		auto * actual_queue = impl::internal_env_iface_t{ m_env }
+				.event_queue_on_bind( this, &queue );
+
+		std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
+		// Cooperation usage counter should be incremented.
+		// It will be decremented during final agent event execution.
+		coop_t::increment_usage_count( *m_agent_coop );
+
+		// A starting demand must be sent first.
+		actual_queue->push(
+				execution_demand_t(
+						this,
+						message_limit::control_block_t::none(),
+						0,
+						typeid(void),
+						message_ref_t(),
+						&agent_t::demand_handler_on_start ) );
+		
+		// Only then pointer to the queue could be stored.
+		m_event_queue = actual_queue;
+	} );
 }
 
 execution_hint_t
@@ -844,42 +851,55 @@ agent_t::bind_to_coop( coop_t & coop )
 void
 agent_t::shutdown_agent() SO_5_NOEXCEPT
 {
-	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
-
-	// Since v.5.5.8 shutdown is done by two simple step:
-	// - remove actual value from m_event_queue;
-	// - pushing final demand to actual event queue.
-	// 
-	// No new demands will be sent to the agent, but all the subscriptions
-	// remains. They will be destroyed at the very end of agent's lifetime.
-
-	if( m_event_queue )
+	event_queue_t * actual_queue = nullptr;
 	{
-		// Final event must be pushed to queue.
-		so_5::details::invoke_noexcept_code( [&] {
-				m_event_queue->push(
-						execution_demand_t(
-								this,
-								message_limit::control_block_t::none(),
-								0,
-								typeid(void),
-								message_ref_t(),
-								&agent_t::demand_handler_on_finish ) );
-			} );
+		std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-		// No more events will be stored to the queue.
-		m_event_queue = nullptr;
+		// Since v.5.5.8 shutdown is done by two simple step:
+		// - remove actual value from m_event_queue;
+		// - pushing final demand to actual event queue.
+		// 
+		// No new demands will be sent to the agent, but all the subscriptions
+		// remains. They will be destroyed at the very end of agent's lifetime.
+
+		if( m_event_queue )
+		{
+			// This pointer will be used later.
+			actual_queue = m_event_queue;
+
+			// Final event must be pushed to queue.
+			so_5::details::invoke_noexcept_code( [&] {
+					m_event_queue->push(
+							execution_demand_t(
+									this,
+									message_limit::control_block_t::none(),
+									0,
+									typeid(void),
+									message_ref_t(),
+									&agent_t::demand_handler_on_finish ) );
+
+					// No more events will be stored to the queue.
+					m_event_queue = nullptr;
+				} );
+
+		}
+		else
+			so_5::details::abort_on_fatal_error( [&] {
+				SO_5_LOG_ERROR( so_environment(), log_stream )
+				{
+					log_stream << "Unexpected error: m_event_queue contains "
+						"nullptr. Unable to push demand_handler_on_finish for "
+						"the agent (" << this << "). Application will be aborted"
+						<< std::endl;
+				}
+			} );
 	}
-	else
-		so_5::details::abort_on_fatal_error( [&] {
-			SO_5_LOG_ERROR( so_environment(), log_stream )
-			{
-				log_stream << "Unexpected error: m_event_queue contains "
-					"nullptr. Unable to push demand_handler_on_finish for "
-					"the agent (" << this << "). Application will be aborted"
-					<< std::endl;
-			}
-		} );
+
+	if( actual_queue )
+		// Since v.5.5.24 we should utilize event_queue via
+		// event_queue_hook.
+		impl::internal_env_iface_t{ m_env }
+				.event_queue_on_unbind( this, m_event_queue );
 }
 
 void
@@ -1111,7 +1131,7 @@ agent_t::ensure_binding_finished()
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_start_ptr()
+agent_t::get_demand_handler_on_start_ptr() SO_5_NOEXCEPT
 {
 	return &agent_t::demand_handler_on_start;
 }
@@ -1147,7 +1167,7 @@ agent_t::demand_handler_on_finish(
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_finish_ptr()
+agent_t::get_demand_handler_on_finish_ptr() SO_5_NOEXCEPT
 {
 	return &agent_t::demand_handler_on_finish;
 }
@@ -1166,7 +1186,7 @@ agent_t::demand_handler_on_message(
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_message_ptr()
+agent_t::get_demand_handler_on_message_ptr() SO_5_NOEXCEPT
 {
 	return &agent_t::demand_handler_on_message;
 }
@@ -1187,7 +1207,7 @@ agent_t::demand_handler_on_service_request(
 }
 
 demand_handler_pfn_t
-agent_t::get_service_request_handler_on_message_ptr()
+agent_t::get_service_request_handler_on_message_ptr() SO_5_NOEXCEPT
 {
 	return &agent_t::demand_handler_on_service_request;
 }
@@ -1202,6 +1222,12 @@ agent_t::demand_handler_on_enveloped_msg(
 	auto handler = d.m_receiver->m_handler_finder(
 			d, "demand_handler_on_enveloped_msg" );
 	process_enveloped_msg( working_thread_id, d, handler );
+}
+
+demand_handler_pfn_t
+agent_t::get_demand_handler_on_enveloped_msg_ptr() SO_5_NOEXCEPT
+{
+	return &agent_t::demand_handler_on_enveloped_msg;
 }
 
 void

@@ -35,6 +35,7 @@
 #include <so_5/rt/h/so_layer.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
 #include <so_5/rt/h/event_exception_logger.hpp>
+#include <so_5/rt/h/event_queue_hook.hpp>
 
 #include <so_5/h/timers.hpp>
 
@@ -273,9 +274,19 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \brief Set message delivery tracer for the environment.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::launch( [](so_5::environment_t & env) { ... },
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		params.message_delivery_tracer( so_5::msg_tracing::std_cout_tracer() );
+		 * 		...
+		 * 	} );
+		 * \endcode
+		 *
 		 * \since
 		 * v.5.5.9
-		 * \brief Set message delivery tracer for the environment.
 		 */
 		environment_params_t &
 		message_delivery_tracer( so_5::msg_tracing::tracer_unique_ptr_t tracer )
@@ -422,6 +433,44 @@ class SO_5_TYPE environment_params_t
 			}
 
 		/*!
+		 * \brief Set event_queue_hook object.
+		 *
+		 * Since v.5.5.24 it is possible to use special event_queue_hook
+		 * object. If it is used it should be set for SObjectizer
+		 * Environment before the Environment will be started. This method
+		 * allows to specify event_queue_hook object for a new Environment
+		 * object.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::launch(
+		 * 	[](so_5::environment_t & env) {...}, // Some stating actions.
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		// Set my own event_queue hook object.
+		 * 		so_5::make_event_queue_hook<my_hook>(
+		 * 			// Object is created dynamically and should be
+		 * 			// destroyed the normal way.
+		 * 			so_5::event_queue_hook_t::default_deleter,
+		 * 			arg1, arg3, arg3 // and all other arguments for my_hook's constructor.
+		 * 		);
+		 * 	});
+		 * \endcode
+		 *
+		 * \note
+		 * The previous event_queue_hook object (if it was set earlier)
+		 * will just be dropped.
+		 *
+		 * \since
+		 * v.5.5.24
+		 */
+		void
+		event_queue_hook(
+			event_queue_hook_unique_ptr_t hook )
+			{
+				m_event_queue_hook = std::move(hook);
+			}
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
@@ -500,6 +549,17 @@ class SO_5_TYPE environment_params_t
 		so5__giveout_queue_locks_defaults_manager()
 			{
 				return std::move( m_queue_locks_defaults_manager );
+			}
+
+		//! Take out event_queue_hook object.
+		/*!
+		 * \since
+		 * v.5.5.24
+		 */
+		event_queue_hook_unique_ptr_t
+		so5__giveout_event_queue_hook()
+			{
+				return std::move( m_event_queue_hook );
 			}
 		/*!
 		 * \}
@@ -602,6 +662,18 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.19
 		 */
 		environment_infrastructure_factory_t m_infrastructure_factory;
+
+		/*!
+		 * \brief An event_queue_hook object.
+		 *
+		 * \note
+		 * It can be a nullptr. It means that no event_queue_hook should
+		 * be used.
+		 *
+		 * \since
+		 * v.5.5.24
+		 */
+		event_queue_hook_unique_ptr_t m_event_queue_hook;
 };
 
 //

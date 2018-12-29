@@ -48,6 +48,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'enveloped_msg.cpp'
 			cpp_source 'handler_makers.cpp'
 
+			cpp_source 'event_queue_hook.cpp'
+
 			cpp_source 'message_limit.cpp'
 
 			cpp_source 'mbox.cpp'
@@ -148,6 +150,14 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			sources_root( 'prio_dedicated_threads' ) {
 				sources_root( 'one_per_prio' ) {
 					cpp_source 'pub.cpp'
+				}
+			}
+		}
+
+		sources_root( 'experimental' ) {
+			sources_root( 'testing' ) {
+				sources_root( 'v1' ) {
+					cpp_source 'all.cpp'
 				}
 			}
 		}

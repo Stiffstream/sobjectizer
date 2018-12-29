@@ -66,6 +66,8 @@ add_subdirectory(internal_stats)
 
 add_subdirectory(env_infrastructure)
 
+add_subdirectory(testing)
+
 add_subdirectory(bench/ping_pong)
 add_subdirectory(bench/same_msg_in_different_states)
 add_subdirectory(bench/parallel_send_to_same_mbox)

@@ -91,6 +91,51 @@ class SO_5_TYPE internal_env_iface_t
 		 */
 		so_5::disp::mpmc_queue_traits::lock_factory_t
 		default_mpmc_queue_lock_factory() const;
+
+		/*!
+		 * \name Methods for working with event_queue_hooks
+		 * \{
+		 */
+		/*!
+		 * \brief Call the event_queue_hook when an agent is being bound
+		 * to a particular event_queue.
+		 *
+		 * An agent should call this method when it is being bound to a
+		 * particular event queue.
+		 *
+		 * \attention
+		 * The pointer returned should be used as pointer to event queue.
+		 *
+		 * \since
+		 * v.5.5.24
+		 */
+		SO_5_NODISCARD
+		event_queue_t *
+		event_queue_on_bind(
+			agent_t * agent,
+			event_queue_t * original_queue ) SO_5_NOEXCEPT;
+
+		/*!
+		 * \brief Call the event_queue_hook when an agent is being unbound
+		 * from its event_queue.
+		 *
+		 * An agent should call this method when it is being unbound from its
+		 * event queue.
+		 *
+		 * \attention
+		 * The value \a queue should be exactly the value returned from
+		 * previous call to event_queue_on_bind().
+		 *
+		 * \since
+		 * v.5.5.24
+		 */
+		void
+		event_queue_on_unbind(
+			agent_t * agent,
+			event_queue_t * queue ) SO_5_NOEXCEPT;
+		/*!
+		 * \}
+		 */
 	};
 
 /*!

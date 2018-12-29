@@ -37,6 +37,9 @@ class environment_params_t;
 class coop_t;
 class agent_t;
 
+class event_queue_t;
+class event_queue_hook_t;
+
 namespace enveloped_msg {
 
 namespace impl {

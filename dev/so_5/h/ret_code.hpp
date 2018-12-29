@@ -535,6 +535,32 @@ const int rc_transfer_to_state_loop = 178;
  */
 const int rc_attempt_to_cast_to_envelope_on_nullptr = 180;
 
+/*!
+ * \brief New step can't be defined if testing scenario is already
+ * started or finished.
+ *
+ * \since
+ * v.5.5.24
+ */
+const int rc_unable_to_define_new_step = 181;
+
+/*!
+ * \brief Testing scenario must be completed before an attempt
+ * to do the current operation.
+ *
+ * \since
+ * v.5.5.24
+ */
+const int rc_scenario_must_be_completed = 182;
+
+/*!
+ * \brief There is no stored state name in the testing scenario.
+ *
+ * \since
+ * v.5.5.24
+ */
+const int rc_stored_state_name_not_found = 183;
+
 //! \name Common error codes.
 //! \{
 

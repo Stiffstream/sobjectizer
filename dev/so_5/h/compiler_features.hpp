@@ -45,6 +45,8 @@
 		// special function and can't defaulted such constructors.
 		#define SO_5_NEED_MSVC_12_WORKAROUNDS
 
+		// Visual C++ 2013 doesn't support inline namespace.
+		#define SO_5_NO_SUPPORT_FOR_INLINE_NAMESPACE
 	#endif
 
 	#if _MSC_VER == 1700
@@ -102,4 +104,10 @@
 #if !defined( SO_5_NODISCARD )
 	#define SO_5_NODISCARD
 #endif
+
+#if defined( SO_5_NO_SUPPORT_FOR_INLINE_NAMESPACE )
+	#define SO_5_INLINE_NS
+#else
+	#define SO_5_INLINE_NS inline
+#endif	
 

@@ -38,11 +38,11 @@ If you already have Mxx_ru installed please update to at least version 1.6.11:
 
 SObjectizer can be obtained from Subversion repository on SourceForge:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.23 so-5.5.23
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.24 so-5.5.24
 
 To build SObjectizer:
 
-  cd so-5.5.23/dev
+  cd so-5.5.24/dev
   ruby build.rb
 
 Static and shared library for SObjectizer will be built. Libraries will be
@@ -50,34 +50,34 @@ placed into target/release subdirectory.
 
 If you want to build just shared library:
 
-  cd so-5.5.23/dev
+  cd so-5.5.24/dev
   ruby so_5/prj.rb
 
 Or if you want to build just static library:
 
-  cd so-5.5.23/dev
+  cd so-5.5.24/dev
   ruby so_5/prj_s.rb
 
 To build SObjectizer with all tests and samples:
 
-  cd so-5.5.23/dev
+  cd so-5.5.24/dev
   ruby build_all.rb
 
 Please note that under FreeBSD it could be necessary to define LD_LIBRARY_PATH
 environment variable. And the actual build command sequence under FreeBSD could
 be as follows:
 
-  cd so-5.5.23/dev
+  cd so-5.5.24/dev
   export LD_LIBRARY_PATH=target/release
   ruby build_all.rb
 
 To build html-format documentation for SObjectizer the Doxygen tool is
 necessary. If it is installed then:
 
-  cd so-5.5.23/doxygen
+  cd so-5.5.24/doxygen
   doxygen
 
-Generated html-files will be located in so-5.5.23/dev/doc/html.
+Generated html-files will be located in so-5.5.24/dev/doc/html.
 
 NOTE. If you do not specify MXX_RU_CPP_TOOLSET by youself then Mxx_ru will
 try to detect your C++ toolset automatically. If you want to use C++ compiler
@@ -106,8 +106,8 @@ dev/cmake/CmakeQuickHowto.txt
 
 To get and build SObjectizer under Linux/FreeBSD in command line run:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.23 so-5.5.23
-  cd so-5.5.23
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.24 so-5.5.24
+  cd so-5.5.24
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release ../dev
@@ -138,7 +138,7 @@ turned OFF then BUILD_ALL/BUILD_EXAMPLES/BUILD_TESTS all must be turned OFF.
 
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
-  cd so-5.5.23
+  cd so-5.5.24
   mkdir cmake_build
   cd cmake_build
   cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 14 2015" ../dev
@@ -149,7 +149,7 @@ If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
   cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
 
-Since v.5.5.23 SObjectizer provides sobjectizer-config.cmake files.
+Since v.5.5.24 SObjectizer provides sobjectizer-config.cmake files.
 These files are automatically installed into <target>/lib/cmake/sobjectizer
 subfolder. It allows to use SObjectizer via CMake's find_package command.
 
@@ -165,8 +165,8 @@ You need Android SDK and Android NDK installed in your system. As well as an
 appropriate version of CMake. You have also need properly set environment
 variables ANDROID_HOME, ANDROID_NDK. Then you can issue the following commands:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.23 so-5.5.23
-  cd so-5.5.23
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.24 so-5.5.24
+  cd so-5.5.24
   mkdir cmake_build
   cd cmake_build
   cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release \
@@ -186,8 +186,8 @@ Building with CrystaX NDK
 You need CrystaX NDK v.10.4.0 or higher already installed in your system. CMake
 is used for building SObjectizer:
 
-  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.23 so-5.5.23
-  cd so-5.5.23
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.24 so-5.5.24
+  cd so-5.5.24
   mkdir cmake_build
   cd cmake_build
   export NDK=/path/to/the/crystax-ndk
@@ -228,7 +228,7 @@ Add the corresponding remote to your conan:
 Add SObjectizer to `conanfile.txt` of your project:
 
     [requires]
-    sobjectizer/5.5.23@stiffstream/testing
+    sobjectizer/5.5.24@stiffstream/testing
 
 It also may be necessary to specify `shared` option for SObjectizer. For example, for build SObjectizer as a static library:
 

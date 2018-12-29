@@ -92,8 +92,8 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 
 } /* namespace anonymous */
 
-SO_5_FUNC
 SO_5_NODISCARD
+SO_5_FUNC
 optional< payload_info_t >
 extract_payload_for_message_transformation(
 	const message_ref_t & envelope_to_process )
@@ -103,8 +103,8 @@ extract_payload_for_message_transformation(
 				}.try_get_payload( envelope_to_process );
 	}
 	
-SO_5_FUNC
 SO_5_NODISCARD
+SO_5_FUNC
 optional< message_ref_t >
 message_to_be_inspected(
 	const message_ref_t & msg_or_envelope )

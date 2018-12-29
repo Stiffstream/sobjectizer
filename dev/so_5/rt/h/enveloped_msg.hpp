@@ -228,8 +228,8 @@ class SO_5_TYPE envelope_t : public message_t
  * \since
  * v.5.5.23
  */
-SO_5_FUNC
 SO_5_NODISCARD
+SO_5_FUNC
 optional< payload_info_t >
 extract_payload_for_message_transformation(
 	//! Envelope with message inside.
@@ -253,8 +253,8 @@ extract_payload_for_message_transformation(
  * \since
  * v.5.5.23
  */
-SO_5_FUNC
 SO_5_NODISCARD
+SO_5_FUNC
 optional< message_ref_t >
 message_to_be_inspected(
 	const message_ref_t & msg_or_envelope );

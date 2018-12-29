@@ -42,6 +42,7 @@ environment_params_t::environment_params_t()
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_infrastructure_factory( env_infrastructures::default_mt::factory() )
+	,	m_event_queue_hook( make_empty_event_queue_hook_unique_ptr() )
 {
 }
 
@@ -62,6 +63,7 @@ environment_params_t::environment_params_t(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
 	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
+	,	m_event_queue_hook( std::move(other.m_event_queue_hook) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -99,6 +101,8 @@ environment_params_t::swap( environment_params_t & other )
 	std::swap( m_queue_locks_defaults_manager, other.m_queue_locks_defaults_manager );
 
 	std::swap( m_infrastructure_factory, other.m_infrastructure_factory );
+
+	std::swap( m_event_queue_hook, other.m_event_queue_hook );
 }
 
 environment_params_t &
@@ -190,6 +194,59 @@ ensure_locks_defaults_manager_exists(
 
 		if( !result )
 			result = make_defaults_manager_for_combined_locks();
+
+		return result;
+	}
+
+//
+// default_event_queue_hook_t
+//
+/*!
+ * \brief Default implementation of event_queue_hook.
+ *
+ * Do nothing.
+ *
+ * \since
+ * v.5.5.24
+ */
+class default_event_queue_hook_t final : public event_queue_hook_t
+	{
+	public :
+		SO_5_NODISCARD
+		event_queue_t *
+		on_bind(
+			agent_t * /*agent*/,
+			event_queue_t * original_queue ) SO_5_NOEXCEPT override
+			{
+				return original_queue;
+			}
+
+		void
+		on_unbind(
+			agent_t * /*agent*/,
+			event_queue_t * /*queue*/ ) SO_5_NOEXCEPT override
+			{
+			}
+	};
+
+/*!
+ * \brief Helper function for creation of appropriate event_queue_hook
+ * object if necessary.
+ *
+ * \since
+ * v.5.5.24
+ */
+SO_5_NODISCARD
+event_queue_hook_unique_ptr_t
+ensure_event_queue_hook_exists(
+	//! The current value. Note: can be nullptr.
+	event_queue_hook_unique_ptr_t current )
+	{
+		event_queue_hook_unique_ptr_t result( std::move(current) );
+
+		if( !result )
+			result = make_event_queue_hook< default_event_queue_hook_t >(
+					&event_queue_hook_t::default_deleter );
 
 		return result;
 	}
@@ -313,6 +370,18 @@ struct environment_t::internals_t
 	 */
 	queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
 
+	/*!
+	 * \brief Actual event_queue_hook.
+	 *
+	 * \note
+	 * If there is no event_queue_hook in environment_params_t then
+	 * an instance of default_event_queue_hook_t will be created and used.
+	 *
+	 * \since
+	 * v.5.5.24
+	 */
+	event_queue_hook_unique_ptr_t m_event_queue_hook;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -349,6 +418,9 @@ struct environment_t::internals_t
 		,	m_queue_locks_defaults_manager(
 				ensure_locks_defaults_manager_exists(
 					params.so5__giveout_queue_locks_defaults_manager() ) )
+		,	m_event_queue_hook(
+				ensure_event_queue_hook_exists(
+					params.so5__giveout_event_queue_hook() ) )
 	{}
 };
 
@@ -851,6 +923,23 @@ internal_env_iface_t::default_mpmc_queue_lock_factory() const
 {
 	return m_env.m_impl->m_queue_locks_defaults_manager->
 			mpmc_queue_lock_factory();
+}
+
+SO_5_NODISCARD
+event_queue_t *
+internal_env_iface_t::event_queue_on_bind(
+	agent_t * agent,
+	event_queue_t * original_queue ) SO_5_NOEXCEPT
+{
+	return m_env.m_impl->m_event_queue_hook->on_bind( agent, original_queue );
+}
+
+void
+internal_env_iface_t::event_queue_on_unbind(
+	agent_t * agent,
+	event_queue_t * queue ) SO_5_NOEXCEPT
+{
+	m_env.m_impl->m_event_queue_hook->on_unbind( agent, queue );
 }
 
 } /* namespace impl */

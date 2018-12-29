@@ -126,6 +126,33 @@ namespace so_5 {
 		... // Some user code.
 	}
  * \endcode
+ *
+ * \attention
+ * Please note that if an init function is passed to the constructor
+ * of wrapped_env_t objects then it is possible that this init function
+ * will work longer than lifetime of wrapped_env_t object. For example:
+ * \code
+ * int some_func() {
+ * 	so_5::wrapped_env_t env{
+ * 		[](so_5::environment_t & env) { ... } // Some long-running code inside.
+ * 	};
+ * 	... // Some very fast actions.
+ * 	return 42; // It is possible that init-function is not finished yet.
+ * }
+ * \endcode
+ * This can lead to some nasty surprises. For example:
+ * \code
+ * so_5::wrapped_env_t env{
+ * 	[](so_5::environment & env) {
+ * 		env.introduce_coop(...); // Creation of one coop.
+ * 		env.introduce_coop(...); // Creation of another coop.
+ * 		...
+ * 		env.introduce_coop(...); // Creation of yet another coop.
+ * 	}
+ * };
+ * ... // Some very fact actions.
+ * env.stop(); // Several coops could not be registered yet.
+ * \endcode
  */
 class SO_5_TYPE wrapped_env_t
 	{
