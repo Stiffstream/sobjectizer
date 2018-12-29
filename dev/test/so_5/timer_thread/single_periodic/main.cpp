@@ -46,8 +46,8 @@ class test_agent_t
 			// Schedule periodic message.
 			m_timer_ref = so_environment().schedule_timer< test_message >(
 				m_test_mbox,
-				150,
-				100 );
+				300,
+				200 );
 		}
 
 		void
@@ -92,7 +92,7 @@ test_agent_t::evt_test(
 		m_timer_ref = 
 			so_environment().schedule_timer< stop_message >(
 				m_test_mbox,
-				400,
+				800,
 				0 );
 	}
 }
