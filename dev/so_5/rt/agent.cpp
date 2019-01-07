@@ -899,7 +899,7 @@ agent_t::shutdown_agent() SO_5_NOEXCEPT
 		// Since v.5.5.24 we should utilize event_queue via
 		// event_queue_hook.
 		impl::internal_env_iface_t{ m_env }
-				.event_queue_on_unbind( this, m_event_queue );
+				.event_queue_on_unbind( this, actual_queue );
 }
 
 void

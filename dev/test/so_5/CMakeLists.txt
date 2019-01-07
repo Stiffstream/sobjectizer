@@ -66,6 +66,8 @@ add_subdirectory(internal_stats)
 
 add_subdirectory(env_infrastructure)
 
+add_subdirectory(event_queue_hook)
+
 add_subdirectory(testing)
 
 add_subdirectory(bench/ping_pong)

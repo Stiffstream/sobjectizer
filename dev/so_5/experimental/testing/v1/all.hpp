@@ -520,7 +520,9 @@ class SO_5_TYPE abstract_scenario_step_t
 		// Note. These are required by Clang compiler.
 		abstract_scenario_step_t() = default;
 		abstract_scenario_step_t( const abstract_scenario_step_t & ) = delete;
+		abstract_scenario_step_t & operator=( const abstract_scenario_step_t & ) = delete;
 		abstract_scenario_step_t( abstract_scenario_step_t && ) = delete;
+		abstract_scenario_step_t & operator=( abstract_scenario_step_t && ) = delete;
 
 		virtual ~abstract_scenario_step_t() = default;
 

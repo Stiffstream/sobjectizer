@@ -50,9 +50,19 @@ class test_event_queue_t final : public so_5::event_queue_t
 	so_5::event_queue_t * m_actual;
 
 public :
+	static std::atomic< std::size_t > m_instances_created;
+	static std::atomic< std::size_t > m_instances_destroyed;
+
 	test_event_queue_t( so_5::event_queue_t * actual )
 		:	m_actual( actual )
-	{}
+	{
+		++m_instances_created;
+	}
+
+	~test_event_queue_t() override
+	{
+		++m_instances_destroyed;
+	}
 
 	void
 	push( so_5::execution_demand_t demand ) override
@@ -60,6 +70,9 @@ public :
 		m_actual->push( std::move(demand) );
 	}
 };
+
+std::atomic< std::size_t > test_event_queue_t::m_instances_created( 0u );
+std::atomic< std::size_t > test_event_queue_t::m_instances_destroyed( 0u );
 
 class test_event_queue_hook_t final : public so_5::event_queue_hook_t
 {
@@ -105,7 +118,7 @@ public :
 void
 do_test()
 {
-	const std::size_t test_agents = 137;
+	std::size_t test_agents = 137;
 
 	test_event_queue_hook_t hook;
 
@@ -130,6 +143,11 @@ do_test()
 	// There is an additional agent created by SObjectizer itself.
 	ensure_equal( "created", test_agents + 1, hook.created() );
 	ensure_equal( "destroyed", test_agents + 1, hook.destroyed() );
+
+	ensure_equal( "instances_created", test_agents + 1,
+			test_event_queue_t::m_instances_created.load() );
+	ensure_equal( "instances_destroyed", test_agents + 1,
+			test_event_queue_t::m_instances_destroyed.load() );
 }
 
 int main()

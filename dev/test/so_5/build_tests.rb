@@ -56,6 +56,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/env_infrastructure/build_tests.rb" 
 
+	required_prj "#{path}/event_queue_hook/build_tests.rb" 
+
 	required_prj "#{path}/testing/build_tests.rb" 
 
 	required_prj "#{path}/bench/build_benchmarks.rb" 
