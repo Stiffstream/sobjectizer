@@ -5,8 +5,9 @@
 \section so_5__5_24 5.5.24 "El Misti"
 
 	Mechanism of so_5::event_queue_hook_t added.
+	See \ref so_5_5_24__event_queue_hook for more details.
 
-	The first experimental support for unit-testing of agents added.
+	The first version of experimental support for unit-testing of agents added.
 
 \section so_5__5_23 5.5.23 "Volcan Cayambe"
 
