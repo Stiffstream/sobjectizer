@@ -105,6 +105,13 @@ if(SOBJECTIZER_BUILD_SHARED)
 	add_library(sobjectizer::SharedLib ALIAS ${SO_5_SHARED_LIB})
 	set_property(TARGET ${SO_5_SHARED_LIB} PROPERTY EXPORT_NAME SharedLib)
 	setup_target_cxx_std(${SO_5_SHARED_LIB})
+
+	if(NOT WIN32)
+		target_compile_options(${SO_5_SHARED_LIB}
+			PRIVATE -fvisibility=hidden -fvisibility-inlines-hidden
+		)
+	endif()
+
 	target_compile_definitions(${SO_5_SHARED_LIB}
 		PRIVATE ${SO_5_DEFS}
 	)

@@ -22,6 +22,11 @@
 
 #endif /* __MINGW32__ */
 
+#if !defined( _WIN32 )
+#define SO_5_EXPORT __attribute__ ((visibility ("default")))
+#define SO_5_IMPORT __attribute__ ((visibility ("default")))
+#endif
+
 // For the cases when export/import not needed.
 #if !defined( SO_5_EXPORT )
 	#define SO_5_EXPORT

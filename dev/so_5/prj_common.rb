@@ -16,6 +16,11 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 			target 'so.' + So5::VERSION
 
+			if ('gcc' == toolset.name || 'clang' == toolset.name) &&
+					'mswin' != toolset.tag( 'target_os' )
+				compiler_option '-fvisibility=hidden'
+				compiler_option '-fvisibility-inlines-hidden'
+			end
 		}
 
 		init_lib_block Proc.new {
