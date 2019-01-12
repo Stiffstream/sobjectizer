@@ -40,7 +40,7 @@ namespace messages
  * \tparam T type for representing quantity.
  */
 template< typename T >
-struct quantity : public message_t
+struct SO_5_TYPE quantity : public message_t
 	{
 		//! Prefix of data_source name.
 		prefix_t m_prefix;
@@ -70,7 +70,7 @@ struct quantity : public message_t
  * \note This message is empty now but it is not declared as a signal.
  * It is for a possibility of expansion of the message in the future.
  */
-struct distribution_started : public message_t {};
+struct SO_5_TYPE distribution_started : public message_t {};
 
 /*!
  * \brief Notification about finish of stats distribution.
@@ -81,7 +81,7 @@ struct distribution_started : public message_t {};
  * \note This message is empty now but it is not declared as a signal.
  * It is for a possibility of expansion of the message in the future.
  */
-struct distribution_finished : public message_t {};
+struct SO_5_TYPE distribution_finished : public message_t {};
 
 /*!
  * \brief Information about one work thread activity.
@@ -89,7 +89,7 @@ struct distribution_finished : public message_t {};
  * \since
  * v.5.5.18
  */
-struct work_thread_activity : public message_t
+struct SO_5_TYPE work_thread_activity : public message_t
 	{
 		//! Prefix of data_source name.
 		prefix_t m_prefix;
