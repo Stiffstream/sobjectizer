@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_24_1 5.5.24.1 "El Misti"
+
+	Flags -fvisibitity=hidden and -fvisibility-inlines-hidden are now
+	used for Unix builds (Linux, FreeBSD, MacOS). This reduces count of
+	public symbols in SObjectizer's .so library.
+
 \section so_5__5_24 5.5.24 "El Misti"
 
 	Mechanism of so_5::event_queue_hook_t added.
