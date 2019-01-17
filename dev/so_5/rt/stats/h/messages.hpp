@@ -19,6 +19,11 @@
 #include <so_5/rt/stats/h/prefix.hpp>
 #include <so_5/rt/stats/h/work_thread_activity.hpp>
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
 namespace so_5
 {
 
@@ -141,4 +146,8 @@ using quantity = so_5::stats::messages::quantity< T >;
 } /* namespace rt */
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
