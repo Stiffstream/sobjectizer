@@ -1,10 +1,346 @@
-SObjectizer is an in-process message dispatching framework with implementation
-of Actor Model, Publish-Subscribe Model and CSP-like channels.
+What is SObjectizer?
+====================
+
+SObjectizer is one of a few cross-platform and OpenSource "actor frameworks"
+for C++.  But SObjectizer supports not only Actor Model, but also
+Publish-Subscribe Model and CSP-like channels. The goal of SObjectizer is
+significant simplification of development of concurrent and multithreaded
+applications in C++.
 
 SObjectizer allows the creation of a concurrent app as a set of agent-objects
 which interact with each other through asynchronous messages. It handles
 message dispatching and provides a working context for message processing. And
 allows to tune those things by supplying various ready-to-use dispatchers.
+
+What distinguishes SObjectizer?
+===============================
+
+Maturity. SObjectizer is based on ideas that have been put forward in
+1995-2000. And SObjectizer itself is being developed since 2002. SObjectizer-5
+is continuously evolved since 2010.
+
+Stability. From the very beginning SObjectizer was used for business-critical
+applications, and some of them are still being used in production. Breaking
+changes in SObjectizer are rare and we approach to them very carefully.
+
+Cross-platform. SObjectizer runs on Windows, Linux, FreeBSD, macOS and Android.
+
+Easy-to-use. SObjectizer provides easy to understand and easy to use API with a
+lot of examples in the SObjectizer's distributive and a plenty of information
+in the project's Wiki.
+
+Free. SObjectizer is distributed under BSD-3-CLAUSE license, so it can be used
+in development of proprietary commercial software for free.
+
+Show me the code!
+=================
+
+HelloWorld example
+------------------
+
+This is a classical example "Hello, World" expressed by using SObjectizer's
+agents:
+
+	#include <so_5/all.hpp>
+
+	class hello_actor final : public so_5::agent_t {
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override {
+			std::cout << "Hello, World!" << std::endl;
+			// Finish work of example.
+			so_deregister_agent_coop_normally();
+		}
+	};
+
+	int main() {
+		// Launch SObjectizer.
+		so_5::launch([](so_5::environment_t & env) {
+				// Add a hello_actor instance in a new cooperation.
+				env.introduce_coop([](so_5::coop_t & coop) {
+						coop.make_agent<hello_actor>();
+					});
+			});
+
+		return 0;
+	}
+
+Ping-Pong example
+-----------------
+
+Let's look at more interesting example with two agents and message exchange
+between them. It is another famous example for actor frameworks, "Ping-Pong":
+
+	#include <so_5/all.hpp>
+
+	struct ping {
+		int counter_;
+	};
+
+	struct pong {
+		int counter_;
+	};
+
+	class pinger final : public so_5::agent_t {
+		so_5::mbox_t ponger_;
+
+		void on_pong(mhood_t<pong> cmd) {
+			if(cmd->counter_ > 0)
+				so_5::send<ping>(ponger_, cmd->counter_ - 1);
+			else
+				so_deregister_agent_coop_normally();
+		}
+
+	public:
+		pinger(context_t ctx) : so_5::agent_t{std::move(ctx)} {}
+
+		void set_ponger(const so_5::mbox_t mbox) { ponger_ = mbox; }
+
+		void so_define_agent() override {
+			so_subscribe_self().event( &pinger::on_pong );
+		}
+
+		void so_evt_start() override {
+			so_5::send<ping>(ponger_, 1000);
+		}
+	};
+
+	class ponger final : public so_5::agent_t {
+		const so_5::mbox_t pinger_;
+		int pings_received_{};
+
+	public:
+		ponger(context_t ctx, so_5::mbox_t pinger)
+			:	so_5::agent_t{std::move(ctx)}
+			,	pinger_{std::move(pinger)}
+		{}
+
+		void so_define_agent() override {
+			so_subscribe_self().event(
+				[this](mhood_t<ping> cmd) {
+					++pings_received_;
+					so_5::send<pong>(pinger_, cmd->counter_);
+				});
+		}
+
+		void so_evt_finish() override {
+			std::cout << "pings received: " << pings_received_ << std::endl;
+		}
+	};
+
+	int main() {
+		so_5::launch([](so_5::environment_t & env) {
+				env.introduce_coop([](so_5::coop_t & coop) {
+						auto pinger_actor = coop.make_agent<pinger>();
+						auto ponger_actor = coop.make_agent<ponger>(
+								pinger_actor->so_direct_mbox());
+
+						pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+					});
+			});
+
+		return 0;
+	}
+
+All agents in the code above are working on the same work thread. How to bind
+them to different work threads?
+
+It is very simple. Just use an appropriate dispatcher:
+
+	int main() {
+		so_5::launch([](so_5::environment_t & env) {
+				env.introduce_coop(
+					so_5::disp::active_obj::create_private_disp(env)->binder(),
+					[](so_5::coop_t & coop) {
+						auto pinger_actor = coop.make_agent<pinger>();
+						auto ponger_actor = coop.make_agent<ponger>(
+								pinger_actor->so_direct_mbox());
+
+						pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+					});
+			});
+
+		return 0;
+	}
+
+Pub/Sub example
+---------------
+
+SObjectizer supports Pub/Sub model via multi-producer/multi-consumer message
+boxes. A message sent to that message box will be received by all subscribers
+of that message type:
+
+	#include <so_5/all.hpp>
+
+	using namespace std::literals;
+
+	struct acquired_value {
+		std::chrono::steady_clock::time_point acquired_at_;
+		int value_;
+	};
+
+	class producer final : public so_5::agent_t {
+		const so_5::mbox_t board_;
+		so_5::timer_id_t timer_;
+		int counter_{};
+
+		struct acquisition_time final : public so_5::signal_t {};
+
+		void on_timer(mhood_t<acquisition_time>) {
+			// Publish the next value for all consumers.
+			so_5::send<acquired_value>(
+					board_, std::chrono::steady_clock::now(), ++counter_);
+		}
+
+	public:
+		producer(context_t ctx, so_5::mbox_t board)
+			:	so_5::agent_t{std::move(ctx)}
+			,	board_{std::move(board)}
+		{}
+
+		void so_define_agent() override {
+			so_subscribe_self().event(&producer::on_timer);
+		}
+
+		void so_evt_start() override {
+			// Agent will periodically recive acquisition_time signal
+			// without initial delay and with period of 750ms.
+			timer_ = so_5::send_periodic<acquisition_time>(*this, 0ms, 750ms);
+		}
+	};
+
+	class consumer final : public so_5::agent_t {
+		const so_5::mbox_t board_;
+		const std::string name_;
+
+		void on_value(mhood_t<acquired_value> cmd) {
+			std::cout << name_ << ": " << cmd->value_ << std::endl;
+		}
+
+	public:
+		consumer(context_t ctx, so_5::mbox_t board, std::string name)
+			:	so_5::agent_t{std::move(ctx)}
+			,	board_{std::move(board)}
+			,	name_{std::move(name)}
+		{}
+
+		void so_define_agent() override {
+			so_subscribe(board_).event(&consumer::on_value);
+		}
+	};
+
+	int main() {
+		so_5::launch([](so_5::environment_t & env) {
+				auto board = env.create_mbox();
+				env.introduce_coop([board](so_5::coop_t & coop) {
+						coop.make_agent<producer>(board);
+						coop.make_agent<consumer>(board, "first"s);
+						coop.make_agent<consumer>(board, "second"s);
+					});
+
+				std::this_thread::sleep_for(std::chrono::seconds(4));
+				env.stop();
+			});
+
+		return 0;
+	}
+
+BlinkingLed example
+-------------------
+
+All agents in SObjectizer are finite-state machines. Almost all functionality
+of hierarchical finite-states machines (HSM) are supported: child states and
+handlers inheritance, on_enter/on_exit handlers, state timeouts, deep- and
+shallow state history, except orthogonal states.
+
+This is a very simple example that demonstrates an agent that is HSM: 
+
+	#include <so_5/all.hpp>
+
+	using namespace std::literals;
+
+	class blinking_led final : public so_5::agent_t {
+		state_t off{ this }, blinking{ this },
+			blink_on{ initial_substate_of{ blinking } },
+			blink_off{ substate_of{ blinking } };
+
+	public :
+		struct turn_on_off : public so_5::signal_t {};
+
+		blinking_led(context_t ctx) : so_5::agent_t{std::move(ctx)} {
+			this >>= off;
+
+			off.just_switch_to<turn_on_off>(blinking);
+
+			blinking.just_switch_to<turn_on_off>(off);
+
+			blink_on
+				.on_enter([]{ std::cout << "ON" << std::endl; })
+				.on_exit([]{ std::cout << "off" << std::endl; })
+				.time_limit(1250ms, blink_off);
+
+			blink_off
+				.time_limit(750ms, blink_on);
+		}
+	};
+
+	int main()
+	{
+		so_5::launch([](so_5::environment_t & env) {
+			so_5::mbox_t m;
+			env.introduce_coop([&](so_5::coop_t & coop) {
+					auto led = coop.make_agent< blinking_led >();
+					m = led->so_direct_mbox();
+				});
+
+			const auto pause = [](auto duration) {
+				std::this_thread::sleep_for(duration);
+			};
+
+			std::cout << "Turn blinking on for 10s" << std::endl;
+			so_5::send<blinking_led::turn_on_off>(m);
+			pause(10s);
+
+			std::cout << "Turn blinking off for 5s" << std::endl;
+			so_5::send<blinking_led::turn_on_off>(m);
+			pause(5s);
+
+			std::cout << "Turn blinking on for 5s" << std::endl;
+			so_5::send<blinking_led::turn_on_off>(m);
+			pause(5s);
+
+			std::cout << "Stopping..." << std::endl;
+			env.stop();
+		} );
+
+		return 0;
+	}
+
+CSP-like Ping-Pong example
+--------------------------
+
+SObjectizer allows to write concurrent applications even without agents inside.
+Only plain threads and CSP-like channels can be used.
+
+This is plain-thread implementation of Ping-Pong example (please note that
+main() is not exception-safe):
+
+FIXME: "BlinkingLed" example should be shown here!
+
+Want to know more?
+------------------
+
+More information about SObjectizer can be found in the corresponding section of
+the project's Wiki: https://sourceforge.net/p/sobjectizer/wiki/Basics/
+
+Limitations
+===========
+
+SObjectizer is an in-process message dispatching framework. It doesn't support
+distributed applications just out of box. But external tools and libraries can
+be used in that case. Please take a look at our mosquitto_transport experiment:
+https://bitbucket.org/sobjectizerteam/mosquitto_transport-0.6
 
 Obtaining and building
 ======================
