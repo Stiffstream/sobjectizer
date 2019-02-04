@@ -326,7 +326,59 @@ Only plain threads and CSP-like channels can be used.
 This is plain-thread implementation of Ping-Pong example (please note that
 main() is not exception-safe):
 
-FIXME: "BlinkingLed" example should be shown here!
+	#include <so_5/all.hpp>
+
+	struct ping {
+		int counter_;
+	};
+
+	struct pong {
+		int counter_;
+	};
+
+	void pinger_proc(so_5::mchain_t self_ch, so_5::mchain_t ping_ch) {
+		so_5::send<ping>(ping_ch, 1000);
+
+		// Read all message until channel will be closed.
+		so_5::receive( so_5::from(self_ch),
+			[&](so_5::mhood_t<pong> cmd) {
+				if(cmd->counter_ > 0)
+					so_5::send<ping>(ping_ch, cmd->counter_ - 1);
+				else {
+					// Channels have to be closed to break `receive` calls.
+					so_5::close_drop_content(self_ch);
+					so_5::close_drop_content(ping_ch);
+				}
+			});
+	}
+
+	void ponger_proc(so_5::mchain_t self_ch, so_5::mchain_t pong_ch) {
+		int pings_received{};
+
+		// Read all message until channel will be closed.
+		so_5::receive( so_5::from(self_ch),
+			[&](so_5::mhood_t<ping> cmd) {
+				++pings_received;
+				so_5::send<pong>(pong_ch, cmd->counter_);
+			});
+
+		std::cout << "pings received: " << pings_received << std::endl;
+	}
+
+	int main() {
+		so_5::wrapped_env_t sobj;
+
+		auto pinger_ch = so_5::create_mchain(sobj);
+		auto ponger_ch = so_5::create_mchain(sobj);
+
+		std::thread pinger{pinger_proc, pinger_ch, ponger_ch};
+		std::thread ponger{ponger_proc, ponger_ch, pinger_ch};
+
+		ponger.join();
+		pinger.join();
+
+		return 0;
+	}
 
 Want to know more?
 ------------------
