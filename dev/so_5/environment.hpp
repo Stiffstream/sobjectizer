@@ -46,7 +46,7 @@
 
 #include <so_5/environment_infrastructure.hpp>
 
-#include <so_5/disp/one_thread/h/params.hpp>
+#include <so_5/disp/one_thread/params.hpp>
 
 
 #if defined( SO_5_MSVC )

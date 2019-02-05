@@ -20,7 +20,7 @@
 #include <so_5/stats/messages.hpp>
 #include <so_5/stats/std_names.hpp>
 
-#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
 namespace so_5 {
 

@@ -10,17 +10,17 @@
  * \brief Public interface of thread pool dispatcher.
  */
 
-#include <so_5/disp/thread_pool/h/pub.hpp>
+#include <so_5/disp/thread_pool/pub.hpp>
 
-#include <so_5/disp/thread_pool/impl/h/disp.hpp>
+#include <so_5/disp/thread_pool/impl/disp.hpp>
 
 #include <so_5/ret_code.hpp>
 
 #include <so_5/disp_binder.hpp>
 #include <so_5/environment.hpp>
 
-#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
-#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
+#include <so_5/disp/reuse/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
 
 #include <so_5/stdcpp.hpp>
 

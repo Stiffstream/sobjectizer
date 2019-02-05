@@ -11,14 +11,14 @@
  * v.5.5.8
  */
 
-#include <so_5/disp/prio_one_thread/strictly_ordered/h/pub.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>
 
-#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/demand_queue.hpp>
-#include <so_5/disp/prio_one_thread/reuse/h/work_thread.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/impl/demand_queue.hpp>
+#include <so_5/disp/prio_one_thread/reuse/work_thread.hpp>
 
-#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
-#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
-#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
+#include <so_5/disp/reuse/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
 
 #include <so_5/stats/repository.hpp>
 #include <so_5/stats/messages.hpp>

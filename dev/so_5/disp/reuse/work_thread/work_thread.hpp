@@ -22,7 +22,7 @@
 
 #include <so_5/event_queue.hpp>
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
 #include <so_5/stats/work_thread_activity.hpp>
 #include <so_5/stats/impl/activity_tracking.hpp>

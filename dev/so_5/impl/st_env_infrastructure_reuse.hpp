@@ -18,7 +18,7 @@
 #include <so_5/impl/coop_repository_basis.hpp>
 #include <so_5/impl/mbox_iface_for_timers.hpp>
 
-#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 #include <so_5/stats/impl/st_env_stuff.hpp>

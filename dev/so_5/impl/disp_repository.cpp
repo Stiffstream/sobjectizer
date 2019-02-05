@@ -6,7 +6,7 @@
 
 #include <so_5/ret_code.hpp>
 
-#include <so_5/disp/one_thread/h/pub.hpp>
+#include <so_5/disp/one_thread/pub.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
 

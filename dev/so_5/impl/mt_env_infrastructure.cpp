@@ -17,7 +17,7 @@
 #include <so_5/environment.hpp>
 #include <so_5/send_functions.hpp>
 
-#include <so_5/disp/one_thread/h/pub.hpp>
+#include <so_5/disp/one_thread/pub.hpp>
 
 #include <so_5/stdcpp.hpp>
 

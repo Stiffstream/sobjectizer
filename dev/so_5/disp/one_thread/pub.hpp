@@ -17,7 +17,7 @@
 #include <so_5/disp_binder.hpp>
 #include <so_5/nonempty_name.hpp>
 
-#include <so_5/disp/one_thread/h/params.hpp>
+#include <so_5/disp/one_thread/params.hpp>
 
 namespace so_5
 {

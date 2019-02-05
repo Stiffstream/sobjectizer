@@ -4,8 +4,7 @@
 
 /*!
  * \file
- * \brief An implementation of advanced thread pool dispatcher.
- *
+ * \brief An implementation of thread pool dispatcher.
  * \since
  * v.5.4.0
  */
@@ -18,31 +17,16 @@
 #include <memory>
 #include <map>
 #include <iostream>
-#include <forward_list>
-
-#include <so_5/spinlocks.hpp>
-#include <so_5/atomic_refcounted.hpp>
+#include <atomic>
 
 #include <so_5/event_queue.hpp>
 #include <so_5/disp.hpp>
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
-#include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 
-#include <so_5/disp/thread_pool/impl/h/common_implementation.hpp>
-
-#if 0
-	#define SO_5_CHECK_INVARIANT_IMPL(what, data, file, line) \
-	if( !(what) ) { \
-		std::cerr << file << ":" << line << ": FAILED INVARIANT: " << #what << "; data: " << data << std::endl; \
-		std::abort(); \
-	}
-	#define SO_5_CHECK_INVARIANT(what, data) SO_5_CHECK_INVARIANT_IMPL(what, data, __FILE__, __LINE__)
-#else
-	#define SO_5_CHECK_INVARIANT(what, data)
-#endif
-
+#include <so_5/disp/thread_pool/impl/common_implementation.hpp>
 
 namespace so_5
 {
@@ -50,7 +34,7 @@ namespace so_5
 namespace disp
 {
 
-namespace adv_thread_pool
+namespace thread_pool
 {
 
 namespace impl
@@ -59,9 +43,6 @@ namespace impl
 using spinlock_t = so_5::default_spinlock_t;
 
 class agent_queue_t;
-
-namespace stats = so_5::stats;
-namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
 // dispatcher_queue_t
@@ -73,7 +54,6 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 //
 /*!
  * \brief Event queue for the agent (or cooperation).
- *
  * \since
  * v.5.4.0
  */
@@ -85,11 +65,8 @@ class agent_queue_t
 
 	private :
 		//! Actual demand in event queue.
-		struct demand_t
+		struct demand_t : public execution_demand_t
 			{
-				//! Actual demand.
-				execution_demand_t m_demand;
-
 				//! Next item in queue.
 				demand_t * m_next;
 
@@ -97,167 +74,161 @@ class agent_queue_t
 					:	m_next( nullptr )
 					{}
 				demand_t( execution_demand_t && original )
-					:	m_demand( std::move( original ) )
+					:	execution_demand_t( std::move( original ) )
 					,	m_next( nullptr )
 					{}
 			};
 
 	public :
-		static const unsigned int thread_safe_worker = 2;
-		static const unsigned int not_thread_safe_worker = 1;
-
 		//! Constructor.
 		agent_queue_t(
 			//! Dispatcher queue to work with.
 			dispatcher_queue_t & disp_queue,
-			//! Dummy argument. It is necessary here because of
-			//! common implementation for thread-pool and
-			//! adv-thread-pool dispatchers.
-			const params_t & )
+			//! Parameters for the queue.
+			const params_t & params )
 			:	m_disp_queue( disp_queue )
+			,	m_max_demands_at_once( params.query_max_demands_at_once() )
 			,	m_tail( &m_head )
-			,	m_active( false )
-			,	m_workers( 0 )
 			{}
 
 		~agent_queue_t()
 			{
 				while( m_head.m_next )
-					delete_head();
-			}
-
-		//! Access to the queue's lock.
-		spinlock_t &
-		lock()
-			{
-				return m_lock;
+					remove_head();
 			}
 
 		//! Push next demand to queue.
 		virtual void
 		push( execution_demand_t demand )
 			{
-				bool need_schedule = false;
-				{
-					// Do memory allocation before spinlock locking.
-					auto new_demand = new demand_t( std::move( demand ) );
+				std::unique_ptr< demand_t > tail_demand{
+						new demand_t( std::move( demand ) ) };
 
+				bool was_empty;
+
+				{
 					std::lock_guard< spinlock_t > lock( m_lock );
 
-					m_tail->m_next = new_demand;
+					was_empty = (nullptr == m_head.m_next);
+
+					m_tail->m_next = tail_demand.release();
 					m_tail = m_tail->m_next;
 
 					++m_size;
-
-					if( m_head.m_next == m_tail )
-						{
-							// Queue was empty. Need to detect
-							// necessity of queue activation.
-							if( !m_active )
-								if( !is_there_not_thread_safe_worker() )
-								{
-									need_schedule = true;
-									m_active = true;
-								}
-						}
-
-					SO_5_CHECK_INVARIANT( !empty(), this )
-					SO_5_CHECK_INVARIANT( m_active || is_there_any_worker(), this )
-					SO_5_CHECK_INVARIANT( !(need_schedule && !m_active), this )
 				}
 
-				if( need_schedule )
+				// Scheduling of the queue must be done when queue lock
+				// is unlocked.
+				if( was_empty )
 					m_disp_queue.schedule( this );
 			}
 
-		//! Get the information about the front demand.
+		//! Get the front demand from queue.
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
-		execution_demand_t
-		peek_front()
+		execution_demand_t &
+		front()
 			{
-				SO_5_CHECK_INVARIANT( !empty(), this )
-				SO_5_CHECK_INVARIANT( m_active, this )
-
-				m_active = false;
-
-				return m_head.m_next->m_demand;
+				return *(m_head.m_next);
 			}
+
+		/*!
+		 * \brief Queue emptyness indication.
+		 *
+		 * \since
+		 * v.5.5.15.1
+		 */
+		enum class emptyness_t
+			{
+				empty,
+				not_empty
+			};
+
+		/*!
+		 * \brief Indication of possibility of continuation of demands processing.
+		 *
+		 * \since
+		 * v.5.5.15.1
+		 */
+		enum class processing_continuation_t
+			{
+				//! Next demand can be processed.
+				enabled,
+				disabled
+			};
+
+		/*!
+		 * \brief A result of erasing of the front demand from queue.
+		 *
+		 * \since
+		 * v.5.5.15.1
+		 */
+		struct pop_result_t
+			{
+				//! Can demands processing be continued?
+				processing_continuation_t m_continuation;
+				//! Is event queue empty?
+				emptyness_t m_emptyness;
+			};
 
 		//! Remove the front demand.
 		/*!
-		 * \retval true queue must be activated.
-		 * \retval false queue must not be activated.
+		 * \note Return processing_continuation_t::disabled if
+		 * \a demands_processed exceeds m_max_demands_at_once or if
+		 * event queue is empty.
 		 */
-		bool
-		worker_started(
-			//! Type of worker.
-			//! Must be thread_safe_worker or not_thread_safe_worker.
-			unsigned int type_of_worker )
+		pop_result_t
+		pop(
+			//! Count of consequently processed demands from that queue.
+			std::size_t demands_processed )
 			{
-				SO_5_CHECK_INVARIANT( !empty(), this );
-				SO_5_CHECK_INVARIANT( !m_active, this );
+				// Actual deletion of old head must be performed
+				// when m_lock will be released.
+				std::unique_ptr< demand_t > old_head;
+				{
+					std::lock_guard< spinlock_t > lock( m_lock );
 
-				delete_head();
-				if( !m_head.m_next )
-					m_tail = &m_head;
+					old_head = remove_head();
 
-				m_workers += type_of_worker;
+					const auto emptyness = m_head.m_next ?
+							emptyness_t::not_empty : emptyness_t::empty;
 
-				// Queue must be activated only if queue is not empty
-				// and current worker is a thread safe worker.
-				m_active = ( !empty() &&
-						thread_safe_worker == type_of_worker );
+					if( emptyness_t::empty == emptyness )
+						m_tail = &m_head;
 
-				return m_active;
+					return pop_result_t{
+							detect_continuation( emptyness, demands_processed ),
+							emptyness };
+				}
 			}
 
-		//! Signal about finishing of worker of the specified type.
 		/*!
-		 * \retval true queue must be activated.
-		 * \retval false queue must not be activated.
+		 * \brief Wait while queue becomes empty.
+		 *
+		 * It is necessary because there is a possibility that
+		 * after processing of demand_handler_on_finish cooperation
+		 * will be destroyed and agents will be unbound from dispatcher
+		 * before the return from demand_handler_on_finish.
+		 *
+		 * Without waiting for queue emptyness it could lead to
+		 * dangling pointer to agent_queue in woring thread.
 		 */
-		bool
-		worker_finished(
-			//! Type of worker.
-			//! Must be thread_safe_worker or not_thread_safe_worker.
-			unsigned int type_of_worker )
+		void
+		wait_for_emptyness()
 			{
-				m_workers -= type_of_worker;
+				bool empty = false;
+				while( !empty )
+					{
+						{
+							std::lock_guard< spinlock_t > lock( m_lock );
+							empty = (nullptr == m_head.m_next);
+						}
 
-				bool old_active = m_active;
-				if( !m_active )
-					m_active = !empty();
-
-				SO_5_CHECK_INVARIANT( !(m_active && empty()), this )
-				SO_5_CHECK_INVARIANT(
-						!old_active || m_active, this );
-
-				return old_active != m_active;
+						if( !empty )
+							std::this_thread::yield();
+					}
 			}
-
-		//! Check the presence of any worker at the moment.
-		bool
-		is_there_any_worker() const
-			{
-				return 0 != m_workers;
-			}
-
-		//! Check the presence of thread unsafe worker.
-		bool
-		is_there_not_thread_safe_worker() const
-			{
-				return 0 != (m_workers & not_thread_safe_worker );
-			}
-
-		//! Is empty queue?
-		bool
-		empty() const { return nullptr == m_head.m_next; }
-
-		//! Is active queue?
-		bool
-		active() const { return m_active; }
 
 		/*!
 		 * \brief Get the current size of the queue.
@@ -276,6 +247,9 @@ class agent_queue_t
 		//! this queue.
 		dispatcher_queue_t & m_disp_queue;
 
+		//! Maximum count of demands to be processed consequently.
+		const std::size_t m_max_demands_at_once;
+
 		//! Object's lock.
 		spinlock_t m_lock;
 
@@ -291,48 +265,40 @@ class agent_queue_t
 		 */
 		demand_t * m_tail;
 
-		//! Is this queue activated?
-		/*!
-		 * Queue is activated if it is scheduled to dispatcher queue.
-		 */
-		bool m_active;
-
-		//! Count of active workers.
-		unsigned int m_workers;
-
 		/*!
 		 * \brief Current size of the queue.
-		 *
 		 * \since
 		 * v.5.5.4
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
 		//! Helper method for deleting queue's head object.
-		inline void
-		delete_head()
+		inline std::unique_ptr< demand_t >
+		remove_head()
 			{
-				auto to_be_deleted = m_head.m_next;
+				std::unique_ptr< demand_t > to_be_deleted{ m_head.m_next };
 				m_head.m_next = m_head.m_next->m_next;
 
 				--m_size;
 
-				delete to_be_deleted;
+				return to_be_deleted;
+			}
+
+		//! Can processing be continued?
+		inline processing_continuation_t
+		detect_continuation(
+			emptyness_t emptyness,
+			const std::size_t processed )
+			{
+				return emptyness_t::not_empty == emptyness &&
+						processed < m_max_demands_at_once ? 
+						processing_continuation_t::enabled :
+						processing_continuation_t::disabled;
 			}
 	};
 
-//
-// agent_queue_ref_t
-//
-/*!
- * \brief A typedef of smart pointer for agent_queue.
- *
- * \since
- * v.5.4.0
- */
-typedef so_5::intrusive_ptr_t< agent_queue_t > agent_queue_ref_t;
-
-namespace work_thread_details {
+namespace work_thread_details
+{
 
 /*!
  * \brief Main data for work_thread.
@@ -365,7 +331,6 @@ struct common_data_t
 
 /*!
  * \brief Part of implementation of work thread without activity tracing.
- *
  * \since
  * v.5.5.18
  */
@@ -398,7 +363,6 @@ class no_activity_tracking_impl_t : protected common_data_t
 
 /*!
  * \brief Part of implementation of work thread with activity tracing.
- *
  * \since
  * v.5.5.18
  */
@@ -469,9 +433,6 @@ class with_activity_tracking_impl_t : protected common_data_t
 //
 /*!
  * \brief Implementation of work_thread in form of template class.
- *
- * \tparam Impl no_activity_tracking_impl_t or with_activity_tracking_impl_t.
- *
  * \since
  * v.5.5.18
  */
@@ -522,11 +483,7 @@ class work_thread_template_t : public Impl
 				agent_queue_t * agent_queue;
 				while( nullptr != (agent_queue = this->pop_agent_queue()) )
 					{
-						// This guard is necessary to ensure that queue
-						// will exist until processing of queue finished.
-						agent_queue_ref_t agent_queue_guard( agent_queue );
-
-						process_queue( *agent_queue );
+						this->do_queue_processing( agent_queue );
 					}
 			}
 
@@ -553,71 +510,66 @@ class work_thread_template_t : public Impl
 				return result;
 			}
 
-		//! Processing of demands from agent queue.
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief Starts processing of demands from the queue specified.
+		 *
+		 * Starts from \a current_queue. Processes up to enabled number
+		 * of events from that queue. Then if the queue is not empty
+		 * tries to find another non-empty queue. If there is no such queue
+		 * then continue processing of \a current_queue.
+		 */
 		void
+		do_queue_processing( agent_queue_t * current_queue )
+			{
+				do
+					{
+						const auto e = this->process_queue( *current_queue );
+
+						if( agent_queue_t::emptyness_t::not_empty == e )
+							{
+								// We can continue processing of that queue if
+								// there is no more non-empty queues waiting.
+								current_queue =
+									this->m_disp_queue->try_switch_to_another(
+										current_queue );
+							}
+						else
+							// Handling of the current queue should be stopped.
+							current_queue = nullptr;
+					}
+				while( current_queue != nullptr );
+			}
+
+
+		//! Processing of demands from agent queue.
+		agent_queue_t::emptyness_t
 		process_queue( agent_queue_t & queue )
 			{
-				std::unique_lock< spinlock_t > lock( queue.lock() );
+				std::size_t demands_processed = 0;
+				agent_queue_t::pop_result_t pop_result;
 
-				auto demand = queue.peek_front();
-				if( queue.is_there_not_thread_safe_worker() )
-					// We can't process any demand until thread unsafe
-					// worker is working.
-					return;
+				do
+					{
+						auto & d = queue.front();
 
-				auto hint = demand.m_receiver->so_create_execution_hint( demand );
+						this->work_started();
 
-				bool need_schedule = true;
-				if( !hint.is_thread_safe() )
-				{
-					if( queue.is_there_any_worker() )
-						// We can't process not thread safe demand until
-						// there are some other workers.
-						return;
-					else
-						need_schedule = queue.worker_started(
-								agent_queue_t::not_thread_safe_worker );
-				}
-				else
-					// Threa-safe worker can be started.
-					need_schedule = queue.worker_started(
-							agent_queue_t::thread_safe_worker );
+						d.call_handler( this->m_thread_id );
 
-				SO_5_CHECK_INVARIANT( !(need_schedule && queue.empty()), &queue )
-				SO_5_CHECK_INVARIANT(
-						!need_schedule || hint.is_thread_safe(), &queue );
-				SO_5_CHECK_INVARIANT( !need_schedule || queue.active(), &queue );
+						this->work_finished();
 
-				// Next few actions must be done on unlocked queue.
-				lock.unlock();
+						++demands_processed;
+						pop_result = queue.pop( demands_processed );
+					}
+				while( agent_queue_t::processing_continuation_t::enabled ==
+						pop_result.m_continuation );
 
-				if( need_schedule )
-					this->m_disp_queue->schedule( &queue );
-
-				// For activity tracking if it is turned on.
-				this->work_started();
-
-				// Processing of event.
-				hint.exec( this->m_thread_id );
-
-				this->work_finished();
-
-				// Next actions must be done on locked queue.
-				lock.lock();
-
-				need_schedule = queue.worker_finished(
-						hint.is_thread_safe() ?
-								agent_queue_t::thread_safe_worker :
-								agent_queue_t::not_thread_safe_worker );
-
-				SO_5_CHECK_INVARIANT(
-						!need_schedule || queue.active(), &queue );
-
-				lock.unlock();
-
-				if( need_schedule )
-					this->m_disp_queue->schedule( &queue );
+				return pop_result.m_emptyness;
 			}
+
 	};
 
 } /* namespace work_thread_details */
@@ -627,7 +579,6 @@ class work_thread_template_t : public Impl
 //
 /*!
  * \brief Type of work thread without activity tracking.
- *
  * \since
  * v.5.5.18
  */
@@ -640,7 +591,6 @@ using work_thread_no_activity_tracking_t =
 //
 /*!
  * \brief Type of work thread without activity tracking.
- *
  * \since
  * v.5.5.18
  */
@@ -654,7 +604,6 @@ using work_thread_with_activity_tracking_t =
 /*!
  * \brief Adaptation of common implementation of thread-pool-like dispatcher
  * to the specific of this thread-pool dispatcher.
- *
  * \since
  * v.5.5.4
  */
@@ -663,7 +612,7 @@ struct adaptation_t
 		static const char *
 		dispatcher_type_name()
 			{
-				return "atp"; // adv_thread_pool.
+				return "tp"; // thread_pool.
 			}
 
 		static bool
@@ -673,9 +622,9 @@ struct adaptation_t
 			}
 
 		static void
-		wait_for_queue_emptyness( agent_queue_t & /*queue*/ )
+		wait_for_queue_emptyness( agent_queue_t & queue )
 			{
-				// This type of agent_queue doesn't require waiting for emptyness.
+				queue.wait_for_emptyness();
 			}
 	};
 
@@ -693,7 +642,7 @@ struct adaptation_t
  */
 template< typename Work_Thread >
 using dispatcher_template_t =
-		so_5::disp::thread_pool::common_implementation::dispatcher_t<
+		common_implementation::dispatcher_t<
 				Work_Thread,
 				dispatcher_queue_t,
 				agent_queue_t,
@@ -702,7 +651,7 @@ using dispatcher_template_t =
 
 } /* namespace impl */
 
-} /* namespace adv_thread_pool */
+} /* namespace thread_pool */
 
 } /* namespace disp */
 

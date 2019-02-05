@@ -15,7 +15,7 @@
 #include <so_5/environment_infrastructure.hpp>
 #include <so_5/mchain.hpp>
 
-#include <so_5/disp/one_thread/h/params.hpp>
+#include <so_5/disp/one_thread/params.hpp>
 
 #include <so_5/impl/coop_repository_basis.hpp>
 

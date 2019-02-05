@@ -10,7 +10,7 @@
  * \brief Various traits for MPSC queues.
  */
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
 #include <so_5/spinlocks.hpp>
 

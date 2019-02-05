@@ -22,14 +22,14 @@
 #include <so_5/mchain_helper_functions.hpp>
 #include <so_5/thread_helper_functions.hpp>
 
-#include <so_5/disp/one_thread/h/pub.hpp>
-#include <so_5/disp/active_obj/h/pub.hpp>
-#include <so_5/disp/active_group/h/pub.hpp>
-#include <so_5/disp/thread_pool/h/pub.hpp>
-#include <so_5/disp/adv_thread_pool/h/pub.hpp>
-#include <so_5/disp/prio_one_thread/strictly_ordered/h/pub.hpp>
-#include <so_5/disp/prio_one_thread/quoted_round_robin/h/pub.hpp>
-#include <so_5/disp/prio_dedicated_threads/one_per_prio/h/pub.hpp>
+#include <so_5/disp/one_thread/pub.hpp>
+#include <so_5/disp/active_obj/pub.hpp>
+#include <so_5/disp/active_group/pub.hpp>
+#include <so_5/disp/thread_pool/pub.hpp>
+#include <so_5/disp/adv_thread_pool/pub.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>
+#include <so_5/disp/prio_one_thread/quoted_round_robin/pub.hpp>
+#include <so_5/disp/prio_dedicated_threads/one_per_prio/pub.hpp>
 
 #include <so_5/version.hpp>
 

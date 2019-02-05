@@ -11,13 +11,13 @@
  * v.5.5.8
  */
 
-#include <so_5/disp/prio_dedicated_threads/one_per_prio/h/pub.hpp>
+#include <so_5/disp/prio_dedicated_threads/one_per_prio/pub.hpp>
 
-#include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
+#include <so_5/disp/reuse/work_thread/work_thread.hpp>
 
-#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
-#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
-#include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
+#include <so_5/disp/reuse/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
 
 #include <so_5/stats/repository.hpp>
 #include <so_5/stats/messages.hpp>

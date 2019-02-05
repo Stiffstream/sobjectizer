@@ -13,7 +13,7 @@
 
 #include <so_5/impl/run_stage.hpp>
 
-#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+#include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
 #include <so_5/environment.hpp>
 #include <so_5/env_infrastructures.hpp>

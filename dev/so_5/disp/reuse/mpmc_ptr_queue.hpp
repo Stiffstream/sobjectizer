@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpmc_queue_traits/pub.hpp>
 
 #include <deque>
 #include <vector>

@@ -22,11 +22,11 @@
 
 #include <so_5/priority.hpp>
 
-#include <so_5/disp/prio_one_thread/quoted_round_robin/h/quotes.hpp>
+#include <so_5/disp/prio_one_thread/quoted_round_robin/quotes.hpp>
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
-#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+#include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
 namespace so_5 {
 

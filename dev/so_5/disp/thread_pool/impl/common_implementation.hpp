@@ -15,8 +15,8 @@
 #include <so_5/event_queue.hpp>
 #include <so_5/disp.hpp>
 
-#include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
-#include <so_5/disp/reuse/h/thread_pool_stats.hpp>
+#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/thread_pool_stats.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
 

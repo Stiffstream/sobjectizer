@@ -3,10 +3,11 @@
  */
 
 /*!
- * \file
- * \brief Public interface of thread pool dispatcher.
  * \since
  * v.5.4.0
+ *
+ * \file
+ * \brief Public interface of advanced thread pool dispatcher.
  */
 
 #pragma once
@@ -15,9 +16,9 @@
 
 #include <so_5/disp_binder.hpp>
 
-#include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpmc_queue_traits/pub.hpp>
 
-#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+#include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
 #include <utility>
 
@@ -27,11 +28,12 @@ namespace so_5
 namespace disp
 {
 
-namespace thread_pool
+namespace adv_thread_pool
 {
 
 /*!
  * \brief Alias for namespace with traits of event queue.
+ *
  * \since
  * v.5.5.11
  */
@@ -41,7 +43,8 @@ namespace queue_traits = so_5::disp::mpmc_queue_traits;
 // disp_params_t
 //
 /*!
- * \brief Parameters for %thread_pool dispatcher.
+ * \brief Parameters for %adv_thread_pool dispatcher.
+ *
  * \since
  * v.5.5.11
  */
@@ -67,9 +70,7 @@ class disp_params_t
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void
-		swap(
-			disp_params_t & a, disp_params_t & b ) SO_5_NOEXCEPT
+		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
@@ -163,6 +164,7 @@ class disp_params_t
 //
 /*!
  * \brief Type of FIFO mechanism for agent's demands.
+ *
  * \since
  * v.5.4.0
  */
@@ -187,7 +189,8 @@ enum class fifo_t
 // bind_params_t
 //
 /*!
- * \brief Parameters for binding agents to %thread_pool dispatcher.
+ * \brief Parameters for binding agents to %adv_thread_pool dispatcher.
+ *
  * \since
  * v.5.5.11
  */
@@ -209,27 +212,9 @@ class bind_params_t
 				return m_fifo;
 			}
 
-		//! Set maximum count of demands to be processed at once.
-		bind_params_t &
-		max_demands_at_once( std::size_t v )
-			{
-				m_max_demands_at_once = v;
-				return *this;
-			}
-
-		//! Get maximum count of demands to do processed at once.
-		std::size_t
-		query_max_demands_at_once() const
-			{
-				return m_max_demands_at_once;
-			}
-
 	private :
 		//! FIFO type.
 		fifo_t m_fifo = { fifo_t::cooperation };
-
-		//! Maximum count of demands to be processed at once.
-		std::size_t m_max_demands_at_once = { 4 };
 	};
 
 //
@@ -237,9 +222,11 @@ class bind_params_t
 //
 /*!
  * \brief Alias for bind_params.
- * \deprecated Since v.5.5.11 bind_params_t must be used instead.
+ *
  * \since
  * v.5.4.0
+ *
+ * \deprecated Since v.5.5.11 bind_params_t must be used instead.
  */
 using params_t = bind_params_t;
 
@@ -249,6 +236,7 @@ using params_t = bind_params_t;
 /*!
  * \brief A helper function for detecting default thread count for
  * thread pool.
+ *
  * \since
  * v.5.4.0
  */
@@ -267,7 +255,8 @@ default_thread_pool_size()
 //
 
 /*!
- * \brief An interface for %thread_pool private dispatcher.
+ * \brief An interface for %adv_thread_pool private dispatcher.
+ *
  * \since
  * v.5.5.4
  */
@@ -301,7 +290,8 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	};
 
 /*!
- * \brief A handle for the %thread_pool private dispatcher.
+ * \brief A handle for the %adv_thread_pool private dispatcher.
+ *
  * \since
  * v.5.5.4
  */
@@ -312,13 +302,17 @@ using private_dispatcher_handle_t =
 // create_disp
 //
 /*!
- * \brief Create thread pool dispatcher.
+ * \brief Create %adv_thread_pool dispatcher instance to be used as
+ * named dispatcher.
+ *
+ * \since
+ * v.5.5.11
  *
  * \par Usage sample
 \code
 so_5::launch( []( so_5::environment_t & env ) {...},
 	[]( so_5::environment_params_t & env_params ) {
-		using namespace so_5::disp::thread_pool;
+		using namespace so_5::disp::adv_thread_pool;
 		env_params.add_named_dispatcher( create_disp( 
 			disp_params_t{}
 				.thread_count( 16 )
@@ -327,8 +321,6 @@ so_5::launch( []( so_5::environment_t & env ) {...},
 					} ) );
 	} );
 \endcode
- * \since
- * v.5.5.11
  */
 SO_5_FUNC dispatcher_unique_ptr_t
 create_disp(
@@ -340,6 +332,7 @@ create_disp(
 //
 /*!
  * \brief Create thread pool dispatcher.
+ *
  * \since
  * v.5.4.0
  */
@@ -358,6 +351,7 @@ create_disp(
  * \brief Create thread pool dispatcher.
  *
  * Size of pool is detected automatically.
+ *
  * \since
  * v.5.4.0
  */
@@ -371,11 +365,14 @@ create_disp()
 // create_private_disp
 //
 /*!
- * \brief Create a private %thread_pool dispatcher.
+ * \brief Create a private %adv_thread_pool dispatcher.
+ *
+ * \since
+ * v.5.5.11
  *
  * \par Usage sample
 \code
-using namespace so_5::disp::thread_pool;
+using namespace so_5::disp::adv_thread_pool;
 auto private_disp = create_private_disp(
 	env,
 	disp_params_t{}
@@ -389,8 +386,6 @@ auto coop = env.create_coop( so_5::autoname,
 	// private thread_pool dispatcher.
 	private_disp->binder( bind_params_t{} ) );
 \endcode
- * \since
- * v.5.5.11
  */
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
@@ -409,11 +404,11 @@ create_private_disp(
  * \since
  * v.5.5.15.1
  *
- * \brief Create a private %thread_pool dispatcher.
+ * \brief Create a private %adv_thread_pool dispatcher.
  *
  * \par Usage sample
 \code
-using namespace so_5::disp::thread_pool;
+using namespace so_5::disp::adv_thread_pool;
 auto private_disp = create_private_disp(
 	env,
 	"db_workers_pool",
@@ -451,22 +446,22 @@ create_private_disp(
 // create_private_disp
 //
 /*!
- * \brief Create a private %thread_pool dispatcher.
- *
- * \par Usage sample
-\code
-auto private_disp = so_5::disp::thread_pool::create_private_disp(
-	env,
-	16,
-	"db_workers_pool" );
-auto coop = env.create_coop( so_5::autoname,
-	// The main dispatcher for that coop will be
-	// private thread_pool dispatcher.
-	private_disp->binder( so_5::disp::thread_pool::bind_params_t{} ) );
-\endcode
+ * \brief Create a private %adv_thread_pool dispatcher.
  *
  * \since
  * v.5.5.4
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp(
+	env,
+	16,
+	"req_processors" );
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private adv_thread_pool dispatcher.
+	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+\endcode
  */
 inline private_dispatcher_handle_t
 create_private_disp(
@@ -485,20 +480,20 @@ create_private_disp(
 	}
 
 /*!
- * \brief Create a private %thread_pool dispatcher.
- *
- * \par Usage sample
-\code
-auto private_disp = so_5::disp::thread_pool::create_private_disp( env, 16 );
-
-auto coop = env.create_coop( so_5::autoname,
-	// The main dispatcher for that coop will be
-	// private thread_pool dispatcher.
-	private_disp->binder( so_5::disp::thread_pool::bind_params_t{} ) );
-\endcode
+ * \brief Create a private %adv_thread_pool dispatcher.
  *
  * \since
  * v.5.5.4
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env, 16 );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private adv_thread_pool dispatcher.
+	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+\endcode
  */
 inline private_dispatcher_handle_t
 create_private_disp(
@@ -514,21 +509,21 @@ create_private_disp(
 // create_private_disp
 //
 /*!
- * \brief Create a private %thread_pool dispatcher with the default
+ * \brief Create a private %adv_thread_pool dispatcher with the default
  * count of working threads.
- *
- * \par Usage sample
-\code
-auto private_disp = so_5::disp::thread_pool::create_private_disp( env );
-
-auto coop = env.create_coop( so_5::autoname,
-	// The main dispatcher for that coop will be
-	// private thread_pool dispatcher.
-	private_disp->binder( so_5::disp::thread_pool::bind_params_t{} ) );
-\endcode
  *
  * \since
  * v.5.5.4
+ *
+ * \par Usage sample
+\code
+auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env );
+
+auto coop = env.create_coop( so_5::autoname,
+	// The main dispatcher for that coop will be
+	// private adv_thread_pool dispatcher.
+	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+\endcode
  */
 inline private_dispatcher_handle_t
 create_private_disp(
@@ -546,6 +541,7 @@ create_private_disp(
 //
 /*!
  * \brief Create dispatcher binder for thread pool dispatcher.
+ *
  * \since
  * v.5.4.0
  */
@@ -559,17 +555,16 @@ create_disp_binder(
 /*!
  * \brief Create dispatcher binder for thread pool dispatcher.
  *
+ * \since
+ * v.5.4.0
+ *
  * Usage example:
 \code
 create_disp_binder( "tpool",
-	[]( so_5::disp::thread_pool::bind_params_t & p ) {
+	[]( so_5::disp::adv_thread_pool::bind_params_t & p ) {
 		p.fifo( so_5::disp::thread_pool::fifo_t::individual );
-		p.max_demands_at_once( 128 );
 	} );
 \endcode
- *
- * \since
- * v.5.4.0
  */
 template< typename Setter >
 inline disp_binder_unique_ptr_t
@@ -585,7 +580,7 @@ create_disp_binder(
 		return create_disp_binder( std::move(disp_name), params );
 	}
 
-} /* namespace thread_pool */
+} /* namespace adv_thread_pool */
 
 } /* namespace disp */
 

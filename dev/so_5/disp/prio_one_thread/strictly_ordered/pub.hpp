@@ -4,8 +4,8 @@
 
 /*!
  * \file
- * \brief Functions for creating and binding of the dispatcher with
- * dedicated threads per priority.
+ * \brief Functions for creating and binding of the single thread dispatcher
+ * with priority support.
  *
  * \since
  * v.5.5.8
@@ -22,17 +22,17 @@
 
 #include <so_5/priority.hpp>
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
-#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+#include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
 namespace so_5 {
 
 namespace disp {
 
-namespace prio_dedicated_threads {
+namespace prio_one_thread {
 
-namespace one_per_prio {
+namespace strictly_ordered {
 
 /*!
  * \brief Alias for namespace with traits of event queue.
@@ -71,7 +71,7 @@ class disp_params_t
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b )
+		friend inline void swap( disp_params_t & a, disp_params_t & b ) SO_5_NOEXCEPT
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
@@ -88,7 +88,7 @@ class disp_params_t
 				return *this;
 			}
 		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
+		disp_params_t & operator=( disp_params_t && o ) SO_5_NOEXCEPT
 			{
 				disp_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
@@ -108,7 +108,7 @@ class disp_params_t
 		 * Accepts lambda-function or functional object which tunes
 		 * queue parameters.
 			\code
-			namespace prio_disp = so_5::disp::prio_dedicated_threads::one_per_prio;
+			namespace prio_disp = so_5::disp::prio_one_thread::strictly_ordered;
 			prio_disp::create_private_disp( env,
 				"my_prio_disp",
 				prio_disp::disp_params_t{}.tune_queue_params(
@@ -127,7 +127,7 @@ class disp_params_t
 
 		//! Getter for queue parameters.
 		const queue_traits::queue_params_t &
-		queue_params() const
+		queue_params() const SO_5_NOEXCEPT
 			{
 				return m_queue_params;
 			}
@@ -151,7 +151,7 @@ using params_t = disp_params_t;
 //
 
 /*!
- * \brief An interface for %one_per_prio private dispatcher.
+ * \brief An interface for %strictly_ordered private dispatcher.
  *
  * \since
  * v.5.5.8
@@ -167,7 +167,7 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	};
 
 /*!
- * \brief A handle for the %one_per_prio private dispatcher.
+ * \brief A handle for the %strictly_ordered private dispatcher.
  *
  * \since
  * v.5.5.8
@@ -194,20 +194,19 @@ create_disp()
 	}
 
 /*!
- * \brief Create a private %one_per_prio dispatcher.
+ * \brief Create a private %strictly_ordered dispatcher.
  *
  * \since
  * v.5.5.10
  *
  * \par Usage sample
 \code
-using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp(
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
 	env,
-	"request_processor"
-	disp_params_t{}.tune_queue_params(
-		[]( queue_traits::queue_params_t & p ) {
-			p.lock_factory( queue_traits::simple_lock_factory() );
+	"request_processor",
+	so_5::disp::prio_one_thread::strictly_ordered::disp_params_t{}.tune_queue_params(
+		[]( so_5::disp::prio_one_thread::strictly_ordered::queue_traits::queue_params_t & p ) {
+			p.lock_factory( so_5::disp::prio_one_thread::strictly_ordered::queue_traits::simple_lock_factory() );
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -226,16 +225,16 @@ create_private_disp(
 	disp_params_t params );
 
 /*!
- * \brief Create a private %one_per_prio dispatcher.
+ * \brief Create a private %strictly_ordered dispatcher.
  *
  * \since
  * v.5.5.8
  *
  * \par Usage sample
 \code
-using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp( env, "request_processor" );
-
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
+	env,
+	"request_processor" );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private strictly_ordered dispatcher.
@@ -254,15 +253,14 @@ create_private_disp(
 	}
 
 /*!
- * \brief Create a private %one_per_prio dispatcher.
+ * \brief Create a private %strictly_ordered dispatcher.
  *
  * \since
  * v.5.5.8
  *
  * \par Usage sample
 \code
-using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp( env );
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
@@ -282,9 +280,9 @@ create_disp_binder(
 	//! Name of the dispatcher to be bound to.
 	const std::string & disp_name );
 
-} /* namespace one_per_prio */
+} /* namespace strictly_ordered */
 
-} /* namespace prio_dedicated_threads */
+} /* namespace prio_one_thread */
 
 } /* namespace disp */
 

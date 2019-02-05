@@ -16,9 +16,9 @@
 #include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
-#include <so_5/disp/reuse/h/work_thread_activity_tracking.hpp>
+#include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
 namespace so_5
 {
