@@ -8,7 +8,7 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 		
 so_5::mbox_t
 manager_mbox( so_5::environment_t & env )

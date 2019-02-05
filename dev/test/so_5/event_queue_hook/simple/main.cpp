@@ -4,10 +4,10 @@
 
 #include <so_5/all.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
-#include <various_helpers_1/time_limited_execution.hpp>
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 class test_agent_t final : public so_5::agent_t
 {

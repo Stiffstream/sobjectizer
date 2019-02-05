@@ -10,7 +10,7 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/benchmark_helpers.hpp>
+#include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 
 so_5::mchain_t
 make_mchain( so_5::environment_t & env )

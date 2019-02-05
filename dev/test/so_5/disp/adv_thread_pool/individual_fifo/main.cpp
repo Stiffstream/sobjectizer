@@ -13,10 +13,10 @@
 #include <sstream>
 
 #include <so_5/all.hpp>
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
-#include <various_helpers_1/time_limited_execution.hpp>
-#include <various_helpers_1/benchmark_helpers.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 
 #include "../for_each_lock_factory.hpp"
 

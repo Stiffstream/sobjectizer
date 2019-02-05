@@ -3,7 +3,7 @@
  */
 #define SO_5_EXECUTION_HINT_UNIT_TEST
 
-#include <utest_helper_1/h/helper.hpp>
+#include <test/3rd_party/utest_helper/helper.hpp>
 
 #include <so_5/all.hpp>
 

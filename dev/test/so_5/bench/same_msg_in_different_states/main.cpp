@@ -9,8 +9,8 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/benchmark_helpers.hpp>
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 struct msg_tick : public so_5::signal_t {};
 

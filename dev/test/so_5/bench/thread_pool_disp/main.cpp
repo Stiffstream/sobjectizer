@@ -12,8 +12,8 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/benchmark_helpers.hpp>
-#include <various_helpers_1/cmd_line_args_helpers.hpp>
+#include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
+#include <test/3rd_party/various_helpers/cmd_line_args_helpers.hpp>
 
 enum class dispatcher_t
 	{

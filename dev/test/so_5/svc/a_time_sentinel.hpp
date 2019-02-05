@@ -1,6 +1,6 @@
 #pragma once
 
-#include <so_5/rt/h/rt.hpp>
+#include <so_5/rt.hpp>
 
 #include <cstdlib>
 

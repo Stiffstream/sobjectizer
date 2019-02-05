@@ -4,8 +4,8 @@
 
 #include <so_5/experimental/testing/v1/all.hpp>
 
-#include <various_helpers_1/time_limited_execution.hpp>
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 namespace tests = so_5::experimental::testing::v1;
 

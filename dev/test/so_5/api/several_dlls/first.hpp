@@ -1,6 +1,6 @@
 #pragma once
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #if defined(FIRST_PRJ)
 	#define FIRST_FUNC SO_5_EXPORT

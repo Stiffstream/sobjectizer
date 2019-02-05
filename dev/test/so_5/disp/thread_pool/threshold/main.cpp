@@ -8,7 +8,7 @@
 #include <sstream>
 #include <thread>
 
-#include <various_helpers_1/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 using namespace std;
 

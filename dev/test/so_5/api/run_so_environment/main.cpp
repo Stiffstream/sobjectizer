@@ -5,7 +5,7 @@
 	and params passin correctnes.
 */
 
-#include <utest_helper_1/h/helper.hpp>
+#include <test/3rd_party/utest_helper/helper.hpp>
 
 #include <functional>
 

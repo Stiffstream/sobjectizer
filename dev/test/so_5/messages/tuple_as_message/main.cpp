@@ -8,7 +8,7 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 // There is a strange error under clang-3.9.0 and MSVC++14.0 (update3).
 #if defined( _MSC_VER ) || defined( __clang__ )

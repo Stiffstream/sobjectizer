@@ -1,6 +1,6 @@
 #pragma once
 
-#include <so_5/disp/thread_pool/h/pub.hpp>
+#include <so_5/disp/thread_pool/pub.hpp>
 
 #include <iostream>
 

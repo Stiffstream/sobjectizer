@@ -2,14 +2,14 @@
  * A simple unit-test for combined_queue_lock_t.
  */
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <vector>
 
-#include <various_helpers_1/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 using namespace so_5::disp::mpsc_queue_traits;
 

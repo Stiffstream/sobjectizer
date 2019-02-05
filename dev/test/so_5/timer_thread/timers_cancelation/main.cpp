@@ -9,7 +9,7 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 struct msg_test : public so_5::message_t
 	{

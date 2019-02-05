@@ -2,10 +2,7 @@
 	Test of moveabillity of environment_params_t.
 */
 
-// NOTE: this test is temporary empty because of deletion of
-// some obsolete functions.
-
-#include <utest_helper_1/h/helper.hpp>
+#include <test/3rd_party/utest_helper/helper.hpp>
 
 #include <so_5/all.hpp>
 

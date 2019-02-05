@@ -10,7 +10,7 @@
 
 #include <so_5/all.hpp>
 
-#include <various_helpers_1/benchmark_helpers.hpp>
+#include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 
 const unsigned long long max_iterations = 10000u;
 
