@@ -15,7 +15,7 @@
 // It is necessary that version.hpp will be almost always automatically 
 // included. To do that we include it in that header file because
 // that file seems to be necessary for all SObjectizer's definintions.
-#include <so_5/h/version.hpp>
+#include <so_5/version.hpp>
 
 namespace so_5
 {

@@ -14,9 +14,9 @@
 
 #include <so_5/rt/impl/h/mbox_iface_for_timers.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
 #include <so_5/3rd_party/timertt/all.hpp>
 

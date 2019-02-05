@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/msg_tracing.hpp>
+#include <so_5/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/mchain.hpp>

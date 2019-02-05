@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/stop_guard.hpp>
+#include <so_5/stop_guard.hpp>
 
 #include <so_5/details/h/sync_helpers.hpp>
 #include <so_5/details/h/invoke_noexcept_code.hpp>

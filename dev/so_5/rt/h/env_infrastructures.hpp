@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
 #include <so_5/rt/h/environment_infrastructure.hpp>
 

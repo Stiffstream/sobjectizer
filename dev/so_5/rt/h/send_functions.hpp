@@ -14,7 +14,7 @@
 
 #include <so_5/rt/h/environment.hpp>
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 namespace so_5
 {

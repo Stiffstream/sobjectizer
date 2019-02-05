@@ -20,9 +20,9 @@
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 #include <algorithm>
 #include <sstream>

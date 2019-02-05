@@ -18,9 +18,9 @@
 #include <so_5/details/h/lambda_traits.hpp>
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 
-#include <so_5/h/optional.hpp>
+#include <so_5/optional.hpp>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #include <functional>
 #include <typeindex>

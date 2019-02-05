@@ -21,7 +21,7 @@
 
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
 namespace so_5 {
 

@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 #if !defined( SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID )
 // For the normal implementations use the standard tools.
@@ -61,7 +61,7 @@ namespace so_5
 #include <limits>
 #include <cstdint>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 namespace so_5
 {

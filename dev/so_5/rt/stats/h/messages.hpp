@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/current_thread_id.hpp>
+#include <so_5/current_thread_id.hpp>
 
 #include <so_5/rt/h/message.hpp>
 

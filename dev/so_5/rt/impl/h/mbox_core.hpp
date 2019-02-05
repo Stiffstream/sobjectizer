@@ -22,11 +22,11 @@
 
 #include <so_5/rt/h/message_limit.hpp>
 
-#include <so_5/h/atomic_refcounted.hpp>
-#include <so_5/h/msg_tracing.hpp>
-#include <so_5/h/outliving.hpp>
+#include <so_5/atomic_refcounted.hpp>
+#include <so_5/msg_tracing.hpp>
+#include <so_5/outliving.hpp>
 
-#include <so_5/h/custom_mbox.hpp>
+#include <so_5/custom_mbox.hpp>
 
 namespace so_5
 {

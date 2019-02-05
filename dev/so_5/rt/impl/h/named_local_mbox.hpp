@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <so_5/h/types.hpp>
-#include <so_5/h/exception.hpp>
+#include <so_5/types.hpp>
+#include <so_5/exception.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 

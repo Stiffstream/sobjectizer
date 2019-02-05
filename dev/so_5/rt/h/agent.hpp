@@ -9,16 +9,16 @@
 
 #pragma once
 
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/types.hpp>
-#include <so_5/h/current_thread_id.hpp>
-#include <so_5/h/atomic_refcounted.hpp>
-#include <so_5/h/spinlocks.hpp>
-#include <so_5/h/outliving.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/types.hpp>
+#include <so_5/current_thread_id.hpp>
+#include <so_5/atomic_refcounted.hpp>
+#include <so_5/spinlocks.hpp>
+#include <so_5/outliving.hpp>
 
-#include <so_5/h/exception.hpp>
-#include <so_5/h/error_logger.hpp>
+#include <so_5/exception.hpp>
+#include <so_5/error_logger.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>

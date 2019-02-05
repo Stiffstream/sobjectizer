@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <so_5/h/types.hpp>
-#include <so_5/h/current_thread_id.hpp>
+#include <so_5/types.hpp>
+#include <so_5/current_thread_id.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
 

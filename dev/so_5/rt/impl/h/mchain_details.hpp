@@ -16,9 +16,9 @@
 #include <so_5/rt/h/mchain_select_ifaces.hpp>
 #include <so_5/rt/h/environment.hpp>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/exception.hpp>
-#include <so_5/h/error_logger.hpp>
+#include <so_5/ret_code.hpp>
+#include <so_5/exception.hpp>
+#include <so_5/error_logger.hpp>
 
 #include <so_5/details/h/at_scope_exit.hpp>
 

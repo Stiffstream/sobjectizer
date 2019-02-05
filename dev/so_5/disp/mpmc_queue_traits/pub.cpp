@@ -12,7 +12,7 @@
 
 #include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
 #include <mutex>
 #include <condition_variable>

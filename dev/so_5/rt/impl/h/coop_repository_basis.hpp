@@ -19,7 +19,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/agent_coop.hpp>

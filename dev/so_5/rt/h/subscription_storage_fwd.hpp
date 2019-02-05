@@ -15,7 +15,7 @@
 #include <memory>
 #include <functional>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 namespace so_5
 {

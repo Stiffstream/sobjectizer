@@ -4,7 +4,7 @@
 
 #include <so_5/rt/impl/h/mbox_core.hpp>
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
 #include <so_5/rt/impl/h/local_mbox.hpp>
 #include <so_5/rt/impl/h/named_local_mbox.hpp>

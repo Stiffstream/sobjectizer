@@ -14,7 +14,7 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

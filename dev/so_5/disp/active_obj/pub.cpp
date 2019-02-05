@@ -20,7 +20,7 @@
 #include <so_5/rt/stats/h/messages.hpp>
 #include <so_5/rt/stats/h/std_names.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 #include <map>
 #include <mutex>

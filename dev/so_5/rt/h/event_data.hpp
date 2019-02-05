@@ -11,7 +11,7 @@
 
 #include <so_5/rt/h/message.hpp>
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 #include <type_traits>
 

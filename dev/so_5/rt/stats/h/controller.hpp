@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 

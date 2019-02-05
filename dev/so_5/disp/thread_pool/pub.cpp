@@ -14,7 +14,7 @@
 
 #include <so_5/disp/thread_pool/impl/h/disp.hpp>
 
-#include <so_5/h/ret_code.hpp>
+#include <so_5/ret_code.hpp>
 
 #include <so_5/rt/h/disp_binder.hpp>
 #include <so_5/rt/h/environment.hpp>
@@ -22,7 +22,7 @@
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 namespace so_5
 {

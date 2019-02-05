@@ -11,7 +11,7 @@
  * std::this_thread::get_id() under some compilers.
  */
 
-#include <so_5/h/current_thread_id.hpp>
+#include <so_5/current_thread_id.hpp>
 
 #if defined( SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID )
 

@@ -21,7 +21,7 @@
 #include <so_5/details/h/at_scope_exit.hpp>
 #include <so_5/details/h/sync_helpers.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 #include <so_5/rt/impl/h/st_env_infrastructure_reuse.hpp>
 

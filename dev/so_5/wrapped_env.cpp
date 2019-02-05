@@ -10,7 +10,7 @@
  * \brief Class wrapped_env and its details.
  */
 
-#include <so_5/h/wrapped_env.hpp>
+#include <so_5/wrapped_env.hpp>
 
 #include <thread>
 #include <mutex>

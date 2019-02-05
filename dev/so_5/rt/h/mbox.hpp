@@ -14,12 +14,12 @@
 #include <typeindex>
 #include <utility>
 
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/compiler_features.hpp>
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
-#include <so_5/h/wait_indication.hpp>
+#include <so_5/wait_indication.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/message.hpp>

@@ -17,9 +17,9 @@
 #include <so_5/rt/stats/h/controller.hpp>
 #include <so_5/rt/stats/h/repository.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #include <memory>
 #include <functional>

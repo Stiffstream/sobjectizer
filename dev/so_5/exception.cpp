@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
 #include <sstream>
 

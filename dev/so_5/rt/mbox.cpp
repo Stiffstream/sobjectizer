@@ -4,7 +4,7 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/h/ret_code.hpp>
+#include <so_5/ret_code.hpp>
 
 namespace so_5
 {

@@ -12,11 +12,11 @@
 
 #pragma once
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/h/outliving.hpp>
+#include <so_5/outliving.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)

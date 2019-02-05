@@ -19,7 +19,7 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 namespace so_5 {
 

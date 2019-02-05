@@ -16,8 +16,8 @@
 #include <functional>
 #include <chrono>
 
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/declspec.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/declspec.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/fwd.hpp>

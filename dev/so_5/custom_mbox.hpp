@@ -14,8 +14,8 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/h/msg_tracing.hpp>
-#include <so_5/h/outliving.hpp>
+#include <so_5/msg_tracing.hpp>
+#include <so_5/outliving.hpp>
 
 namespace so_5 {
 

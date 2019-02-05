@@ -17,8 +17,8 @@
 
 #include <functional>
 
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/compiler_features.hpp>
 
 #include <so_5/rt/h/environment.hpp>
 

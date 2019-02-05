@@ -14,7 +14,7 @@
 
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
 #include <so_5/rt/h/message_limit.hpp>
-#include <so_5/h/priority.hpp>
+#include <so_5/priority.hpp>
 
 namespace so_5
 {

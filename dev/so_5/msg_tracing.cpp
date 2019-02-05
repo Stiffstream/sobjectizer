@@ -2,7 +2,7 @@
  * SObjectizer-5
  */
 
-#include <so_5/h/msg_tracing.hpp>
+#include <so_5/msg_tracing.hpp>
 
 #include <mutex>
 #include <iostream>

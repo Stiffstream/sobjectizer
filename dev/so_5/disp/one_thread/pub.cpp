@@ -22,7 +22,7 @@
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 #include <atomic>
 

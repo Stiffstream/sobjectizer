@@ -4,7 +4,7 @@
 
 #include <so_5/rt/h/disp.hpp>
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
 namespace so_5
 {

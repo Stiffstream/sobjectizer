@@ -16,7 +16,7 @@
 #include <sstream>
 #include <vector>
 
-#include <so_5/h/types.hpp>
+#include <so_5/types.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/state.hpp>

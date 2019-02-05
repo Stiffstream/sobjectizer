@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/types.hpp>
+#include <so_5/types.hpp>
 
 namespace so_5 {
 

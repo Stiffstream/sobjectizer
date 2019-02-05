@@ -14,7 +14,7 @@
 
 #include <so_5/all.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 #include <sstream>
 

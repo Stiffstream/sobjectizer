@@ -13,14 +13,14 @@
 #pragma once
 
 #include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/wrapped_env.hpp>
+#include <so_5/api.hpp>
+#include <so_5/wrapped_env.hpp>
 #include <so_5/rt/h/env_infrastructures.hpp>
 
 #include <so_5/rt/h/enveloped_msg.hpp>
 
-#include <so_5/h/mchain_helper_functions.hpp>
-#include <so_5/h/thread_helper_functions.hpp>
+#include <so_5/mchain_helper_functions.hpp>
+#include <so_5/thread_helper_functions.hpp>
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 #include <so_5/disp/active_obj/h/pub.hpp>
@@ -31,5 +31,5 @@
 #include <so_5/disp/prio_one_thread/quoted_round_robin/h/pub.hpp>
 #include <so_5/disp/prio_dedicated_threads/one_per_prio/h/pub.hpp>
 
-#include <so_5/h/version.hpp>
+#include <so_5/version.hpp>
 

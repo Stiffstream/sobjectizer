@@ -12,7 +12,7 @@
 
 #include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 #if !defined(SO_5_HAVE_NOEXCEPT)
 	#include <exception>

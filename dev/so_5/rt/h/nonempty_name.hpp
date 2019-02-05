@@ -11,8 +11,8 @@
 
 #include <string>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/exception.hpp>
+#include <so_5/ret_code.hpp>
+#include <so_5/exception.hpp>
 
 namespace so_5
 {

@@ -12,12 +12,12 @@
 
 #pragma once
 
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/atomic_refcounted.hpp>
-#include <so_5/h/current_thread_id.hpp>
-#include <so_5/h/optional.hpp>
-#include <so_5/h/types.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/atomic_refcounted.hpp>
+#include <so_5/current_thread_id.hpp>
+#include <so_5/optional.hpp>
+#include <so_5/types.hpp>
 
 #include <string>
 #include <memory>

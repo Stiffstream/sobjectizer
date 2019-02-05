@@ -12,7 +12,7 @@
 
 #include <so_5/rt/h/agent_coop_notifications.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 namespace so_5
 {

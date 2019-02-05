@@ -5,7 +5,7 @@
 #include <exception>
 #include <algorithm>
 
-#include <so_5/h/exception.hpp>
+#include <so_5/exception.hpp>
 
 #include <so_5/rt/h/environment.hpp>
 

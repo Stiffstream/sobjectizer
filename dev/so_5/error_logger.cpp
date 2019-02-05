@@ -10,16 +10,16 @@
  * \brief Tools for logging error messages inside SObjectizer core.
  */
 
-#include <so_5/h/error_logger.hpp>
+#include <so_5/error_logger.hpp>
 
-#include <so_5/h/compiler_features.hpp>
+#include <so_5/compiler_features.hpp>
 
 #include <chrono>
 #include <ctime>
 #include <cstdio>
 #include <iostream>
 
-#include <so_5/h/current_thread_id.hpp>
+#include <so_5/current_thread_id.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)

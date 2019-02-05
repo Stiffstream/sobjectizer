@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/exception.hpp>
-#include <so_5/h/types.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/exception.hpp>
+#include <so_5/types.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/agent.hpp>

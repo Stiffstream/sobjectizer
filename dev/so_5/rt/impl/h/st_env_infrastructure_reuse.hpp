@@ -31,7 +31,7 @@
 #include <so_5/rt/h/send_functions.hpp>
 #include <so_5/rt/h/env_infrastructures.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
 #include <deque>
 

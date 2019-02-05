@@ -14,7 +14,7 @@
 
 #include <so_5/rt/h/message.hpp>
 
-#include <so_5/h/optional.hpp>
+#include <so_5/optional.hpp>
 
 namespace so_5 {
 

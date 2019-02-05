@@ -17,8 +17,8 @@
 #include <so_5/rt/h/environment.hpp>
 #include <so_5/rt/h/enveloped_msg.hpp>
 
-#include <so_5/h/error_logger.hpp>
-#include <so_5/h/ret_code.hpp>
+#include <so_5/error_logger.hpp>
+#include <so_5/ret_code.hpp>
 
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>

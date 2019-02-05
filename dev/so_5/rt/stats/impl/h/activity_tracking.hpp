@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <so_5/h/types.hpp>
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/types.hpp>
+#include <so_5/spinlocks.hpp>
 
 #include <so_5/rt/stats/h/work_thread_activity.hpp>
 

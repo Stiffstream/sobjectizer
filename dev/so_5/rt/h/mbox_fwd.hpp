@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/atomic_refcounted.hpp>
 
 namespace so_5
 {

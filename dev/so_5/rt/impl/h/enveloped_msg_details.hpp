@@ -18,7 +18,7 @@
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
-#include <so_5/h/ret_code.hpp>
+#include <so_5/ret_code.hpp>
 
 namespace so_5 {
 

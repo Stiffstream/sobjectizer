@@ -6,9 +6,9 @@
 
 #include <so_5/rt/h/environment.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
-#include <so_5/h/stdcpp.hpp>
+#include <so_5/stdcpp.hpp>
 
 namespace so_5
 {

@@ -13,9 +13,9 @@
 #include <map>
 #include <string>
 
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/ret_code.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/ret_code.hpp>
 
 #include <so_5/rt/h/fwd.hpp>
 

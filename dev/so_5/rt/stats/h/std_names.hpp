@@ -14,7 +14,7 @@
 
 #include <so_5/rt/stats/h/prefix.hpp>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 namespace so_5 {
 

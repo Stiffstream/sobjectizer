@@ -14,8 +14,8 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/outliving.hpp>
+#include <so_5/ret_code.hpp>
+#include <so_5/outliving.hpp>
 
 namespace so_5 {
 

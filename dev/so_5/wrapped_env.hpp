@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include <so_5/api/h/api.hpp>
+#include <so_5/api.hpp>
 
-#include <so_5/h/declspec.hpp>
+#include <so_5/declspec.hpp>
 
 #include <memory>
 

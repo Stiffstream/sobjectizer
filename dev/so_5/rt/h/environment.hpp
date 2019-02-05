@@ -14,16 +14,16 @@
 #include <memory>
 #include <type_traits>
 
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/declspec.hpp>
-#include <so_5/h/exception.hpp>
-#include <so_5/h/error_logger.hpp>
-#include <so_5/h/compiler_features.hpp>
-#include <so_5/h/msg_tracing.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/exception.hpp>
+#include <so_5/error_logger.hpp>
+#include <so_5/compiler_features.hpp>
+#include <so_5/msg_tracing.hpp>
 
-#include <so_5/h/custom_mbox.hpp>
+#include <so_5/custom_mbox.hpp>
 
-#include <so_5/h/stop_guard.hpp>
+#include <so_5/stop_guard.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -37,7 +37,7 @@
 #include <so_5/rt/h/event_exception_logger.hpp>
 #include <so_5/rt/h/event_queue_hook.hpp>
 
-#include <so_5/h/timers.hpp>
+#include <so_5/timers.hpp>
 
 #include <so_5/rt/stats/h/controller.hpp>
 #include <so_5/rt/stats/h/repository.hpp>

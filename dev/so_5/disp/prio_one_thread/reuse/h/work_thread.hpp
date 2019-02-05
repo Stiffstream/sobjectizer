@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <so_5/h/current_thread_id.hpp>
+#include <so_5/current_thread_id.hpp>
 
 #include <so_5/rt/stats/h/work_thread_activity.hpp>
 #include <so_5/rt/stats/impl/h/activity_tracking.hpp>

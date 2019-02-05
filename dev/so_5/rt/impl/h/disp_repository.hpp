@@ -11,8 +11,8 @@
 
 #include <mutex>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/ret_code.hpp>
+#include <so_5/spinlocks.hpp>
 
 #include <so_5/rt/h/environment.hpp>
 #include <so_5/rt/h/disp.hpp>

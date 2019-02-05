@@ -20,8 +20,8 @@
 #include <iostream>
 #include <forward_list>
 
-#include <so_5/h/spinlocks.hpp>
-#include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/spinlocks.hpp>
+#include <so_5/atomic_refcounted.hpp>
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
