@@ -11,7 +11,7 @@
  */
 #include <so_5/rt/impl/h/coop_repository_basis.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>

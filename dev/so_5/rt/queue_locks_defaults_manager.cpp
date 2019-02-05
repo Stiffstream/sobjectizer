@@ -10,7 +10,7 @@
  * v.5.5.18
  */
 
-#include <so_5/rt/h/queue_locks_defaults_manager.hpp>
+#include <so_5/rt/queue_locks_defaults_manager.hpp>
 
 #include <so_5/stdcpp.hpp>
 

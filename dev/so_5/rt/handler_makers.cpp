@@ -10,7 +10,7 @@
  * v.5.5.23
  */
 
-#include <so_5/rt/h/handler_makers.hpp>
+#include <so_5/rt/handler_makers.hpp>
 
 #include <so_5/rt/impl/h/enveloped_msg_details.hpp>
 

@@ -4,8 +4,8 @@
 
 #include <so_5/disp/active_group/h/pub.hpp>
 
-#include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/disp.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

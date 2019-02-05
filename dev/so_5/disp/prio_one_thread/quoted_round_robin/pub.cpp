@@ -24,7 +24,7 @@
 #include <so_5/rt/stats/h/messages.hpp>
 #include <so_5/rt/stats/h/std_names.hpp>
 
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/stdcpp.hpp>
 

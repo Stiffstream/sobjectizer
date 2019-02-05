@@ -20,7 +20,7 @@
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 namespace so_5
 {

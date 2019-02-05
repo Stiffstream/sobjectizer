@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <so_5/rt/h/environment_infrastructure.hpp>
+#include <so_5/rt/environment_infrastructure.hpp>
 
 #include <so_5/rt/impl/h/coop_repository_basis.hpp>
 #include <so_5/rt/impl/h/mbox_iface_for_timers.hpp>
@@ -28,8 +28,8 @@
 #include <so_5/rt/stats/h/messages.hpp>
 #include <so_5/rt/stats/h/std_names.hpp>
 
-#include <so_5/rt/h/send_functions.hpp>
-#include <so_5/rt/h/env_infrastructures.hpp>
+#include <so_5/rt/send_functions.hpp>
+#include <so_5/rt/env_infrastructures.hpp>
 
 #include <so_5/timers.hpp>
 

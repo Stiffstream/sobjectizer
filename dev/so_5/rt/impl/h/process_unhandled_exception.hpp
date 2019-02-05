@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/agent.hpp>
 
 namespace so_5 {
 

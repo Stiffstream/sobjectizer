@@ -18,10 +18,10 @@
 
 #include <so_5/types.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/state.hpp>
-#include <so_5/rt/h/execution_demand.hpp>
-#include <so_5/rt/h/subscription_storage_fwd.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/state.hpp>
+#include <so_5/rt/execution_demand.hpp>
+#include <so_5/rt/subscription_storage_fwd.hpp>
 
 namespace so_5
 {

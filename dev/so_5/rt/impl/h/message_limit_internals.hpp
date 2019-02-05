@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <so_5/rt/h/message_limit.hpp>
+#include <so_5/rt/message_limit.hpp>
 
 #include <vector>
 #include <algorithm>

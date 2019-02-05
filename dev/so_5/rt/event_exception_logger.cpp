@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/event_exception_logger.hpp>
+#include <so_5/rt/event_exception_logger.hpp>
 
 #include <iostream>
 

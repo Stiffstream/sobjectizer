@@ -10,7 +10,7 @@
  * \brief Stuff related to enveloped messages.
  */
 
-#include <so_5/rt/h/enveloped_msg.hpp>
+#include <so_5/rt/enveloped_msg.hpp>
 
 #include <so_5/rt/impl/h/enveloped_msg_details.hpp>
 

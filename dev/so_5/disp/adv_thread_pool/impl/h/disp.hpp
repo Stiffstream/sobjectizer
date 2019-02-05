@@ -23,8 +23,8 @@
 #include <so_5/spinlocks.hpp>
 #include <so_5/atomic_refcounted.hpp>
 
-#include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/event_queue.hpp>
+#include <so_5/rt/disp.hpp>
 
 #include <so_5/rt/stats/impl/h/activity_tracking.hpp>
 

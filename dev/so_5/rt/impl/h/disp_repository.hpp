@@ -14,10 +14,10 @@
 #include <so_5/ret_code.hpp>
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/environment.hpp>
+#include <so_5/rt/disp.hpp>
 
-#include <so_5/rt/h/event_exception_logger.hpp>
+#include <so_5/rt/event_exception_logger.hpp>
 
 namespace so_5
 {

@@ -13,9 +13,9 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/disp_binder.hpp>
-#include <so_5/rt/h/nonempty_name.hpp>
+#include <so_5/rt/disp.hpp>
+#include <so_5/rt/disp_binder.hpp>
+#include <so_5/rt/nonempty_name.hpp>
 
 #include <so_5/disp/one_thread/h/params.hpp>
 

@@ -21,8 +21,8 @@
 #include <so_5/error_logger.hpp>
 #include <so_5/atomic_refcounted.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/message.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/message.hpp>
 
 #include <so_5/outliving.hpp>
 

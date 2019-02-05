@@ -7,7 +7,7 @@
 
 #include <so_5/exception.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
 

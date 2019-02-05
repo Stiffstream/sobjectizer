@@ -14,9 +14,9 @@
 
 #include <so_5/msg_tracing.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/mchain.hpp>
-#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/mchain.hpp>
+#include <so_5/rt/agent.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
 #include <so_5/rt/impl/h/internal_message_iface.hpp>

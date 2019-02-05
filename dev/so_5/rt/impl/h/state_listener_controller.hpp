@@ -11,7 +11,7 @@
 
 #include <vector>
 
-#include <so_5/rt/h/agent_state_listener.hpp>
+#include <so_5/rt/agent_state_listener.hpp>
 
 namespace so_5
 {

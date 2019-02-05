@@ -13,8 +13,8 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/disp_binder.hpp>
+#include <so_5/rt/disp.hpp>
+#include <so_5/rt/disp_binder.hpp>
 
 #include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 

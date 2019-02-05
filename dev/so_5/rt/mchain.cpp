@@ -10,7 +10,7 @@
  * \brief Public part of message chain related stuff.
  */
 
-#include <so_5/rt/h/mchain.hpp>
+#include <so_5/rt/mchain.hpp>
 
 namespace so_5 {
 

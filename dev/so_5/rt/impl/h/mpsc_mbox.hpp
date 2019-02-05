@@ -16,9 +16,9 @@
 #include <so_5/exception.hpp>
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/message_limit.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/event_queue.hpp>
+#include <so_5/rt/message_limit.hpp>
 
 #include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>

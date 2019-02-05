@@ -2,10 +2,10 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/enveloped_msg.hpp>
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/agent.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/enveloped_msg.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
 

@@ -14,7 +14,7 @@
 
 #include <so_5/current_thread_id.hpp>
 
-#include <so_5/rt/h/message.hpp>
+#include <so_5/rt/message.hpp>
 
 #include <so_5/rt/stats/h/prefix.hpp>
 #include <so_5/rt/stats/h/work_thread_activity.hpp>

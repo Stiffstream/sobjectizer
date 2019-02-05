@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/disp.hpp>
 
 #include <so_5/exception.hpp>
 

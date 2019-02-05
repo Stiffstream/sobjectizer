@@ -4,9 +4,9 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-#include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/disp.hpp>
+#include <so_5/rt/environment.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/rt/stats/h/repository.hpp>
 #include <so_5/rt/stats/h/messages.hpp>

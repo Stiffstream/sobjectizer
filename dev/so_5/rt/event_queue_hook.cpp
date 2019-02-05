@@ -10,7 +10,7 @@
  * v.5.5.24
  */
 
-#include <so_5/rt/h/event_queue_hook.hpp>
+#include <so_5/rt/event_queue_hook.hpp>
 
 namespace so_5
 {

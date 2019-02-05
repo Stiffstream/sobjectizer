@@ -14,7 +14,7 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/mbox.hpp>
 
 #include <chrono>
 

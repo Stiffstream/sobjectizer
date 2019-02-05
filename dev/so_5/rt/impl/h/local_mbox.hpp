@@ -19,9 +19,9 @@
 
 #include <so_5/msg_tracing.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/enveloped_msg.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/agent.hpp>
+#include <so_5/rt/enveloped_msg.hpp>
 
 #include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>

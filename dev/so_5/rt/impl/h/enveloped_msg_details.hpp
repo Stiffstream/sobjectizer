@@ -11,8 +11,8 @@
  */
 #pragma once
 
-#include <so_5/rt/h/enveloped_msg.hpp>
-#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/enveloped_msg.hpp>
+#include <so_5/rt/agent.hpp>
 
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 

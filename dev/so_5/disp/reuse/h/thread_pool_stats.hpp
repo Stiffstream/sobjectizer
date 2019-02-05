@@ -14,7 +14,7 @@
 
 #include <so_5/atomic_refcounted.hpp>
 
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/rt/stats/h/repository.hpp>
 #include <so_5/rt/stats/h/messages.hpp>

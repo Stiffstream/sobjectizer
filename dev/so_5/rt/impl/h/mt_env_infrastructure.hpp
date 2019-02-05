@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <so_5/rt/h/environment_infrastructure.hpp>
-#include <so_5/rt/h/mchain.hpp>
+#include <so_5/rt/environment_infrastructure.hpp>
+#include <so_5/rt/mchain.hpp>
 
 #include <so_5/disp/one_thread/h/params.hpp>
 

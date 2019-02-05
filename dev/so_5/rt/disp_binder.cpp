@@ -2,9 +2,9 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/disp_binder.hpp>
+#include <so_5/rt/disp_binder.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/spinlocks.hpp>
 

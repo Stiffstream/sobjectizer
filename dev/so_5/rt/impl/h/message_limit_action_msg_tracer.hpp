@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/rt/h/message.hpp>
+#include <so_5/rt/message.hpp>
 
 namespace so_5 {
 

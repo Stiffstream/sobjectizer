@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/mbox.hpp>
 
 #include <so_5/ret_code.hpp>
 

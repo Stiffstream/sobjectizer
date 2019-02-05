@@ -14,7 +14,7 @@
 #include <so_5/ret_code.hpp>
 #include <so_5/exception.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <functional>
 #include <type_traits>

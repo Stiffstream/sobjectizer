@@ -9,13 +9,13 @@
  * \brief Public part of message limit implementation.
  */
 
-#include <so_5/rt/h/message_limit.hpp>
+#include <so_5/rt/message_limit.hpp>
 
 #include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
 #include <so_5/rt/impl/h/enveloped_msg_details.hpp>
 
-#include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/enveloped_msg.hpp>
+#include <so_5/rt/environment.hpp>
+#include <so_5/rt/enveloped_msg.hpp>
 
 #include <so_5/error_logger.hpp>
 #include <so_5/ret_code.hpp>

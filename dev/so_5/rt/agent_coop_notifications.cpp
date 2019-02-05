@@ -10,7 +10,7 @@
 	\brief Agent cooperation notifications definition.
 */
 
-#include <so_5/rt/h/agent_coop_notifications.hpp>
+#include <so_5/rt/agent_coop_notifications.hpp>
 
 #include <so_5/stdcpp.hpp>
 

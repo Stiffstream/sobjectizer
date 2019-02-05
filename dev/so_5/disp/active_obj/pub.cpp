@@ -4,9 +4,9 @@
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-#include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/disp.hpp>
+#include <so_5/rt/event_queue.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

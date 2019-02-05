@@ -14,7 +14,7 @@
 
 #include <so_5/rt/stats/h/repository.hpp>
 
-#include <so_5/rt/h/environment_infrastructure.hpp>
+#include <so_5/rt/environment_infrastructure.hpp>
 
 namespace so_5 {
 

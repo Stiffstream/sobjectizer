@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/mbox.hpp>
 
 namespace so_5 {
 

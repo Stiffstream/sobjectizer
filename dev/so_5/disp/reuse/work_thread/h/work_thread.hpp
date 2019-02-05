@@ -20,7 +20,7 @@
 #include <so_5/declspec.hpp>
 #include <so_5/current_thread_id.hpp>
 
-#include <so_5/rt/h/event_queue.hpp>
+#include <so_5/rt/event_queue.hpp>
 
 #include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 

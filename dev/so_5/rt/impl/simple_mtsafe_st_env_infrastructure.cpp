@@ -15,8 +15,8 @@
 
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 
-#include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/environment.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/details/h/at_scope_exit.hpp>
 #include <so_5/details/h/sync_helpers.hpp>

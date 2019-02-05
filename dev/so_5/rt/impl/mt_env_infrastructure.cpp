@@ -14,8 +14,8 @@
 
 #include <so_5/rt/impl/h/run_stage.hpp>
 
-#include <so_5/rt/h/environment.hpp>
-#include <so_5/rt/h/send_functions.hpp>
+#include <so_5/rt/environment.hpp>
+#include <so_5/rt/send_functions.hpp>
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 

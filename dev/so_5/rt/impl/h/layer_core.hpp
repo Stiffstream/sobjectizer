@@ -15,7 +15,7 @@
 
 #include <so_5/exception.hpp>
 
-#include <so_5/rt/h/so_layer.hpp>
+#include <so_5/rt/so_layer.hpp>
 
 namespace so_5
 {

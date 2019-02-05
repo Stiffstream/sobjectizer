@@ -12,9 +12,9 @@
 
 #pragma once
 
-#include <so_5/rt/h/mchain.hpp>
-#include <so_5/rt/h/mchain_select_ifaces.hpp>
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/mchain.hpp>
+#include <so_5/rt/mchain_select_ifaces.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/ret_code.hpp>
 #include <so_5/exception.hpp>

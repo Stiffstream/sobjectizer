@@ -21,10 +21,10 @@
 
 #include <so_5/exception.hpp>
 
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/agent_coop.hpp>
-#include <so_5/rt/h/coop_listener.hpp>
-#include <so_5/rt/h/environment_infrastructure.hpp>
+#include <so_5/rt/agent.hpp>
+#include <so_5/rt/agent_coop.hpp>
+#include <so_5/rt/coop_listener.hpp>
+#include <so_5/rt/environment_infrastructure.hpp>
 
 #include <so_5/rt/stats/h/repository.hpp>
 

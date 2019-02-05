@@ -16,11 +16,11 @@
 #include <functional>
 #include <mutex>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/mchain.hpp>
-#include <so_5/rt/h/nonempty_name.hpp>
+#include <so_5/rt/mbox.hpp>
+#include <so_5/rt/mchain.hpp>
+#include <so_5/rt/nonempty_name.hpp>
 
-#include <so_5/rt/h/message_limit.hpp>
+#include <so_5/rt/message_limit.hpp>
 
 #include <so_5/atomic_refcounted.hpp>
 #include <so_5/msg_tracing.hpp>

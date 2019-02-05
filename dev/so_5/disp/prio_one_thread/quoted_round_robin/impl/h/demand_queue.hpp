@@ -17,8 +17,8 @@
 #include <memory>
 #include <atomic>
 
-#include <so_5/rt/h/execution_demand.hpp>
-#include <so_5/rt/h/event_queue.hpp>
+#include <so_5/rt/execution_demand.hpp>
+#include <so_5/rt/event_queue.hpp>
 
 #include <so_5/priority.hpp>
 

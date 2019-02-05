@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <string>
 
@@ -21,7 +21,7 @@
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_timer_thread_stats.hpp>
 
-#include <so_5/rt/h/env_infrastructures.hpp>
+#include <so_5/rt/env_infrastructures.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

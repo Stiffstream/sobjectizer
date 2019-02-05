@@ -12,7 +12,7 @@
 
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 
-#include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/environment.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 

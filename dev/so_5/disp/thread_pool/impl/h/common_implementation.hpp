@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/event_queue.hpp>
+#include <so_5/rt/disp.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 #include <so_5/disp/reuse/h/thread_pool_stats.hpp>
