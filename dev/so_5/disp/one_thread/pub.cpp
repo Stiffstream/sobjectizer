@@ -4,15 +4,15 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-#include <so_5/rt/disp.hpp>
-#include <so_5/rt/environment.hpp>
-#include <so_5/rt/send_functions.hpp>
+#include <so_5/disp.hpp>
+#include <so_5/environment.hpp>
+#include <so_5/send_functions.hpp>
 
-#include <so_5/rt/stats/h/repository.hpp>
-#include <so_5/rt/stats/h/messages.hpp>
-#include <so_5/rt/stats/h/std_names.hpp>
+#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/h/messages.hpp>
+#include <so_5/stats/h/std_names.hpp>
 
-#include <so_5/rt/stats/impl/h/activity_tracking.hpp>
+#include <so_5/stats/impl/h/activity_tracking.hpp>
 
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 

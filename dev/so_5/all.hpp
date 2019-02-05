@@ -12,12 +12,12 @@
 
 #pragma once
 
-#include <so_5/rt/rt.hpp>
+#include <so_5/rt.hpp>
 #include <so_5/api.hpp>
 #include <so_5/wrapped_env.hpp>
-#include <so_5/rt/env_infrastructures.hpp>
+#include <so_5/env_infrastructures.hpp>
 
-#include <so_5/rt/enveloped_msg.hpp>
+#include <so_5/enveloped_msg.hpp>
 
 #include <so_5/mchain_helper_functions.hpp>
 #include <so_5/thread_helper_functions.hpp>

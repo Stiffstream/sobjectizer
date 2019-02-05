@@ -23,10 +23,10 @@
 #include <so_5/spinlocks.hpp>
 #include <so_5/atomic_refcounted.hpp>
 
-#include <so_5/rt/event_queue.hpp>
-#include <so_5/rt/disp.hpp>
+#include <so_5/event_queue.hpp>
+#include <so_5/disp.hpp>
 
-#include <so_5/rt/stats/impl/h/activity_tracking.hpp>
+#include <so_5/stats/impl/h/activity_tracking.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 

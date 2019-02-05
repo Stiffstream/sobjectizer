@@ -12,7 +12,7 @@
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
-#include <so_5/rt/impl/h/mbox_iface_for_timers.hpp>
+#include <so_5/impl/h/mbox_iface_for_timers.hpp>
 
 #include <so_5/stdcpp.hpp>
 

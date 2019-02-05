@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/rt/mbox.hpp>
+#include <so_5/mbox.hpp>
 
 #include <so_5/msg_tracing.hpp>
 #include <so_5/outliving.hpp>

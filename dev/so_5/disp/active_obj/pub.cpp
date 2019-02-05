@@ -4,9 +4,9 @@
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-#include <so_5/rt/disp.hpp>
-#include <so_5/rt/event_queue.hpp>
-#include <so_5/rt/send_functions.hpp>
+#include <so_5/disp.hpp>
+#include <so_5/event_queue.hpp>
+#include <so_5/send_functions.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 
@@ -16,9 +16,9 @@
 
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
-#include <so_5/rt/stats/h/repository.hpp>
-#include <so_5/rt/stats/h/messages.hpp>
-#include <so_5/rt/stats/h/std_names.hpp>
+#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/h/messages.hpp>
+#include <so_5/stats/h/std_names.hpp>
 
 #include <so_5/stdcpp.hpp>
 

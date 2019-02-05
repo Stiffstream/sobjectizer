@@ -17,8 +17,8 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/rt/disp.hpp>
-#include <so_5/rt/disp_binder.hpp>
+#include <so_5/disp.hpp>
+#include <so_5/disp_binder.hpp>
 
 #include <so_5/priority.hpp>
 
