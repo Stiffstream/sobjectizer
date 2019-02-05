@@ -10,7 +10,7 @@
  * \brief Interfaces of data source and data sources repository.
  */
 
-#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/repository.hpp>
 
 namespace so_5
 {

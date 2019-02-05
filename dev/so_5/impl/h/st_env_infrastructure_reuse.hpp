@@ -20,13 +20,13 @@
 
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 
-#include <so_5/stats/impl/h/activity_tracking.hpp>
-#include <so_5/stats/impl/h/st_env_stuff.hpp>
-#include <so_5/stats/h/controller.hpp>
-#include <so_5/stats/h/repository.hpp>
-#include <so_5/stats/h/prefix.hpp>
-#include <so_5/stats/h/messages.hpp>
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/impl/activity_tracking.hpp>
+#include <so_5/stats/impl/st_env_stuff.hpp>
+#include <so_5/stats/controller.hpp>
+#include <so_5/stats/repository.hpp>
+#include <so_5/stats/prefix.hpp>
+#include <so_5/stats/messages.hpp>
+#include <so_5/stats/std_names.hpp>
 
 #include <so_5/send_functions.hpp>
 #include <so_5/env_infrastructures.hpp>

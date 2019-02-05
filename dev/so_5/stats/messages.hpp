@@ -16,8 +16,8 @@
 
 #include <so_5/message.hpp>
 
-#include <so_5/stats/h/prefix.hpp>
-#include <so_5/stats/h/work_thread_activity.hpp>
+#include <so_5/stats/prefix.hpp>
+#include <so_5/stats/work_thread_activity.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)

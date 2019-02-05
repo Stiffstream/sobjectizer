@@ -10,10 +10,10 @@
  * \brief A data source class for run-time monitoring of mbox_core.
  */
 
-#include <so_5/stats/impl/h/ds_mbox_core_stats.hpp>
+#include <so_5/stats/impl/ds_mbox_core_stats.hpp>
 
-#include <so_5/stats/h/messages.hpp>
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/messages.hpp>
+#include <so_5/stats/std_names.hpp>
 
 #include <so_5/send_functions.hpp>
 

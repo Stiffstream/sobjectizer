@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include <so_5/stats/h/controller.hpp>
-#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/controller.hpp>
+#include <so_5/stats/repository.hpp>
 
 #include <condition_variable>
 #include <mutex>

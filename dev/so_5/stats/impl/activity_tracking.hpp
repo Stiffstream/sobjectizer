@@ -15,7 +15,7 @@
 #include <so_5/types.hpp>
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/stats/h/work_thread_activity.hpp>
+#include <so_5/stats/work_thread_activity.hpp>
 
 namespace so_5
 {

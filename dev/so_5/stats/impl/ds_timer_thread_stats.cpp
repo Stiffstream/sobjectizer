@@ -10,10 +10,10 @@
  * \brief A data source class for run-time monitoring of timer_thread.
  */
 
-#include <so_5/stats/impl/h/ds_timer_thread_stats.hpp>
+#include <so_5/stats/impl/ds_timer_thread_stats.hpp>
 
-#include <so_5/stats/h/messages.hpp>
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/messages.hpp>
+#include <so_5/stats/std_names.hpp>
 
 #include <so_5/send_functions.hpp>
 

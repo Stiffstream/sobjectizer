@@ -7,12 +7,12 @@
  * v.5.5.4
  *
  * \file
- * \brief A data source class for run-time monitoring of timer_thread.
+ * \brief A data source class for run-time monitoring of agent_core.
  */
 
 #pragma once
 
-#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/repository.hpp>
 
 #include <so_5/environment_infrastructure.hpp>
 
@@ -23,18 +23,18 @@ namespace stats {
 namespace impl {
 
 //
-// ds_timer_thread_stats_t
+// ds_agent_core_stats_t
 //
 /*!
  * \since
  * v.5.5.4
  *
- * \brief A data source for distributing information about timer_thread.
+ * \brief A data source for distributing information about agent_core.
  */
-class ds_timer_thread_stats_t : public auto_registered_source_t
+class ds_agent_core_stats_t final : public auto_registered_source_t
 	{
 	public :
-		ds_timer_thread_stats_t(
+		ds_agent_core_stats_t(
 			//! Repository for data source.
 			outliving_reference_t< repository_t > repo,
 			//! What to watch.

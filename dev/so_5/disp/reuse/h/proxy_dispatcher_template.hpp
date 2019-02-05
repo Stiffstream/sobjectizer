@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-#include <so_5/stats/impl/h/activity_tracking.hpp>
+#include <so_5/stats/impl/activity_tracking.hpp>
 
 #include <so_5/impl/h/internal_env_iface.hpp>
 

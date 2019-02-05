@@ -10,7 +10,7 @@
  * \brief Standard data sources prefixes and suffixes used by SObjectizer.
  */
 
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/std_names.hpp>
 
 namespace so_5 {
 

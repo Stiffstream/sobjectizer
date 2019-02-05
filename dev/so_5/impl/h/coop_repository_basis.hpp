@@ -26,7 +26,7 @@
 #include <so_5/coop_listener.hpp>
 #include <so_5/environment_infrastructure.hpp>
 
-#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/repository.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)

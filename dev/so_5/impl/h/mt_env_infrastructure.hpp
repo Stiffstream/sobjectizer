@@ -19,7 +19,7 @@
 
 #include <so_5/impl/h/coop_repository_basis.hpp>
 
-#include <so_5/stats/impl/h/std_controller.hpp>
+#include <so_5/stats/impl/std_controller.hpp>
 
 #include <so_5/timers.hpp>
 

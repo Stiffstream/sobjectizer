@@ -22,7 +22,7 @@
 #include <so_5/event_queue.hpp>
 #include <so_5/disp.hpp>
 
-#include <so_5/stats/impl/h/activity_tracking.hpp>
+#include <so_5/stats/impl/activity_tracking.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 

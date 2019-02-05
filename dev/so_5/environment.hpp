@@ -39,8 +39,8 @@
 
 #include <so_5/timers.hpp>
 
-#include <so_5/stats/h/controller.hpp>
-#include <so_5/stats/h/repository.hpp>
+#include <so_5/stats/controller.hpp>
+#include <so_5/stats/repository.hpp>
 
 #include <so_5/queue_locks_defaults_manager.hpp>
 

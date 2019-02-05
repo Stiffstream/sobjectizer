@@ -16,10 +16,10 @@
 
 #include <so_5/impl/h/run_stage.hpp>
 
-#include <so_5/stats/impl/h/std_controller.hpp>
-#include <so_5/stats/impl/h/ds_mbox_core_stats.hpp>
-#include <so_5/stats/impl/h/ds_agent_core_stats.hpp>
-#include <so_5/stats/impl/h/ds_timer_thread_stats.hpp>
+#include <so_5/stats/impl/std_controller.hpp>
+#include <so_5/stats/impl/ds_mbox_core_stats.hpp>
+#include <so_5/stats/impl/ds_agent_core_stats.hpp>
+#include <so_5/stats/impl/ds_timer_thread_stats.hpp>
 
 #include <so_5/env_infrastructures.hpp>
 

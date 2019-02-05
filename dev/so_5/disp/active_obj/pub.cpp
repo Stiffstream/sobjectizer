@@ -16,9 +16,9 @@
 
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
-#include <so_5/stats/h/repository.hpp>
-#include <so_5/stats/h/messages.hpp>
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/repository.hpp>
+#include <so_5/stats/messages.hpp>
+#include <so_5/stats/std_names.hpp>
 
 #include <so_5/stdcpp.hpp>
 

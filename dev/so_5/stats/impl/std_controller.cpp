@@ -10,9 +10,9 @@
  * \brief A standard implementation of controller for run-time monitoring.
  */
 
-#include <so_5/stats/impl/h/std_controller.hpp>
+#include <so_5/stats/impl/std_controller.hpp>
 
-#include <so_5/stats/h/messages.hpp>
+#include <so_5/stats/messages.hpp>
 
 #include <so_5/send_functions.hpp>
 

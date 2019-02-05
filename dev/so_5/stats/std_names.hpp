@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/stats/h/prefix.hpp>
+#include <so_5/stats/prefix.hpp>
 
 #include <so_5/declspec.hpp>
 

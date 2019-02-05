@@ -20,9 +20,9 @@
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
 
-#include <so_5/stats/h/repository.hpp>
-#include <so_5/stats/h/messages.hpp>
-#include <so_5/stats/h/std_names.hpp>
+#include <so_5/stats/repository.hpp>
+#include <so_5/stats/messages.hpp>
+#include <so_5/stats/std_names.hpp>
 
 #include <so_5/send_functions.hpp>
 
