@@ -2,9 +2,9 @@
  * A test for so_5::details::lock_holder_detector.
  */
 
-#include <so_5/details/h/sync_helpers.hpp>
+#include <so_5/details/sync_helpers.hpp>
 
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 #include <iostream>
 

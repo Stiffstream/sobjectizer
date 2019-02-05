@@ -7,9 +7,9 @@
 #include <thread>
 #include <mutex>
 
-#include <utest_helper_1/h/helper.hpp>
+#include <test/3rd_party/utest_helper/helper.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <so_5/spinlocks.hpp>
 
 template< typename M, typename WRITE_LOCK, typename READ_LOCK >
 class TestData

@@ -3,9 +3,9 @@
  *
  */
 
-#include <so_5/details/h/remaining_time_counter.hpp>
+#include <so_5/details/remaining_time_counter.hpp>
 
-#include <various_helpers_1/ensure.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
 #include <cstdlib>
 #include <iostream>
