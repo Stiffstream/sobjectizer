@@ -7,16 +7,16 @@
 #include <so_5/enveloped_msg.hpp>
 #include <so_5/environment.hpp>
 
-#include <so_5/impl/h/internal_env_iface.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
-#include <so_5/impl/h/state_listener_controller.hpp>
-#include <so_5/impl/h/subscription_storage_iface.hpp>
-#include <so_5/impl/h/process_unhandled_exception.hpp>
-#include <so_5/impl/h/message_limit_internals.hpp>
-#include <so_5/impl/h/delivery_filter_storage.hpp>
-#include <so_5/impl/h/msg_tracing_helpers.hpp>
+#include <so_5/impl/state_listener_controller.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
+#include <so_5/impl/process_unhandled_exception.hpp>
+#include <so_5/impl/message_limit_internals.hpp>
+#include <so_5/impl/delivery_filter_storage.hpp>
+#include <so_5/impl/msg_tracing_helpers.hpp>
 
-#include <so_5/impl/h/enveloped_msg_details.hpp>
+#include <so_5/impl/enveloped_msg_details.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 

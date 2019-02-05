@@ -6,15 +6,15 @@
 
 #include <string>
 
-#include <so_5/impl/h/internal_env_iface.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
-#include <so_5/impl/h/mbox_core.hpp>
-#include <so_5/impl/h/disp_repository.hpp>
-#include <so_5/impl/h/layer_core.hpp>
-#include <so_5/impl/h/stop_guard_repo.hpp>
-#include <so_5/impl/h/std_msg_tracer_holder.hpp>
+#include <so_5/impl/mbox_core.hpp>
+#include <so_5/impl/disp_repository.hpp>
+#include <so_5/impl/layer_core.hpp>
+#include <so_5/impl/stop_guard_repo.hpp>
+#include <so_5/impl/std_msg_tracer_holder.hpp>
 
-#include <so_5/impl/h/run_stage.hpp>
+#include <so_5/impl/run_stage.hpp>
 
 #include <so_5/stats/impl/std_controller.hpp>
 #include <so_5/stats/impl/ds_mbox_core_stats.hpp>

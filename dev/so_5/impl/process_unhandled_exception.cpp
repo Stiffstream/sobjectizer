@@ -10,7 +10,7 @@
  * \brief Helpers for handling unhandled exceptions from agent's event handlers.
  */
 
-#include <so_5/impl/h/process_unhandled_exception.hpp>
+#include <so_5/impl/process_unhandled_exception.hpp>
 
 #include <so_5/environment.hpp>
 

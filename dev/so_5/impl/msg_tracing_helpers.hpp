@@ -18,9 +18,9 @@
 #include <so_5/mchain.hpp>
 #include <so_5/agent.hpp>
 
-#include <so_5/impl/h/internal_env_iface.hpp>
-#include <so_5/impl/h/internal_message_iface.hpp>
-#include <so_5/impl/h/message_limit_action_msg_tracer.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
+#include <so_5/impl/internal_message_iface.hpp>
+#include <so_5/impl/message_limit_action_msg_tracer.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 #include <so_5/details/h/ios_helpers.hpp>

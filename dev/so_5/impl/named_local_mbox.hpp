@@ -14,7 +14,7 @@
 
 #include <so_5/mbox.hpp>
 
-#include <so_5/impl/h/mbox_core.hpp>
+#include <so_5/impl/mbox_core.hpp>
 
 namespace so_5
 {

@@ -10,7 +10,7 @@
  * v.5.5.22
  */
 
-#include <so_5/impl/h/msg_tracing_helpers.hpp>
+#include <so_5/impl/msg_tracing_helpers.hpp>
 
 namespace so_5 {
 

@@ -11,8 +11,8 @@
 
 #include <so_5/message_limit.hpp>
 
-#include <so_5/impl/h/message_limit_action_msg_tracer.hpp>
-#include <so_5/impl/h/enveloped_msg_details.hpp>
+#include <so_5/impl/message_limit_action_msg_tracer.hpp>
+#include <so_5/impl/enveloped_msg_details.hpp>
 
 #include <so_5/environment.hpp>
 #include <so_5/enveloped_msg.hpp>

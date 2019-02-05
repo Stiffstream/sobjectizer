@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <so_5/impl/h/named_local_mbox.hpp>
+#include <so_5/impl/named_local_mbox.hpp>
 
 namespace so_5
 {

@@ -15,8 +15,8 @@
 
 #include <so_5/environment_infrastructure.hpp>
 
-#include <so_5/impl/h/coop_repository_basis.hpp>
-#include <so_5/impl/h/mbox_iface_for_timers.hpp>
+#include <so_5/impl/coop_repository_basis.hpp>
+#include <so_5/impl/mbox_iface_for_timers.hpp>
 
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 

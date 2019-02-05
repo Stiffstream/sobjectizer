@@ -9,7 +9,7 @@
  * \since
  * v.5.5.19
  */
-#include <so_5/impl/h/coop_repository_basis.hpp>
+#include <so_5/impl/coop_repository_basis.hpp>
 
 #include <so_5/environment.hpp>
 

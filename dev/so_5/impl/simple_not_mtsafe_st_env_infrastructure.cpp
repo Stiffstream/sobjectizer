@@ -11,7 +11,7 @@
  * v.5.5.19
  */
 
-#include <so_5/impl/h/run_stage.hpp>
+#include <so_5/impl/run_stage.hpp>
 
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 
@@ -23,7 +23,7 @@
 
 #include <so_5/stdcpp.hpp>
 
-#include <so_5/impl/h/st_env_infrastructure_reuse.hpp>
+#include <so_5/impl/st_env_infrastructure_reuse.hpp>
 
 namespace so_5 {
 

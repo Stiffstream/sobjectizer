@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/impl/h/disp_repository.hpp>
+#include <so_5/impl/disp_repository.hpp>
 
 #include <so_5/ret_code.hpp>
 

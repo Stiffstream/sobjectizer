@@ -2,14 +2,14 @@
 	SObjectizer 5.
 */
 
-#include <so_5/impl/h/mbox_core.hpp>
+#include <so_5/impl/mbox_core.hpp>
 
 #include <so_5/exception.hpp>
 
-#include <so_5/impl/h/local_mbox.hpp>
-#include <so_5/impl/h/named_local_mbox.hpp>
-#include <so_5/impl/h/mpsc_mbox.hpp>
-#include <so_5/impl/h/mchain_details.hpp>
+#include <so_5/impl/local_mbox.hpp>
+#include <so_5/impl/named_local_mbox.hpp>
+#include <so_5/impl/mpsc_mbox.hpp>
+#include <so_5/impl/mchain_details.hpp>
 
 #include <algorithm>
 

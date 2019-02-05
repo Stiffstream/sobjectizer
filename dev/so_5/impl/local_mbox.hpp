@@ -23,9 +23,9 @@
 #include <so_5/agent.hpp>
 #include <so_5/enveloped_msg.hpp>
 
-#include <so_5/impl/h/agent_ptr_compare.hpp>
-#include <so_5/impl/h/message_limit_internals.hpp>
-#include <so_5/impl/h/msg_tracing_helpers.hpp>
+#include <so_5/impl/agent_ptr_compare.hpp>
+#include <so_5/impl/message_limit_internals.hpp>
+#include <so_5/impl/msg_tracing_helpers.hpp>
 
 namespace so_5
 {

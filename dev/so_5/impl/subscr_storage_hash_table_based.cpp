@@ -10,7 +10,7 @@
  * \brief A hash_table-based storage for agent's subscriptions information.
  */
 
-#include <so_5/impl/h/subscription_storage_iface.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
 
 #include <algorithm>
 #include <map>

@@ -14,7 +14,7 @@
 #include <so_5/enveloped_msg.hpp>
 #include <so_5/agent.hpp>
 
-#include <so_5/impl/h/subscription_storage_iface.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 

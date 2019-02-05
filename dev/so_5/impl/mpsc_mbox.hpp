@@ -20,8 +20,8 @@
 #include <so_5/event_queue.hpp>
 #include <so_5/message_limit.hpp>
 
-#include <so_5/impl/h/msg_tracing_helpers.hpp>
-#include <so_5/impl/h/message_limit_internals.hpp>
+#include <so_5/impl/msg_tracing_helpers.hpp>
+#include <so_5/impl/message_limit_internals.hpp>
 
 namespace so_5
 {

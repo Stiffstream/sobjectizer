@@ -17,7 +17,7 @@
 
 #include <so_5/disp/one_thread/h/params.hpp>
 
-#include <so_5/impl/h/coop_repository_basis.hpp>
+#include <so_5/impl/coop_repository_basis.hpp>
 
 #include <so_5/stats/impl/std_controller.hpp>
 

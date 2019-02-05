@@ -10,9 +10,9 @@
  * v.5.5.19
  */
 
-#include <so_5/impl/h/mt_env_infrastructure.hpp>
+#include <so_5/impl/mt_env_infrastructure.hpp>
 
-#include <so_5/impl/h/run_stage.hpp>
+#include <so_5/impl/run_stage.hpp>
 
 #include <so_5/environment.hpp>
 #include <so_5/send_functions.hpp>

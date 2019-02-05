@@ -2,7 +2,7 @@
 	SObjectizer 5.
 */
 
-#include <so_5/impl/h/layer_core.hpp>
+#include <so_5/impl/layer_core.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 

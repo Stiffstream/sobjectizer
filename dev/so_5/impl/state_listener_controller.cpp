@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include <so_5/impl/h/state_listener_controller.hpp>
+#include <so_5/impl/state_listener_controller.hpp>
 
 namespace so_5
 {

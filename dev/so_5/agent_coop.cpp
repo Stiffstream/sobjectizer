@@ -9,9 +9,9 @@
 
 #include <so_5/environment.hpp>
 
-#include <so_5/impl/h/internal_env_iface.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
-#include <so_5/impl/h/agent_ptr_compare.hpp>
+#include <so_5/impl/agent_ptr_compare.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 

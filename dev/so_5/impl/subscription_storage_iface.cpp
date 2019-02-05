@@ -10,7 +10,7 @@
  * \brief An interface of subscription storage.
  */
 
-#include <so_5/impl/h/subscription_storage_iface.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
 
 namespace so_5
 {

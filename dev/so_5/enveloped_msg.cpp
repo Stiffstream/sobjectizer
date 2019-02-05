@@ -12,7 +12,7 @@
 
 #include <so_5/enveloped_msg.hpp>
 
-#include <so_5/impl/h/enveloped_msg_details.hpp>
+#include <so_5/impl/enveloped_msg_details.hpp>
 
 namespace so_5 {
 

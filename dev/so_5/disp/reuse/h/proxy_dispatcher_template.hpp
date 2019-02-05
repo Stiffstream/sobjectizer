@@ -19,7 +19,7 @@
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
-#include <so_5/impl/h/internal_env_iface.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
 namespace so_5 {
 
