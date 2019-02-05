@@ -18,7 +18,7 @@
 #include <so_5/stats/work_thread_activity.hpp>
 #include <so_5/stats/impl/activity_tracking.hpp>
 
-#include <so_5/details/h/at_scope_exit.hpp>
+#include <so_5/details/at_scope_exit.hpp>
 
 #include <thread>
 

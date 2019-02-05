@@ -13,7 +13,7 @@
 
 #include <so_5/impl/agent_ptr_compare.hpp>
 
-#include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
 
 namespace so_5
 {

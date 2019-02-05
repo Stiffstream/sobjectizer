@@ -14,7 +14,7 @@
 
 #include <so_5/environment.hpp>
 
-#include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
 
 namespace so_5 {
 

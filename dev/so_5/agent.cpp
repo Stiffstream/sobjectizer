@@ -18,7 +18,7 @@
 
 #include <so_5/impl/enveloped_msg_details.hpp>
 
-#include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <so_5/spinlocks.hpp>
 

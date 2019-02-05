@@ -8,7 +8,7 @@
 #include <so_5/event_queue.hpp>
 #include <so_5/send_functions.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>

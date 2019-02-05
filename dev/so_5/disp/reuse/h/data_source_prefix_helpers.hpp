@@ -14,7 +14,7 @@
 
 #include <so_5/stats/prefix.hpp>
 
-#include <so_5/details/h/ios_helpers.hpp>
+#include <so_5/details/ios_helpers.hpp>
 
 #include <sstream>
 

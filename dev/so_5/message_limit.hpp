@@ -15,8 +15,8 @@
 #include <so_5/mbox.hpp>
 #include <so_5/enveloped_msg.hpp>
 
-#include <so_5/details/h/lambda_traits.hpp>
-#include <so_5/details/h/invoke_noexcept_code.hpp>
+#include <so_5/details/lambda_traits.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
 
 #include <so_5/optional.hpp>
 

@@ -20,9 +20,9 @@
 #include <so_5/exception.hpp>
 #include <so_5/error_logger.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
-#include <so_5/details/h/abort_on_fatal_error.hpp>
-#include <so_5/details/h/at_scope_exit.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
+#include <so_5/details/at_scope_exit.hpp>
 
 #include <so_5/fwd.hpp>
 

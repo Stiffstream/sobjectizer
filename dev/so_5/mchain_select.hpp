@@ -13,9 +13,9 @@
 
 #include <so_5/mchain_select_ifaces.hpp>
 
-#include <so_5/details/h/at_scope_exit.hpp>
-#include <so_5/details/h/invoke_noexcept_code.hpp>
-#include <so_5/details/h/remaining_time_counter.hpp>
+#include <so_5/details/at_scope_exit.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
+#include <so_5/details/remaining_time_counter.hpp>
 
 #include <iterator>
 #include <array>

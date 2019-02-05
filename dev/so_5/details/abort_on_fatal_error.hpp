@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <so_5/details/h/invoke_noexcept_code.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
 
 #include <cstdlib>
 

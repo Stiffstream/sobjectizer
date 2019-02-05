@@ -22,8 +22,8 @@
 #include <so_5/impl/internal_message_iface.hpp>
 #include <so_5/impl/message_limit_action_msg_tracer.hpp>
 
-#include <so_5/details/h/invoke_noexcept_code.hpp>
-#include <so_5/details/h/ios_helpers.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
+#include <so_5/details/ios_helpers.hpp>
 
 #include <sstream>
 #include <tuple>

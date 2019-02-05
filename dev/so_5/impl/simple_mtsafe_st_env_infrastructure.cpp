@@ -18,8 +18,8 @@
 #include <so_5/environment.hpp>
 #include <so_5/send_functions.hpp>
 
-#include <so_5/details/h/at_scope_exit.hpp>
-#include <so_5/details/h/sync_helpers.hpp>
+#include <so_5/details/at_scope_exit.hpp>
+#include <so_5/details/sync_helpers.hpp>
 
 #include <so_5/stdcpp.hpp>
 

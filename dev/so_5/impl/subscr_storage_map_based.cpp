@@ -16,7 +16,7 @@
 #include <iterator>
 #include <map>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 namespace so_5
 {

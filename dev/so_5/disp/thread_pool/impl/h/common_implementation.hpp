@@ -18,7 +18,7 @@
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 #include <so_5/disp/reuse/h/thread_pool_stats.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <mutex>
 

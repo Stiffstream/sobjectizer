@@ -15,7 +15,7 @@
 #include <so_5/exception.hpp>
 #include <so_5/ret_code.hpp>
 
-#include <so_5/details/h/lambda_traits.hpp>
+#include <so_5/details/lambda_traits.hpp>
 
 #include <so_5/execution_demand.hpp>
 #include <so_5/message_handler_format_detector.hpp>

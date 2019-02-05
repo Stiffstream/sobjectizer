@@ -14,7 +14,7 @@
 
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/details/h/invoke_noexcept_code.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
 
 #include <mutex>
 #include <condition_variable>

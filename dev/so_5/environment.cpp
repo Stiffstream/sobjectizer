@@ -23,7 +23,7 @@
 
 #include <so_5/env_infrastructures.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/stdcpp.hpp>
 

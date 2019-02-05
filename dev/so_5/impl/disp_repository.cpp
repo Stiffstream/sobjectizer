@@ -8,7 +8,7 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <algorithm>
 #include <mutex>

@@ -13,8 +13,8 @@
 
 #include <so_5/environment.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
-#include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <cstdlib>
 #include <algorithm>

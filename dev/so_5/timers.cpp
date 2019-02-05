@@ -10,7 +10,7 @@
 	\brief Timers and tools for working with timers.
 */
 
-#include <so_5/details/h/abort_on_fatal_error.hpp>
+#include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <so_5/impl/mbox_iface_for_timers.hpp>
 

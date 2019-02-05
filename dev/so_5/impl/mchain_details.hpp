@@ -20,7 +20,7 @@
 #include <so_5/exception.hpp>
 #include <so_5/error_logger.hpp>
 
-#include <so_5/details/h/at_scope_exit.hpp>
+#include <so_5/details/at_scope_exit.hpp>
 
 #include <deque>
 #include <vector>

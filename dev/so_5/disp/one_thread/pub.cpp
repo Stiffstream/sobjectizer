@@ -20,7 +20,7 @@
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/h/proxy_dispatcher_template.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/stdcpp.hpp>
 

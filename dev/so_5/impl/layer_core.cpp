@@ -4,7 +4,7 @@
 
 #include <so_5/impl/layer_core.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <algorithm>
 #include <iterator>

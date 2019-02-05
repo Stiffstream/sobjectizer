@@ -16,8 +16,8 @@
 
 #include <so_5/fwd.hpp>
 
-#include <so_5/details/h/invoke_noexcept_code.hpp>
-#include <so_5/details/h/remaining_time_counter.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
+#include <so_5/details/remaining_time_counter.hpp>
 
 #include <chrono>
 #include <functional>

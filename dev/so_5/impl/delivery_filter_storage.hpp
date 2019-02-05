@@ -16,7 +16,7 @@
 
 #include <so_5/compiler_features.hpp>
 
-#include <so_5/details/h/rollback_on_exception.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <map>
 
