@@ -89,12 +89,12 @@ set(SO_5_SRC exception.cpp
 function(setup_target_cxx_std TARGET_NAME)
 	if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
 		set_target_properties(${TARGET_NAME} PROPERTIES
-			CXX_STANDARD 11
+			CXX_STANDARD 17
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 		)
 	else()
-		target_compile_features(${TARGET_NAME} PUBLIC cxx_std_11)
+		target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 	endif()
 endfunction()
 
