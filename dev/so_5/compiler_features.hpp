@@ -34,9 +34,6 @@
 			#define SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR
 		#endif
 
-		// Visual C++ 2012 and 2013 have no constexpr
-		#define SO_5_CONSTEXPR
-
 		// Visual C++ 2013 have no normal initializing constructor
 		// for std::atomic.
 		#define SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR
@@ -76,10 +73,6 @@
 #else
 	#define SO_5_OVERLOAD_FOR_REF &
 	#define SO_5_OVERLOAD_FOR_RVALUE_REF &&
-#endif
-
-#if !defined(SO_5_CONSTEXPR)
-	#define SO_5_CONSTEXPR constexpr
 #endif
 
 // Try to use __has_cpp_attribute if it is supported.

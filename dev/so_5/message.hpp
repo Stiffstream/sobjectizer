@@ -437,7 +437,7 @@ struct message_mutability_traits
 		using subscription_type = payload_type;
 		using mhood_param_type = payload_type;
 
-		static const SO_5_CONSTEXPR message_mutability_t mutability =
+		static const constexpr message_mutability_t mutability =
 				message_mutability_t::immutable_message;
 	};
 
@@ -448,7 +448,7 @@ struct message_mutability_traits< immutable_msg<T> >
 		using subscription_type = T;
 		using mhood_param_type = T;
 
-		static const SO_5_CONSTEXPR message_mutability_t mutability =
+		static const constexpr message_mutability_t mutability =
 				message_mutability_t::immutable_message;
 	};
 
@@ -459,7 +459,7 @@ struct message_mutability_traits< mutable_msg<T> >
 		using subscription_type = mutable_msg<T>;
 		using mhood_param_type = mutable_msg<T>;
 
-		static const SO_5_CONSTEXPR message_mutability_t mutability =
+		static const constexpr message_mutability_t mutability =
 				message_mutability_t::mutable_message;
 	};
 
