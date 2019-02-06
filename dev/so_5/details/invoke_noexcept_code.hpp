@@ -12,14 +12,6 @@
 
 #pragma once
 
-#include <so_5/compiler_features.hpp>
-
-#if !defined(SO_5_HAVE_NOEXCEPT)
-	#include <exception>
-#endif
-
-#include <utility>
-
 namespace so_5 {
 
 namespace details {
@@ -37,21 +29,7 @@ template< typename L >
 auto
 invoke_noexcept_code( L lambda ) noexcept -> decltype(lambda())
 	{
-#if defined(SO_5_HAVE_NOEXCEPT)
-		// We can just rely on C++ compiler features.
 		return lambda();
-#else
-		// C++ compiler doesn't support noexcept.
-		// So we must intercept all exceptions by ourself.
-		try
-			{
-				return lambda();
-			}
-		catch( ... )
-			{
-				std::terminate();
-			}
-#endif
 	}
 
 } /* namespace details */
