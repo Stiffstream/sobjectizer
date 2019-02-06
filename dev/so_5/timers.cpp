@@ -14,8 +14,6 @@
 
 #include <so_5/impl/mbox_iface_for_timers.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <so_5/timers.hpp>
 
 #include <so_5/3rd_party/timertt/all.hpp>
@@ -172,7 +170,7 @@ class actual_thread_t : public timer_thread_t
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{
-				auto timer = stdcpp::make_unique< timer_demand_t >( m_thread.get() );
+				auto timer = std::make_unique< timer_demand_t >( m_thread.get() );
 
 				m_thread->activate( timer->timer_holder(),
 						pause,
@@ -298,7 +296,7 @@ class actual_manager_t : public timer_manager_t
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{
-				auto timer = stdcpp::make_unique< timer_demand_t >( m_manager.get() );
+				auto timer = std::make_unique< timer_demand_t >( m_manager.get() );
 
 				m_manager->activate( timer->timer_holder(),
 						pause,
@@ -587,13 +585,13 @@ create_timer_wheel_manager(
 		using timertt_manager_t = timers_details::timer_wheel_manager_t;
 		using namespace timers_details;
 
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = std::make_unique< timertt_manager_t >(
 				wheel_size,
 				granuality,
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return std::make_unique< actual_manager_t< timertt_manager_t > >(
 						std::move( manager ),
 						collector );
 	}
@@ -622,12 +620,12 @@ create_timer_heap_manager(
 		using timertt_manager_t = timers_details::timer_heap_manager_t;
 		using namespace timers_details;
 
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = std::make_unique< timertt_manager_t >(
 				initial_heap_capacity,
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return std::make_unique< actual_manager_t< timertt_manager_t > >(
 				std::move( manager ),
 				collector );
 	}
@@ -641,11 +639,11 @@ create_timer_list_manager(
 		using timertt_manager_t = timers_details::timer_list_manager_t;
 		using namespace timers_details;
 
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = std::make_unique< timertt_manager_t >(
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return std::make_unique< actual_manager_t< timertt_manager_t > >(
 				std::move( manager ),
 				collector );
 	}

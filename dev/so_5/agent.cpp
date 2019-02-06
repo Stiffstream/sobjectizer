@@ -22,8 +22,6 @@
 
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <algorithm>
 #include <sstream>
 #include <cstdlib>
@@ -379,7 +377,7 @@ state_t::time_limit(
 	// Old time limit must be dropped if it exists.
 	{
 		// As a defense from exception create new time_limit object first.
-		auto fresh_limit = stdcpp::make_unique< time_limit_t >(
+		auto fresh_limit = std::make_unique< time_limit_t >(
 				timeout, std::cref(state_to_switch) );
 		drop_time_limit();
 		m_time_limit = std::move(fresh_limit);

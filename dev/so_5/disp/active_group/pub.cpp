@@ -19,8 +19,6 @@
 #include <so_5/stats/messages.hpp>
 #include <so_5/stats/std_names.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <map>
 #include <mutex>
 #include <algorithm>
@@ -581,8 +579,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			const std::string & data_sources_name_base,
 			//! Parameters for the dispatcher.
 			disp_params_t params )
-			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
-					std::move( params ) ) )
+			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -599,7 +596,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		virtual so_5::disp_binder_unique_ptr_t
 		binder( const std::string & group_name ) override
 			{
-				return so_5::stdcpp::make_unique< private_dispatcher_binder_t >(
+				return std::make_unique< private_dispatcher_binder_t >(
 						private_dispatcher_handle_t( this ),
 						*m_disp,
 						group_name );
@@ -617,7 +614,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 SO_5_FUNC so_5::dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return so_5::stdcpp::make_unique< impl::proxy_dispatcher_t >(
+		return std::make_unique< impl::proxy_dispatcher_t >(
 				std::move(params) );
 	}
 
@@ -645,7 +642,7 @@ create_disp_binder(
 	const std::string & disp_name,
 	const std::string & group_name )
 	{
-		return so_5::stdcpp::make_unique< impl::disp_binder_t >(
+		return std::make_unique< impl::disp_binder_t >(
 				disp_name, group_name );
 	}
 

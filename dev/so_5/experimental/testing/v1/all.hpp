@@ -14,8 +14,6 @@
 
 #include <so_5/all.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <sstream>
 
 #if defined( SO_5_MSVC )
@@ -1386,7 +1384,7 @@ inline details::constraint_unique_ptr_t
 not_before(
 	std::chrono::steady_clock::duration pause )
 	{
-		return stdcpp::make_unique< details::not_before_constraint_t >(pause);
+		return std::make_unique< details::not_before_constraint_t >(pause);
 	}
 
 /*!
@@ -1417,7 +1415,7 @@ inline details::constraint_unique_ptr_t
 not_after(
 	std::chrono::steady_clock::duration pause )
 	{
-		return stdcpp::make_unique< details::not_after_constraint_t >(pause);
+		return std::make_unique< details::not_after_constraint_t >(pause);
 	}
 
 namespace details {
@@ -1637,7 +1635,7 @@ operator&(
 				*(src.m_src_mbox_id) : agent.so_direct_mbox()->id();
 
 		return {
-				stdcpp::make_unique<trigger_t>(
+				std::make_unique<trigger_t>(
 						Status,
 						agent,
 						src.m_msg_type,

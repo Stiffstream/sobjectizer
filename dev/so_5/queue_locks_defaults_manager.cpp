@@ -12,8 +12,6 @@
 
 #include <so_5/queue_locks_defaults_manager.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 namespace so_5 {
 
 namespace {
@@ -68,7 +66,7 @@ class manager_for_combined_locks_t
 SO_5_FUNC queue_locks_defaults_manager_unique_ptr_t
 make_defaults_manager_for_simple_locks()
 	{
-		return so_5::stdcpp::make_unique< manager_for_simple_locks_t >();
+		return std::make_unique< manager_for_simple_locks_t >();
 	}
 
 //
@@ -77,7 +75,7 @@ make_defaults_manager_for_simple_locks()
 SO_5_FUNC queue_locks_defaults_manager_unique_ptr_t
 make_defaults_manager_for_combined_locks()
 	{
-		return so_5::stdcpp::make_unique< manager_for_combined_locks_t >();
+		return std::make_unique< manager_for_combined_locks_t >();
 	}
 
 } /* namespace so_5 */

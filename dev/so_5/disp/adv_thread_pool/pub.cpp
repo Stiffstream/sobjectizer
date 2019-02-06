@@ -21,8 +21,6 @@
 #include <so_5/disp/reuse/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 namespace so_5
 {
 
@@ -200,8 +198,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base )
-			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
-					std::move( params ) ) )
+			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -219,7 +216,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		virtual disp_binder_unique_ptr_t
 		binder( const bind_params_t & params ) override
 			{
-				return so_5::stdcpp::make_unique< private_dispatcher_binder_t >(
+				return std::make_unique< private_dispatcher_binder_t >(
 						private_dispatcher_handle_t( this ),
 						*m_disp,
 						params );
@@ -254,8 +251,7 @@ create_disp(
 	{
 		adjust_thread_count( params );
 
-		return so_5::stdcpp::make_unique< proxy_dispatcher_t >(
-				std::move(params) );
+		return std::make_unique< proxy_dispatcher_t >( std::move(params) );
 	}
 
 //
@@ -284,7 +280,7 @@ create_disp_binder(
 	std::string disp_name,
 	const params_t & params )
 	{
-		return so_5::stdcpp::make_unique< disp_binder_t >(
+		return std::make_unique< disp_binder_t >(
 				std::move( disp_name ), params );
 	}
 

@@ -471,7 +471,7 @@ class real_scenario_t final : public abstract_scenario_t
 							"scenario is not started yet" );
 
 				m_steps.emplace_back(
-						stdcpp::make_unique< real_scenario_step_t >(
+						std::make_unique< real_scenario_step_t >(
 								step_name.giveout_value() ) );
 
 				return { m_steps.back().get() };
@@ -977,7 +977,7 @@ class special_event_queue_t final : public event_queue_t
 						// Original message must be wrapped into a special
 						// envelope and original demand must be modified.
 						message_ref_t new_env{
-							stdcpp::make_unique< special_envelope_t >(
+							std::make_unique< special_envelope_t >(
 									m_scenario,
 									std::cref(demand) )
 						};
@@ -1110,7 +1110,7 @@ class special_event_queue_hook_t final
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
-				auto sq = so_5::stdcpp::make_unique< special_event_queue_t >(
+				auto sq = std::make_unique< special_event_queue_t >(
 						m_scenario,
 						outliving_mutable( *original_queue ),
 						m_mode );
@@ -1195,7 +1195,7 @@ struct testing_env_t::internals_t
 
 		SO_5_NODISCARD
 		static std::unique_ptr< internals_t >
-		make() { return so_5::stdcpp::make_unique<internals_t>(); }
+		make() { return std::make_unique<internals_t>(); }
 	};
 
 namespace impl {

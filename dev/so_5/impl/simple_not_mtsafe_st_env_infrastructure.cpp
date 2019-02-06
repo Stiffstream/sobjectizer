@@ -21,8 +21,6 @@
 #include <so_5/details/at_scope_exit.hpp>
 #include <so_5/details/sync_helpers.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <so_5/impl/st_env_infrastructure_reuse.hpp>
 
 namespace so_5 {
@@ -484,7 +482,7 @@ template< typename Activity_Tracker >
 disp_binder_unique_ptr_t
 env_infrastructure_t< Activity_Tracker >::make_default_disp_binder()
 	{
-		return stdcpp::make_unique< default_disp_binder_t >(
+		return std::make_unique< default_disp_binder_t >(
 				outliving_mutable(m_default_disp) );
 	}
 

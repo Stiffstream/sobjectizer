@@ -3,7 +3,6 @@
  */
 
 #include <so_5/all.hpp>
-#include <so_5/stdcpp.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
@@ -73,9 +72,9 @@ post_enveloped(
 	Args && ...args )
 {
 	so_5::message_ref_t msg{
-			so_5::stdcpp::make_unique<Msg>( std::forward<Args>(args)... ) };
+			std::make_unique<Msg>( std::forward<Args>(args)... ) };
 	so_5::message_ref_t enveloped{
-			so_5::stdcpp::make_unique<test_envelope_t>(
+			std::make_unique<test_envelope_t>(
 					so_5::outliving_mutable(receiver),
 					std::move(id),
 					std::move(msg) ) };

@@ -27,8 +27,6 @@
 
 #include <so_5/details/invoke_noexcept_code.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <algorithm>
 
 namespace so_5 {
@@ -116,7 +114,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
 						auto lock_factory = params.queue_params().lock_factory();
 
-						auto t = so_5::stdcpp::make_unique< Work_Thread >(
+						auto t = std::make_unique< Work_Thread >(
 								std::move(lock_factory) );
 
 						m_threads.push_back( std::move(t) );
@@ -485,8 +483,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			const std::string & data_sources_name_base,
 			//! Parameters for the dispatcher.
 			disp_params_t params )
-			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
-					std::move( params ) ) )
+			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -521,7 +518,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 SO_5_FUNC dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return so_5::stdcpp::make_unique< impl::proxy_dispatcher_t >(
+		return std::make_unique< impl::proxy_dispatcher_t >(
 				std::move(params) );
 	}
 
@@ -548,7 +545,7 @@ SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	const std::string & disp_name )
 	{
-		return so_5::stdcpp::make_unique< impl::disp_binder_t >( disp_name );
+		return std::make_unique< impl::disp_binder_t >( disp_name );
 	}
 
 } /* namespace one_per_prio */

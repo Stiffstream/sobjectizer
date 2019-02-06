@@ -6,8 +6,6 @@
 
 #include <so_5/all.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <test/3rd_party/various_helpers/ensure.hpp>
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
@@ -63,7 +61,7 @@ run_with_expected_error(
 							so_5::exception_reaction_t::shutdown_sobjectizer_on_exception );
 
 					params.event_exception_logger(
-							so_5::stdcpp::make_unique< special_exception_logger_t >(
+							std::make_unique< special_exception_logger_t >(
 									so_5::outliving_mutable(actual_error) ) );
 
 					params.message_delivery_tracer(

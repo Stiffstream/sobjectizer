@@ -19,8 +19,6 @@
 
 #include <so_5/disp/one_thread/pub.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 namespace so_5 {
 
 namespace env_infrastructures {

@@ -26,8 +26,6 @@
 
 #include <so_5/send_functions.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 namespace so_5 {
 
 namespace disp {
@@ -433,8 +431,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			const std::string & data_sources_name_base,
 			//! Parameters for the dispatcher.
 			disp_params_t params )
-			:	m_disp( so_5::stdcpp::make_unique< proxy_dispatcher_t >(
-					std::move( params ) ) )
+			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -452,7 +449,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		virtual disp_binder_unique_ptr_t
 		binder() override
 			{
-				return so_5::stdcpp::make_unique< private_dispatcher_binder_t >(
+				return std::make_unique< private_dispatcher_binder_t >(
 						private_dispatcher_handle_t( this ),
 						*m_disp );
 			}
@@ -469,7 +466,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 SO_5_FUNC dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return so_5::stdcpp::make_unique< impl::proxy_dispatcher_t >(
+		return std::make_unique< impl::proxy_dispatcher_t >(
 				std::move(params) );
 	}
 
@@ -496,7 +493,7 @@ SO_5_FUNC disp_binder_unique_ptr_t
 create_disp_binder(
 	const std::string & disp_name )
 	{
-		return so_5::stdcpp::make_unique< impl::disp_binder_t >( disp_name );
+		return std::make_unique< impl::disp_binder_t >( disp_name );
 	}
 
 } /* namespace strictly_ordered */

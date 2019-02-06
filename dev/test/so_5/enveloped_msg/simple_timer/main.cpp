@@ -3,7 +3,6 @@
  */
 
 #include <so_5/all.hpp>
-#include <so_5/stdcpp.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
@@ -36,7 +35,7 @@ public :
 	so_evt_start() override
 	{
 		so_5::message_ref_t envelope(
-				so_5::stdcpp::make_unique< test_envelope_t >(
+				std::make_unique< test_envelope_t >(
 						m_trace,
 						"mb",
 						so_5::message_ref_t{} ) );

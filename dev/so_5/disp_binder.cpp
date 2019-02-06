@@ -8,8 +8,6 @@
 
 #include <so_5/spinlocks.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 namespace so_5
 {
 
@@ -65,7 +63,7 @@ class pre5_5_19_default_disp_binder_t final : public so_5::disp_binder_t
 SO_5_FUNC disp_binder_unique_ptr_t
 create_default_disp_binder()
 	{
-		return stdcpp::make_unique< impl::pre5_5_19_default_disp_binder_t >();
+		return std::make_unique< impl::pre5_5_19_default_disp_binder_t >();
 	}
 
 //

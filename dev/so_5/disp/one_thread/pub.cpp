@@ -22,8 +22,6 @@
 
 #include <so_5/details/rollback_on_exception.hpp>
 
-#include <so_5/stdcpp.hpp>
-
 #include <atomic>
 
 namespace so_5
@@ -638,7 +636,7 @@ create_binder_for_specific_dispatcher(
 	actual_disp_iface_t & actual_dispatcher =
 		dynamic_cast< actual_disp_iface_t & >(dispatcher);
 
-	return stdcpp::make_unique< disp_binder_for_specific_dispatcher_t >(
+	return std::make_unique< disp_binder_for_specific_dispatcher_t >(
 			std::ref(actual_dispatcher) );
 }
 

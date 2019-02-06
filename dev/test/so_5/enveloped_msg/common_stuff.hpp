@@ -5,7 +5,6 @@
 #pragma once
 
 #include <so_5/all.hpp>
-#include <so_5/stdcpp.hpp>
 
 class trace_t final
 	{
@@ -115,7 +114,7 @@ public :
 		so_5::outliving_reference_t< trace_t > trace,
 		std::string id )
 	{
-		return so_5::mbox_t{ so_5::stdcpp::make_unique< special_mbox_t >(
+		return so_5::mbox_t{ std::make_unique< special_mbox_t >(
 				std::move(actual_mbox),
 				trace,
 				std::move(id) )
@@ -161,7 +160,7 @@ public :
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) const override
 	{
-		auto envelope = so_5::stdcpp::make_unique< Envelope >(
+		auto envelope = std::make_unique< Envelope >(
 				m_trace,
 				allocate_counter(),
 				message );
@@ -178,7 +177,7 @@ public :
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) const override
 	{
-		auto envelope = so_5::stdcpp::make_unique< Envelope >(
+		auto envelope = std::make_unique< Envelope >(
 				m_trace,
 				allocate_counter(),
 				message );
@@ -195,7 +194,7 @@ public :
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) override
 	{
-		auto envelope = so_5::stdcpp::make_unique< Envelope >(
+		auto envelope = std::make_unique< Envelope >(
 				m_trace,
 				allocate_counter(),
 				message );
@@ -229,7 +228,7 @@ protected :
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message ) override
 	{
-		auto envelope = so_5::stdcpp::make_unique< Envelope >(
+		auto envelope = std::make_unique< Envelope >(
 				m_trace,
 				allocate_counter(),
 				message );
