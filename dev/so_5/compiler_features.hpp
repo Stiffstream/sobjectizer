@@ -18,8 +18,6 @@
 	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
 	// implementation.
 	#if _MSC_VER < 1900
-		#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
-
 		// Visual C++ 2013 doesn't support methods overloading based on
 		// reference or rvalue reference.
 		#define SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING

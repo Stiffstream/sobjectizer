@@ -25,7 +25,6 @@ unset(CURRENT_FILE_DIR)
 
 set(SO_5_SRC exception.cpp
 	exception.cpp
-	current_thread_id.cpp
 	error_logger.cpp
 	timers.cpp
 	msg_tracing.cpp

@@ -36,7 +36,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 		# ./
 		cpp_source 'exception.cpp'
-		cpp_source 'current_thread_id.cpp'
 
 		cpp_source 'error_logger.cpp'
 
