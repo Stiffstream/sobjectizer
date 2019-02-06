@@ -68,7 +68,7 @@ class SO_5_TYPE exception_t : public std::runtime_error
 
 		//! Error code getter.
 		int
-		error_code() const SO_5_NOEXCEPT { return m_error_code; }
+		error_code() const noexcept { return m_error_code; }
 
 		static void
 		raise(

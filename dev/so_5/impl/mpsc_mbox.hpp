@@ -206,7 +206,7 @@ class limitless_mpsc_mbox_template
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			agent_t & /*subscriber*/ ) noexcept override
 			{}
 
 	protected :

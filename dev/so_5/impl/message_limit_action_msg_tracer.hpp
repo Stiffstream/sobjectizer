@@ -39,13 +39,13 @@ class action_msg_tracer_t
 		virtual void
 		reaction_abort_app(
 			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber ) const SO_5_NOEXCEPT = 0;
+			const agent_t * subscriber ) const noexcept = 0;
 
 		//! Message will be dropped as result of overlimit.
 		virtual void
 		reaction_drop_message(
 			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber ) const SO_5_NOEXCEPT = 0;
+			const agent_t * subscriber ) const noexcept = 0;
 
 		//! Message will be redirected to another mbox.
 		virtual void
@@ -53,7 +53,7 @@ class action_msg_tracer_t
 			//! Agent-receiver for the problematic message.
 			const agent_t * subscriber,
 			//! A new destination for the message.
-			const mbox_t & target ) const SO_5_NOEXCEPT = 0;
+			const mbox_t & target ) const noexcept = 0;
 
 		//! Message will be transformed and redirected.
 		virtual void
@@ -65,7 +65,7 @@ class action_msg_tracer_t
 			//! A new type of message.
 			const std::type_index & msg_type,
 			//! An instance of new message.
-			const message_ref_t & transformed ) const SO_5_NOEXCEPT = 0;
+			const message_ref_t & transformed ) const noexcept = 0;
 	};
 
 } /* namespace impl */

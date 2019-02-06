@@ -57,7 +57,7 @@ public:
 	void
 	access_hook(
 		access_context_t context,
-		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
+		handler_invoker_t & invoker ) noexcept override
 	{
 		switch( context )
 		{
@@ -217,7 +217,7 @@ public :
 	void
 	drop_delivery_filter(
 		const std::type_index & msg_type,
-		so_5::agent_t & subscriber ) SO_5_NOEXCEPT override
+		so_5::agent_t & subscriber ) noexcept override
 	{
 		m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 	}

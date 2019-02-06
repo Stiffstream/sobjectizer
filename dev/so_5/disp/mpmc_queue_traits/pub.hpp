@@ -41,7 +41,7 @@ class SO_5_TYPE condition_t
 		condition_t & operator=( const condition_t & ) = delete;
 		condition_t & operator=( condition_t && ) = delete;
 		condition_t() = default;
-		virtual ~condition_t() SO_5_NOEXCEPT = default;
+		virtual ~condition_t() noexcept = default;
 
 		/*!
 		 * \brief Waiting on condition.
@@ -53,7 +53,7 @@ class SO_5_TYPE condition_t
 		 * is acquired by the current thread.
 		 */
 		virtual void
-		wait() SO_5_NOEXCEPT = 0;
+		wait() noexcept = 0;
 
 		/*!
 		 * \brief Notification for waiting customer.
@@ -62,7 +62,7 @@ class SO_5_TYPE condition_t
 		 * is acquired by the current thread.
 		 */
 		virtual void
-		notify() SO_5_NOEXCEPT = 0;
+		notify() noexcept = 0;
 	};
 
 //
@@ -92,15 +92,15 @@ class SO_5_TYPE lock_t
 		lock_t & operator=( lock_t && ) = delete;
 
 		lock_t() = default;
-		virtual ~lock_t() SO_5_NOEXCEPT = default;
+		virtual ~lock_t() noexcept = default;
 
 		//! Lock object in exclusive mode.
 		virtual void
-		lock() SO_5_NOEXCEPT = 0;
+		lock() noexcept = 0;
 
 		//! Unlock object locked in exclusive mode.
 		virtual void
-		unlock() SO_5_NOEXCEPT = 0;
+		unlock() noexcept = 0;
 
 		//! Create condition object for another MPMC queue's customer.
 		virtual condition_unique_ptr_t

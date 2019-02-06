@@ -87,7 +87,7 @@ public :
 	so_5::event_queue_t *
 	on_bind(
 		so_5::agent_t * /*agent*/,
-		so_5::event_queue_t * original_queue ) SO_5_NOEXCEPT override
+		so_5::event_queue_t * original_queue ) noexcept override
 	{
 		++m_created;
 
@@ -97,7 +97,7 @@ public :
 	void
 	on_unbind(
 		so_5::agent_t * /*agent*/,
-		so_5::event_queue_t * queue ) SO_5_NOEXCEPT override
+		so_5::event_queue_t * queue ) noexcept override
 	{
 		++m_destroyed;
 
@@ -106,11 +106,11 @@ public :
 
 	SO_5_NODISCARD
 	std::size_t
-	created() const SO_5_NOEXCEPT { return m_created.load(); }
+	created() const noexcept { return m_created.load(); }
 
 	SO_5_NODISCARD
 	std::size_t
-	destroyed() const SO_5_NOEXCEPT { return m_destroyed.load(); }
+	destroyed() const noexcept { return m_destroyed.load(); }
 };
 
 void

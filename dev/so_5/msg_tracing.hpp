@@ -68,12 +68,12 @@ class SO_5_TYPE tracer_t
 		tracer_t & operator=( tracer_t && ) = delete;
 	public :
 		tracer_t() = default;
-		virtual ~tracer_t() SO_5_NOEXCEPT = default;
+		virtual ~tracer_t() noexcept = default;
 
 		//! Store a description of message delivery action to the
 		//! appropriate storage/stream.
 		virtual void
-		trace( const std::string & what ) SO_5_NOEXCEPT = 0;
+		trace( const std::string & what ) noexcept = 0;
 	};
 
 //
@@ -253,40 +253,40 @@ class SO_5_TYPE trace_data_t
 		trace_data_t& operator=(const trace_data_t &) = delete;
 
 		trace_data_t() = default;
-		virtual ~trace_data_t() SO_5_NOEXCEPT = default;
+		virtual ~trace_data_t() noexcept = default;
 
 	public :
 		//! Get the Thread ID from trace message.
 		virtual optional<current_thread_id_t>
-		tid() const SO_5_NOEXCEPT = 0;
+		tid() const noexcept = 0;
 
 		//! Get the information about message type.
 		virtual optional<std::type_index>
-		msg_type() const SO_5_NOEXCEPT = 0;
+		msg_type() const noexcept = 0;
 
 		//! Get the information about message source.
 		virtual optional<msg_source_t>
-		msg_source() const SO_5_NOEXCEPT = 0;
+		msg_source() const noexcept = 0;
 
 		//! Get a pointer to agent from trace message.
 		virtual optional<const so_5::agent_t *>
-		agent() const SO_5_NOEXCEPT = 0;
+		agent() const noexcept = 0;
 
 		//! Get message or signal information.
 		virtual optional<message_or_signal_flag_t>
-		message_or_signal() const SO_5_NOEXCEPT = 0;
+		message_or_signal() const noexcept = 0;
 
 		//! Get message instance information.
 		virtual optional<message_instance_info_t>
-		message_instance_info() const SO_5_NOEXCEPT = 0;
+		message_instance_info() const noexcept = 0;
 
 		//! Get the description of a compound action.
 		virtual optional<compound_action_description_t>
-		compound_action() const SO_5_NOEXCEPT = 0;
+		compound_action() const noexcept = 0;
 
 		//! Get pointer to event handler.
 		virtual optional<const so_5::impl::event_handler_data_t *>
-		event_handler_data_ptr() const SO_5_NOEXCEPT = 0;
+		event_handler_data_ptr() const noexcept = 0;
 	};
 
 //
@@ -342,7 +342,7 @@ class SO_5_TYPE filter_t : private so_5::atomic_refcounted_t
 		friend class so_5::intrusive_ptr_t<filter_t>;
 
 	public :
-		virtual ~filter_t() SO_5_NOEXCEPT = default;
+		virtual ~filter_t() noexcept = default;
 
 		//! Filter the current message.
 		/*!
@@ -351,7 +351,7 @@ class SO_5_TYPE filter_t : private so_5::atomic_refcounted_t
 		virtual bool
 		filter(
 			//! Accessor of trace data.
-			const trace_data_t & data ) SO_5_NOEXCEPT = 0;
+			const trace_data_t & data ) noexcept = 0;
 	};
 
 //
@@ -385,7 +385,7 @@ class filter_from_lambda_t : public filter_t
 		filter_from_lambda_t( L lambda ) : m_lambda( std::move(lambda) ) {}
 
 		virtual bool
-		filter( const trace_data_t & data ) SO_5_NOEXCEPT
+		filter( const trace_data_t & data ) noexcept
 			{
 				return m_lambda( data );
 			}
@@ -536,14 +536,14 @@ class SO_5_TYPE holder_t
 	{
 	public :
 		holder_t() = default;
-		virtual ~holder_t() SO_5_NOEXCEPT = default;
+		virtual ~holder_t() noexcept = default;
 
 		holder_t(const holder_t &) = delete;
 		holder_t & operator=(const holder_t &) = delete;
 
 		//! Is message tracing enabled?
 		virtual bool
-		is_msg_tracing_enabled() const SO_5_NOEXCEPT = 0;
+		is_msg_tracing_enabled() const noexcept = 0;
 
 		//! Get access to the current message trace filter object.
 		/*!
@@ -552,7 +552,7 @@ class SO_5_TYPE holder_t
 		 * returns true.
 		 */
 		virtual filter_shptr_t
-		take_filter() SO_5_NOEXCEPT = 0;
+		take_filter() noexcept = 0;
 
 		//! Get pointer to the message tracer object.
 		/*!
@@ -561,7 +561,7 @@ class SO_5_TYPE holder_t
 		 * returns true.
 		 */
 		virtual tracer_t &
-		tracer() const SO_5_NOEXCEPT = 0;
+		tracer() const noexcept = 0;
 	};
 
 } /* namespace msg_tracing */

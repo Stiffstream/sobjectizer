@@ -1826,7 +1826,7 @@ class SO_5_TYPE agent_t
 			//! A mbox from which message/signal of type \a Message is expected.
 			const mbox_t & mbox,
 			//! A target state for the subscription.
-			const state_t & target_state ) const SO_5_NOEXCEPT
+			const state_t & target_state ) const noexcept
 		{
 			return do_check_subscription_presence(
 					mbox,
@@ -1870,7 +1870,7 @@ class SO_5_TYPE agent_t
 		bool
 		so_has_subscription(
 			//! A mbox from which message/signal of type \a Message is expected.
-			const mbox_t & mbox ) const SO_5_NOEXCEPT
+			const mbox_t & mbox ) const noexcept
 		{
 			return do_check_subscription_presence(
 					mbox,
@@ -1917,7 +1917,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			//! A target state for the subscription.
 			const state_t & target_state,
-			Method_Pointer /*pfn*/ ) const SO_5_NOEXCEPT
+			Method_Pointer /*pfn*/ ) const noexcept
 		{
 			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
 
@@ -1968,7 +1968,7 @@ class SO_5_TYPE agent_t
 		so_has_subscription(
 			//! A mbox from which message/signal is expected.
 			const mbox_t & mbox,
-			Method_Pointer /*pfn*/ ) const SO_5_NOEXCEPT
+			Method_Pointer /*pfn*/ ) const noexcept
 		{
 			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
 
@@ -2185,7 +2185,7 @@ class SO_5_TYPE agent_t
 		bool
 		so_has_deadletter_handler(
 			//! A mbox from which the message is expected.
-			const so_5::mbox_t & mbox ) const SO_5_NOEXCEPT
+			const so_5::mbox_t & mbox ) const noexcept
 			{
 				return do_check_deadletter_presence(
 						mbox,
@@ -2442,7 +2442,7 @@ class SO_5_TYPE agent_t
 		so_drop_delivery_filter(
 			//! Message box to which delivery filter was set.
 			//! This must be MPMC-mbox.
-			const mbox_t & mbox ) SO_5_NOEXCEPT
+			const mbox_t & mbox ) noexcept
 			{
 				do_drop_delivery_filter(
 						mbox,
@@ -2745,7 +2745,7 @@ class SO_5_TYPE agent_t
 		 * Method destroys all agent subscriptions.
 		 */
 		void
-		shutdown_agent() SO_5_NOEXCEPT;
+		shutdown_agent() noexcept;
 		/*!
 		 * \}
 		 */
@@ -2811,7 +2811,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & msg_type,
 			//! State for the subscription.
-			const state_t & target_state ) const SO_5_NOEXCEPT;
+			const state_t & target_state ) const noexcept;
 
 		/*!
 		 * \brief Check the presence of a deadletter handler.
@@ -2824,7 +2824,7 @@ class SO_5_TYPE agent_t
 			//! Message's mbox.
 			const mbox_t & mbox,
 			//! Message type.
-			const std::type_index & msg_type ) const SO_5_NOEXCEPT;
+			const std::type_index & msg_type ) const noexcept;
 		/*!
 		 * \}
 		 */
@@ -2885,7 +2885,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_start_ptr() SO_5_NOEXCEPT;
+		get_demand_handler_on_start_ptr() noexcept;
 
 		/*!
 		 * \since
@@ -2905,7 +2905,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_finish_ptr() SO_5_NOEXCEPT;
+		get_demand_handler_on_finish_ptr() noexcept;
 
 		/*!
 		 * \since
@@ -2925,7 +2925,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_message_ptr() SO_5_NOEXCEPT;
+		get_demand_handler_on_message_ptr() noexcept;
 
 		/*!
 		 * \since
@@ -2948,7 +2948,7 @@ class SO_5_TYPE agent_t
 		 * \note This method is necessary for GCC on Cygwin.
 		 */
 		static demand_handler_pfn_t
-		get_service_request_handler_on_message_ptr() SO_5_NOEXCEPT;
+		get_service_request_handler_on_message_ptr() noexcept;
 
 		/*!
 		 * \since
@@ -2966,7 +2966,7 @@ class SO_5_TYPE agent_t
 		 * v.5.5.24
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_on_enveloped_msg_ptr() SO_5_NOEXCEPT;
+		get_demand_handler_on_enveloped_msg_ptr() noexcept;
 		/*!
 		 * \}
 		 */
@@ -3047,7 +3047,7 @@ class SO_5_TYPE agent_t
 		 * \brief Drops all delivery filters.
 		 */
 		void
-		drop_all_delivery_filters() SO_5_NOEXCEPT;
+		drop_all_delivery_filters() noexcept;
 
 		/*!
 		 * \since
@@ -3070,7 +3070,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_delivery_filter(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) SO_5_NOEXCEPT;
+			const std::type_index & msg_type ) noexcept;
 
 		/*!
 		 * \since
@@ -3128,7 +3128,7 @@ class SO_5_TYPE agent_t
 		void
 		do_state_switch(
 			//! New state to be set as the current state.
-			const state_t & state_to_be_set ) SO_5_NOEXCEPT;
+			const state_t & state_to_be_set ) noexcept;
 
 		/*!
 		 * \since
@@ -3146,7 +3146,7 @@ class SO_5_TYPE agent_t
 		 * exception.
 		 */
 		void
-		return_to_default_state_if_possible() SO_5_NOEXCEPT;
+		return_to_default_state_if_possible() noexcept;
 };
 
 /*!
@@ -3178,7 +3178,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		// Because of that it is necessary to call another noexcept
 		// function from check().
 		bool
-		do_check( Message & m ) const SO_5_NOEXCEPT
+		do_check( Message & m ) const noexcept
 		{
 			return m_filter( m );
 		}
@@ -3192,7 +3192,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		virtual bool
 		check(
 			const agent_t & /*receiver*/,
-			message_t & msg ) const SO_5_NOEXCEPT override
+			message_t & msg ) const noexcept override
 			{
 				return do_check(message_payload_type< Message >::payload_reference( msg ));
 			}
@@ -3200,7 +3200,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		virtual bool
 		check(
 			const agent_t & receiver,
-			message_t & msg ) const SO_5_NOEXCEPT override
+			message_t & msg ) const noexcept override
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {

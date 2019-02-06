@@ -31,7 +31,7 @@ namespace so_5 {
  * \since
  * v.5.5.24
  */
-using event_queue_hook_deleter_fnptr_t = void (*)(event_queue_hook_t *) /*SO_5_NOEXCEPT*/;
+using event_queue_hook_deleter_fnptr_t = void (*)(event_queue_hook_t *) /*noexcept*/;
 
 //
 // event_queue_hook_t
@@ -82,7 +82,7 @@ class SO_5_TYPE event_queue_hook_t
 			//! An agent that is being bound to some event_queue.
 			agent_t * agent,
 			//! An event_queue created for that agent by a dispatcher.
-			event_queue_t * original_queue ) SO_5_NOEXCEPT = 0;
+			event_queue_t * original_queue ) noexcept = 0;
 
 		//! A reaction to unbinding of an agent from some event_queue.
 		/*!
@@ -94,7 +94,7 @@ class SO_5_TYPE event_queue_hook_t
 			//! An agent that is being bound to some event_queue.
 			agent_t * agent,
 			//! The pointer returned by previous call to on_bind.
-			event_queue_t * queue ) SO_5_NOEXCEPT = 0;
+			event_queue_t * queue ) noexcept = 0;
 
 		/*!
 		 * \brief An implementation of deleter that use operator delete
@@ -119,7 +119,7 @@ class SO_5_TYPE event_queue_hook_t
 		 * \endcode
 		 */
 		static void
-		default_deleter( event_queue_hook_t * what ) SO_5_NOEXCEPT;
+		default_deleter( event_queue_hook_t * what ) noexcept;
 
 		/*!
 		 * \brief An implementation of no-op deleter.
@@ -146,7 +146,7 @@ class SO_5_TYPE event_queue_hook_t
 		 * \endcode
 		 */
 		static void
-		noop_deleter( event_queue_hook_t * ) SO_5_NOEXCEPT;
+		noop_deleter( event_queue_hook_t * ) noexcept;
 	};
 
 //

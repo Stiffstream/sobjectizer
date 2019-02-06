@@ -113,7 +113,7 @@ class SO_5_TYPE internal_env_iface_t
 		event_queue_t *
 		event_queue_on_bind(
 			agent_t * agent,
-			event_queue_t * original_queue ) SO_5_NOEXCEPT;
+			event_queue_t * original_queue ) noexcept;
 
 		/*!
 		 * \brief Call the event_queue_hook when an agent is being unbound
@@ -132,7 +132,7 @@ class SO_5_TYPE internal_env_iface_t
 		void
 		event_queue_on_unbind(
 			agent_t * agent,
-			event_queue_t * queue ) SO_5_NOEXCEPT;
+			event_queue_t * queue ) noexcept;
 		/*!
 		 * \}
 		 */

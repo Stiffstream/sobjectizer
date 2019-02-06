@@ -88,7 +88,7 @@ class named_local_mbox_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) SO_5_NOEXCEPT override;
+			agent_t & subscriber ) noexcept override;
 
 	private:
 		//! Mbox name.

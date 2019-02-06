@@ -42,7 +42,7 @@ class select_notificator_t
 {
 public :
 	virtual void
-	notify( select_case_t & what ) SO_5_NOEXCEPT = 0;
+	notify( select_case_t & what ) noexcept = 0;
 };
 
 #if defined(__clang__)
@@ -148,7 +148,7 @@ class select_case_t
 		 * that head does notification for all other queue's members.
 		 */
 		void
-		notify() SO_5_NOEXCEPT
+		notify() noexcept
 			{
 				auto c = this;
 				while( c )
@@ -175,7 +175,7 @@ class select_case_t
 		 * destructor of RAII wrappers.
 		 */
 		void
-		on_select_finish() SO_5_NOEXCEPT
+		on_select_finish() noexcept
 			{
 				if( m_notificator )
 					{
@@ -215,7 +215,7 @@ class select_case_t
 		 * v.5.5.17
 		 */
 		const mchain_t &
-		chain() const SO_5_NOEXCEPT
+		chain() const noexcept
 			{
 				return m_chain;
 			}

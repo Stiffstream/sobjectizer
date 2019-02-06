@@ -16,7 +16,7 @@ public :
 	deny_msg_filter_t() {}
 
 	virtual bool
-	filter( const so_5::msg_tracing::trace_data_t & d ) SO_5_NOEXCEPT override
+	filter( const so_5::msg_tracing::trace_data_t & d ) noexcept override
 	{
 		const auto ms = d.message_or_signal();
 		if( ms )

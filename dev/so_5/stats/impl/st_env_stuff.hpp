@@ -166,7 +166,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			agent_t & /*subscriber*/ ) noexcept override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to drop_delivery_filter() is illegal for "

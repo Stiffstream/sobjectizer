@@ -70,7 +70,7 @@ class delivery_filter_storage_t
 		 * Filters are removed from corresponding mboxes and destroyed.
 		 */
 		void
-		drop_all( agent_t & owner ) SO_5_NOEXCEPT
+		drop_all( agent_t & owner ) noexcept
 			{
 				for( auto & p : m_filters )
 					p.first.m_mbox->drop_delivery_filter(
@@ -135,7 +135,7 @@ class delivery_filter_storage_t
 		drop_delivery_filter(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			agent_t & owner ) SO_5_NOEXCEPT
+			agent_t & owner ) noexcept
 			{
 				auto it = m_filters.find( key_t{ mbox, msg_type } );
 				if( it != m_filters.end() )

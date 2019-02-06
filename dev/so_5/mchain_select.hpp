@@ -148,7 +148,7 @@ class select_cases_holder_t
 
 		//! Move operator.
 		select_cases_holder_t &
-		operator=( select_cases_holder_t && o ) SO_5_NOEXCEPT
+		operator=( select_cases_holder_t && o ) noexcept
 			{
 				select_cases_holder_t tmp( std::move( o ) );
 				swap( tmp );
@@ -158,7 +158,7 @@ class select_cases_holder_t
 
 		//! Swap operation.
 		void
-		swap( select_cases_holder_t & o ) SO_5_NOEXCEPT
+		swap( select_cases_holder_t & o ) noexcept
 			{
 				for( std::size_t i = 0; i != Cases_Count; ++i )
 					m_cases[ i ] = std::move(o.m_cases[ i ]);
@@ -266,7 +266,7 @@ class actual_select_notificator_t : public select_notificator_t
 		 * \attention This method must be called only on locked object.
 		 */
 		void
-		push_to_notified_chain( select_case_t & what ) SO_5_NOEXCEPT
+		push_to_notified_chain( select_case_t & what ) noexcept
 			{
 				what.set_next( m_tail );
 				m_tail = &what;
@@ -295,7 +295,7 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 
 		virtual void
-		notify( select_case_t & what ) SO_5_NOEXCEPT override
+		notify( select_case_t & what ) noexcept override
 			{
 				select_case_t * old_tail = nullptr;
 				{
@@ -321,7 +321,7 @@ class actual_select_notificator_t : public select_notificator_t
 		 * 'notified select_cases'.
 		 */
 		void
-		return_to_ready_chain( select_case_t & what ) SO_5_NOEXCEPT
+		return_to_ready_chain( select_case_t & what ) noexcept
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 				push_to_notified_chain( what );
@@ -803,7 +803,7 @@ class prepared_select_t
 
 		//! Move operator.
 		prepared_select_t &
-		operator=( prepared_select_t && other ) SO_5_NOEXCEPT
+		operator=( prepared_select_t && other ) noexcept
 			{
 				prepared_select_t tmp( std::move(other) );
 				this->swap(tmp);
@@ -812,7 +812,7 @@ class prepared_select_t
 
 		//! Swap operation.
 		void
-		swap( prepared_select_t & o ) SO_5_NOEXCEPT
+		swap( prepared_select_t & o ) noexcept
 			{
 				std::swap( o.m_params, o.m_params );
 				m_cases_holder.swap( o.m_cases_holder );

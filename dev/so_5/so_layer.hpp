@@ -39,7 +39,7 @@ class SO_5_TYPE layer_t
 
 	public:
 		layer_t() = default;
-		virtual ~layer_t() SO_5_NOEXCEPT = default;
+		virtual ~layer_t() noexcept = default;
 
 
 		//! Start hook.

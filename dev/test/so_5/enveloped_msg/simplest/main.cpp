@@ -40,7 +40,7 @@ public:
 	void
 	access_hook(
 		access_context_t context,
-		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
+		handler_invoker_t & invoker ) noexcept override
 	{
 		switch( context )
 		{

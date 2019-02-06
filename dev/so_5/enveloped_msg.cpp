@@ -51,7 +51,7 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 
 		void
 		invoke(
-			const payload_info_t & payload ) SO_5_NOEXCEPT override
+			const payload_info_t & payload ) noexcept override
 			{
 				using namespace so_5::enveloped_msg::impl;
 
@@ -75,7 +75,7 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 		SO_5_NODISCARD
 		optional< so_5::enveloped_msg::payload_info_t >
 		try_get_payload(
-			const message_ref_t & envelope_to_process ) SO_5_NOEXCEPT
+			const message_ref_t & envelope_to_process ) noexcept
 			{
 				using namespace so_5::enveloped_msg::impl;
 

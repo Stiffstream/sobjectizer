@@ -49,15 +49,15 @@ class SO_5_TYPE timer_t
 		friend class intrusive_ptr_t< timer_t >;
 
 	public :
-		virtual ~timer_t() SO_5_NOEXCEPT = default;
+		virtual ~timer_t() noexcept = default;
 
 		//! Is this timer event is active?
 		virtual bool
-		is_active() const SO_5_NOEXCEPT = 0;
+		is_active() const noexcept = 0;
 
 		//! Release the timer event.
 		virtual void
-		release() SO_5_NOEXCEPT = 0;
+		release() noexcept = 0;
 	};
 
 //
@@ -73,30 +73,30 @@ class SO_5_TYPE timer_id_t
 	{
 	public :
 		//! Default constructor.
-		timer_id_t() SO_5_NOEXCEPT = default;
+		timer_id_t() noexcept = default;
 		//! Initializing constructor.
 		timer_id_t(
-			so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT
+			so_5::intrusive_ptr_t< timer_t > && timer ) noexcept
 			:	m_timer( std::move(timer) )
 			{}
 
 		//! Swapping.
 		void
-		swap( timer_id_t & o ) SO_5_NOEXCEPT
+		swap( timer_id_t & o ) noexcept
 			{
 				m_timer.swap( o.m_timer );
 			}
 
 		//! Is this timer event is active?
 		bool
-		is_active() const SO_5_NOEXCEPT
+		is_active() const noexcept
 			{
 				return ( m_timer && m_timer->is_active() );
 			}
 
 		//! Release the timer event.
 		void
-		release() SO_5_NOEXCEPT
+		release() noexcept
 			{
 				if( m_timer )
 					m_timer->release();
@@ -448,8 +448,8 @@ class SO_5_TYPE timer_manager_t
 				operator=( const elapsed_timers_collector_t & ) = delete;
 
 			public :
-				elapsed_timers_collector_t() SO_5_NOEXCEPT = default;
-				virtual ~elapsed_timers_collector_t() SO_5_NOEXCEPT = default;
+				elapsed_timers_collector_t() noexcept = default;
+				virtual ~elapsed_timers_collector_t() noexcept = default;
 
 				//! Accept and store info about elapsed timer.
 				virtual void
@@ -462,8 +462,8 @@ class SO_5_TYPE timer_manager_t
 					message_ref_t msg ) = 0;
 			};
 
-		timer_manager_t() SO_5_NOEXCEPT = default;
-		virtual ~timer_manager_t() SO_5_NOEXCEPT = default;
+		timer_manager_t() noexcept = default;
+		virtual ~timer_manager_t() noexcept = default;
 
 		//! Translation of expired timers into message sends.
 		virtual void

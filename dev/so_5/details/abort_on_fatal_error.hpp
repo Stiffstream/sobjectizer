@@ -49,7 +49,7 @@ namespace details {
  */
 template< typename L >
 void
-abort_on_fatal_error( L logging_lambda ) SO_5_NOEXCEPT
+abort_on_fatal_error( L logging_lambda ) noexcept
 	{
 		invoke_noexcept_code( std::move( logging_lambda ) );
 		std::abort();

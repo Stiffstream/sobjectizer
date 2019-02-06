@@ -574,7 +574,7 @@ class SO_5_TYPE delivery_filter_t
 		delivery_filter_t & operator=( delivery_filter_t && ) = delete;
 	public :
 		delivery_filter_t() = default;
-		virtual ~delivery_filter_t() SO_5_NOEXCEPT = default;
+		virtual ~delivery_filter_t() noexcept = default;
 
 		//! Checker for a message instance.
 		/*!
@@ -586,7 +586,7 @@ class SO_5_TYPE delivery_filter_t
 			//! Receiver of the message.
 			const agent_t & receiver,
 			//! Message itself.
-			message_t & msg ) const SO_5_NOEXCEPT = 0;
+			message_t & msg ) const noexcept = 0;
 	};
 
 //
@@ -668,7 +668,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 
 	public:
 		abstract_message_box_t() = default;
-		virtual ~abstract_message_box_t() SO_5_NOEXCEPT = default;
+		virtual ~abstract_message_box_t() noexcept = default;
 
 		/*!
 		 * \since
@@ -894,12 +894,12 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \name Comparision.
 		 * \{
 		 */
-		bool operator==( const abstract_message_box_t & o ) const SO_5_NOEXCEPT
+		bool operator==( const abstract_message_box_t & o ) const noexcept
 		{
 			return id() == o.id();
 		}
 
-		bool operator<( const abstract_message_box_t & o ) const SO_5_NOEXCEPT
+		bool operator<( const abstract_message_box_t & o ) const noexcept
 		{
 			return id() < o.id();
 		}
@@ -1003,7 +1003,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) SO_5_NOEXCEPT = 0;
+			agent_t & subscriber ) noexcept = 0;
 		/*!
 		 * \}
 		 */

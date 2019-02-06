@@ -34,7 +34,7 @@ class std_stream_tracer_t : public tracer_t
 			{}
 
 		virtual void
-		trace( const std::string & what ) SO_5_NOEXCEPT override
+		trace( const std::string & what ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 

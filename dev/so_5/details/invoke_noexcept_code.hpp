@@ -35,7 +35,7 @@ namespace details {
  */
 template< typename L >
 auto
-invoke_noexcept_code( L lambda ) SO_5_NOEXCEPT -> decltype(lambda())
+invoke_noexcept_code( L lambda ) noexcept -> decltype(lambda())
 	{
 #if defined(SO_5_HAVE_NOEXCEPT)
 		// We can just rely on C++ compiler features.

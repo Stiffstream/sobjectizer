@@ -291,7 +291,7 @@ class auto_closer_t
 			}
 
 		friend inline void
-		swap( auto_closer_t & a, auto_closer_t & b ) SO_5_NOEXCEPT
+		swap( auto_closer_t & a, auto_closer_t & b ) noexcept
 			{
 				std::swap( a.m_close_mode, b.m_close_mode );
 				a.m_chains.swap( b.m_chains );
@@ -503,14 +503,14 @@ class mchain_master_handle_t
 			//! A mchain itself.
 			mchain_t chain,
 			//! Close mode for mchain.
-			mchain_props::close_mode_t close_mode ) SO_5_NOEXCEPT
+			mchain_props::close_mode_t close_mode ) noexcept
 			:	m_chain( std::move(chain) )
 			,	m_close_mode( close_mode )
 			{}
 
 		//! Move constructor.
 		mchain_master_handle_t(
-			mchain_master_handle_t && handle ) SO_5_NOEXCEPT
+			mchain_master_handle_t && handle ) noexcept
 			:	m_chain( std::move(handle.m_chain) )
 			,	m_close_mode( handle.m_close_mode )
 			{}
@@ -524,7 +524,7 @@ class mchain_master_handle_t
 
 		//! Move operator.
 		mchain_master_handle_t &
-		operator=( mchain_master_handle_t && handle ) SO_5_NOEXCEPT
+		operator=( mchain_master_handle_t && handle ) noexcept
 			{
 				mchain_master_handle_t tmp( std::move(handle) );
 				this->swap(tmp);
@@ -533,7 +533,7 @@ class mchain_master_handle_t
 
 		//! Swap operation.
 		void
-		swap( mchain_master_handle_t & other ) SO_5_NOEXCEPT
+		swap( mchain_master_handle_t & other ) noexcept
 			{
 				m_chain.swap( other.m_chain );
 				std::swap( m_close_mode, other.m_close_mode );
@@ -541,11 +541,11 @@ class mchain_master_handle_t
 
 		//! Get the mchain.
 		const mchain_t &
-		get() const SO_5_NOEXCEPT { return m_chain; }
+		get() const noexcept { return m_chain; }
 
 		//! Get the mchain.
 		const mchain_t &
-		operator*() const SO_5_NOEXCEPT { return m_chain; }
+		operator*() const noexcept { return m_chain; }
 
 		//! \name Helpers methods for master handle creation.
 		//! \{
@@ -569,7 +569,7 @@ class mchain_master_handle_t
 		inline static mchain_master_handle_t
 		make(
 			mchain_t chain,
-			mchain_props::close_mode_t close_mode ) SO_5_NOEXCEPT
+			mchain_props::close_mode_t close_mode ) noexcept
 			{
 				return mchain_master_handle_t( std::move(chain), close_mode );
 			}
@@ -591,7 +591,7 @@ class mchain_master_handle_t
 		 * \endcode
 		 */
 		inline static mchain_master_handle_t
-		with_drop_content( mchain_t chain ) SO_5_NOEXCEPT
+		with_drop_content( mchain_t chain ) noexcept
 			{
 				return mchain_master_handle_t( std::move(chain),
 						mchain_props::close_mode_t::drop_content );
@@ -614,7 +614,7 @@ class mchain_master_handle_t
 		 * \endcode
 		 */
 		inline static mchain_master_handle_t
-		with_retain_content( mchain_t chain ) SO_5_NOEXCEPT
+		with_retain_content( mchain_t chain ) noexcept
 			{
 				return mchain_master_handle_t( std::move(chain),
 						mchain_props::close_mode_t::retain_content );

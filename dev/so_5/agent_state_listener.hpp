@@ -44,7 +44,7 @@ class SO_5_TYPE agent_state_listener_t
 
 	public:
 		agent_state_listener_t() = default;
-		virtual ~agent_state_listener_t() SO_5_NOEXCEPT = default;
+		virtual ~agent_state_listener_t() noexcept = default;
 
 		//! Hook method for state changes.
 		/*!

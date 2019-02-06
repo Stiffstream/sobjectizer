@@ -50,7 +50,7 @@ class SO_5_TYPE dispatcher_t
 		/*! Do nothing. */
 		dispatcher_t() = default;
 		/*! Do nothing. */
-		virtual ~dispatcher_t() SO_5_NOEXCEPT = default;
+		virtual ~dispatcher_t() noexcept = default;
 
 		/*! Auxiliary method. */
 		inline dispatcher_t *

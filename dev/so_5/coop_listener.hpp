@@ -42,7 +42,7 @@ class SO_5_TYPE coop_listener_t
 
 	public:
 		coop_listener_t() = default;
-		virtual ~coop_listener_t() SO_5_NOEXCEPT = default;
+		virtual ~coop_listener_t() noexcept = default;
 
 		//! Hook for the cooperation registration event.
 		/*!

@@ -224,13 +224,13 @@ mt_env_infrastructure_t::single_timer(
 	}
 
 ::so_5::stats::controller_t &
-mt_env_infrastructure_t::stats_controller() SO_5_NOEXCEPT
+mt_env_infrastructure_t::stats_controller() noexcept
 	{
 		return m_stats_controller;
 	}
 
 ::so_5::stats::repository_t &
-mt_env_infrastructure_t::stats_repository() SO_5_NOEXCEPT
+mt_env_infrastructure_t::stats_repository() noexcept
 	{
 		return m_stats_controller;
 	}

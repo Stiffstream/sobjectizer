@@ -47,12 +47,12 @@ class SO_5_TYPE atomic_refcounted_t
 		 * Sets reference counter to 0.
 		 */
 #if defined(SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR)
-		atomic_refcounted_t() SO_5_NOEXCEPT
+		atomic_refcounted_t() noexcept
 		{
 			m_ref_counter = 0;
 		}
 #else
-		atomic_refcounted_t() SO_5_NOEXCEPT : m_ref_counter(0)
+		atomic_refcounted_t() noexcept : m_ref_counter(0)
 		{}
 #endif
 
@@ -60,11 +60,11 @@ class SO_5_TYPE atomic_refcounted_t
 		/*!
 		 * Do nothing.
 		 */
-		~atomic_refcounted_t() SO_5_NOEXCEPT = default;
+		~atomic_refcounted_t() noexcept = default;
 
 		//! Increments reference count.
 		inline void
-		inc_ref_count() SO_5_NOEXCEPT
+		inc_ref_count() noexcept
 		{
 			++m_ref_counter;
 		}
@@ -74,7 +74,7 @@ class SO_5_TYPE atomic_refcounted_t
 		 * \return Value of reference counter *after* decrement.
 		*/
 		inline unsigned long
-		dec_ref_count() SO_5_NOEXCEPT
+		dec_ref_count() noexcept
 		{
 			return --m_ref_counter;
 		}
@@ -110,27 +110,27 @@ class intrusive_ptr_t
 		/*!
 		 * Constructs a null reference.
 		 */
-		intrusive_ptr_t() SO_5_NOEXCEPT
+		intrusive_ptr_t() noexcept
 			:	m_obj( nullptr )
 		{
 			ensure_right_T();
 		}
 		//! Constructor for a raw pointer.
-		intrusive_ptr_t( T * obj ) SO_5_NOEXCEPT
+		intrusive_ptr_t( T * obj ) noexcept
 			:	m_obj( obj )
 		{
 			ensure_right_T();
 			take_object();
 		}
 		//! Copy constructor.
-		intrusive_ptr_t( const intrusive_ptr_t & o ) SO_5_NOEXCEPT
+		intrusive_ptr_t( const intrusive_ptr_t & o ) noexcept
 			:	m_obj( o.m_obj )
 		{
 			ensure_right_T();
 			take_object();
 		}
 		//! Move constructor.
-		intrusive_ptr_t( intrusive_ptr_t && o ) SO_5_NOEXCEPT
+		intrusive_ptr_t( intrusive_ptr_t && o ) noexcept
 			:	m_obj( o.m_obj )
 		{
 			ensure_right_T();
@@ -145,7 +145,7 @@ class intrusive_ptr_t
 		 */
 		template< class Y >
 		intrusive_ptr_t(
-			const intrusive_ptr_t< Y > & o ) SO_5_NOEXCEPT
+			const intrusive_ptr_t< Y > & o ) noexcept
 			:	m_obj( o.get() )
 		{
 			ensure_right_T();
@@ -160,7 +160,7 @@ class intrusive_ptr_t
 		 */
 		template< class Y >
 		intrusive_ptr_t(
-			std::unique_ptr< Y > o ) SO_5_NOEXCEPT
+			std::unique_ptr< Y > o ) noexcept
 			:	m_obj( o.release() )
 		{
 			ensure_right_T();
@@ -168,14 +168,14 @@ class intrusive_ptr_t
 		}
 
 		//! Destructor.
-		~intrusive_ptr_t() SO_5_NOEXCEPT
+		~intrusive_ptr_t() noexcept
 		{
 			dismiss_object();
 		}
 
 		//! Copy operator.
 		intrusive_ptr_t &
-		operator=( const intrusive_ptr_t & o ) SO_5_NOEXCEPT
+		operator=( const intrusive_ptr_t & o ) noexcept
 		{
 			intrusive_ptr_t( o ).swap( *this );
 			return *this;
@@ -183,7 +183,7 @@ class intrusive_ptr_t
 
 		//! Move operator.
 		intrusive_ptr_t &
-		operator=( intrusive_ptr_t && o ) SO_5_NOEXCEPT
+		operator=( intrusive_ptr_t && o ) noexcept
 		{
 			intrusive_ptr_t( std::move(o) ).swap( *this );
 			return *this;
@@ -191,7 +191,7 @@ class intrusive_ptr_t
 
 		//! Swap values.
 		void
-		swap( intrusive_ptr_t & o ) SO_5_NOEXCEPT
+		swap( intrusive_ptr_t & o ) noexcept
 		{
 			std::swap( m_obj, o.m_obj );
 		}
@@ -203,7 +203,7 @@ class intrusive_ptr_t
 		 * \brief Drop controlled object.
 		 */
 		void
-		reset() SO_5_NOEXCEPT
+		reset() noexcept
 		{
 			dismiss_object();
 		}
@@ -216,7 +216,7 @@ class intrusive_ptr_t
 		 */
 		template< class Y >
 		intrusive_ptr_t< Y >
-		make_reference() const SO_5_NOEXCEPT
+		make_reference() const noexcept
 		{
 			return intrusive_ptr_t< Y >( *this );
 		}
@@ -228,7 +228,7 @@ class intrusive_ptr_t
 			\retval true if *this manages an object. 
 			\retval false otherwise.
 		*/
-		operator bool() const SO_5_NOEXCEPT
+		operator bool() const noexcept
 		{
 			return nullptr != m_obj;
 		}
@@ -238,19 +238,19 @@ class intrusive_ptr_t
 		 * \{
 		 */
 		T *
-		get() const SO_5_NOEXCEPT
+		get() const noexcept
 		{
 			return m_obj;
 		}
 
 		T *
-		operator->() const SO_5_NOEXCEPT
+		operator->() const noexcept
 		{
 			return m_obj;
 		}
 
 		T &
-		operator*() const SO_5_NOEXCEPT
+		operator*() const noexcept
 		{
 			return *m_obj;
 		}
@@ -291,7 +291,7 @@ class intrusive_ptr_t
 
 		//! Increment reference count to object if it's not null.
 		void
-		take_object() SO_5_NOEXCEPT
+		take_object() noexcept
 		{
 			if( m_obj )
 				m_obj->inc_ref_count();
@@ -299,7 +299,7 @@ class intrusive_ptr_t
 
 		//! Decrement reference count to object and delete it if needed.
 		void
-		dismiss_object() SO_5_NOEXCEPT
+		dismiss_object() noexcept
 		{
 			if( m_obj )
 			{

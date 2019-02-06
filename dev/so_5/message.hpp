@@ -63,7 +63,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		message_t &
 		operator=( message_t && other );
 
-		virtual ~message_t() SO_5_NOEXCEPT = default;
+		virtual ~message_t() noexcept = default;
 
 		/*!
 		 * \brief Helper method for safe get of message mutability flag.
@@ -274,7 +274,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * v.5.5.23
 		 */
 		virtual kind_t
-		so5_message_kind() const SO_5_NOEXCEPT
+		so5_message_kind() const noexcept
 			{
 				return kind_t::classical_message;
 			}
@@ -320,13 +320,13 @@ class SO_5_TYPE signal_t
 		// of that class are not created at all.
 		// But that can be changed in v.5.6.0.
 		kind_t
-		so5_message_kind() const SO_5_NOEXCEPT override
+		so5_message_kind() const noexcept override
 			{
 				return kind_t::classical_message;
 			}
 
 	public :
-		~signal_t() SO_5_NOEXCEPT override = default;
+		~signal_t() noexcept override = default;
 };
 
 //
@@ -377,7 +377,7 @@ private :
 	so5__payload_ptr() const override { return &m_payload; }
 
 	kind_t
-	so5_message_kind() const SO_5_NOEXCEPT override
+	so5_message_kind() const noexcept override
 		{
 			return kind_t::user_type_message;
 		}
@@ -919,7 +919,7 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		 * \brief Access to param of service_request.
 		 */
 		virtual message_t &
-		query_param() const SO_5_NOEXCEPT = 0;
+		query_param() const noexcept = 0;
 
 		/*!
 		 * \since
@@ -958,7 +958,7 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		so5_change_mutability( message_mutability_t ) override = 0;
 
 		kind_t
-		so5_message_kind() const SO_5_NOEXCEPT override
+		so5_message_kind() const noexcept override
 			{
 				return kind_t::service_request;
 			}
@@ -1002,7 +1002,7 @@ struct msg_service_request_t : public msg_service_request_base_t
 			}
 
 		virtual message_t &
-		query_param() const SO_5_NOEXCEPT override
+		query_param() const noexcept override
 			{
 				return *m_param;
 			}

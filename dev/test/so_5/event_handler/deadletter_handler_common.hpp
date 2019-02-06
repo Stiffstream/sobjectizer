@@ -12,7 +12,7 @@ public :
 	{}
 
 	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_owner.so_direct_mbox(); }
+	mbox() const noexcept { return m_owner.so_direct_mbox(); }
 };
 
 class mpmc_mbox_case_t
@@ -25,7 +25,7 @@ public:
 	{}
 
 	const so_5::mbox_t &
-	mbox() const SO_5_NOEXCEPT { return m_mbox; }
+	mbox() const noexcept { return m_mbox; }
 };
 
 template<

@@ -53,13 +53,13 @@ class std_holder_t : public holder_t
 			{}
 
 		virtual bool
-		is_msg_tracing_enabled() const SO_5_NOEXCEPT override
+		is_msg_tracing_enabled() const noexcept override
 			{
 				return nullptr != m_tracer.get();
 			}
 
 		virtual filter_shptr_t
-		take_filter() SO_5_NOEXCEPT override
+		take_filter() noexcept override
 			{
 				std::lock_guard< default_spinlock_t > l{ m_lock };
 
@@ -67,7 +67,7 @@ class std_holder_t : public holder_t
 			}
 
 		void
-		change_filter( filter_shptr_t filter ) SO_5_NOEXCEPT
+		change_filter( filter_shptr_t filter ) noexcept
 			{
 				std::lock_guard< default_spinlock_t > l{ m_lock };
 
@@ -75,7 +75,7 @@ class std_holder_t : public holder_t
 			}
 
 		virtual tracer_t &
-		tracer() const SO_5_NOEXCEPT override
+		tracer() const noexcept override
 			{
 				return *m_tracer;
 			}

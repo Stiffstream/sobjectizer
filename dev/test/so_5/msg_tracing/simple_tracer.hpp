@@ -17,7 +17,7 @@ public :
 	{}
 
 	virtual void
-	trace( const std::string & message ) SO_5_NOEXCEPT override
+	trace( const std::string & message ) noexcept override
 	{
 		++m_counter;
 		m_actual_tracer->trace( message );

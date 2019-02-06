@@ -23,7 +23,7 @@ public :
 	{}
 
 	virtual void
-	stop() SO_5_NOEXCEPT override
+	stop() noexcept override
 	{
 		so_5::send< shutdown_started >( m_dest );
 	}

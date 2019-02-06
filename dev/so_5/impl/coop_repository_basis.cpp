@@ -419,7 +419,7 @@ coop_repository_basis_t::final_deregister_coop(
 }
 
 std::size_t
-coop_repository_basis_t::deregister_all_coop() SO_5_NOEXCEPT
+coop_repository_basis_t::deregister_all_coop() noexcept
 {
 	// Because VC++ 12.0 doesn't support noexcept we use invoke_noexcept_code.
 	return so_5::details::invoke_noexcept_code( [this] {

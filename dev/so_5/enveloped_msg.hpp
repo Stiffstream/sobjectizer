@@ -59,7 +59,7 @@ class payload_info_t
 		 */
 		SO_5_NODISCARD
 		message_ref_t &
-		message() const SO_5_NOEXCEPT { return m_message; }
+		message() const noexcept { return m_message; }
 		/*!
 		 * \}
 		 */
@@ -98,7 +98,7 @@ class SO_5_TYPE handler_invoker_t
 	public:
 		//! Call an actual handler for the enveloped message/signal.
 		virtual void
-		invoke( const payload_info_t & payload ) SO_5_NOEXCEPT = 0;
+		invoke( const payload_info_t & payload ) noexcept = 0;
 	};
 
 //
@@ -194,11 +194,11 @@ class SO_5_TYPE envelope_t : public message_t
 			//! Why this hook is called.
 			access_context_t context,
 			//! Proxy object which can call an actual event handler.
-			handler_invoker_t & invoker ) SO_5_NOEXCEPT = 0;
+			handler_invoker_t & invoker ) noexcept = 0;
 
 	private :
 		kind_t
-		so5_message_kind() const SO_5_NOEXCEPT override
+		so5_message_kind() const noexcept override
 			{
 				return kind_t::enveloped_msg;
 			}

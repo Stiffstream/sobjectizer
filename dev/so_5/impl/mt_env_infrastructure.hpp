@@ -208,10 +208,10 @@ class mt_env_infrastructure_t
 			std::chrono::steady_clock::duration pause ) override;
 
 		virtual ::so_5::stats::controller_t &
-		stats_controller() SO_5_NOEXCEPT override;
+		stats_controller() noexcept override;
 
 		virtual ::so_5::stats::repository_t &
-		stats_repository() SO_5_NOEXCEPT override;
+		stats_repository() noexcept override;
 
 		virtual dispatcher_t &
 		query_default_dispatcher() override;

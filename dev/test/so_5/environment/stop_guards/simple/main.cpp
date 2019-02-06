@@ -24,7 +24,7 @@ public :
 	shptr() { return shared_from_this(); }
 
 	virtual void
-	stop() SO_5_NOEXCEPT override
+	stop() noexcept override
 	{
 		m_env.remove_stop_guard( shptr() );
 	}

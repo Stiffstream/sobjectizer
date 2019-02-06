@@ -96,7 +96,7 @@ class stop_guard_repository_t
 		 * \retval action_t::do_actual_stop stop operation needs to be completed.
 		 */
 		action_t
-		remove_guard( stop_guard_shptr_t guard ) SO_5_NOEXCEPT
+		remove_guard( stop_guard_shptr_t guard ) noexcept
 			{
 				return so_5::details::invoke_noexcept_code( [&] {
 					return this->lock_and_perform( [&] {
@@ -129,7 +129,7 @@ class stop_guard_repository_t
 		 * \retval action_t::do_actual_stop stop operation needs to be completed.
 		 */
 		action_t
-		initiate_stop() SO_5_NOEXCEPT
+		initiate_stop() noexcept
 			{
 				return so_5::details::invoke_noexcept_code( [&] {
 					auto ret_value = action_t::wait_for_completion;

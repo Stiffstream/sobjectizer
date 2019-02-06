@@ -25,103 +25,103 @@ namespace details {
 //
 
 optional<current_thread_id_t>
-actual_trace_data_t::tid() const SO_5_NOEXCEPT
+actual_trace_data_t::tid() const noexcept
 	{
 		return m_tid;
 	}
 
 optional<const agent_t *>
-actual_trace_data_t::agent() const SO_5_NOEXCEPT
+actual_trace_data_t::agent() const noexcept
 	{
 		return m_agent;
 	}
 
 optional<std::type_index>
-actual_trace_data_t::msg_type() const SO_5_NOEXCEPT
+actual_trace_data_t::msg_type() const noexcept
 	{
 		return m_msg_type;
 	}
 
 optional<so_5::msg_tracing::msg_source_t>
-actual_trace_data_t::msg_source() const SO_5_NOEXCEPT
+actual_trace_data_t::msg_source() const noexcept
 	{
 		return m_msg_source;
 	}
 
 optional<so_5::msg_tracing::message_or_signal_flag_t>
-actual_trace_data_t::message_or_signal() const SO_5_NOEXCEPT
+actual_trace_data_t::message_or_signal() const noexcept
 	{
 		return m_message_or_signal;
 	}
 
 optional<so_5::msg_tracing::message_instance_info_t>
-actual_trace_data_t::message_instance_info() const SO_5_NOEXCEPT
+actual_trace_data_t::message_instance_info() const noexcept
 	{
 		return m_message_instance_info;
 	}
 
 optional<so_5::msg_tracing::compound_action_description_t>
-actual_trace_data_t::compound_action() const SO_5_NOEXCEPT
+actual_trace_data_t::compound_action() const noexcept
 	{
 		return m_compound_action;
 	}
 
 optional<const so_5::impl::event_handler_data_t *>
-actual_trace_data_t::event_handler_data_ptr() const SO_5_NOEXCEPT
+actual_trace_data_t::event_handler_data_ptr() const noexcept
 	{
 		return m_event_handler_data_ptr;
 	}
 
 void
-actual_trace_data_t::set_tid( current_thread_id_t tid ) SO_5_NOEXCEPT
+actual_trace_data_t::set_tid( current_thread_id_t tid ) noexcept
 	{
 		m_tid = tid;
 	}
 
 void
-actual_trace_data_t::set_agent( const agent_t * agent ) SO_5_NOEXCEPT
+actual_trace_data_t::set_agent( const agent_t * agent ) noexcept
 	{
 		m_agent = agent;
 	}
 
 void
 actual_trace_data_t::set_msg_type(
-	const std::type_index & msg_type ) SO_5_NOEXCEPT
+	const std::type_index & msg_type ) noexcept
 	{
 		m_msg_type = msg_type;
 	}
 
 void
 actual_trace_data_t::set_msg_source(
-	so_5::msg_tracing::msg_source_t info ) SO_5_NOEXCEPT
+	so_5::msg_tracing::msg_source_t info ) noexcept
 	{
 		m_msg_source = info;
 	}
 
 void
 actual_trace_data_t::set_message_or_signal(
-	so_5::msg_tracing::message_or_signal_flag_t flag ) SO_5_NOEXCEPT
+	so_5::msg_tracing::message_or_signal_flag_t flag ) noexcept
 	{
 		m_message_or_signal = flag;
 	}
 
 void
 actual_trace_data_t::set_message_instance_info(
-	so_5::msg_tracing::message_instance_info_t info ) SO_5_NOEXCEPT
+	so_5::msg_tracing::message_instance_info_t info ) noexcept
 	{
 		m_message_instance_info = info;
 	}
 
 void
 actual_trace_data_t::set_compound_action(
-	so_5::msg_tracing::compound_action_description_t desc ) SO_5_NOEXCEPT
+	so_5::msg_tracing::compound_action_description_t desc ) noexcept
 	{
 		m_compound_action = desc;
 	}
 
 void
 actual_trace_data_t::set_event_handler_data_ptr(
-	const so_5::impl::event_handler_data_t * ptr ) SO_5_NOEXCEPT
+	const so_5::impl::event_handler_data_t * ptr ) noexcept
 	{
 		m_event_handler_data_ptr = ptr;
 	}

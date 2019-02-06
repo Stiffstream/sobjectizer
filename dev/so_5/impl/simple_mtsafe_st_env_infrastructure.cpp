@@ -166,7 +166,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
 		 * is locked.
 		 */
 		pop_result_t
-		pop( execution_demand_t & receiver ) SO_5_NOEXCEPT
+		pop( execution_demand_t & receiver ) noexcept
 			{
 				if( !m_demands.empty() )
 					{
@@ -336,10 +336,10 @@ class env_infrastructure_t
 			std::chrono::steady_clock::duration pause ) override;
 
 		virtual stats::controller_t &
-		stats_controller() SO_5_NOEXCEPT override;
+		stats_controller() noexcept override;
 
 		virtual stats::repository_t &
-		stats_repository() SO_5_NOEXCEPT override;
+		stats_repository() noexcept override;
 
 		virtual dispatcher_t &
 		query_default_dispatcher() override;
@@ -542,14 +542,14 @@ env_infrastructure_t< Activity_Tracker >::single_timer(
 
 template< typename Activity_Tracker >
 stats::controller_t &
-env_infrastructure_t< Activity_Tracker >::stats_controller() SO_5_NOEXCEPT
+env_infrastructure_t< Activity_Tracker >::stats_controller() noexcept
 	{
 		return m_stats_controller;
 	}
 
 template< typename Activity_Tracker >
 stats::repository_t &
-env_infrastructure_t< Activity_Tracker >::stats_repository() SO_5_NOEXCEPT
+env_infrastructure_t< Activity_Tracker >::stats_repository() noexcept
 	{
 		return m_stats_controller;
 	}

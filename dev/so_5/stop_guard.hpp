@@ -57,7 +57,7 @@ class SO_5_FUNC stop_guard_t
 		stop_guard_t( const stop_guard_t & ) = delete;
 		stop_guard_t( stop_guard_t && ) = delete;
 
-		virtual ~stop_guard_t() SO_5_NOEXCEPT = default;
+		virtual ~stop_guard_t() noexcept = default;
 
 		stop_guard_t & operator=( const stop_guard_t & ) = delete;
 		stop_guard_t & operator=( stop_guard_t && ) = delete;
@@ -72,7 +72,7 @@ class SO_5_FUNC stop_guard_t
 		 * from the list of stop_guards.
 		 */
 		virtual void
-		stop() SO_5_NOEXCEPT = 0;
+		stop() noexcept = 0;
 	};
 
 //

@@ -101,7 +101,7 @@ struct state_t::time_limit_t
 	void
 	set_up_limit_for_agent(
 		agent_t & agent,
-		const state_t & current_state ) SO_5_NOEXCEPT
+		const state_t & current_state ) noexcept
 	{
 		// Because this method is called from on_enter handler it can't
 		// throw exceptions. Any exception will lead to abort of the application.
@@ -135,7 +135,7 @@ struct state_t::time_limit_t
 	void
 	drop_limit_for_agent(
 		agent_t & agent,
-		const state_t & current_state ) SO_5_NOEXCEPT
+		const state_t & current_state ) noexcept
 	{
 		// Because this method is called from on_exit handler it can't
 		// throw exceptions. Any exception will lead to abort of the application.
@@ -847,7 +847,7 @@ agent_t::bind_to_coop( coop_t & coop )
 }
 
 void
-agent_t::shutdown_agent() SO_5_NOEXCEPT
+agent_t::shutdown_agent() noexcept
 {
 	event_queue_t * actual_queue = nullptr;
 	{
@@ -1009,7 +1009,7 @@ bool
 agent_t::do_check_subscription_presence(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state ) const SO_5_NOEXCEPT
+	const state_t & target_state ) const noexcept
 {
 	return nullptr != m_subscriptions->find_handler(
 			mbox->id(), msg_type, target_state );
@@ -1018,7 +1018,7 @@ agent_t::do_check_subscription_presence(
 bool
 agent_t::do_check_deadletter_presence(
 	const mbox_t & mbox,
-	const std::type_index & msg_type ) const SO_5_NOEXCEPT
+	const std::type_index & msg_type ) const noexcept
 {
 	return nullptr != m_subscriptions->find_handler(
 			mbox->id(), msg_type, deadletter_state );
@@ -1129,7 +1129,7 @@ agent_t::ensure_binding_finished()
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_start_ptr() SO_5_NOEXCEPT
+agent_t::get_demand_handler_on_start_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_start;
 }
@@ -1165,7 +1165,7 @@ agent_t::demand_handler_on_finish(
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_finish_ptr() SO_5_NOEXCEPT
+agent_t::get_demand_handler_on_finish_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_finish;
 }
@@ -1184,7 +1184,7 @@ agent_t::demand_handler_on_message(
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_message_ptr() SO_5_NOEXCEPT
+agent_t::get_demand_handler_on_message_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_message;
 }
@@ -1205,7 +1205,7 @@ agent_t::demand_handler_on_service_request(
 }
 
 demand_handler_pfn_t
-agent_t::get_service_request_handler_on_message_ptr() SO_5_NOEXCEPT
+agent_t::get_service_request_handler_on_message_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_service_request;
 }
@@ -1223,7 +1223,7 @@ agent_t::demand_handler_on_enveloped_msg(
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_on_enveloped_msg_ptr() SO_5_NOEXCEPT
+agent_t::get_demand_handler_on_enveloped_msg_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_enveloped_msg;
 }
@@ -1339,7 +1339,7 @@ agent_t::ensure_operation_is_on_working_thread(
 }
 
 void
-agent_t::drop_all_delivery_filters() SO_5_NOEXCEPT
+agent_t::drop_all_delivery_filters() noexcept
 {
 	if( m_delivery_filters )
 	{
@@ -1369,7 +1369,7 @@ agent_t::do_set_delivery_filter(
 void
 agent_t::do_drop_delivery_filter(
 	const mbox_t & mbox,
-	const std::type_index & msg_type ) SO_5_NOEXCEPT
+	const std::type_index & msg_type ) noexcept
 {
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 
@@ -1457,7 +1457,7 @@ agent_t::find_deadletter_handler(
 
 void
 agent_t::do_state_switch(
-	const state_t & state_to_be_set ) SO_5_NOEXCEPT
+	const state_t & state_to_be_set ) noexcept
 {
 	state_t::path_t old_path;
 	state_t::path_t new_path;
@@ -1519,7 +1519,7 @@ agent_t::do_state_switch(
 }
 
 void
-agent_t::return_to_default_state_if_possible() SO_5_NOEXCEPT
+agent_t::return_to_default_state_if_possible() noexcept
 {
 	if( !( st_default == so_current_state() ||
 			awaiting_deregistration_state == so_current_state() ) )

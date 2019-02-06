@@ -16,7 +16,7 @@ public :
 	deny_all_filter_t( counter_t & counter ) : m_counter(counter) {}
 
 	virtual bool
-	filter( const so_5::msg_tracing::trace_data_t & ) SO_5_NOEXCEPT override
+	filter( const so_5::msg_tracing::trace_data_t & ) noexcept override
 	{
 		++m_counter;
 		return false;

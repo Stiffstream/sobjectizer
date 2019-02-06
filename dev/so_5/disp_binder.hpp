@@ -51,7 +51,7 @@ class SO_5_TYPE disp_binder_t
 
 	public:
 		disp_binder_t() = default;
-		virtual ~disp_binder_t() SO_5_NOEXCEPT = default;
+		virtual ~disp_binder_t() noexcept = default;
 
 		//! Allocate resources in dispatcher for new agent.
 		virtual disp_binding_activator_t

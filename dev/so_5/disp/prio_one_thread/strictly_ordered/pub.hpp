@@ -71,7 +71,7 @@ class disp_params_t
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b ) SO_5_NOEXCEPT
+		friend inline void swap( disp_params_t & a, disp_params_t & b ) noexcept
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
@@ -88,7 +88,7 @@ class disp_params_t
 				return *this;
 			}
 		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o ) SO_5_NOEXCEPT
+		disp_params_t & operator=( disp_params_t && o ) noexcept
 			{
 				disp_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
@@ -127,7 +127,7 @@ class disp_params_t
 
 		//! Getter for queue parameters.
 		const queue_traits::queue_params_t &
-		queue_params() const SO_5_NOEXCEPT
+		queue_params() const noexcept
 			{
 				return m_queue_params;
 			}
@@ -159,7 +159,7 @@ using params_t = disp_params_t;
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	{
 	public :
-		virtual ~private_dispatcher_t() SO_5_NOEXCEPT = default;
+		virtual ~private_dispatcher_t() noexcept = default;
 
 		//! Create a binder for that private dispatcher.
 		virtual disp_binder_unique_ptr_t

@@ -145,7 +145,7 @@ class subscription_storage_t
 	{
 	public :
 		subscription_storage_t( agent_t * owner );
-		virtual ~subscription_storage_t() SO_5_NOEXCEPT = default;
+		virtual ~subscription_storage_t() noexcept = default;
 
 		virtual void
 		create_event_subscription(
@@ -171,7 +171,7 @@ class subscription_storage_t
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
-			const state_t & current_state ) const SO_5_NOEXCEPT = 0;
+			const state_t & current_state ) const noexcept = 0;
 
 		virtual void
 		debug_dump( std::ostream & to ) const = 0;

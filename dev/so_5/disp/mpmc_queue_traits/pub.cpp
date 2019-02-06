@@ -64,7 +64,7 @@ class actual_cond_t : public condition_t
 			{}
 
 		virtual void
-		wait() SO_5_NOEXCEPT override
+		wait() noexcept override
 			{
 				using hrc = std::chrono::high_resolution_clock;
 
@@ -118,7 +118,7 @@ class actual_cond_t : public condition_t
 			}
 
 		virtual void
-		notify() SO_5_NOEXCEPT override
+		notify() noexcept override
 			{
 				std::lock_guard< std::mutex > mutex_lock{ m_mutex };
 
@@ -153,13 +153,13 @@ class actual_lock_t : public lock_t
 			{}
 
 		virtual void
-		lock() SO_5_NOEXCEPT override
+		lock() noexcept override
 			{
 				m_spinlock.lock();
 			}
 
 		virtual void
-		unlock() SO_5_NOEXCEPT override
+		unlock() noexcept override
 			{
 				m_spinlock.unlock();
 			}
@@ -206,7 +206,7 @@ class actual_cond_t : public condition_t
 			{}
 
 		virtual void
-		wait() SO_5_NOEXCEPT override
+		wait() noexcept override
 			{
 				m_signaled = false;
 
@@ -219,7 +219,7 @@ class actual_cond_t : public condition_t
 			}
 
 		virtual void
-		notify() SO_5_NOEXCEPT override
+		notify() noexcept override
 			{
 				m_signaled = true;
 
@@ -247,13 +247,13 @@ class actual_lock_t : public lock_t
 			{}
 
 		virtual void
-		lock() SO_5_NOEXCEPT override
+		lock() noexcept override
 			{
 				m_mutex.lock();
 			}
 
 		virtual void
-		unlock() SO_5_NOEXCEPT override
+		unlock() noexcept override
 			{
 				m_mutex.unlock();
 			}

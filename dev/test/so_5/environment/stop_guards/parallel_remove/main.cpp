@@ -22,7 +22,7 @@ public :
 	{}
 
 	virtual void
-	stop() SO_5_NOEXCEPT override
+	stop() noexcept override
 	{
 		std::this_thread::sleep_for( std::chrono::milliseconds(50) );
 	}

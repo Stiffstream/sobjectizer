@@ -16,13 +16,13 @@ namespace so_5
 {
 
 void
-event_queue_hook_t::default_deleter( event_queue_hook_t * what ) SO_5_NOEXCEPT
+event_queue_hook_t::default_deleter( event_queue_hook_t * what ) noexcept
 {
 	delete what;
 }
 
 void
-event_queue_hook_t::noop_deleter( event_queue_hook_t * ) SO_5_NOEXCEPT
+event_queue_hook_t::noop_deleter( event_queue_hook_t * ) noexcept
 {}
 
 } /* namespace so_5 */

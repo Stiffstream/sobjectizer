@@ -98,7 +98,7 @@ named_local_mbox_t::set_delivery_filter(
 void
 named_local_mbox_t::drop_delivery_filter(
 	const std::type_index & msg_type,
-	agent_t & subscriber ) SO_5_NOEXCEPT
+	agent_t & subscriber ) noexcept
 {
 	m_mbox->drop_delivery_filter( msg_type, subscriber );
 }

@@ -263,7 +263,7 @@ struct msg_type_and_handler_pair_t
 			{}
 		//! Move constructor.
 		msg_type_and_handler_pair_t(
-			msg_type_and_handler_pair_t && o ) SO_5_NOEXCEPT
+			msg_type_and_handler_pair_t && o ) noexcept
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_handler{ std::move(o.m_handler) }
 			,	m_mutability{ std::move(o.m_mutability) }
@@ -273,7 +273,7 @@ struct msg_type_and_handler_pair_t
 		friend void
 		swap(
 			msg_type_and_handler_pair_t & a,
-			msg_type_and_handler_pair_t & b ) SO_5_NOEXCEPT
+			msg_type_and_handler_pair_t & b ) noexcept
 			{
 				std::swap( a.m_msg_type, b.m_msg_type );
 				a.m_handler.swap( b.m_handler );
@@ -291,7 +291,7 @@ struct msg_type_and_handler_pair_t
 
 		//! Move operator.
 		msg_type_and_handler_pair_t &
-		operator=( msg_type_and_handler_pair_t && o ) SO_5_NOEXCEPT
+		operator=( msg_type_and_handler_pair_t && o ) noexcept
 			{
 				msg_type_and_handler_pair_t tmp{ std::move(o) };
 				swap( *this, tmp );

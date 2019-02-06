@@ -77,7 +77,7 @@ auto_registered_source_t::auto_registered_source_t(
 		m_repo.get().add( *this );
 	}
 
-auto_registered_source_t::~auto_registered_source_t() SO_5_NOEXCEPT
+auto_registered_source_t::~auto_registered_source_t() noexcept
 	{
 		m_repo.get().remove( *this );
 	}
@@ -89,7 +89,7 @@ manually_registered_source_t::manually_registered_source_t()
 	:	m_repo{ nullptr }
 	{}
 
-manually_registered_source_t::~manually_registered_source_t() SO_5_NOEXCEPT
+manually_registered_source_t::~manually_registered_source_t() noexcept
 	{
 		if( m_repo )
 			stop();

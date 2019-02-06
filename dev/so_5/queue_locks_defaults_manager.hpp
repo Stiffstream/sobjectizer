@@ -44,7 +44,7 @@ class SO_5_TYPE queue_locks_defaults_manager_t
 			queue_locks_defaults_manager_t && ) = delete;
 
 		queue_locks_defaults_manager_t() = default;
-		virtual ~queue_locks_defaults_manager_t() SO_5_NOEXCEPT = default;
+		virtual ~queue_locks_defaults_manager_t() noexcept = default;
 
 		//! Get default lock_factory for MPSC queues.
 		virtual so_5::disp::mpsc_queue_traits::lock_factory_t

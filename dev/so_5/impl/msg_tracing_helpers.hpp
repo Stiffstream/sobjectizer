@@ -56,56 +56,56 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 	{
 	public :
 		virtual optional<current_thread_id_t>
-		tid() const SO_5_NOEXCEPT override;
+		tid() const noexcept override;
 
 		virtual optional<const agent_t *>
-		agent() const SO_5_NOEXCEPT override;
+		agent() const noexcept override;
 
 		virtual optional<std::type_index>
-		msg_type() const SO_5_NOEXCEPT override;
+		msg_type() const noexcept override;
 
 		virtual optional<so_5::msg_tracing::msg_source_t>
-		msg_source() const SO_5_NOEXCEPT override;
+		msg_source() const noexcept override;
 
 		virtual optional<so_5::msg_tracing::message_or_signal_flag_t>
-		message_or_signal() const SO_5_NOEXCEPT override;
+		message_or_signal() const noexcept override;
 
 		virtual optional<so_5::msg_tracing::message_instance_info_t>
-		message_instance_info() const SO_5_NOEXCEPT override;
+		message_instance_info() const noexcept override;
 
 		virtual optional<so_5::msg_tracing::compound_action_description_t>
-		compound_action() const SO_5_NOEXCEPT override;
+		compound_action() const noexcept override;
 
 		virtual optional<const so_5::impl::event_handler_data_t *>
-		event_handler_data_ptr() const SO_5_NOEXCEPT override;
+		event_handler_data_ptr() const noexcept override;
 
 		void
-		set_tid( current_thread_id_t tid ) SO_5_NOEXCEPT;
+		set_tid( current_thread_id_t tid ) noexcept;
 
 		void
-		set_agent( const agent_t * agent ) SO_5_NOEXCEPT;
+		set_agent( const agent_t * agent ) noexcept;
 
 		void
-		set_msg_type( const std::type_index & msg_type ) SO_5_NOEXCEPT;
+		set_msg_type( const std::type_index & msg_type ) noexcept;
 
 		void
-		set_msg_source( so_5::msg_tracing::msg_source_t info ) SO_5_NOEXCEPT;
+		set_msg_source( so_5::msg_tracing::msg_source_t info ) noexcept;
 
 		void
 		set_message_or_signal(
-			so_5::msg_tracing::message_or_signal_flag_t flag ) SO_5_NOEXCEPT;
+			so_5::msg_tracing::message_or_signal_flag_t flag ) noexcept;
 
 		void
 		set_message_instance_info(
-			so_5::msg_tracing::message_instance_info_t info ) SO_5_NOEXCEPT;
+			so_5::msg_tracing::message_instance_info_t info ) noexcept;
 
 		void
 		set_compound_action(
-			so_5::msg_tracing::compound_action_description_t desc ) SO_5_NOEXCEPT;
+			so_5::msg_tracing::compound_action_description_t desc ) noexcept;
 
 		void
 		set_event_handler_data_ptr(
-			const so_5::impl::event_handler_data_t * ptr ) SO_5_NOEXCEPT;
+			const so_5::impl::event_handler_data_t * ptr ) noexcept;
 
 	private :
 		optional<current_thread_id_t> m_tid;
@@ -539,7 +539,7 @@ template< typename... Args >
 void
 make_trace(
 	so_5::msg_tracing::holder_t & msg_tracing_stuff,
-	Args &&... args ) SO_5_NOEXCEPT
+	Args &&... args ) noexcept
 	{
 #if !defined( SO_5_HAVE_NOEXCEPT )
 		so_5::details::invoke_noexcept_code( [&] {
@@ -729,14 +729,14 @@ class tracing_enabled_base
 			protected :
 				virtual void
 				reaction_abort_app(
-					const agent_t * subscriber ) const SO_5_NOEXCEPT override
+					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.abort", subscriber );
 					}
 
 				virtual void
 				reaction_drop_message(
-					const agent_t * subscriber ) const SO_5_NOEXCEPT override
+					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.drop", subscriber );
 					}
@@ -744,7 +744,7 @@ class tracing_enabled_base
 				virtual void
 				reaction_redirect_message(
 					const agent_t * subscriber,
-					const mbox_t & target ) const SO_5_NOEXCEPT override
+					const mbox_t & target ) const noexcept override
 					{
 						make_trace(
 								"overlimit.redirect",
@@ -758,7 +758,7 @@ class tracing_enabled_base
 					const agent_t * subscriber,
 					const mbox_t & target,
 					const std::type_index & msg_type,
-					const message_ref_t & transformed ) const SO_5_NOEXCEPT override
+					const message_ref_t & transformed ) const noexcept override
 					{
 						make_trace(
 								"overlimit.transform",

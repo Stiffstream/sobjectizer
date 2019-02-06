@@ -53,25 +53,25 @@ class actual_timer_t : public timer_t
 			:	m_thread( thread )
 			,	m_timer( thread->allocate() )
 			{}
-		virtual ~actual_timer_t() SO_5_NOEXCEPT override
+		virtual ~actual_timer_t() noexcept override
 			{
 				release();
 			}
 
 		timer_holder_t &
-		timer_holder() SO_5_NOEXCEPT
+		timer_holder() noexcept
 			{
 				return m_timer;
 			}
 
 		virtual bool
-		is_active() const SO_5_NOEXCEPT override
+		is_active() const noexcept override
 			{
 				return (m_thread != nullptr);
 			}
 
 		virtual void
-		release() SO_5_NOEXCEPT override
+		release() noexcept override
 			{
 				if( m_thread )
 				{
@@ -119,7 +119,7 @@ class timer_action_for_timer_thread_t
 			{}
 
 		void
-		operator()() SO_5_NOEXCEPT
+		operator()() noexcept
 			{
 				::so_5::rt::impl::mbox_iface_for_timers_t{ m_mbox }
 						.deliver_message_from_timer( m_type_index, m_msg );
@@ -241,7 +241,7 @@ class timer_action_for_timer_manager_t
 			{}
 
 		void
-		operator()() SO_5_NOEXCEPT
+		operator()() noexcept
 			{
 				m_collector.get().accept( m_type_index, m_mbox, m_msg );
 			}

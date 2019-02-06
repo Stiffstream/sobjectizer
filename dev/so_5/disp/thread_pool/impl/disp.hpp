@@ -497,7 +497,7 @@ class work_thread_template_t : public Impl
 		 * an exception from m_disp_queue->pop.
 		 */
 		agent_queue_t *
-		pop_agent_queue() SO_5_NOEXCEPT
+		pop_agent_queue() noexcept
 			{
 				agent_queue_t * result = nullptr;
 

@@ -122,7 +122,7 @@ class SO_5_TYPE trigger_t final
 	{
 	public :
 		using completion_function_t = std::function<
-				void(const trigger_completion_context_t &) /*SO_5_NOEXCEPT*/ >;
+				void(const trigger_completion_context_t &) /*noexcept*/ >;
 
 	private :
 		//! What should happen with initial message/signal.
@@ -179,7 +179,7 @@ class SO_5_TYPE trigger_t final
 		 */
 		SO_5_NODISCARD
 		const agent_t &
-		target_agent() const SO_5_NOEXCEPT;
+		target_agent() const noexcept;
 
 		//! Setter for completion function.
 		void
@@ -197,17 +197,17 @@ class SO_5_TYPE trigger_t final
 			//! What happened with message/signal?
 			const incident_status_t incident_status,
 			//! Context for that event.
-			const incident_info_t & info ) const SO_5_NOEXCEPT;
+			const incident_info_t & info ) const noexcept;
 
 		//! Does this trigger require separate completion action?
 		SO_5_NODISCARD
 		bool
-		requires_completion() const SO_5_NOEXCEPT;
+		requires_completion() const noexcept;
 
 		//! Do completion of a trigger.
 		void
 		complete(
-			const trigger_completion_context_t & context ) SO_5_NOEXCEPT;
+			const trigger_completion_context_t & context ) noexcept;
 	};
 
 /*!
@@ -277,7 +277,7 @@ class constraint_t
 	{
 	public :
 		constraint_t() = default;
-		virtual ~constraint_t() SO_5_NOEXCEPT = default;
+		virtual ~constraint_t() noexcept = default;
 
 		constraint_t( const constraint_t & ) = delete;
 		constraint_t & operator=( const constraint_t & ) = delete;
@@ -293,7 +293,7 @@ class constraint_t
 		 * can be acquired.
 		 */
 		virtual void
-		start() SO_5_NOEXCEPT = 0;
+		start() noexcept = 0;
 
 		//! Hook for step completion.
 		/*!
@@ -302,7 +302,7 @@ class constraint_t
 		 * resources acquired in start() method can be released.
 		 */
 		virtual void
-		finish() SO_5_NOEXCEPT = 0;
+		finish() noexcept = 0;
 
 		//! Check for fulfillment of constraint.
 		/*!
@@ -316,7 +316,7 @@ class constraint_t
 			//! What happened with message/signal?
 			const incident_status_t incident_status,
 			//! Context for that event.
-			const incident_info_t & info ) const SO_5_NOEXCEPT = 0;
+			const incident_info_t & info ) const noexcept = 0;
 	};
 
 /*!
@@ -360,19 +360,19 @@ class not_before_constraint_t final
 			{}
 
 		void
-		start() SO_5_NOEXCEPT override
+		start() noexcept override
 			{
 				m_started_at = std::chrono::steady_clock::now();
 			}
 
 		void
-		finish() SO_5_NOEXCEPT override { /* nothing to do */ }
+		finish() noexcept override { /* nothing to do */ }
 
 		SO_5_NODISCARD
 		bool
 		check(
 			const incident_status_t /*incident_status*/,
-			const incident_info_t & /*info*/ ) const SO_5_NOEXCEPT override
+			const incident_info_t & /*info*/ ) const noexcept override
 			{
 				return m_started_at + m_pause <=
 						std::chrono::steady_clock::now();
@@ -404,19 +404,19 @@ class not_after_constraint_t final
 			{}
 
 		void
-		start() SO_5_NOEXCEPT override
+		start() noexcept override
 			{
 				m_started_at = std::chrono::steady_clock::now();
 			}
 
 		void
-		finish() SO_5_NOEXCEPT override { /* nothing to do */ }
+		finish() noexcept override { /* nothing to do */ }
 
 		SO_5_NODISCARD
 		bool
 		check(
 			const incident_status_t /*incident_status*/,
-			const incident_info_t & /*info*/ ) const SO_5_NOEXCEPT override
+			const incident_info_t & /*info*/ ) const noexcept override
 			{
 				return m_started_at + m_pause >
 						std::chrono::steady_clock::now();
@@ -429,7 +429,7 @@ class not_after_constraint_t final
  * \since
  * v.5.5.24
  */
-using preactivate_action_t = std::function< void() /*SO_5_NOEXCEPT*/ >;
+using preactivate_action_t = std::function< void() /*noexcept*/ >;
 
 /*!
  * \brief An interface of testing scenario step.
@@ -494,16 +494,16 @@ class SO_5_TYPE abstract_scenario_step_t
 				trigger_t * m_trigger;
 
 			public:
-				token_t() SO_5_NOEXCEPT
+				token_t() noexcept
 					:	m_trigger( nullptr )
 					{}
-				token_t( trigger_t * trigger ) SO_5_NOEXCEPT
+				token_t( trigger_t * trigger ) noexcept
 					:	m_trigger( trigger )
 					{}
 
 				SO_5_NODISCARD
 				bool
-				valid() const SO_5_NOEXCEPT { return m_trigger != nullptr; }
+				valid() const noexcept { return m_trigger != nullptr; }
 
 				//! Get a reference to activated trigger.
 				/*!
@@ -512,7 +512,7 @@ class SO_5_TYPE abstract_scenario_step_t
 				 */
 				SO_5_NODISCARD
 				trigger_t &
-				trigger() const SO_5_NOEXCEPT { return *m_trigger; }
+				trigger() const noexcept { return *m_trigger; }
 			};
 
 		// Note. These are required by Clang compiler.
@@ -527,7 +527,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		//! Get the name of the step.
 		SO_5_NODISCARD
 		virtual const std::string &
-		name() const SO_5_NOEXCEPT = 0;
+		name() const noexcept = 0;
 
 		//! Perform preactivation of the step.
 		/*!
@@ -540,7 +540,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		 * the step via add_peactivate_action() method.
 		 */
 		virtual void
-		preactivate() SO_5_NOEXCEPT = 0;
+		preactivate() noexcept = 0;
 
 		//! Hook that should be called before invocation of event-handler.
 		/*!
@@ -555,7 +555,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		SO_5_NODISCARD
 		virtual token_t
 		pre_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT = 0;
+			const incident_info_t & info ) noexcept = 0;
 
 		//! Hook that should be called just after completion of event-handler.
 		/*!
@@ -566,7 +566,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		virtual void
 		post_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			token_t token ) SO_5_NOEXCEPT = 0;
+			token_t token ) noexcept = 0;
 
 		//! Hook that should be called if there is no event-handler for
 		//! a message or service request.
@@ -575,12 +575,12 @@ class SO_5_TYPE abstract_scenario_step_t
 		 */
 		virtual void
 		no_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT = 0;
+			const incident_info_t & info ) noexcept = 0;
 
 		//! Get the current status of the step.
 		SO_5_NODISCARD
 		virtual status_t
-		status() const SO_5_NOEXCEPT = 0;
+		status() const noexcept = 0;
 
 		//! Add another preactivation action.
 		/*!
@@ -606,7 +606,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		virtual void
 		setup_triggers(
 			trigger_container_t triggers,
-			std::size_t triggers_to_activate ) SO_5_NOEXCEPT = 0;
+			std::size_t triggers_to_activate ) noexcept = 0;
 
 		//! Setup constraints for the step.
 		/*!
@@ -616,7 +616,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		 */
 		virtual void
 		setup_constraints(
-			constraint_container_t constraints ) SO_5_NOEXCEPT = 0;
+			constraint_container_t constraints ) noexcept = 0;
 	};
 
 /*!
@@ -643,22 +643,22 @@ class trigger_holder_t final
 		trigger_unique_ptr_t m_trigger;
 
 	public :
-		trigger_holder_t( trigger_unique_ptr_t trigger ) SO_5_NOEXCEPT
+		trigger_holder_t( trigger_unique_ptr_t trigger ) noexcept
 			:	m_trigger( std::move(trigger) )
 			{}
 
 #if defined(SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR)
-		trigger_holder_t( trigger_holder_t && o ) SO_5_NOEXCEPT
+		trigger_holder_t( trigger_holder_t && o ) noexcept
 			:	m_trigger( std::move(o.m_trigger) )
 			{}
-		trigger_holder_t & operator=( trigger_holder_t && o ) SO_5_NOEXCEPT
+		trigger_holder_t & operator=( trigger_holder_t && o ) noexcept
 			{
 				m_trigger = std::move(o.m_trigger);
 				return *this;
 			}
 #else
-		trigger_holder_t( trigger_holder_t && ) SO_5_NOEXCEPT = default;
-		trigger_holder_t & operator=( trigger_holder_t && ) SO_5_NOEXCEPT = default;
+		trigger_holder_t( trigger_holder_t && ) noexcept = default;
+		trigger_holder_t & operator=( trigger_holder_t && ) noexcept = default;
 #endif
 
 		trigger_holder_t( const trigger_holder_t & ) = delete;
@@ -671,7 +671,7 @@ class trigger_holder_t final
 		 * (except for assigning a new value);
 		 */
 		trigger_unique_ptr_t
-		giveout_trigger() SO_5_NOEXCEPT
+		giveout_trigger() noexcept
 			{
 				return std::move(m_trigger);
 			}
@@ -849,7 +849,7 @@ class step_definition_proxy_t
 				// Now we can create a lambda-function that will send
 				// the message instance at the appropriate time.
 				m_step->add_preactivate_action(
-						[to, msg]() SO_5_NOEXCEPT {
+						[to, msg]() noexcept {
 							to->deliver_message(
 									message_payload_type< Msg_Type >
 											::subscription_type_index(),
@@ -895,7 +895,7 @@ class step_definition_proxy_t
 		impact( Lambda && lambda )
 			{
 				m_step->add_preactivate_action(
-						[lambda]() SO_5_NOEXCEPT { lambda(); } );
+						[lambda]() noexcept { lambda(); } );
 
 				return *this;
 			}
@@ -1148,7 +1148,7 @@ class scenario_result_t
 		 */
 		SO_5_NODISCARD
 		bool
-		operator==( const scenario_result_t & o ) const SO_5_NOEXCEPT
+		operator==( const scenario_result_t & o ) const noexcept
 			{
 				return m_status == o.m_status;
 			}
@@ -1160,7 +1160,7 @@ class scenario_result_t
 		 */
 		SO_5_NODISCARD
 		bool
-		operator!=( const scenario_result_t & o ) const SO_5_NOEXCEPT
+		operator!=( const scenario_result_t & o ) const noexcept
 			{
 				return m_status != o.m_status;
 			}
@@ -1456,7 +1456,7 @@ class scenario_in_progress_accessor_t final
 
 	public :
 		abstract_scenario_t &
-		scenario() const SO_5_NOEXCEPT { return m_scenario.get(); }
+		scenario() const noexcept { return m_scenario.get(); }
 	};
 
 /*!
@@ -1482,7 +1482,7 @@ class abstract_scenario_t
 		//! Helper method for creation of scenario_in_progress_accessor instance.
 		SO_5_NODISCARD
 		scenario_in_progress_accessor_t
-		make_accessor() SO_5_NOEXCEPT
+		make_accessor() noexcept
 			{
 				return { outliving_mutable(*this) };
 			}
@@ -1521,21 +1521,21 @@ class abstract_scenario_t
 
 				SO_5_NODISCARD
 				bool
-				valid() const SO_5_NOEXCEPT
+				valid() const noexcept
 					{
 						return nullptr != m_activated_step;
 					}
 
 				SO_5_NODISCARD
 				abstract_scenario_step_t &
-				activated_step() const SO_5_NOEXCEPT
+				activated_step() const noexcept
 					{
 						return *m_activated_step;
 					}
 
 				SO_5_NODISCARD
 				abstract_scenario_step_t::token_t
-				step_token() const SO_5_NOEXCEPT
+				step_token() const noexcept
 					{
 						return m_step_token;
 					}
@@ -1560,7 +1560,7 @@ class abstract_scenario_t
 		//! Get the result of scenario execution.
 		SO_5_NODISCARD
 		virtual scenario_result_t
-		result() const SO_5_NOEXCEPT = 0;
+		result() const noexcept = 0;
 
 		//! Run the scenario until completion or for specific amount of time.
 		virtual void
@@ -1576,7 +1576,7 @@ class abstract_scenario_t
 		SO_5_NODISCARD
 		virtual token_t
 		pre_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT = 0;
+			const incident_info_t & info ) noexcept = 0;
 
 		//! Hook that should be called just after completion of event-handler.
 		/*!
@@ -1586,13 +1586,13 @@ class abstract_scenario_t
 		virtual void
 		post_handler_hook(
 			//! Token returned by previous pre_handler_hook() call.
-			token_t token ) SO_5_NOEXCEPT = 0;
+			token_t token ) noexcept = 0;
 
 		//! Hook that should be called if there is no event-handler for
 		//! a message or service request.
 		virtual void
 		no_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT = 0;
+			const incident_info_t & info ) noexcept = 0;
 
 		//! Store a name of an agent state in the scenario.
 		/*!
@@ -1661,7 +1661,7 @@ operator&(
 //data content to the lambda object.
 		trigger_ptr->set_completion(
 				[data, target_agent](
-					const trigger_completion_context_t & ctx ) SO_5_NOEXCEPT
+					const trigger_completion_context_t & ctx ) noexcept
 				{
 					ctx.m_scenario_accessor.scenario().store_state_name(
 							ctx.m_scenario_accessor,
@@ -2021,7 +2021,7 @@ class SO_5_TYPE testing_env_t
 		//! Access to the associated scenario.
 		SO_5_NODISCARD
 		scenario_proxy_t
-		scenario() SO_5_NOEXCEPT;
+		scenario() noexcept;
 
 		struct internals_t;
 

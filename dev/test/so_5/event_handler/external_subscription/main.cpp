@@ -115,7 +115,7 @@ class one_shot_subscription_t
 			}
 
 		void
-		drop_subscriptions() SO_5_NOEXCEPT
+		drop_subscriptions() noexcept
 			{
 				so_5::details::invoke_noexcept_code( [&] {
 					for( const auto & sd : m_subscriptions )

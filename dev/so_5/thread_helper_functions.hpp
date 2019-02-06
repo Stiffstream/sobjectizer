@@ -57,7 +57,7 @@ class auto_joiner_t
 			}
 
 		friend inline void
-		swap( auto_joiner_t & a, auto_joiner_t & b ) SO_5_NOEXCEPT
+		swap( auto_joiner_t & a, auto_joiner_t & b ) noexcept
 			{
 				a.m_threads.swap( b.m_threads );
 			}

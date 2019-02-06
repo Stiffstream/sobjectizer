@@ -487,7 +487,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 
 	protected :
 		abstract_message_chain_t() = default;
-		virtual ~abstract_message_chain_t() SO_5_NOEXCEPT = default;
+		virtual ~abstract_message_chain_t() noexcept = default;
 
 	public :
 		using abstract_message_box_t::id;
@@ -1589,7 +1589,7 @@ class prepared_receive_t
 
 		//! Move operator.
 		prepared_receive_t &
-		operator=( prepared_receive_t && other ) SO_5_NOEXCEPT
+		operator=( prepared_receive_t && other ) noexcept
 			{
 				prepared_receive_t tmp( std::move(other) );
 				this->swap(tmp);
@@ -1598,7 +1598,7 @@ class prepared_receive_t
 
 		//! Swap operation.
 		void
-		swap( prepared_receive_t & o ) SO_5_NOEXCEPT
+		swap( prepared_receive_t & o ) noexcept
 			{
 				std::swap( o.m_params, o.m_params );
 				m_bunch.swap( o.m_bunch );

@@ -46,7 +46,7 @@ class SO_5_TYPE source_t
 		source_t & operator=( const source_t & ) = delete;
 		source_t & operator=( source_t && ) = delete;
 		source_t() = default;
-		virtual ~source_t() SO_5_NOEXCEPT = default;
+		virtual ~source_t() noexcept = default;
 
 	public :
 		//! Send appropriate notification about the current value.
@@ -78,7 +78,7 @@ class SO_5_TYPE repository_t
 		repository_t & operator=( repository_t && ) = delete;
 
 		repository_t() = default;
-		virtual ~repository_t() SO_5_NOEXCEPT = default;
+		virtual ~repository_t() noexcept = default;
 
 	public :
 		//! Registration of new data source.
@@ -139,7 +139,7 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 	{
 	protected :
 		auto_registered_source_t( outliving_reference_t< repository_t > repo );
-		~auto_registered_source_t() SO_5_NOEXCEPT override;
+		~auto_registered_source_t() noexcept override;
 
 	private :
 		outliving_reference_t< repository_t > m_repo;
@@ -162,7 +162,7 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 	{
 	protected :
 		manually_registered_source_t();
-		~manually_registered_source_t() SO_5_NOEXCEPT override;
+		~manually_registered_source_t() noexcept override;
 
 	public :
 		void

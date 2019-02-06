@@ -422,7 +422,7 @@ class mchain_template
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			agent_t & /*subscriber*/ ) noexcept override
 			{}
 
 		virtual extraction_status_t
@@ -847,7 +847,7 @@ class mchain_template
 		 * v.5.5.16
 		 */
 		void
-		notify_multi_chain_select_ops() const SO_5_NOEXCEPT
+		notify_multi_chain_select_ops() const noexcept
 			{
 				if( m_select_tail )
 					{

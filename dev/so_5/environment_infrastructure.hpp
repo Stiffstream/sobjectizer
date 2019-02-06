@@ -72,7 +72,7 @@ class SO_5_TYPE environment_infrastructure_t
 		environment_infrastructure_t &
 		operator=( environment_infrastructure_t && ) = delete;
 
-		virtual ~environment_infrastructure_t() SO_5_NOEXCEPT = default;
+		virtual ~environment_infrastructure_t() noexcept = default;
 
 		//! Default deleter for environment_infrastructure object.
 		/*!
@@ -214,7 +214,7 @@ class SO_5_TYPE environment_infrastructure_t
 		 * launch() method.
 		 */
 		virtual ::so_5::stats::controller_t &
-		stats_controller() SO_5_NOEXCEPT = 0;
+		stats_controller() noexcept = 0;
 
 		//! Get stats repository for the environment.
 		/*!
@@ -222,7 +222,7 @@ class SO_5_TYPE environment_infrastructure_t
 		 * The same rules apply as for stats_controller() method.
 		 */
 		virtual ::so_5::stats::repository_t &
-		stats_repository() SO_5_NOEXCEPT = 0;
+		stats_repository() noexcept = 0;
 
 		//! Get the default dispatcher.
 		virtual dispatcher_t &

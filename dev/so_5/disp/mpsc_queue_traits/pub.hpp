@@ -45,15 +45,15 @@ class SO_5_TYPE lock_t
 		lock_t & operator=( const lock_t & ) = delete;
 		lock_t & operator=( lock_t && ) = delete;
 		lock_t() = default;
-		virtual ~lock_t() SO_5_NOEXCEPT = default;
+		virtual ~lock_t() noexcept = default;
 
 		//! Lock object in exclusive mode.
 		virtual void
-		lock() SO_5_NOEXCEPT = 0;
+		lock() noexcept = 0;
 
 		//! Unlock object locked in exclusive mode.
 		virtual void
-		unlock() SO_5_NOEXCEPT = 0;
+		unlock() noexcept = 0;
 
 	protected :
 		//! Waiting for nofication.
@@ -61,14 +61,14 @@ class SO_5_TYPE lock_t
 		 * \attention Must be called only when object is locked!
 		 */
 		virtual void
-		wait_for_notify() SO_5_NOEXCEPT = 0;
+		wait_for_notify() noexcept = 0;
 
 		//! Notify one waiting thread if it exists.
 		/*!
 		 * \attention Must be called only when object is locked.
 		 */
 		virtual void
-		notify_one() SO_5_NOEXCEPT = 0;
+		notify_one() noexcept = 0;
 	};
 
 //

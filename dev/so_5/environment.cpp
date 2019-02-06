@@ -214,7 +214,7 @@ class default_event_queue_hook_t final : public event_queue_hook_t
 		event_queue_t *
 		on_bind(
 			agent_t * /*agent*/,
-			event_queue_t * original_queue ) SO_5_NOEXCEPT override
+			event_queue_t * original_queue ) noexcept override
 			{
 				return original_queue;
 			}
@@ -222,7 +222,7 @@ class default_event_queue_hook_t final : public event_queue_hook_t
 		void
 		on_unbind(
 			agent_t * /*agent*/,
-			event_queue_t * /*queue*/ ) SO_5_NOEXCEPT override
+			event_queue_t * /*queue*/ ) noexcept override
 			{
 			}
 	};
@@ -927,7 +927,7 @@ SO_5_NODISCARD
 event_queue_t *
 internal_env_iface_t::event_queue_on_bind(
 	agent_t * agent,
-	event_queue_t * original_queue ) SO_5_NOEXCEPT
+	event_queue_t * original_queue ) noexcept
 {
 	return m_env.m_impl->m_event_queue_hook->on_bind( agent, original_queue );
 }
@@ -935,7 +935,7 @@ internal_env_iface_t::event_queue_on_bind(
 void
 internal_env_iface_t::event_queue_on_unbind(
 	agent_t * agent,
-	event_queue_t * queue ) SO_5_NOEXCEPT
+	event_queue_t * queue ) noexcept
 {
 	m_env.m_impl->m_event_queue_hook->on_unbind( agent, queue );
 }

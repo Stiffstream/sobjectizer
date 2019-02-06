@@ -39,7 +39,7 @@ trigger_t::~trigger_t()
 
 SO_5_NODISCARD
 const agent_t &
-trigger_t::target_agent() const SO_5_NOEXCEPT
+trigger_t::target_agent() const noexcept
 	{
 		return m_target_agent;
 	}
@@ -54,7 +54,7 @@ SO_5_NODISCARD
 bool
 trigger_t::check(
 	const incident_status_t incident_status,
-	const incident_info_t & info ) const SO_5_NOEXCEPT
+	const incident_info_t & info ) const noexcept
 	{
 		return incident_status == m_incident_status
 				&& info.m_agent->so_direct_mbox()->id() == m_target_id
@@ -64,14 +64,14 @@ trigger_t::check(
 
 SO_5_NODISCARD
 bool
-trigger_t::requires_completion() const SO_5_NOEXCEPT
+trigger_t::requires_completion() const noexcept
 	{
 		return static_cast<bool>(m_completion);
 	}
 
 void
 trigger_t::complete(
-	const trigger_completion_context_t & context ) SO_5_NOEXCEPT
+	const trigger_completion_context_t & context ) noexcept
 	{
 		m_completion( context );
 	}
@@ -146,13 +146,13 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 		SO_5_NODISCARD
 		const std::string &
-		name() const SO_5_NOEXCEPT override
+		name() const noexcept override
 			{
 				return m_name;
 			}
 
 		void
-		preactivate() SO_5_NOEXCEPT override
+		preactivate() noexcept override
 			{
 				change_status( status_t::preactivated );
 			}
@@ -160,7 +160,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		SO_5_NODISCARD
 		token_t
 		pre_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT override
+			const incident_info_t & info ) noexcept override
 			{
 				token_t result;
 
@@ -173,7 +173,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		void
 		post_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			token_t token ) SO_5_NOEXCEPT override
+			token_t token ) noexcept override
 			{
 				if( token.valid() )
 					{
@@ -198,7 +198,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 		void
 		no_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT override
+			const incident_info_t & info ) noexcept override
 			{
 				if( status_t::preactivated == m_status )
 					(void)try_activate( incident_status_t::ignored, info );
@@ -206,7 +206,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 		SO_5_NODISCARD
 		status_t
-		status() const SO_5_NOEXCEPT override
+		status() const noexcept override
 			{
 				return m_status;
 			}
@@ -221,7 +221,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		void
 		setup_triggers(
 			trigger_container_t triggers,
-			std::size_t triggers_to_activate ) SO_5_NOEXCEPT override
+			std::size_t triggers_to_activate ) noexcept override
 			{
 				using std::swap;
 
@@ -235,7 +235,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 		void
 		setup_constraints(
-			constraint_container_t constraints ) SO_5_NOEXCEPT override
+			constraint_container_t constraints ) noexcept override
 			{
 				using std::swap;
 
@@ -254,7 +254,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		 * will be called for all constraints.
 		 */
 		void
-		change_status( status_t status ) SO_5_NOEXCEPT
+		change_status( status_t status ) noexcept
 			{
 				m_status = status;
 				switch( status )
@@ -288,7 +288,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		bool
 		try_pass_constraints(
 			const incident_status_t incident_status,
-			const incident_info_t & info ) const SO_5_NOEXCEPT
+			const incident_info_t & info ) const noexcept
 			{
 				for( auto & c : m_constraints )
 					if( !c->check( incident_status, info ) )
@@ -302,7 +302,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		token_t
 		try_activate(
 			const incident_status_t incident_status,
-			const incident_info_t & info ) SO_5_NOEXCEPT
+			const incident_info_t & info ) noexcept
 			{
 				token_t result;
 
@@ -391,7 +391,7 @@ class agent_unfreezer_t
 
 		//! Issue a command to unfreeze all frozen agents.
 		virtual void
-		unfreeze() SO_5_NOEXCEPT = 0;
+		unfreeze() noexcept = 0;
 	};
 
 /*!
@@ -454,7 +454,7 @@ class real_scenario_t final : public abstract_scenario_t
 		 * This method must be called before star of the scenario.
 		 */
 		void
-		setup_unfreezer( agent_unfreezer_t & unfreezer ) SO_5_NOEXCEPT
+		setup_unfreezer( agent_unfreezer_t & unfreezer ) noexcept
 			{
 				m_unfreezer = &unfreezer;
 			}
@@ -479,7 +479,7 @@ class real_scenario_t final : public abstract_scenario_t
 
 		SO_5_NODISCARD
 		scenario_result_t
-		result() const SO_5_NOEXCEPT override
+		result() const noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -520,7 +520,7 @@ class real_scenario_t final : public abstract_scenario_t
 		SO_5_NODISCARD
 		token_t
 		pre_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT override
+			const incident_info_t & info ) noexcept override
 			{
 				token_t result;
 
@@ -539,7 +539,7 @@ class real_scenario_t final : public abstract_scenario_t
 
 		void
 		post_handler_hook(
-			token_t token ) SO_5_NOEXCEPT override
+			token_t token ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -568,7 +568,7 @@ class real_scenario_t final : public abstract_scenario_t
 
 		void
 		no_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT override
+			const incident_info_t & info ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -626,7 +626,7 @@ class real_scenario_t final : public abstract_scenario_t
 		SO_5_NODISCARD
 		token_t
 		react_on_pre_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT
+			const incident_info_t & info ) noexcept
 			{
 				token_t result;
 
@@ -666,7 +666,7 @@ class real_scenario_t final : public abstract_scenario_t
 
 		void
 		react_on_no_handler_hook(
-			const incident_info_t & info ) SO_5_NOEXCEPT
+			const incident_info_t & info ) noexcept
 			{
 				// no_handler_hook on the current waiting step must be called.
 				auto & step_to_check = *(m_steps[ m_waiting_step_index ]);
@@ -706,7 +706,7 @@ class real_scenario_t final : public abstract_scenario_t
 		//! Checks the possibility of completion of the scenario and
 		//! completes scenario if it is possible.
 		void
-		check_scenario_completion() SO_5_NOEXCEPT
+		check_scenario_completion() noexcept
 			{
 				if( m_active_steps.empty() &&
 						m_waiting_step_index >= m_steps.size() )
@@ -815,7 +815,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 			,	m_message( demand.m_message_ref )
 			,	m_handled( false )
 			{}
-		~special_envelope_t() SO_5_NOEXCEPT override
+		~special_envelope_t() noexcept override
 			{
 				// If message wasn't handled we assume that agent rejected
 				// this message.
@@ -828,7 +828,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 			//! Why this hook is called.
 			access_context_t context,
 			//! Proxy object which can call an actual event handler.
-			handler_invoker_t & invoker ) SO_5_NOEXCEPT override
+			handler_invoker_t & invoker ) noexcept override
 			{
 				switch( context )
 					{
@@ -935,7 +935,7 @@ class special_event_queue_t final : public event_queue_t
 		std::vector< execution_demand_t > m_buffer;
 
 		static bool
-		is_ordinary_demand( const execution_demand_t & demand ) SO_5_NOEXCEPT
+		is_ordinary_demand( const execution_demand_t & demand ) noexcept
 			{
 				return agent_t::get_demand_handler_on_message_ptr() ==
 								demand.m_demand_handler ||
@@ -1045,7 +1045,7 @@ class stop_guard_for_unfreezer_t final
 			{}
 
 		void
-		stop() SO_5_NOEXCEPT override
+		stop() noexcept override
 			{
 				so_5::details::invoke_noexcept_code( [this] {
 					// Agents should become unfrozen.
@@ -1106,7 +1106,7 @@ class special_event_queue_hook_t final
 		event_queue_t *
 		on_bind(
 			agent_t * /*agent*/,
-			event_queue_t * original_queue ) SO_5_NOEXCEPT override
+			event_queue_t * original_queue ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -1124,7 +1124,7 @@ class special_event_queue_hook_t final
 		void
 		on_unbind(
 			agent_t * /*agent*/,
-			event_queue_t * queue ) SO_5_NOEXCEPT override
+			event_queue_t * queue ) noexcept override
 			{
 				// Assume that queue is an instance of special_event_queue_t
 				// and simply delete it.
@@ -1132,7 +1132,7 @@ class special_event_queue_hook_t final
 			}
 
 		void
-		unfreeze() SO_5_NOEXCEPT override
+		unfreeze() noexcept override
 			{
 				// Mode will be switched under locked mutex.
 				// But actual switching of queue operation mode
@@ -1327,7 +1327,7 @@ testing_env_t::stop_then_join()
 
 SO_5_NODISCARD
 scenario_proxy_t
-testing_env_t::scenario() SO_5_NOEXCEPT
+testing_env_t::scenario() noexcept
 	{
 		return { outliving_mutable(m_internals->m_scenario) };
 	}

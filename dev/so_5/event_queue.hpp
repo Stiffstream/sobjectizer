@@ -33,7 +33,7 @@ class SO_5_TYPE event_queue_t
 
 	public :
 		event_queue_t() = default;
-		virtual ~event_queue_t() SO_5_NOEXCEPT = default;
+		virtual ~event_queue_t() noexcept = default;
 
 		//! Enqueue new event to the queue.
 		virtual void

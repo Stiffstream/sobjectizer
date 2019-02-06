@@ -16,7 +16,7 @@ class special_wrapper_t : public so_5::enveloped_msg::envelope_t
 	std::atomic_bool m_enabled;
 
 	void
-	invoke_if_enabled( handler_invoker_t & invoker ) SO_5_NOEXCEPT
+	invoke_if_enabled( handler_invoker_t & invoker ) noexcept
 	{
 		if( m_enabled.load( std::memory_order_acquire ) )
 			invoker.invoke( payload_info_t(m_payload) );
@@ -30,7 +30,7 @@ public:
 	}
 
 	void
-	disable() SO_5_NOEXCEPT
+	disable() noexcept
 	{
 		m_enabled.store( false, std::memory_order_release );
 	}
@@ -38,7 +38,7 @@ public:
 	void
 	access_hook(
 		access_context_t,
-		handler_invoker_t & invoker ) SO_5_NOEXCEPT override
+		handler_invoker_t & invoker ) noexcept override
 	{
 		invoke_if_enabled( invoker );
 	}

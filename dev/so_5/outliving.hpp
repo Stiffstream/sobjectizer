@@ -99,23 +99,23 @@ class outliving_reference_t
 public :
 	using type = T;
 
-	explicit outliving_reference_t(T & r) SO_5_NOEXCEPT : m_ptr(std::addressof(r)) {}
+	explicit outliving_reference_t(T & r) noexcept : m_ptr(std::addressof(r)) {}
 
 	outliving_reference_t(T &&) = delete;
-	outliving_reference_t(outliving_reference_t const & o) SO_5_NOEXCEPT
+	outliving_reference_t(outliving_reference_t const & o) noexcept
 		: m_ptr(std::addressof(o.get()))
 		{}
 
 	template<typename U>
-	outliving_reference_t(outliving_reference_t<U> const & o) SO_5_NOEXCEPT
+	outliving_reference_t(outliving_reference_t<U> const & o) noexcept
 		: m_ptr(std::addressof(o.get()))
 		{}
 
 	outliving_reference_t & operator=(outliving_reference_t const &o) = delete;
 
-	operator T&() const SO_5_NOEXCEPT { return this->get(); }
+	operator T&() const noexcept { return this->get(); }
 
-	T & get() const SO_5_NOEXCEPT { return *m_ptr; }
+	T & get() const noexcept { return *m_ptr; }
 };
 
 /*!

@@ -38,7 +38,7 @@ class SO_5_TYPE error_logger_t
 
 	public :
 		error_logger_t() = default;
-		virtual ~error_logger_t() SO_5_NOEXCEPT = default;
+		virtual ~error_logger_t() noexcept = default;
 
 		//! A method for logging message.
 		/*!
@@ -51,7 +51,7 @@ class SO_5_TYPE error_logger_t
 			//! Line number inside source file.
 			unsigned int line,
 			//! Text to log.
-			const std::string & message ) /* SO_5_NOEXCEPT */ = 0;
+			const std::string & message ) /* noexcept */ = 0;
 	};
 
 //

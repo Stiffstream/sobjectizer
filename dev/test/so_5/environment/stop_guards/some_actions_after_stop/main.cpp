@@ -20,7 +20,7 @@ public :
 	{}
 
 	virtual void
-	stop() SO_5_NOEXCEPT override
+	stop() noexcept override
 	{}
 };
 

@@ -95,7 +95,7 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 		~agent_demand_handler_invoker_t() = default;
 
 		void
-		invoke( const payload_info_t & payload ) SO_5_NOEXCEPT override
+		invoke( const payload_info_t & payload ) noexcept override
 			{
 				const auto invocation_type = detect_invocation_type_for_message(
 						payload.message() );
@@ -143,7 +143,7 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 		 */
 		static demand_handler_pfn_t
 		demand_handler_for_invocation_type(
-			invocation_type_t type ) SO_5_NOEXCEPT
+			invocation_type_t type ) noexcept
 			{
 				demand_handler_pfn_t result = nullptr;
 				switch( type )
@@ -190,10 +190,10 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 		~mchain_demand_handler_invoker_t() = default;
 
 		bool
-		was_handled() const SO_5_NOEXCEPT { return m_was_handled; }
+		was_handled() const noexcept { return m_was_handled; }
 
 		void
-		invoke( const payload_info_t & payload ) SO_5_NOEXCEPT override
+		invoke( const payload_info_t & payload ) noexcept override
 			{
 				const auto invocation_type = detect_invocation_type_for_message(
 						payload.message() );

@@ -185,7 +185,7 @@ public:
 	 * \return Count of coops to be completely deregistered.
 	 */
 	std::size_t
-	deregister_all_coop() SO_5_NOEXCEPT;
+	deregister_all_coop() noexcept;
 
 	/*!
 	 * \brief Result of initiation of total deregistration process.

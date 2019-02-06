@@ -114,7 +114,7 @@ class mpmc_ptr_queue_t
 		 * \return nullptr is the case of dispatcher shutdown.
 		 */
 		inline T *
-		try_switch_to_another( T * current ) SO_5_NOEXCEPT
+		try_switch_to_another( T * current ) noexcept
 			{
 				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
 

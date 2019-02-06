@@ -220,31 +220,31 @@ class default_disp_impl_basis_t : public dispatcher_t
 			}
 
 		Event_Queue_Type &
-		event_queue() const SO_5_NOEXCEPT
+		event_queue() const noexcept
 			{
 				return m_event_queue.get();
 			}
 
 		current_thread_id_t
-		thread_id() const SO_5_NOEXCEPT
+		thread_id() const noexcept
 			{
 				return m_thread_id;
 			}
 
 		void
-		agent_bound() SO_5_NOEXCEPT
+		agent_bound() noexcept
 			{
 				++m_agents_bound;
 			}
 
 		void
-		agent_unbound() SO_5_NOEXCEPT
+		agent_unbound() noexcept
 			{
 				--m_agents_bound;
 			}
 
 		std::size_t
-		agents_bound() const SO_5_NOEXCEPT
+		agents_bound() const noexcept
 			{
 				return m_agents_bound.load( std::memory_order_relaxed );
 			}
@@ -386,7 +386,7 @@ class default_disp_impl_t final
 			}
 
 		Activity_Tracker &
-		activity_tracker() SO_5_NOEXCEPT
+		activity_tracker() noexcept
 			{
 				return m_activity_tracker;
 			}
@@ -510,7 +510,7 @@ class actual_elapsed_timers_collector_t final
 		 * \return true if there is no any pending demands.
 		 */
 		bool
-		empty() const SO_5_NOEXCEPT
+		empty() const noexcept
 			{
 				return m_demands.empty();
 			}

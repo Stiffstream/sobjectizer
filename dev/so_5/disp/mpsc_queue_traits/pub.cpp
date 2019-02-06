@@ -57,20 +57,20 @@ class combined_lock_t : public lock_t
 			{}
 
 		virtual void
-		lock() SO_5_NOEXCEPT override
+		lock() noexcept override
 			{
 				m_spinlock.lock();
 			}
 
 		virtual void
-		unlock() SO_5_NOEXCEPT override
+		unlock() noexcept override
 			{
 				m_spinlock.unlock();
 			}
 
 	protected :
 		virtual void
-		wait_for_notify() SO_5_NOEXCEPT override
+		wait_for_notify() noexcept override
 			{
 				using clock = std::chrono::high_resolution_clock;
 
@@ -118,7 +118,7 @@ class combined_lock_t : public lock_t
 		 * \attention Must be called only when object is locked.
 		 */
 		virtual void
-		notify_one() SO_5_NOEXCEPT override
+		notify_one() noexcept override
 			{
 				if( m_waiting )
 					{
@@ -156,20 +156,20 @@ class simple_lock_t : public lock_t
 	{
 	public :
 		virtual void
-		lock() SO_5_NOEXCEPT override
+		lock() noexcept override
 			{
 				m_mutex.lock();
 			}
 
 		virtual void
-		unlock() SO_5_NOEXCEPT override
+		unlock() noexcept override
 			{
 				m_mutex.unlock();
 			}
 
 	protected :
 		virtual void
-		wait_for_notify() SO_5_NOEXCEPT override
+		wait_for_notify() noexcept override
 			{
 				so_5::details::invoke_noexcept_code( [&] {
 					// Mutex already locked. We must not try to reacquire it.
@@ -183,7 +183,7 @@ class simple_lock_t : public lock_t
 			}
 
 		virtual void
-		notify_one() SO_5_NOEXCEPT override
+		notify_one() noexcept override
 			{
 				m_signaled = true;
 				m_condition.notify_one();

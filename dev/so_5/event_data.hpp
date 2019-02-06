@@ -72,28 +72,28 @@ public :
 	using payload_type = typename message_payload_type< M >::payload_type;
 	using envelope_type = typename message_payload_type< M >::envelope_type;
 
-	mhood_base_t( message_ref_t & mf ) SO_5_NOEXCEPT
+	mhood_base_t( message_ref_t & mf ) noexcept
 		: m_msg{ message_payload_type< M >::extract_payload_ptr( mf ) }
 		{}
 
 	//! Access to the message.
 	const payload_type *
-	get() const SO_5_NOEXCEPT { return m_msg; }
+	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
 	intrusive_ptr_t< envelope_type >
-	make_reference() const SO_5_NOEXCEPT
+	make_reference() const noexcept
 		{
 			return intrusive_ptr_t< envelope_type >{m_msg};
 		}
 
 	//! Access to the message.
 	const payload_type &
-	operator * () const SO_5_NOEXCEPT { return *get(); }
+	operator * () const noexcept { return *get(); }
 
 	//! Access to the message via pointer.
 	const payload_type *
-	operator->() const SO_5_NOEXCEPT { return get(); }
+	operator->() const noexcept { return get(); }
 
 private :
 	/*!
@@ -125,7 +125,7 @@ public :
 	using payload_type = typename message_payload_type< M >::payload_type;
 	using envelope_type = typename message_payload_type< M >::envelope_type;
 
-	mhood_base_t( message_ref_t & mf ) SO_5_NOEXCEPT
+	mhood_base_t( message_ref_t & mf ) noexcept
 		: m_msg{ message_payload_type< M >::extract_payload_ptr( mf ) }
 		{}
 
@@ -133,7 +133,7 @@ public :
 	mhood_base_t( const mhood_base_t & ) = delete;
 #endif
 
-	mhood_base_t( mhood_base_t && other ) SO_5_NOEXCEPT
+	mhood_base_t( mhood_base_t && other ) noexcept
 		: m_msg{ other.m_msg }
 		{
 			other.m_msg = nullptr;
@@ -152,7 +152,7 @@ public :
 #endif
 
 	mhood_base_t &
-	operator=( mhood_base_t && other ) SO_5_NOEXCEPT
+	operator=( mhood_base_t && other ) noexcept
 		{
 			mhood_base_t tmp{ std::move(other) };
 			swap( *this, tmp );
@@ -161,11 +161,11 @@ public :
 
 	//! Access to the message.
 	payload_type *
-	get() const SO_5_NOEXCEPT { return m_msg; }
+	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
 	intrusive_ptr_t< envelope_type >
-	make_reference() SO_5_NOEXCEPT
+	make_reference() noexcept
 		{
 			intrusive_ptr_t< envelope_type > result{m_msg};
 			m_msg = nullptr;
@@ -174,11 +174,11 @@ public :
 
 	//! Access to the message.
 	payload_type &
-	operator*() SO_5_NOEXCEPT { return *get(); }
+	operator*() noexcept { return *get(); }
 
 	//! Access to the message via pointer.
 	payload_type *
-	operator->() SO_5_NOEXCEPT { return get(); }
+	operator->() noexcept { return get(); }
 
 private :
 	payload_type * m_msg;
@@ -244,29 +244,29 @@ public :
 	using payload_type = typename message_payload_type< M >::payload_type;
 	using envelope_type = typename message_payload_type< M >::envelope_type;
 
-	mhood_base_t( message_ref_t & mf ) SO_5_NOEXCEPT
+	mhood_base_t( message_ref_t & mf ) noexcept
 		: m_payload{ message_payload_type< M >::extract_payload_ptr( mf ) }
 		, m_envelope{ message_payload_type< M >::extract_envelope_ptr( mf ) }
 		{}
 
 	//! Access to the message.
 	const payload_type *
-	get() const SO_5_NOEXCEPT { return m_payload; }
+	get() const noexcept { return m_payload; }
 
 	//! Create a smart pointer for the message envelope.
 	intrusive_ptr_t< envelope_type >
-	make_reference() const SO_5_NOEXCEPT
+	make_reference() const noexcept
 		{
 			return intrusive_ptr_t< envelope_type >{m_envelope};
 		}
 
 	//! Access to the message.
 	const payload_type &
-	operator*() const SO_5_NOEXCEPT { return *get(); }
+	operator*() const noexcept { return *get(); }
 
 	//! Access to the message via pointer.
 	const payload_type *
-	operator->() const SO_5_NOEXCEPT { return get(); }
+	operator->() const noexcept { return get(); }
 
 private :
 	const payload_type * m_payload;
@@ -295,7 +295,7 @@ public :
 	using payload_type = typename message_payload_type< M >::payload_type;
 	using envelope_type = typename message_payload_type< M >::envelope_type;
 
-	mhood_base_t( message_ref_t & mf ) SO_5_NOEXCEPT
+	mhood_base_t( message_ref_t & mf ) noexcept
 		: m_payload{ message_payload_type< M >::extract_payload_ptr( mf ) }
 		, m_envelope{ message_payload_type< M >::extract_envelope_ptr( mf ) }
 		{}
@@ -304,7 +304,7 @@ public :
 	mhood_base_t( const mhood_base_t & ) = delete;
 #endif
 
-	mhood_base_t( mhood_base_t && other ) SO_5_NOEXCEPT
+	mhood_base_t( mhood_base_t && other ) noexcept
 		: m_payload( other.m_payload )
 		, m_envelope( other.m_envelope )
 		{
@@ -313,7 +313,7 @@ public :
 		}
 
 	friend void
-	swap( mhood_base_t & a, mhood_base_t & b ) SO_5_NOEXCEPT
+	swap( mhood_base_t & a, mhood_base_t & b ) noexcept
 		{
 			using namespace std;
 			swap( a.m_payload, b.m_payload );
@@ -326,7 +326,7 @@ public :
 #endif
 
 	mhood_base_t &
-	operator=( mhood_base_t && other ) SO_5_NOEXCEPT
+	operator=( mhood_base_t && other ) noexcept
 		{
 			mhood_base_t tmp{ std::move(other) };
 			swap( *this, tmp );
@@ -335,11 +335,11 @@ public :
 
 	//! Access to the message.
 	payload_type *
-	get() SO_5_NOEXCEPT { return m_payload; }
+	get() noexcept { return m_payload; }
 
 	//! Create a smart pointer for the message envelope.
 	intrusive_ptr_t< envelope_type >
-	make_reference() SO_5_NOEXCEPT
+	make_reference() noexcept
 		{
 			intrusive_ptr_t< envelope_type > result{m_envelope};
 
@@ -351,11 +351,11 @@ public :
 
 	//! Access to the message.
 	payload_type &
-	operator*() SO_5_NOEXCEPT { return *get(); }
+	operator*() noexcept { return *get(); }
 
 	//! Access to the message via pointer.
 	payload_type *
-	operator->() SO_5_NOEXCEPT { return get(); }
+	operator->() noexcept { return get(); }
 
 private :
 	payload_type * m_payload;

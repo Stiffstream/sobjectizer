@@ -48,7 +48,7 @@ class SO_5_TYPE event_exception_logger_t
 
 	public:
 		event_exception_logger_t() = default;
-		virtual ~event_exception_logger_t() SO_5_NOEXCEPT = default;
+		virtual ~event_exception_logger_t() noexcept = default;
 
 		/*!
 		 * \brief Log the exception caught.
@@ -60,7 +60,7 @@ class SO_5_TYPE event_exception_logger_t
 			//! Exception caught.
 			const std::exception & event_exception,
 			//! Name of cooperation to which agent is belong.
-			const std::string & coop_name ) /* SO_5_NOEXCEPT */ = 0;
+			const std::string & coop_name ) /* noexcept */ = 0;
 
 		/*!
 		 * \brief Installation hook.
@@ -75,7 +75,7 @@ class SO_5_TYPE event_exception_logger_t
 		virtual void
 		on_install(
 			//! Old logger.
-			event_exception_logger_unique_ptr_t previous_logger ) /* SO_5_NOEXCEPT */;
+			event_exception_logger_unique_ptr_t previous_logger ) /* noexcept */;
 
 };
 

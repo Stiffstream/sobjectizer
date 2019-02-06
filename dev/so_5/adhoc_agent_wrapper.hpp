@@ -61,7 +61,7 @@ class SO_5_TYPE adhoc_agent_wrapper_t : public agent_t
 		//! Set reaction for non-handled exceptions.
 		void
 		set_exception_reaction(
-			exception_reaction_t reaction ) SO_5_NOEXCEPT
+			exception_reaction_t reaction ) noexcept
 			{
 				m_exception_reaction = reaction;
 			}
