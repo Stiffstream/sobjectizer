@@ -211,28 +211,5 @@ using mtag = std::integral_constant< int, N >;
 template< typename T, int N >
 struct typed_mtag {};
 
-namespace rt {
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::tuple_as_message_t
- * instead.
- */
-template< typename Tag, typename... Types >
-using tuple_as_message_t = so_5::tuple_as_message_t< Tag, Types... >;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::mtag instead.
- */
-template< int N >
-using mtag = so_5::mtag< N >;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::typed_mtag instead.
- */
-template< typename T, int N >
-using typed_mtag = so_5::typed_mtag< T, N >;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

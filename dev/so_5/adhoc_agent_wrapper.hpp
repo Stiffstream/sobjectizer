@@ -289,23 +289,6 @@ class adhoc_agent_definition_proxy_t
 		adhoc_agent_wrapper_t * m_agent;
 	};
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
- * instead.
- */
-using adhoc_agent_wrapper_t = so_5::adhoc_agent_wrapper_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::adhoc_agent_definition_proxy_t instead.
- */
-using adhoc_agent_definition_proxy_t = so_5::adhoc_agent_definition_proxy_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 #if defined( SO_5_MSVC )

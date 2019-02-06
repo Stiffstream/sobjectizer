@@ -40,15 +40,5 @@ class SO_5_TYPE event_queue_t
 		push( execution_demand_t demand ) = 0;
 	};
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::event_queue_t instead.
- */
-using event_queue_t = so_5::event_queue_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

@@ -14,18 +14,18 @@
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
-struct msg_one : public so_5::rt::signal_t {};
+struct msg_one : public so_5::signal_t {};
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t(
-		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env + limit_then_abort< msg_one >( 1 ) )
+		so_5::environment_t & env )
+		:	so_5::agent_t( env + limit_then_abort< msg_one >( 1 ) )
 	{}
 
 	void
-	set_working_mbox( const so_5::rt::mbox_t & mbox )
+	set_working_mbox( const so_5::mbox_t & mbox )
 	{
 		m_working_mbox = mbox;
 	}
@@ -46,7 +46,7 @@ public :
 	}
 
 private :
-	so_5::rt::mbox_t m_working_mbox;
+	so_5::mbox_t m_working_mbox;
 };
 
 void
@@ -60,7 +60,7 @@ do_test(
 			[test_tuner]()
 			{
 				so_5::launch(
-						[test_tuner]( so_5::rt::environment_t & env )
+						[test_tuner]( so_5::environment_t & env )
 						{
 							auto coop = env.create_coop( so_5::autoname );
 							auto agent = coop->make_agent< a_test_t >();

@@ -312,18 +312,6 @@ class intrusive_ptr_t
 		}
 };
 
-namespace rt
-{
-
-// For compatibility with previous versions.
-/*!
- * \deprecated Obsolete in v.5.5.1. Use so_5::intrusive_ptr_t instead.
- */
-template< class T >
-using smart_atomic_reference_t = intrusive_ptr_t< T >;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 #if defined( SO_5_MSVC )

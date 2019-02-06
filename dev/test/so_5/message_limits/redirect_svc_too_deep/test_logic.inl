@@ -14,22 +14,22 @@
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
-struct msg_request : public so_5::rt::signal_t {};
+struct msg_request : public so_5::signal_t {};
 
-class a_worker_t : public so_5::rt::agent_t
+class a_worker_t : public so_5::agent_t
 {
 public :
 	a_worker_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		std::string reply )
-		:	so_5::rt::agent_t( env +
+		:	so_5::agent_t( env +
 				limit_then_redirect< msg_request >( 2,
 					[this] { return m_self_mbox; } ) )
 		,	m_reply( std::move( reply ) )
 	{}
 
 	void
-	set_self_mbox( const so_5::rt::mbox_t & mbox )
+	set_self_mbox( const so_5::mbox_t & mbox )
 	{
 		m_self_mbox = mbox;
 	}
@@ -42,28 +42,28 @@ public :
 	}
 
 private :
-	so_5::rt::mbox_t m_self_mbox;
+	so_5::mbox_t m_self_mbox;
 	const std::string m_reply;
 };
 
-class a_manager_t : public so_5::rt::agent_t
+class a_manager_t : public so_5::agent_t
 {
 public :
 	a_manager_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		std::string expected_response )
-		:	so_5::rt::agent_t( env )
+		:	so_5::agent_t( env )
 		,	m_expected_response( expected_response )
 	{}
 
 	void
-	set_self_mbox( const so_5::rt::mbox_t & mbox )
+	set_self_mbox( const so_5::mbox_t & mbox )
 	{
 		m_self_mbox = mbox;
 	}
 
 	void
-	set_target_mbox( const so_5::rt::mbox_t & mbox )
+	set_target_mbox( const so_5::mbox_t & mbox )
 	{
 		m_target_mbox = mbox;
 	}
@@ -103,10 +103,10 @@ public :
 	}
 
 private :
-	struct msg_get_results : public so_5::rt::signal_t {};
+	struct msg_get_results : public so_5::signal_t {};
 
-	so_5::rt::mbox_t m_self_mbox;
-	so_5::rt::mbox_t m_target_mbox;
+	so_5::mbox_t m_self_mbox;
+	so_5::mbox_t m_target_mbox;
 
 	const std::string m_expected_response;
 
@@ -126,7 +126,7 @@ do_test(
 			[test_tuner]()
 			{
 				so_5::launch(
-						[test_tuner]( so_5::rt::environment_t & env )
+						[test_tuner]( so_5::environment_t & env )
 						{
 							auto coop = env.create_coop( so_5::autoname );
 							

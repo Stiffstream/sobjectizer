@@ -87,33 +87,5 @@ class SO_5_TYPE event_exception_logger_t
 SO_5_FUNC event_exception_logger_unique_ptr_t
 create_std_event_exception_logger();
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::event_exception_logger_t;
- * instead.
- */
-using event_exception_logger_t = so_5::event_exception_logger_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
- * instead.
- */
-using event_exception_logger_unique_ptr_t =
-	so_5::event_exception_logger_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::create_std_event_exception_logger() instead.
- */
-inline so_5::event_exception_logger_unique_ptr_t
-create_std_event_exception_logger()
-	{
-		return so_5::create_std_event_exception_logger();
-	}
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

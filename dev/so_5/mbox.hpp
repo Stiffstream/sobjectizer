@@ -657,7 +657,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \note
 		 * Added in v.5.5.18.
 		 */
-		friend class so_5::rt::impl::mbox_iface_for_timers_t;
+		friend class so_5::impl::mbox_iface_for_timers_t;
 
 		abstract_message_box_t( const abstract_message_box_t & ) = delete;
 		abstract_message_box_t( abstract_message_box_t && ) = delete;
@@ -1446,62 +1446,6 @@ wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
 
 		return this->sync_get_2< Param >( std::move( msg ) );
 	}
-
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_possibility_t;
- * instead.
- */
-using delivery_possibility_t = so_5::delivery_possibility_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::service_invoke_proxy_t
- * instead.
- */
-template< class Result >
-using service_invoke_proxy_t = so_5::service_invoke_proxy_t< Result >;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::infinite_wait_service_invoke_proxy_t instead.
- */
-template< class Result >
-using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t< Result >;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::wait_for_service_invoke_proxy_t instead.
- */
-template< class Result, class Duration >
-using wait_for_service_invoke_proxy_t =
-	so_5::wait_for_service_invoke_proxy_t< Result, Duration >;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_filter_t
- * instead.
- */
-using delivery_filter_t = so_5::delivery_filter_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::delivery_filter_unique_ptr_t instead.
- */
-using delivery_filter_unique_ptr_t = so_5::delivery_filter_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0.
- */
-using mbox_type_t = so_5::mbox_type_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::abstract_message_box_t
- * instead.
- */
-using abstract_message_box_t = so_5::abstract_message_box_t;
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

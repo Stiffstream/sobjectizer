@@ -121,7 +121,7 @@ class timer_action_for_timer_thread_t
 		void
 		operator()() noexcept
 			{
-				::so_5::rt::impl::mbox_iface_for_timers_t{ m_mbox }
+				::so_5::impl::mbox_iface_for_timers_t{ m_mbox }
 						.deliver_message_from_timer( m_type_index, m_msg );
 			}
 	};

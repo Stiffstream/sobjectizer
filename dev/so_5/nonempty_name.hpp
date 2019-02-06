@@ -90,16 +90,5 @@ class nonempty_name_t
 		std::string m_nonempty_name;
 };
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::nonempty_name_t
- * instead.
- */
-using nonempty_name_t = so_5::nonempty_name_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

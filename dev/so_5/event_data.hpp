@@ -552,16 +552,5 @@ using mutable_mhood_t = mhood_t< mutable_msg<M> >;
 template< class Msg >
 using event_data_t = mhood_t< Msg >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::mhood_t instead.
- */
-template< class Msg >
-using event_data_t = so_5::event_data_t< Msg >;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

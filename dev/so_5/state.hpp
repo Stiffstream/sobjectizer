@@ -1961,15 +1961,5 @@ class SO_5_TYPE state_t final
 	#pragma warning(pop)
 #endif
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::state_t instead.
- */
-using state_t = so_5::state_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

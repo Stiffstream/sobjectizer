@@ -3806,59 +3806,6 @@ operator>>=( agent_t * agent, const state_t & new_state )
 	agent->so_change_state( new_state );
 }
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::exception_reaction_t
- * instead.
- */
-using exception_reaction_t = so_5::exception_reaction_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::abort_on_exception
- * instead.
- */
-const so_5::exception_reaction_t abort_on_exception = so_5::abort_on_exception;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::shutdown_sobjectizer_on_exception instead.
- */
-const so_5::exception_reaction_t shutdown_sobjectizer_on_exception = so_5::shutdown_sobjectizer_on_exception;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::deregister_coop_on_exception instead.
- */
-const so_5::exception_reaction_t deregister_coop_on_exception = so_5::deregister_coop_on_exception;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::ignore_exception
- * instead.
- */
-const so_5::exception_reaction_t ignore_exception = so_5::ignore_exception;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::inherit_exception_reaction
- * instead.
- */
-const so_5::exception_reaction_t inherit_exception_reaction = so_5::inherit_exception_reaction;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::subscription_bind_t
- * instead.
- */
-using subscription_bind_t = so_5::subscription_bind_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::agent_t
- * instead.
- */
-using agent_t = so_5::agent_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 #if defined( SO_5_MSVC )

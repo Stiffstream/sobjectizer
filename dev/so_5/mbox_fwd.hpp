@@ -28,28 +28,11 @@ class abstract_message_box_t;
  */
 typedef intrusive_ptr_t< abstract_message_box_t > mbox_t;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::mbox_t instead.
- */
-using mbox_t = so_5::mbox_t;
-
-// Just for compatibility with previous versions.
-/*!
- * \deprecated Obsolete in v.5.5.1. The so_5::mbox_t must be used instead.
- * Will be removed in v.5.6.0.
- */
-using mbox_ref_t = so_5::mbox_t;
-
 namespace impl {
 
 class mbox_iface_for_timers_t;
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

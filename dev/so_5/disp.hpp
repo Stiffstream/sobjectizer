@@ -110,33 +110,5 @@ using dispatcher_ref_t = std::shared_ptr< dispatcher_t >;
 //! Typedef of the map from dispatcher name to a dispather.
 using named_dispatcher_map_t = std::map< std::string, dispatcher_ref_t >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_t instead.
- */
-using dispatcher_t = so_5::dispatcher_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_unique_ptr_t
- * instead.
- */
-using dispatcher_unique_ptr_t = so_5::dispatcher_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::dispatcher_ref_t
- * instead.
- */
-using dispatcher_ref_t = so_5::dispatcher_ref_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::named_dispatcher_map_t
- * instead.
- */
-using named_dispatcher_map_t = so_5::named_dispatcher_map_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

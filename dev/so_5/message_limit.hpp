@@ -889,34 +889,5 @@ class info_storage_t;
 
 } /* namespace message_limit */
 
-namespace rt
-{
-
-namespace message_limit
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::message_limit::description_t instead.
- */
-using description_t = so_5::message_limit::description_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::message_limit::description_container_t instead.
- */
-using description_container_t = so_5::message_limit::description_container_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::message_limit::transformed_message_t instead.
- */
-template< typename Msg >
-using transformed_message_t = so_5::message_limit::transformed_message_t< Msg >;
-
-} /* namespace message_limit */
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

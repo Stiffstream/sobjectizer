@@ -16,8 +16,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 //
@@ -50,8 +48,6 @@ class mbox_iface_for_timers_t
 	};
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -2490,57 +2490,6 @@ introduce_child_coop(
 			parent.query_coop_name() }.introduce( std::forward< Args >(args)... );
 }
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::environment_params_t
- * instead.
- */
-using environment_params_t = so_5::environment_params_t;
-
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0.
- */
-typedef so_5::environment_params_t so_environment_params_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::environment_t
- * instead.
- */
-using environment_t = so_5::environment_t;
-
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0
- */
-typedef so_5::environment_t so_environment_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::create_child_coop()
- * instead.
- */
-template< typename... Args >
-coop_unique_ptr_t
-create_child_coop( Args&&... args )
-{
-	return so_5::create_child_coop( std::forward<Args>(args)... );
-}
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::introduce_child_coop()
- * instead.
- */
-template< typename... Args >
-void
-introduce_child_coop( Args&&... args )
-{
-	so_5::introduce_child_coop( std::forward<Args>(args)... );
-}
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 #if defined( SO_5_MSVC )

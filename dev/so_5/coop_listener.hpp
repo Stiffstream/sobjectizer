@@ -73,21 +73,4 @@ class SO_5_TYPE coop_listener_t
 //! Typedef for the coop_listener autopointer.
 using coop_listener_unique_ptr_t = std::unique_ptr< coop_listener_t >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::coop_listener_t
- * instead.
- */
-using coop_listener_t = so_5::coop_listener_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
- * instead.
- */
-using coop_listener_unique_ptr_t = so_5::coop_listener_unique_ptr_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */

@@ -117,44 +117,5 @@ create_default_disp_binder();
 SO_5_FUNC disp_binder_unique_ptr_t
 make_default_disp_binder( environment_t & env );
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binding_activator_t
- * instead.
- */
-using disp_binding_activator_t = so_5::disp_binding_activator_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_t
- * instead.
- */
-using disp_binder_t = so_5::disp_binder_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_unique_ptr_t
- * instead.
- */
-using disp_binder_unique_ptr_t = so_5::disp_binder_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_ref_t
- * instead.
- */
-using disp_binder_ref_t = so_5::disp_binder_ref_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::create_default_disp_binder
- * instead.
- */
-inline disp_binder_unique_ptr_t
-create_default_disp_binder()
-	{
-		return so_5::create_default_disp_binder();
-	}
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

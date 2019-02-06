@@ -28,16 +28,5 @@ namespace so_5
  */
 using agent_ref_t = intrusive_ptr_t< agent_t >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::agent_ref_t
- * instead.
- */
-using agent_ref_t = so_5::agent_ref_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

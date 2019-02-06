@@ -523,7 +523,7 @@ class actual_elapsed_timers_collector_t final
 			{
 				for( auto & d : m_demands )
 				{
-					so_5::rt::impl::mbox_iface_for_timers_t{ d.m_mbox }
+					so_5::impl::mbox_iface_for_timers_t{ d.m_mbox }
 							.deliver_message_from_timer( d.m_type_index, d.m_message );
 				}
 
@@ -566,7 +566,7 @@ class direct_delivery_elapsed_timers_collector_t final
 			mbox_t mbox,
 			message_ref_t msg ) override
 			{
-				so_5::rt::impl::mbox_iface_for_timers_t{ mbox }
+				so_5::impl::mbox_iface_for_timers_t{ mbox }
 						.deliver_message_from_timer( type_index, msg );
 			}
 	};

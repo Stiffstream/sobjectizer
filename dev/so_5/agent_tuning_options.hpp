@@ -138,22 +138,12 @@ class agent_tuning_options_t
 		so_5::priority_t m_priority = so_5::prio::default_priority;
 	};
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::agent_tuning_options_t
- * instead.
- */
-using agent_tuning_options_t = so_5::agent_tuning_options_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 namespace std
 {
 
+//FIXME: should be implemented as friend for agent_tuning_options_t.
 template<>
 inline void
 swap(

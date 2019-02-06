@@ -66,28 +66,5 @@ using agent_state_listener_unique_ptr_t =
 using agent_state_listener_ref_t =
 		std::shared_ptr< agent_state_listener_t >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::agent_state_listener_t
- * instead.
- */
-using agent_state_listener_t = so_5::agent_state_listener_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use
- * so_5::agent_state_listener_unique_ptr_t instead.
- */
-using agent_state_listener_unique_ptr_t = so_5::agent_state_listener_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::agent_state_listener_ref_t
- * instead.
- */
-using agent_state_listener_ref_t = so_5::agent_state_listener_ref_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

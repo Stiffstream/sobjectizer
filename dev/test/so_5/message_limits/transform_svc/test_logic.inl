@@ -14,7 +14,7 @@
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
-struct msg_hello : public so_5::rt::message_t
+struct msg_hello : public so_5::message_t
 {
 	std::string m_text;
 
@@ -23,7 +23,7 @@ struct msg_hello : public so_5::rt::message_t
 	{}
 };
 
-struct msg_hello_overlimit : public so_5::rt::message_t
+struct msg_hello_overlimit : public so_5::message_t
 {
 	std::string m_desc;
 
@@ -32,12 +32,12 @@ struct msg_hello_overlimit : public so_5::rt::message_t
 	{}
 };
 
-class a_test_t : public so_5::rt::agent_t
+class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t(
-		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env
+		so_5::environment_t & env )
+		:	so_5::agent_t( env
 				+ limit_then_transform( 1,
 					[&]( const msg_hello & msg ) {
 						return make_transformed< msg_hello_overlimit >(
@@ -49,7 +49,7 @@ public :
 	{}
 
 	void
-	set_working_mbox( const so_5::rt::mbox_t & mbox )
+	set_working_mbox( const so_5::mbox_t & mbox )
 	{
 		m_working_mbox = mbox;
 	}
@@ -99,9 +99,9 @@ public :
 	}
 
 private :
-	struct msg_finish : public so_5::rt::signal_t {};
+	struct msg_finish : public so_5::signal_t {};
 
-	so_5::rt::mbox_t m_working_mbox;
+	so_5::mbox_t m_working_mbox;
 
 	std::future< std::string > m_r1;
 };
@@ -117,7 +117,7 @@ do_test(
 			[test_tuner]()
 			{
 				so_5::launch(
-						[test_tuner]( so_5::rt::environment_t & env )
+						[test_tuner]( so_5::environment_t & env )
 						{
 							auto coop = env.create_coop( so_5::autoname );
 							auto agent = coop->make_agent< a_test_t >();

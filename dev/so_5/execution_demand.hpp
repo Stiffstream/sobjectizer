@@ -315,34 +315,5 @@ struct msg_type_and_handler_pair_t
 
 } /* namespace details */
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::event_handler_method_t
- * instead.
- */
-using event_handler_method_t = so_5::event_handler_method_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::demand_handler_pfn_t
- * instead.
- */
-using demand_handler_pfn_t = so_5::demand_handler_pfn_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::execution_demand_t
- * instead.
- */
-using execution_demand_t = so_5::execution_demand_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::execution_hint_t
- * instead.
- */
-using execution_hint_t = so_5::execution_hint_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 

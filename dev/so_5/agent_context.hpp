@@ -213,22 +213,12 @@ operator+(
  * \}
  */
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
- * instead.
- */
-using agent_context_t = so_5::agent_context_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
 namespace std
 {
 
+//FIXME: it should be implemented as friend for agent_context_t.
 template<>
 inline void
 swap(

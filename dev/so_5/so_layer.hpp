@@ -94,32 +94,5 @@ using layer_ref_t = std::shared_ptr< layer_t >;
 //! Typedef for the map from a layer typeid to the layer.
 using layer_map_t = std::map< std::type_index, layer_ref_t >;
 
-namespace rt
-{
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::layer_t instead.
- */
-using so_layer_t = so_5::layer_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::layer_unique_ptr_t
- * instead.
- */
-using so_layer_unique_ptr_t = so_5::layer_unique_ptr_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::layer_ref_t instead.
- */
-using so_layer_ref_t = so_5::layer_ref_t;
-
-/*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::layer_map_t
- * instead.
- */
-using so_layer_map_t = so_5::layer_map_t;
-
-} /* namespace rt */
-
 } /* namespace so_5 */
 
