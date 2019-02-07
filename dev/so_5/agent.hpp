@@ -3172,17 +3172,6 @@ class lambda_as_filter_t : public delivery_filter_t
 	{
 		Lambda m_filter;
 
-		// NOTE: this is a workaround for strage behaviour of VC++ 19.0.23918
-		// (from Visual Studio 2015 Update 2).
-		// It seems that noexcept on check() doesn't work.
-		// Because of that it is necessary to call another noexcept
-		// function from check().
-		bool
-		do_check( Message & m ) const noexcept
-		{
-			return m_filter( m );
-		}
-
 	public :
 		lambda_as_filter_t( Lambda && filter )
 			:	m_filter( std::forward< Lambda >( filter ) )
@@ -3193,7 +3182,7 @@ class lambda_as_filter_t : public delivery_filter_t
 			const agent_t & /*receiver*/,
 			message_t & msg ) const noexcept override
 			{
-				return do_check(message_payload_type< Message >::payload_reference( msg ));
+				return m_filter(message_payload_type< Message >::payload_reference( msg ));
 			}
 	};
 
