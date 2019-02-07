@@ -2,6 +2,7 @@ syntax: glob
 
 .externals
 *.swp
+*.core
 dev/target
 dev/zbuild
 dev/__*.vim
