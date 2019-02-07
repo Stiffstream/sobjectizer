@@ -12,11 +12,11 @@
 
 #pragma once
 
-#include <so_5/3rd_party/optional-lite/nonstd/optional.hpp>
+#include <optional>
 
 namespace so_5 {
 
-using nonstd::optional;
+using std::optional;
 
 } /* namespace so_5 */
 

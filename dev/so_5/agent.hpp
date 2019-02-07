@@ -3188,37 +3188,13 @@ class lambda_as_filter_t : public delivery_filter_t
 			:	m_filter( std::forward< Lambda >( filter ) )
 			{}
 
-#if SO_5_HAVE_NOEXCEPT
-		virtual bool
+		bool
 		check(
 			const agent_t & /*receiver*/,
 			message_t & msg ) const noexcept override
 			{
 				return do_check(message_payload_type< Message >::payload_reference( msg ));
 			}
-#else
-		virtual bool
-		check(
-			const agent_t & receiver,
-			message_t & msg ) const noexcept override
-			{
-				return so_5::details::do_with_rollback_on_exception(
-					[&] {
-						return m_filter( message_payload_type< Message >::payload_reference( msg ) );
-					},
-					[&] {
-						so_5::details::abort_on_fatal_error( [&] {
-							SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
-								serr << "An exception from delivery filter "
-									"for message type "
-									<< message_payload_type< Message >::subscription_type_index().name()
-									<< ". Application will be aborted"
-									<< std::endl;
-							}
-						} );
-					} );
-			}
-#endif
 	};
 
 } /* namespace delivery_filter_templates */
