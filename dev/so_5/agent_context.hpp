@@ -68,18 +68,21 @@ class agent_context_t
 			{}
 
 		//! Swap operation.
-		void
-		swap( agent_context_t & other )
+		friend inline void
+		swap(
+			so_5::agent_context_t & a,
+			so_5::agent_context_t & b ) noexcept
 			{
-				std::swap( m_env, other.m_env );
-				std::swap( m_options, other.m_options );
+				using std::swap;
+				swap( a.m_env, b.m_env );
+				swap( a.m_options, b.m_options );
 			}
 
 		//! Copy/move operator.
 		agent_context_t &
 		operator=( agent_context_t ctx )
 			{
-				swap( ctx );
+				swap( *this, ctx );
 				return *this;
 			}
 
@@ -214,20 +217,4 @@ operator+(
  */
 
 } /* namespace so_5 */
-
-namespace std
-{
-
-//FIXME: it should be implemented as friend for agent_context_t.
-template<>
-inline void
-swap(
-	so_5::agent_context_t & a,
-	so_5::agent_context_t & b )
-	{
-		a.swap( b );
-	}
-
-} /* namespace std */
-
 

@@ -51,19 +51,22 @@ class agent_tuning_options_t
 			,	m_priority( std::move( o.m_priority ) )
 			{}
 
-		void
-		swap( agent_tuning_options_t & o )
+		friend inline void
+		swap(
+			so_5::agent_tuning_options_t & a,
+			so_5::agent_tuning_options_t & b ) noexcept
 			{
-				std::swap( m_subscription_storage_factory,
-						o.m_subscription_storage_factory );
-				std::swap( m_message_limits, o.m_message_limits );
-				std::swap( m_priority, o.m_priority );
+				using std::swap;
+				swap( a.m_subscription_storage_factory,
+						b.m_subscription_storage_factory );
+				swap( a.m_message_limits, b.m_message_limits );
+				swap( a.m_priority, b.m_priority );
 			}
 
 		agent_tuning_options_t &
 		operator=( agent_tuning_options_t o )
 			{
-				swap( o );
+				swap( *this, o );
 				return *this;
 			}
 
@@ -139,19 +142,4 @@ class agent_tuning_options_t
 	};
 
 } /* namespace so_5 */
-
-namespace std
-{
-
-//FIXME: should be implemented as friend for agent_tuning_options_t.
-template<>
-inline void
-swap(
-	so_5::agent_tuning_options_t & a,
-	so_5::agent_tuning_options_t & b )
-	{
-		a.swap( b );
-	}
-
-} /* namespace std */
 
