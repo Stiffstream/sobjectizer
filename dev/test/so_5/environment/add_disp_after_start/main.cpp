@@ -126,10 +126,9 @@ main()
 								new a_parent_t( env, name ),
 								so_5::disp::one_thread::create_disp_binder( name ) );
 						}
-					} );
+					});
 			},
-			20,
-			"Adding dispatcher on running SO Environment test" );
+			60 );
 	}
 	catch( const std::exception & ex )
 	{
