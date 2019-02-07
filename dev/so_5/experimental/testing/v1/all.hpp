@@ -1657,10 +1657,8 @@ operator&(
 	{
 		auto trigger_ptr = old_holder.giveout_trigger();
 		auto * target_agent = &(trigger_ptr->target_agent());
-//FIXME: for C++14 and newest standard there should be move of
-//data content to the lambda object.
 		trigger_ptr->set_completion(
-				[data, target_agent](
+				[data = std::move(data), target_agent](
 					const trigger_completion_context_t & ctx ) noexcept
 				{
 					ctx.m_scenario_accessor.scenario().store_state_name(

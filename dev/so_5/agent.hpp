@@ -3446,10 +3446,10 @@ subscription_bind_t::transfer_to_state(
 		{}
 	};
 
-	//NOTE: shared_ptr is used because C++11 doesn't support
-	//initializer lists in lambda captures.
+	//NOTE: shared_ptr is used because capture of unique_ptr
+	//makes std::function non-copyable, but we need to copy
+	//resulting 'method' object.
 	//
-	//FIXME: this should be changed to make_unique in v.5.6.0.
 	auto op_state = std::make_shared< transfer_op_state_t >(
 			m_agent, m_mbox_ref->id(), outliving_const(target_state) );
 
