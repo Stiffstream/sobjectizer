@@ -72,7 +72,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * because \a what will be nullptr for signals.
 		 */
 		friend message_mutability_t
-		message_mutability( const intrusive_ptr_t<message_t> & what )
+		message_mutability( const intrusive_ptr_t<message_t> & what ) noexcept
 			{
 				message_mutability_t r = message_mutability_t::immutable_message;
 				if( what )
@@ -84,7 +84,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * \brief Helper method for get message mutability flag.
 		 */
 		friend message_mutability_t
-		message_mutability( const message_t & what )
+		message_mutability( const message_t & what ) noexcept
 			{
 				return what.so5_message_mutability();
 			}
@@ -223,7 +223,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * v.5.5.19
 		 */
 		virtual message_mutability_t
-		so5_message_mutability() const { return m_mutability; }
+		so5_message_mutability() const noexcept { return m_mutability; }
 
 		/*!
 		 * \brief Change message mutabilty flag.
@@ -951,7 +951,7 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 	private :
 		// This method must be reimplemented in derived types.
 		virtual message_mutability_t
-		so5_message_mutability() const override = 0;
+		so5_message_mutability() const noexcept override = 0;
 
 		// This method must be reimplemented in derived types.
 		virtual void
@@ -1012,7 +1012,7 @@ struct msg_service_request_t : public msg_service_request_base_t
 		so5__payload_ptr() const override { return m_param.get(); }
 
 		virtual message_mutability_t
-		so5_message_mutability() const override
+		so5_message_mutability() const noexcept override
 			{
 				return message_mutability( m_param );
 			}
