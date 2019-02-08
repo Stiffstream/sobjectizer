@@ -26,4 +26,3 @@
 #include <so_5/stats/std_names.hpp>
 #include <so_5/stats/messages.hpp>
 
-#include <so_5/tuple_as_message.hpp>

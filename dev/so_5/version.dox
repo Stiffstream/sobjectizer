@@ -407,8 +407,8 @@
 	See \ref so_5_5__in_depth_message_delivery_filters for more details.
 
 	New templates so_5::rt::tuple_as_message_t, so_5::rt::mtag and
-	so_5::rt::typed_mtag added. See \ref so_5_5_5__tuple_as_message for more
-	details.
+	so_5::rt::typed_mtag added. <b><i>NOTE. These features were
+	removed in SObjectizer-5.6.0.</i></b>
 
 	New helpers so_5::rt::environment_t::introduce_coop() and
 	so_5::rt::introduce_child_coop(). See \ref so_5_5_5__introduce_coop
