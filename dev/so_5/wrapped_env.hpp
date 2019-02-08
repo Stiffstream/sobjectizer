@@ -172,21 +172,21 @@ class SO_5_TYPE wrapped_env_t
 		 */
 		wrapped_env_t(
 			//! Initialization function.
-			so_5::api::generic_simple_init_t init_func );
+			so_5::generic_simple_init_t init_func );
 
 		//! A constructor which receives initialization function and
 		//! a function for environment's params tuning.
 		wrapped_env_t(
 			//! Initialization function.
-			so_5::api::generic_simple_init_t init_func,
+			so_5::generic_simple_init_t init_func,
 			//! Function for environment's params tuning.
-			so_5::api::generic_simple_so_env_params_tuner_t params_tuner );
+			so_5::generic_simple_so_env_params_tuner_t params_tuner );
 
 		//! A constructor which receives initialization function and
 		//! already prepared environment's params.
 		wrapped_env_t(
 			//! Initialization function.
-			so_5::api::generic_simple_init_t init_func,
+			so_5::generic_simple_init_t init_func,
 			//! Environment's params.
 			environment_params_t && params );
 

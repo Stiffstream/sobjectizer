@@ -1964,7 +1964,7 @@ class SO_5_TYPE testing_env_t
 		 */
 		testing_env_t(
 			//! Function for environment's params tuning.
-			so_5::api::generic_simple_so_env_params_tuner_t env_params_tuner );
+			so_5::generic_simple_so_env_params_tuner_t env_params_tuner );
 		//! A constructor that receives already constructed
 		//! environment parameters.
 		/*!

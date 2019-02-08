@@ -1213,7 +1213,7 @@ setup_special_queue_hook(
 SO_5_NODISCARD
 environment_params_t
 make_tuned_params(
-	so_5::api::generic_simple_so_env_params_tuner_t env_params_tuner )
+	so_5::generic_simple_so_env_params_tuner_t env_params_tuner )
 	{
 		environment_params_t result;
 		env_params_tuner( result );
@@ -1281,7 +1281,7 @@ testing_env_t::testing_env_t()
 	{}
 
 testing_env_t::testing_env_t(
-	so_5::api::generic_simple_so_env_params_tuner_t env_params_tuner )
+	so_5::generic_simple_so_env_params_tuner_t env_params_tuner )
 	:	testing_env_t{ impl::make_tuned_params( std::move(env_params_tuner) ) }
 	{}
 
