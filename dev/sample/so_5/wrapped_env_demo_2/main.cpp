@@ -100,6 +100,65 @@ private :
 	clock::time_point m_started_at;
 	unsigned long long m_last_duration_ms;
 
+	// Stuff for pinger and ponger agents.
+
+	// Types of messages to be used by pinger and ponger.
+	struct ping{ unsigned int m_v; };
+	struct pong{ unsigned int m_v; };
+
+	// Type of pinger agent.
+	class a_pinger final : public so_5::agent_t
+	{
+		const so_5::mbox_t m_parent_mbox;
+		so_5::mbox_t m_ponger;
+		unsigned int m_pings;
+
+	public :
+		a_pinger(
+			context_t ctx,
+			so_5::mbox_t parent_mbox,
+			unsigned int pings )
+			:	so_5::agent_t{ std::move(ctx) }
+			,	m_parent_mbox{ std::move(parent_mbox) }
+			,	m_pings( pings )
+		{
+			so_subscribe_self().event(
+				[this]( mhood_t<pong> reply ) {
+					if( reply->m_v )
+						so_5::send< ping >( m_ponger, reply->m_v - 1 );
+					else
+					{
+						so_5::send< ping_pong_stopped >( m_parent_mbox );
+						so_deregister_agent_coop_normally();
+					}
+				} );
+		}
+
+		void set_ponger( const so_5::mbox_t & mbox ) { m_ponger = mbox; }
+
+		void so_evt_start() override
+		{
+			so_5::send< ping >( m_ponger, m_pings );
+		}
+	};
+
+	// Type of ponger agent.
+	class a_ponger final : public so_5::agent_t
+	{
+		so_5::mbox_t m_pinger;
+
+	public :
+		a_ponger( context_t ctx) : so_5::agent_t{ std::move(ctx) }
+		{
+			so_subscribe_self().event(
+				[this]( mhood_t<ping> req ) {
+					so_5::send< pong >( m_pinger, req->m_v );
+				} );
+		}
+
+		void set_pinger( const so_5::mbox_t & mbox ) { m_pinger = mbox; }
+	};
+
 	void evt_start_ping_pong( start_ping_pong evt )
 	{
 		this >>= st_started;
@@ -114,37 +173,15 @@ private :
 						so_environment() )->binder(),
 				[this, evt]( so_5::coop_t & coop )
 				{
-					// Types of messages to be used by pinger and ponger.
-					struct ping{ unsigned int m_v; };
-					struct pong{ unsigned int m_v; };
-
 					// Pinger and ponger itself.
-					auto pinger = coop.define_agent();
-					auto ponger = coop.define_agent();
+					auto pinger = coop.make_agent< a_pinger >(
+							so_direct_mbox(),
+							evt.m_pings );
+					auto ponger = coop.make_agent< a_ponger >();
 
-					// Pinger should know mbox of its parent agent.
-					auto parent_mbox = so_direct_mbox();
-
-					// Pinger will send the first ping on the start...
-					pinger.on_start( [ponger, evt] {
-							so_5::send< ping >( ponger, evt.m_pings );
-						} )
-						// ...and the next ping on the pong from ponger agent.
-						.event( pinger,
-							[ponger, parent_mbox, &coop]( pong reply ) {
-							if( reply.m_v )
-								so_5::send< ping >( ponger, reply.m_v - 1 );
-							else
-							{
-								so_5::send< ping_pong_stopped >( parent_mbox );
-								coop.deregister_normally();
-							}
-						} );
-
-					// Ponger will handle just one ping message.
-					ponger.event( ponger, [pinger]( ping req ) {
-							so_5::send< pong >( pinger, req.m_v );
-						} );
+					// Bind them together.
+					pinger->set_ponger( ponger->so_direct_mbox() );
+					ponger->set_pinger( pinger->so_direct_mbox() );
 				} );
 	}
 };

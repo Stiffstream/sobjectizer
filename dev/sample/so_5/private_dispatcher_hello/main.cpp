@@ -78,25 +78,40 @@ private :
 		so_5::coop_unique_ptr_t coop,
 		const std::string & agent_name_prefix )
 	{
+		// Type of agent to be used in child coop.
+		class demo_agent_t final : public so_5::agent_t {
+			const so_5::mbox_t m_mbox;
+			const std::string m_agent_name;
+		public :
+			demo_agent_t(
+				context_t ctx,
+				so_5::mbox_t mbox,
+				std::string agent_name )
+				:	so_5::agent_t{ std::move(ctx) }
+				,	m_mbox{ std::move(mbox) }
+				,	m_agent_name{ std::move(agent_name) }
+			{}
+
+			void so_evt_start() override
+			{
+				// Hello message must contain agent name and thread id.
+				std::ostringstream ss;
+				ss << m_agent_name << " on thread: "
+					<< std::this_thread::get_id();
+
+				// Coordinator should receive a hello message.
+				so_5::send< std::string >( m_mbox, ss.str() );
+			}
+		};
+
 		// Coordinator's mbox to which hello messages must be sent.
 		const auto mbox = so_direct_mbox();
 
 		for( int i = 0; i != 3; ++i )
 		{
-			const auto agent_name =
-					agent_name_prefix + "-" + std::to_string( i );
-
-			// Child agent will be implemented as ad-hoc agent.
-			coop->define_agent()
-				.on_start( [mbox, agent_name] {
-						// Hello message must contain agent name and thread id.
-						std::ostringstream ss;
-						ss << agent_name << " on thread: "
-							<< std::this_thread::get_id();
-
-						// Coordinator should receive a hello message.
-						so_5::send< std::string >( mbox, ss.str() );
-					} );
+			coop->make_agent< demo_agent_t >(
+					mbox,
+					agent_name_prefix + "-" + std::to_string( i ) );
 		}
 
 		so_environment().register_coop( std::move( coop ) );

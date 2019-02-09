@@ -25,16 +25,23 @@ using log_msg = std::string;
 
 so_5::mbox_t make_logger( so_5::coop_t & coop )
 {
+	class logger_actor final : public so_5::agent_t {
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_define_agent() override {
+			so_subscribe_self().event( [](mhood_t<log_msg> cmd ) {
+					std::cout << *cmd << std::endl;
+				} );
+		}
+	};
+
 	// Logger will work on its own working thread.
-	auto logger = coop.define_agent(
+	auto logger = coop.make_agent_with_binder< logger_actor >(
 			so_5::disp::one_thread::create_private_disp(
 					coop.environment() )->binder() );
 
-	logger.event( logger, []( const log_msg & msg ) {
-			std::cout << msg << std::endl;
-		} );
-
-	return logger.direct_mbox();
+	return logger->so_direct_mbox();
 }
 
 template< typename A >

@@ -25,12 +25,19 @@ struct trace_msg
 
 void create_logger( so_5::environment_t & env )
 {
+	class logger_actor final : public so_5::agent_t {
+	public:
+		logger_actor( context_t ctx ) : so_5::agent_t{ std::move(ctx) }
+		{
+			so_subscribe( so_environment().create_mbox( "log" ) )
+				.event( [](mhood_t<trace_msg> cmd ) {
+					std::cout << cmd->m_thread_id << ": (" << cmd->m_who
+						<< ") " << cmd->m_what << std::endl;
+				} );
+		}
+	};
 	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		coop.define_agent().event( env.create_mbox( "log" ),
-			[]( const trace_msg & msg ) {
-				std::cout << msg.m_thread_id << ": (" << msg.m_who
-					<< ") " << msg.m_what << std::endl;
-			} );
+		coop.make_agent< logger_actor >();
 	} );
 }
 

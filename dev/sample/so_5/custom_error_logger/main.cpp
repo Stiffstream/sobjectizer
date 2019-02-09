@@ -51,8 +51,15 @@ public :
 			coop.add_reg_notificator( invalid_coop_reg_notificator );
 
 			// A cooperation agent.
-			coop.define_agent()
-				.on_start( []() { std::cout << "Child started!" << std::endl; } );
+			class coop_agent_t final : public so_5::agent_t {
+			public :
+				using so_5::agent_t::agent_t;
+
+				void so_evt_start() override {
+					std::cout << "Child started!" << std::endl;
+				}
+			};
+			coop.make_agent<coop_agent_t>();
 
 			std::cout << "registering coop: " << coop.query_coop_name()
 					<< std::endl;

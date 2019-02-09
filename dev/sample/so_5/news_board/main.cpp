@@ -77,27 +77,36 @@ void log(
 // Builder of logger agent.
 so_5::mbox_t create_logger_coop( so_5::environment_t & env )
 	{
+		class logger_t final : public so_5::agent_t
+			{
+			public :
+				using so_5::agent_t::agent_t;
+
+				void so_define_agent() override
+					{
+						so_subscribe_self().event( []( const msg_log & evt ) {
+							// String representation for date/time.
+							char local_time_sz[ 32 ];
+							auto t = clock_type::to_time_t( clock_type::now() );
+							std::strftime( local_time_sz, sizeof local_time_sz,
+									"%Y.%m.%d %H:%M:%S", std::localtime( &t ) );
+
+							// Simplest form of logging.
+							std::cout << "[" << local_time_sz << "] {" << evt.m_who
+									<< "}: " << evt.m_what << std::endl;
+						} );
+					}
+			};
+
 		so_5::mbox_t result;
 
 		env.introduce_coop( [&]( so_5::coop_t & coop )
 			{
 				// Logger agent.
-				auto a = coop.define_agent();
-				// Reacts to just one message.
-				a.event( a, []( const msg_log & evt ) {
-					// String representation for date/time.
-					char local_time_sz[ 32 ];
-					auto t = clock_type::to_time_t( clock_type::now() );
-					std::strftime( local_time_sz, sizeof local_time_sz,
-							"%Y.%m.%d %H:%M:%S", std::localtime( &t ) );
-
-					// Simplest form of logging.
-					std::cout << "[" << local_time_sz << "] {" << evt.m_who
-							<< "}: " << evt.m_what << std::endl;
-				} );
+				auto a = coop.make_agent< logger_t >();
 
 				// Direct mbox of logger agent will be returned.
-				result = a.direct_mbox();
+				result = a->so_direct_mbox();
 			} );
 
 		return result;
@@ -269,39 +278,57 @@ struct news_board_data
 // Agents to work with news board data.
 //
 
+// Helper class for agents with just one event.
+class one_event_handler_t final : public so_5::agent_t
+	{
+	public :
+		one_event_handler_t( context_t ctx, so_5::priority_t prio )
+			:	so_5::agent_t{ ctx + prio }
+			{}
+
+		template< typename Lambda >
+		void subscribe_event(
+			const so_5::mbox_t & mbox,
+			Lambda && handler )
+			{
+				so_subscribe( mbox ).event( std::forward<Lambda>(handler) );
+			}
+	};
+
 // Agent for receiving and storing new stories to news board.
 void define_news_receiver_agent(
 	so_5::coop_t & coop,
 	news_board_data & board_data,
 	const so_5::mbox_t & board_mbox,
 	const so_5::mbox_t & logger_mbox )
-	{
-		coop.define_agent(
+	{ 
+		auto receiver = coop.make_agent< one_event_handler_t >(
 				// This agent should have lowest priority among
 				// board-related agents.
-				coop.make_agent_context() + so_5::prio::p1 )
-			// It handles just one message.
-			.event( board_mbox,
-				[&board_data, logger_mbox]( const msg_publish_story_req & evt )
+				so_5::prio::p1 );
+
+		// It handles just one message.
+		receiver->subscribe_event( board_mbox,
+				[&board_data, logger_mbox]( so_5::mhood_t<msg_publish_story_req> cmd )
 				{
 					// Store new story to board.
 					auto story_id = ++(board_data.m_last_id);
 					board_data.m_stories.emplace( story_id,
-							news_board_data::story_info{ evt.m_title, evt.m_content } );
+							news_board_data::story_info{ cmd->m_title, cmd->m_content } );
 
 					// Log this fact.
 					log( logger_mbox,
 							"board.receiver",
 							"new story published, id=" + std::to_string( story_id ) +
-							", title=" + evt.m_title );
+							", title=" + cmd->m_title );
 
 					// Take some time for processing.
 					imitate_hard_work();
 
 					// Send reply to story-sender.
 					so_5::send< msg_publish_story_resp >(
-							evt.m_reply_to,
-							evt.m_timestamp,
+							cmd->m_reply_to,
+							cmd->m_timestamp,
 							story_id );
 
 					// Remove oldest story if there are too much stories.
@@ -323,17 +350,18 @@ void define_news_directory_agent(
 	const so_5::mbox_t & board_mbox,
 	const so_5::mbox_t & logger_mbox )
 	{
-		coop.define_agent(
+		auto directory = coop.make_agent< one_event_handler_t >(
 				// This agent should have priority higher than news_receiver.
-				coop.make_agent_context() + so_5::prio::p2 )
-			// It handles just one message.
-			.event( board_mbox,
-				[&board_data, logger_mbox]( const msg_updates_req & req )
+				so_5::prio::p2 );
+
+		// It handles just one message.
+		directory->subscribe_event( board_mbox,
+				[&board_data, logger_mbox]( so_5::mhood_t<msg_updates_req> cmd )
 				{
 					log( logger_mbox,
 							"board.directory",
 							"request for updates received, last_id=" +
-								std::to_string( req.m_last_id ) );
+								std::to_string( cmd->m_last_id ) );
 
 					// Take some time for processing.
 					imitate_hard_work();
@@ -342,7 +370,7 @@ void define_news_directory_agent(
 					// and building result list.
 					msg_updates_resp::story_list new_stories;
 					std::transform(
-							board_data.m_stories.upper_bound( req.m_last_id ),
+							board_data.m_stories.upper_bound( cmd->m_last_id ),
 							std::end( board_data.m_stories ),
 							std::back_inserter( new_stories ),
 							[]( const news_board_data::story_map::value_type & v ) {
@@ -355,8 +383,8 @@ void define_news_directory_agent(
 
 					// Sending response.
 					so_5::send< msg_updates_resp >(
-							req.m_reply_to,
-							req.m_timestamp,
+							cmd->m_reply_to,
+							cmd->m_timestamp,
 							std::move(new_stories) );
 				} );
 	}
@@ -368,42 +396,43 @@ void define_story_extractor_agent(
 	const so_5::mbox_t & board_mbox,
 	const so_5::mbox_t & logger_mbox )
 	{
-		coop.define_agent(
+		auto extractor = coop.make_agent< one_event_handler_t >(
 				// This agent should have priority higher that news_directory.
-				coop.make_agent_context() + so_5::prio::p3 )
-			// It handles just one message.
-			.event( board_mbox,
-				[&board_data, logger_mbox]( const msg_story_content_req & req )
+				so_5::prio::p3 );
+
+		// It handles just one message.
+		extractor->subscribe_event( board_mbox,
+				[&board_data, logger_mbox]( so_5::mhood_t< msg_story_content_req > cmd )
 				{
 					log( logger_mbox,
 							"board.extractor",
 							"request for story content received, id=" +
-								std::to_string( req.m_id ) );
+								std::to_string( cmd->m_id ) );
 
 					// Take some time for processing.
 					imitate_hard_work();
 
-					auto it = board_data.m_stories.find( req.m_id );
+					auto it = board_data.m_stories.find( cmd->m_id );
 					if( it != board_data.m_stories.end() )
 						{
 							log( logger_mbox,
 									"board.extractor",
-									"story {" + std::to_string( req.m_id ) + "} found" );
+									"story {" + std::to_string( cmd->m_id ) + "} found" );
 
 							so_5::send< msg_story_content_resp_ack >(
-									req.m_reply_to,
-									req.m_timestamp,
+									cmd->m_reply_to,
+									cmd->m_timestamp,
 									it->second.m_content );
 						}
 					else
 						{
 							log( logger_mbox,
 									"board.extractor",
-									"story {" + std::to_string( req.m_id ) + "} NOT found" );
+									"story {" + std::to_string( cmd->m_id ) + "} NOT found" );
 
 							so_5::send< msg_story_content_resp_nack >(
-									req.m_reply_to,
-									req.m_timestamp );
+									cmd->m_reply_to,
+									cmd->m_timestamp );
 						}
 				} );
 	}

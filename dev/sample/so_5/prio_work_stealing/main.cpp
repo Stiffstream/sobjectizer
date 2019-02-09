@@ -466,31 +466,52 @@ class request_scheduler : public so_5::agent_t
 			so_5::coop_t & coop,
 			so_5::priority_t priority )
 			{
-				auto a = coop.define_agent( coop.make_agent_context() + priority
-						+ so_5::agent_t::limit_then_abort< generation_request >( 1 ) );
+				class processor_t final : public so_5::agent_t
+					{
+					public :
+						processor_t(
+							context_t ctx,
+							so_5::priority_t priority,
+							const so_5::mbox_t & interaction_mbox )
+							:	so_5::agent_t{ ctx + priority
+									+ limit_then_abort< generation_request >( 1 ) }
+							{
+								so_subscribe_self().event(
+									[this, priority, interaction_mbox]
+									( mhood_t<generation_request> cmd ) {
+										cmd->m_metadata->m_processing_started_at =
+												clock_type::now();
+										cmd->m_metadata->m_processor_prio = priority;
+
+										// Some processing.
+										// Time of processing is proportional to
+										// dimension of the image to be generated.
+										imitate_hard_work( cmd->m_dimension / 10 );
+
+										cmd->m_metadata->m_processing_finished_at =
+												clock_type::now();
+
+										so_5::send< generation_result >(
+												interaction_mbox,
+												cmd->m_id,
+												cmd->m_metadata );
+
+										// Processor is free to get next request for
+										// processing.
+										so_5::send< ask_for_work >(
+												interaction_mbox,
+												priority );
+									} );
+							}
+					};
+
+				auto processor = coop.make_agent< processor_t >(
+						priority,
+						std::cref(m_interaction_mbox) );
 
 				// Mbox of processor must be stored to be used later.
-				m_data.info_at( priority ).m_processor = a.direct_mbox();
+				m_data.info_at( priority ).m_processor = processor->so_direct_mbox();
 
-				// Subscriptions for message.
-				a.event( a, [this, priority]( const generation_request & evt ) {
-						evt.m_metadata->m_processing_started_at = clock_type::now();
-						evt.m_metadata->m_processor_prio = priority;
-
-						// Some processing.
-						// Time of processing is proportional to dimension of
-						// the image to be generated.
-						imitate_hard_work( evt.m_dimension / 10 );
-
-						evt.m_metadata->m_processing_finished_at = clock_type::now();
-
-						so_5::send< generation_result >( m_interaction_mbox,
-								evt.m_id,
-								evt.m_metadata );
-
-						// Processor is free to get next request for processing.
-						so_5::send< ask_for_work >( m_interaction_mbox, priority );
-					} );
 			}
 
 		void try_schedule_work_to( so_5::priority_t priority )

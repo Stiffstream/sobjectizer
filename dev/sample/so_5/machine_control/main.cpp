@@ -579,14 +579,25 @@ void create_starter_agent(
 	so_5::coop_t & coop,
 	const machine_dictionary_t & dict )
 {
-	// A very simple ad-hoc agent will be used as starter.
+	// A very simple agent will be used as starter.
 	// It will work on the default dispatcher.
-	coop.define_agent().on_start( [&dict] {
-			dict.for_each(
+	class starter_t final : public so_5::agent_t {
+		const machine_dictionary_t & m_dict;
+	public :
+		starter_t( context_t ctx, const machine_dictionary_t & dict )
+			:	so_5::agent_t{ std::move(ctx) }
+			,	m_dict{ dict }
+		{}
+
+		void so_evt_start() override {
+			m_dict.for_each(
 				[]( const std::string &, const so_5::mbox_t & mbox ) {
 					so_5::send< turn_engine_on >( mbox );
 				} );
-		} );
+		}
+	};
+
+	coop.make_agent< starter_t >( std::ref(dict) );
 }
 
 void fill_coop( so_5::coop_t & coop )

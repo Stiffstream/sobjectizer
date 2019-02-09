@@ -116,23 +116,34 @@ int main()
 
 extern "C" int create_converter( converter ** handle_receiver )
 {
+	class service_t final : public so_5::agent_t
+	{
+	public:
+		service_t( context_t ctx )
+			:	so_5::agent_t{ std::move(ctx) }
+		{
+			// Mbox for conversion messages.
+			auto mbox = so_environment().create_mbox( "converter" );
+			// Converter agent.
+			so_subscribe( mbox ).event( []( mhood_t<std::string> cmd ) -> int {
+					std::istringstream s{ *cmd };
+					int result;
+					s >> result;
+					if( s.fail() )
+						throw std::invalid_argument(
+								"unable to convert to int: '" + *cmd + "'" );
+					return result;
+				} );
+		}
+	};
+
 	try
 	{
 		std::unique_ptr< so_5::wrapped_env_t > env{ new so_5::wrapped_env_t{} };
 
 		// A single coop with conversion agent must be added into Environment.
 		env->environment().introduce_coop( [&]( so_5::coop_t & coop ) {
-			// Mbox for conversion messages.
-			auto mbox = coop.environment().create_mbox( "converter" );
-			// Converter agent.
-			coop.define_agent().event( mbox, []( const std::string & v ) -> int {
-					std::istringstream s{ v };
-					int result;
-					s >> result;
-					if( s.fail() )
-						throw std::invalid_argument( "unable to convert to int: '" + v + "'" );
-					return result;
-				} );
+				coop.make_agent<service_t>();
 			} );
 
 		// Result handle for converter Environment.

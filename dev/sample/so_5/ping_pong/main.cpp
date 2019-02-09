@@ -86,16 +86,57 @@ void show_cfg(
 void run_sample(
 	const cfg_t & cfg )
 	{
-		// This variable will be a part of pinger agent's state.
-		unsigned int pings_left = cfg.m_request_count;
+		// Types of signals for the agents.
+		struct msg_ping final : public so_5::signal_t {};
+		struct msg_pong final : public so_5::signal_t {};
+
+		// Type of pinger agent.
+		class pinger_t final : public so_5::agent_t
+			{
+				const so_5::mbox_t m_mbox;
+				unsigned int m_pings_left;
+			public :
+				pinger_t(
+					context_t ctx,
+					so_5::mbox_t mbox,
+					unsigned int pings_left )
+					:	so_5::agent_t{ std::move(ctx) }
+					,	m_mbox{ std::move(mbox) }
+					,	m_pings_left{ pings_left }
+					{
+						so_subscribe( m_mbox ).event(
+							[this]( mhood_t<msg_pong> ) {
+								if( m_pings_left ) --m_pings_left;
+								if( m_pings_left )
+									so_5::send< msg_ping >( m_mbox );
+								else
+									so_environment().stop();
+							} );
+					}
+
+				void so_evt_start() override
+					{
+						so_5::send< msg_ping >( m_mbox );
+					}
+			};
+
+		// Type of ponger agent.
+		class ponger_t final : public so_5::agent_t
+			{
+			public :
+				ponger_t( context_t ctx, const so_5::mbox_t & mbox )
+					:	so_5::agent_t{ std::move(ctx) }
+					{
+						so_subscribe( mbox ).event(
+							[mbox]( mhood_t<msg_ping> ) {
+								so_5::send< msg_pong >( mbox );
+							} );
+					}
+			};
 
 		so_5::launch(
-			[&pings_left, &cfg]( so_5::environment_t & env )
+			[&cfg]( so_5::environment_t & env )
 			{
-				// Types of signals for the agents.
-				struct msg_ping : public so_5::signal_t {};
-				struct msg_pong : public so_5::signal_t {};
-
 				env.introduce_coop(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
@@ -107,22 +148,9 @@ void run_sample(
 							auto mbox = env.create_mbox();
 
 							// Pinger agent.
-							coop.define_agent()
-								.on_start( [mbox]() { so_5::send< msg_ping >( mbox ); } )
-								.event< msg_pong >( mbox,
-									[&pings_left, &env, mbox]()
-									{
-										if( pings_left ) --pings_left;
-										if( pings_left )
-											so_5::send< msg_ping >( mbox );
-										else
-											env.stop();
-									} );
-
+							coop.make_agent< pinger_t >( mbox, cfg.m_request_count );
 							// Ponger agent.
-							coop.define_agent()
-								.event< msg_ping >( mbox,
-									[mbox]() { so_5::send< msg_pong >( mbox ); } );
+							coop.make_agent< ponger_t >( std::cref(mbox) );
 						} );
 			} );
 	}

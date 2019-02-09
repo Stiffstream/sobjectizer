@@ -110,36 +110,51 @@ create_test_coop(
 	unsigned int requests,
 	unsigned int milliseconds )
 {
+	class worker_t final : public so_5::agent_t {
+	public :
+		using so_5::agent_t::agent_t;
+
+		void bind_to( const so_5::agent_t & manager ) {
+			so_subscribe_self().event(
+				[&manager]( mhood_t<msg_do_hardwork> cmd ) {
+					std::this_thread::sleep_for(
+							std::chrono::milliseconds( cmd->m_milliseconds ) );
+
+					so_5::send< msg_hardwork_done >( manager, cmd->m_index );
+				},
+				so_5::thread_safe );
+		}
+	};
+
+	class checker_t final : public so_5::agent_t {
+	public :
+		using so_5::agent_t::agent_t;
+
+		void bind_to( const so_5::agent_t & manager ) {
+			so_subscribe_self().event(
+				[&manager]( mhood_t<msg_check_hardwork> cmd ) {
+					std::this_thread::sleep_for(
+							std::chrono::milliseconds( cmd->m_milliseconds ) );
+
+					so_5::send< msg_hardwork_checked >( manager, cmd->m_index );
+				},
+				so_5::thread_safe );
+		}
+	};
+
 	auto c = env.create_coop( "test", std::move( disp_binder ) );
 
-	auto worker = c->define_agent();
-	auto checker = c->define_agent();
+	auto worker = c->make_agent< worker_t >();
+	auto checker = c->make_agent< checker_t >();
 
-	auto a_manager = c->make_agent< a_manager_t >(
-			worker.direct_mbox(),
-			checker.direct_mbox(),
+	auto manager = c->make_agent< a_manager_t >(
+			worker->so_direct_mbox(),
+			checker->so_direct_mbox(),
 			requests,
 			milliseconds );
 
-	worker.event( worker.direct_mbox(),
-				[a_manager]( const msg_do_hardwork & evt )
-				{
-					std::this_thread::sleep_for(
-							std::chrono::milliseconds( evt.m_milliseconds ) );
-
-					so_5::send< msg_hardwork_done >( *a_manager, evt.m_index );
-				},
-				so_5::thread_safe );
-
-	checker.event( checker.direct_mbox(),
-				[a_manager]( const msg_check_hardwork & evt )
-				{
-					std::this_thread::sleep_for(
-							std::chrono::milliseconds( evt.m_milliseconds ) );
-
-					so_5::send< msg_hardwork_checked >( *a_manager, evt.m_index );
-				},
-				so_5::thread_safe );
+	worker->bind_to( *manager );
+	checker->bind_to( *manager );
 
 	return c;
 }
