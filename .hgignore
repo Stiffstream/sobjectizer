@@ -7,6 +7,8 @@ dev/target
 dev/zbuild
 dev/__*.vim
 dev/local-build.rb
+dev/doc
+doxygen/doxygen.log
 o/*
 cmake_build/*
 *.sublime-project
