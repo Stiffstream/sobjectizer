@@ -55,10 +55,6 @@
  */
 
 /*!
- * \example so_5/hello_world_adhoc/main.cpp
- */
-
-/*!
  * \example so_5/hello_world_simple_not_mtsafe/main.cpp
  */
 

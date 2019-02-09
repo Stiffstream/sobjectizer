@@ -11,22 +11,32 @@
 
 so_5::mbox_t make_converter( so_5::coop_t & coop )
 	{
-		auto a = coop.define_agent();
-		a.event( a, []( const std::string & value ) -> int {
-				std::istringstream s( value );
-				int result;
-				s >> result;
-				if( s.fail() )
-					throw std::invalid_argument( "unable to convert to int: '" + value + "'" );
+		class service final : public so_5::agent_t
+			{
+			public :
+				using so_5::agent_t::agent_t;
 
-				// A special case for timeout imitation.
-				if( 42 == result )
-					std::this_thread::sleep_for( std::chrono::milliseconds(150) );
+				void so_define_agent() override
+					{
+						so_subscribe_self().event(
+							[](mhood_t<std::string> cmd) -> int {
+								std::istringstream s( *cmd );
+								int result;
+								s >> result;
+								if( s.fail() )
+									throw std::invalid_argument(
+											"unable to convert to int: '" + *cmd + "'" );
 
-				return result;
-			} );
+								// A special case for timeout imitation.
+								if( 42 == result )
+									std::this_thread::sleep_for( std::chrono::milliseconds(150) );
 
-		return a.direct_mbox();
+								return result;
+							} );
+					}
+			};
+
+		return coop.make_agent<service>()->so_direct_mbox();
 	}
 
 class a_client_t : public so_5::agent_t

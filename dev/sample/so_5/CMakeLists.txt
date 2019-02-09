@@ -1,7 +1,6 @@
 project(sample)
 
 add_subdirectory(hello_world)
-add_subdirectory(hello_world_adhoc)
 add_subdirectory(hello_world_simple_not_mtsafe)
 
 add_subdirectory(hello_evt_handler)

@@ -8,7 +8,6 @@ MxxRu::Cpp::composite_target {
 	}
 
 	example[ 'hello_world' ]
-	example[ 'hello_world_adhoc' ]
 	example[ 'hello_world_simple_not_mtsafe' ]
 	example[ 'hello_evt_handler' ]
 	example[ 'hello_evt_lambda' ]

@@ -9,11 +9,10 @@
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <iostream>
-#include <time.h>
-
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
+
+#include <time.h>
 
 // Hello message.
 struct msg_hello_periodic
@@ -23,7 +22,31 @@ struct msg_hello_periodic
 };
 
 // Stop message.
-class msg_stop_signal : public so_5::signal_t {};
+class msg_stop_signal final : public so_5::signal_t {};
+
+// Agent for stopping an example on stop_signal.
+class a_shutdowner_t final : public so_5::agent_t
+{
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_define_agent() override
+		{
+			so_subscribe( so_environment().create_mbox( "shutdown" ) )
+				.event( &a_shutdowner_t::evt_stop_signal );
+		}
+
+	private:
+		void evt_stop_signal( mhood_t<msg_stop_signal> )
+		{
+			time_t t = time( nullptr );
+			std::cout << asctime( localtime( &t ) )
+				<< "Stop SObjectizer..." << std::endl;
+
+			// Shutting down SObjectizer.
+			so_environment().stop();
+		}
+};
 
 // An agent class definition.
 class a_hello_t : public so_5::agent_t
@@ -36,13 +59,13 @@ class a_hello_t : public so_5::agent_t
 		{}
 
 		// Definition of an agent for SObjectizer.
-		virtual void so_define_agent() override;
+		void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override;
+		void so_evt_start() override;
 
 	private:
-		// Agent's mbox.
+		// Shutdowner's mbox.
 		const so_5::mbox_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
@@ -120,21 +143,7 @@ void create_hello_coop( so_5::environment_t & env )
 // Creation of 'shutdowner' cooperation.
 void create_shutdowner_coop( so_5::environment_t & env )
 {
-	env.introduce_coop( "shutdowner", [&env]( so_5::coop_t & coop ) {
-		// Mbox for shutdowner agent.
-		auto mbox = env.create_mbox( "shutdown" );
-
-		// Shutdowner agent.
-		coop.define_agent().event< msg_stop_signal >( mbox,
-			[&env, mbox]() {
-				time_t t = time( nullptr );
-				std::cout << asctime( localtime( &t ) )
-					<< "Stop SObjectizer..." << std::endl;
-
-				// Shutting down SObjectizer.
-				env.stop();
-			} );
-	});
+	env.register_agent_as_coop( "shutdowner", env.make_agent< a_shutdowner_t >() );
 }
 
 // The SObjectizer Environment initialization.

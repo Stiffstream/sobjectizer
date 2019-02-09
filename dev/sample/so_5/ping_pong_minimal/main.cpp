@@ -7,7 +7,7 @@ struct msg_ping : public so_5::signal_t {};
 struct msg_pong : public so_5::signal_t {};
 
 // Class of pinger agent.
-class a_pinger_t : public so_5::agent_t
+class a_pinger_t final : public so_5::agent_t
 	{
 	public :
 		a_pinger_t( context_t ctx, so_5::mbox_t mbox, int pings_to_send )
@@ -46,6 +46,19 @@ class a_pinger_t : public so_5::agent_t
 			}
 	};
 
+class a_ponger_t final : public so_5::agent_t
+	{
+	public :
+		a_ponger_t( context_t ctx, const so_5::mbox_t & mbox )
+			:	so_5::agent_t( std::move(ctx) )
+		{
+			so_subscribe( mbox ).event(
+				[mbox]( mhood_t<msg_ping> ) {
+					so_5::send< msg_pong >( mbox );
+				} );
+		}
+	};
+
 int main()
 	{
 		try
@@ -59,8 +72,7 @@ int main()
 							coop.make_agent< a_pinger_t >( mbox, 100000 );
 
 							// Ponger agent.
-							coop.define_agent().event< msg_ping >(
-									mbox, [mbox]() { so_5::send< msg_pong >( mbox ); } );
+							coop.make_agent< a_ponger_t >( std::cref(mbox) );
 						});
 					});
 

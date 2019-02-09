@@ -8,17 +8,26 @@
 
 #include <so_5/all.hpp>
 
-class msg_hello_svc : public so_5::signal_t {};
+class msg_hello_svc final : public so_5::signal_t {};
 
 void define_hello_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
-		coop.define_agent().event< msg_hello_svc >( self_mbox,
-			[]() -> std::string {
-				std::cout << "svc_hello called" << std::endl;
-				return "Hello, World!";
-			} );
+		class service final : public so_5::agent_t {
+		public:
+			service( context_t ctx, const so_5::mbox_t & self_mbox )
+				:	so_5::agent_t{ std::move(ctx) }
+			{
+				so_subscribe( self_mbox ).event(
+					[](mhood_t<msg_hello_svc>) -> std::string {
+						std::cout << "svc_hello called" << std::endl;
+						return "Hello, World!";
+					} );
+			}
+		};
+
+		coop.make_agent< service >( std::cref(self_mbox) );
 	}
 
 struct msg_convert
@@ -30,30 +39,48 @@ void define_convert_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
-		coop.define_agent().event( self_mbox,
-			[]( const msg_convert & msg ) -> std::string {
-				std::cout << "svc_convert called: value=" << msg.m_value << std::endl;
+		class service final : public so_5::agent_t {
+		public:
+			service( context_t ctx, const so_5::mbox_t & self_mbox )
+				:	so_5::agent_t{ std::move(ctx) }
+			{
+				so_subscribe( self_mbox ).event(
+					[](mhood_t<msg_convert> cmd) -> std::string {
+						std::cout << "svc_convert called: value="
+								<< cmd->m_value << std::endl;
 
-				std::ostringstream s;
-				s << msg.m_value;
+						std::ostringstream s;
+						s << cmd->m_value;
 
-				return s.str();
-			} );
+						return s.str();
+					} );
+			}
+		};
+
+		coop.make_agent< service >( std::cref(self_mbox) );
 	}
 
-struct msg_shutdown : public so_5::signal_t {};
+struct msg_shutdown final : public so_5::signal_t {};
 
 void define_shutdown_service(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & self_mbox )
 	{
-		auto & env = coop.environment();
-		coop.define_agent().event< msg_shutdown >( self_mbox,
-			[&env]() {
-				std::cout << "svc_shutdown called" << std::endl;
+		class service final : public so_5::agent_t {
+		public:
+			service( context_t ctx, const so_5::mbox_t & self_mbox )
+				:	so_5::agent_t{ std::move(ctx) }
+			{
+				so_subscribe( self_mbox ).event(
+					[this](mhood_t<msg_shutdown>) {
+						std::cout << "svc_shutdown called" << std::endl;
 
-				env.stop();
-			} );
+						so_environment().stop();
+					} );
+			}
+		};
+
+		coop.make_agent< service >( std::cref(self_mbox) );
 	}
 
 class a_client_t : public so_5::agent_t

@@ -10,9 +10,9 @@
 
 #include <so_5/all.hpp>
 
-typedef std::vector< int > vector_t;
+using vector_t = std::vector< int >;
 
-struct msg_sum_part : public so_5::message_t
+struct msg_sum_part final : public so_5::message_t
 	{
 		vector_t::const_iterator m_begin;
 		vector_t::const_iterator m_end;
@@ -25,7 +25,7 @@ struct msg_sum_part : public so_5::message_t
 			{}
 	};
 
-struct msg_sum_vector : public so_5::message_t
+struct msg_sum_vector final : public so_5::message_t
 	{
 		const vector_t & m_vector;
 
@@ -33,7 +33,7 @@ struct msg_sum_vector : public so_5::message_t
 			{}
 	};
 
-class a_vector_summator_t : public so_5::agent_t
+class a_vector_summator_t final : public so_5::agent_t
 	{
 	public :
 		a_vector_summator_t( context_t ctx, so_5::mbox_t self_mbox )
@@ -42,24 +42,34 @@ class a_vector_summator_t : public so_5::agent_t
 			,	m_part_summator_mbox( so_environment().create_mbox() )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_subscribe( m_self_mbox ).event( &a_vector_summator_t::evt_sum );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
+				class a_summator_t final : public so_5::agent_t
+					{
+					public :
+						a_summator_t( context_t ctx, const so_5::mbox_t & mbox )
+							:	so_5::agent_t( std::move(ctx) )
+							{
+								so_subscribe( mbox ).event(
+									[]( mhood_t<msg_sum_part> part ) {
+										return std::accumulate(
+												part->m_begin, part->m_end, 0 );
+									} );
+							}
+					};
 				so_5::introduce_child_coop(
 						*this,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
 						[&]( so_5::coop_t & coop )
 						{
-							coop.define_agent().event(
-								m_part_summator_mbox,
-								[]( const msg_sum_part & part ) {
-									return std::accumulate( part.m_begin, part.m_end, 0 );
-								} );
+							coop.make_agent< a_summator_t >(
+									std::cref(m_part_summator_mbox) );
 						} );
 			}
 

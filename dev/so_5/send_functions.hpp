@@ -137,17 +137,11 @@ arg_to_mbox( const so_5::mbox_t & mbox ) { return mbox; }
 inline const so_5::mbox_t &
 arg_to_mbox( const so_5::agent_t & agent ) { return agent.so_direct_mbox(); }
 
-inline const so_5::mbox_t &
-arg_to_mbox( const so_5::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
-
 inline so_5::mbox_t
 arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 
 inline so_5::environment_t &
 arg_to_env( const so_5::agent_t & agent ) { return agent.so_environment(); }
-
-inline so_5::environment_t &
-arg_to_env( const so_5::adhoc_agent_definition_proxy_t & agent ) { return agent.environment(); }
 
 inline so_5::environment_t &
 arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
@@ -160,15 +154,11 @@ arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
  *
  * \brief A utility function for creating and delivering a message or a signal.
  *
- * \note Since v.5.5.9 can accept const references to so_5::mbox_t,
- * so_5::agent_t and so_5::adhoc_agent_definition_proxy_t.
- *
  * \note Since v.5.5.13 can send also a signal.
  *
  * \tparam Message type of message to be sent.
  * \tparam Target identification of request processor. Could be reference to
- * so_5::mbox_t, to so_5::agent_t or
- * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t (the later case agent's direct
  * mbox will be used).
  * \tparam Args arguments for Message's constructor.
  *
@@ -321,22 +311,6 @@ send_to_agent( const so_5::agent_t & receiver, Args&&... args )
 
 /*!
  * \since
- * v.5.5.8
- *
- * \brief A utility function for creating and delivering a message to
- * the ad-hoc agent's direct mbox.
- */
-template< typename Message, typename... Args >
-void
-send_to_agent(
-	const so_5::adhoc_agent_definition_proxy_t & receiver,
-	Args&&... args )
-	{
-		send< Message >( receiver, std::forward<Args>(args)... );
-	}
-
-/*!
- * \since
  * v.5.5.1
  *
  * \attention
@@ -370,8 +344,7 @@ send_delayed(
  * Value of \a pause should be non-negative.
  *
  * \tparam Message type of message or signal to be sent.
- * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
- * so_5::mchain_t.
+ * \tparam Target can be so_5::agent_t or so_5::mchain_t.
  * \tparam Args list of arguments for Message's constructor.
  *
  * \since
@@ -609,37 +582,6 @@ send_delayed(
 
 /*!
  * \since
- * v.5.5.8
- *
- * \brief A utility function for creating and delivering a delayed message
- * to the ad-hoc agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Value of \a pause should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-void
-send_delayed_to_agent(
-	//! An agent whos environment must be used.
-	const so_5::adhoc_agent_definition_proxy_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		send_delayed< Message >(
-				agent.environment(),
-				agent.direct_mbox(),
-				pause,
-				std::forward< Args >(args)... );
-	}
-
-/*!
- * \since
  * v.5.5.1
  *
  * \brief A utility function for creating and delivering a periodic message.
@@ -714,8 +656,7 @@ send_periodic(
  * Values of \a pause and \a period should be non-negative.
  *
  * \tparam Message type of message or signal to be sent.
- * \tparam Target can be so_5::agent_t, so_5::adhoc_agent_definition_proxy_t or
- * so_5::mchain_t.
+ * \tparam Target can be so_5::agent_t or so_5::mchain_t.
  * \tparam Args list of arguments for Message's constructor.
  *
  * \since
@@ -952,40 +893,6 @@ send_periodic_to_agent(
 	}
 
 /*!
- * \since
- * v.5.5.8
- *
- * \brief A utility function for creating and delivering a periodic message
- * to the agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Values of \a pause and \a period should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-SO_5_NODISCARD timer_id_t
-send_periodic_to_agent(
-	//! An agent whos environment must be used.
-	const so_5::adhoc_agent_definition_proxy_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		return send_periodic< Message >(
-				agent.environment(),
-				agent.direct_mbox(),
-				pause,
-				period,
-				std::forward< Args >(args)... );
-	}
-
-/*!
  * \name Helper functions for simplification of synchronous interactions.
  * \{
  */
@@ -1001,8 +908,7 @@ send_periodic_to_agent(
  * returned.
  * \tparam Msg type of message to be sent to request processor.
  * \tparam Target identification of request processor. Could be reference to
- * so_5::mbox_t, to so_5::agent_t or
- * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t (in the later case agent's direct
  * mbox will be used).
  * \tparam Args arguments for Msg's constructors.
  *
@@ -1051,7 +957,7 @@ request_future(
  * synchonous request from exising message hood.
  *
  * \tparam Result type of an expected result.
- * \tparam Target type of a destination (it can be agent, adhoc-agent,
+ * \tparam Target type of a destination (it can be agent,
  * mbox or mchain).
  * \tparam Msg type of a message to be used as request (it can be
  * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
@@ -1101,7 +1007,7 @@ request_future(
  * synchonous request from exising message hood.
  *
  * \tparam Result type of an expected result.
- * \tparam Target type of a destination (it can be agent, adhoc-agent,
+ * \tparam Target type of a destination (it can be agent,
  * mbox or mchain).
  * \tparam Msg type of a signal to be used as request (it can be
  * in form of Msg or so_5::immutable_msg<Msg>).
@@ -1152,8 +1058,7 @@ request_future(
  * \tparam Signal type of signal to be sent to request processor.
  * This type must be derived from so_5::signal_t.
  * \tparam Target identification of request processor. Could be reference to
- * so_5::mbox_t, to so_5::agent_t or
- * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t (in the later case agent's direct
  * mbox will be used).
  * \tparam Future_Type type of funtion return value (detected automatically).
  *
@@ -1214,8 +1119,7 @@ request_future(
  * \tparam Result type of expected result.
  * \tparam Msg type of message to be sent to request processor.
  * \tparam Target identification of request processor. Could be reference to
- * so_5::mbox_t, to so_5::agent_t or
- * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or (in the later case agent's direct
  * mbox will be used).
  * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
@@ -1271,8 +1175,7 @@ request_value(
  * synchonous request from exising message hood.
  *
  * \tparam Result type of an expected result.
- * \tparam Target type of a destination (it can be agent, adhoc-agent,
- * mbox or mchain).
+ * \tparam Target type of a destination (it can be agent, mbox or mchain).
  * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
  * \tparam Msg type of a message to be used as request (it can be
@@ -1336,8 +1239,7 @@ request_value(
  * \tparam Signal type of signal to be sent to request processor.
  * This type must be derived from so_5::signal_t.
  * \tparam Target identification of request processor. Could be reference to
- * so_5::mbox_t, to so_5::agent_t or
- * so_5::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * so_5::mbox_t, to so_5::agent_t or (in the later case agent's direct
  * mbox will be used).
  * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
@@ -1398,8 +1300,7 @@ request_value(
  * Intended to be used with signals.
  *
  * \tparam Result type of an expected result.
- * \tparam Target type of a destination (it can be agent, adhoc-agent,
- * mbox or mchain).
+ * \tparam Target type of a destination (it can be agent, mbox or mchain).
  * \tparam Duration type of waiting indicator. Can be
  * so_5::service_request_infinite_waiting_t or some of std::chrono type.
  * \tparam Msg type of a signal to be used as request (it can be

@@ -4,15 +4,34 @@
  * A message delivery tracing is enabled. Trace is going to std::cout.
  */
 
-#include <iostream>
-#include <time.h>
-
 // Main SObjectizer header file.
 #include <so_5/all.hpp>
+
+using namespace std::chrono_literals;
 
 // Signals for ping-pong.
 struct ping final : public so_5::signal_t {};
 struct pong final : public so_5::signal_t {};
+
+// A class for implementation of pinger and ponger agents.
+template< typename Signal_To_Send, typename Signal_To_Receive >
+class a_pinger_ponger_t final : public so_5::agent_t
+{
+	const so_5::mbox_t m_mbox;
+
+public :
+	a_pinger_ponger_t( context_t ctx, so_5::mbox_t mbox )
+		:	so_5::agent_t( std::move(ctx) )
+		,	m_mbox( std::move(mbox) )
+	{}
+
+	void so_define_agent() override
+	{
+		so_subscribe( m_mbox ).event( [this](mhood_t<Signal_To_Receive>) {
+				so_5::send_delayed< Signal_To_Send >( so_environment(), m_mbox, 25ms );
+			} );
+	}
+};
 
 // Main example agent.
 class a_example_t final : public so_5::agent_t
@@ -63,30 +82,16 @@ private :
 	{
 		// A mbox to be used by pinger and ponger agents.
 		const auto mbox = so_environment().create_mbox();
-		// Create a new coop with two ad-hoc agents inside.
+
+		// Create a new coop with two agents inside.
 		so_5::introduce_child_coop( *this, std::move(binder),
 			[mbox]( so_5::coop_t & coop ) {
-				auto pinger = coop.define_agent();
-				pinger.on_start( [mbox, &coop]{
-						so_5::send_delayed< ping >(
-								coop.environment(),
-								mbox,
-								std::chrono::milliseconds(25) );
-					} )
-					.event( mbox, [mbox, &coop]( mhood_t<pong> ) {
-						so_5::send_delayed< ping >(
-								coop.environment(),
-								mbox,
-								std::chrono::milliseconds(25) );
-					} );
-
-				coop.define_agent().event( mbox, [mbox, &coop]( mhood_t<ping> ) {
-						so_5::send_delayed< pong >(
-								coop.environment(),
-								mbox,
-								std::chrono::milliseconds(25) );
-					} );
+				coop.make_agent< a_pinger_ponger_t<ping, pong> >( mbox );
+				coop.make_agent< a_pinger_ponger_t<pong, ping> >( mbox );
 			} );
+
+		// Initiate ping-pong exchange.
+		so_5::send_delayed< ping >( so_environment(), mbox, 25ms );
 	}
 };
 
