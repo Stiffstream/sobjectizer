@@ -72,8 +72,6 @@ using generic_simple_init_t = std::function< void(so_5::environment_t &) >;
 using generic_simple_so_env_params_tuner_t =
 		std::function< void(so_5::environment_params_t &) >;
 
-//FIXME: may be type of init function should be a template parameter
-//instead of generic_simple_init_t?
 //
 // launch
 //
@@ -133,15 +131,22 @@ int main()
 	return 0;
 }
 \endcode
+
+\tparam Init_Routine Type of initialization routine. It can be a pointer
+to function or functional object that accepts a reference to
+so_5::environment_t.
+
 */
-inline void
+template< typename Init_Routine >
+void
 launch(
 	//! Initialization routine.
-	so_5::generic_simple_init_t init_routine )
+	Init_Routine && init_routine )
 {
-	so_5::impl::so_quick_environment_t< decltype(init_routine) > env(
-			init_routine,
-			so_5::environment_params_t() );
+	impl::so_quick_environment_t<Init_Routine> env{
+			std::forward<Init_Routine>(init_routine),
+			environment_params_t()
+	};
 
 	env.run();
 }
@@ -195,20 +200,30 @@ int main()
 }
 \endcode
 
+\tparam Init_Routine Type of initialization routine. It can be a pointer
+to function or functional object that accepts a reference to
+so_5::environment_t.
+
+\tparam Params_Tuner Type of routine for tuning environment's parameters.
+It can be a pointer to function or functional object that accepts a reference
+to so_5::environment_params_t.
+
 */
+template< typename Init_Routine, typename Params_Tuner >
 inline void
 launch(
 	//! Initialization routine.
-	so_5::generic_simple_init_t init_routine,
+	Init_Routine && init_routine,
 	//! Parameters setting routine.
-	so_5::generic_simple_so_env_params_tuner_t params_tuner )
+	Params_Tuner && params_tuner )
 {
 	so_5::environment_params_t params;
 	params_tuner( params );
 
-	so_5::impl::so_quick_environment_t< decltype(init_routine) > env(
-			init_routine,
-			std::move( params ) );
+	so_5::impl::so_quick_environment_t<Init_Routine> env{
+			std::forward<Init_Routine>(init_routine),
+			std::move(params)
+	};
 
 	env.run();
 }
