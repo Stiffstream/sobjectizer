@@ -16,29 +16,34 @@ fill_coop(
 	{
 		using namespace so_5;
 
-		auto a = coop.define_agent(
-				coop.make_agent_context() +
-				agent_t::limit_then_drop< send_next >( 100 ) +
-				agent_t::limit_then_drop< stop >( 1 ) +
-				so_5::prio::p0 );
-		auto m = a.direct_mbox();
+		class a_test_t final : public agent_t
+		{
+		public :
+			a_test_t( context_t ctx )
+				:	agent_t{
+						ctx +
+						agent_t::limit_then_drop< send_next >( 100 ) +
+						agent_t::limit_then_drop< stop >( 1 ) +
+						prio::p0 }
+			{
+				so_subscribe_self()
+					.event( [this](mhood_t<send_next>) {
+							send< send_next >( *this );
+							send< send_next >( *this );
+						} )
+					.event( [this](mhood_t<stop>) {
+							so_deregister_agent_coop_normally();
+						} );
+			}
 
-		a.on_start( [m, &coop] {
-				so_5::send< send_next >( m );
-				so_5::send_delayed< stop >(
-						coop.environment(),
-						m,
-						std::chrono::milliseconds( 350 ) );
-			} )
-		.event< send_next >( m, [m] {
-				so_5::send< send_next >( m );
-				so_5::send< send_next >( m );
-			} )
-		.event< stop >( m, [&coop] {
-				coop.environment().deregister_coop(
-						coop.query_coop_name(),
-						dereg_reason::normal );
-			} );
+			void so_evt_start() override
+			{
+				send< send_next >( *this );
+				send_delayed< stop >( *this, std::chrono::milliseconds( 350 ) );
+			}
+		};
+
+		coop.make_agent< a_test_t >();
 	}
 
 int

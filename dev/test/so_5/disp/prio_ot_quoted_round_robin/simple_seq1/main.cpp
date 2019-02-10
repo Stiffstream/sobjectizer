@@ -17,13 +17,30 @@ define_receiver_agent(
 	const so_5::mbox_t & common_mbox,
 	std::string & sequence )
 	{
-		coop.define_agent( coop.make_agent_context() + priority, disp.binder() )
-			.event< msg_hello >(
-				common_mbox,
-				[priority, &sequence] {
-					sequence += std::to_string(
-						static_cast< std::size_t >( priority ) );
-				} );
+		class actor_t final : public so_5::agent_t
+			{
+				std::string & m_seq;
+			public:
+				actor_t(
+					context_t ctx,
+					so_5::priority_t priority,
+					const so_5::mbox_t & common_mbox,
+					std::string & seq )
+					:	so_5::agent_t{ ctx + priority }
+					,	m_seq{ seq }
+					{
+						so_subscribe( common_mbox ).event(
+							[this, priority](mhood_t<msg_hello>) {
+								m_seq += std::to_string( so_5::to_size_t( priority ) );
+							} );
+					}
+			};
+
+		coop.make_agent_with_binder< actor_t >(
+				disp.binder(),
+				priority,
+				std::cref(common_mbox),
+				std::ref(sequence) );
 	}
 
 std::string &
@@ -32,21 +49,29 @@ define_main_agent(
 	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
 	const so_5::mbox_t & common_mbox )
 	{
-		auto sequence = std::make_shared< std::string >();
+		class actor_t final : public so_5::agent_t
+			{
+				std::string m_seq;
+			public:
+				actor_t( context_t ctx, const so_5::mbox_t & common_mbox )
+					:	so_5::agent_t{ ctx + so_5::prio::p0 }
+				{
+					so_subscribe( common_mbox ).event(
+						[this]( mhood_t<msg_hello> ) {
+							m_seq += "0";
+							if( "76543210" != m_seq )
+								throw std::runtime_error(
+										"Unexpected value of sequence: " + m_seq );
+							else
+								so_environment().stop();
+						} );
+				}
 
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
-			.event< msg_hello >(
-				common_mbox,
-				[&coop, sequence] {
-					*sequence += "0";
-					if( "76543210" != *sequence )
-						throw std::runtime_error( "Unexpected value of sequence: " +
-								*sequence );
-					else
-						coop.environment().stop();
-				} );
+				std::string & sequence() noexcept { return m_seq; }
+			};
 
-		return *sequence;
+		return coop.make_agent_with_binder< actor_t >(
+				disp.binder(), std::cref(common_mbox) )->sequence();
 	}
 
 void
@@ -54,35 +79,49 @@ define_starter_agent(
 	so_5::coop_t & coop,
 	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp )
 	{
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
-			.on_start( [&coop, &disp] {
-				auto common_mbox = coop.environment().create_mbox();
+		using disp_t = so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t;
 
-				coop.environment().introduce_coop(
-					[&]( so_5::coop_t & child )
+		class actor_t final : public so_5::agent_t
+			{
+				disp_t & m_disp;
+			public :
+				actor_t( context_t ctx, disp_t & disp )
+					:	so_5::agent_t{ ctx + so_5::prio::p0 }
+					,	m_disp{ disp }
+					{}
+
+				void so_evt_start() override
 					{
-						using namespace so_5::prio;
+						auto common_mbox = so_environment().create_mbox();
 
-						std::string & sequence = define_main_agent(
-								child, disp, common_mbox );
-						define_receiver_agent(
-								child, disp, p1, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p2, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p3, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p4, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p5, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p6, common_mbox, sequence );
-						define_receiver_agent(
-								child, disp, p7, common_mbox, sequence );
-					} );
+						so_environment().introduce_coop(
+							[&]( so_5::coop_t & child )
+							{
+								using namespace so_5::prio;
 
-				so_5::send< msg_hello >( common_mbox );
-			} );
+								std::string & sequence = define_main_agent(
+										child, m_disp, common_mbox );
+								define_receiver_agent(
+										child, m_disp, p1, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p2, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p3, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p4, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p5, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p6, common_mbox, sequence );
+								define_receiver_agent(
+										child, m_disp, p7, common_mbox, sequence );
+							} );
+
+						so_5::send< msg_hello >( common_mbox );
+					}
+			};
+
+		coop.make_agent_with_binder< actor_t >( disp.binder(), std::ref(disp) );
 	}
 
 void

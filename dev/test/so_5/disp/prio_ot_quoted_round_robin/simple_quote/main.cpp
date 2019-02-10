@@ -27,15 +27,32 @@ define_receiver_agent(
 	so_5::priority_t priority,
 	const so_5::mbox_t & common_mbox )
 	{
-		coop.define_agent( coop.make_agent_context() + priority, disp.binder() )
-			.on_start( [common_mbox] {
-					so_5::send< msg_receiver_started >( common_mbox );
-				} )
-			.event< msg_request >(
-				common_mbox,
-				[priority, common_mbox] {
-					so_5::send< msg_reply >( common_mbox, priority );
-				} );
+		class actor_t final : public so_5::agent_t
+			{
+				const so_5::mbox_t m_common_mbox;
+
+			public :
+				actor_t(
+					context_t ctx,
+					so_5::priority_t priority,
+					so_5::mbox_t common_mbox )
+					:	so_5::agent_t{ ctx + priority }
+					,	m_common_mbox{ std::move(common_mbox) }
+					{
+						so_subscribe( m_common_mbox ).event(
+							[this, priority](mhood_t<msg_request>) {
+								so_5::send< msg_reply >( m_common_mbox, priority );
+							} );
+					}
+
+				void so_evt_start() override
+					{
+						so_5::send< msg_receiver_started >( m_common_mbox );
+					}
+			};
+
+		coop.make_agent_with_binder< actor_t >( disp.binder(),
+				priority, common_mbox );
 	}
 
 void
@@ -44,11 +61,22 @@ define_message_sender(
 	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
 	const so_5::mbox_t & common_mbox )
 	{
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
-			.event< msg_send_messages >( common_mbox, [common_mbox] {
-					for( int i = 0; i != 20; ++i )
-						so_5::send< msg_request >( common_mbox );
-				} );
+		class actor_t final : public so_5::agent_t
+			{
+			public :
+				actor_t( context_t ctx, const so_5::mbox_t & common_mbox )
+					:	so_5::agent_t{ ctx + so_5::prio::p0 }
+					{
+						so_subscribe( common_mbox ).event(
+							[common_mbox](mhood_t<msg_send_messages>) {
+								for( int i = 0; i != 20; ++i )
+									so_5::send< msg_request >( common_mbox );
+							} );
+					}
+			};
+
+		coop.make_agent_with_binder< actor_t >( disp.binder(),
+				std::cref(common_mbox) );
 	}
 
 void
@@ -56,8 +84,9 @@ define_supervison_agent(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & common_mbox )
 	{
-		struct supervisor_data
+		class a_supervisor_t final : public so_5::agent_t
 			{
+				const so_5::mbox_t m_common_mbox;
 				const std::string m_expected_value;
 				std::string m_accumulator;
 				const std::size_t m_expected_receivers;
@@ -65,17 +94,52 @@ define_supervison_agent(
 				const std::size_t m_expected_replies;
 				std::size_t m_replies = 0;
 
-				supervisor_data(
+			public:
+				a_supervisor_t(
+					context_t ctx,
+					so_5::mbox_t common_mbox,
 					std::string expected_value,
 					std::size_t expected_receivers,
 					std::size_t expected_replies )
-					:	m_expected_value( std::move( expected_value ) )
-					,	m_expected_receivers( expected_receivers )
-					,	m_expected_replies( expected_replies )
-					{}
+					:	so_5::agent_t{ std::move(ctx) }
+					,	m_common_mbox{ std::move(common_mbox) }
+					,	m_expected_value{ std::move( expected_value ) }
+					,	m_expected_receivers{ expected_receivers }
+					,	m_expected_replies{ expected_replies }
+					{
+						so_subscribe( m_common_mbox )
+							.event( &a_supervisor_t::on_receiver_started )
+							.event( &a_supervisor_t::on_reply );
+					}
+
+			private:
+				void on_receiver_started( mhood_t<msg_receiver_started> )
+					{
+						m_started_receivers += 1;
+						if( m_started_receivers == m_expected_receivers )
+							so_5::send< msg_send_messages >( m_common_mbox );
+					}
+
+				void on_reply( mhood_t<msg_reply> cmd )
+					{
+						m_replies += 1;
+						m_accumulator += std::to_string(
+								so_5::to_size_t( cmd->m_priority ) );
+
+						if( m_replies >= m_expected_replies )
+						{
+							if( m_expected_value != m_accumulator )
+								throw std::runtime_error( "values mismatch: "
+										"expected: " + m_expected_value +
+										", actual: " + m_accumulator );
+							else
+								so_environment().stop();
+						}
+					}
 			};
 
-		auto data = std::make_shared< supervisor_data >(
+		coop.make_agent< a_supervisor_t >(
+				common_mbox,
 				"777775555333"
 				"777775555333"
 				"777775555333"
@@ -85,29 +149,6 @@ define_supervison_agent(
 				"33",
 				3,
 				3 * 20u );
-
-		coop.define_agent()
-			.event< msg_receiver_started >( common_mbox, [common_mbox, data] {
-					data->m_started_receivers += 1;
-					if( data->m_started_receivers == data->m_expected_receivers )
-						so_5::send< msg_send_messages >( common_mbox );
-				} )
-			.event( common_mbox,
-				[&coop, data]( const msg_reply & reply ) {
-					data->m_replies += 1;
-					data->m_accumulator += std::to_string(
-							so_5::to_size_t( reply.m_priority ) );
-
-					if( data->m_replies >= data->m_expected_replies )
-					{
-						if( data->m_expected_value != data->m_accumulator )
-							throw std::runtime_error( "values mismatch: "
-									"expected: " + data->m_expected_value +
-									", actual: " + data->m_accumulator );
-						else
-							coop.environment().stop();
-					}
-				} );
 	}
 
 void

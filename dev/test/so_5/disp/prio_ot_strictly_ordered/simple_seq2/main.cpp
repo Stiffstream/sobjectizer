@@ -17,13 +17,29 @@ define_receiver_agent(
 	const so_5::mbox_t & common_mbox,
 	std::string & sequence )
 	{
-		coop.define_agent( coop.make_agent_context() + priority )
-			.event< msg_hello >(
-				common_mbox,
-				[priority, &sequence] {
-					sequence += std::to_string(
-						static_cast< std::size_t >( priority ) );
-				} );
+		class actor_t final : public so_5::agent_t
+			{
+				std::string & m_seq;
+			public:
+				actor_t(
+					context_t ctx,
+					so_5::priority_t priority,
+					const so_5::mbox_t & common_mbox,
+					std::string & seq )
+					:	so_5::agent_t{ ctx + priority }
+					,	m_seq{ seq }
+					{
+						so_subscribe( common_mbox ).event(
+							[this, priority](mhood_t<msg_hello>) {
+								m_seq += std::to_string( so_5::to_size_t( priority ) );
+							} );
+					}
+			};
+
+		coop.make_agent< actor_t >(
+				priority,
+				std::cref(common_mbox),
+				std::ref(sequence) );
 	}
 
 std::string &
@@ -31,24 +47,36 @@ define_main_agent(
 	so_5::coop_t & coop,
 	const so_5::mbox_t & common_mbox )
 	{
-		auto sequence = std::make_shared< std::string >();
+		class actor_t final : public so_5::agent_t
+			{
+				std::string m_seq;
+				const so_5::mbox_t m_common_mbox;
 
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p0 )
-			.on_start( [common_mbox] {
-					so_5::send< msg_hello >( common_mbox );
-				} )
-			.event< msg_hello >(
-				common_mbox,
-				[&coop, sequence] {
-					*sequence += "0";
-					if( "76543210" != *sequence )
-						throw std::runtime_error( "Unexpected value of sequence: " +
-								*sequence );
-					else
-						coop.environment().stop();
-				} );
+			public:
+				actor_t( context_t ctx, so_5::mbox_t common_mbox )
+					:	so_5::agent_t{ ctx + so_5::prio::p0 }
+					,	m_common_mbox{ std::move(common_mbox) }
+					{
+						so_subscribe( m_common_mbox ).event(
+							[this]( mhood_t<msg_hello> ) {
+								m_seq += "0";
+								if( "76543210" != m_seq )
+									throw std::runtime_error(
+											"Unexpected value of sequence: " + m_seq );
+								else
+									so_environment().stop();
+							} );
+					}
 
-		return *sequence;
+				void so_evt_start() override
+					{
+						so_5::send< msg_hello >( m_common_mbox );
+					}
+
+				std::string & sequence() noexcept { return m_seq; }
+			};
+
+		return coop.make_agent< actor_t >( common_mbox )->sequence();
 	}
 
 void

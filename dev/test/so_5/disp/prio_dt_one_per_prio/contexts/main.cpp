@@ -61,6 +61,27 @@ private :
 	}
 };
 
+class a_child_t final : public so_5::agent_t
+{
+	const so_5::mbox_t m_supervisor_mbox;
+
+public:
+	a_child_t(
+		context_t ctx,
+		so_5::priority_t priority,
+		so_5::mbox_t supervisor_mbox )
+		:	so_5::agent_t{ ctx + priority }
+		,	m_supervisor_mbox{ std::move(supervisor_mbox) }
+	{}
+
+	void so_evt_start() override
+	{
+		so_5::send< msg_context_info >(
+				m_supervisor_mbox,
+				so_5::query_current_thread_id() );
+	}
+};
+
 void
 init( so_5::environment_t & env )
 {
@@ -75,11 +96,7 @@ init( so_5::environment_t & env )
 		[&]( so_5::coop_t & coop )
 		{
 			so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
-				coop.define_agent( coop.make_agent_context() + p )
-					.on_start( [supervisor_mbox] {
-						so_5::send< msg_context_info >( supervisor_mbox,
-								so_5::query_current_thread_id() );
-						} );
+				coop.make_agent< a_child_t >( p, supervisor_mbox );
 			} );
 		} );
 }
