@@ -38,9 +38,15 @@ void make_stuff( so_5::environment_t & env )
 	auto guard = std::make_shared< dummy_stop_guard_t >( std::ref(env) );
 	env.setup_stop_guard( guard );
 
+	class actor_t final : public so_5::agent_t {
+	public :
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override { so_environment().stop(); }
+	};
+
 	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		auto a = coop.define_agent();
-		a.on_start( [&env] { env.stop(); } );
+		coop.make_agent< actor_t >();
 	} );
 }
 

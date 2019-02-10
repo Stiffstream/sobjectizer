@@ -20,42 +20,82 @@ template< typename DISPATCHER_HANDLE >
 void
 make_coop( so_5::environment_t & env, DISPATCHER_HANDLE disp )
 {
+	using handler_t = std::function< void() >;
+
+	class actor_t final : public so_5::agent_t
+	{
+		handler_t m_on_start;
+
+	public:
+		actor_t( context_t ctx )
+			:	so_5::agent_t{ std::move(ctx) }
+			,	m_on_start{ [](){} }
+		{}
+
+		void on_start( handler_t lambda ) { m_on_start = std::move(lambda); }
+
+		void event( handler_t lambda )
+		{
+			so_subscribe_self().event(
+				[lambda = std::move(lambda)]( mhood_t<msg_hello> ) {
+					lambda();
+				} );
+		}
+
+		void so_evt_start() override
+		{
+			m_on_start();
+		}
+	};
+
 	env.introduce_coop( disp->binder(),
 		[]( so_5::coop_t & coop ) {
-			auto a1 = coop.define_agent();
-			auto a2 = coop.define_agent();
-			auto a3 = coop.define_agent();
-			auto a4 = coop.define_agent();
-			auto a5 = coop.define_agent();
-			auto a6 = coop.define_agent();
-			auto a7 = coop.define_agent();
-			auto a8 = coop.define_agent();
+			auto a1 = coop.make_agent<actor_t>();
+			auto a2 = coop.make_agent<actor_t>();
+			auto a3 = coop.make_agent<actor_t>();
+			auto a4 = coop.make_agent<actor_t>();
+			auto a5 = coop.make_agent<actor_t>();
+			auto a6 = coop.make_agent<actor_t>();
+			auto a7 = coop.make_agent<actor_t>();
+			auto a8 = coop.make_agent<actor_t>();
 
 			using namespace so_5;
 
-			a1.on_start( [a2] { send_to_agent< msg_hello >( a2 ); } );
+			a1->on_start( [a2] { send< msg_hello >( *a2 ); } );
 
-			a1.event< msg_hello >( a1, [a2] { send_to_agent< msg_hello >( a2 ); } );
-			a2.event< msg_hello >( a2, [a3] { send_to_agent< msg_hello >( a3 ); } );
-			a3.event< msg_hello >( a3, [a4] { send_to_agent< msg_hello >( a4 ); } );
-			a4.event< msg_hello >( a4, [a5] { send_to_agent< msg_hello >( a5 ); } );
-			a5.event< msg_hello >( a5, [a6] { send_to_agent< msg_hello >( a6 ); } );
-			a6.event< msg_hello >( a6, [a7] { send_to_agent< msg_hello >( a7 ); } );
-			a7.event< msg_hello >( a7, [a8] { send_to_agent< msg_hello >( a8 ); } );
-			a8.event< msg_hello >( a8, [a1] { send_to_agent< msg_hello >( a1 ); } );
+			a1->event( [a2] { send< msg_hello >( *a2 ); } );
+			a2->event( [a3] { send< msg_hello >( *a3 ); } );
+			a3->event( [a4] { send< msg_hello >( *a4 ); } );
+			a4->event( [a5] { send< msg_hello >( *a5 ); } );
+			a5->event( [a6] { send< msg_hello >( *a6 ); } );
+			a6->event( [a7] { send< msg_hello >( *a7 ); } );
+			a7->event( [a8] { send< msg_hello >( *a8 ); } );
+			a8->event( [a1] { send< msg_hello >( *a1 ); } );
 		} );
 }
 
 void
 make_stopper( so_5::environment_t & env )
 {
+	class actor_t final : public so_5::agent_t
+	{
+		struct msg_stop final : public so_5::signal_t {};
+	public:
+		actor_t( context_t ctx ) : so_5::agent_t{ std::move(ctx) }
+		{
+			so_subscribe_self().event( [this](mhood_t<msg_stop>) {
+					so_environment().stop();
+				} );
+		}
+
+		void so_evt_start() override
+		{
+			so_5::send< msg_stop >( *this );
+		}
+	};
+
 	env.introduce_coop( []( so_5::coop_t & coop ) {
-			struct msg_stop : public so_5::signal_t {};
-
-			auto a1 = coop.define_agent();
-			a1.on_start( [a1] { so_5::send_to_agent< msg_stop >( a1 ); } )
-				.event< msg_stop >( a1, [&coop] { coop.environment().stop(); } );
-
+			coop.make_agent< actor_t >();
 		} );
 }
 
