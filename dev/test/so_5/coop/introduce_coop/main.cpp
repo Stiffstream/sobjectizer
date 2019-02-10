@@ -47,12 +47,20 @@ private :
 
 void
 define_agent(
-	so_5::environment_t & env,
 	so_5::coop_t & coop )
 {
-	coop.define_agent().on_start( [&env] {
-		so_5::send< msg_started >( manager_mbox( env ) );
-	} );
+	class a_starter_t final : public so_5::agent_t
+	{
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override
+		{
+			so_5::send< msg_started >( manager_mbox( so_environment() ) );
+		}
+	};
+
+	coop.make_agent< a_starter_t >();
 }
 
 class a_child_owner_t : public so_5::agent_t
@@ -69,49 +77,42 @@ public :
 
 		auto & env = so_environment();
 
-#if __cplusplus < 201402
-		introduce_child_coop( *this, [&env]( coop_t & coop ) {
-				std::cout << "introduce_child_coop in C++11" << std::endl;
-				define_agent( env, coop );
-			} );
-#else
 		// Special check for C++14
-		introduce_child_coop( *this, [&env]( auto & coop ) {
-				std::cout << "introduce_child_coop in C++14" << std::endl;
-				define_agent( env, coop );
+		introduce_child_coop( *this, []( auto & coop ) {
+				std::cout << "introduce_child_coop in C++14 or later." << std::endl;
+				define_agent( coop );
 			} );
-#endif
 
 		introduce_child_coop( *this,
 			so_5::disp::active_obj::create_private_disp( env )->binder(),
-			[&env]( coop_t & coop ) {
-				define_agent( env, coop );
+			[]( coop_t & coop ) {
+				define_agent( coop );
 			} );
 
 		introduce_child_coop( *this,
 			so_5::autoname,
-			[&env]( coop_t & coop ) {
-				define_agent( env, coop );
+			[]( coop_t & coop ) {
+				define_agent( coop );
 			} );
 
 		introduce_child_coop( *this,
 			so_5::autoname,
 			so_5::disp::active_obj::create_private_disp( env )->binder(),
-			[&env]( coop_t & coop ) {
-				define_agent( env, coop );
+			[]( coop_t & coop ) {
+				define_agent( coop );
 			} );
 
 		introduce_child_coop( *this,
 			"child-test-1",
-			[&env]( coop_t & coop ) {
-				define_agent( env, coop );
+			[]( coop_t & coop ) {
+				define_agent( coop );
 			} );
 
 		introduce_child_coop( *this,
 			"child-test-2",
 			so_5::disp::one_thread::create_private_disp( env )->binder(),
-			[&env]( coop_t & coop ) {
-				define_agent( env, coop );
+			[]( coop_t & coop ) {
+				define_agent( coop );
 			} );
 	}
 };
@@ -124,43 +125,36 @@ init( so_5::environment_t & env )
 	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12u ) );
 	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
 
-#if __cplusplus < 201402
-	env.introduce_coop( [&env]( coop_t & coop ) {
-			std::cout << "introduce_coop in C++11" << std::endl;
-			define_agent( env, coop );
+	env.introduce_coop( []( auto & coop ) {
+			std::cout << "introduce_coop in C++14 or later." << std::endl;
+			define_agent( coop );
 		} );
-#else
-	env.introduce_coop( [&env]( auto & coop ) {
-			std::cout << "introduce_coop in C++14" << std::endl;
-			define_agent( env, coop );
-		} );
-#endif
 
 	env.introduce_coop(
 		so_5::disp::active_obj::create_private_disp( env )->binder(),
-		[&env]( coop_t & coop ) {
-			define_agent( env, coop );
+		[]( coop_t & coop ) {
+			define_agent( coop );
 		} );
 
-	env.introduce_coop( so_5::autoname, [&env]( coop_t & coop ) {
-			define_agent( env, coop );
+	env.introduce_coop( so_5::autoname, []( coop_t & coop ) {
+			define_agent( coop );
 		} );
 
 	env.introduce_coop(
 		so_5::autoname,
 		so_5::disp::active_obj::create_private_disp( env )->binder(),
-		[&env]( coop_t & coop ) {
-			define_agent( env, coop );
+		[]( coop_t & coop ) {
+			define_agent( coop );
 		} );
 
-	env.introduce_coop( "test-1", [&env]( coop_t & coop ) {
-			define_agent( env, coop );
+	env.introduce_coop( "test-1", []( coop_t & coop ) {
+			define_agent( coop );
 		} );
 
 	env.introduce_coop( "test-2",
 		so_5::disp::one_thread::create_private_disp( env )->binder(),
-		[&env]( coop_t & coop ) {
-			define_agent( env, coop );
+		[]( coop_t & coop ) {
+			define_agent( coop );
 		} );
 }
 

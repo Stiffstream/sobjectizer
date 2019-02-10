@@ -111,6 +111,12 @@ class a_benchmarker_t : public so_5::agent_t
 		virtual void
 		so_evt_start() override
 			{
+				class empty_agent_t final : public so_5::agent_t
+					{
+					public:
+						using so_5::agent_t::agent_t;
+					};
+
 				// Root for children coops must be registered first.
 				so_5::introduce_child_coop(
 						*this,
@@ -121,7 +127,7 @@ class a_benchmarker_t : public so_5::agent_t
 									so_5::make_coop_dereg_notificator(
 											so_direct_mbox() ) );
 							// Empty agent.
-							coop.define_agent();
+							coop.make_agent<empty_agent_t>();
 						} );
 
 				// Now all children coops must be registered.
@@ -198,6 +204,20 @@ class a_benchmarker_t : public so_5::agent_t
 		void
 		register_child_coop()
 			{
+				class child_agent_t final : public so_5::agent_t
+					{
+					public :
+						child_agent_t( context_t ctx, const so_5::mbox_t & parent )
+							:	so_5::agent_t{ std::move(ctx) }
+							{
+								// Child agent should respond to ping signal.
+								so_subscribe_self().event(
+									[parent](mhood_t<ping>) {
+										so_5::send< pong >( parent );
+									} );
+							}
+					};
+
 				so_environment().introduce_coop(
 						m_binder_generator(),
 						[this]( so_5::coop_t & coop ) {
@@ -206,16 +226,12 @@ class a_benchmarker_t : public so_5::agent_t
 									so_5::make_coop_reg_notificator(
 											so_direct_mbox() ) );
 
-							const auto parent = this;
 							for( unsigned int a = 0; a != m_cfg.m_coop_size; ++a )
 								{
 									// Ad-hoc agent will respond to ping signal.
-									auto child = coop.define_agent();
-									m_child_mboxes.push_back( child.direct_mbox() );
-
-									child.event< ping >( child, [parent] {
-												so_5::send< pong >( *parent );
-										} );
+									auto child = coop.make_agent< child_agent_t >(
+											so_direct_mbox() );
+									m_child_mboxes.push_back( child->so_direct_mbox() );
 								}
 						} );
 			}

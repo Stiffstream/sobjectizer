@@ -40,8 +40,6 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/msg_tracing/build_tests.rb" 
 
-	required_prj "#{path}/ad_hoc_agents/build_tests.rb" 
-
 	required_prj "#{path}/message_limits/build_tests.rb" 
 
 	required_prj "#{path}/layer/build_tests.rb" 

@@ -9,26 +9,39 @@
 void
 init( so_5::environment_t & env )
 {
+	class a_supervisor_t final : public so_5::agent_t
+	{
+	public :
+		using so_5::agent_t::agent_t;
+
+		void so_define_agent() override
+		{
+			so_subscribe_self()
+				.event( [this](mhood_t<so_5::msg_coop_registered>) {
+						so_environment().deregister_coop(
+								"child",
+								so_5::dereg_reason::normal );
+					} )
+				.event( [this](mhood_t<so_5::msg_coop_deregistered>) {
+						so_deregister_agent_coop_normally();
+					} );
+		}
+
+		void so_evt_start() override
+		{
+			so_5::introduce_child_coop( *this, "child",
+					[this]( so_5::coop_t & coop ) {
+						coop.add_reg_notificator(
+								so_5::make_coop_reg_notificator( so_direct_mbox() ) );
+						coop.add_dereg_notificator(
+								so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
+					} );
+		}
+	};
+
 	// Supervison coop.
 	env.introduce_coop( []( so_5::coop_t & parent ) {
-			auto a = parent.define_agent();
-			a.on_start( [&parent, a] {
-					// Child coop.
-					auto child = so_5::create_child_coop( parent, "child" );
-					child->add_reg_notificator(
-							so_5::make_coop_reg_notificator( a.direct_mbox() ) );
-					child->add_dereg_notificator(
-							so_5::make_coop_dereg_notificator( a.direct_mbox() ) );
-					parent.environment().register_coop( std::move(child) );
-				} )
-			.event( a, [&parent]( const so_5::msg_coop_registered & ) {
-					parent.environment().deregister_coop(
-							"child",
-							so_5::dereg_reason::normal );
-				} )
-			.event( a, [&parent]( const so_5::msg_coop_deregistered & ) {
-					parent.deregister_normally();
-				} );
+			parent.make_agent< a_supervisor_t >();
 		} );
 }
 

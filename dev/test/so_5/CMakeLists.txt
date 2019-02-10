@@ -48,8 +48,6 @@ add_subdirectory(mchain)
 
 add_subdirectory(msg_tracing)
 
-add_subdirectory(ad_hoc_agents)
-
 add_subdirectory(message_limits)
 
 add_subdirectory(layer/layer_init)
