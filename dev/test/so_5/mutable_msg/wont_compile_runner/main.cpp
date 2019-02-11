@@ -13,8 +13,6 @@ int main()
 			name( "mutable_signal_send" )
 		,	name( "mutable_signal_subscribe" )
 		,	name( "mutable_signal_subscribe_lambda" )
-		,	name( "mutable_signal_subscribe_adhoc" )
-		,	name( "mutable_signal_subscribe_adhoc_2" )
 		,	name( "mutable_msg_as_argument" )
 		,	name( "immutable_msg_as_argument" )
 		});

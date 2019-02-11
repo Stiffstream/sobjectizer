@@ -103,35 +103,6 @@ private :
 	void on_first( mutable_mhood_t<first> ) {}
 };
 
-void
-check_adhoc_agent_subscription_sobj_message( so_5::environment_t & env )
-{
-	ensure_subscription_error( "adhoc_agent(sobj-message)",
-		[&env] {
-			struct demo final : public so_5::message_t {};
-			auto mbox = env.create_mbox();
-
-			env.introduce_coop( [&]( so_5::coop_t & coop ) {
-				auto a = coop.define_agent();
-				a.event( mbox, []( so_5::mutable_mhood_t<demo> ) {} );
-			} );
-		} );
-}
-
-void
-check_adhoc_agent_subscription_user_message( so_5::environment_t & env )
-{
-	ensure_subscription_error( "adhoc_agent(user-message)",
-		[&env] {
-			struct demo final {};
-			auto mbox = env.create_mbox();
-
-			env.introduce_coop( [&]( so_5::coop_t & coop ) {
-				auto a = coop.define_agent();
-				a.event( mbox, []( so_5::mutable_mhood_t<demo> ) {} );
-			} );
-		} );
-}
 int
 main()
 {
@@ -147,8 +118,6 @@ main()
 						env.register_agent_as_coop(so_5::autoname,
 								env.make_agent<user_message_tester>());
 						
-						check_adhoc_agent_subscription_sobj_message( env );
-						check_adhoc_agent_subscription_user_message( env );
 					},
 					[](so_5::environment_params_t & params) {
 						(void)params;

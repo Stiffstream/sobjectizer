@@ -60,11 +60,17 @@ class a_test_t : public so_5::agent_t
 		void
 		create_child_coops()
 			{
+				class empty_actor_t final : public so_5::agent_t
+				{
+				public :
+					using so_5::agent_t::agent_t;
+				};
+
 				for( int i = 0; i != 10; ++i )
 					{
 						auto coop = so_5::create_child_coop(
 								*this, so_5::autoname );
-						coop->define_agent();
+						coop->make_agent< empty_actor_t >();
 
 						so_environment().register_coop( std::move( coop ) );
 					}
@@ -77,15 +83,25 @@ init( so_5::environment_t & env )
 		env.introduce_coop( []( so_5::coop_t & coop ) {
 			coop.make_agent< a_test_t >();
 
-			struct next : public so_5::signal_t {};
-			auto agent = coop.define_agent(
+			class actor_t final : public so_5::agent_t
+			{
+				struct next final : public so_5::signal_t {};
+			public :
+				using so_5::agent_t::agent_t;
+
+				void so_evt_start() override
+				{
+					so_subscribe_self().event( [this](mhood_t<next>) {
+							so_5::send< next >( *this );
+							std::this_thread::sleep_for( std::chrono::seconds(3) );
+						} );
+
+					so_5::send< next >( *this );
+				}
+			};
+
+			coop.make_agent_with_binder< actor_t >(
 				so_5::disp::one_thread::create_disp_binder( "busy" ) );
-			agent
-				.on_start( [agent]{ so_5::send< next >( agent ); } )
-				.event< next >( agent, [agent]{
-					so_5::send< next >( agent );
-					std::this_thread::sleep_for( std::chrono::seconds(3) );
-				} );
 		} );
 	}
 

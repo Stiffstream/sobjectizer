@@ -10,6 +10,7 @@
 #include <test/3rd_party/utest_helper/helper.hpp>
 
 using namespace std;
+using namespace std::chrono_literals;
 
 class empty_stop_guard_t
 	: public so_5::stop_guard_t
@@ -31,26 +32,46 @@ void make_stuff(
 	auto guard = std::make_shared< empty_stop_guard_t >();
 	env.setup_stop_guard( guard );
 
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
+	class actor_t final : public so_5::agent_t
+	{
+		so_5::outliving_reference_t< bool > m_step_3_completed;
+		so_5::stop_guard_shptr_t m_guard;
+
 		struct step_1 final : public so_5::signal_t {};
 		struct step_2 final : public so_5::signal_t {};
 		struct step_3 final : public so_5::signal_t {};
 
-		auto a = coop.define_agent();
-		a.on_start( [a, &env] {
-			env.stop();
-			so_5::send_delayed< step_1 >( a, std::chrono::milliseconds(50) );
-		} );
-		a.event( a, [a]( so_5::mhood_t<step_1> ) {
-			so_5::send_delayed< step_2 >( a, std::chrono::milliseconds(50) );
-		} );
-		a.event( a, [a]( so_5::mhood_t<step_2> ) {
-			so_5::send_delayed< step_3 >( a, std::chrono::milliseconds(50) );
-		} );
-		a.event( a, [step_3_completed, &env, guard]( so_5::mhood_t<step_3> ) {
-			step_3_completed.get() = true;
-			env.remove_stop_guard( guard );
-		} );
+	public :
+		actor_t(
+			context_t ctx,
+			so_5::outliving_reference_t< bool > step_3_completed,
+			so_5::stop_guard_shptr_t guard )
+			:	so_5::agent_t{ std::move(ctx) }
+			,	m_step_3_completed{ step_3_completed }
+			,	m_guard{ std::move(guard) }
+		{
+			so_subscribe_self()
+				.event( [this]( so_5::mhood_t<step_1> ) {
+					so_5::send_delayed< step_2 >( *this, 50ms );
+				} )
+				.event( [this]( so_5::mhood_t<step_2> ) {
+					so_5::send_delayed< step_3 >( *this, 50ms );
+				} )
+				.event( [this]( so_5::mhood_t<step_3> ) {
+					m_step_3_completed.get() = true;
+					so_environment().remove_stop_guard( m_guard );
+				} );
+		}
+
+		void so_evt_start() override
+		{
+			so_environment().stop();
+			so_5::send_delayed< step_1 >( *this, 50ms );
+		}
+	};
+
+	env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		coop.make_agent< actor_t >( step_3_completed, guard );
 	} );
 }
 

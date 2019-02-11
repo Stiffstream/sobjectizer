@@ -27,18 +27,26 @@ public :
 
 void make_stuff( so_5::environment_t & env )
 {
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		auto a = coop.define_agent();
-		a.on_start( [&env] {
-			env.stop();
-			const auto r = env.setup_stop_guard(
+	class actor_t final : public so_5::agent_t
+	{
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override
+		{
+			so_environment().stop();
+			const auto r = so_environment().setup_stop_guard(
 					std::make_shared< empty_stop_guard_t >(),
 					so_5::stop_guard_t::what_if_stop_in_progress_t::return_negative_result );
 			if( so_5::stop_guard_t::setup_result_t::stop_already_in_progress != r )
 				throw std::runtime_error(
 					"result stop_already_in_progress is expected when "
 					"a stop_guard is added when stop is in progress" );
-		} );
+		}
+	};
+
+	env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		coop.make_agent< actor_t >();
 	} );
 }
 

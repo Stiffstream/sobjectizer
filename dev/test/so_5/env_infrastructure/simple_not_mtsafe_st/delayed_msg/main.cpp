@@ -20,20 +20,26 @@ main()
 			[]() {
 				so_5::launch(
 					[&]( so_5::environment_t & env ) {
-						struct stop {};
+						class actor_t final : public so_5::agent_t
+						{
+							struct stop {};
+						public:
+							using so_5::agent_t::agent_t;
 
-						env.introduce_coop( [&]( so_5::coop_t & coop ) {
-							auto a = coop.define_agent();
-							a.on_start(
-								[a] {
-									so_5::send_delayed< stop >(
-											a,
-											std::chrono::milliseconds(250) );
-								} );
-							a.event( a, []( const stop & ) {
+							void so_evt_start() override
+							{
+								so_subscribe_self().event( [this](mhood_t<stop>) {
 									// Do nothing.
 									// Environment will be stopped anyway.
 								} );
+
+								so_5::send_delayed< stop >( *this,
+										std::chrono::milliseconds(250) );
+							}
+						};
+
+						env.introduce_coop( [&]( so_5::coop_t & coop ) {
+							coop.make_agent< actor_t >();
 						} );
 					},
 					[]( so_5::environment_params_t & params ) {

@@ -22,13 +22,23 @@ main()
 
 				so_5::launch(
 					[&]( so_5::environment_t & env ) {
+						class actor_t final : public so_5::agent_t 
+						{
+							so_5::current_thread_id_t & m_thread_id;
+						public:
+							actor_t( context_t ctx, so_5::current_thread_id_t & thread_id )
+								:	so_5::agent_t{ std::move(ctx) }
+								,	m_thread_id{ thread_id }
+							{}
+
+							void so_evt_start() override
+							{
+								m_thread_id = so_5::query_current_thread_id();
+								so_deregister_agent_coop_normally();
+							}
+						};
 						env.introduce_coop( [&]( so_5::coop_t & coop ) {
-							auto a = coop.define_agent();
-							a.on_start(
-								[&]{
-									agent_thread_id = so_5::query_current_thread_id();
-									coop.deregister_normally();
-								} );
+							coop.make_agent< actor_t >( std::ref(agent_thread_id) );
 						} );
 					},
 					[]( so_5::environment_params_t & params ) {

@@ -27,12 +27,17 @@ public :
 
 void make_stuff( so_5::environment_t & env )
 {
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		auto a = coop.define_agent();
-		a.on_start( [&env] {
-			env.stop();
+	class actor_t final : public so_5::agent_t
+	{
+	public:
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override
+		{
+			so_environment().stop();
 			try {
-				env.setup_stop_guard( std::make_shared< empty_stop_guard_t >() );
+				so_environment().setup_stop_guard(
+						std::make_shared< empty_stop_guard_t >() );
 				throw std::runtime_error(
 					"an exception is expected when "
 					"a stop_guard is added when stop is in progress" );
@@ -42,7 +47,11 @@ void make_stuff( so_5::environment_t & env )
 						ex.error_code() )
 					throw;
 			}
-		} );
+		}
+	};
+
+	env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		coop.make_agent< actor_t >();
 	} );
 }
 
