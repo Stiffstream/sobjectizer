@@ -377,11 +377,11 @@
 	New methods of so_5::rt::agent_coop_t for simplification of coop
    deregistration: \ref so_5_5_8__new_method_agent_coop_deregister.
 
-	An ability to define context object for ad-hoc agents added: \ref so_5_5_8__make_agent_context_method.
+	<i>An ability to define context object for ad-hoc agents added.</i> <b><i>NOTE. This feature was removed in SObjectizer-5.6.0</i></b>.
 
-	New version of send-family functions: \ref so_5_5_8__new_send_functions.
+	<i>New version of send-family functions.</i> <b><i>NOTE. This feature was removed in SObjectizer-5.6.0</i></b>.
 
-	More short way for subscribing ad-hoc agents: \ref so_5_5_8__simple_ad_hoc_agent_subscribe.
+	<i>More short way for subscribing ad-hoc agents.</i> <b><i>NOTE. This feature was removed in SObjectizer-5.6.0</i></b>.
 
 	A new variant of so_5::rt::agent_t::limit_then_abort() with pre-abort action: \ref so_5_5_8__new_limit_then_abort.
 
@@ -445,9 +445,9 @@
 
 	Switching to timertt-1.1.0.
 
-	A possibility to get ad-hoc agent's direct mbox added via
-	so_5::rt::adhoc_agent_definition_proxy_t::direct_mbox() method.
-	See \ref so_5_5_3__adhoc_agent_direct_mbox for more details.
+	<i>A possibility to get ad-hoc agent's direct mbox added via
+	so_5::rt::adhoc_agent_definition_proxy_t::direct_mbox() method.</i>
+	<b><i>NOTE. This feature was removed in SObjectizer-5.6.0</i></b>.
 
 	A free function so_5::rt::create_child_coop() has been added for
 	simplification of creation of child cooperations.
@@ -608,7 +608,7 @@
 	A form of synchronous interaction with agents is introduced.
 	See \ref so_5_3_0__synchronous_interaction for details.
 
-	Ad-hoc agents implemented. See \ref so_5_3_0__adhoc_agents for details.
+	<i>Ad-hoc agents implemented</i>. <b><i>NOTE. This feature was removed in SObjectizer-5.6.0</i></b>.
 
 	Exception reaction for agents and agent cooperation could be
 	inhreited now. See \ref so_5_3_0__exception_reaction for details.

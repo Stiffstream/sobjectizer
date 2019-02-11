@@ -477,7 +477,7 @@ class request_scheduler : public so_5::agent_t
 									+ limit_then_abort< generation_request >( 1 ) }
 							{
 								so_subscribe_self().event(
-									[this, priority, interaction_mbox]
+									[priority, interaction_mbox]
 									( mhood_t<generation_request> cmd ) {
 										cmd->m_metadata->m_processing_started_at =
 												clock_type::now();

@@ -147,8 +147,8 @@ define_supervison_agent(
 				"5555333"
 				"333"
 				"33",
-				3,
-				3 * 20u );
+				3u,
+				3u * 20u );
 	}
 
 void

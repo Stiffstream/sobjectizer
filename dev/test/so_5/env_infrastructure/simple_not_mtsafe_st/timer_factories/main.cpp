@@ -28,7 +28,7 @@ launch_with(
 
 						void so_evt_start() override
 						{
-							so_subscribe_self().event( [this](mhood_t<stop>) {
+							so_subscribe_self().event( [](mhood_t<stop>) {
 								// Do nothing.
 								// Environment will be stopped anyway.
 							} );

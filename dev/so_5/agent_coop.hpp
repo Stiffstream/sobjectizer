@@ -554,19 +554,6 @@ class SO_5_TYPE coop_t
 		 * \}
 		 */
 
-//FIXME: is this method really needed after removement of ad-hoc agents?
-		/*!
-		 * \since
-		 * v.5.5.8
-		 *
-		 * \brief Creation of instance of agent_context for tuning agent options.
-		 */
-		agent_context_t
-		make_agent_context() const
-			{
-				return agent_context_t( m_env );
-			}
-
 		/*!
 		 * \since
 		 * v.5.3.0
