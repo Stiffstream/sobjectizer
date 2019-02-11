@@ -120,10 +120,27 @@ class a_test_t : public so_5::agent_t
 				coop->add_dereg_notificator(
 						so_5::make_coop_dereg_notificator( so_direct_mbox() ) );
 
+				class actor_t final : public so_5::agent_t
+				{
+					const so_5::mbox_t m_pong_mbox;
+				public :
+					actor_t(
+						context_t ctx,
+						const so_5::mbox_t & ping_mbox,
+						so_5::mbox_t pong_mbox )
+						:	so_5::agent_t{ std::move(ctx) }
+						,	m_pong_mbox{ std::move(pong_mbox) }
+					{
+						so_subscribe( ping_mbox ).event( [this](mhood_t<ping>) {
+								so_5::send< pong >( m_pong_mbox );
+							} );
+					}
+				};
+
 				for( unsigned int i = 0; i != m_last_coop_size; ++i )
-					coop->define_agent()
-						.event< ping >(
-							m_ping_mbox, [this]{ so_5::send< pong >( *this ); } );
+					coop->make_agent< actor_t >(
+							std::cref(m_ping_mbox),
+							so_direct_mbox() );
 
 				so_environment().register_coop( std::move( coop ) );
 

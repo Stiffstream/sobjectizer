@@ -19,9 +19,20 @@ init( so_5::environment_t & env )
 {
 	env.stats_controller().turn_on();
 
-	auto coop = env.create_coop( so_5::autoname );
-	coop->define_agent()
-		.on_start( [&env] { env.stop(); } );
+	class actor_t final : public so_5::agent_t
+	{
+	public :
+		using so_5::agent_t::agent_t;
+
+		void so_evt_start() override
+		{
+			so_environment().stop();
+		}
+	};
+
+	env.introduce_coop( []( so_5::coop_t & coop ) {
+			coop.make_agent< actor_t >();
+		} );
 }
 
 int

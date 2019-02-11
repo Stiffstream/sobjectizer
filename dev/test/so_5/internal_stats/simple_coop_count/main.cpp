@@ -110,11 +110,17 @@ class a_test_t : public so_5::agent_t
 		void
 		create_child_coops()
 			{
+				class empty_actor_t final : public so_5::agent_t
+				{
+				public :
+					using so_5::agent_t::agent_t;
+				};
+
 				for( int i = 0; i != 10; ++i )
 					{
 						auto coop = so_5::create_child_coop(
 								*this, so_5::autoname );
-						coop->define_agent();
+						coop->make_agent< empty_actor_t >();
 
 						so_environment().register_coop( std::move( coop ) );
 					}

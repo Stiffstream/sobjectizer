@@ -118,22 +118,66 @@ class a_first_t : public so_5::agent_t
 			so_5::environment_t & env,
 			const so_5::mbox_t & mbox )
 			:	so_5::agent_t( env )
-			,	m_mbox( mbox )
 		{
-			so_subscribe( m_mbox ).event( &a_first_t::evt_one );
-			so_subscribe( m_mbox ).event( &a_first_t::evt_two );
+			so_subscribe( mbox ).event( &a_first_t::evt_one );
+			so_subscribe( mbox ).event( &a_first_t::evt_two );
 		}
 
 		void
-		evt_one( const so_5::event_data_t< msg_one > & )
+		evt_one( mhood_t< msg_one > )
 		{}
 
 		void
-		evt_two( const so_5::event_data_t< msg_two > & )
+		evt_two( mhood_t< msg_two > )
+		{}
+};
+
+class a_second_t : public so_5::agent_t
+{
+	public :
+		a_second_t(
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
+			:	so_5::agent_t( env )
+		{
+			so_subscribe( mbox ).event( &a_second_t::evt_one );
+		}
+
+		void
+		evt_one( mhood_t< msg_one > )
+		{}
+};
+
+class a_third_t : public so_5::agent_t
+{
+	public :
+		a_third_t(
+			so_5::environment_t & env,
+			const so_5::mbox_t & mbox )
+			:	so_5::agent_t( env )
+		{
+			so_subscribe( mbox ).event( &a_third_t::evt_two );
+			so_subscribe( mbox ).event( &a_third_t::evt_one );
+		}
+
+		void
+		evt_one( mhood_t< msg_one > )
 		{}
 
-	private :
-		const so_5::mbox_t m_mbox;
+		void
+		evt_two( mhood_t< msg_two > )
+		{}
+};
+
+class a_stopper_t final : public so_5::agent_t
+{
+public :
+	using so_5::agent_t::agent_t;
+
+	void so_evt_start() override
+	{
+		so_environment().stop();
+	}
 };
 
 int
@@ -150,23 +194,17 @@ main()
 					auto coop1 = env.create_coop( "test" );
 
 					{
-						std::unique_ptr< a_first_t > first(
-								new a_first_t( env, test_mbox ) );
+						(void)std::make_unique< a_first_t >(
+								std::ref(env), std::cref(test_mbox) );
 					}
 
-					coop1->define_agent()
-						.event< msg_one >( test_mbox, [] {} );
-					coop1->define_agent()
-						.event< msg_two >( test_mbox, [] {} )
-						.event< msg_one >( test_mbox, [] {} );
+					coop1->make_agent< a_second_t >( std::cref(test_mbox) );
+					coop1->make_agent< a_third_t >( std::cref(test_mbox) );
 				}
 
-				auto coop = env.create_coop( "test2" );
-
-				coop->define_agent()
-					.on_start( [&env]() { env.stop(); } );
-
-				env.register_coop( std::move( coop ) );
+				env.introduce_coop( "test2", []( so_5::coop_t & coop ) {
+						coop.make_agent< a_stopper_t >();
+					} );
 			} );
 
 		if( test_mbox_t::subscriptions != test_mbox_t::unsubscriptions )

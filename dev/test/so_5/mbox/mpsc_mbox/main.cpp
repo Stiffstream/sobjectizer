@@ -83,25 +83,33 @@ main()
 				auto coop = env.create_coop( "test",
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-				auto a_test = new a_test_t( env, sequence );
-				const so_5::mbox_t mbox = a_test->so_direct_mbox();
+				auto a_test = coop->make_agent< a_test_t >( std::ref(sequence) );
 
-				coop->add_agent( a_test );
+				class a_sender_t final : public so_5::agent_t
+				{
+					const so_5::mbox_t m_to;
+				public :
+					a_sender_t( context_t ctx, so_5::mbox_t to )
+						:	so_5::agent_t{ std::move(ctx) }
+						,	m_to{ std::move(to) }
+					{}
 
-				coop->define_agent()
-					.on_start( [mbox]() 
-						{
-							mbox->deliver_signal< msg_one >();
-							mbox->deliver_signal< msg_two >();
-							mbox->run_one()
-								.wait_for( std::chrono::seconds(1) )
-								.sync_get< msg_three >();
+					void so_evt_start() override
+					{
+						m_to->deliver_signal< msg_one >();
+						m_to->deliver_signal< msg_two >();
+						m_to->run_one()
+							.wait_for( std::chrono::seconds(1) )
+							.sync_get< msg_three >();
 
-							mbox->deliver_signal< msg_one >();
-							mbox->deliver_signal< msg_two >();
+						m_to->deliver_signal< msg_one >();
+						m_to->deliver_signal< msg_two >();
 
-							mbox->deliver_signal< msg_four >();
-						} );
+						m_to->deliver_signal< msg_four >();
+					}
+				};
+
+				coop->make_agent< a_sender_t >( a_test->so_direct_mbox() );
 
 				env.register_coop( std::move( coop ) );
 			},
