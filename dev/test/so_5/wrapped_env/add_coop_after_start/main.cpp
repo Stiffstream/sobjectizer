@@ -6,6 +6,8 @@
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
+using namespace std::chrono_literals;
+
 int
 main()
 {
@@ -19,21 +21,29 @@ main()
 				std::cout << "Before adding a coop" << std::endl;
 
 				env.environment().introduce_coop( []( so_5::coop_t & coop ) {
-					struct hello_sig : public so_5::signal_t {};
+					class actor_t final : public so_5::agent_t
+					{
+						struct hello_sig : public so_5::signal_t {};
+					public :
+						using so_5::agent_t::agent_t;
 
-					auto a = coop.define_agent();
-					a.on_start( [a] {
-							so_5::send_delayed< hello_sig >( a,
-									std::chrono::milliseconds( 25 ) );
-						} );
-					a.event< hello_sig >( a, [a] {
-							std::cout << "Hello for agent" << std::endl;
-							so_5::send_delayed< hello_sig >( a,
-									std::chrono::milliseconds( 100 ) );
-						} );
-					a.on_finish( [] {
-							std::cout << "Bye from agent" << std::endl;
-						} );
+						void so_evt_start() override
+						{
+							so_subscribe_self().event( [this](mhood_t<hello_sig>) {
+									std::cout << "Hello for agent" << std::endl;
+									so_5::send_delayed< hello_sig >( *this, 100ms );
+								} );
+
+							so_5::send_delayed< hello_sig >( *this, 25ms );
+						}
+
+						void so_evt_finish() override
+						{
+								std::cout << "Bye from agent" << std::endl;
+						}
+					};
+
+					coop.make_agent< actor_t >();
 				} );
 
 				std::cout << "Coop added" << std::endl;

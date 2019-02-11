@@ -210,24 +210,6 @@ private :
 };
 
 void
-make_adhoc_agents_coop( so_5::environment_t & env )
-{
-	env.introduce_coop( []( so_5::coop_t & coop ) {
-		using namespace so_5::disp::one_thread;
-
-		auto service = coop.define_agent(
-				create_private_disp( coop.environment() )->binder() );
-		setup_service_events( service, service );
-
-		coop.define_agent().on_start( [&coop, service] {
-				perform_service_interaction( service );
-
-				coop.deregister_normally();
-			} );
-	} );
-}
-
-void
 init( so_5::environment_t & env )
 {
 	env.introduce_coop( []( so_5::coop_t & coop ) {
@@ -247,8 +229,6 @@ init( so_5::environment_t & env )
 
 			coop.make_agent< a_test_via_direct_mbox_t >( *service );
 		} );
-
-	make_adhoc_agents_coop( env );
 }
 
 int

@@ -9,7 +9,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/simple_svc/prj.ut.rb" )
 	required_prj( "#{path}/simple_lambda_svc/prj.ut.rb" )
 	required_prj( "#{path}/simple_mutable_lambda_svc/prj.ut.rb" )
-	required_prj( "#{path}/simple_svc_adhoc_agents/prj.ut.rb" )
 	required_prj( "#{path}/svc_handler_exception/prj.ut.rb" )
 	required_prj( "#{path}/no_svc_handlers/prj.ut.rb" )
 	required_prj( "#{path}/several_svc_handlers/prj.ut.rb" )

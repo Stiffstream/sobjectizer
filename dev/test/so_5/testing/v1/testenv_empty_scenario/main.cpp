@@ -15,9 +15,18 @@ UT_UNIT_TEST( empty_scenario_with_one_agent )
 			tests::testing_env_t env;
 
 			env.environment().introduce_coop( [](so_5::coop_t & coop) {
-					coop.define_agent().on_start( [] {
+					class actor_t final : public so_5::agent_t
+					{
+					public:
+						using so_5::agent_t::agent_t;
+
+						void so_evt_start() override
+						{
 							std::cout << "Hello, World!" << std::endl;
-						} );
+						}
+					};
+
+					coop.make_agent< actor_t >();
 				} );
 
 			env.scenario().run_for( std::chrono::seconds(1) );
@@ -53,9 +62,18 @@ UT_UNIT_TEST( one_agent_no_call_to_run_for )
 			tests::testing_env_t env;
 
 			env.environment().introduce_coop( [](so_5::coop_t & coop) {
-					coop.define_agent().on_start( [] {
+					class actor_t final : public so_5::agent_t
+					{
+					public:
+						using so_5::agent_t::agent_t;
+
+						void so_evt_start() override
+						{
 							std::cout << "Hello, World!" << std::endl;
-						} );
+						}
+					};
+
+					coop.make_agent< actor_t >();
 				} );
 		},
 		5 );

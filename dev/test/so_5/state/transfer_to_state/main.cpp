@@ -112,13 +112,26 @@ public :
 			so_5::disp::one_thread::create_private_disp(
 				so_environment() )->binder(),
 			[this]( so_5::coop_t & coop ) {
-				coop.define_agent().on_start( [this] {
-					const int r = so_5::request_value< int, signal >(
-							*this, so_5::infinite_wait );
-					if( 42 != r )
-						throw std::runtime_error( "unexpected result: " +
-								std::to_string( r ) );
-				} );
+				class actor_t final : public so_5::agent_t
+				{
+					so_5::agent_t & m_service;
+				public:
+					actor_t( context_t ctx, so_5::agent_t & service )
+						:	so_5::agent_t::agent_t{ std::move(ctx) }
+						,	m_service{ service }
+					{}
+
+					void so_evt_start() override
+					{
+						const int r = so_5::request_value< int, signal >(
+								m_service, so_5::infinite_wait );
+						if( 42 != r )
+							throw std::runtime_error( "unexpected result: " +
+									std::to_string( r ) );
+					}
+				};
+
+				coop.make_agent< actor_t >( std::ref(*this) );
 			} );
 	}
 
