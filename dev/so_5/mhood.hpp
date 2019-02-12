@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Definition of the template class event_data.
+	\brief Definition of the template class mhood.
 */
 
 #pragma once
@@ -544,13 +544,6 @@ class mhood_t< user_type_message_t< M > >;
  */
 template< typename M >
 using mutable_mhood_t = mhood_t< mutable_msg<M> >;
-
-/*!
- * \brief An alias for compatibility with previous versions.
- * \deprecated Will be removed in v.5.6.0.
- */
-template< class Msg >
-using event_data_t = mhood_t< Msg >;
 
 } /* namespace so_5 */
 

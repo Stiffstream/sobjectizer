@@ -13,7 +13,7 @@
 #include <so_5/agent.hpp>
 #include <so_5/agent_coop.hpp>
 #include <so_5/state.hpp>
-#include <so_5/event_data.hpp>
+#include <so_5/mhood.hpp>
 #include <so_5/mbox.hpp>
 #include <so_5/environment.hpp>
 #include <so_5/agent_coop_notifications.hpp>
