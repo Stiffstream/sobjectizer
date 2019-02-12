@@ -63,18 +63,18 @@ public :
 	A( context_t ctx ) : so_5::agent_t{ ctx }
 	{
 		so_subscribe( so_environment().create_mbox( "demo" ) )
-			.event< M1 >( [this] {
+			.event( [this]( mhood_t<M1> ) {
 					trace( *this, "A.e1 started" );
 					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "A.e1 finished" );
 				},
 				so_5::thread_safe )
-			.event< M3 >( [this] {
+			.event( [this]( mhood_t<M3> ) {
 					trace( *this, "A.e3 started" );
 					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "A.e3 finished" );
 				} )
-			.event< stop >( [this] { so_environment().stop(); } );
+			.event( [this]( mhood_t<stop> ) { so_environment().stop(); } );
 	}
 };
 
@@ -84,7 +84,7 @@ public :
 	B( context_t ctx ) : so_5::agent_t{ ctx }
 	{
 		so_subscribe( so_environment().create_mbox( "demo" ) )
-			.event< M2 >( [this] {
+			.event( [this]( mhood_t<M2> ) {
 					trace( *this, "B.e2 started" );
 					std::this_thread::sleep_for( sleeping_time );
 					trace( *this, "B.e2 finished" );

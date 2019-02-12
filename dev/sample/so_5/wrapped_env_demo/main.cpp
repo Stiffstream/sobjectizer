@@ -22,7 +22,7 @@ public :
 		// Ping signals will be sent to named mbox.
 		// The name of this mbox is the same as the name of agent's coop.
 		so_subscribe( so_environment().create_mbox( so_coop_name() ) )
-			.event< ping >( &demo_agent::evt_ping );
+			.event( &demo_agent::evt_ping );
 	}
 
 	// Reaction to start of work inside SO Environment.
@@ -39,7 +39,7 @@ public :
 
 private :
 	// Reaction to ping signal.
-	std::string evt_ping()
+	std::string evt_ping(mhood_t< ping >)
 	{
 		return "pong{" + so_coop_name() + "}";
 	}

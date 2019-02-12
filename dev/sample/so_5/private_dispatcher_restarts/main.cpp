@@ -33,7 +33,7 @@ public :
 
 	virtual void so_define_agent() override
 	{
-		so_default_state().event< msg_your_turn >( [this] {
+		so_default_state().event( [this](mhood_t< msg_your_turn >) {
 				if( m_next )
 					so_5::send< msg_your_turn >( m_next );
 				else

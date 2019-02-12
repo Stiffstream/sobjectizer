@@ -542,92 +542,6 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.1
-		 *
-		 * \brief Helper for subscription of event handler in this state.
-		 *
-		 * \note This method must be used for signal subscriptions.
-		 * \note This method must be used for messages which are
-		 * sent to agent's direct mbox.
-		 *
-		 * \par Usage example
-			\code
-			class my_agent : public so_5::agent_t
-			{
-				const so_5::state_t st_normal = so_make_state();
-			public :
-				...
-				virtual void so_define_agent() override {
-					st_normal.event< msg_reconfig >( [=] { ... } );
-					st_normal.event< msg_shutdown >( &my_agent::evt_shutdown );
-					...
-				}
-			};
-			\endcode
-		 */
-		template< typename Signal, typename... Args >
-		const state_t &
-		event( Args&&... args ) const;
-
-		/*!
-		 * \since
-		 * v.5.5.15
-		 */
-		template< typename Signal, typename... Args >
-		state_t &
-		event( Args&&... args )
-			{
-				const state_t & t = *this;
-				t.event< Signal >( std::forward<Args>(args)... );
-				return *this;
-			}
-
-		/*!
-		 * \since
-		 * v.5.5.1
-		 *
-		 * \brief Helper for subscription of event handler in this state.
-		 *
-		 * \note This method must be used for signal subscriptions.
-		 * \note This method must be used for messages which are
-		 * sent to \a from message-box.
-		 *
-		 * \par Usage example
-			\code
-			class my_agent : public so_5::agent_t
-			{
-				const so_5::state_t st_normal = so_make_state();
-			public :
-				...
-				virtual void so_define_agent() override {
-					st_normal.event< msg_reconfig >( m_owner, [=] { ... } );
-					st_normal.event< msg_shutdown >( m_owner, &my_agent::evt_shutdown );
-					...
-				}
-			private :
-				so_5::mbox_t m_owner;
-			};
-			\endcode
-		 */
-		template< typename Signal, typename... Args >
-		const state_t &
-		event( mbox_t from, Args&&... args ) const;
-
-		/*!
-		 * \since
-		 * v.5.5.15
-		 */
-		template< typename Signal, typename... Args >
-		state_t &
-		event( mbox_t from, Args&&... args )
-			{
-				const state_t & t = *this;
-				t.event< Signal >( std::move(from), std::forward<Args>(args)... );
-				return *this;
-			}
-
-		/*!
 		 * \brief Check the presence of a subscription.
 		 *
 		 * \return true if subscription is present.
@@ -1343,7 +1257,9 @@ class SO_5_TYPE state_t final
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::nullary,
+						Method_Pointer>::value,
 				state_t & >::type
 		on_enter( Method_Pointer pfn );
 
@@ -1468,7 +1384,9 @@ class SO_5_TYPE state_t final
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::nullary,
+						Method_Pointer>::value,
 				state_t & >::type
 		on_exit( Method_Pointer pfn );
 
@@ -1819,18 +1737,6 @@ class SO_5_TYPE state_t final
 		template< typename... Args >
 		const state_t &
 		subscribe_message_handler(
-			const mbox_t & from,
-			Args&&... args ) const;
-
-		/*!
-		 * \since
-		 * v.5.5.1
-		 *
-		 * \brief A helper for handle-methods implementation.
-		 */
-		template< typename Signal, typename... Args >
-		const state_t &
-		subscribe_signal_handler(
 			const mbox_t & from,
 			Args&&... args ) const;
 

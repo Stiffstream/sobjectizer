@@ -18,7 +18,7 @@ class a_pinger_t final : public so_5::agent_t
 
 		virtual void so_define_agent() override
 			{
-				so_subscribe( m_mbox ).event< msg_pong >( &a_pinger_t::evt_pong );
+				so_subscribe( m_mbox ).event( &a_pinger_t::evt_pong );
 			}
 
 		virtual void so_evt_start() override
@@ -31,7 +31,7 @@ class a_pinger_t final : public so_5::agent_t
 
 		int m_pings_left;
 
-		void evt_pong()
+		void evt_pong(mhood_t< msg_pong >)
 			{
 				if( m_pings_left > 0 )
 					send_ping();

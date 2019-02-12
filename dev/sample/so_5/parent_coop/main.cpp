@@ -53,7 +53,7 @@ class a_child_t : public so_5::agent_t
 		// Definition of the agent for SObjectizer.
 		virtual void so_define_agent() override
 		{
-			so_subscribe_self().event< task_completed >( &a_child_t::evt_task_completed );
+			so_subscribe_self().event( &a_child_t::evt_task_completed );
 		}
 
 		// A reaction to start of work in SObjectizer.
@@ -70,7 +70,7 @@ class a_child_t : public so_5::agent_t
 		}
 
 		//! Child has completed the task.
-		void evt_task_completed()
+		void evt_task_completed( mhood_t< task_completed > )
 		{
 			std::cout << "Child: has completed his task " << m_task_id << std::endl;
 

@@ -496,7 +496,7 @@ class story_publisher : public so_5::agent_t
 			{
 				this >>= st_await_new_story;
 
-				st_await_new_story.event< msg_time_for_new_story >(
+				st_await_new_story.event(
 						&story_publisher::evt_time_for_new_story );
 
 				st_await_publish_response.event(
@@ -529,7 +529,7 @@ class story_publisher : public so_5::agent_t
 						std::chrono::milliseconds{ random_value( 100, 1500 ) } );
 			}
 
-		void evt_time_for_new_story()
+		void evt_time_for_new_story(mhood_t< msg_time_for_new_story >)
 			{
 				// Create new story.
 				auto story_number = ++m_stories_counter;
@@ -605,7 +605,7 @@ class news_reader : public so_5::agent_t
 			{
 				this >>= st_sleeping;
 
-				st_sleeping.event< msg_time_for_updates >(
+				st_sleeping.event(
 						&news_reader::evt_time_for_updates );
 
 				st_await_updates.event(
@@ -648,7 +648,7 @@ class news_reader : public so_5::agent_t
 						std::chrono::milliseconds{ random_value( 500, 2500 ) } );
 			}
 
-		void evt_time_for_updates()
+		void evt_time_for_updates(mhood_t< msg_time_for_updates >)
 			{
 				request_updates();
 			}

@@ -40,16 +40,7 @@ namespace details {
  * v.5.5.19.5
  */
 template<typename MESSAGE>
-struct message_handler_format_detector
-	{
-		using type = typename message_payload_type<MESSAGE>::subscription_type;
-	};
-
-template<typename MESSAGE>
-struct message_handler_format_detector<const MESSAGE &>
-	{
-		using type = typename message_payload_type<MESSAGE>::subscription_type;
-	};
+struct message_handler_format_detector;
 
 template<typename MESSAGE>
 struct message_handler_format_detector<const mhood_t<MESSAGE> &>
@@ -63,6 +54,15 @@ struct message_handler_format_detector<mhood_t<MESSAGE>>
 		using type = typename message_payload_type<MESSAGE>::subscription_type;
 	};
 
+//FIXME: document this!
+//
+// method_arity
+//
+enum class method_arity
+	{
+		nullary, unary
+	};
+
 //
 // is_agent_method_pointer
 //
@@ -74,11 +74,13 @@ struct message_handler_format_detector<mhood_t<MESSAGE>>
  *
  * If T is a pointer to method without args then:
  * * is_agent_method_pointer::value is \a true;
+ * * is_agent_method_pointer::arity is \a method_arity::nullary;
  * * there is a is_agent_method_pointer::agent_type type name;
  * * there is a is_agent_method_pointer::result_type type name.
  *
  * If T is a pointer to method with one argument then:
  * * is_agent_method_pointer::value is \a true;
+ * * is_agent_method_pointer::arity is \a method_arity::unary;
  * * there is a is_agent_method_pointer::agent_type type name;
  * * there is a is_agent_method_pointer::result_type type name.
  * * there is a is_agent_method_pointer::argument_type type name.
@@ -86,7 +88,7 @@ struct message_handler_format_detector<mhood_t<MESSAGE>>
  * \since
  * v.5.5.20
  */
-template<typename T>
+template<method_arity Arity, typename T>
 struct is_agent_method_pointer
 	{
 		static const bool value = false;
@@ -99,7 +101,8 @@ namespace agent_method_pointer_details
 		{
 			using result_type = Result;
 			using agent_type = Agent;
-			static const bool value = true;
+			static constexpr const bool value = true;
+			static constexpr const method_arity arity = method_arity::nullary;
 		};
 
 	template<typename Result, typename Agent, typename Handler_Argument>
@@ -108,28 +111,29 @@ namespace agent_method_pointer_details
 			using result_type = Result;
 			using agent_type = Agent;
 			using argument_type = Handler_Argument;
-			static const bool value = true;
+			static constexpr const bool value = true;
+			static constexpr const method_arity arity = method_arity::nullary;
 		};
 
 } /* namespace agent_method_pointer_details */
 
 template<typename Result, typename Agent>
-struct is_agent_method_pointer<Result (Agent::*)()>
+struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() >
 	: public agent_method_pointer_details::no_arg<Result, Agent>
 	{};
 
 template<typename Result, typename Agent>
-struct is_agent_method_pointer<Result (Agent::*)() const>
+struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() const >
 	: public agent_method_pointer_details::no_arg<Result, Agent>
 	{};
 
 template<typename Result, typename Agent, typename Handler_Argument>
-struct is_agent_method_pointer<Result (Agent::*)(Handler_Argument)>
+struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument)>
 	: public agent_method_pointer_details::with_arg<Result, Agent, Handler_Argument>
 	{};
 
 template<typename Result, typename Agent, typename Handler_Argument>
-struct is_agent_method_pointer<Result (Agent::*)(Handler_Argument) const>
+struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument) const>
 	: public agent_method_pointer_details::with_arg<Result, Agent, Handler_Argument>
 	{};
 

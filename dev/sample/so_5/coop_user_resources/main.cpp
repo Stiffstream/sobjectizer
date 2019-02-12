@@ -89,7 +89,7 @@ class a_parent_t : public so_5::agent_t
 
 		virtual void so_define_agent() override
 		{
-			so_default_state().event< msg_child_finished >(
+			so_default_state().event(
 					&a_parent_t::evt_child_finished );
 		}
 
@@ -100,7 +100,7 @@ class a_parent_t : public so_5::agent_t
 			m_logger.log( "child cooperation created" );
 		}
 
-		void evt_child_finished()
+		void evt_child_finished( mhood_t< msg_child_finished > )
 		{
 			m_logger.log( "child_finished notification received" );
 

@@ -116,7 +116,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		so_default_state()
-			.event< msg_next_turn >( &a_generator_t::evt_next_turn )
+			.event( &a_generator_t::evt_next_turn )
 			.event( &a_generator_t::evt_reply );
 	}
 
@@ -143,7 +143,7 @@ private :
 	// Last generated ID for request.
 	int m_last_id;
 
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		// Create and send new requests.
 		generate_new_requests( random( 5, 8 ) );

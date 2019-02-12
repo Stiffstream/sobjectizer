@@ -734,8 +734,8 @@ public :
 	virtual void so_define_agent() override
 	{
 		// On shutdown the coop and its children must be deregistered.
-		so_subscribe_self().event< shutdown >(
-				[this] { so_deregister_agent_coop_normally(); } );
+		so_subscribe_self().event(
+				[this](mhood_t< shutdown >) { so_deregister_agent_coop_normally(); } );
 	}
 
 	virtual void so_evt_start() override

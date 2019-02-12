@@ -87,8 +87,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		// Just one handler in one state.
-		so_default_state().event< msg_next_turn >(
-				&a_generator_t::evt_next_turn );
+		so_default_state().event( &a_generator_t::evt_next_turn );
 	}
 
 	virtual void so_evt_start() override
@@ -106,7 +105,7 @@ private :
 	// Workers.
 	const std::vector< so_5::mbox_t > m_workers_mboxes;
 
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		// How many requests will be sent on this turn.
 		const int requests = random( 1, 100 );
@@ -215,7 +214,7 @@ public :
 	{
 		so_default_state()
 			.event( &a_collector_t::evt_receive_job )
-			.event< msg_select_next_job >( &a_collector_t::evt_select_next_job );
+			.event( &a_collector_t::evt_select_next_job );
 	}
 
 private :
@@ -262,7 +261,7 @@ private :
 		return processed;
 	}
 
-	void evt_select_next_job()
+	void evt_select_next_job(mhood_t< msg_select_next_job >)
 	{
 		++m_available_concurrent_performers;
 

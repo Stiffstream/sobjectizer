@@ -120,7 +120,7 @@ struct state_t::time_limit_t
 			// A subscription must be created for timeout signal.
 			agent.so_subscribe( m_unique_mbox )
 					.in( current_state )
-					.event< timeout >( [&agent, this] {
+					.event( [&agent, this](mhood_t<timeout>) {
 						agent.so_change_state( m_state_to_switch );
 					} );
 

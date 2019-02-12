@@ -48,7 +48,7 @@ public:
 	{
 		// Actions for the default state.
 		so_default_state()
-			.event< change_state_signal >( [=] { this >>= st_1; } )
+			.event( [=]( mhood_t< change_state_signal > ) { this >>= st_1; } )
 			.event( [=]( const greeting_message & msg ) {
 					std::cout << "*** 0) greeting: " << msg.m_greeting
 							<< ", ptr: " << &msg << std::endl;
@@ -58,11 +58,11 @@ public:
 
 		// st_1: switch to st_2 only, greeting_message is ignored.
 		st_1
-			.event< change_state_signal >( [=] { this >>= st_2; } );
+			.event( [=]( mhood_t< change_state_signal > ) { this >>= st_2; } );
 
 		// st_2: switch to st_3, greeting_message is handled.
 		st_2
-			.event< change_state_signal >( [=] { this >>= st_3; } )
+			.event( [=]( mhood_t< change_state_signal > ) { this >>= st_3; } )
 			.event( [=]( const greeting_message & msg ) {
 					std::cout << "*** 2) greeting: " << msg.m_greeting
 							<< ", ptr: " << &msg << std::endl;
@@ -70,11 +70,11 @@ public:
 
 		// st_3: switch to st_shutdown only, greeting_message is ignored.
 		st_3
-			.event< change_state_signal >( [=] { this >>= st_shutdown; } );
+			.event( [=]( mhood_t< change_state_signal > ) { this >>= st_shutdown; } );
 
 		// st_shutdown: handle greeting_message, shutdown environment.
 		st_shutdown
-			.event< change_state_signal >( [=] {
+			.event( [=]( mhood_t< change_state_signal > ) {
 					so_deregister_agent_coop_normally(); } )
 			.event( [=]( const greeting_message & msg ) {
 					std::cout << "*** F) greeting: " << msg.m_greeting

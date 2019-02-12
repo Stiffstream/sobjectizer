@@ -134,10 +134,10 @@ public :
 
 	virtual void so_define_agent() override
 	{
-		so_subscribe_self().event< msg_timer >( &a_receiver_t::evt_timer );
+		so_subscribe_self().event( &a_receiver_t::evt_timer );
 	}
 
-	void evt_timer()
+	void evt_timer(mhood_t< msg_timer >)
 	{
 		++m_messages_received;
 		if( m_messages_received == m_messages_to_receive )

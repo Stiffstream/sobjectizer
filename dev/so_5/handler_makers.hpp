@@ -279,7 +279,7 @@ set_promise( std::promise< void > & to, L result_provider )
  */
 template< typename Lambda, typename Result, typename Arg >
 typename std::enable_if<
-		!is_agent_method_pointer<Lambda>::value,
+		!is_agent_method_pointer<method_arity::unary, Lambda>::value,
 		msg_type_and_handler_pair_t >::type
 make_handler_with_arg( Lambda lambda )
 	{
@@ -327,13 +327,15 @@ make_handler_with_arg( Lambda lambda )
  */
 template< typename Agent, typename Method_Pointer >
 typename std::enable_if<
-		is_agent_method_pointer<Method_Pointer>::value,
+		is_agent_method_pointer<
+				method_arity::unary,
+				Method_Pointer>::value,
 		msg_type_and_handler_pair_t >::type
 make_handler_with_arg_for_agent(
 	Agent * agent,
 	Method_Pointer pfn )
 	{
-		using pfn_traits = is_agent_method_pointer<Method_Pointer>;
+		using pfn_traits = is_agent_method_pointer<method_arity::unary, Method_Pointer>;
 
 		static_assert( std::is_same<Agent, typename pfn_traits::agent_type>::value,
 				"Agent type must be the same" );
@@ -520,7 +522,9 @@ handler( Lambda && lambda )
  */
 template< typename Method_Pointer >
 typename std::enable_if<
-		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::is_agent_method_pointer<
+				details::method_arity::unary,
+				Method_Pointer>::value,
 		details::msg_type_and_handler_pair_t >::type
 preprocess_agent_event_handler(
 	const mbox_t & mbox,
@@ -530,7 +534,8 @@ preprocess_agent_event_handler(
 		using namespace details::event_subscription_helpers;
 
 		using agent_type =
-				typename details::is_agent_method_pointer<Method_Pointer>::agent_type;
+				typename details::is_agent_method_pointer<
+						details::method_arity::unary, Method_Pointer>::agent_type;
 
 		// Agent must have right type.
 		auto cast_result = get_actual_agent_pointer< agent_type >( agent );

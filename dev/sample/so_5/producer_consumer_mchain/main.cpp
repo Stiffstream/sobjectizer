@@ -84,7 +84,7 @@ public :
 		,	m_producers_left{ producers_count }
 	{
 		so_subscribe( so_environment().create_mbox( "shutdowner" ) )
-			.event< another_producer_finished >( [this] {
+			.event( [this](mhood_t< another_producer_finished >) {
 					--m_producers_left;
 					if( !m_producers_left )
 						so_environment().stop();
@@ -140,7 +140,7 @@ public :
 	{
 		so_subscribe_self()
 			.event( &producer::evt_reply )
-			.event< send_next >( &producer::evt_send_next );
+			.event( &producer::evt_send_next );
 	}
 
 	virtual void so_evt_start() override
@@ -157,7 +157,7 @@ private :
 	unsigned int m_requests_left;
 
 	// An event for next attempt to send another requests.
-	void evt_send_next()
+	void evt_send_next(mhood_t< send_next >)
 	{
 		if( m_requests_left )
 		{
@@ -236,7 +236,7 @@ public :
 					so_5::send< chain_has_requests >( *this );
 				} ) );
 
-		so_subscribe_self().event< chain_has_requests >(
+		so_subscribe_self().event(
 				&consumer::process_requests );
 	}
 
@@ -250,7 +250,7 @@ private :
 	const so_5::mbox_t m_logger_mbox;
 	so_5::mchain_t m_chain;
 
-	void process_requests()
+	void process_requests(mhood_t< chain_has_requests >)
 	{
 		auto r = receive(
 				// Handle no more than 5 requests at once.

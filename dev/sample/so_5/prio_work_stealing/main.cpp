@@ -159,7 +159,7 @@ class request_generator : public so_5::agent_t
 		virtual void so_define_agent() override
 			{
 				so_subscribe_self()
-					.event< produce_next >( &request_generator::evt_produce_next );
+					.event( &request_generator::evt_produce_next );
 
 				so_subscribe( m_interaction_mbox )
 					.event( &request_generator::evt_generation_result )
@@ -184,7 +184,7 @@ class request_generator : public so_5::agent_t
 		unsigned int m_y = 0;
 		unsigned int m_z = 0;
 
-		void evt_produce_next()
+		void evt_produce_next(mhood_t< produce_next >)
 			{
 				auto id = ++m_last_id;
 				auto dimension = generate_next_dimension();

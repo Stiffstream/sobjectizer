@@ -86,8 +86,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		// Just one handler in one state.
-		so_default_state().event< msg_next_turn >(
-				&a_generator_t::evt_next_turn );
+		so_default_state().event( &a_generator_t::evt_next_turn );
 	}
 
 	virtual void so_evt_start() override
@@ -105,7 +104,7 @@ private :
 	// Workers.
 	const std::vector< so_5::mbox_t > m_workers_mboxes;
 
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		// How many requests will be sent on this turn.
 		const int requests = random( 1, 100 );
@@ -211,14 +210,14 @@ public :
 			// Store new request in ordinary way...
 			.event( &a_receiver_t::evt_store_request )
 			// Return request array to processor.
-			.event< msg_take_requests >( &a_receiver_t::evt_take_requests );
+			.event( &a_receiver_t::evt_take_requests );
 
 		// When overload...
 		st_overload
 			// Reject any new request...
 			.event( &a_receiver_t::evt_reject_request )
 			// But return request array to processer as usual.
-			.event< msg_take_requests >( &a_receiver_t::evt_take_requests );
+			.event( &a_receiver_t::evt_take_requests );
 	}
 
 private :
@@ -258,7 +257,7 @@ private :
 	}
 
 	std::vector< application_request >
-	evt_take_requests()
+	evt_take_requests(mhood_t< msg_take_requests >)
 	{
 		// Value to return.
 		std::vector< application_request > result;
@@ -296,8 +295,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		// Just one handler in the default state.
-		so_default_state().event< msg_next_turn >(
-				&a_processor_t::evt_next_turn );
+		so_default_state().event( &a_processor_t::evt_next_turn );
 	}
 
 	virtual void so_evt_start() override
@@ -316,7 +314,7 @@ private :
 	// Receiver.
 	const so_5::mbox_t m_receiver;
 
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		// Take requests from receiver.
 		auto requests = take_requests();

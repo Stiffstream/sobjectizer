@@ -68,19 +68,19 @@ class a_state_swither_t : public so_5::agent_t
 		virtual void so_evt_start() override;
 
 		// Message handler for the default state.
-		void evt_handler_default();
+		void evt_handler_default( mhood_t<msg_periodic> );
 
 		// Message handler for the state_1.
-		void evt_handler_1();
+		void evt_handler_1( mhood_t<msg_periodic> );
 
 		// Message handler for the state_2.
-		void evt_handler_2();
+		void evt_handler_2( mhood_t<msg_periodic> );
 
 		// Message handler for the state_3.
-		void evt_handler_3();
+		void evt_handler_3( mhood_t<msg_periodic> );
 
 		// Message handler for the shutdown_state.
-		void evt_handler_shutdown();
+		void evt_handler_shutdown( mhood_t<msg_periodic> );
 
 	private:
 		// Timer event id.
@@ -96,19 +96,19 @@ void a_state_swither_t::so_define_agent()
 {
 	// Message subsription.
 	so_subscribe_self()
-		.event< msg_periodic >( &a_state_swither_t::evt_handler_default );
+		.event( &a_state_swither_t::evt_handler_default );
 
 	so_subscribe_self().in( st_1 )
-		.event< msg_periodic >( &a_state_swither_t::evt_handler_1 );
+		.event( &a_state_swither_t::evt_handler_1 );
 
 	so_subscribe_self().in( st_2 )
-		.event< msg_periodic >( &a_state_swither_t::evt_handler_2 );
+		.event( &a_state_swither_t::evt_handler_2 );
 
 	so_subscribe_self().in( st_3 )
-		.event< msg_periodic >( &a_state_swither_t::evt_handler_3 );
+		.event( &a_state_swither_t::evt_handler_3 );
 
 	so_subscribe_self().in( st_shutdown )
-		.event< msg_periodic >( &a_state_swither_t::evt_handler_shutdown );
+		.event( &a_state_swither_t::evt_handler_shutdown );
 }
 
 void a_state_swither_t::so_evt_start()
@@ -122,7 +122,7 @@ void a_state_swither_t::so_evt_start()
 			std::chrono::seconds( 1 ) );
 }
 
-void a_state_swither_t::evt_handler_default()
+void a_state_swither_t::evt_handler_default( mhood_t<msg_periodic> )
 {
 	show_event_invocation( "evt_handler_default" );
 
@@ -130,7 +130,7 @@ void a_state_swither_t::evt_handler_default()
 	so_change_state( st_1 );
 }
 
-void a_state_swither_t::evt_handler_1()
+void a_state_swither_t::evt_handler_1( mhood_t<msg_periodic> )
 {
 	show_event_invocation( "evt_handler_1" );
 
@@ -138,7 +138,7 @@ void a_state_swither_t::evt_handler_1()
 	so_change_state( st_2 );
 }
 
-void a_state_swither_t::evt_handler_2()
+void a_state_swither_t::evt_handler_2( mhood_t<msg_periodic> )
 {
 	show_event_invocation( "evt_handler_2" );
 
@@ -146,7 +146,7 @@ void a_state_swither_t::evt_handler_2()
 	so_change_state( st_3 );
 }
 
-void a_state_swither_t::evt_handler_3()
+void a_state_swither_t::evt_handler_3( mhood_t<msg_periodic> )
 {
 	show_event_invocation( "evt_handler_3" );
 
@@ -154,7 +154,7 @@ void a_state_swither_t::evt_handler_3()
 	so_change_state( st_shutdown );
 }
 
-void a_state_swither_t::evt_handler_shutdown()
+void a_state_swither_t::evt_handler_shutdown( mhood_t<msg_periodic> )
 {
 	show_event_invocation( "evt_handler_3" );
 

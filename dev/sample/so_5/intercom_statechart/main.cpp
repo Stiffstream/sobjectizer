@@ -79,14 +79,14 @@ public :
 		
 		active
 			.on_enter( [this] { reschedule_timer(); } )
-			.event< key_cancel >( m_intercom_mbox, [this] { reschedule_timer(); } )
-			.event< key_bell >( m_intercom_mbox, [this] { reschedule_timer(); } )
-			.event< key_grid >( m_intercom_mbox, [this] { reschedule_timer(); } )
-			.event(
-					m_intercom_mbox,
-					[this]( const key_digit & ) {
-						reschedule_timer();
-					} )
+			.event( m_intercom_mbox,
+					[this](mhood_t< key_cancel >) { reschedule_timer(); } )
+			.event( m_intercom_mbox,
+					[this](mhood_t< key_bell >) { reschedule_timer(); } )
+			.event( m_intercom_mbox,
+					[this](mhood_t< key_grid >) { reschedule_timer(); } )
+			.event( m_intercom_mbox,
+					[this]( const key_digit & ) { reschedule_timer(); } )
 			.just_switch_to< intercom_messages::deactivate >(
 					m_intercom_mbox, inactive );
 

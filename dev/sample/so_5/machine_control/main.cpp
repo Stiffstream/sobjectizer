@@ -74,15 +74,15 @@ public :
 		this >>= st_engine_off;
 
 		st_engine_on
-			.event< turn_engine_off >( &a_machine_t::evt_turn_engine_off )
-			.event< turn_cooler_on >( &a_machine_t::evt_turn_cooler_on )
-			.event< turn_cooler_off >( &a_machine_t::evt_turn_cooler_off )
-			.event< update_status >( &a_machine_t::evt_update_status_when_engine_on );
+			.event( &a_machine_t::evt_turn_engine_off )
+			.event( &a_machine_t::evt_turn_cooler_on )
+			.event( &a_machine_t::evt_turn_cooler_off )
+			.event( &a_machine_t::evt_update_status_when_engine_on );
 		st_engine_off
-			.event< turn_engine_on >( &a_machine_t::evt_turn_engine_on )
-			.event< turn_cooler_on >( &a_machine_t::evt_turn_cooler_on )
-			.event< turn_cooler_off >( &a_machine_t::evt_turn_cooler_off )
-			.event< update_status >( &a_machine_t::evt_update_status_when_engine_off );
+			.event( &a_machine_t::evt_turn_engine_on )
+			.event( &a_machine_t::evt_turn_cooler_on )
+			.event( &a_machine_t::evt_turn_cooler_off )
+			.event( &a_machine_t::evt_update_status_when_engine_off );
 	}
 
 	virtual void so_evt_start() override
@@ -113,29 +113,29 @@ private :
 	// Timer ID for periodic update_status.
 	so_5::timer_id_t m_update_status_timer;
 
-	void evt_turn_engine_off()
+	void evt_turn_engine_off(mhood_t< turn_engine_off >)
 	{
 		this >>= st_engine_off;
 		m_engine_status = engine_state_t::off;
 	}
 
-	void evt_turn_engine_on()
+	void evt_turn_engine_on(mhood_t< turn_engine_on >)
 	{
 		this >>= st_engine_on;
 		m_engine_status = engine_state_t::on;
 	}
 
-	void evt_turn_cooler_off()
+	void evt_turn_cooler_off(mhood_t< turn_cooler_off >)
 	{
 		m_cooler_status = cooler_state_t::off;
 	}
 
-	void evt_turn_cooler_on()
+	void evt_turn_cooler_on(mhood_t< turn_cooler_on >)
 	{
 		m_cooler_status = cooler_state_t::on;
 	}
 
-	void evt_update_status_when_engine_on()
+	void evt_update_status_when_engine_on(mhood_t< update_status >)
 	{
 		m_engine_temperature += m_engine_heating_step;
 		if( cooler_state_t::on == m_cooler_status )
@@ -144,7 +144,7 @@ private :
 		distribute_status();
 	}
 
-	void evt_update_status_when_engine_off()
+	void evt_update_status_when_engine_off(mhood_t< update_status >)
 	{
 		if( cooler_state_t::on == m_cooler_status )
 		{
@@ -186,7 +186,7 @@ public :
 		so_subscribe( m_status_distrib_mbox )
 			.event( &a_total_status_dashboard_t::evt_machine_status );
 
-		so_subscribe_self().event< show_dashboard >(
+		so_subscribe_self().event(
 				&a_total_status_dashboard_t::evt_show_dashboard );
 	}
 
@@ -226,7 +226,7 @@ private :
 			};
 	}
 
-	void evt_show_dashboard()
+	void evt_show_dashboard(mhood_t< show_dashboard >)
 	{
 		auto old_precision = std::cout.precision( 5 );
 		std::cout << "=== The current status ===" << std::endl;

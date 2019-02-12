@@ -42,7 +42,7 @@ class a_hello_t : public so_5::agent_t
 		void evt_hello_delay( const msg_hello & msg );
 
 		// Stop signal handler.
-		void evt_stop_signal();
+		void evt_stop_signal( mhood_t<msg_stop_signal> );
 
 	private:
 		// Helper function for printing messages.
@@ -54,7 +54,7 @@ void a_hello_t::so_define_agent()
 	// Message subscription.
 	so_subscribe_self().event( &a_hello_t::evt_hello_delay );
 
-	so_subscribe_self().event< msg_stop_signal >( &a_hello_t::evt_stop_signal );
+	so_subscribe_self().event( &a_hello_t::evt_stop_signal );
 }
 
 void a_hello_t::so_evt_start()
@@ -76,7 +76,7 @@ void a_hello_t::evt_hello_delay( const msg_hello & msg )
 		std::chrono::seconds( 2 ) );
 }
 
-void a_hello_t::evt_stop_signal()
+void a_hello_t::evt_stop_signal( mhood_t<msg_stop_signal> )
 {
 	show_message( "Stop SObjectizer..." );
 

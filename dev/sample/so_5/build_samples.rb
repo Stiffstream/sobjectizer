@@ -37,8 +37,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'hardwork_imit' ]
 	example[ 'many_timers' ]
 	example[ 'custom_error_logger' ]
-	example[ 'dining_philosophers' ]
-	example[ 'dining_philosophers_2' ]
 	example[ 'work_generation' ]
 	example[ 'collector_performer_pair' ]
 	example[ 'collector_many_performers' ]

@@ -179,8 +179,8 @@ public :
 
 		st_performer_is_busy
 			.event( &a_collector_t::evt_yet_another_request )
-			.event< msg_select_next_job >( &a_collector_t::evt_select_next_job )
-			.event< msg_check_deadline >( &a_collector_t::evt_check_deadline );
+			.event( &a_collector_t::evt_select_next_job )
+			.event( &a_collector_t::evt_check_deadline );
 	}
 
 private :
@@ -243,7 +243,7 @@ private :
 	}
 
 	// Reaction for request for next job from performer.
-	void evt_select_next_job()
+	void evt_select_next_job(mhood_t< msg_select_next_job >)
 	{
 		if( m_pending_requests.empty() )
 			// Because there are no more pending jobs
@@ -261,7 +261,7 @@ private :
 	}
 
 	// Reaction for check deadline timer signal.
-	void evt_check_deadline()
+	void evt_check_deadline(mhood_t< msg_check_deadline >)
 	{
 		const std::time_t now = std::time(nullptr);
 

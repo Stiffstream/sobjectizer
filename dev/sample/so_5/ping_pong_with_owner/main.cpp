@@ -42,8 +42,8 @@ public :
 	// during agent's registration procedure.
 	virtual void so_define_agent() override {
 		// Subscription for only one signal.
-		so_default_state().event< pong >(
-			[this]{
+		so_default_state().event(
+			[this](mhood_t< pong >) {
 				++m_pongs;
 				so_5::send< ping >( m_ponger );
 			} );
@@ -90,8 +90,8 @@ public :
 	}
 
 	virtual void so_define_agent() override {
-		so_default_state().event< ping >(
-			[this]{
+		so_default_state().event(
+			[this](mhood_t< ping >) {
 				++m_pings;
 				so_5::send< pong >( m_pinger ); 
 			} );
@@ -121,7 +121,7 @@ public :
 	virtual void so_define_agent() override {
 		// Arriving of time limit signal means that
 		// child cooperation must be deregistered.
-		so_default_state().event< stop >( [this] {
+		so_default_state().event( [this](mhood_t< stop >) {
 				so_environment().deregister_coop(
 					// Cooperation name for deregistration.
 					"pinger_ponger",

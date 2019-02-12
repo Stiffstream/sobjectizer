@@ -258,7 +258,9 @@ class subscription_bind_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				subscription_bind_t & >::type
 		event(
 			//! Event handling method.
@@ -305,7 +307,9 @@ class subscription_bind_t
 		 */
 		template< typename Message, typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::nullary,
+						Method_Pointer>::value,
 				subscription_bind_t & >::type
 		event(
 			//! Signal indicator.
@@ -412,29 +416,6 @@ class subscription_bind_t
 			Lambda && lambda,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
-
-		/*!
-		 * \since
-		 * v.5.5.1
-		 *
-		 * \brief Make subscription to the signal.
-		 *
-		 * \par Usage sample:
-		 * \code
-		   virtual void my_agent::so_define_agent()
-		   {
-		   	so_subscribe_self().event< msg_my_signal >( &my_agent::event );
-		   	so_subscribe_self().event< msg_another_signal >( [=] { ... } );
-		   }
-		 * \endcode
-		 */
-		template< typename Signal, typename... Args >
-		subscription_bind_t &
-		event( Args&&... args )
-			{
-				return this->event( so_5::signal< Signal >,
-						std::forward< Args >(args)... );
-			}
 
 		/*!
 		 * \since
@@ -1452,14 +1433,17 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				void >::type
 		so_drop_subscription(
 			const mbox_t & mbox,
 			const state_t & target_state,
 			Method_Pointer /*pfn*/ )
 		{
-			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+			using pfn_traits = details::is_agent_method_pointer<
+					details::method_arity::unary, Method_Pointer>;
 
 			using message_type =
 					typename details::message_handler_format_detector<
@@ -1570,13 +1554,16 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				void >::type
 		so_drop_subscription(
 			const mbox_t & mbox,
 			Method_Pointer /*pfn*/ )
 		{
-			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+			using pfn_traits = details::is_agent_method_pointer<
+					details::method_arity::unary, Method_Pointer>;
 
 			using message_type =
 					typename details::message_handler_format_detector<
@@ -1697,13 +1684,16 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				void >::type
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
 			Method_Pointer /*pfn*/ )
 		{
-			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+			using pfn_traits = details::is_agent_method_pointer<
+					details::method_arity::unary, Method_Pointer>;
 
 			using message_type =
 					typename details::message_handler_format_detector<
@@ -1910,7 +1900,9 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				bool >::type
 		so_has_subscription(
 			//! A mbox from which message/signal is expected.
@@ -1919,7 +1911,8 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			Method_Pointer /*pfn*/ ) const noexcept
 		{
-			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+			using pfn_traits = details::is_agent_method_pointer<
+					details::method_arity::unary, Method_Pointer>;
 
 			using message_type =
 					typename details::message_handler_format_detector<
@@ -1963,14 +1956,17 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
-				details::is_agent_method_pointer<Method_Pointer>::value,
+				details::is_agent_method_pointer<
+						details::method_arity::unary,
+						Method_Pointer>::value,
 				bool >::type
 		so_has_subscription(
 			//! A mbox from which message/signal is expected.
 			const mbox_t & mbox,
 			Method_Pointer /*pfn*/ ) const noexcept
 		{
-			using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+			using pfn_traits = details::is_agent_method_pointer<
+					details::method_arity::unary, Method_Pointer>;
 
 			using message_type =
 					typename details::message_handler_format_detector<
@@ -3240,7 +3236,9 @@ subscription_bind_t::in(
 
 template< typename Method_Pointer >
 typename std::enable_if<
-		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::is_agent_method_pointer<
+				details::method_arity::unary,
+				Method_Pointer>::value,
 		subscription_bind_t & >::type
 subscription_bind_t::event(
 	Method_Pointer pfn,
@@ -3259,7 +3257,9 @@ subscription_bind_t::event(
 
 template< typename Message, typename Method_Pointer >
 typename std::enable_if<
-		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::is_agent_method_pointer<
+				details::method_arity::nullary,
+				Method_Pointer>::value,
 		subscription_bind_t & >::type
 subscription_bind_t::event(
 	signal_indicator_t< Message >(),
@@ -3270,7 +3270,8 @@ subscription_bind_t::event(
 
 	using namespace details::event_subscription_helpers;
 
-	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+	using pfn_traits = details::is_agent_method_pointer<
+			details::method_arity::nullary, Method_Pointer>;
 
 	using agent_type = typename pfn_traits::agent_type;
 	using result_type = typename pfn_traits::result_type;
@@ -3559,24 +3560,6 @@ state_t::event( mbox_t from, Args&&... args ) const
 			std::forward< Args >(args)... );
 }
 
-template< typename Signal, typename... Args >
-const state_t &
-state_t::event( Args&&... args ) const
-{
-	return this->subscribe_signal_handler< Signal >(
-			m_target_agent->so_direct_mbox(),
-			std::forward< Args >(args)... );
-}
-
-template< typename Signal, typename... Args >
-const state_t &
-state_t::event( mbox_t from, Args&&... args ) const
-{
-	return this->subscribe_signal_handler< Signal >(
-			from,
-			std::forward< Args >(args)... );
-}
-
 template< typename Msg >
 bool
 state_t::has_subscription( const mbox_t & from ) const
@@ -3675,13 +3658,16 @@ state_t::suppress( mbox_t from ) const
 
 template< typename Method_Pointer >
 typename std::enable_if<
-		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::is_agent_method_pointer<
+				details::method_arity::nullary,
+				Method_Pointer>::value,
 		state_t & >::type
 state_t::on_enter( Method_Pointer pfn )
 {
 	using namespace details::event_subscription_helpers;
 
-	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+	using pfn_traits = details::is_agent_method_pointer<
+			details::method_arity::nullary, Method_Pointer>;
 
 	// Agent must have right type.
 	auto cast_result =
@@ -3694,13 +3680,16 @@ state_t::on_enter( Method_Pointer pfn )
 
 template< typename Method_Pointer >
 typename std::enable_if<
-		details::is_agent_method_pointer<Method_Pointer>::value,
+		details::is_agent_method_pointer<
+				details::method_arity::nullary,
+				Method_Pointer>::value,
 		state_t & >::type
 state_t::on_exit( Method_Pointer pfn )
 {
 	using namespace details::event_subscription_helpers;
 
-	using pfn_traits = details::is_agent_method_pointer<Method_Pointer>;
+	using pfn_traits = details::is_agent_method_pointer<
+			details::method_arity::nullary, Method_Pointer>;
 
 	// Agent must have right type.
 	auto cast_result =
@@ -3719,20 +3708,6 @@ state_t::subscribe_message_handler(
 {
 	m_target_agent->so_subscribe( from ).in( *this )
 			.event( std::forward< Args >(args)... );
-
-	return *this;
-}
-
-template< typename Signal, typename... Args >
-const state_t &
-state_t::subscribe_signal_handler(
-	const mbox_t & from,
-	Args&&... args ) const
-{
-	m_target_agent->so_subscribe( from )
-			.in( *this ).event(
-					so_5::signal< Signal >,
-					std::forward< Args >(args)... );
 
 	return *this;
 }

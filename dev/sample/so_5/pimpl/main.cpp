@@ -37,7 +37,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		// Just one signal must be handled by main agent.
-		so_default_state().event< msg_next_turn >( &a_consumer_t::evt_next_turn );
+		so_default_state().event( &a_consumer_t::evt_next_turn );
 	}
 
 	virtual void so_evt_start() override
@@ -70,7 +70,7 @@ private :
 	std::vector< std::pair< std::string, std::string > > m_values;
 
 	// Next interation of requests loop.
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		std::cout << "--- next iteration ---" << std::endl;
 

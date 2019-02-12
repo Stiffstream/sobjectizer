@@ -149,7 +149,7 @@ public :
 	virtual void so_define_agent() override
 	{
 		so_default_state()
-			.event< msg_next_turn >( &a_generator_t::evt_next_turn );
+			.event( &a_generator_t::evt_next_turn );
 	}
 
 	virtual void so_evt_start() override
@@ -171,7 +171,7 @@ private :
 	// Pause between working turns.
 	const std::chrono::milliseconds m_turn_pause;
 
-	void evt_next_turn()
+	void evt_next_turn(mhood_t< msg_next_turn >)
 	{
 		// Create and send new requests.
 		generate_new_requests( random( 100, 200 ) );
@@ -212,7 +212,7 @@ public :
 
 	virtual void so_define_agent() override
 	{
-		so_default_state().event< msg_start_thinking >( [] {
+		so_default_state().event( [](mhood_t< msg_start_thinking >) {
 				std::this_thread::sleep_for(
 					std::chrono::milliseconds( 10 ) );
 			} );

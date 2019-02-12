@@ -186,8 +186,7 @@ class a_creature_t :	public so_5::agent_t
 			{
 				so_default_state()
 					.event( &a_creature_t::evt_meeting_result )
-					.event< msg_shutdown_request >(
-							&a_creature_t::evt_shutdown_request );
+					.event( &a_creature_t::evt_shutdown_request );
 			}
 
 		virtual void so_evt_start() override
@@ -204,7 +203,7 @@ class a_creature_t :	public so_5::agent_t
 				m_meeting_place_mbox->deliver_message( m_request_message );
 			}
 
-		void evt_shutdown_request()
+		void evt_shutdown_request( mhood_t< msg_shutdown_request > )
 			{
 				m_request_message->m_color = FADED;
 				std::cout << "Creatures met: " << m_meeting_counter << std::endl;

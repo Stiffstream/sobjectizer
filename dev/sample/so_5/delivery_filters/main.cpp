@@ -36,8 +36,8 @@ public :
 	virtual void so_define_agent() override
 	{
 		so_subscribe_self()
-			.event< msg_second_part >( &a_example_t::evt_second_part )
-			.event< msg_shutdown >( [this] {
+			.event( &a_example_t::evt_second_part )
+			.event( [this](mhood_t< msg_shutdown >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}
@@ -66,7 +66,7 @@ public :
 		send< msg_second_part >( *this );
 	}
 
-	void evt_second_part()
+	void evt_second_part(mhood_t< msg_second_part >)
 	{
 		// Drop the subscription.
 		so_drop_subscription< msg_sample >( m_mbox );
