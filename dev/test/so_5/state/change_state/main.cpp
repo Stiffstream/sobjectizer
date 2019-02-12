@@ -40,19 +40,19 @@ class test_agent_t
 
 		void
 		evt_in_state_default(
-			const so_5::event_data_t< test_message > & );
+			mhood_t< test_message > );
 
 		void
 		evt_in_state_1(
-			const so_5::event_data_t< test_message > & );
+			mhood_t< test_message > );
 
 		void
 		evt_in_state_2(
-			const so_5::event_data_t< test_message > & );
+			mhood_t< test_message > );
 
 		void
 		evt_in_state_3(
-			const so_5::event_data_t< test_message > & );
+			mhood_t< test_message > );
 
 		// Count for event handlers calls.
 		static int m_handler_in_state_default_calls;
@@ -104,7 +104,7 @@ test_agent_t::so_evt_start()
 
 void
 test_agent_t::evt_in_state_default(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	++m_handler_in_state_default_calls;
 	m_test_mbox->deliver_signal< test_message >();
@@ -115,7 +115,7 @@ test_agent_t::evt_in_state_default(
 
 void
 test_agent_t::evt_in_state_1(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	++m_handler_in_state_1_calls;
 
@@ -127,7 +127,7 @@ test_agent_t::evt_in_state_1(
 
 void
 test_agent_t::evt_in_state_2(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	++m_handler_in_state_2_calls;
 
@@ -139,7 +139,7 @@ test_agent_t::evt_in_state_2(
 
 void
 test_agent_t::evt_in_state_3(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	++m_handler_in_state_3_calls;
 

@@ -52,11 +52,11 @@ class test_agent_t
 
 		void
 		evt_test(
-			const so_5::event_data_t< test_message > & msg );
+			mhood_t< test_message > msg );
 
 		void
 		evt_stop(
-			const so_5::event_data_t< stop_message > & msg );
+			mhood_t< stop_message > msg );
 
 		static int	m_evt_count;
 		static const int m_test_evt_count;
@@ -84,7 +84,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	if( m_test_evt_count == ++m_evt_count )
 	{
@@ -98,7 +98,7 @@ test_agent_t::evt_test(
 }
 void
 test_agent_t::evt_stop(
-	const so_5::event_data_t< stop_message > & )
+	mhood_t< stop_message > )
 {
 	so_environment().stop();
 }

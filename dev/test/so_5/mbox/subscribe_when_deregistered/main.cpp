@@ -42,7 +42,7 @@ class test_agent_t
 
 #define ABORT_HANDLER( handler, msg ) \
 	void\
-	handler ( const so_5::event_data_t< msg > & ) \
+	handler ( mhood_t< msg > ) \
 	{\
 		std::cerr << "Error: " #msg " handler called..." << std::endl; \
 		std::abort(); \

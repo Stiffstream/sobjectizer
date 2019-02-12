@@ -197,7 +197,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_msg_1( const so_5::event_data_t< msg_test > & evt )
+		evt_msg_1( mhood_t< msg_test > evt )
 		{
 			m_controller.msg_receive_1( evt.get() );
 
@@ -208,7 +208,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_msg_2( const so_5::event_data_t< msg_test > & evt )
+		evt_msg_2( mhood_t< msg_test > evt )
 		{
 			m_controller.msg_receive_2( evt.get() );
 
@@ -216,7 +216,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_stop( const so_5::event_data_t< msg_stop > & )
+		evt_stop( mhood_t< msg_stop > )
 		{
 			so_environment().stop();
 		}

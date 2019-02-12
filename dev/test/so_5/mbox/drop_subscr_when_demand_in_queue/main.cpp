@@ -47,7 +47,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_one( const so_5::event_data_t< msg_one > & )
+		evt_one( mhood_t< msg_one > )
 		{
 			for( size_t i = 0; i != 10000u; ++i )
 			{
@@ -62,19 +62,19 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_two( const so_5::event_data_t< msg_two > & )
+		evt_two( mhood_t< msg_two > )
 		{
 			std::abort();
 		}
 
 		void
-		evt_three( const so_5::event_data_t< msg_three > & )
+		evt_three( mhood_t< msg_three > )
 		{
 			m_mbox->deliver_signal< msg_four >();
 		}
 
 		void
-		evt_four( const so_5::event_data_t< msg_four > & )
+		evt_four( mhood_t< msg_four > )
 		{
 			so_environment().stop();
 		}

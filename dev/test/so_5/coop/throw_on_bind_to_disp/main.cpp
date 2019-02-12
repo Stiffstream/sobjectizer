@@ -57,8 +57,7 @@ class a_ordinary_t
 		so_evt_start();
 
 		void
-		some_handler(
-			const so_5::event_data_t< some_message > & );
+		some_handler( mhood_t< some_message > );
 };
 
 void
@@ -68,8 +67,7 @@ a_ordinary_t::so_evt_start()
 }
 
 void
-a_ordinary_t::some_handler(
-	const so_5::event_data_t< some_message > & )
+a_ordinary_t::some_handler( mhood_t< some_message > )
 {
 	++g_evt_count;
 }

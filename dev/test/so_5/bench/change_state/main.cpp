@@ -74,8 +74,7 @@ class a_test_t
 			}
 
 		void
-		evt_dummy(
-			const so_5::event_data_t< msg_dummy > & )
+		evt_dummy( mhood_t< msg_dummy > )
 			{
 			}
 

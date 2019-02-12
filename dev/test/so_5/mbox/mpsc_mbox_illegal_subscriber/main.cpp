@@ -32,7 +32,7 @@ class a_first_t : public so_5::agent_t
 		}
 
 		void
-		evt_one( const so_5::event_data_t< msg_one > & )
+		evt_one( mhood_t< msg_one > )
 		{}
 };
 
@@ -62,7 +62,7 @@ class a_second_t : public so_5::agent_t
 		}
 
 		void
-		evt_one( const so_5::event_data_t< msg_one > & )
+		evt_one( mhood_t< msg_one > )
 		{}
 
 	private :

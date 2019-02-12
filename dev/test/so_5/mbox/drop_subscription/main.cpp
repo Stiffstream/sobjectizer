@@ -172,13 +172,13 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_default_one( const so_5::event_data_t< msg_one > & )
+		evt_default_one( mhood_t< msg_one > )
 		{
 			m_sequence += "d1:";
 		}
 
 		void
-		evt_default_two( const so_5::event_data_t< msg_two > & )
+		evt_default_two( mhood_t< msg_two > )
 		{
 			m_sequence += "d2:";
 
@@ -189,7 +189,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_default_three( const so_5::event_data_t< msg_three > & )
+		evt_default_three( mhood_t< msg_three > )
 		{
 			m_sequence += "d3:";
 
@@ -222,13 +222,13 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_st_1_one( const so_5::event_data_t< msg_one > & )
+		evt_st_1_one( mhood_t< msg_one > )
 		{
 			m_sequence += "1_d1:";
 		}
 
 		void
-		evt_st_1_two( const so_5::event_data_t< msg_two > & )
+		evt_st_1_two( mhood_t< msg_two > )
 		{
 			m_sequence += "1_d2:";
 
@@ -239,7 +239,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_st_1_three( const so_5::event_data_t< msg_three > & )
+		evt_st_1_three( mhood_t< msg_three > )
 		{
 			m_sequence += "1_d3:";
 
@@ -260,19 +260,19 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_st_2_one( const so_5::event_data_t< msg_one > & )
+		evt_st_2_one( mhood_t< msg_one > )
 		{
 			m_sequence += "2_d1:";
 		}
 
 		void
-		evt_st_2_two( const so_5::event_data_t< msg_two > & )
+		evt_st_2_two( mhood_t< msg_two > )
 		{
 			m_sequence += "2_d2:";
 		}
 
 		void
-		evt_st_2_three( const so_5::event_data_t< msg_three > & )
+		evt_st_2_three( mhood_t< msg_three > )
 		{
 			m_sequence += "2_d3:";
 

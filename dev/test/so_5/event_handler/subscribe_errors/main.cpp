@@ -54,23 +54,20 @@ class test_agent_t
 		so_evt_start();
 
 		void
-		evt_handler1(
-			const so_5::event_data_t< msg_test > & )
+		evt_handler1( mhood_t< msg_test > )
 		{
 			// Should be called in default state.
 		}
 
 		void
-		evt_handler3(
-			const so_5::event_data_t< msg_test > & )
+		evt_handler3( mhood_t< msg_test > )
 		{
 			std::cerr << "Error: evt_handler3 called..." << std::endl;
 			std::abort();
 		}
 
 		void
-		evt_stop(
-			const so_5::event_data_t< msg_stop > & )
+		evt_stop( mhood_t< msg_stop > )
 		{
 			so_environment().stop();
 		}

@@ -126,8 +126,7 @@ class a_test_starter_t : public so_5::agent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::event_data_t<
-				so_5::msg_coop_deregistered > & )
+			mhood_t< so_5::msg_coop_deregistered > )
 		{
 			so_environment().stop();
 		}

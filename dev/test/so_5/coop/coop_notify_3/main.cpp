@@ -52,7 +52,7 @@ class a_test_t : public so_5::agent_t
 
 		void
 		evt_coop_registered(
-			const so_5::event_data_t< so_5::msg_coop_registered > & evt )
+			mhood_t< so_5::msg_coop_registered > evt )
 		{
 			std::cout << "registered: " << evt->m_coop_name << std::endl;
 
@@ -65,7 +65,7 @@ class a_test_t : public so_5::agent_t
 
 		void
 		evt_coop_deregistered(
-			const so_5::event_data_t< so_5::msg_coop_deregistered > & evt )
+			mhood_t< so_5::msg_coop_deregistered > evt )
 		{
 			std::cout << "deregistered: " << evt->m_coop_name << std::endl;
 

@@ -66,7 +66,7 @@ class a_service_t
 			}
 
 		void
-		svc( const so_5::event_data_t< msg_param > & evt )
+		svc( mhood_t< msg_param > evt )
 			{
 				if( m_expected_msg_ptr != evt.get() )
 					{

@@ -75,8 +75,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_child_deregistered(
-			const so_5::event_data_t< msg_child_deregistered > & )
+		evt_child_deregistered( mhood_t< msg_child_deregistered > )
 		{
 			so_environment().stop();
 		}

@@ -27,7 +27,7 @@ class a_time_sentinel_t
 			}
 
 		void
-		evt_timeout( const so_5::event_data_t< msg_timeout > & )
+		evt_timeout( mhood_t< msg_timeout > )
 			{
 				std::cerr << "TIMEOUT!!!" << std::endl;
 

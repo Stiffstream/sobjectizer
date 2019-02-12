@@ -79,7 +79,7 @@ class a_master_t
 
 		void
 		evt_slave_finished(
-			const so_5::event_data_t< slave_coop_finished_signal > & )
+			mhood_t< slave_coop_finished_signal > )
 		{
 			std::cout << "Shutdown\n";
 			so_environment().stop();

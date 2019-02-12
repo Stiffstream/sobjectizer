@@ -36,7 +36,7 @@ class a_test_t
 		}
 
 		void
-		evt_signal( const so_5::event_data_t< msg_test_signal > & )
+		evt_signal( mhood_t< msg_test_signal > )
 		{
 			if( m_counter < m_max_attempts )
 			{

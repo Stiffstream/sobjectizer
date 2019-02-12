@@ -46,7 +46,7 @@ class test_agent_t
 
 		void
 		evt_test(
-			const so_5::event_data_t< test_message > & msg );
+			mhood_t< test_message > msg );
 
 		// Count of life agents.
 		static so_5::atomic_counter_t m_agent_count;
@@ -72,7 +72,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::event_data_t< test_message > & )
+	mhood_t< test_message > )
 {
 	++m_message_rec_cnt;
 }

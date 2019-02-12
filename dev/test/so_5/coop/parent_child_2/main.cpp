@@ -71,7 +71,7 @@ class a_test_t : public so_5::agent_t
 
 		void
 		evt_child_started(
-			const so_5::event_data_t< msg_child_started > & )
+			mhood_t< msg_child_started > )
 		{
 			m_started_children += 1;
 			if( m_started_children == m_max_children )

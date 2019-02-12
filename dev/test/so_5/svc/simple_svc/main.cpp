@@ -43,7 +43,7 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_convert( const so_5::event_data_t< msg_convert > & evt )
+		svc_convert( mhood_t< msg_convert > evt )
 			{
 				std::ostringstream s;
 				s << evt->m_value;
@@ -82,7 +82,7 @@ class a_shutdowner_t
 			}
 
 		void
-		svc_shutdown( const so_5::event_data_t< msg_shutdown > & )
+		svc_shutdown( mhood_t< msg_shutdown > )
 			{
 				so_environment().stop();
 			}

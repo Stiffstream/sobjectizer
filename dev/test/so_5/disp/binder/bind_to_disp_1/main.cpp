@@ -62,8 +62,7 @@ class test_agent_sender_t
 
 		void
 		evt_send_messages(
-			const so_5::event_data_t< send_message_signal > &
-				msg );
+			mhood_t< send_message_signal > msg );
 
 	private:
 		// A counter of bunch sent.
@@ -91,7 +90,7 @@ test_agent_sender_t::so_evt_start()
 
 void
 test_agent_sender_t::evt_send_messages(
-	const so_5::event_data_t< send_message_signal > & )
+	mhood_t< send_message_signal > )
 {
 	for( unsigned int i = 0; i < g_send_at_once; ++i )
 	{
@@ -141,8 +140,7 @@ class test_agent_receiver_t
 
 		void
 		evt_test(
-			const so_5::event_data_t< test_message > &
-				msg );
+			mhood_t< test_message > msg );
 
 	private:
 		// A source of messages.
@@ -158,7 +156,7 @@ test_agent_receiver_t::so_define_agent()
 
 void
 test_agent_receiver_t::evt_test(
-	const so_5::event_data_t< test_message > & msg )
+	mhood_t< test_message > msg )
 {
 	// Stop if this is the last message.
 	if( msg->m_is_last )

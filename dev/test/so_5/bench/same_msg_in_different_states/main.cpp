@@ -55,8 +55,7 @@ class a_test_t
 			}
 
 		void
-		evt_tick(
-			const so_5::event_data_t< msg_tick > & )
+		evt_tick( mhood_t< msg_tick > )
 			{
 				++m_messages_received;
 				++m_it_current_state;

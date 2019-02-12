@@ -37,19 +37,19 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_one( const so_5::event_data_t< msg_one > & )
+		evt_one( mhood_t< msg_one > )
 		{
 			m_sequence += "e1:";
 		}
 
 		void
-		evt_two( const so_5::event_data_t< msg_two > & )
+		evt_two( mhood_t< msg_two > )
 		{
 			m_sequence += "e2:";
 		}
 
 		void
-		evt_three( const so_5::event_data_t< msg_three > & )
+		evt_three( mhood_t< msg_three > )
 		{
 			m_sequence += "e3:";
 
@@ -59,7 +59,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_four( const so_5::event_data_t< msg_four > & )
+		evt_four( mhood_t< msg_four > )
 		{
 			m_sequence += "e4:";
 

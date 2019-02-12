@@ -62,15 +62,15 @@ class test_agent_t
 
 		void
 		evt_test_1(
-			const so_5::event_data_t< test_message_1 > & msg );
+			mhood_t< test_message_1 > msg );
 
 		void
 		evt_test_2(
-			const so_5::event_data_t< test_message_2 > & msg );
+			mhood_t< test_message_2 > msg );
 
 		void
 		evt_test_3(
-			const so_5::event_data_t< test_message_3 > & msg );
+			mhood_t< test_message_3 > msg );
 
 	private:
 		so_5::mbox_t m_test_mbox;
@@ -98,8 +98,7 @@ test_agent_t::so_evt_start()
 
 void
 test_agent_t::evt_test_1(
-	const so_5::event_data_t< test_message_1 > &
-		msg )
+	mhood_t< test_message_1 > msg )
 {
 	if( nullptr == msg.get() )
 		throw std::runtime_error(
@@ -115,8 +114,7 @@ test_agent_t::evt_test_1(
 
 void
 test_agent_t::evt_test_2(
-	const so_5::event_data_t< test_message_2 > &
-		msg )
+	mhood_t< test_message_2 > msg )
 {
 	if( nullptr == msg.get() )
 		throw std::runtime_error(
@@ -132,8 +130,7 @@ test_agent_t::evt_test_2(
 
 void
 test_agent_t::evt_test_3(
-	const so_5::event_data_t< test_message_3 > &
-		msg )
+	mhood_t< test_message_3 > msg )
 {
 	if( nullptr == msg.get() )
 		throw std::runtime_error(

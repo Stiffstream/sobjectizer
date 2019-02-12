@@ -56,20 +56,20 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_delayed_message( const so_5::event_data_t< msg_test > & )
+		evt_delayed_message( mhood_t< msg_test > )
 		{
 			m_message_counter += 1;
 		}
 
 		void
-		evt_do_resend( const so_5::event_data_t< msg_do_resend > & )
+		evt_do_resend( mhood_t< msg_do_resend > )
 		{
 			so_environment().single_timer(
 					std::unique_ptr< msg_test >( new msg_test() ), m_mbox, 0 );
 		}
 
 		void
-		evt_stop( const so_5::event_data_t< msg_stop > & )
+		evt_stop( mhood_t< msg_stop > )
 		{
 			so_environment().stop();
 		}

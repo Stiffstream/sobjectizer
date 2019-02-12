@@ -37,7 +37,7 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_convert( const so_5::event_data_t< msg_convert > & evt )
+		svc_convert( mhood_t< msg_convert > evt )
 			{
 				std::ostringstream s;
 				s << evt->m_value;

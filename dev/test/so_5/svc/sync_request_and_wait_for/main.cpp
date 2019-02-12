@@ -72,14 +72,14 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_default( const so_5::event_data_t< msg_get_default > & )
+		svc_default( mhood_t< msg_get_default > )
 			{
 				return "DEFAULT";
 			}
 
 		std::string
 		svc_back_call_default(
-			const so_5::event_data_t< msg_back_call_get_default > & )
+			mhood_t< msg_back_call_get_default > )
 			{
 				m_back_call_mbox->run_one()
 						.wait_forever().sync_get< msg_back_call >();
@@ -88,7 +88,7 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_convert( const so_5::event_data_t< msg_convert > & evt )
+		svc_convert( mhood_t< msg_convert > evt )
 			{
 				std::ostringstream s;
 				s << evt->m_value;
@@ -98,7 +98,7 @@ class a_convert_service_t
 
 		std::string
 		svc_back_call_convert(
-			const so_5::event_data_t< msg_back_call_convert > & )
+			mhood_t< msg_back_call_convert > )
 			{
 				m_back_call_mbox->run_one()
 						.wait_forever().sync_get< msg_back_call >();
@@ -172,7 +172,7 @@ class a_client_t
 
 		void
 		evt_next_normal_convert(
-			const so_5::event_data_t< msg_next_convert > & )
+			mhood_t< msg_next_convert > )
 			{
 				if( m_normal_convert_actions_current <
 						m_normal_convert_actions.size() )
@@ -190,7 +190,7 @@ class a_client_t
 
 		void
 		evt_next_back_call_convert(
-			const so_5::event_data_t< msg_next_convert > & )
+			mhood_t< msg_next_convert > )
 			{
 				if( m_back_call_actions_current <
 						m_back_call_actions.size() )
@@ -206,7 +206,7 @@ class a_client_t
 					}
 			}
 		void
-		svc_back_call( const so_5::event_data_t< msg_back_call > & )
+		svc_back_call( mhood_t< msg_back_call > )
 			{
 			}
 
