@@ -181,16 +181,6 @@ arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
 		}
 	};
 
-	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::coop_t & coop ) {
-		auto a = coop.define_agent();
-		a.on_start( [a] {
-			...
-			so_5::send< hello_msg >( a, "Hello", "World!" );
-		} );
-		...
-	} );
-
 	struct turn_on : public so_5::signal_t {};
 
 	// Send to mbox.
@@ -207,16 +197,6 @@ arg_to_env( const so_5::mchain_t & chain ) { return chain->environment(); }
 			so_5::send< turn_on >( *this );
 		}
 	};
-
-	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::coop_t & coop ) {
-		auto a = coop.define_agent();
-		a.on_start( [a] {
-			...
-			so_5::send< turn_on >( a );
-		} );
-		...
-	} );
  * \endcode
  */
 template< typename Message, typename Target, typename... Args >
@@ -338,7 +318,7 @@ send_delayed(
  * \brief A utility function for creating and delivering a delayed message
  * to the specified destination.
  *
- * Agent, ad-hoc agent or mchain can be used as \a target.
+ * Agent or mchain can be used as \a target.
  *
  * \attention
  * Value of \a pause should be non-negative.
@@ -646,7 +626,7 @@ send_periodic(
  * \brief A utility function for creating and delivering a periodic message
  * to the specified destination.
  *
- * Agent, ad-hoc agent or mchain can be used as \a target.
+ * Agent or mchain can be used as \a target.
  *
  * \note
  * Message chains with overload control must be used for periodic messages
@@ -925,14 +905,6 @@ send_periodic_to_agent(
 	auto f2 = so_5::request_future< std::string, int >( a, 10 );
 	...
 	f2.get();
-
-	// For sending request to ad-hoc agent:
-	auto service = coop.define_agent();
-	coop.define_agent().on_start( [service] {
-		auto f3 = so_5::request_future< std::string, int >( service, 10 );
-		...
-		f3.get();
-	} );
  * \endcode
  */
 template< typename Result, typename Msg, typename Target, typename... Args >
@@ -1077,14 +1049,6 @@ request_future(
 	auto f2 = so_5::request_future< std::string, get_status >( engine );
 	...
 	f2.get();
-
-	// For sending request to ad-hoc agent:
-	auto engine = coop.define_agent();
-	coop.define_agent().on_start( [engine] {
-		auto f3 = so_5::request_future< std::string, get_status >( engine );
-		...
-		f3.get();
-	} );
  * \endcode
  */
 template<
@@ -1136,13 +1100,6 @@ request_future(
 	const so_5::agent_t & a = ...;
 	auto r3 = so_5::request_value< std::string, int >( a, so_5::infinite_wait, 10 );
 	auto r4 = so_5::request_value< std::string, int >( a, std::chrono::milliseconds(10), 10 );
-
-	// For sending request to ad-hoc agent:
-	auto service = coop.define_agent();
-	coop.define_agent().on_start( [service] {
-		auto r5 = so_5::request_value< std::string, int >( service, so_5::infinite_wait, 10 );
-		auto r6 = so_5::request_value< std::string, int >( service, std::chrono::milliseconds(10), 10 );
-	} );
  * \endcode
  */
 template<
@@ -1258,13 +1215,6 @@ request_value(
 	const so_5::agent_t & engine = ...;
 	auto r3 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
 	auto r4 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
-
-	// For sending request to ad-hoc agent:
-	auto engine = coop.define_agent();
-	coop.define_agent().on_start( [engine] {
-		auto r5 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
-		auto r6 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
-	} );
  * \endcode
  */
 template<
