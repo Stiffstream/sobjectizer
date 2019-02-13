@@ -165,10 +165,10 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
-			m_mbox->deliver_message( new msg_four() );
-			m_mbox->deliver_signal< msg_five >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
+			so_5::send< msg_four >( m_mbox );
+			so_5::send< msg_five >( m_mbox );
 		}
 
 		void
@@ -184,8 +184,8 @@ class a_test_t : public so_5::agent_t
 
 			so_drop_subscription( m_mbox, &a_test_t::evt_default_one );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void
@@ -195,8 +195,8 @@ class a_test_t : public so_5::agent_t
 
 			so_change_state( st_1 );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
 		}
 
 		void
@@ -204,7 +204,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_sequence += "d4:";
 
-			m_mbox->deliver_message( new msg_four() );
+			so_5::send< msg_four >( m_mbox );
 
 			so_drop_subscription( m_mbox, &a_test_t::evt_default_four );
 			so_drop_subscription( m_mbox, st_1, &a_test_t::evt_default_four );
@@ -215,7 +215,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_sequence += "d5:";
 
-			m_mbox->deliver_signal< msg_five >();
+			so_5::send< msg_five >( m_mbox );
 
 			so_drop_subscription_for_all_states< msg_five >( m_mbox );
 		}
@@ -233,8 +233,8 @@ class a_test_t : public so_5::agent_t
 
 			so_drop_subscription( m_mbox, st_1, &a_test_t::evt_st_1_one );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void
@@ -247,9 +247,9 @@ class a_test_t : public so_5::agent_t
 
 			so_change_state( st_2 );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void

@@ -734,16 +734,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! Message data.
 			std::unique_ptr< Message > msg_unique_ptr ) const;
 
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class Message >
-		inline void
-		deliver_message(
-			//! Message data.
-			Message * msg_raw_ptr ) const;
-
 		//! Deliver signal.
 		template< class Message >
 		inline void
@@ -1128,14 +1118,6 @@ abstract_message_box_t::deliver_message(
 	this->deliver_message(
 		message_payload_type< Message >::subscription_type_index(),
 		std::move( msg_unique_ptr.release() ) );
-}
-
-template< class Message >
-void
-abstract_message_box_t::deliver_message(
-	Message * msg_raw_ptr ) const
-{
-	this->deliver_message( std::unique_ptr< Message >( msg_raw_ptr ) );
 }
 
 template< class Message >

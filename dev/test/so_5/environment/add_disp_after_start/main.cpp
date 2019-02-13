@@ -37,8 +37,8 @@ class a_child_t : public so_5::agent_t
 		virtual void
 		so_evt_start()
 		{
-			m_parent_mbox->deliver_message(
-					new msg_child_info( so_5::query_current_thread_id() ) );
+			so_5::send< msg_child_info >( m_parent_mbox,
+					so_5::query_current_thread_id() );
 
 			so_deregister_agent_coop_normally();
 		}
