@@ -53,10 +53,10 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< std::string >( *this, "One" );
-		so_5::send_to_agent< std::string >( *this, "Two" );
+		so_5::send< std::string >( *this, "One" );
+		so_5::send< std::string >( *this, "Two" );
 
-		so_5::send_to_agent< stop >( *this );
+		so_5::send< stop >( *this );
 	}
 
 private :

@@ -279,20 +279,6 @@ send( Target && to, mhood_t< Message > /*what*/ )
  * \since
  * v.5.5.1
  *
- * \brief A utility function for creating and delivering a message to
- * the agent's direct mbox.
- */
-template< typename Message, typename... Args >
-void
-send_to_agent( const so_5::agent_t & receiver, Args&&... args )
-	{
-		send< Message >( receiver, std::forward<Args>(args)... );
-	}
-
-/*!
- * \since
- * v.5.5.1
- *
  * \attention
  * Value of \a pause should be non-negative.
  *
@@ -468,37 +454,6 @@ send_delayed(
 				message_ref_t{},
 				to,
 				pause );
-	}
-
-/*!
- * \since
- * v.5.5.1
- *
- * \brief A utility function for creating and delivering a delayed message
- * to the agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Value of \a pause should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-void
-send_delayed_to_agent(
-	//! An agent whos environment must be used.
-	so_5::agent_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		send_delayed< Message >(
-				agent.so_environment(),
-				agent.so_direct_mbox(),
-				pause,
-				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -836,40 +791,6 @@ send_periodic(
 				pause,
 				period,
 				std::move(mhood) );
-	}
-
-/*!
- * \since
- * v.5.5.1
- *
- * \brief A utility function for creating and delivering a periodic message
- * to the agent's direct mbox.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Values of \a pause and \a period should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-SO_5_NODISCARD timer_id_t
-send_periodic_to_agent(
-	//! An agent whos environment must be used.
-	so_5::agent_t & agent,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		return send_periodic< Message >(
-				agent.so_environment(),
-				agent.so_direct_mbox(),
-				pause,
-				period,
-				std::forward< Args >(args)... );
 	}
 
 /*!

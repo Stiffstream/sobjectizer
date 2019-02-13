@@ -89,7 +89,7 @@ public :
 		m_r2 = svc.async< msg_request >();
 		m_r3 = svc.async< msg_request >();
 
-		so_5::send_to_agent< msg_get_results >( *this );
+		so_5::send< msg_get_results >( *this );
 	}
 
 private :

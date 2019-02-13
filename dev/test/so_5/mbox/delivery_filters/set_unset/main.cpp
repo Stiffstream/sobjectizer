@@ -141,7 +141,7 @@ private :
 		so_5::send< data >( m_data_mbox, 3 );
 		so_5::send< data >( m_data_mbox, 4 );
 
-		so_5::send_to_agent< next >( *this );
+		so_5::send< next >( *this );
 	}
 
 	void

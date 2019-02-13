@@ -64,7 +64,7 @@ public :
 				so_5::send< data >( m_data_mbox, 1 );
 				so_5::send< data >( m_data_mbox, 2 );
 
-				so_5::send_to_agent< finish >( *this );
+				so_5::send< finish >( *this );
 			} )
 			.event( [this](mhood_t< finish >) {
 				so_deregister_agent_coop_normally();
