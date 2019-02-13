@@ -39,7 +39,7 @@ public :
 			.event( [&]( const transformed & evt ) {
 					m_accumulator += "t{" + evt.m_src + "," + evt.m_new + "}";
 				} )
-			.event< stop >( [&]{
+			.event( [&]( mhood_t< stop > ) {
 				const std::string expected = "s{One}t{Two,<Two>}";
 
 				if( expected != m_accumulator )

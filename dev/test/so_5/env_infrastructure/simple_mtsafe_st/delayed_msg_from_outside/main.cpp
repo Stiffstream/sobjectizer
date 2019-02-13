@@ -18,7 +18,7 @@ public :
 
 	a_test_t( context_t ctx ) : so_5::agent_t( std::move(ctx) )
 	{
-		so_subscribe_self().event< tick >( [this] {
+		so_subscribe_self().event( [this](mhood_t< tick >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

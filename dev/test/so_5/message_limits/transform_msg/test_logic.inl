@@ -92,16 +92,16 @@ public :
 			.event( m_working_mbox, [&]( const msg_hello_overlimit & msg ) {
 					m_received += "[" + msg.m_desc + "]";
 				} )
-			.event< msg_double_overlimit >( m_working_mbox, [&] {
+			.event( m_working_mbox, [&]( mhood_t< msg_double_overlimit > ) {
 					m_received += "[<double>]";
 				} )
-			.event< msg_triple_overlimit >( m_working_mbox, [&] {
+			.event( m_working_mbox, [&]( mhood_t< msg_triple_overlimit > ) {
 					m_received += "[<triple>]";
 				} )
 			.event( m_working_mbox, [&]( const msg_final_overlimit & msg ) {
 					m_received += "[" + msg.m_text + "]";
 				} )
-			.event< msg_finish >( m_working_mbox, [&] {
+			.event( m_working_mbox, [&]( mhood_t< msg_finish > ) {
 					const std::string expected =
 						"[hello][<=hello2=>][<double>][<triple>][done]";
 

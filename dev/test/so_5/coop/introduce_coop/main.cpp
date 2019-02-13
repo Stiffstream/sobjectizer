@@ -31,9 +31,9 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_started >(
+		so_default_state().event(
 			manager_mbox( so_environment() ),
-			[this] {
+			[this](mhood_t< msg_started >) {
 				++m_received;
 				if( m_received == m_expected )
 					so_environment().stop();

@@ -155,17 +155,17 @@ class a_test_t : public so_5::agent_t
 		{
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe( m_controller_mbox )
-					.event< msg_start >( &a_test_t::evt_start );
+					.event( &a_test_t::evt_start );
 				
-			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
+			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
 		void
-		evt_start()
+		evt_start(mhood_t< msg_start >)
 		{
 			for( m_messages_sent = 0; m_messages_sent != m_messages_at_start;
 					++m_messages_sent )
@@ -173,7 +173,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_hello()
+		evt_hello(mhood_t< msg_hello >)
 		{
 			++m_messages_received;
 			if( m_messages_received >= m_messages_to_send )
@@ -211,7 +211,7 @@ class a_contoller_t : public so_5::agent_t
 		so_define_agent()
 		{
 			so_subscribe( m_self_mbox )
-				.event< msg_shutdown >( &a_contoller_t::evt_shutdown );
+				.event( &a_contoller_t::evt_shutdown );
 		}
 
 		void
@@ -224,7 +224,7 @@ class a_contoller_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			--m_working_agents;
 			if( !m_working_agents )

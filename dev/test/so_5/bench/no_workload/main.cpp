@@ -99,7 +99,7 @@ class a_contoller_t : public so_5::agent_t
 		so_define_agent()
 		{
 			so_subscribe( so_direct_mbox() )
-				.event< msg_shutdown >( &a_contoller_t::evt_shutdown );
+				.event( &a_contoller_t::evt_shutdown );
 		}
 
 		void
@@ -112,7 +112,7 @@ class a_contoller_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			--m_remaining;
 			std::cout << "remaining: " << m_remaining << "s  \r" << std::flush;

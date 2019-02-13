@@ -21,7 +21,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< shutdown >( [this] {
+		so_subscribe_self().event( [this](mhood_t< shutdown >) {
 			so_deregister_agent_coop_normally();
 		} );
 	}
@@ -32,8 +32,8 @@ public :
 		for( std::size_t i = 0; i != 1000; ++i )
 		{
 			auto unique_mbox = so_environment().create_mbox();
-			so_subscribe( unique_mbox ).event< test_signal >(
-				[this, unique_mbox] {
+			so_subscribe( unique_mbox ).event(
+				[this, unique_mbox](mhood_t< test_signal >) {
 					so_drop_subscription< test_signal >( unique_mbox );
 				} );
 			so_5::send< test_signal >( unique_mbox );

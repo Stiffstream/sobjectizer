@@ -39,19 +39,17 @@ class a_test_t : public so_5::agent_t
 			m_workers = 0;
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self()
-				.event< msg_shutdown >( &a_test_t::evt_shutdown )
-				.event< msg_safe_signal >(
-						&a_test_t::evt_safe_signal,
-						so_5::thread_safe )
-				.event< msg_unsafe_signal >( &a_test_t::evt_unsafe_signal );
+				.event( &a_test_t::evt_shutdown )
+				.event( &a_test_t::evt_safe_signal, so_5::thread_safe )
+				.event( &a_test_t::evt_unsafe_signal );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			for( size_t i = 0; i < 100; ++i )
 			{
@@ -65,13 +63,13 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			so_environment().stop();
 		}
 
 		void
-		evt_safe_signal()
+		evt_safe_signal(mhood_t< msg_safe_signal >)
 		{
 			++m_workers;
 
@@ -80,7 +78,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_unsafe_signal()
+		evt_unsafe_signal(mhood_t< msg_unsafe_signal >)
 		{
 			if( thread_count != m_workers )
 				throw std::runtime_error( "m_workers != thread_count" );

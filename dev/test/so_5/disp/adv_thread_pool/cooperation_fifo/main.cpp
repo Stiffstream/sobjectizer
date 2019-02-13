@@ -75,7 +75,7 @@ class a_shutdowner_t : public so_5::agent_t
 		so_define_agent()
 		{
 			so_subscribe( so_direct_mbox() )
-				.event< msg_shutdown >( [=] {
+				.event( [=](mhood_t< msg_shutdown >) {
 						--m_working_agents;
 						if( !m_working_agents )
 							so_environment().stop();

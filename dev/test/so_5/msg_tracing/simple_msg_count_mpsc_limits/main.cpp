@@ -25,19 +25,19 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< start >( &a_test_t::evt_start );
-		so_subscribe_self().event< finish >( &a_test_t::evt_finish );
+		so_subscribe_self().event( &a_test_t::evt_start );
+		so_subscribe_self().event( &a_test_t::evt_finish );
 	}
 
 private :
 	void
-	evt_start()
+	evt_start(mhood_t< start >)
 	{
 		so_5::send< finish >( *this );
 	}
 
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		so_deregister_agent_coop_normally();
 	}

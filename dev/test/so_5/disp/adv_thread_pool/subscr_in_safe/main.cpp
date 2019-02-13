@@ -67,23 +67,21 @@ class a_test_t : public so_5::agent_t
 		{
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_change_state( st_safe );
 
 			so_subscribe_self().in( st_unsafe )
-				.event< msg_shutdown >( &a_test_t::evt_shutdown );
+				.event( &a_test_t::evt_shutdown );
 
 			so_subscribe_self().in( st_safe )
-				.event< msg_safe_signal >(
-						&a_test_t::evt_safe_signal,
-						so_5::thread_safe )
-				.event< msg_unsafe_signal >( &a_test_t::evt_unsafe_signal );
+				.event( &a_test_t::evt_safe_signal, so_5::thread_safe )
+				.event( &a_test_t::evt_unsafe_signal );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_direct_mbox()->deliver_signal< msg_safe_signal >();
 
@@ -93,39 +91,41 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			so_environment().stop();
 		}
 
 		void
-		evt_safe_signal()
+		evt_safe_signal(mhood_t< msg_safe_signal >)
 		{
 			expect_throw( "so_drop_subscription",
 					so_5::rc_operation_enabled_only_on_agent_working_thread,
 					[this]() {
-						so_drop_subscription( so_direct_mbox(),
+						so_drop_subscription(
+								so_direct_mbox(),
 								st_safe,
-								so_5::signal< msg_safe_signal > );
+								&a_test_t::evt_safe_signal );
 					} );
 
 			expect_throw( "so_drop_subscription_for_all_states",
 					so_5::rc_operation_enabled_only_on_agent_working_thread,
 					[this]() {
-						so_drop_subscription_for_all_states( so_direct_mbox(),
-								so_5::signal< msg_safe_signal > );
+						so_drop_subscription_for_all_states(
+								so_direct_mbox(),
+								&a_test_t::evt_safe_signal );
 					} );
 
 			expect_throw( "so_subscribe",
 					so_5::rc_operation_enabled_only_on_agent_working_thread,
 					[this]() {
-						so_subscribe_self().event< msg_safe_signal >(
+						so_subscribe_self().event(
 								&a_test_t::evt_safe_signal );
 					} );
 		}
 
 		void
-		evt_unsafe_signal()
+		evt_unsafe_signal(mhood_t< msg_unsafe_signal >)
 		{
 			so_change_state( st_unsafe );
 		}

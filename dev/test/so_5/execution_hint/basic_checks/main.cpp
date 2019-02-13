@@ -36,19 +36,19 @@ class a_test_t : public so_5::agent_t
 			{}
 
 		void
-		evt_signal()
+		evt_signal(mhood_t< msg_signal >)
 			{
 				m_signal_handled = true;
 			}
 
 		void
-		evt_thread_safe_signal()
+		evt_thread_safe_signal(mhood_t< msg_thread_safe_signal >)
 			{
 				m_thread_safe_signal_handled = true;
 			}
 
 		std::string
-		evt_get_status()
+		evt_get_status(mhood_t< msg_get_status >)
 			{
 				m_get_status_handled = true;
 				return "OK";
@@ -132,12 +132,9 @@ UT_UNIT_TEST( event_handler )
 
 	a_test_t agent( env );
 	agent.so_subscribe( agent.so_direct_mbox() )
-			.event( signal< msg_signal >, &a_test_t::evt_signal );
+			.event( &a_test_t::evt_signal );
 	agent.so_subscribe( agent.so_direct_mbox() )
-			.event(
-					signal< msg_thread_safe_signal >,
-					&a_test_t::evt_thread_safe_signal,
-					thread_safe );
+			.event( &a_test_t::evt_thread_safe_signal, thread_safe );
 
 	{
 		execution_demand_t demand(
@@ -219,7 +216,7 @@ UT_UNIT_TEST( service_handler )
 	}
 
 	agent.so_subscribe( agent.so_direct_mbox() )
-			.event( signal< msg_get_status >, &a_test_t::evt_get_status );
+			.event( &a_test_t::evt_get_status );
 
 	{
 		std::promise< std::string > promise;

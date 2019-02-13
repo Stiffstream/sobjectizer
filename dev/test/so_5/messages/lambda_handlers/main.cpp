@@ -25,8 +25,8 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< s1 >( [this] { m_result += "s1;"; } );
-		so_subscribe_self().event< s2 >( [this]() mutable { m_result += "s2;"; } );
+		so_subscribe_self().event( [this](mhood_t< s1 >) { m_result += "s1;"; } );
+		so_subscribe_self().event( [this](mhood_t< s2 >) mutable { m_result += "s2;"; } );
 		so_subscribe_self().event(
 				[this]( mhood_t< s3 > ) { m_result += "s3;"; } );
 		so_subscribe_self().event(
@@ -36,7 +36,7 @@ public :
 		so_subscribe_self().event(
 				[this]( const mhood_t< s6 > & ) mutable { m_result += "s6;"; } );
 
-		so_subscribe_self().event< stop >( &a_test_t::on_stop );
+		so_subscribe_self().event( &a_test_t::on_stop );
 	}
 
 	virtual void
@@ -56,7 +56,7 @@ private :
 	std::string m_result;
 
 	void
-	on_stop()
+	on_stop(mhood_t< stop >)
 	{
 		const std::string expected = "s1;s2;s3;s4;s5;s6;";
 		if( expected != m_result )

@@ -57,8 +57,8 @@ class a_shutdowner_t
 			:	so_5::agent_t( env )
 			,	m_sender_count( sender_count )
 			{
-				so_subscribe( mbox ).event< msg_complete >(
-					[=] {
+				so_subscribe( mbox ).event(
+					[=](mhood_t< msg_complete >) {
 						m_sender_count -= 1;
 						if( !m_sender_count )
 							so_environment().stop();

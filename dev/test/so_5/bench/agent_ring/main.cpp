@@ -194,12 +194,12 @@ class a_ring_member_t : public so_5::agent_t
 		so_define_agent()
 			{
 				so_default_state()
-					.event< msg_start >( m_self_mbox, &a_ring_member_t::evt_start )
+					.event( m_self_mbox, &a_ring_member_t::evt_start )
 					.event( m_self_mbox, &a_ring_member_t::evt_your_turn );
 			}
 
 		void
-		evt_start()
+		evt_start(mhood_t< msg_start >)
 			{
 				m_measure_result.m_start_time = steady_clock::now();
 

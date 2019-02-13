@@ -27,7 +27,7 @@ class a_test_t final : public so_5::agent_t
 					so_5::mchain_props::memory_usage_t::preallocated,
 					so_5::mchain_props::overflow_reaction_t::drop_newest ) )
 			{
-				so_subscribe_self().event< sig_C >( &a_test_t::on_sig_C );
+				so_subscribe_self().event( &a_test_t::on_sig_C );
 			}
 
 		virtual void
@@ -48,7 +48,7 @@ class a_test_t final : public so_5::agent_t
 		std::chrono::steady_clock::time_point m_sent_at;
 
 		void
-		on_sig_C()
+		on_sig_C( mhood_t< sig_C > )
 			{
 				const auto now = std::chrono::steady_clock::now();
 				ensure_or_die( now - m_sent_at < std::chrono::seconds(1),

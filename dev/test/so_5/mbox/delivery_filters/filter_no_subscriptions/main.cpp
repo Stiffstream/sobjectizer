@@ -36,7 +36,7 @@ public :
 			} );
 
 		so_default_state()
-			.event< one >( [this] {
+			.event( [this](mhood_t< one >) {
 				so_drop_delivery_filter< data >( m_data_mbox );
 
 				so_5::send< data >( m_data_mbox, 0 );
@@ -45,7 +45,7 @@ public :
 
 				so_5::send_to_agent< finish >( *this );
 			} )
-			.event< finish >( [this] {
+			.event( [this](mhood_t< finish >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

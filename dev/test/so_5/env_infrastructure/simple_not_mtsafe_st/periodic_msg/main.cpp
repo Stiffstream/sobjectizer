@@ -21,7 +21,7 @@ class a_test_t final : public so_5::agent_t
 public :
 	a_test_t( context_t ctx ) : so_5::agent_t( std::move(ctx) )
 	{
-		so_subscribe_self().event< tick >( [this] {
+		so_subscribe_self().event( [this](mhood_t< tick >) {
 				++m_ticks;
 				if( 3 == m_ticks )
 					so_deregister_agent_coop_normally();

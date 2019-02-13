@@ -44,7 +44,7 @@ setup_service_events( TARGET & to, MBOX mbox )
 		.event( mbox, []( empty ) -> std::string {
 				return "empty{}";
 			} )
-		.template event< classic_signal >( mbox, []() -> std::string {
+		.event( mbox, [](so_5::mhood_t< classic_signal >) -> std::string {
 				return "signal{}";
 			} );
 }

@@ -66,7 +66,7 @@ public :
 
 				so_5::send_to_agent< finish >( *this );
 			} )
-			.event< finish >( [this] {
+			.event( [this](mhood_t< finish >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

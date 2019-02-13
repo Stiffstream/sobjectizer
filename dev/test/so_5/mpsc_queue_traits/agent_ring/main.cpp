@@ -33,12 +33,12 @@ class a_ring_member_t : public so_5::agent_t
 		so_define_agent()
 			{
 				so_default_state()
-					.event< msg_start >( &a_ring_member_t::evt_start )
+					.event( &a_ring_member_t::evt_start )
 					.event( &a_ring_member_t::evt_your_turn );
 			}
 
 		void
-		evt_start()
+		evt_start(mhood_t< msg_start >)
 			{
 				so_5::send< msg_your_turn >( m_next_mbox, 0ull );
 			}

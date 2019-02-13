@@ -35,8 +35,8 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_pong >(
-			[&] {
+		so_default_state().event(
+			[&](mhood_t< msg_pong >) {
 				const unsigned int max_series = 5;
 
 				++m_pongs;
@@ -49,8 +49,8 @@ public :
 				}
 			} );
 
-		so_default_state().event< msg_finish >(
-			[&] {
+		so_default_state().event(
+			[&](mhood_t< msg_finish >) {
 				const auto expected = m_series_sent * 2;
 				if( m_pongs == expected )
 					so_deregister_agent_coop_normally();
@@ -98,7 +98,7 @@ public :
 	so_define_agent() override
 	{
 		so_default_state()
-			.event< msg_ping >( [&]{ so_5::send< msg_pong >( m_sender ); } );
+			.event( [&](mhood_t< msg_ping >){ so_5::send< msg_pong >( m_sender ); } );
 	}
 
 private :

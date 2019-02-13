@@ -20,7 +20,7 @@ public :
 	{
 		first
 			.time_limit( std::chrono::seconds{5}, so_default_state() )
-			.event< finish >( [this] { so_deregister_agent_coop_normally(); } );
+			.event( [this](mhood_t< finish >) { so_deregister_agent_coop_normally(); } );
 	}
 
 	virtual void
@@ -38,7 +38,7 @@ class a_pauser_t final : public so_5::agent_t
 public :
 	a_pauser_t( context_t ctx ) : so_5::agent_t{ ctx }
 	{
-		so_default_state().event< stop >( [this] {
+		so_default_state().event( [this](mhood_t< stop >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

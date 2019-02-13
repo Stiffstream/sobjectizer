@@ -43,8 +43,9 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_request >(
-			m_self_mbox, [&]() -> std::string { return m_reply; } );
+		so_default_state().event(
+			m_self_mbox,
+			[&](mhood_t< msg_request >) -> std::string { return m_reply; } );
 	}
 
 private :
@@ -70,8 +71,8 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_get_results >(
-			[&] {
+		so_default_state().event(
+			[&](mhood_t< msg_get_results >) {
 				const std::string responses = m_r1.get() + m_r2.get() + m_r3.get();
 
 				if( m_expected_response == responses )

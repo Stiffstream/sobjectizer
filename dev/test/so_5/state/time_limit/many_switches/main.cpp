@@ -25,12 +25,12 @@ public :
 	{
 		first
 			.time_limit( std::chrono::seconds{1}, fatal )
-			.event< change_state >( [this] {
+			.event( [this](mhood_t< change_state >) {
 				try_change_state_to( second );
 			} );
 
 		second
-			.event< change_state >( [this] {
+			.event( [this](mhood_t< change_state >) {
 				this >>= first;
 				so_5::send< change_state >( *this );
 			} );

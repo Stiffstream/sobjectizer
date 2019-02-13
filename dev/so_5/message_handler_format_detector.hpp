@@ -40,7 +40,10 @@ namespace details {
  * v.5.5.19.5
  */
 template<typename MESSAGE>
-struct message_handler_format_detector;
+struct message_handler_format_detector
+	{
+		using type = typename message_payload_type<MESSAGE>::subscription_type;
+	};
 
 template<typename MESSAGE>
 struct message_handler_format_detector<const mhood_t<MESSAGE> &>
@@ -50,6 +53,12 @@ struct message_handler_format_detector<const mhood_t<MESSAGE> &>
 
 template<typename MESSAGE>
 struct message_handler_format_detector<mhood_t<MESSAGE>>
+	{
+		using type = typename message_payload_type<MESSAGE>::subscription_type;
+	};
+
+template<typename MESSAGE>
+struct message_handler_format_detector<const MESSAGE &>
 	{
 		using type = typename message_payload_type<MESSAGE>::subscription_type;
 	};

@@ -174,17 +174,20 @@ class a_worker_t
 			{
 			}
 
-		virtual void
-		evt_signal()
+		template< typename Signal >
+		void
+		make_subscription( const so_5::mbox_t & from )
 			{
-				++m_signals_received;
+				so_subscribe( from ).event( [this](mhood_t<Signal>) {
+						++m_signals_received;
+					} );
 			}
 
 	private :
 		unsigned long m_signals_received;
 	};
 
-template< class SIGNAL >
+template< class Signal >
 class a_sender_t
 	:	public so_5::agent_t
 	{
@@ -203,28 +206,25 @@ class a_sender_t
 			{
 				for( auto a : workers )
 					for( auto & m : m_mboxes )
-						a->so_subscribe( m ).template event< SIGNAL >(
-								&a_worker_t::evt_signal );
+						a->make_subscription< Signal >( m );
 			}
 
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_common_mbox ).template event< msg_start >(
-						&a_sender_t::evt_start );
+				so_subscribe( m_common_mbox ).event( &a_sender_t::evt_start );
 
-				so_subscribe_self().template event< msg_next_iteration >(
-						&a_sender_t::evt_next_iteration );
+				so_subscribe_self().event( &a_sender_t::evt_next_iteration );
 			}
 
 		void
-		evt_start()
+		evt_start(mhood_t< msg_start >)
 			{
 				try_start_next_iteration();
 			}
 
 		void
-		evt_next_iteration()
+		evt_next_iteration(mhood_t< msg_next_iteration >)
 			{
 				try_start_next_iteration();
 			}
@@ -240,7 +240,7 @@ class a_sender_t
 				if( m_iterations_left )
 					{
 						for( auto & m : m_mboxes )
-							so_5::send< SIGNAL >( m );
+							so_5::send< Signal >( m );
 
 						initiate_next_iteration();
 
@@ -284,11 +284,11 @@ class a_starter_stopper_t
 		so_define_agent()
 			{
 				so_subscribe( m_common_mbox )
-						.event< msg_shutdown >( &a_starter_stopper_t::evt_shutdown );
+						.event( &a_starter_stopper_t::evt_shutdown );
 			}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 			{
 				std::cout << "* mboxes: " << m_cfg.m_mboxes << "\n"
 						<< "* agents: " << m_cfg.m_agents << "\n"
@@ -309,8 +309,8 @@ class a_starter_stopper_t
 				m_common_mbox->deliver_signal< msg_start >();
 			}
 
-		virtual void
-		evt_shutdown()
+		void
+		evt_shutdown(mhood_t< msg_shutdown >)
 			{
 				++m_agents_finished;
 				if( m_agents_finished == m_cfg.m_msg_types )

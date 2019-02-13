@@ -25,12 +25,12 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< hello >( &a_first_t::evt_hello );
+		so_subscribe_self().event( &a_first_t::evt_hello );
 	}
 
 private :
 	void
-	evt_hello()
+	evt_hello(mhood_t< hello >)
 	{
 		so_deregister_agent_coop_normally();
 	}
@@ -49,7 +49,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< hello >( &a_second_t::evt_hello );
+		so_subscribe_self().event( &a_second_t::evt_hello );
 	}
 
 	virtual void
@@ -63,7 +63,7 @@ private :
 	const so_5::mbox_t m_target;
 
 	void
-	evt_hello()
+	evt_hello(mhood_t< hello >)
 	{
 	}
 };

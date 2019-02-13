@@ -42,13 +42,11 @@ class a_test_t : public so_5::agent_t
 			so_change_state( st_safe );
 
 			so_subscribe( so_direct_mbox() ).in( st_unsafe )
-				.event< msg_shutdown >( &a_test_t::evt_shutdown );
+				.event( &a_test_t::evt_shutdown );
 
 			so_subscribe( so_direct_mbox() ).in( st_safe )
-				.event< msg_safe_signal >(
-						&a_test_t::evt_safe_signal,
-						so_5::thread_safe )
-				.event< msg_unsafe_signal >( &a_test_t::evt_unsafe_signal );
+				.event( &a_test_t::evt_safe_signal, so_5::thread_safe )
+				.event( &a_test_t::evt_unsafe_signal );
 		}
 
 		void
@@ -62,13 +60,13 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			so_environment().stop();
 		}
 
 		void
-		evt_safe_signal()
+		evt_safe_signal(mhood_t< msg_safe_signal >)
 		{
 			bool exception_thrown = true;
 			try
@@ -87,7 +85,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_unsafe_signal()
+		evt_unsafe_signal(mhood_t< msg_unsafe_signal >)
 		{
 			so_change_state( st_unsafe );
 		}

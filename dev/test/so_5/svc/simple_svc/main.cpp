@@ -38,7 +38,7 @@ class a_convert_service_t
 						.event( &a_convert_service_t::svc_convert );
 
 				so_subscribe( m_self_mbox )
-						.event< msg_get_status >(
+						.event(
 								&a_convert_service_t::evt_get_status );
 			}
 
@@ -52,7 +52,7 @@ class a_convert_service_t
 			}
 
 		std::string
-		evt_get_status()
+		evt_get_status( mhood_t< msg_get_status > )
 			{
 				return "ready";
 			}

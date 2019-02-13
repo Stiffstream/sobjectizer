@@ -26,20 +26,20 @@ class a_test_t : public so_5::agent_t
 			:	so_5::agent_t( env )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
-			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
+			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			so_direct_mbox()->deliver_signal< msg_hello >();
 		}
 
 		void
-		evt_hello()
+		evt_hello(mhood_t< msg_hello >)
 		{
 			so_environment().stop();
 		}

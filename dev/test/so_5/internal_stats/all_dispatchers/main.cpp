@@ -36,14 +36,14 @@ class a_worker_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 			{
-				so_default_state().event< hello >( &a_worker_t::evt_hello );
+				so_default_state().event( &a_worker_t::evt_hello );
 			}
 
 	private :
 		so_5::mbox_t m_targets[ targets_count ];
 
 		void
-		evt_hello()
+		evt_hello(mhood_t< hello >)
 			{
 				using namespace std;
 
@@ -68,8 +68,8 @@ class a_controller_t : public so_5::agent_t
 						.event( &a_controller_t::evt_monitor_quantity )
 						.event( &a_controller_t::evt_activity_tracking );
 
-				so_default_state().event< finish >(
-						[this] { so_deregister_agent_coop_normally(); } );
+				so_default_state().event(
+						[this](mhood_t< finish >) { so_deregister_agent_coop_normally(); } );
 			}
 
 		virtual void

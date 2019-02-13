@@ -45,7 +45,7 @@ public :
 				return 0 == msg.m_i;
 			} );
 
-		so_subscribe( m_data_mbox ).event< finish >( &a_test_t::evt_finish );
+		so_subscribe( m_data_mbox ).event( &a_test_t::evt_finish );
 		so_subscribe( m_data_mbox ).event( &a_test_t::evt_dummy_msg );
 	}
 
@@ -60,7 +60,7 @@ private :
 	const so_5::mbox_t m_data_mbox;
 
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		so_deregister_agent_coop_normally();
 	}

@@ -47,7 +47,7 @@ class test_agent_t
 		}
 
 		void
-		evt_test();
+		evt_test( mhood_t< test_message > );
 
 	private:
 		so_5::mbox_t	m_test_mbox;
@@ -60,11 +60,11 @@ void
 test_agent_t::so_define_agent()
 {
 	so_subscribe( m_test_mbox )
-		.event< test_message >( &test_agent_t::evt_test );
+		.event( &test_agent_t::evt_test );
 }
 
 void
-test_agent_t::evt_test()
+test_agent_t::evt_test(mhood_t< test_message >)
 {
 	so_environment().stop();
 }

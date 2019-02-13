@@ -29,19 +29,19 @@ public :
 				so_5::send< finish >( *this );
 			} )
 			.time_limit( std::chrono::milliseconds{100}, second )
-			.event< sig_1 >( [this] {
+			.event( [this](mhood_t< sig_1 >) {
 				std::cout << "first sig_1, dropping time_limit" << std::endl;
 				first.drop_time_limit();
 				so_5::send_delayed< sig_2 >( *this, std::chrono::milliseconds{200} );
 			} )
-			.event< sig_2 >( [this] {
+			.event( [this](mhood_t< sig_2 >) {
 				std::cout << "first sig_2, resetting time_limit" << std::endl;
 				first.time_limit( std::chrono::milliseconds{50}, second );
 			} );
 
 		second
 			.on_enter( []{ std::cout << "second on_enter" << std::endl; } )
-			.event< finish >( [this] {
+			.event( [this](mhood_t< finish >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

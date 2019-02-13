@@ -27,7 +27,7 @@ public :
 		:	so_5::agent_t( ctx )
 	{}
 
-	virtual void
+	void
 	so_define_agent() override
 	{
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
@@ -39,7 +39,7 @@ public :
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
 				"subscription must be absent" );
 
-		so_subscribe_self().event< msg_1 >( []{} );
+		so_subscribe_self().event( [](mhood_t< msg_1 >){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
 				"subscription must be present" );
@@ -50,7 +50,7 @@ public :
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
 				"subscription must be absent" );
 
-		so_subscribe_self().in(st_dummy).event<msg_1>( []{} );
+		so_subscribe_self().in(st_dummy).event( [](mhood_t<msg_1>){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
 				"subscription must be present" );
@@ -61,7 +61,7 @@ public :
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
 				"subscription must be absent" );
 
-		so_subscribe_self().in(st_dummy_2).event<msg_1>( []{} );
+		so_subscribe_self().in(st_dummy_2).event( [](mhood_t<msg_1>){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
 				"subscription must be present" );

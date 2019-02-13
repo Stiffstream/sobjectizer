@@ -33,8 +33,8 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_one >( m_working_mbox,
-			[this]{ so_deregister_agent_coop_normally(); } );
+		so_default_state().event( m_working_mbox,
+			[this](mhood_t< msg_one >) { so_deregister_agent_coop_normally(); } );
 	}
 
 	virtual void

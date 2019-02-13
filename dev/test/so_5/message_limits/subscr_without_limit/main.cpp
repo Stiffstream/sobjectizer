@@ -32,14 +32,14 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_one >( []{} );
+		so_default_state().event( [](mhood_t< msg_one >){} );
 
-		so_default_state().event< msg_two >( []{} );
+		so_default_state().event( [](mhood_t< msg_two >){} );
 
 		bool exception_thrown = false;
 		try
 		{
-			so_default_state().event< msg_three >( []{} );
+			so_default_state().event( [](mhood_t< msg_three >){} );
 		}
 		catch( const so_5::exception_t & ex )
 		{
@@ -73,11 +73,11 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_default_state().event< msg_one >( []{} );
+		so_default_state().event( [](mhood_t< msg_one >){} );
 
-		so_default_state().event< msg_two >( []{} );
+		so_default_state().event( [](mhood_t< msg_two >){} );
 
-		so_default_state().event< msg_three >( []{} );
+		so_default_state().event( [](mhood_t< msg_three >){} );
 	}
 
 	virtual void

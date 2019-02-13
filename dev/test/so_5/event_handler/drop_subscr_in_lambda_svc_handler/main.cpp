@@ -25,7 +25,7 @@ public :
 		, m_target( std::move(target) )
 	{}
 
-	virtual void
+	void
 	so_evt_start() override
 	{
 		for( std::size_t i = 0; i != 1000; ++i )
@@ -35,8 +35,8 @@ public :
 			ss << "request_from_" << unique_mbox->id() << "_accepted";
 			auto reply_string = ss.str();
 
-			so_subscribe( unique_mbox ).event< request >(
-				[this, unique_mbox, reply_string]() -> std::string {
+			so_subscribe( unique_mbox ).event(
+				[this, unique_mbox, reply_string](mhood_t< request >) -> std::string {
 					so_drop_subscription< request >( unique_mbox );
 					return reply_string;
 				} );

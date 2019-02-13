@@ -34,7 +34,7 @@ public :
 			.event( [&]( const msg & evt ) {
 					m_accumulator += "m{" + evt.m_a + "," + evt.m_b + "}";
 				} )
-			.event< stop >( [&]{
+			.event( [&]( mhood_t< stop > ) {
 				if( "i{1}s{Hello}m{Bye,World}" != m_accumulator )
 					throw std::runtime_error( "unexpected accumulator value: " +
 							m_accumulator );

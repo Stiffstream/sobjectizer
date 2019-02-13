@@ -27,11 +27,11 @@ class a_test_t : public so_5::agent_t
 
 				st_creating_coops
 					.event( &a_test_t::evt_coop_registered )
-					.event< pong >( &a_test_t::evt_pong_when_creating );
+					.event( &a_test_t::evt_pong_when_creating );
 
 				st_destroying_coops
 					.event( &a_test_t::evt_coop_deregistered )
-					.event< pong >( &a_test_t::evt_pong_when_destroying );
+					.event( &a_test_t::evt_pong_when_destroying );
 			}
 
 		virtual void
@@ -58,7 +58,7 @@ class a_test_t : public so_5::agent_t
 			}
 
 		void
-		evt_pong_when_creating()
+		evt_pong_when_creating(mhood_t< pong >)
 			{
 				++m_pongs_received;
 				if( m_pongs_received == m_live_agents )
@@ -99,7 +99,7 @@ class a_test_t : public so_5::agent_t
 			}
 
 		void
-		evt_pong_when_destroying()
+		evt_pong_when_destroying(mhood_t< pong >)
 			{
 				++m_pongs_received;
 				if( m_pongs_received == m_live_agents )

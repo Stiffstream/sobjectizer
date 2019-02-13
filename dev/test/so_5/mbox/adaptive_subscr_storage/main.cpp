@@ -132,7 +132,7 @@ class a_test_t : public so_5::agent_t
 		so_define_agent()
 		{
 			this >>= st_1_1;
-			st_1_1.event< next >( m_mbox, &a_test_t::evt_st_1_1 );
+			st_1_1.event( m_mbox, &a_test_t::evt_st_1_1 );
 		}
 
 		void
@@ -169,57 +169,57 @@ class a_test_t : public so_5::agent_t
 		void
 		perform_action(
 			const so_5::state_t & next_state,
-			void (a_test_t::*event_handler)() )
+			void (a_test_t::*event_handler)(mhood_t<next>) )
 		{
 			this >>= next_state;
-			next_state.event< next >( m_mbox, event_handler );
+			next_state.event( m_mbox, event_handler );
 			so_5::send< next >( m_mbox );
 		}
 
 		void
-		evt_st_1_1()
+		evt_st_1_1(mhood_t< next >)
 		{
 			perform_action( st_1_2, &a_test_t::evt_st_1_2 );
 		}
 
 		void
-		evt_st_1_2()
+		evt_st_1_2(mhood_t< next >)
 		{
 			perform_action( st_1_3, &a_test_t::evt_st_1_3 );
 		}
 
 		void
-		evt_st_1_3()
+		evt_st_1_3(mhood_t< next >)
 		{
 			perform_action( st_1_4, &a_test_t::evt_st_1_4 );
 		}
 
 		void
-		evt_st_1_4()
+		evt_st_1_4(mhood_t< next >)
 		{
 			perform_action( st_1_5, &a_test_t::evt_st_1_5 );
 		}
 
 		void
-		evt_st_1_5()
+		evt_st_1_5(mhood_t< next >)
 		{
 			perform_action( st_1_6, &a_test_t::evt_st_1_6 );
 		}
 
 		void
-		evt_st_1_6()
+		evt_st_1_6(mhood_t< next >)
 		{
 			perform_action( st_1_7, &a_test_t::evt_st_1_7 );
 		}
 
 		void
-		evt_st_1_7()
+		evt_st_1_7(mhood_t< next >)
 		{
 			perform_action( st_1_8, &a_test_t::evt_st_1_8 );
 		}
 
 		void
-		evt_st_1_8()
+		evt_st_1_8(mhood_t< next >)
 		{
 			// Subscription storage must switch back from large to small.
 			so_drop_subscription< next >( m_mbox, st_1_1 );
@@ -232,62 +232,62 @@ class a_test_t : public so_5::agent_t
 			so_drop_subscription< next >( m_mbox, st_1_8 );
 
 			this >>= st_2_1;
-			st_2_1.event< next >( m_mbox, &a_test_t::evt_st_2_1 );
+			st_2_1.event( m_mbox, &a_test_t::evt_st_2_1 );
 			so_5::send< next >( m_mbox );
 		}
 
 		void
-		evt_st_2_1()
+		evt_st_2_1(mhood_t< next >)
 		{
 			perform_action( st_2_2, &a_test_t::evt_st_2_2 );
 		}
 
 		void
-		evt_st_2_2()
+		evt_st_2_2(mhood_t< next >)
 		{
 			perform_action( st_2_3, &a_test_t::evt_st_2_3 );
 		}
 
 		void
-		evt_st_2_3()
+		evt_st_2_3(mhood_t< next >)
 		{
 			perform_action( st_2_4, &a_test_t::evt_st_2_4 );
 		}
 
 		void
-		evt_st_2_4()
+		evt_st_2_4(mhood_t< next >)
 		{
 			perform_action( st_2_5, &a_test_t::evt_st_2_5 );
 		}
 
 		void
-		evt_st_2_5()
+		evt_st_2_5(mhood_t< next >)
 		{
 			perform_action( st_2_6, &a_test_t::evt_st_2_6 );
 		}
 
 		void
-		evt_st_2_6()
+		evt_st_2_6(mhood_t< next >)
 		{
 			perform_action( st_2_7, &a_test_t::evt_st_2_7 );
 		}
 
 		void
-		evt_st_2_7()
+		evt_st_2_7(mhood_t< next >)
 		{
 			perform_action( st_2_8, &a_test_t::evt_st_2_8 );
 		}
 
 		void
-		evt_st_2_8()
+		evt_st_2_8(mhood_t< next >)
 		{
 			// Subscription storage must switch back from large to small.
 			so_drop_subscription_for_all_states< next >( m_mbox );
 
 			this >>= st_finish;
-			st_finish.event< next >(
+			st_finish.event(
 					m_mbox,
-					[this]{
+					[this](mhood_t<next>) {
 						so_deregister_agent_coop_normally(); } );
 			so_5::send< next >( m_mbox );
 		}

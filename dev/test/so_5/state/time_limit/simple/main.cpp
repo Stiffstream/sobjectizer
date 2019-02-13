@@ -29,7 +29,7 @@ public :
 
 		second
 			.on_enter( []{ std::cout << "second on_enter" << std::endl; } )
-			.event< finish >( [this] {
+			.event( [this](mhood_t< finish >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

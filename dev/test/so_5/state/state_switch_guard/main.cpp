@@ -36,9 +36,9 @@ public :
 
 				so_5::send< finish >( *this );
 			} )
-			.event< finish >( [this]{ so_deregister_agent_coop_normally(); } );
+			.event( [this](mhood_t< finish >) { so_deregister_agent_coop_normally(); } );
 
-		so_default_state().event< sig_1 >( [this] {
+		so_default_state().event( [this](mhood_t< sig_1 >) {
 				this >>= st_one;
 			} );
 	}

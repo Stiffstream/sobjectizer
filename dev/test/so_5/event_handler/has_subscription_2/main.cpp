@@ -37,7 +37,7 @@ public :
 		ensure( !st_dummy_2.has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be absent" );
 
-		so_default_state().event< msg_1 >( []{} );
+		so_default_state().event( [](mhood_t< msg_1 >){} );
 
 		ensure( so_default_state().has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be present" );
@@ -46,7 +46,7 @@ public :
 		ensure( !st_dummy_2.has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be absent" );
 
-		st_dummy.event<msg_1>( []{} );
+		st_dummy.event( [](mhood_t<msg_1>){} );
 
 		ensure( so_default_state().has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be present" );
@@ -55,7 +55,7 @@ public :
 		ensure( !st_dummy_2.has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be absent" );
 
-		st_dummy_2.event<msg_1>( []{} );
+		st_dummy_2.event( [](mhood_t<msg_1>){} );
 
 		ensure( so_default_state().has_subscription<msg_1>(so_direct_mbox()),
 				"subscription must be present" );

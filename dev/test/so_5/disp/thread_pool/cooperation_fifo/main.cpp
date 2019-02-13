@@ -93,8 +93,8 @@ class a_test_t : public so_5::agent_t
 			:	so_5::agent_t( env )
 			,	m_collector( collector )
 		{
-			so_subscribe_self().event< msg_hello >(
-				[shutdowner_mbox]() {
+			so_subscribe_self().event(
+				[shutdowner_mbox](mhood_t< msg_hello >) {
 					shutdowner_mbox->deliver_signal< msg_shutdown >();
 				} );
 		}
@@ -124,7 +124,7 @@ class a_shutdowner_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe_self().event< msg_shutdown >( [=] {
+			so_subscribe_self().event( [=](mhood_t< msg_shutdown >) {
 					--m_working_agents;
 					if( !m_working_agents )
 						so_environment().stop();

@@ -33,8 +33,8 @@ public :
 	so_define_agent() override
 	{
 		so_default_state()
-			.event< msg_one >( [&]{ ++m_received; } )
-			.event< msg_two >( [&]{
+			.event( [&](mhood_t< msg_one >) { ++m_received; } )
+			.event( [&](mhood_t< msg_two >) {
 				if( 2 != m_received )
 					throw std::runtime_error( "unexpected count of "
 							"received msg_one instances: " +
@@ -75,7 +75,7 @@ public :
 	so_define_agent() override
 	{
 		so_default_state()
-			.event< msg_two >( [&]{
+			.event( [&](mhood_t< msg_two >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

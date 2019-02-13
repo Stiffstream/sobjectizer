@@ -50,7 +50,7 @@ public :
 					m_accumulator += "m1{" + evt.m_a + "," + evt.m_b + "}";
 				} )
 			.event( &a_test_t::evt_msg2 )
-			.event< stop >( [&]{
+			.event( [&]( mhood_t< stop > ) {
 				const std::string expected =
 						"i{1}l{2}ui{3}ul{4}si{5}usi{6}s{Hello}"
 						"m1{Bye,World}m2{Bye,Bye}";

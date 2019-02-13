@@ -64,7 +64,7 @@ public :
 			.event( m_working_mbox, [&]( const msg_hello_overlimit & ) {
 					throw std::runtime_error( "msg_hello_overlimit received!" );
 				} )
-			.event< msg_finish >( m_working_mbox, [&] {
+			.event( m_working_mbox, [&]( mhood_t< msg_finish > ) {
 					const std::string expected = "[hello]";
 					const std::string actual = m_r1.get();
 

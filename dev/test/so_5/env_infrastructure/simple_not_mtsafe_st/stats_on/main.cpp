@@ -61,12 +61,12 @@ public :
 					so_5::send_delayed< start_second >( *this,
 							std::chrono::milliseconds( 400 ) );
 				} )
-			.event< start_second >( [this] {
+			.event( [this](mhood_t< start_second >) {
 					so_environment().stats_controller().turn_on();
 					so_5::send_delayed< finish_second >( *this,
 							std::chrono::milliseconds( 1050 ) );
 				} )
-			.event< finish_second >( [this] {
+			.event( [this](mhood_t< finish_second >) {
 					so_deregister_agent_coop_normally();
 				} )
 			.event( so_environment().stats_controller().mbox(),

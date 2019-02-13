@@ -31,10 +31,10 @@ class a_child_t : public so_5::agent_t
 			,	m_so_evt_finish_passed( false )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event< msg_check_signal >(
+			so_subscribe( m_mbox ).event(
 					&a_child_t::evt_check_signal );
 
 			try
@@ -59,14 +59,14 @@ class a_child_t : public so_5::agent_t
 			m_mbox->deliver_signal< msg_check_signal >();
 		}
 
-		virtual void
-		so_evt_finish()
+		void
+		so_evt_finish() override
 		{
 			m_so_evt_finish_passed = true;
 		}
 
-		virtual void
-		evt_check_signal()
+		void
+		evt_check_signal(mhood_t< msg_check_signal >)
 		{
 			if( m_so_evt_finish_passed )
 				throw std::runtime_error(
@@ -90,21 +90,21 @@ class a_parent_t : public so_5::agent_t
 			,	m_mbox( mbox )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event< msg_initiate_dereg >(
+			so_subscribe( m_mbox ).event(
 					&a_parent_t::evt_initiate_dereg );
 		}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			m_mbox->deliver_signal< msg_parent_started >();
 		}
 
-		virtual void
-		evt_initiate_dereg()
+		void
+		evt_initiate_dereg(mhood_t< msg_initiate_dereg >)
 		{
 			so_environment().deregister_coop( so_coop_name(),
 					so_5::dereg_reason::normal );
@@ -123,18 +123,18 @@ class a_driver_t : public so_5::agent_t
 			,	m_mbox( env.create_mbox() )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event< msg_parent_started >(
+			so_subscribe( m_mbox ).event(
 					&a_driver_t::evt_parent_started );
 
-			so_subscribe( m_mbox ).event< msg_shutdown >(
+			so_subscribe( m_mbox ).event(
 					&a_driver_t::evt_shutdown );
 		}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			so_environment().register_agent_as_coop(
 				"parent",
@@ -143,7 +143,7 @@ class a_driver_t : public so_5::agent_t
 		}
 
 		void
-		evt_parent_started()
+		evt_parent_started(mhood_t< msg_parent_started >)
 		{
 			auto coop = so_environment().create_coop( "child",
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
@@ -161,7 +161,7 @@ class a_driver_t : public so_5::agent_t
 		}
 
 		void
-		evt_shutdown()
+		evt_shutdown(mhood_t< msg_shutdown >)
 		{
 			so_environment().stop();
 		}

@@ -37,7 +37,7 @@ class a_child_t
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe_self().event< msg_ping >( [=]() {
+				so_subscribe_self().event( [=](mhood_t< msg_ping >) {
 						m_parent_mbox->deliver_signal< msg_ack >();
 					} );
 			}
@@ -71,12 +71,12 @@ class a_parent_t
 
 			so_subscribe_self().event( &a_parent_t::evt_child_destroyed );
 
-			so_subscribe_self().event< msg_ack >( &a_parent_t::evt_ack );
+			so_subscribe_self().event( &a_parent_t::evt_ack );
 
-			so_subscribe_self().event< msg_child_agent_destroyed >(
+			so_subscribe_self().event(
 					&a_parent_t::evt_child_agent_destroyed );
 
-			so_subscribe_self().event< msg_next_iteration >(
+			so_subscribe_self().event(
 					&a_parent_t::evt_next_iteration );
 		}
 
@@ -125,7 +125,7 @@ class a_parent_t
 		}
 
 		void
-		evt_ack()
+		evt_ack(mhood_t< msg_ack >)
 		{
 			if( m_state != state_t::awaiting_acks )
 				throw std::runtime_error( "msg_ack when "
@@ -141,7 +141,7 @@ class a_parent_t
 		}
 		
 		void
-		evt_child_agent_destroyed()
+		evt_child_agent_destroyed(mhood_t< msg_child_agent_destroyed >)
 		{
 			if( m_state != state_t::awaiting_destroying )
 				throw std::runtime_error( "msg_child_agent_destroyed when "
@@ -151,7 +151,7 @@ class a_parent_t
 		}
 
 		void
-		evt_next_iteration()
+		evt_next_iteration(mhood_t< msg_next_iteration >)
 		{
 			try_start_new_iteration();
 		}

@@ -23,14 +23,14 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe( m_data_mbox ).event< finish >( &a_test_t::evt_finish );
+		so_subscribe( m_data_mbox ).event( &a_test_t::evt_finish );
 	}
 
 private :
 	const so_5::mbox_t m_data_mbox;
 
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		so_deregister_agent_coop_normally();
 	}

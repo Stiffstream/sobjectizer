@@ -90,12 +90,16 @@ class one_shot_subscription_t
 	private :
 		template< typename Event_Method >
 		typename std::enable_if<
-				so_5::details::is_agent_method_pointer<Event_Method>::value,
+				so_5::details::is_agent_method_pointer<
+						so_5::details::method_arity::unary,
+						Event_Method>::value,
 				so_5::details::msg_type_and_handler_pair_t >::type
 		make_user_handler( Event_Method method )
 			{
 				using namespace so_5::details::event_subscription_helpers;
-				using pfn_traits = so_5::details::is_agent_method_pointer<Event_Method>;
+				using pfn_traits = so_5::details::is_agent_method_pointer<
+						so_5::details::method_arity::unary,
+						Event_Method>;
 				using agent_type = typename pfn_traits::agent_type;
 
 				auto cast_result = get_actual_agent_pointer< agent_type >(
@@ -107,7 +111,9 @@ class one_shot_subscription_t
 
 		template< typename Event_Lambda >
 		typename std::enable_if<
-				!so_5::details::is_agent_method_pointer<Event_Lambda>::value,
+				!so_5::details::is_agent_method_pointer<
+						so_5::details::method_arity::unary,
+						Event_Lambda>::value,
 				so_5::details::msg_type_and_handler_pair_t >::type
 		make_user_handler( Event_Lambda && lambda )
 			{

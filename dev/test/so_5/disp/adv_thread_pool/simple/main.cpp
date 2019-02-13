@@ -31,7 +31,7 @@ class a_test_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
+			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
 		virtual void
@@ -41,7 +41,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_hello()
+		evt_hello(mhood_t< msg_hello >)
 		{
 			so_environment().stop();
 		}

@@ -45,7 +45,7 @@ public :
 							std::to_string( value ) );
 				++m_values_accepted;
 			} )
-			.event< finish >( [this] {
+			.event( [this](mhood_t< finish >) {
 				if( 2 != m_values_accepted )
 					throw std::runtime_error( "unexpected count of "
 							"accepted data instances: " +

@@ -75,7 +75,7 @@ class a_test_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
+			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
 		void
@@ -87,7 +87,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_hello()
+		evt_hello(mhood_t< msg_hello >)
 		{
 			m_collector.add_current_thread();
 
@@ -118,7 +118,7 @@ class a_shutdowner_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe_self().event< msg_shutdown >( [=] {
+			so_subscribe_self().event( [=](mhood_t< msg_shutdown >) {
 					--m_working_agents;
 					if( !m_working_agents )
 						so_environment().stop();

@@ -41,7 +41,7 @@ public :
 						std::to_string( ex.error_code() ) );
 		}
 
-		m_states.front()->event< sig_1 >( [this] {
+		m_states.front()->event( [this](mhood_t< sig_1 >) {
 				so_deregister_agent_coop_normally();
 			} );
 

@@ -61,7 +61,7 @@ class a_sender_t final : public agent_t
 		a_sender_t( context_t ctx, mbox_t receiver )
 			:	agent_t{ ctx }, m_receiver{ receiver }
 			{
-				so_subscribe_self().event< pause >( [this] {
+				so_subscribe_self().event( [this](mhood_t< pause >) {
 					send< your_turn >( m_receiver, this_thread::get_id() );
 					this_thread::sleep_for( chrono::milliseconds(500) );
 				} );

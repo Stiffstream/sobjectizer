@@ -111,8 +111,8 @@ public :
 				[&]( const msg_response & evt ) {
 					m_responses += evt.m_reply;
 				} )
-			.event< msg_finish_ack >( m_self_mbox,
-				[&] {
+			.event( m_self_mbox,
+				[&](mhood_t< msg_finish_ack >) {
 					if( m_expected_response == m_responses )
 						so_deregister_agent_coop_normally();
 					else

@@ -42,7 +42,7 @@ public :
 			.event( [&]( const msg & evt ) {
 					m_accumulator += "m{" + evt.m_a + "," + evt.m_b + "}";
 				} )
-			.event< stop >( [&]{
+			.event( [&]( mhood_t< stop > ) {
 				const std::string expected = "i{4}s{Hello}m{Bye,World}";
 
 				if( expected != m_accumulator )

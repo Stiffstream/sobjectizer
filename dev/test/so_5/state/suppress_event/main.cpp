@@ -26,19 +26,19 @@ public :
 	{
 		this >>= st_child_2;
 
-		st_parent.event< sig_1 >( [this] {
+		st_parent.event( [this](mhood_t< sig_1 >) {
 				std::cout << "--- sig_1 handler from st_parent ---" << std::endl;
 				so_5::send< sig_2 >( *this );
 			} )
-			.event< abort_app >( []{ std::abort(); } );
+			.event( [](mhood_t< abort_app >){ std::abort(); } );
 
-		st_child_1.event< sig_2 >( [this] {
+		st_child_1.event( [this](mhood_t< sig_2 >) {
 				std::cout << "--- sig_2 handler from st_child_1 ---" << std::endl;
 				so_5::send< sig_3 >( *this );
 			} )
 			.suppress< abort_app >();
 
-		st_child_2.event< sig_3 >( [this] {
+		st_child_2.event( [this](mhood_t< sig_3 >) {
 				std::cout << "--- sig_3 handler from st_child_2 ---" << std::endl;
 				so_deregister_agent_coop_normally();
 			} );

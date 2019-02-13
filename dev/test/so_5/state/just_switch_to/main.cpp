@@ -24,7 +24,7 @@ public :
 		:	so_5::agent_t{ ctx }
 	{
 		so_default_state()
-			.event< finish >( &a_transfer_message_t::evt_finish );
+			.event( &a_transfer_message_t::evt_finish );
 
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )
@@ -58,7 +58,7 @@ private :
 	std::string m_log;
 
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		const std::string expected = "+1-1+2-2+3{m:42}-3";
 		if( expected != m_log )
@@ -83,7 +83,7 @@ public :
 		:	so_5::agent_t{ ctx }
 	{
 		so_default_state()
-			.event< finish >( &a_transfer_signal_t::evt_finish );
+			.event( &a_transfer_signal_t::evt_finish );
 
 		st_one
 			.on_enter( [this] { m_log += "+1"; } )
@@ -98,7 +98,7 @@ public :
 		st_three
 			.on_enter( [this] { m_log += "+3"; } )
 			.on_exit( [this] { m_log += "-3"; } )
-			.event< signal >( [this]() -> int {
+			.event( [this](mhood_t< signal >) -> int {
 					m_log += "{s}";
 					so_5::send< bye >( *this );
 					so_5::send< finish >( *this );
@@ -144,7 +144,7 @@ private :
 	std::string m_log;
 
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		const std::string expected = "+1-1+2-2+3{s}-3";
 		if( expected != m_log )

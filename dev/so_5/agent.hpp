@@ -51,45 +51,6 @@
 namespace so_5
 {
 
-/*!
- * \since
- * v.5.3.0
- *
- * \brief A special class which will be used as return value for
- * signal-indication helper.
- *
- * \tparam S type of signal.
- */
-template< class S >
-struct signal_indicator_t {};
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief A special signal-indicator.
- *
- * Must be used as signal-indicator in subscription_bind_t::event()
- * methods:
-\code
-virtual void
-my_agent_t::so_define_agent() {
-	so_subscribe(mbox).event(
-			so_5::signal< get_status >,
-			&my_agent_t::evt_get_status );
-
-	so_subscribe(mbox).event(
-			so_5::signal< shutdown >,
-			[this]() { so_environment().stop(); } );
-}
-\endcode
- *
- * \tparam S type of signal.
- */
-template< class S >
-signal_indicator_t< S >
-signal() { return signal_indicator_t< S >(); }
-
 //
 // exception_reaction_t
 //
@@ -272,57 +233,6 @@ class subscription_bind_t
 		 * \since
 		 * v.5.3.0
 		 *
-		 * \brief Make subscription to the signal.
-		 *
-		 * \note This method supports event-methods for signals only.
-		 *
-		 * \par Usage example
-		 * \code
-			struct turn_on : public so_5::signal_t {};
-			struct turn_off : public so_5::signal_t {};
-			class engine_controller : public so_5::agent_t
-			{
-			public :
-				virtual void so_define_agent() override
-				{
-					so_subscribe_self()
-						.event( so_5::signal< turn_on >, &engine_controller::evt_turn_on )
-						.event( so_5::signal< turn_off >, &engine_controller::evt_turn_off );
-					...
-				}
-				...
-			private :
-				void evt_turn_on() { ... }
-				void evt_turn_off() { ... }
-			};
-		 * \endcode
-		 *
-		 * \attention There is a more convient form of event() for subscription
-		 * of signal handlers:
-		 * \code
-			so_subscribe_self().event< turn_on >( &engine_controller::evt_turn_on );
-		 * \endcode
-		 *
-		 * \deprecated Will be removed in v.5.6.0.
-		 */
-		template< typename Message, typename Method_Pointer >
-		typename std::enable_if<
-				details::is_agent_method_pointer<
-						details::method_arity::nullary,
-						Method_Pointer>::value,
-				subscription_bind_t & >::type
-		event(
-			//! Signal indicator.
-			signal_indicator_t< Message >(),
-			//! Event handling method.
-			Method_Pointer pfn,
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety = not_thread_safe );
-
-		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Make subscription to the message by lambda-function.
 		 *
 		 * \attention Only lambda-function in the forms:
@@ -361,58 +271,6 @@ class subscription_bind_t
 				subscription_bind_t & >::type
 		event(
 			//! Event handler code.
-			Lambda && lambda,
-			//! Thread safety of the event handler.
-			thread_safety_t thread_safety = not_thread_safe );
-
-		/*!
-		 * \since
-		 * v.5.3.0
-		 *
-		 * \brief Make subscription to the signal by lambda-function.
-		 *
-		 * \attention Only lambda-function in the form:
-		 * \code
-			Result ()
-		 * \endcode
-		 * is supported.
-		 *
-		 * \note This method supports event-lambdas for signals only.
-		 *
-		 * \par Usage example
-		 * \code
-			struct turn_on : public so_5::signal_t {};
-			struct turn_off : public so_5::signal_t {};
-			class engine_controller : public so_5::agent_t
-			{
-			public :
-				virtual void so_define_agent() override
-				{
-					so_subscribe_self()
-						.event( so_5::signal< turn_on >, [this]{ ... } )
-						.event( so_5::signal< turn_off >, [this]{ ... } );
-					...
-				}
-				...
-			};
-		 * \endcode
-		 *
-		 * \attention There is a more convient form of event() for subscription
-		 * of signal handlers:
-		 * \code
-			so_subscribe_self().event< turn_on >( [this]{...} );
-		 * \endcode
-		 * 
-		 * \deprecated Will be removed in v.5.6.0.
-		 */
-		template< class Message, class Lambda >
-		typename std::enable_if<
-				details::lambda_traits::is_lambda<Lambda>::value,
-				subscription_bind_t & >::type
-		event(
-			//! Signal indicator.
-			signal_indicator_t< Message >(),
-			//! Event handling lambda.
 			Lambda && lambda,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
@@ -1456,30 +1314,6 @@ class SO_5_TYPE agent_t
 
 		/*!
 		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for the state specified.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \deprecated Will be removed in v.5.6.0
-		 * Do not use methods which accepts signal_indicator_t.
-		 */
-		template< class Message >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			const state_t & target_state,
-			signal_indicator_t< Message >() )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< Message >::subscription_type_index(),
-					target_state );
-		}
-
-		/*!
-		 * \since
 		 * v.5.5.3
 		 *
 		 * \brief Drop subscription for the state specified.
@@ -1572,29 +1406,6 @@ class SO_5_TYPE agent_t
 			do_drop_subscription(
 					mbox,
 					message_payload_type< message_type >::subscription_type_index(),
-					so_default_state() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for the default agent state.
-		 *
-		 * \note Doesn't throw if there is no such subscription.
-		 *
-		 * \deprecated Will be removed in v.5.6.0
-		 * Do not use methods which accepts signal_indicator_t.
-		 */
-		template< class Message >
-		inline void
-		so_drop_subscription(
-			const mbox_t & mbox,
-			signal_indicator_t< Message >() )
-		{
-			do_drop_subscription(
-					mbox,
-					message_payload_type< Message >::subscription_type_index(),
 					so_default_state() );
 		}
 
@@ -1702,33 +1513,6 @@ class SO_5_TYPE agent_t
 			do_drop_subscription_for_all_states(
 					mbox,
 					message_payload_type< message_type >::subscription_type_index() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Drop subscription for all states.
-		 *
-		 * \note Doesn't throw if there is no any subscription for
-		 * that mbox and message type.
-		 *
-		 * \note
-		 * Since v.5.5.21 this method also drops the subscription
-		 * for a deadletter handler for that type of signal.
-		 *
-		 * \deprecated Do not use methods which requires signal_indicator_t.
-		 * They will be removed in future versions of SObjectizer.
-		 */
-		template< class Message >
-		inline void
-		so_drop_subscription_for_all_states(
-			const mbox_t & mbox,
-			signal_indicator_t< Message >() )
-		{
-			do_drop_subscription_for_all_states(
-					mbox,
-					message_payload_type< Message >::subscription_type_index() );
 		}
 
 		/*!
@@ -3255,42 +3039,6 @@ subscription_bind_t::event(
 	return *this;
 }
 
-template< typename Message, typename Method_Pointer >
-typename std::enable_if<
-		details::is_agent_method_pointer<
-				details::method_arity::nullary,
-				Method_Pointer>::value,
-		subscription_bind_t & >::type
-subscription_bind_t::event(
-	signal_indicator_t< Message >(),
-	Method_Pointer pfn,
-	thread_safety_t thread_safety )
-{
-	ensure_signal< Message >();
-
-	using namespace details::event_subscription_helpers;
-
-	using pfn_traits = details::is_agent_method_pointer<
-			details::method_arity::nullary, Method_Pointer>;
-
-	using agent_type = typename pfn_traits::agent_type;
-	using result_type = typename pfn_traits::result_type;
-
-	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< agent_type >( *m_agent );
-
-	const auto ev = handler< Message >(
-			[cast_result, pfn]() -> result_type { return (cast_result->*pfn)(); } );
-
-	ensure_handler_can_be_used_with_mbox( ev );
-	create_subscription_for_states(
-			ev.m_msg_type,
-			ev.m_handler,
-			thread_safety );
-
-	return *this;
-}
-
 template<typename Lambda>
 typename std::enable_if<
 		details::lambda_traits::is_lambda<Lambda>::value,
@@ -3306,26 +3054,6 @@ subscription_bind_t::event(
 			*m_agent,
 			std::forward<Lambda>(lambda) );
 
-	create_subscription_for_states(
-			ev.m_msg_type,
-			ev.m_handler,
-			thread_safety );
-
-	return *this;
-}
-
-template< class Message, class Lambda >
-typename std::enable_if<
-		details::lambda_traits::is_lambda<Lambda>::value,
-		subscription_bind_t & >::type
-subscription_bind_t::event(
-	signal_indicator_t< Message > (*)(),
-	Lambda && lambda,
-	thread_safety_t thread_safety )
-{
-	const auto ev = handler< Message, Lambda >( std::forward<Lambda>(lambda) );
-
-	ensure_handler_can_be_used_with_mbox( ev );
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,

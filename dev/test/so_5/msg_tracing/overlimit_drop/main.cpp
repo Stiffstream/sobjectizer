@@ -27,7 +27,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< finish >( &a_test_t::evt_finish );
+		so_subscribe_self().event( &a_test_t::evt_finish );
 		so_subscribe_self().event( &a_test_t::evt_dummy_msg );
 	}
 
@@ -40,7 +40,7 @@ public :
 
 private :
 	void
-	evt_finish()
+	evt_finish(mhood_t< finish >)
 	{
 		so_deregister_agent_coop_normally();
 	}

@@ -105,7 +105,7 @@ class a_benchmarker_t : public so_5::agent_t
 				so_subscribe_self()
 					.event( &a_benchmarker_t::evt_root_deregistered )
 					.event( &a_benchmarker_t::evt_child_registered )
-					.event< pong >( &a_benchmarker_t::evt_pong );
+					.event( &a_benchmarker_t::evt_pong );
 			}
 
 		virtual void
@@ -184,7 +184,7 @@ class a_benchmarker_t : public so_5::agent_t
 			}
 
 		void
-		evt_pong()
+		evt_pong(mhood_t< pong >)
 			{
 				++m_pongs_received;
 				if( m_pongs_received == (m_cfg.m_coop_count * m_cfg.m_coop_size) )

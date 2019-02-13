@@ -30,15 +30,15 @@ public :
 	{
 		this >>= st_1;
 
-		st_1.event< msg_1 >( [this]{
+		st_1.event( [this](mhood_t< msg_1 >) {
 				this >>= st_2;
 				so_5::send_to_agent< msg_2 >( *this );
 			} );
-		st_2.event< msg_2 >( [this]{
+		st_2.event( [this](mhood_t< msg_2 >) {
 				this >>= st_3;
 				so_5::send_to_agent< msg_3 >( *this );
 			} );
-		st_3.event< msg_3 >( [this]{
+		st_3.event( [this](mhood_t< msg_3 >) {
 				so_deregister_agent_coop_normally();
 			} );
 	}

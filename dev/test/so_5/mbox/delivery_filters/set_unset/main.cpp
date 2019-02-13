@@ -47,7 +47,7 @@ public :
 			.in( st_7 )
 			.event( &a_test_t::evt_data );
 
-		st_1.event< next >( [this] {
+		st_1.event( [this](mhood_t< next >) {
 				this >>= st_2;
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
@@ -55,7 +55,7 @@ public :
 				send_bunch();
 			} );
 
-		st_2.event< next >( [this] {
+		st_2.event( [this](mhood_t< next >) {
 				this >>= st_3;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
@@ -65,7 +65,7 @@ public :
 				send_bunch();
 			} );
 
-		st_3.event< next >( [this] {
+		st_3.event( [this](mhood_t< next >) {
 				this >>= st_4;
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
@@ -73,7 +73,7 @@ public :
 				send_bunch();
 			} );
 
-		st_4.event< next >( [this] {
+		st_4.event( [this](mhood_t< next >) {
 				this >>= st_5;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
@@ -83,7 +83,7 @@ public :
 				send_bunch();
 			} );
 
-		st_5.event< next >( [this] {
+		st_5.event( [this](mhood_t< next >) {
 				this >>= st_6;
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
@@ -91,7 +91,7 @@ public :
 				send_bunch();
 			} );
 
-		st_6.event< next >( [this] {
+		st_6.event( [this](mhood_t< next >) {
 				this >>= st_7;
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
@@ -101,7 +101,7 @@ public :
 				send_bunch();
 			} );
 
-		st_7.event< next >( [this] {
+		st_7.event( [this](mhood_t< next >) {
 				const std::string expected =
 					"1,|0,1,2,3,4,|2,|0,1,2,3,4,|3,|0,1,2,3,4,|4,";
 

@@ -44,7 +44,7 @@ class a_test_t : public so_5::agent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe_self().event< msg_run_test >(
+			so_subscribe_self().event(
 					&a_test_t::evt_run_test,
 					so_5::thread_safe );
 
@@ -60,7 +60,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		evt_run_test()
+		evt_run_test(mhood_t< msg_run_test >)
 		{
 			std::ostringstream ss;
 			for( unsigned int i = 1; i < thread_pool_size; ++i )
