@@ -280,8 +280,8 @@ class a_starter_stopper_t
 
 		static const std::size_t max_msg_types = 32;
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe( m_common_mbox )
 						.event( &a_starter_stopper_t::evt_shutdown );
