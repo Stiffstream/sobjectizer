@@ -150,14 +150,8 @@ class SO_5_TYPE state_t final
 
 		friend class agent_t;
 
-#if defined( SO_5_NEED_GNU_4_8_WORKAROUNDS )
-// GCC 4.8.2 reports strange error about usage of deleted copy constructor.
-		state_t( const state_t & );
-		state_t & operator =( const state_t & );
-#else
 		state_t( const state_t & ) = delete;
 		state_t & operator =( const state_t & ) = delete;
-#endif
 
 	public:
 		/*!
@@ -368,14 +362,14 @@ class SO_5_TYPE state_t final
 		~state_t();
 
 		bool
-		operator==( const state_t & state ) const;
+		operator==( const state_t & state ) const noexcept;
 
 		/*!
 		 * \since
 		 * v.5.5.20.1
 		 */
 		bool
-		operator!=( const state_t & state ) const
+		operator!=( const state_t & state ) const noexcept
 			{
 				return !(*this == state);
 			}
@@ -388,9 +382,9 @@ class SO_5_TYPE state_t final
 		std::string
 		query_name() const;
 
-		//! Does agent owner of this state?
+		//! Is agent owner of this state?
 		bool
-		is_target( const agent_t * agent ) const;
+		is_target( const agent_t * agent ) const noexcept;
 
 		/*!
 		 * \since
@@ -411,7 +405,7 @@ class SO_5_TYPE state_t final
 		 * This method is just a thin wrapper around agent_t::so_is_active_state().
 		 */
 		bool
-		is_active() const;
+		is_active() const noexcept;
 
 		/*!
 		 * \since
@@ -452,7 +446,7 @@ class SO_5_TYPE state_t final
 		 * this method from outside of agent's working thread.
 		 */
 		void
-		clear_history()
+		clear_history() noexcept
 			{
 				m_last_active_substate = nullptr;
 			}
@@ -1751,7 +1745,7 @@ class SO_5_TYPE state_t final
 		 * \brief Get a parent state if exists.
 		 */
 		const state_t *
-		parent_state() const
+		parent_state() const noexcept
 			{
 				return m_parent_state;
 			}
@@ -1783,7 +1777,7 @@ class SO_5_TYPE state_t final
 		 * \brief Query nested level for the state.
 		 */
 		std::size_t
-		nested_level() const
+		nested_level() const noexcept
 			{
 				return m_nested_level;
 			}
@@ -1796,7 +1790,7 @@ class SO_5_TYPE state_t final
 		 * state to this state.
 		 */
 		void
-		fill_path( path_t & path ) const
+		fill_path( path_t & path ) const noexcept
 			{
 				path[ m_nested_level ] = this;
 				if( m_parent_state )
@@ -1833,6 +1827,7 @@ class SO_5_TYPE state_t final
 		void
 		handle_time_limit_on_exit() const;
 
+//FIXME: maybe this method should be marked as noexcept?
 		/*!
 		 * \since
 		 * v.5.5.15
@@ -1846,6 +1841,7 @@ class SO_5_TYPE state_t final
 				if( m_time_limit ) handle_time_limit_on_enter();
 			}
 
+//FIXME: maybe this method should be marked as noexcept?
 		/*!
 		 * \since
 		 * v.5.5.15

@@ -277,11 +277,9 @@ set_promise( std::promise< void > & to, L result_provider )
  * \since
  * v.5.5.14
  */
-template< typename Lambda, typename Result, typename Arg >
-typename std::enable_if<
-		!is_agent_method_pointer<method_arity::unary, Lambda>::value,
-		msg_type_and_handler_pair_t >::type
-make_handler_with_arg( Lambda lambda )
+template< typename Handler_Type, typename Result, typename Arg >
+msg_type_and_handler_pair_t
+make_handler_with_arg( Handler_Type lambda )
 	{
 		using arg_maker = event_handler_arg_maker< Arg >;
 		using payload_type = typename arg_maker::traits_type::payload_type;
@@ -316,6 +314,28 @@ make_handler_with_arg( Lambda lambda )
 				arg_maker::traits_type::subscription_type_index(),
 				method,
 				arg_maker::traits_type::mutability() };
+	}
+
+/*!
+ * \brief A function for creation event handler.
+ *
+ * \since
+ * v.5.6.0
+ */
+template< class Lambda >
+details::msg_type_and_handler_pair_t
+make_handler_from_lambda_of_free_function( Lambda && lambda )
+	{
+		using namespace so_5::details::lambda_traits;
+		using namespace so_5::details::event_subscription_helpers;
+
+		typedef traits< typename std::decay< Lambda >::type > Traits;
+		typedef typename Traits::result_type Result;
+		typedef typename Traits::argument_type Message;
+		typedef typename Traits::pass_by_type Transformed_Lambda;
+
+		return make_handler_with_arg< Transformed_Lambda, Result, Message >(
+				std::forward< Lambda >(lambda) );
 	}
 
 /*!
@@ -380,48 +400,6 @@ make_handler_with_arg_for_agent(
 	}
 
 /*!
- * \brief Helper template for creation of event handler without actual
- * argument.
- *
- * \note This helper must be used only if Sig is derived from signal_t.
- *
- * \since
- * v.5.5.14
- */
-template< typename Lambda, typename Result, typename Sig >
-msg_type_and_handler_pair_t
-make_handler_without_arg( Lambda && lambda )
-	{
-		ensure_signal< Sig >();
-
-		auto method = [lambda](
-				invocation_type_t invocation_type,
-				message_ref_t & message_ref) mutable
-			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer<
-											Result, Sig >(
-										message_ref );
-
-						set_promise(
-								actual_request_ptr->m_promise,
-								[&] { return lambda(); } );
-					}
-				else
-					{
-						lambda();
-					}
-			};
-
-		return msg_type_and_handler_pair_t{
-				message_payload_type< Sig >::subscription_type_index(),
-				method,
-				message_payload_type< Sig >::mutability() };
-	}
-
-/*!
  * \brief Ensure that mutability of message is compatible with
  * mutability of target mbox.
  *
@@ -444,64 +422,6 @@ ensure_handler_can_be_used_with_mbox(
 } /* namespace event_subscription_helpers */
 
 } /* namespace details */
-
-//
-// handler
-//
-/*!
- * \brief A function for creation event handler.
- *
- * \note Must be used for the case when message is an ordinary message.
- *
- * \note This function is intended to be used only by SObjectizer itself.
- *
- * \since
- * v.5.5.13
- */
-template< class Lambda >
-details::msg_type_and_handler_pair_t
-handler( Lambda && lambda )
-	{
-		using namespace so_5::details::lambda_traits;
-		using namespace so_5::details::event_subscription_helpers;
-
-		typedef traits< typename std::decay< Lambda >::type > Traits;
-		typedef typename Traits::result_type Result;
-		typedef typename Traits::argument_type Message;
-		typedef typename Traits::pass_by_type Transformed_Lambda;
-
-		return make_handler_with_arg< Transformed_Lambda, Result, Message >(
-				std::forward< Lambda >(lambda) );
-	}
-
-//
-// handler
-//
-/*!
- * \brief A function for creation event handler.
- *
- * \note Must be used for the case when message is a signal.
- *
- * \note This function is intended to be used only by SObjectizer itself.
- *
- * \since
- * v.5.5.13
- */
-template< class Signal, class Lambda >
-details::msg_type_and_handler_pair_t
-handler( Lambda && lambda )
-	{
-		using namespace so_5::details::lambda_traits;
-		using namespace so_5::details::event_subscription_helpers;
-
-		ensure_signal< Signal >();
-
-		typedef traits< typename std::decay< Lambda >::type > Traits;
-		typedef typename Traits::result_type Result;
-
-		return make_handler_without_arg< Lambda, Result, Signal >(
-				std::forward< Lambda >(lambda) );
-	}
 
 //
 // preprocess_agent_event_handler
@@ -579,7 +499,8 @@ preprocess_agent_event_handler(
 	{
 		using namespace details::event_subscription_helpers;
 
-		const auto ev = handler( std::forward<Lambda>(lambda) );
+		const auto ev = make_handler_from_lambda_of_free_function(
+				std::forward<Lambda>(lambda) );
 
 		ensure_handler_can_be_used_with_mbox( ev, mbox );
 
@@ -780,8 +701,12 @@ fill_handlers_bunch(
 	//! All other handlers.
 	Others &&... other_handlers )
 	{
+		using namespace event_subscription_helpers;
+
 		bunch.add_handler( index,
-				handler( std::forward<Lambda>( lambda ) ) );
+				make_handler_from_lambda_of_free_function(
+						std::forward<Lambda>( lambda ) ) );
+
 		fill_handlers_bunch( bunch, index + 1,
 				std::forward< Others >(other_handlers)... );
 	}

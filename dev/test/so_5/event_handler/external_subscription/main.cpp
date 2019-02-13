@@ -111,13 +111,13 @@ class one_shot_subscription_t
 
 		template< typename Event_Lambda >
 		typename std::enable_if<
-				!so_5::details::is_agent_method_pointer<
-						so_5::details::method_arity::unary,
-						Event_Lambda>::value,
+				so_5::details::lambda_traits::is_lambda<Event_Lambda>::value,
 				so_5::details::msg_type_and_handler_pair_t >::type
 		make_user_handler( Event_Lambda && lambda )
 			{
-				return so_5::handler( std::forward<Event_Lambda>(lambda) );
+				using namespace so_5::details::event_subscription_helpers;
+				return make_handler_from_lambda_of_free_function(
+						std::forward<Event_Lambda>(lambda) );
 			}
 
 		void

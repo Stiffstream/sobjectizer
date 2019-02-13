@@ -514,13 +514,11 @@ class subscription_bind_t
 		return_type evt_handler( const mhood_t< Message > & msg );
 		return_type evt_handler( const Message & msg );
 		return_type evt_handler( Message msg );
-		return_type evt_handler();
 		// Since v.5.5.20:
 		return_type evt_handler( mhood_t< Message > msg ) const;
 		return_type evt_handler( const mhood_t< Message > & msg ) const;
 		return_type evt_handler( const Message & msg ) const;
 		return_type evt_handler( Message msg ) const;
-		return_type evt_handler() const;
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c Message is a 
 	message type.
@@ -538,13 +536,6 @@ class subscription_bind_t
 		// Since v.5.5.20:
 		return_type evt_handler( const Message & msg ) const;
 		return_type evt_handler( Message msg ) const;
-	\endcode
-
-	This form is used only for signals (messages without actual data):
-	\code
-		return_type evt_handler();
-		// Since v.5.5.20:
-		return_type evt_handler() const;
 	\endcode
 
 	A subscription to the message is performed by the methods so_subscribe()
@@ -944,7 +935,7 @@ class SO_5_TYPE agent_t
 		 *
 		 */
 		bool
-		so_is_active_state( const state_t & state_to_check ) const;
+		so_is_active_state( const state_t & state_to_check ) const noexcept;
 
 		//! Name of the agent's cooperation.
 		/*!
@@ -3266,7 +3257,7 @@ subscription_bind_t::ensure_handler_can_be_used_with_mbox(
  * Implementation of template methods of state_t class.
  */
 inline bool
-state_t::is_active() const
+state_t::is_active() const noexcept
 {
 	return m_target_agent->so_is_active_state( *this );
 }

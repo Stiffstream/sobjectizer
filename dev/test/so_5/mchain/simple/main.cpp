@@ -48,9 +48,9 @@ main()
 							[]( const std::string & s ) {
 								throw runtime_error( "unexpected string msg: " + s );
 							},
-							so_5::handler< hello >( [&hello_received] {
+							[&hello_received](so_5::mhood_t< hello >) {
 								hello_received = true;
-							} ) );
+							} );
 
 					UT_CHECK_CONDITION( 1 == r.extracted() );
 					UT_CHECK_CONDITION( 1 == r.handled() );

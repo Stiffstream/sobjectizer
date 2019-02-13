@@ -288,7 +288,7 @@ state_t::~state_t()
 }
 
 bool
-state_t::operator == ( const state_t & state ) const
+state_t::operator == ( const state_t & state ) const noexcept
 {
 	return &state == this;
 }
@@ -348,7 +348,7 @@ const state_t deadletter_state(
 } /* namespace anonymous */
 
 bool
-state_t::is_target( const agent_t * agent ) const
+state_t::is_target( const agent_t * agent ) const noexcept
 {
 	if( m_target_agent )
 		return m_target_agent == agent;
@@ -533,7 +533,7 @@ agent_t::so_evt_finish()
 }
 
 bool
-agent_t::so_is_active_state( const state_t & state_to_check ) const
+agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 {
 	state_t::path_t path;
 	m_current_state_ptr->fill_path( path );

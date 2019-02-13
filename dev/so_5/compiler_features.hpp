@@ -59,12 +59,6 @@
 	#define SO_5_CLANG
 #endif
 
-#if defined( __GNUC__ )
-	#if (4 == __GNUC__) && (8 == __GNUC_MINOR__)
-		#define SO_5_NEED_GNU_4_8_WORKAROUNDS
-	#endif
-#endif
-
 #if defined( SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING )
 	#define SO_5_OVERLOAD_FOR_REF
 	#define SO_5_OVERLOAD_FOR_RVALUE_REF

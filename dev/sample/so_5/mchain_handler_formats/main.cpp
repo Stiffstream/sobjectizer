@@ -19,8 +19,7 @@ struct delayed_two_ints
 	int a, b;
 };
 
-struct first_signal : public so_5::signal_t {};
-struct second_signal : public so_5::signal_t {};
+struct just_signal : public so_5::signal_t {};
 struct periodic_signal : public so_5::signal_t {};
 
 void demo()
@@ -57,9 +56,8 @@ void demo()
 		// Send delayed messages.
 		so_5::send_delayed< delayed_two_ints >(
 				ch, std::chrono::milliseconds{150}, 1, 2 );
-		// Send signals.
-		so_5::send< first_signal >( ch );
-		so_5::send< second_signal >( ch );
+		// Send signal.
+		so_5::send< just_signal >( ch );
 		// Send periodic signal.
 		periodic_signal_timer = so_5::send_periodic< periodic_signal >(
 				ch, std::chrono::milliseconds{20}, std::chrono::milliseconds{150} );
@@ -80,11 +78,9 @@ void demo()
 		[]( const so_5::mhood_t< delayed_two_ints > & v ) {
 			std::cout << "delayed_two_ints: " << v->a << ", " << v->b << std::endl;
 		},
-		// Explicitly specified signal handler.
-		so_5::handler< first_signal >( []{ std::cout << "first signal" << std::endl; } ),
 		// Signal handler via mhood_t value.
-		[]( so_5::mhood_t< second_signal > ) {
-			std::cout << "second signal" << std::endl;
+		[]( so_5::mhood_t< just_signal > ) {
+			std::cout << "just signal" << std::endl;
 		},
 		// Signal handler via const reference to mhood_t.
 		[]( const so_5::mhood_t< periodic_signal > & ) {
