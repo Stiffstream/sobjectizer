@@ -216,7 +216,7 @@ private :
 		// So the request can be sent for processing right now.
 		this >>= st_performer_is_busy;
 
-		m_performer_mbox->deliver_message( evt.make_reference() );
+		so_5::send( m_performer_mbox, evt );
 	}
 
 	void evt_yet_another_request( mhood_t< msg_request > evt )
@@ -251,11 +251,11 @@ private :
 			this >>= st_performer_is_free;
 		else
 		{
-			// We ara still in performer_is_busy state and
+			// We are still in performer_is_busy state and
 			// next job must be sent to the performer.
 
 			auto & request = m_pending_requests.top();
-			m_performer_mbox->deliver_message( request );
+			so_5::send( m_performer_mbox, to_be_redirected( request ) );
 			m_pending_requests.pop();
 		}
 	}

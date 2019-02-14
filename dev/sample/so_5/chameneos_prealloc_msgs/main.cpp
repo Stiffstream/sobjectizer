@@ -120,7 +120,7 @@ class a_meeting_place_t : public so_5::agent_t
 					m_first_creature_info = evt.make_reference();
 				}
 				else
-					evt->m_who->deliver_signal< msg_shutdown_request >();
+					so_5::send< msg_shutdown_request >( evt->m_who );
 			}
 
 		void evt_second_creature(
@@ -130,9 +130,9 @@ class a_meeting_place_t : public so_5::agent_t
 						m_first_creature_info->m_color;
 				m_first_creature_info->m_result_message->m_color = evt.m_color;
 
-				evt.m_who->deliver_message( evt.m_result_message );
-				m_first_creature_info->m_who->deliver_message(
-						m_first_creature_info->m_result_message );
+				so_5::send( evt.m_who, to_be_redirected(evt.m_result_message) );
+				so_5::send( m_first_creature_info->m_who,
+						to_be_redirected(m_first_creature_info->m_result_message) );
 
 				m_first_creature_info.reset();
 
@@ -191,7 +191,9 @@ class a_creature_t :	public so_5::agent_t
 
 		virtual void so_evt_start() override
 			{
-				m_meeting_place_mbox->deliver_message( m_request_message );
+				so_5::send(
+						m_meeting_place_mbox,
+						to_be_redirected(m_request_message) );
 			}
 
 		void evt_meeting_result(
@@ -200,7 +202,8 @@ class a_creature_t :	public so_5::agent_t
 				m_request_message->m_color = complement( evt.m_color );
 				m_meeting_counter++;
 
-				m_meeting_place_mbox->deliver_message( m_request_message );
+				so_5::send( m_meeting_place_mbox,
+						to_be_redirected( m_request_message ) );
 			}
 
 		void evt_shutdown_request( mhood_t< msg_shutdown_request > )

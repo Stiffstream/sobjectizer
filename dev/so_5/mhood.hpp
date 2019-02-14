@@ -545,5 +545,20 @@ class mhood_t< user_type_message_t< M > >;
 template< typename M >
 using mutable_mhood_t = mhood_t< mutable_msg<M> >;
 
+//FIXME: document this!
+/*!
+ * \since
+ * v.5.6.0
+ */
+template< typename M >
+mhood_t<M>
+to_be_redirected( const intrusive_ptr_t<M> & what )
+	{
+		message_ref_t m{ what };
+		return { m };
+	}
+
+//FIXME: may be to_be_redirected_as_mutable is necessary too?
+
 } /* namespace so_5 */
 
