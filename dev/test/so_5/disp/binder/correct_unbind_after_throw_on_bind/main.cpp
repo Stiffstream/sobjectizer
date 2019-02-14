@@ -43,7 +43,7 @@ class a_ordinary_t
 				.in( so_default_state() )
 					.event( &a_ordinary_t::some_handler );
 
-			so_direct_mbox()->deliver_signal< some_message >();
+			so_5::send< some_message >( *this );
 		}
 
 		virtual void

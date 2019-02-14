@@ -35,7 +35,7 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start() override
 		{
-			so_direct_mbox()->deliver_signal< msg_hello >();
+			so_5::send< msg_hello >( *this );
 		}
 
 		void

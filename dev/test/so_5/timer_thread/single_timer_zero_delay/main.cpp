@@ -52,7 +52,7 @@ class a_test_t : public so_5::agent_t
 			so_environment().single_timer(
 					std::unique_ptr< msg_test >( new msg_test() ), m_mbox, 0 );
 
-			m_mbox->deliver_signal< msg_do_resend >();
+			so_5::send< msg_do_resend >( m_mbox );
 		}
 
 		void

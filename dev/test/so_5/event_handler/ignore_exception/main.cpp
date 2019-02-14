@@ -32,7 +32,7 @@ class a_test_t
 		virtual void
 		so_evt_start()
 		{
-			m_self_mbox->deliver_signal< msg_test_signal >();
+			so_5::send< msg_test_signal >( m_self_mbox );
 		}
 
 		void
@@ -41,7 +41,7 @@ class a_test_t
 			if( m_counter < m_max_attempts )
 			{
 				m_counter += 1;
-				m_self_mbox->deliver_signal< msg_test_signal >();
+				so_5::send< msg_test_signal >( m_self_mbox );
 
 				throw std::runtime_error( "Another exception from evt_signal" );
 			}

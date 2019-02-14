@@ -108,7 +108,7 @@ init( so_5::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Initiate message.
-	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	so_5::send< test_message >( env.create_mbox( g_test_mbox_name ) );
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -133,7 +133,7 @@ init( so_5::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Send another message.
-	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	so_5::send< test_message >( env.create_mbox( g_test_mbox_name ) );
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );

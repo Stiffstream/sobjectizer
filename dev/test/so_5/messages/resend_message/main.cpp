@@ -189,11 +189,12 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			std::unique_ptr< msg_test > msg( new msg_test( m_controller ) );
+			so_5::intrusive_ptr_t msg{
+					std::make_unique< msg_test >(std::ref(m_controller)) };
 
 			m_controller.msg_send_1( msg.get() );
 
-			m_mbox_1->deliver_message( std::move(msg) );
+			so_5::send( m_mbox_1, to_be_redirected(msg) );
 		}
 
 		void
@@ -201,10 +202,9 @@ class a_test_t : public so_5::agent_t
 		{
 			m_controller.msg_receive_1( evt.get() );
 
-			auto ref = evt.make_reference();
-			m_controller.msg_send_2( ref.get() );
+			m_controller.msg_send_2( evt.get() );
 
-			m_mbox_2->deliver_message( ref );
+			so_5::send( m_mbox_2, evt );
 		}
 
 		void
@@ -212,7 +212,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_controller.msg_receive_2( evt.get() );
 
-			m_mbox_2->deliver_signal< msg_stop >();
+			so_5::send< msg_stop >( m_mbox_2 );
 		}
 
 		void
@@ -228,32 +228,21 @@ class a_test_t : public so_5::agent_t
 		so_5::mbox_t m_mbox_2;
 };
 
-struct test_env_t
-{
-	controller_t m_controller;
-
-	void
-	init( so_5::environment_t & env )
-	{
-		env.register_agent_as_coop( "test_coop",
-				new a_test_t( env, m_controller ) );
-	}
-};
-
 int
 main()
 {
 	try
 	{
-		test_env_t test_env;
+		controller_t controller;
 
 		so_5::launch(
 			[&]( so_5::environment_t & env )
 			{
-				test_env.init( env );
+				env.register_agent_as_coop( "test_coop",
+						env.make_agent<a_test_t>( std::ref(controller) ) );
 			} );
 
-		test_env.m_controller.ensure_test_passed();
+		controller.ensure_test_passed();
 
 		return 0;
 	}

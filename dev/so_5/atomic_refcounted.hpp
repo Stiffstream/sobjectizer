@@ -312,6 +312,13 @@ class intrusive_ptr_t
 		}
 };
 
+//FIXME: document this!
+/*!
+ * \since
+ * v.5.6.0
+ */
+template<typename T> intrusive_ptr_t(std::unique_ptr<T>) -> intrusive_ptr_t<T>;
+
 } /* namespace so_5 */
 
 #if defined( SO_5_MSVC )

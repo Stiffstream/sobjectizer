@@ -95,7 +95,7 @@ class a_test_t : public so_5::agent_t
 		{
 			so_subscribe_self().event(
 				[shutdowner_mbox](mhood_t< msg_hello >) {
-					shutdowner_mbox->deliver_signal< msg_shutdown >();
+					so_5::send< msg_shutdown >( shutdowner_mbox );
 				} );
 		}
 
@@ -104,7 +104,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_collector.add_current_thread();
 
-			so_direct_mbox()->deliver_signal< msg_hello >();
+			so_5::send< msg_hello >( *this );
 		}
 
 	private :

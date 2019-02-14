@@ -41,9 +41,9 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void
@@ -55,7 +55,7 @@ class a_test_t : public so_5::agent_t
 
 				so_subscribe( m_mbox ).event( &a_test_t::evt_two );
 
-				m_mbox->deliver_signal< msg_two >();
+				so_5::send< msg_two >( m_mbox );
 			}
 
 			so_drop_subscription( m_mbox, &a_test_t::evt_two );
@@ -70,7 +70,7 @@ class a_test_t : public so_5::agent_t
 		void
 		evt_three( mhood_t< msg_three > )
 		{
-			m_mbox->deliver_signal< msg_four >();
+			so_5::send< msg_four >( m_mbox );
 		}
 
 		void

@@ -51,7 +51,7 @@ class a_test_t
 
 				so_change_state( *(m_states.front()) );
 
-				m_self_mbox->deliver_signal< msg_tick >();
+				so_5::send< msg_tick >( m_self_mbox );
 			}
 
 		void
@@ -68,7 +68,7 @@ class a_test_t
 				if( m_tick_count > 0 )
 				{
 					so_change_state( **m_it_current_state );
-					m_self_mbox->deliver_signal< msg_tick >();
+					so_5::send< msg_tick >( m_self_mbox );
 				}
 				else
 				{

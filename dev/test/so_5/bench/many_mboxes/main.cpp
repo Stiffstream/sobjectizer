@@ -247,17 +247,13 @@ class a_sender_t
 						--m_iterations_left;
 					}
 				else
-					m_common_mbox->deliver_signal< msg_shutdown >();
+					so_5::send< msg_shutdown >( m_common_mbox );
 			}
 
-		// This method with this strange implementation
-		// is necessary because of strange compilation
-		// error under GCC 4.9.0.
 		void
 		initiate_next_iteration()
 			{
-				so_5::abstract_message_box_t & m = *(so_direct_mbox());
-				m.deliver_signal< msg_next_iteration >();
+				so_5::send< msg_next_iteration >( *this );
 			}
 	};
 
@@ -306,7 +302,7 @@ class a_starter_stopper_t
 
 				m_benchmark.start();
 
-				m_common_mbox->deliver_signal< msg_start >();
+				so_5::send< msg_start >( m_common_mbox );
 			}
 
 		void

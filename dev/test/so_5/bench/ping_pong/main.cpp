@@ -181,7 +181,7 @@ class a_pinger_t
 		void
 		send_ping()
 			{
-				m_ponger_mbox->deliver_signal< msg_data >();
+				so_5::send< msg_data >( m_ponger_mbox );
 			}
 
 		static context_t
@@ -227,7 +227,7 @@ class a_ponger_t
 		void
 		evt_ping( mhood_t< msg_data > )
 			{
-				m_pinger_mbox->deliver_signal< msg_data >();
+				so_5::send< msg_data >( m_pinger_mbox );
 			}
 
 	private :

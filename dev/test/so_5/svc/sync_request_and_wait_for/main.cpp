@@ -167,7 +167,7 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				m_self_mbox->deliver_signal< msg_next_convert >();
+				so_5::send< msg_next_convert >( m_self_mbox );
 			}
 
 		void
@@ -185,7 +185,7 @@ class a_client_t
 						so_change_state( st_deadlocks );
 					}
 
-				m_self_mbox->deliver_signal< msg_next_convert >();
+				so_5::send< msg_next_convert >( m_self_mbox );
 			}
 
 		void
@@ -198,7 +198,7 @@ class a_client_t
 						m_back_call_actions[ m_back_call_actions_current ]();
 						++m_back_call_actions_current;
 
-						m_self_mbox->deliver_signal< msg_next_convert >();
+						so_5::send< msg_next_convert >( m_self_mbox );
 					}
 				else
 					{

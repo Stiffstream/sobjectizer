@@ -58,7 +58,7 @@ class a_parent_t
 
 			so_environment().register_coop( std::move(child) );
 
-			mbox->deliver_signal< msg_test_signal >();
+			so_5::send< msg_test_signal >( mbox );
 		}
 };
 

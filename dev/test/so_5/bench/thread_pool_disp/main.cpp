@@ -169,7 +169,7 @@ class a_test_t : public so_5::agent_t
 		{
 			for( m_messages_sent = 0; m_messages_sent != m_messages_at_start;
 					++m_messages_sent )
-				so_direct_mbox()->deliver_signal< msg_hello >();
+				so_5::send< msg_hello >( *this );
 		}
 
 		void
@@ -177,10 +177,10 @@ class a_test_t : public so_5::agent_t
 		{
 			++m_messages_received;
 			if( m_messages_received >= m_messages_to_send )
-				m_controller_mbox->deliver_signal< msg_shutdown >();
+				so_5::send< msg_shutdown >( m_controller_mbox );
 			else if( m_messages_sent < m_messages_to_send )
 			{
-				so_direct_mbox()->deliver_signal< msg_hello >();
+				so_5::send< msg_hello >( *this );
 				++m_messages_sent;
 			}
 		}
@@ -220,7 +220,7 @@ class a_contoller_t : public so_5::agent_t
 			create_cooperations();
 
 			m_benchmarker.start();
-			m_self_mbox->deliver_signal< msg_start >();
+			so_5::send< msg_start >( m_self_mbox );
 		}
 
 		void

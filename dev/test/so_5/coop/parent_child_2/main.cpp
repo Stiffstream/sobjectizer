@@ -102,8 +102,8 @@ class a_test_t : public so_5::agent_t
 		void
 		notify_parent()
 		{
-			so_environment().create_mbox( m_parent_coop_name )->
-					deliver_signal< msg_child_started >();
+			so_5::send< msg_child_started >(
+					so_environment().create_mbox( m_parent_coop_name ) );
 		}
 };
 

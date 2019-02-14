@@ -85,7 +85,7 @@ test_agent_sender_t::so_define_agent()
 void
 test_agent_sender_t::so_evt_start()
 {
-	m_notification_mbox->deliver_signal< send_message_signal >();
+	so_5::send< send_message_signal >( m_notification_mbox );
 }
 
 void
@@ -106,7 +106,7 @@ test_agent_sender_t::evt_send_messages(
 	}
 	else
 	{
-		m_notification_mbox->deliver_signal< send_message_signal >();
+		so_5::send< send_message_signal >( m_notification_mbox );
 	}
 }
 

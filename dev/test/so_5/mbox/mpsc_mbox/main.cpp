@@ -96,16 +96,16 @@ main()
 
 					void so_evt_start() override
 					{
-						m_to->deliver_signal< msg_one >();
-						m_to->deliver_signal< msg_two >();
+						so_5::send< msg_one >( m_to );
+						so_5::send< msg_two >( m_to );
 						m_to->run_one()
 							.wait_for( std::chrono::seconds(1) )
 							.sync_get< msg_three >();
 
-						m_to->deliver_signal< msg_one >();
-						m_to->deliver_signal< msg_two >();
+						so_5::send< msg_one >( m_to );
+						so_5::send< msg_two >( m_to );
 
-						m_to->deliver_signal< msg_four >();
+						so_5::send< msg_four >( m_to );
 					}
 				};
 
