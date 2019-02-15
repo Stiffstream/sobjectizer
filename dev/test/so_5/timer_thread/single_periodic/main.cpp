@@ -44,10 +44,11 @@ class test_agent_t
 		so_evt_start()
 		{
 			// Schedule periodic message.
-			m_timer_ref = so_environment().schedule_timer< test_message >(
-				m_test_mbox,
-				300,
-				200 );
+			m_timer_ref = so_5::send_periodic< test_message >(
+					so_environment(),
+					m_test_mbox,
+					std::chrono::milliseconds(300),
+					std::chrono::milliseconds(200) );
 		}
 
 		void
@@ -89,11 +90,11 @@ test_agent_t::evt_test(
 	if( m_test_evt_count == ++m_evt_count )
 	{
 		// Reschedule message. Old timer event should be released.
-		m_timer_ref = 
-			so_environment().schedule_timer< stop_message >(
+		m_timer_ref = so_5::send_periodic< stop_message >(
+				so_environment(),
 				m_test_mbox,
-				800,
-				0 );
+				std::chrono::milliseconds(800),
+				std::chrono::milliseconds(0) );
 	}
 }
 void

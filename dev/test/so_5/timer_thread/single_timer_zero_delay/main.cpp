@@ -47,10 +47,11 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_environment().single_timer< msg_stop >( m_mbox, 1000 );
+			so_5::send_delayed< msg_stop >( so_environment(), m_mbox,
+					std::chrono::milliseconds(1000) );
 
-			so_environment().single_timer(
-					std::unique_ptr< msg_test >( new msg_test() ), m_mbox, 0 );
+			so_5::send_delayed< msg_test >( so_environment(), m_mbox,
+					std::chrono::milliseconds(0) );
 
 			so_5::send< msg_do_resend >( m_mbox );
 		}
@@ -64,8 +65,8 @@ class a_test_t : public so_5::agent_t
 		void
 		evt_do_resend( mhood_t< msg_do_resend > )
 		{
-			so_environment().single_timer(
-					std::unique_ptr< msg_test >( new msg_test() ), m_mbox, 0 );
+			so_5::send_delayed< msg_test >( so_environment(), m_mbox,
+					std::chrono::milliseconds(0) );
 		}
 
 		void

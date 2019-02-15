@@ -105,10 +105,10 @@ class a_contoller_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			m_timer = so_environment().schedule_timer< msg_shutdown >(
-					so_direct_mbox(),
-					1000,
-					1000 );
+			m_timer = so_5::send_periodic< msg_shutdown >(
+					*this,
+					std::chrono::seconds(1),
+					std::chrono::seconds(1) );
 		}
 
 		void
