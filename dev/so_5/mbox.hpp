@@ -1294,83 +1294,76 @@ wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
 
 namespace low_level_api {
 
-//FIXME: is this class really needed?
-//Maybe it is better to make deliver_message/deliver_signal free functions?
-//
-// message_deliverer_t
-//
+//FIXME: documentation should be expanded.
+//! Deliver message.
 /*!
- * \brief A bunch of methods for message delivery.
- *
- * Prior to v.5.6 messages for message delivery were a part of
- * public interface of abstract_message_box_t class. Since v.5.6.0
- * only send-family functions should be used for message sending.
- * Because of that methods like deliver_message() was hidden from
- * an user to that class.
+ * Mbox takes care about destroying a message object.
  *
  * \since
  * v.5.6.0
  */
-struct message_deliverer_t
+template< class Message >
+void
+deliver_message(
+	//! Destination for message.
+	abstract_message_box_t & target,
+	//! Subscription type for that message.
+	std::type_index subscription_type,
+	//! Message data.
+	std::unique_ptr< Message > msg )
 	{
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class Message >
-		static void
-		deliver_message(
-			//! Destination for message.
-			abstract_message_box_t & target,
-			//! Subscription type for that message.
-			std::type_index subscription_type,
-			//! Message data.
-			std::unique_ptr< Message > msg )
-			{
-				ensure_classical_message< Message >();
-				ensure_message_with_actual_data( msg.get() );
+		ensure_classical_message< Message >();
+		ensure_message_with_actual_data( msg.get() );
 
-				target.do_deliver_message(
-					std::move(subscription_type),
-					message_ref_t{ msg.release() },
-					1u );
-			}
+		target.do_deliver_message(
+			std::move(subscription_type),
+			message_ref_t{ msg.release() },
+			1u );
+	}
 
-		//! Deliver message.
-		/*!
-		 * This method is necessary for cases when message object
-		 * is already present as message_ref_t.
-		 */
-		static void
-		deliver_message(
-			//! Destination for message.
-			abstract_message_box_t & target,
-			//! Subscription type for that message.
-			std::type_index subscription_type,
-			//! Message data.
-			message_ref_t msg )
-			{
-				target.do_deliver_message(
-						std::move(subscription_type),
-						std::move(msg),
-						1u );
-			}
+//FIXME: documentation should be expanded.
+//! Deliver message.
+/*!
+ * This function is necessary for cases when message object
+ * is already present as message_ref_t.
+ *
+ * \since
+ * v.5.6.0
+ */
+inline void
+deliver_message(
+	//! Destination for message.
+	abstract_message_box_t & target,
+	//! Subscription type for that message.
+	std::type_index subscription_type,
+	//! Message data.
+	message_ref_t msg )
+	{
+		target.do_deliver_message(
+				std::move(subscription_type),
+				std::move(msg),
+				1u );
+	}
 
-		//! Deliver signal.
-		template< class Message >
-		static void
-		deliver_signal(
-			//! Destination for signal.
-			abstract_message_box_t & target )
-			{
-				ensure_signal< Message >();
+//FIXME: documentation should be expanded.
+//! Deliver signal.
+/*!
+ * \since
+ * v.5.6.0
+ */
+template< class Message >
+static void
+deliver_signal(
+	//! Destination for signal.
+	abstract_message_box_t & target )
+	{
+		ensure_signal< Message >();
 
-				target.do_deliver_message(
-					message_payload_type< Message >::subscription_type_index(),
-					message_ref_t(),
-					1u );
-			}
-	};
+		target.do_deliver_message(
+			message_payload_type< Message >::subscription_type_index(),
+			message_ref_t(),
+			1u );
+	}
 
 } /* namespace low_level_api */
 

@@ -848,8 +848,8 @@ class step_definition_proxy_t
 				// the message instance at the appropriate time.
 				m_step->add_preactivate_action(
 						[to = std::move(to), msg = std::move(msg)]() noexcept {
-							using so_5::low_level_api::message_deliverer_t;
-							message_deliverer_t::deliver_message(
+							using namespace so_5::low_level_api;
+							deliver_message(
 									*to,
 									message_payload_type< Msg_Type >
 											::subscription_type_index(),
