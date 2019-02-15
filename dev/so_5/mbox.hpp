@@ -1352,7 +1352,7 @@ deliver_message(
  * v.5.6.0
  */
 template< class Message >
-static void
+void
 deliver_signal(
 	//! Destination for signal.
 	abstract_message_box_t & target )
