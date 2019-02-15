@@ -679,66 +679,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual mbox_id_t
 		id() const = 0;
 
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 *
-		 * \since
-		 * v.5.5.19
-		 */
-		template< class Message >
-		inline void
-		deliver_message(
-			//! Subscription type for that message.
-			std::type_index subscription_type,
-			//! Message data.
-			const intrusive_ptr_t< Message > & msg_ref ) const;
-
-		//! Deliver message.
-		/*!
-		 * \since
-		 * v.5.2.2
-		 *
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class Message >
-		inline void
-		deliver_message(
-			//! Message data.
-			const intrusive_ptr_t< Message > & msg_ref ) const;
-
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 *
-		 * \since
-		 * v.5.5.19
-		 */
-		template< class Message >
-		inline void
-		deliver_message(
-			//! Subscription type for that message.
-			std::type_index subscription_type,
-			//! Message data.
-			std::unique_ptr< Message > msg_unique_ptr,
-			//! Actual mutability for this message instance.
-			message_mutability_t mutability ) const;
-
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class Message >
-		inline void
-		deliver_message(
-			//! Message data.
-			std::unique_ptr< Message > msg_unique_ptr ) const;
-
-		//! Deliver signal.
-		template< class Message >
-		inline void
-		deliver_signal() const;
-
 		/*!
 		 * \since
 		 * v.5.3.0
@@ -809,21 +749,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		run_one()
 			{
 				return service_invoke_proxy_t< void >( mbox_t( this ) );
-			}
-
-		//! Deliver message for all subscribers.
-		/*!
-		 * \note This method is public since v.5.4.0.
-		 *
-		 * \note This is a just a wrapper for do_deliver_message
-		 * since v.5.5.4.
-		 */
-		inline void
-		deliver_message(
-			const std::type_index & msg_type,
-			const message_ref_t & message ) const
-			{
-				this->do_deliver_message( msg_type, message, 1 );
 			}
 
 		/*!
@@ -1068,68 +993,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			mbox.do_deliver_message_from_timer( msg_type, message );
 		}
 };
-
-template< class Message >
-inline void
-abstract_message_box_t::deliver_message(
-	std::type_index subscription_type,
-	const intrusive_ptr_t< Message > & msg_ref ) const
-{
-	ensure_classical_message< Message >();
-	ensure_message_with_actual_data( msg_ref.get() );
-
-	deliver_message(
-		subscription_type,
-		msg_ref.template make_reference< message_t >() );
-}
-
-template< class Message >
-inline void
-abstract_message_box_t::deliver_message(
-	const intrusive_ptr_t< Message > & msg_ref ) const
-{
-	deliver_message(
-		message_payload_type< Message >::subscription_type_index(),
-		msg_ref );
-}
-
-template< class Message >
-inline void
-abstract_message_box_t::deliver_message(
-	std::type_index subscription_type,
-	std::unique_ptr< Message > msg_unique_ptr,
-	message_mutability_t mutability ) const
-{
-	ensure_classical_message< Message >();
-	ensure_message_with_actual_data( msg_unique_ptr.get() );
-
-	change_message_mutability( *msg_unique_ptr, mutability );
-
-	deliver_message(
-		subscription_type,
-		message_ref_t( msg_unique_ptr.release() ) );
-}
-
-template< class Message >
-void
-abstract_message_box_t::deliver_message(
-	std::unique_ptr< Message > msg_unique_ptr ) const
-{
-	this->deliver_message(
-		message_payload_type< Message >::subscription_type_index(),
-		std::move( msg_unique_ptr.release() ) );
-}
-
-template< class Message >
-void
-abstract_message_box_t::deliver_signal() const
-{
-	ensure_signal< Message >();
-
-	deliver_message(
-		message_payload_type< Message >::subscription_type_index(),
-		message_ref_t() );
-}
 
 //
 // service_invoke_proxy_t implementation.
@@ -1428,6 +1291,88 @@ wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
 
 		return this->sync_get_2< Param >( std::move( msg ) );
 	}
+
+namespace low_level_api {
+
+//FIXME: is this class really needed?
+//Maybe it is better to make deliver_message/deliver_signal free functions?
+//
+// message_deliverer_t
+//
+/*!
+ * \brief A bunch of methods for message delivery.
+ *
+ * Prior to v.5.6 messages for message delivery were a part of
+ * public interface of abstract_message_box_t class. Since v.5.6.0
+ * only send-family functions should be used for message sending.
+ * Because of that methods like deliver_message() was hidden from
+ * an user to that class.
+ *
+ * \since
+ * v.5.6.0
+ */
+struct message_deliverer_t
+	{
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		 */
+		template< class Message >
+		static void
+		deliver_message(
+			//! Destination for message.
+			abstract_message_box_t & target,
+			//! Subscription type for that message.
+			std::type_index subscription_type,
+			//! Message data.
+			std::unique_ptr< Message > msg )
+			{
+				ensure_classical_message< Message >();
+				ensure_message_with_actual_data( msg.get() );
+
+				target.do_deliver_message(
+					std::move(subscription_type),
+					message_ref_t{ msg.release() },
+					1u );
+			}
+
+		//! Deliver message.
+		/*!
+		 * This method is necessary for cases when message object
+		 * is already present as message_ref_t.
+		 */
+		static void
+		deliver_message(
+			//! Destination for message.
+			abstract_message_box_t & target,
+			//! Subscription type for that message.
+			std::type_index subscription_type,
+			//! Message data.
+			message_ref_t msg )
+			{
+				target.do_deliver_message(
+						std::move(subscription_type),
+						std::move(msg),
+						1u );
+			}
+
+		//! Deliver signal.
+		template< class Message >
+		static void
+		deliver_signal(
+			//! Destination for signal.
+			abstract_message_box_t & target )
+			{
+				ensure_signal< Message >();
+
+				target.do_deliver_message(
+					message_payload_type< Message >::subscription_type_index(),
+					message_ref_t(),
+					1u );
+			}
+	};
+
+} /* namespace low_level_api */
 
 } /* namespace so_5 */
 

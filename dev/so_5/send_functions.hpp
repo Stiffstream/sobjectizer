@@ -35,11 +35,19 @@ namespace impl
 				const so_5::mbox_t & to,
 				Args &&... args )
 				{
-					to->deliver_message(
-						message_payload_type< Message >::subscription_type_index(),
+					// it will be std::unique_ptr<Envelope>, where Envelope
+					// can be a different type. But Envelope is derived from
+					// so_5::message_t.
+					auto msg_instance =
 						so_5::details::make_message_instance< Message >(
-								std::forward< Args >( args )...),
-						message_payload_type< Message >::mutability() );
+								std::forward< Args >( args )...);
+					so_5::details::mark_as_mutable_if_necessary< Message >(
+							*msg_instance );
+
+					so_5::low_level_api::message_deliverer_t::deliver_message(
+							*to,
+							message_payload_type< Message >::subscription_type_index(),
+							std::move(msg_instance) );
 				}
 
 			template< typename... Args >
@@ -88,7 +96,8 @@ namespace impl
 			static void
 			send( const so_5::mbox_t & to )
 				{
-					to->deliver_signal< actual_signal_type >();
+					using so_5::low_level_api::message_deliverer_t;
+					message_deliverer_t::deliver_signal< actual_signal_type >( *to );
 				}
 
 			static void
@@ -239,10 +248,12 @@ template< typename Target, typename Message >
 typename std::enable_if< !is_signal< Message >::value >::type
 send( Target && to, mhood_t< Message > what )
 	{
-		send_functions_details::arg_to_mbox( std::forward<Target>(to) )->
-				deliver_message(
-						message_payload_type<Message>::subscription_type_index(),
-						what.make_reference() );
+		using so_5::low_level_api::message_deliverer_t;
+
+		message_deliverer_t::deliver_message(
+				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
+				message_payload_type<Message>::subscription_type_index(),
+				what.make_reference() );
 	}
 
 /*!
