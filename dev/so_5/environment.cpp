@@ -548,77 +548,70 @@ environment_t::deregister_coop(
 }
 
 so_5::timer_id_t
-environment_t::schedule_timer(
-	const std::type_index & type_wrapper,
-	const message_ref_t & msg,
-	const mbox_t & mbox,
-	std::chrono::steady_clock::duration pause,
-	std::chrono::steady_clock::duration period )
+environment_t::so_schedule_timer(
+	const low_level_api::schedule_timer_params_t params )
 {
 	// Since v.5.5.21 pause and period should be checked for negative
 	// values.
 	using duration = std::chrono::steady_clock::duration;
-	if( pause < duration::zero() )
+	if( params.m_pause < duration::zero() )
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_negative_value_for_pause,
 				"an attempt to call schedule_timer() with negative pause value" );
-	if( period < duration::zero() )
+	if( params.m_period < duration::zero() )
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_negative_value_for_period,
 				"an attempt to call schedule_timer() with negative period value" );
 
 	// If it is a mutable message then there must be some restrictions:
-	if( message_mutability_t::mutable_message == message_mutability(msg) )
+	if( message_mutability_t::mutable_message == message_mutability(params.m_msg) )
 	{
 		// Mutable message can be sent only as delayed message.
-		if( std::chrono::steady_clock::duration::zero() != period )
+		if( std::chrono::steady_clock::duration::zero() != params.m_period )
 			SO_5_THROW_EXCEPTION(
 					so_5::rc_mutable_msg_cannot_be_periodic,
 					"unable to schedule periodic timer for mutable message,"
-					" msg_type=" + std::string(type_wrapper.name()) );
+					" msg_type=" + std::string(params.m_msg_type.name()) );
 		// Mutable message can't be passed to MPMC-mbox.
-		else if( mbox_type_t::multi_producer_multi_consumer == mbox->type() )
+		else if( mbox_type_t::multi_producer_multi_consumer == params.m_mbox->type() )
 			SO_5_THROW_EXCEPTION(
 					so_5::rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox,
 					"unable to schedule timer for mutable message and "
-					"MPMC mbox, msg_type=" + std::string(type_wrapper.name()) );
+					"MPMC mbox, msg_type=" + std::string(params.m_msg_type.name()) );
 	}
 
 	return m_impl->m_infrastructure->schedule_timer(
-			type_wrapper,
-			msg,
-			mbox,
-			pause,
-			period );
+			params.m_msg_type,
+			params.m_msg,
+			params.m_mbox,
+			params.m_pause,
+			params.m_period );
 }
 
 void
-environment_t::single_timer(
-	const std::type_index & type_wrapper,
-	const message_ref_t & msg,
-	const mbox_t & mbox,
-	std::chrono::steady_clock::duration pause )
+environment_t::so_single_timer(
+	const low_level_api::single_timer_params_t params )
 {
 	// Since v.5.5.21 pause should be checked for negative values.
 	using duration = std::chrono::steady_clock::duration;
-	if( pause < duration::zero() )
+	if( params.m_pause < duration::zero() )
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_negative_value_for_pause,
 				"an attempt to call single_timer() with negative pause value" );
 
 	// Mutable message can't be passed to MPMC-mbox.
-	if( message_mutability_t::mutable_message == message_mutability(msg) &&
-			mbox_type_t::multi_producer_multi_consumer == mbox->type() )
+	if( message_mutability_t::mutable_message == message_mutability(params.m_msg) &&
+			mbox_type_t::multi_producer_multi_consumer == params.m_mbox->type() )
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox,
 				"unable to schedule single timer for mutable message and "
-				"MPMC mbox, msg_type=" + std::string(type_wrapper.name()) );
+				"MPMC mbox, msg_type=" + std::string(params.m_msg_type.name()) );
 
 	m_impl->m_infrastructure->single_timer(
-			type_wrapper,
-			msg,
-			mbox,
-			pause );
+			params.m_msg_type,
+			params.m_msg,
+			params.m_mbox,
+			params.m_pause );
 }
 
 layer_t *

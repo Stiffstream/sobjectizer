@@ -35,6 +35,7 @@ namespace impl
 				const so_5::mbox_t & to,
 				Args &&... args )
 				{
+//FIXME: this code looks to do copy-pasted.
 					// it will be std::unique_ptr<Envelope>, where Envelope
 					// can be a different type. But Envelope is derived from
 					// so_5::message_t.
@@ -58,11 +59,19 @@ namespace impl
 				std::chrono::steady_clock::duration pause,
 				Args &&... args )
 				{
-					env.single_timer(
+					// it will be std::unique_ptr<Envelope>, where Envelope
+					// can be a different type. But Envelope is derived from
+					// so_5::message_t.
+					auto msg_instance =
+						so_5::details::make_message_instance< Message >(
+								std::forward< Args >( args )...);
+					so_5::details::mark_as_mutable_if_necessary< Message >(
+							*msg_instance );
+
+					so_5::low_level_api::single_timer(
+							env,
 							message_payload_type< Message >::subscription_type_index(),
-							so_5::details::make_message_instance< Message >(
-									std::forward<Args>(args)...),
-							message_payload_type< Message >::mutability(),
+							message_ref_t{ msg_instance.release() },
 							to,
 							pause );
 				}
@@ -76,11 +85,19 @@ namespace impl
 				std::chrono::steady_clock::duration period,
 				Args &&... args )
 				{
-					return env.schedule_timer( 
+					// it will be std::unique_ptr<Envelope>, where Envelope
+					// can be a different type. But Envelope is derived from
+					// so_5::message_t.
+					auto msg_instance =
+						so_5::details::make_message_instance< Message >(
+								std::forward< Args >( args )...);
+					so_5::details::mark_as_mutable_if_necessary< Message >(
+							*msg_instance );
+
+					return so_5::low_level_api::schedule_timer( 
+							env,
 							message_payload_type< Message >::subscription_type_index(),
-							so_5::details::make_message_instance< Message >(
-								std::forward< Args >( args )...),
-							message_payload_type< Message >::mutability(),
+							message_ref_t{ msg_instance.release() },
 							to,
 							pause,
 							period );
@@ -106,8 +123,10 @@ namespace impl
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause )
 				{
-					env.single_timer< actual_signal_type >(
+					so_5::low_level_api::single_timer(
+							env,
 							message_payload_type<Message>::subscription_type_index(),
+							message_ref_t{},
 							to,
 							pause );
 				}
@@ -119,7 +138,13 @@ namespace impl
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period )
 				{
-					return env.schedule_timer< actual_signal_type >( to, pause, period );
+					return so_5::low_level_api::schedule_timer( 
+							env,
+							message_payload_type< Message >::subscription_type_index(),
+							message_ref_t{},
+							to,
+							pause,
+							period );
 				}
 		};
 
@@ -347,35 +372,6 @@ send_delayed(
 	}
 
 /*!
- * \since
- * v.5.5.1
- *
- * \brief A utility function for creating and delivering a delayed message.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Value of \a pause should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-void
-send_delayed(
-	//! An agent whos environment must be used.
-	so_5::agent_t & agent,
-	//! Mbox for the message to be sent to.
-	const so_5::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		send_delayed< Message >( agent.so_environment(), to, pause,
-				std::forward< Args >(args)... );
-	}
-
-/*!
  * \brief A utility function for delayed redirection of a message
  * from existing message hood.
  *
@@ -417,13 +413,15 @@ send_delayed(
 	//! Message instance owner.
 	mhood_t< Message > msg )
 	{
-		env.single_timer(
+		so_5::low_level_api::single_timer(
+				env,
 				message_payload_type< Message >::subscription_type_index(),
 				msg.make_reference(),
 				to,
 				pause );
 	}
 
+//FIXME: should be removed after addition of reference to environment to mbox.
 /*!
  * \brief A utility function for delayed redirection of a signal
  * from existing message hood.
@@ -460,7 +458,8 @@ send_delayed(
 	//! Message instance owner.
 	mhood_t< Message > /*msg*/ )
 	{
-		env.single_timer(
+		so_5::low_level_api::single_timer(
+				env,
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				to,
@@ -526,6 +525,7 @@ send_delayed(
 				std::move(mhood) );
 	}
 
+//FIXME: should be removed after addition of reference to environment to mbox.
 /*!
  * \since
  * v.5.5.1
@@ -551,41 +551,6 @@ send_periodic(
 	{
 		return so_5::impl::instantiator_and_sender< Message >::send_periodic(
 				env, to, pause, period, std::forward< Args >( args )... );
-	}
-
-/*!
- * \since
- * v.5.5.1
- *
- * \brief A utility function for creating and delivering a periodic message.
- *
- * Gets the Environment from the agent specified.
- *
- * \attention
- * Values of \a pause and \a period should be non-negative.
- *
- * \deprecated Will be removed in v.5.6.0.
- */
-template< typename Message, typename... Args >
-SO_5_NODISCARD timer_id_t
-send_periodic(
-	//! An agent whos environment must be used.
-	so_5::agent_t & agent,
-	//! Mbox for the message to be sent to.
-	const so_5::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		return send_periodic< Message >(
-				agent.so_environment(),
-				to,
-				pause,
-				period,
-				std::forward< Args >(args)... );
 	}
 
 /*!
@@ -682,7 +647,8 @@ send_periodic(
 	//! Existing message hood for message to be sent.
 	mhood_t< Message > mhood )
 	{
-		return env.schedule_timer( 
+		return so_5::low_level_api::schedule_timer( 
+				env,
 				message_payload_type< Message >::subscription_type_index(),
 				mhood.make_reference(),
 				to,
@@ -731,7 +697,8 @@ send_periodic(
 	//! Existing message hood for message to be sent.
 	mhood_t< Message > /*mhood*/ )
 	{
-		return env.schedule_timer( 
+		return so_5::low_level_api::schedule_timer( 
+				env,
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				to,

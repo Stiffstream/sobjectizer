@@ -40,7 +40,11 @@ public :
 						"mb",
 						so_5::message_ref_t{} ) );
 
-		so_environment().single_timer(
+		// Low-level function should be used because we try to send
+		// a message instead of a signal (signals can't have data, but
+		// data is present here).
+		so_5::low_level_api::single_timer(
+				so_environment(),
 				so_5::message_payload_type< shutdown >::subscription_type_index(),
 				std::move(envelope),
 				so_direct_mbox(),
