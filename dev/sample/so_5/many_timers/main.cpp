@@ -167,7 +167,7 @@ public :
 	virtual void so_evt_start() override
 	{
 		for( unsigned long long i = 0; i != m_messages_to_send; ++i )
-			so_5::send_delayed< msg_timer >( so_environment(), m_dest_mbox, m_delay );
+			so_5::send_delayed< msg_timer >( m_dest_mbox, m_delay );
 	}
 
 private :

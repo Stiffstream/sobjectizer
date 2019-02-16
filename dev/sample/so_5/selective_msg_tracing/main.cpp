@@ -28,7 +28,7 @@ public :
 	void so_define_agent() override
 	{
 		so_subscribe( m_mbox ).event( [this](mhood_t<Signal_To_Receive>) {
-				so_5::send_delayed< Signal_To_Send >( so_environment(), m_mbox, 25ms );
+				so_5::send_delayed< Signal_To_Send >( m_mbox, 25ms );
 			} );
 	}
 };
@@ -91,7 +91,7 @@ private :
 			} );
 
 		// Initiate ping-pong exchange.
-		so_5::send_delayed< ping >( so_environment(), mbox, 25ms );
+		so_5::send_delayed< ping >( mbox, 25ms );
 	}
 };
 
