@@ -40,7 +40,7 @@ main()
 							test_mbox = coop.make_agent< a_test_t >()->so_direct_mbox();
 						} );
 
-						outside_thread = thread( [&env, test_mbox] {
+						outside_thread = thread( [test_mbox] {
 							this_thread::sleep_for( chrono::milliseconds( 350 ) );
 							so_5::send_delayed< a_test_t::tick >(
 									test_mbox,
