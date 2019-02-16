@@ -701,7 +701,7 @@ struct data_t
 		const mbox_id_t m_id;
 
 		//! Object lock.
-		mutable default_rw_spinlock_t m_lock;
+		default_rw_spinlock_t m_lock;
 
 		/*!
 		 * \since
@@ -801,11 +801,11 @@ class local_mbox_template
 				return mbox_type_t::multi_producer_multi_consumer;
 			}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_base
@@ -827,7 +827,7 @@ class local_mbox_template
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
@@ -970,7 +970,7 @@ class local_mbox_template
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep,
-			invocation_type_t invocation_type ) const
+			invocation_type_t invocation_type )
 			{
 				read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
@@ -1040,7 +1040,7 @@ class local_mbox_template
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const
+			unsigned int overlimit_reaction_deep )
 			{
 				using namespace so_5::message_limit::impl;
 

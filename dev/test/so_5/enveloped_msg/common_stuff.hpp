@@ -158,7 +158,7 @@ public :
 	do_deliver_message(
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) const override
+		unsigned int overlimit_reaction_deep ) override
 	{
 		auto envelope = std::make_unique< Envelope >(
 				m_trace,
@@ -175,7 +175,7 @@ public :
 	do_deliver_service_request(
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) const override
+		unsigned int overlimit_reaction_deep ) override
 	{
 		auto envelope = std::make_unique< Envelope >(
 				m_trace,

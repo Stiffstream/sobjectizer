@@ -80,13 +80,13 @@ class next_turn_mbox_t final : public abstract_message_box_t
 	{
 	public:
 		// NOTE: this method should never be used.
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override
 			{
 				return 0;
 			}
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & /*type_index*/,
 			const message_limit::control_block_t * /*limit*/,
@@ -97,7 +97,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*type_index*/,
 			agent_t * /*subscriber*/ ) override
@@ -107,23 +107,23 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual std::string
+		std::string
 		query_name() const override
 			{
 				return "<next_turn_mbox>";
 			}
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override
 			{
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				static const auto & next_turn_msg_type =
 						typeid(next_turn_handler_t::next_turn);
@@ -141,18 +141,18 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						actual_message.m_run_id );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & /*msg_type*/,
 			const message_ref_t & /*message*/,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to do_deliver_service_request() is illegal for "
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
@@ -163,7 +163,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			agent_t & /*subscriber*/ ) noexcept override

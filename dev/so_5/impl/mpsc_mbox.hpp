@@ -60,13 +60,13 @@ class limitless_mpsc_mbox_template
 			,	m_single_consumer{ single_consumer }
 			{}
 
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override
 			{
 				return m_id;
 			}
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
 			const message_limit::control_block_t * /*limit*/,
@@ -81,7 +81,7 @@ class limitless_mpsc_mbox_template
 				++m_subscriptions_count;
 			}
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
 			agent_t * subscriber ) override
@@ -96,7 +96,7 @@ class limitless_mpsc_mbox_template
 					--m_subscriptions_count;
 			}
 
-		virtual std::string
+		std::string
 		query_name() const override
 			{
 				std::ostringstream s;
@@ -107,17 +107,17 @@ class limitless_mpsc_mbox_template
 				return s.str();
 			}
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override
 			{
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
@@ -137,11 +137,11 @@ class limitless_mpsc_mbox_template
 				} );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
@@ -192,7 +192,7 @@ class limitless_mpsc_mbox_template
 		 * \attention Will throw an exception because delivery
 		 * filter is not applicable to MPSC-mboxes.
 		 */
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
@@ -203,7 +203,7 @@ class limitless_mpsc_mbox_template
 						"set_delivery_filter is called for MPSC-mbox" );
 			}
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			agent_t & /*subscriber*/ ) noexcept override
@@ -224,7 +224,7 @@ class limitless_mpsc_mbox_template
 		 *
 		 * \brief Protection of object from modification.
 		 */
-		mutable default_rw_spinlock_t m_lock;
+		default_rw_spinlock_t m_lock;
 
 		/*!
 		 * \since
@@ -251,7 +251,7 @@ class limitless_mpsc_mbox_template
 			//! Tracer object to log the case of abscense of subscriptions.
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			//! Lambda with actual delivery actions.
-			L l ) const
+			L l )
 		{
 			read_lock_guard_t< default_rw_spinlock_t > lock{ m_lock };
 
@@ -322,11 +322,11 @@ class limitful_mpsc_mbox_template
 			,	m_limits( limits_storage )
 			{}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer(
 						*this, // as Tracing_Base
@@ -361,11 +361,11 @@ class limitful_mpsc_mbox_template
 				} );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base

@@ -765,7 +765,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! This is type_index for service Param type.
 			const std::type_index & msg_type,
 			//! This is reference to msg_service_request_t<Result,Param> instance.
-			const message_ref_t & message ) const
+			const message_ref_t & message )
 			{
 				this->do_deliver_service_request( msg_type, message, 1 );
 			}
@@ -828,11 +828,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
-		 *
-		 * \note
-		 * It is obvious that do_deliver_message() must be non-const method.
-		 * The constness is here now to keep compatibility in 5.5.* versions.
-		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_message(
@@ -841,18 +836,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A message instance to be delivered.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) const = 0;
+			unsigned int overlimit_reaction_deep ) = 0;
 
 		/*!
 		 * \since
 		 * v.5.5.4
 		 *
 		 * \brief Deliver service request.
-		 *
-		 * \note
-		 * It is obvious that do_deliver_message() must be non-const method.
-		 * The constness is here now to keep compatibility in 5.5.* versions.
-		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_service_request(
@@ -861,7 +851,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! This is reference to msg_service_request_t<Result,Param> instance.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) const = 0;
+			unsigned int overlimit_reaction_deep ) = 0;
 
 		/*!
 		 * \brief Deliver enveloped message.
