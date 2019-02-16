@@ -54,7 +54,6 @@ namespace impl
 			template< typename... Args >
 			static void
 			send_delayed(
-				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				Args &&... args )
@@ -69,7 +68,6 @@ namespace impl
 							*msg_instance );
 
 					so_5::low_level_api::single_timer(
-							env,
 							message_payload_type< Message >::subscription_type_index(),
 							message_ref_t{ msg_instance.release() },
 							to,
@@ -79,7 +77,6 @@ namespace impl
 			template< typename... Args >
 			SO_5_NODISCARD static timer_id_t
 			send_periodic(
-				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period,
@@ -95,7 +92,6 @@ namespace impl
 							*msg_instance );
 
 					return so_5::low_level_api::schedule_timer( 
-							env,
 							message_payload_type< Message >::subscription_type_index(),
 							message_ref_t{ msg_instance.release() },
 							to,
@@ -119,12 +115,10 @@ namespace impl
 
 			static void
 			send_delayed(
-				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause )
 				{
 					so_5::low_level_api::single_timer(
-							env,
 							message_payload_type<Message>::subscription_type_index(),
 							message_ref_t{},
 							to,
@@ -133,13 +127,11 @@ namespace impl
 
 			SO_5_NODISCARD static timer_id_t
 			send_periodic(
-				so_5::environment_t & env,
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
 				std::chrono::steady_clock::duration period )
 				{
 					return so_5::low_level_api::schedule_timer( 
-							env,
 							message_payload_type< Message >::subscription_type_index(),
 							message_ref_t{},
 							to,
@@ -343,7 +335,6 @@ send_delayed(
 		using namespace send_functions_details;
 
 		so_5::impl::instantiator_and_sender< Message >::send_delayed(
-				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
 				std::forward< Args >(args)... );
@@ -393,7 +384,6 @@ send_delayed(
 		using namespace send_functions_details;
 
 		so_5::low_level_api::single_timer(
-				arg_to_env( to ),
 				message_payload_type< Message >::subscription_type_index(),
 				msg.make_reference(),
 				arg_to_mbox( to ),
@@ -438,7 +428,6 @@ send_delayed(
 		using namespace send_functions_details;
 
 		so_5::low_level_api::single_timer(
-				arg_to_env( to ),
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				arg_to_mbox( to ),
@@ -480,7 +469,6 @@ send_periodic(
 		using namespace send_functions_details;
 
 		return so_5::impl::instantiator_and_sender< Message >::send_periodic(
-				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
 				period,
@@ -542,7 +530,6 @@ send_periodic(
 		using namespace send_functions_details;
 
 		return so_5::low_level_api::schedule_timer( 
-				arg_to_env( target ),
 				message_payload_type< Message >::subscription_type_index(),
 				mhood.make_reference(),
 				arg_to_mbox( target ),
@@ -593,7 +580,6 @@ send_periodic(
 		using namespace send_functions_details;
 
 		return so_5::low_level_api::schedule_timer( 
-				arg_to_env( target ),
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
 				arg_to_mbox( target ),

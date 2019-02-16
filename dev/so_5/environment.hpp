@@ -2166,10 +2166,6 @@ namespace low_level_api
  */
 SO_5_NODISCARD inline so_5::timer_id_t
 schedule_timer(
-	//FIXME: this argument should be removed after addition of
-	//environment's reference to mbox.
-	//! Environment to be used.
-	environment_t & env,
 	//! Message type for searching subscribers.
 	const std::type_index & subscription_type,
 	//! Message to be sent after timeout.
@@ -2185,7 +2181,7 @@ schedule_timer(
 	*/
 	std::chrono::steady_clock::duration period )
 {
-	return env.so_schedule_timer(
+	return mbox->environment().so_schedule_timer(
 			schedule_timer_params_t{
 					std::cref(subscription_type),
 					std::cref(msg),
@@ -2205,10 +2201,6 @@ schedule_timer(
  */
 inline void
 single_timer(
-	//FIXME: this argument should be removed after addition of
-	//environment's reference to mbox.
-	//! Environment to be used.
-	environment_t & env,
 	//! Message type for searching subscribers.
 	const std::type_index & subscription_type,
 	//! Message to be sent after timeout.
@@ -2218,7 +2210,7 @@ single_timer(
 	//! Timeout before the delivery.
 	std::chrono::steady_clock::duration pause )
 {
-	return env.so_single_timer(
+	return mbox->environment().so_single_timer(
 			single_timer_params_t{
 					std::cref(subscription_type),
 					std::cref(msg),
