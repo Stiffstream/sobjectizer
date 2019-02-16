@@ -105,6 +105,12 @@ class test_mbox_t : public so_5::abstract_message_box_t
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 			}
 
+		so_5::environment_t &
+		environment() const noexcept override
+			{
+				return m_actual_mbox->environment();
+			}
+
 		static so_5::mbox_t
 		create( so_5::environment_t & env )
 			{

@@ -913,6 +913,14 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \}
 		 */
 
+		//! SObjectizer Environment for which the mbox is created.
+		/*!
+		 * \since
+		 * v.5.6.0
+		 */
+		virtual so_5::environment_t &
+		environment() const noexcept = 0;
+
 	protected :
 		/*!
 		 * \since

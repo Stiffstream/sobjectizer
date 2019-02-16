@@ -522,7 +522,7 @@ class mchain_template
 			}
 
 		environment_t &
-		environment() const override
+		environment() const noexcept override
 			{
 				return m_env;
 			}

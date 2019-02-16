@@ -222,6 +222,12 @@ public :
 		m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 	}
 
+	so_5::environment_t &
+	environment() const noexcept override
+	{
+		return m_actual_mbox->environment();
+	}
+
 protected :
 	void
 	do_deliver_message_from_timer(

@@ -103,6 +103,12 @@ named_local_mbox_t::drop_delivery_filter(
 	m_mbox->drop_delivery_filter( msg_type, subscriber );
 }
 
+environment_t &
+named_local_mbox_t::environment() const noexcept
+{
+	return m_mbox->environment();
+}
+
 } /* namespace impl */
 
 } /* namespace so_5 */

@@ -209,6 +209,12 @@ class limitless_mpsc_mbox_template
 			agent_t & /*subscriber*/ ) noexcept override
 			{}
 
+		environment_t &
+		environment() const noexcept override
+			{
+				return m_single_consumer->so_environment();
+			}
+
 	protected :
 		/*!
 		 * \brief ID of this mbox.

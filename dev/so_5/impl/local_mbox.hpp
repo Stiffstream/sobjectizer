@@ -693,12 +693,16 @@ public :
  */
 struct data_t
 	{
-		data_t( mbox_id_t id )
+		data_t( mbox_id_t id, environment_t & env )
 			:	m_id{ id }
+			,	m_env{ env }
 			{}
 
 		//! ID of this mbox.
 		const mbox_id_t m_id;
+
+		//! Environment for which the mbox is created.
+		environment_t & m_env;
 
 		//! Object lock.
 		default_rw_spinlock_t m_lock;
@@ -743,19 +747,21 @@ class local_mbox_template
 		local_mbox_template(
 			//! ID of this mbox.
 			mbox_id_t id,
+			//! Environment for which the mbox is created.
+			environment_t & env,
 			//! Optional parameters for Tracing_Base's constructor.
 			Tracing_Args &&... args )
-			:	local_mbox_details::data_t{ id }
+			:	local_mbox_details::data_t{ id, env }
 			,	Tracing_Base{ std::forward< Tracing_Args >(args)... }
 			{}
 
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override
 			{
 				return m_id;
 			}
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
 			const so_5::message_limit::control_block_t * limit,
@@ -773,7 +779,7 @@ class local_mbox_template
 						} );
 			}
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override
@@ -786,7 +792,7 @@ class local_mbox_template
 						} );
 			}
 
-		virtual std::string
+		std::string
 		query_name() const override
 			{
 				std::ostringstream s;
@@ -795,7 +801,7 @@ class local_mbox_template
 				return s.str();
 			}
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override
 			{
 				return mbox_type_t::multi_producer_multi_consumer;
@@ -823,7 +829,7 @@ class local_mbox_template
 						invocation_type_t::event );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -864,7 +870,7 @@ class local_mbox_template
 						invocation_type_t::enveloped_msg );
 			}
 
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
@@ -882,7 +888,7 @@ class local_mbox_template
 						} );
 			}
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
 			agent_t & subscriber ) noexcept override
@@ -893,6 +899,12 @@ class local_mbox_template
 						[]( local_mbox_details::subscriber_info_t & info ) {
 							info.drop_filter();
 						} );
+			}
+
+		environment_t &
+		environment() const noexcept
+			{
+				return m_env;
 			}
 
 	private :

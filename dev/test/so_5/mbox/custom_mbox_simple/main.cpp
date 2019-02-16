@@ -97,6 +97,12 @@ public :
 			m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 		}
 
+	so_5::environment_t &
+	environment() const noexcept override
+		{
+			return m_actual_mbox->environment();
+		}
+
 private :
 	const so_5::mbox_t m_actual_mbox;
 

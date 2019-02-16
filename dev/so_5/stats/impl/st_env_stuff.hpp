@@ -78,6 +78,19 @@ class next_turn_handler_t
  */
 class next_turn_mbox_t final : public abstract_message_box_t
 	{
+		//! Environment for which that mbox is created.
+		/*!
+		 * \note
+		 * This attribute is necessary for correct implementation of
+		 * inherited environment() method.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		environment_t & m_env;
+
+		next_turn_mbox_t( environment_t & env ) : m_env{ env } {}
+
 	public:
 		// NOTE: this method should never be used.
 		mbox_id_t
@@ -173,11 +186,23 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
+		/*!
+		 * \note
+		 * It seems that this method should never be called.
+		 * But it is safer to provide an actual implementation for it
+		 * than relying on wrong assumption.
+		 */
+		environment_t &
+		environment() const noexcept override
+			{
+				return m_env;
+			}
+
 		//! Helper for simplify creation of that mboxes of that type.
 		static mbox_t
-		make()
+		make( environment_t & env )
 			{
-				return new next_turn_mbox_t();
+				return { new next_turn_mbox_t{env} };
 			}
 	};
 

@@ -30,6 +30,8 @@ namespace so_5 {
  */
 struct mbox_creation_data_t
 	{
+		//! Environment for which the mbox is created.
+		outliving_reference_t< environment_t > m_env;
 		//! ID for a new mbox.
 		mbox_id_t m_id;
 		//! Stuff to be used for message delivery tracing.
@@ -37,9 +39,11 @@ struct mbox_creation_data_t
 
 		//! Initializing constructor.
 		mbox_creation_data_t(
+			outliving_reference_t< environment_t > env,
 			mbox_id_t id,
 			outliving_reference_t< msg_tracing::holder_t > tracer )
-			:	m_id(id)
+			:	m_env(env)
+			,	m_id(id)
 			,	m_tracer(tracer)
 			{}
 	};

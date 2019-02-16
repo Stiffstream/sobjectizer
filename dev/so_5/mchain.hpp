@@ -491,6 +491,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 
 	public :
 		using abstract_message_box_t::id;
+		using abstract_message_box_t::environment;
 
 		virtual mchain_props::extraction_status_t
 		extract(
@@ -516,10 +517,6 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		close(
 			//! What to do with chain's content.
 			mchain_props::close_mode_t mode ) = 0;
-
-		//! SObjectizer Environment for which the chain is created.
-		virtual so_5::environment_t &
-		environment() const = 0;
 
 	protected :
 		/*!

@@ -90,6 +90,9 @@ class named_local_mbox_t
 			const std::type_index & msg_type,
 			agent_t & subscriber ) noexcept override;
 
+		environment_t &
+		environment() const noexcept override;
+
 	private:
 		//! Mbox name.
 		const std::string m_name;
