@@ -902,7 +902,7 @@ class local_mbox_template
 			}
 
 		environment_t &
-		environment() const noexcept
+		environment() const noexcept override
 			{
 				return m_env;
 			}
