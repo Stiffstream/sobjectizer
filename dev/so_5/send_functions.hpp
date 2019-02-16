@@ -445,34 +445,6 @@ send_delayed(
 				pause );
 	}
 
-//FIXME: should be removed after addition of reference to environment to mbox.
-/*!
- * \since
- * v.5.5.1
- *
- * \brief A utility function for creating and delivering a periodic message.
- *
- * \attention
- * Values of \a pause and \a period should be non-negative.
- */
-template< typename Message, typename... Args >
-SO_5_NODISCARD timer_id_t
-send_periodic(
-	//! An environment to be used for timer.
-	so_5::environment_t & env,
-	//! Mbox for the message to be sent to.
-	const so_5::mbox_t & to,
-	//! Pause for message delaying.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period,
-	//! Message constructor parameters.
-	Args&&... args )
-	{
-		return so_5::impl::instantiator_and_sender< Message >::send_periodic(
-				env, to, pause, period, std::forward< Args >( args )... );
-	}
-
 /*!
  * \brief A utility function for creating and delivering a periodic message
  * to the specified destination.
@@ -506,7 +478,8 @@ send_periodic(
 	Args&&... args )
 	{
 		using namespace send_functions_details;
-		return send_periodic< Message >(
+
+		return so_5::impl::instantiator_and_sender< Message >::send_periodic(
 				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
@@ -514,6 +487,7 @@ send_periodic(
 				std::forward< Args >(args)... );
 	}
 
+//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for delivering a periodic
  * from an existing message hood.
@@ -529,7 +503,7 @@ send_periodic(
 	class redirector : public so_5::agent_t {
 		...
 		void on_some_immutable_message(mhood_t<first_msg> cmd) {
-			timer_id = so_5::send_periodic(so_environment(), another_mbox,
+			timer_id = so_5::send_periodic(another_mbox,
 					std::chrono::seconds(1),
 					std::chrono::seconds(15),
 					cmd);
@@ -537,7 +511,7 @@ send_periodic(
 		}
 
 		void on_some_mutable_message(mhood_t<mutable_msg<second_msg>> cmd) {
-			timer_id = so_5::send_periodic(so_environment(), another_mbox,
+			timer_id = so_5::send_periodic(another_mbox,
 					std::chrono::seconds(1),
 					std::chrono::seconds::zero(), // Note: period is 0!
 					std::move(cmd));
@@ -553,13 +527,11 @@ send_periodic(
  * \since
  * v.5.5.19
  */
-template< typename Message >
+template< typename Target, typename Message >
 SO_5_NODISCARD typename std::enable_if< !is_signal< Message >::value, timer_id_t >::type
 send_periodic(
-	//! An environment to be used for timer.
-	so_5::environment_t & env,
-	//! Mbox for the message to be sent to.
-	const so_5::mbox_t & to,
+	//! A destination for the periodic message.
+	Target && target,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -567,15 +539,18 @@ send_periodic(
 	//! Existing message hood for message to be sent.
 	mhood_t< Message > mhood )
 	{
+		using namespace send_functions_details;
+
 		return so_5::low_level_api::schedule_timer( 
-				env,
+				arg_to_env( target ),
 				message_payload_type< Message >::subscription_type_index(),
 				mhood.make_reference(),
-				to,
+				arg_to_mbox( target ),
 				pause,
 				period );
 	}
 
+//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for periodic redirection of a signal
  * from existing message hood.
@@ -588,7 +563,7 @@ send_periodic(
 	class redirector : public so_5::agent_t {
 		...
 		void on_some_immutable_signal(mhood_t<some_signal> cmd) {
-			timer_id = so_5::send_periodic(so_environment(), another_mbox,
+			timer_id = so_5::send_periodic(another_mbox,
 					std::chrono::seconds(1),
 					std::chrono::seconds(10),
 					cmd);
@@ -603,13 +578,11 @@ send_periodic(
  * \since
  * v.5.5.19
  */
-template< typename Message >
+template< typename Target, typename Message >
 SO_5_NODISCARD typename std::enable_if< is_signal< Message >::value, timer_id_t >::type
 send_periodic(
-	//! An environment to be used for timer.
-	so_5::environment_t & env,
-	//! Mbox for the message to be sent to.
-	const so_5::mbox_t & to,
+	//! A destination for the periodic message.
+	Target && target,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -617,78 +590,15 @@ send_periodic(
 	//! Existing message hood for message to be sent.
 	mhood_t< Message > /*mhood*/ )
 	{
+		using namespace send_functions_details;
+
 		return so_5::low_level_api::schedule_timer( 
-				env,
+				arg_to_env( target ),
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
-				to,
-				pause,
-				period );
-	}
-
-/*!
- * \brief A helper function for redirection of a message/signal as a periodic
- * message/signal.
- *
- * This function can be used if \a target is a reference to agent or if
- * \a target is a mchain. In such cases instead of writing:
- * \code
- * periodic_id = so_5::send_periodic(
- * 		target_agent.so_environment(),
- * 		target_agent.so_direct_mbox(),
- * 		pause,
- * 		period,
- * 		std::move(msg));
- * \endcode
- * it is possible to write:
- * \code
- * periodic_id = so_5::send_periodic(
- * 		target_agent,
- * 		pause,
- * 		period,
- * 		std::move(msg));
- * \endcode
- * 
- * Example usage:
- * \code
- * class my_agent : public so_5::agent_t {
- * ...
- * 	so_5::mchain_t target_mchain_;
- * 	so_5::timer_id_t periodic_msg_id_;
- * ...
- * 	void on_some_msg(mhood_t<some_msg> cmd) {
- * 		if( ... )
- * 			// Message should be resend as a periodic message.
- * 			periodic_msg_id_ = so_5::send_periodic(target_mchain_, 10s, 20s, std::move(cmd));
- * 	}
- * \endcode
- *
- * \attention
- * Values of \a pause and \a period should be non-negative.
- *
- * \since
- * v.5.5.20
- */
-template< typename Target, typename Message >
-SO_5_NODISCARD timer_id_t
-send_periodic(
-	//! A target for periodic message/signal.
-	//! It can be a reference to a target agent or a mchain_t.
-	Target && target,
-	//! Pause for the first occurence of the message/signal.
-	std::chrono::steady_clock::duration pause,
-	//! Period of message repetitions.
-	std::chrono::steady_clock::duration period,
-	//! Existing message hood for message/signal to be sent.
-	mhood_t< Message > mhood )
-	{
-		using namespace send_functions_details;
-		return send_periodic< Message >(
-				arg_to_env( target ),
 				arg_to_mbox( target ),
 				pause,
-				period,
-				std::move(mhood) );
+				period );
 	}
 
 /*!

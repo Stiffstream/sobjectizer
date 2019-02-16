@@ -45,7 +45,6 @@ class test_agent_t
 		{
 			// Schedule periodic message.
 			m_timer_ref = so_5::send_periodic< test_message >(
-					so_environment(),
 					m_test_mbox,
 					std::chrono::milliseconds(300),
 					std::chrono::milliseconds(200) );
@@ -91,7 +90,6 @@ test_agent_t::evt_test(
 	{
 		// Reschedule message. Old timer event should be released.
 		m_timer_ref = so_5::send_periodic< stop_message >(
-				so_environment(),
 				m_test_mbox,
 				std::chrono::milliseconds(800),
 				std::chrono::milliseconds(0) );

@@ -127,7 +127,6 @@ struct state_t::time_limit_t
 
 			// Delayed timeout signal must be sent.
 			m_timer = send_periodic< timeout >(
-					agent.so_environment(),
 					m_unique_mbox,
 					m_limit,
 					duration_t::zero() );
