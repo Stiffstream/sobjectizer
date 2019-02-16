@@ -28,7 +28,6 @@ public :
 		try
 		{
 			so_5::send_delayed< so_5::mutable_msg<first> >(
-					so_environment(),
 					m_mbox,
 					std::chrono::milliseconds(50) );
 
@@ -66,7 +65,6 @@ public :
 		try
 		{
 			so_5::send_delayed< so_5::mutable_msg<first> >(
-					so_environment(),
 					m_mbox,
 					std::chrono::milliseconds(50) );
 

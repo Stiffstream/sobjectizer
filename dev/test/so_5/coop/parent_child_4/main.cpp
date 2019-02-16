@@ -158,7 +158,6 @@ class a_driver_t : public so_5::agent_t
 			so_environment().register_coop( std::move( coop ) );
 
 			so_5::send_delayed< msg_shutdown >(
-					so_environment(),
 					m_mbox,
 					std::chrono::milliseconds(500) );
 		}
