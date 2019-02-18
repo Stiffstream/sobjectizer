@@ -1292,10 +1292,18 @@ wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
 
 namespace low_level_api {
 
-//FIXME: documentation should be expanded.
 //! Deliver message.
 /*!
  * Mbox takes care about destroying a message object.
+ *
+ * \attention
+ * This function ensures that Message is a classical message
+ * with an actual data (e.g. \a msg shouldn't be nullptr).
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
  *
  * \since
  * v.5.6.0
@@ -1319,11 +1327,15 @@ deliver_message(
 			1u );
 	}
 
-//FIXME: documentation should be expanded.
 //! Deliver message.
 /*!
  * This function is necessary for cases when message object
  * is already present as message_ref_t.
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
  *
  * \since
  * v.5.6.0
@@ -1343,9 +1355,16 @@ deliver_message(
 				1u );
 	}
 
-//FIXME: documentation should be expanded.
 //! Deliver signal.
 /*!
+ * \attention
+ * This function ensures that Message is a type of a signal.
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \since
  * v.5.6.0
  */

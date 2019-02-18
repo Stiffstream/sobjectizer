@@ -332,11 +332,12 @@ send_delayed(
 				std::forward< Args >(args)... );
 	}
 
-//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for delayed redirection of a message
  * from existing message hood.
  *
+ * \tparam Target a type of destination of the message. It can be an agent,
+ * a mbox or mchain.
  * \tparam Message a type of message to be redirected (it can be
  * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
@@ -355,6 +356,32 @@ send_delayed(
 			...
 		}
 	};
+ * \endcode
+ * A redirection to the direct mbox of some agent can looks like:
+ * \code
+ * void some_agent::on_some_message(mhood_t<some_message> cmd) {
+ * 	// Redirect to itself but with a pause.
+ * 	so_5::send_delayed(*this, std::chrono::seconds(2), cmd);
+ * }
+ * // For the case of mutable message.
+ * void another_agent::on_another_msg(mutable_mhood_t<another_msg> cmd) {
+ * 	// Redirect to itself but with a pause.
+ * 	so_5::send_delayed(*this, std::chrono::seconds(2), std::move(cmd));
+ * 	// Note: cmd is nullptr now, it can't be used anymore.
+ * }
+ * \endcode
+ * A redirection to a mchain can looks like:
+ * \code
+ * so_5::mchain_t first = ...;
+ * so_5::mchain_t second = ...;
+ * so_5::receive(so_5::from(first).handle_n(1),
+ * 	[second](so_5::mhood_t<some_message> cmd) {
+ * 		so_5::send_delayed(second, std::chrono::seconds(1), cmd);
+ * 	},
+ * 	[second](so_5::mutable_mhood_t<another_message> cmd) {
+ * 		so_5::send_delayed(second, std::chrono::seconds(1), std::move(cmd));
+ * 		// Note: cmd is nullptr now, it can't be used anymore.
+ * 	});
  * \endcode
  *
  * \attention
@@ -382,11 +409,12 @@ send_delayed(
 				pause );
 	}
 
-//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for delayed redirection of a signal
  * from existing message hood.
  *
+ * \tparam Target a type of destination of the signal. It can be an agent,
+ * a mbox or mchain.
  * \tparam Message a type of signal to be redirected (it can be
  * in form of Sig or so_5::immutable_msg<Sig>).
  *
@@ -399,6 +427,22 @@ send_delayed(
 			...
 		}
 	};
+ * \endcode
+ * A redirection to the direct mbox of some agent can looks like:
+ * \code
+ * void some_agent::on_some_signal(mhood_t<some_signal> cmd) {
+ * 	// Redirect to itself but with a pause.
+ * 	so_5::send_delayed(*this, std::chrono::seconds(2), cmd);
+ * }
+ * \endcode
+ * A redirection to a mchain can looks like:
+ * \code
+ * so_5::mchain_t first = ...;
+ * so_5::mchain_t second = ...;
+ * so_5::receive(so_5::from(first).handle_n(1),
+ * 	[second](so_5::mhood_t<some_signal> cmd) {
+ * 		so_5::send_delayed(second, std::chrono::seconds(1), cmd);
+ * 	});
  * \endcode
  *
  * \attention
@@ -467,7 +511,6 @@ send_periodic(
 				std::forward< Args >(args)... );
 	}
 
-//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for delivering a periodic
  * from an existing message hood.
@@ -475,6 +518,8 @@ send_periodic(
  * \attention Message must not be a mutable message if \a period is not 0.
  * Otherwise an exception will be thrown.
  *
+ * \tparam Target a type of destination of the message. It can be an agent,
+ * a mbox or mchain.
  * \tparam Message a type of message to be redirected (it can be
  * in form of Msg, so_5::immutable_msg<Msg> or so_5::mutable_msg<Msg>).
  *
@@ -500,6 +545,33 @@ send_periodic(
 		}
 	};
  * \endcode
+ * A redirection to the direct mbox of some agent can looks like:
+ * \code
+ * void some_agent::on_some_message(mhood_t<some_message> cmd) {
+ * 	// Redirect to itself but with a pause and a period.
+ * 	timer_id = so_5::send_periodic(*this,
+ * 			std::chrono::seconds(2),
+ * 			std::chrono::seconds(5),
+ * 			cmd);
+ * }
+ * \endcode
+ * A redirection to a mchain can looks like:
+ * \code
+ * so_5::mchain_t first = ...;
+ * so_5::mchain_t second = ...;
+ * so_5::timer_id_t timer_id;
+ * so_5::receive(so_5::from(first).handle_n(1),
+ * 	[&](so_5::mhood_t<some_message> cmd) {
+ * 		timer_id = so_5::send_periodic(
+ * 				second,
+ * 				std::chrono::seconds(2),
+ * 				std::chrono::seconds(5),
+ * 				cmd);
+ * 	});
+ * \endcode
+ * \note
+ * Message chains with overload control must be used for periodic messages
+ * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
  *
  * \attention
  * Values of \a pause and \a period should be non-negative.
@@ -529,11 +601,12 @@ send_periodic(
 				period );
 	}
 
-//FIXME: more examples should be added to the comment.
 /*!
  * \brief A utility function for periodic redirection of a signal
  * from existing message hood.
  *
+ * \tparam Target a type of destination of the signal. It can be an agent,
+ * a mbox or mchain.
  * \tparam Message a type of signal to be redirected (it can be
  * in form of Sig or so_5::immutable_msg<Sig>).
  *
@@ -550,6 +623,33 @@ send_periodic(
 		}
 	};
  * \endcode
+ * A redirection to the direct mbox of some agent can looks like:
+ * \code
+ * void some_agent::on_some_message(mhood_t<some_signal> cmd) {
+ * 	// Redirect to itself but with a pause and a period.
+ * 	timer_id = so_5::send_periodic(*this,
+ * 			std::chrono::seconds(2),
+ * 			std::chrono::seconds(5),
+ * 			cmd);
+ * }
+ * \endcode
+ * A redirection to a mchain can looks like:
+ * \code
+ * so_5::mchain_t first = ...;
+ * so_5::mchain_t second = ...;
+ * so_5::timer_id_t timer_id;
+ * so_5::receive(so_5::from(first).handle_n(1),
+ * 	[&](so_5::mhood_t<some_signal> cmd) {
+ * 		timer_id = so_5::send_periodic(
+ * 				second,
+ * 				std::chrono::seconds(2),
+ * 				std::chrono::seconds(5),
+ * 				cmd);
+ * 	});
+ * \endcode
+ * \note
+ * Message chains with overload control must be used for periodic messages
+ * with additional care: \ref so_5_5_18__overloaded_mchains_and_timers.
  *
  * \attention
  * Values of \a pause and \a period should be non-negative.

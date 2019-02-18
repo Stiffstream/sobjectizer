@@ -2155,9 +2155,13 @@ introduce_child_coop(
 namespace low_level_api
 {
 
-//FIXME: more documentation is needed.
 //! Schedule periodic timer event.
 /*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \attention
  * Values of \a pause and \a period should be non-negative.
  *
@@ -2190,9 +2194,13 @@ schedule_timer(
 					period } );
 }
 
-//FIXME: more documentation is needed.
 //! Schedule single timer event.
 /*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \attention
  * Value \a period should be non-negative.
  *
