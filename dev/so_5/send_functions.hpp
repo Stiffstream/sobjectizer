@@ -29,13 +29,13 @@ namespace impl
 	template< class Message, bool Is_Signal >
 	struct instantiator_and_sender_base
 		{
+		private :
+			// Helper method for message instance creation and
+			// mutability flag handling.
 			template< typename... Args >
-			static void
-			send(
-				const so_5::mbox_t & to,
-				Args &&... args )
+			static auto
+			make_instance( Args &&... args )
 				{
-//FIXME: this code looks to do copy-pasted.
 					// it will be std::unique_ptr<Envelope>, where Envelope
 					// can be a different type. But Envelope is derived from
 					// so_5::message_t.
@@ -45,10 +45,20 @@ namespace impl
 					so_5::details::mark_as_mutable_if_necessary< Message >(
 							*msg_instance );
 
+					return msg_instance;
+				}
+
+		public :
+			template< typename... Args >
+			static void
+			send(
+				const so_5::mbox_t & to,
+				Args &&... args )
+				{
 					so_5::low_level_api::deliver_message(
 							*to,
 							message_payload_type< Message >::subscription_type_index(),
-							std::move(msg_instance) );
+							make_instance( std::forward<Args>(args)... ) );
 				}
 
 			template< typename... Args >
@@ -58,18 +68,9 @@ namespace impl
 				std::chrono::steady_clock::duration pause,
 				Args &&... args )
 				{
-					// it will be std::unique_ptr<Envelope>, where Envelope
-					// can be a different type. But Envelope is derived from
-					// so_5::message_t.
-					auto msg_instance =
-						so_5::details::make_message_instance< Message >(
-								std::forward< Args >( args )...);
-					so_5::details::mark_as_mutable_if_necessary< Message >(
-							*msg_instance );
-
 					so_5::low_level_api::single_timer(
 							message_payload_type< Message >::subscription_type_index(),
-							message_ref_t{ msg_instance.release() },
+							message_ref_t{ make_instance( std::forward<Args>(args)... ) },
 							to,
 							pause );
 				}
@@ -82,18 +83,9 @@ namespace impl
 				std::chrono::steady_clock::duration period,
 				Args &&... args )
 				{
-					// it will be std::unique_ptr<Envelope>, where Envelope
-					// can be a different type. But Envelope is derived from
-					// so_5::message_t.
-					auto msg_instance =
-						so_5::details::make_message_instance< Message >(
-								std::forward< Args >( args )...);
-					so_5::details::mark_as_mutable_if_necessary< Message >(
-							*msg_instance );
-
 					return so_5::low_level_api::schedule_timer( 
 							message_payload_type< Message >::subscription_type_index(),
-							message_ref_t{ msg_instance.release() },
+							message_ref_t{ make_instance( std::forward<Args>(args)... ) },
 							to,
 							pause,
 							period );

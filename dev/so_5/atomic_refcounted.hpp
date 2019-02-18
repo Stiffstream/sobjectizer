@@ -312,8 +312,9 @@ class intrusive_ptr_t
 		}
 };
 
-//FIXME: document this!
 /*!
+ * Deduction rule for C++17 compiler.
+ *
  * \since
  * v.5.6.0
  */
