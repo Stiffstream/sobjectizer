@@ -96,7 +96,7 @@ class actual_select_case_t : public select_case_t
 			}
 
 	protected :
-		virtual mchain_receive_result_t
+		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
 			{
 				const bool handled = m_handlers.handle(
@@ -294,7 +294,7 @@ class actual_select_notificator_t : public select_notificator_t
 					}
 			}
 
-		virtual void
+		void
 		notify( select_case_t & what ) noexcept override
 			{
 				select_case_t * old_tail = nullptr;
@@ -410,13 +410,13 @@ class select_actions_performer_t
 			}
 
 		extraction_status_t
-		last_status() const { return m_status; }
+		last_status() const noexcept { return m_status; }
 
 		bool
-		can_continue() const { return m_can_continue; }
+		can_continue() const noexcept { return m_can_continue; }
 
 		mchain_receive_result_t
-		make_result() const
+		make_result() const noexcept
 			{
 				return mchain_receive_result_t{
 						m_extracted_messages,
