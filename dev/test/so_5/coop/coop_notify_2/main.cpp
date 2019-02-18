@@ -66,7 +66,7 @@ class a_test_t : public so_5::agent_t
 						const std::string &,
 						const so_5::coop_dereg_reason_t &)
 					{
-						m_mbox->deliver_signal< msg_child_deregistered >();
+						so_5::send< msg_child_deregistered >( m_mbox );
 					} );
 
 			child_coop->add_agent( new a_child_t( so_environment() ) );

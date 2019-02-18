@@ -99,7 +99,7 @@ test_agent_t::so_define_agent()
 void
 test_agent_t::so_evt_start()
 {
-	m_test_mbox->deliver_signal< test_message >();
+	so_5::send< test_message >( m_test_mbox );
 }
 
 void
@@ -107,7 +107,7 @@ test_agent_t::evt_in_state_default(
 	mhood_t< test_message > )
 {
 	++m_handler_in_state_default_calls;
-	m_test_mbox->deliver_signal< test_message >();
+	so_5::send< test_message >( m_test_mbox );
 
 	// Change state after message has been sent.
 	so_change_state( m_first_state );
@@ -122,7 +122,7 @@ test_agent_t::evt_in_state_1(
 	// Change state before message will be sent.
 	so_change_state( m_second_state );
 
-	m_test_mbox->deliver_signal< test_message >();
+	so_5::send< test_message >( m_test_mbox );
 }
 
 void
@@ -134,7 +134,7 @@ test_agent_t::evt_in_state_2(
 	// Change state before message will be sent.
 	so_change_state( m_third_state );
 
-	m_test_mbox->deliver_signal< test_message >();
+	so_5::send< test_message >( m_test_mbox );
 }
 
 void

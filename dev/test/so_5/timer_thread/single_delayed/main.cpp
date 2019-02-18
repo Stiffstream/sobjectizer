@@ -40,10 +40,10 @@ class test_agent_t
 		so_evt_start()
 		{
 			// Send a delayed for 1 second message.
-			m_timer_ref = so_environment().schedule_timer< test_message >(
-				m_test_mbox,
-				1000,
-				0 );
+			m_timer_ref = so_5::send_periodic< test_message >(
+					m_test_mbox,
+					std::chrono::seconds(1),
+					std::chrono::seconds(0) );
 		}
 
 		void

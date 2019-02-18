@@ -35,9 +35,9 @@ class a_sender_t
 		so_evt_start()
 			{
 				for( unsigned int i = 0; i != m_send_count; ++i )
-					m_mbox->deliver_signal< msg_send >();
+					so_5::send< msg_send >( m_mbox );
 
-				m_mbox->deliver_signal< msg_complete >();
+				so_5::send< msg_complete >( m_mbox );
 			}
 
 	private :

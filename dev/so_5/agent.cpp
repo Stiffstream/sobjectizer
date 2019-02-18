@@ -6,6 +6,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/enveloped_msg.hpp>
 #include <so_5/environment.hpp>
+#include <so_5/send_functions.hpp>
 
 #include <so_5/impl/internal_env_iface.hpp>
 
@@ -125,7 +126,7 @@ struct state_t::time_limit_t
 					} );
 
 			// Delayed timeout signal must be sent.
-			m_timer = agent.so_environment().schedule_timer< timeout >(
+			m_timer = send_periodic< timeout >(
 					m_unique_mbox,
 					m_limit,
 					duration_t::zero() );

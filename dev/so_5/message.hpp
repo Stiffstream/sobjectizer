@@ -204,7 +204,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		virtual const void *
 		so5__payload_ptr() const;
 
-		//FIXME: this method should be marked as noexcept in v.5.6.0
 		/*!
 		 * \brief Get message mutability flag.
 		 *
@@ -840,11 +839,37 @@ mark_as_mutable_if_necessary( message_t & msg )
 		change_message_mutability( msg, message_mutability_t::mutable_message );
 	}
 
+/*!
+ * \since
+ * v.5.6.0
+ */
+template< typename Msg >
+typename std::enable_if<
+	message_mutability_t::mutable_message ==
+			::so_5::details::message_mutability_traits<Msg>::mutability >::type
+mark_as_mutable_if_necessary( message_ref_t & msg )
+	{
+		change_message_mutability( *msg, message_mutability_t::mutable_message );
+	}
+
 template< typename Msg >
 typename std::enable_if<
 	message_mutability_t::mutable_message !=
 			::so_5::details::message_mutability_traits<Msg>::mutability >::type
 mark_as_mutable_if_necessary( message_t & /*msg*/ )
+	{
+		// Nothing to do.
+	}
+
+/*!
+ * \since
+ * v.5.6.0
+ */
+template< typename Msg >
+typename std::enable_if<
+	message_mutability_t::mutable_message !=
+			::so_5::details::message_mutability_traits<Msg>::mutability >::type
+mark_as_mutable_if_necessary( message_ref_t & /*msg*/ )
 	{
 		// Nothing to do.
 	}

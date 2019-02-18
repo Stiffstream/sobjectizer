@@ -325,7 +325,7 @@ class a_controller_t : public so_5::agent_t
 		void
 		send_initial_hello( const workers_vector_t & workers )
 			{
-				so_5::send_to_agent< a_worker_t::hello >(
+				so_5::send< a_worker_t::hello >(
 						*( workers[ random_index( workers.size() ) ] ) );
 			}
 

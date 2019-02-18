@@ -50,5 +50,9 @@ class agent_demand_handler_invoker_t;
 
 } /* namespace enveloped_msg */
 
+namespace low_level_api {
+
+} /* namespace low_level_api */
+
 } /* namespace so_5 */
 

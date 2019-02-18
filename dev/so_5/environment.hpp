@@ -57,6 +57,37 @@
 namespace so_5
 {
 
+namespace low_level_api
+{
+
+struct schedule_timer_params_t
+	{
+		//! Message type.
+		const std::type_index & m_msg_type;
+		//! Message to be sent after timeout.
+		const message_ref_t & m_msg;
+		//! Mbox to which message will be delivered.
+		const mbox_t & m_mbox;
+		//! Timeout before the first delivery.
+		std::chrono::steady_clock::duration m_pause;
+		//! Period of the delivery repetition for periodic messages.
+		std::chrono::steady_clock::duration m_period;
+	};
+
+struct single_timer_params_t
+	{
+		//! Message type.
+		const std::type_index & m_msg_type;
+		//! Message to be sent after timeout.
+		const message_ref_t & m_msg;
+		//! Mbox to which message will be delivered.
+		const mbox_t & m_mbox;
+		//! Timeout before the delivery.
+		std::chrono::steady_clock::duration m_pause;
+	};
+
+} /* namespace low_level_api */
+
 /*!
  * \brief Special type for autoname-cooperation implementation.
  *
@@ -750,31 +781,6 @@ class SO_5_TYPE environment_params_t
  *
  * Method environment_t::deregister_coop() should be used for the 
  * cooperation deregistration.
- *
- * \section so_env__delayed_message_methods Methods for 
- * sending delayed and periodic messages.
- *
- * Receiving of delayed and/or periodic messages are named as timer events.
- * 
- * The timer event can be created and destroyed. If the timer event for
- * a delayed message is destroyed before message timeout is expired then
- * message delivery will be canceled. For periodic messages destroying of
- * the timer event means that message delivery will be stopped.
- *
- * Timer events can be created by environment_t::schedule_timer()
- * methods. The one version of the schedule_timer() is intended for
- * messages with an actual data. The second one -- for the signals without
- * the message data.
- *
- * Methods schedule_timer() return a special reference for the timer event.
- * Timer event destroyed when this reference destroyed. So it is necessary
- * to store this reference somewhere. Also the timer event can be destroyed
- * by the so_5::timer_thread::timer_id_ref_t::release() method.
- *
- * A special method environment_t::single_timer() can be used in
- * case when a single shot timer event is necessary. With using this
- * method there is no need to store reference for the scheduled
- * single shot timer event.
  */
 class SO_5_TYPE environment_t
 {
@@ -1291,336 +1297,6 @@ class SO_5_TYPE environment_t
 		 */
 
 		/*!
-		 * \name Methods for working with timer events.
-		 * \{
-		 */
-
-		//! Schedule timer event.
-		/*!
-		 * \attention
-		 * Values of \a pause and \a period should be non-negative.
-		 *
-		 * \since
-		 * v.5.5.19
-		 */
-		template< class Message >
-		so_5::timer_id_t
-		schedule_timer(
-			//! Message type for searching subscribers.
-			std::type_index subscription_type,
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Message mutability.
-			message_mutability_t mutability,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			std::chrono::steady_clock::duration pause,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			std::chrono::steady_clock::duration period )
-		{
-			ensure_classical_message< Message >();
-			ensure_message_with_actual_data( msg.get() );
-			change_message_mutability( *msg, mutability );
-
-			return schedule_timer(
-				subscription_type,
-				message_ref_t( msg.release() ),
-				mbox,
-				pause,
-				period );
-		}
-
-		//! Schedule timer event.
-		/*!
-		 * \attention
-		 * Values of \a pause and \a period should be non-negative.
-		 *
-		 * \since
-		 * v.5.5.0
-		 */
-		template< class Message >
-		so_5::timer_id_t
-		schedule_timer(
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			std::chrono::steady_clock::duration pause,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			std::chrono::steady_clock::duration period )
-		{
-			ensure_classical_message< Message >();
-			ensure_message_with_actual_data( msg.get() );
-
-			return schedule_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t( msg.release() ),
-				mbox,
-				pause,
-				period );
-		}
-
-		//! Schedule timer event.
-		/*!
-		 * \deprecated Obsolete in v.5.5.0. Use versions with
-		 * std::chrono::steady_clock::duration parameters.
-		 */
-		template< class Message >
-		so_5::timer_id_t
-		schedule_timer(
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			unsigned int delay_msec,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			unsigned int period_msec )
-		{
-			ensure_classical_message< Message >();
-			ensure_message_with_actual_data( msg.get() );
-
-			return schedule_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t( msg.release() ),
-				mbox,
-				std::chrono::milliseconds( delay_msec ),
-				std::chrono::milliseconds( period_msec ) );
-		}
-
-		//! Schedule a timer event for a signal.
-		/*!
-		 * \attention
-		 * Values of \a pause and \a period should be non-negative.
-		 *
-		 * \since
-		 * v.5.5.0
-		 */
-		template< class Message >
-		so_5::timer_id_t
-		schedule_timer(
-			//! Mbox to which signal will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			std::chrono::steady_clock::duration pause,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			std::chrono::steady_clock::duration period )
-		{
-			ensure_signal< Message >();
-
-			return schedule_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t(),
-				mbox,
-				pause,
-				period );
-		}
-
-		//! Schedule a timer event for a signal.
-		/*!
-		 * \deprecated Obsolete in v.5.5.0. Use versions with
-		 * std::chrono::steady_clock::duration parameters.
-		 */
-		template< class Message >
-		so_5::timer_id_t
-		schedule_timer(
-			//! Mbox to which signal will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			unsigned int delay_msec,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			unsigned int period_msec )
-		{
-			ensure_signal< Message >();
-
-			return schedule_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t(),
-				mbox,
-				std::chrono::milliseconds( delay_msec ),
-				std::chrono::milliseconds( period_msec ) );
-		}
-
-		//! Schedule a single shot timer event.
-		/*!
-		 * \attention
-		 * Value of \a pause should be non-negative.
-		 *
-		 * \since
-		 * v.5.5.0
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			std::chrono::steady_clock::duration pause )
-		{
-			ensure_message_with_actual_data( msg.get() );
-
-			single_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t( msg.release() ),
-				mbox,
-				pause );
-		}
-
-		//! Schedule a single shot timer event.
-		/*!
-		 * Intended to be used for delaying mutable messages.
-		 *
-		 * \since
-		 * v.5.5.19
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Type to be used for searching subscribers.
-			std::type_index subscription_type,
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Mutability flag for that message.
-			message_mutability_t mutability,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			std::chrono::steady_clock::duration pause )
-		{
-			ensure_message_with_actual_data( msg.get() );
-
-			change_message_mutability( *msg, mutability );
-
-			single_timer(
-				subscription_type,
-				message_ref_t( msg.release() ),
-				mbox,
-				pause );
-		}
-
-		//! Schedule a single shot timer event.
-		/*!
-		 * \deprecated Obsolete in v.5.5.0. Use versions with
-		 * std::chrono::steady_clock::duration parameters.
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Message to be sent after timeout.
-			std::unique_ptr< Message > msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			unsigned int delay_msec )
-		{
-			ensure_classical_message< Message >();
-			ensure_message_with_actual_data( msg.get() );
-
-			single_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t( msg.release() ),
-				mbox,
-				std::chrono::milliseconds( delay_msec ) );
-		}
-
-		//! Schedule a single shot timer event for a signal.
-		/*!
-		 * \since
-		 * v.5.5.0
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Mbox to which signal will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			std::chrono::steady_clock::duration pause )
-		{
-			ensure_signal< Message >();
-
-			single_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t(),
-				mbox,
-				pause );
-		}
-
-		//! Schedule a single shot timer event for a signal.
-		/*!
-		 * Intended to be used with mutable_msg<signal>.
-		 *
-		 * \since
-		 * v.5.5.0
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Type to be used for searching subscribers.
-			std::type_index subscription_type,
-			//! Mbox to which signal will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			std::chrono::steady_clock::duration pause )
-		{
-			ensure_signal< Message >();
-
-			single_timer(
-				subscription_type,
-				message_ref_t(),
-				mbox,
-				pause );
-		}
-
-		//! Schedule a single shot timer event for a signal.
-		/*!
-		 * \deprecated Obsolete in v.5.5.0. Use versions with
-		 * std::chrono::steady_clock::duration parameters.
-		 */
-		template< class Message >
-		void
-		single_timer(
-			//! Mbox to which signal will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before delivery.
-			unsigned int delay_msec )
-		{
-			ensure_signal< Message >();
-
-			single_timer(
-				message_payload_type< Message >::subscription_type_index(),
-				message_ref_t(),
-				mbox,
-				std::chrono::milliseconds( delay_msec ) );
-		}
-		/*!
-		 * \}
-		 */
-
-		/*!
 		 * \name Methods for working with layers.
 		 * \{
 		 */
@@ -1881,24 +1557,14 @@ class SO_5_TYPE environment_t
 		 * Values of \a pause and \a period should be non-negative.
 		 *
 		 * \note
-		 * Before v.5.5.19 this method was private.
+		 * This method is a part of low-level SObjectizer's API.
+		 * Because of that it can be changed or removed in some
+		 * future version of SObjectizer without prior notice.
 		 */
 		so_5::timer_id_t
-		schedule_timer(
-			//! Message type.
-			const std::type_index & type_wrapper,
-			//! Message to be sent after timeout.
-			const message_ref_t & msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			std::chrono::steady_clock::duration pause,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message 
-					(will be delivered one time).
-			*/
-			std::chrono::steady_clock::duration period );
+		so_schedule_timer(
+			//! Parameters for new timer.
+			const low_level_api::schedule_timer_params_t params );
 
 		//! Schedule a single shot timer event.
 		/*!
@@ -1906,18 +1572,14 @@ class SO_5_TYPE environment_t
 		 * Value of \a pause should be non-negative.
 		 *
 		 * \note
-		 * Before v.5.5.19 this method was private.
+		 * This method is a part of low-level SObjectizer's API.
+		 * Because of that it can be changed or removed in some
+		 * future version of SObjectizer without prior notice.
 		 */
 		void
-		single_timer(
-			//! Message type.
-			const std::type_index & type_wrapper,
-			//! Message to be sent after timeout.
-			const message_ref_t & msg,
-			//! Mbox to which message will be delivered.
-			const mbox_t & mbox,
-			//! Timeout before the first delivery.
-			std::chrono::steady_clock::duration pause );
+		so_single_timer(
+			//! Parameters for new timer.
+			const low_level_api::single_timer_params_t params );
 
 		//! Create a custom mbox.
 		/*!
@@ -2489,6 +2151,82 @@ introduce_child_coop(
 			parent.environment(),
 			parent.query_coop_name() }.introduce( std::forward< Args >(args)... );
 }
+
+namespace low_level_api
+{
+
+//! Schedule periodic timer event.
+/*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
+ * \attention
+ * Values of \a pause and \a period should be non-negative.
+ *
+ * \since
+ * v.5.6.0
+ */
+SO_5_NODISCARD inline so_5::timer_id_t
+schedule_timer(
+	//! Message type for searching subscribers.
+	const std::type_index & subscription_type,
+	//! Message to be sent after timeout.
+	message_ref_t msg,
+	//! Mbox to which message will be delivered.
+	const mbox_t & mbox,
+	//! Timeout before the first delivery.
+	std::chrono::steady_clock::duration pause,
+	//! Period of the delivery repetition for periodic messages.
+	/*! 
+		\note Value 0 indicates that it's not periodic message 
+			(will be delivered one time).
+	*/
+	std::chrono::steady_clock::duration period )
+{
+	return mbox->environment().so_schedule_timer(
+			schedule_timer_params_t{
+					std::cref(subscription_type),
+					std::cref(msg),
+					std::cref(mbox),
+					pause,
+					period } );
+}
+
+//! Schedule single timer event.
+/*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
+ * \attention
+ * Value \a period should be non-negative.
+ *
+ * \since
+ * v.5.6.0
+ */
+inline void
+single_timer(
+	//! Message type for searching subscribers.
+	const std::type_index & subscription_type,
+	//! Message to be sent after timeout.
+	message_ref_t msg,
+	//! Mbox to which message will be delivered.
+	const mbox_t & mbox,
+	//! Timeout before the delivery.
+	std::chrono::steady_clock::duration pause )
+{
+	return mbox->environment().so_single_timer(
+			single_timer_params_t{
+					std::cref(subscription_type),
+					std::cref(msg),
+					std::cref(mbox),
+					pause } );
+}
+
+} /* namespace low_level_api */
 
 } /* namespace so_5 */
 

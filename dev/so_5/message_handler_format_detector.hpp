@@ -63,13 +63,24 @@ struct message_handler_format_detector<const MESSAGE &>
 		using type = typename message_payload_type<MESSAGE>::subscription_type;
 	};
 
-//FIXME: document this!
 //
 // method_arity
 //
+/*!
+ * \brief A special enumeration to specify arity of lambda-function or method.
+ *
+ * This enumeration is intended to be used in utility tools like
+ * is_agent_method_pointer class.
+ *
+ * \since
+ * v.5.6.0
+ */
 enum class method_arity
 	{
-		nullary, unary
+		//! Method or function has no arguments.
+		nullary,
+		//! Method or function has just one argument.
+		unary
 	};
 
 //

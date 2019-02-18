@@ -54,12 +54,12 @@ class a_test_t : public so_5::agent_t
 			for( size_t i = 0; i < 100; ++i )
 			{
 				for( size_t j = 0; j != thread_count; ++j )
-					so_direct_mbox()->deliver_signal< msg_safe_signal >();
+					so_5::send< msg_safe_signal >( *this );
 
-				so_direct_mbox()->deliver_signal< msg_unsafe_signal >();
+				so_5::send< msg_unsafe_signal >( *this );
 			}
 
-			so_direct_mbox()->deliver_signal< msg_shutdown >();
+			so_5::send< msg_shutdown >( *this );
 		}
 
 		void

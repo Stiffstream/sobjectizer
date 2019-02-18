@@ -31,14 +31,14 @@ class a_child_t
 			{}
 		~a_child_t()
 			{
-				m_parent_mbox->deliver_signal< msg_child_agent_destroyed >();
+				so_5::send< msg_child_agent_destroyed >( m_parent_mbox );
 			}
 
 		virtual void
 		so_define_agent()
 			{
 				so_subscribe_self().event( [=](mhood_t< msg_ping >) {
-						m_parent_mbox->deliver_signal< msg_ack >();
+						so_5::send< msg_ack >( m_parent_mbox );
 					} );
 			}
 
@@ -96,7 +96,7 @@ class a_parent_t
 			m_state = state_t::awaiting_acks;
 
 			for( auto & m : m_child_mboxes )
-				m->deliver_signal< msg_ping >();
+				so_5::send< msg_ping >( m );
 		}
 
 		void
@@ -115,7 +115,7 @@ class a_parent_t
 			consume_some_memory();
 			run_with_time_limit( [this] {
 					for( auto & m : m_child_mboxes )
-						m->deliver_signal< msg_ping >();
+						so_5::send< msg_ping >( m );
 				},
 				40,
 				"attempts to send signal to MPSC mbox of destroyed agent" );

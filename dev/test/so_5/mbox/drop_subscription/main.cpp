@@ -45,7 +45,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		do_deliver_message(
 			const std::type_index & type_index,
 			const so_5::message_ref_t & message_ref,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				m_actual_mbox->do_deliver_message(
 						type_index, message_ref, overlimit_reaction_deep );
@@ -55,7 +55,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		do_deliver_service_request(
 			const std::type_index & type_index,
 			const so_5::message_ref_t & svc_request_ref,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				m_actual_mbox->do_deliver_service_request(
 						type_index,
@@ -106,6 +106,12 @@ class test_mbox_t : public so_5::abstract_message_box_t
 			so_5::agent_t & subscriber ) noexcept override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
+			}
+
+		so_5::environment_t &
+		environment() const noexcept override
+			{
+				return m_actual_mbox->environment();
 			}
 
 		static so_5::mbox_t
@@ -165,10 +171,10 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
-			m_mbox->deliver_message( new msg_four() );
-			m_mbox->deliver_signal< msg_five >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
+			so_5::send< msg_four >( m_mbox );
+			so_5::send< msg_five >( m_mbox );
 		}
 
 		void
@@ -184,8 +190,8 @@ class a_test_t : public so_5::agent_t
 
 			so_drop_subscription( m_mbox, &a_test_t::evt_default_one );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void
@@ -195,8 +201,8 @@ class a_test_t : public so_5::agent_t
 
 			so_change_state( st_1 );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
 		}
 
 		void
@@ -204,7 +210,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_sequence += "d4:";
 
-			m_mbox->deliver_message( new msg_four() );
+			so_5::send< msg_four >( m_mbox );
 
 			so_drop_subscription( m_mbox, &a_test_t::evt_default_four );
 			so_drop_subscription( m_mbox, st_1, &a_test_t::evt_default_four );
@@ -215,7 +221,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_sequence += "d5:";
 
-			m_mbox->deliver_signal< msg_five >();
+			so_5::send< msg_five >( m_mbox );
 
 			so_drop_subscription_for_all_states< msg_five >( m_mbox );
 		}
@@ -233,8 +239,8 @@ class a_test_t : public so_5::agent_t
 
 			so_drop_subscription( m_mbox, st_1, &a_test_t::evt_st_1_one );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void
@@ -247,9 +253,9 @@ class a_test_t : public so_5::agent_t
 
 			so_change_state( st_2 );
 
-			m_mbox->deliver_signal< msg_one >();
-			m_mbox->deliver_signal< msg_two >();
-			m_mbox->deliver_signal< msg_three >();
+			so_5::send< msg_one >( m_mbox );
+			so_5::send< msg_two >( m_mbox );
+			so_5::send< msg_three >( m_mbox );
 		}
 
 		void

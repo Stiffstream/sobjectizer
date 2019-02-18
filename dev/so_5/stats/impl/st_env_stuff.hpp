@@ -78,15 +78,28 @@ class next_turn_handler_t
  */
 class next_turn_mbox_t final : public abstract_message_box_t
 	{
+		//! Environment for which that mbox is created.
+		/*!
+		 * \note
+		 * This attribute is necessary for correct implementation of
+		 * inherited environment() method.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		environment_t & m_env;
+
+		next_turn_mbox_t( environment_t & env ) : m_env{ env } {}
+
 	public:
 		// NOTE: this method should never be used.
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override
 			{
 				return 0;
 			}
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & /*type_index*/,
 			const message_limit::control_block_t * /*limit*/,
@@ -97,7 +110,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*type_index*/,
 			agent_t * /*subscriber*/ ) override
@@ -107,23 +120,23 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual std::string
+		std::string
 		query_name() const override
 			{
 				return "<next_turn_mbox>";
 			}
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override
 			{
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				static const auto & next_turn_msg_type =
 						typeid(next_turn_handler_t::next_turn);
@@ -141,18 +154,18 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						actual_message.m_run_id );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & /*msg_type*/,
 			const message_ref_t & /*message*/,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to do_deliver_service_request() is illegal for "
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
@@ -163,7 +176,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			agent_t & /*subscriber*/ ) noexcept override
@@ -173,11 +186,23 @@ class next_turn_mbox_t final : public abstract_message_box_t
 						"next_turn_mbox_t" );
 			}
 
+		/*!
+		 * \note
+		 * It seems that this method should never be called.
+		 * But it is safer to provide an actual implementation for it
+		 * than relying on wrong assumption.
+		 */
+		environment_t &
+		environment() const noexcept override
+			{
+				return m_env;
+			}
+
 		//! Helper for simplify creation of that mboxes of that type.
 		static mbox_t
-		make()
+		make( environment_t & env )
 			{
-				return new next_turn_mbox_t();
+				return { new next_turn_mbox_t{env} };
 			}
 	};
 

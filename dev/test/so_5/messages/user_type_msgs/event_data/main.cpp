@@ -36,7 +36,7 @@ private :
 	evt_one( const so_5::mhood_t< std::string > & evt )
 	{
 		std::cout << "One: '" << *evt << "' at " << evt.get() << std::endl;
-		m_m2->deliver_message( evt.make_reference() );
+		so_5::send( m_m2, evt );
 	}
 
 	void

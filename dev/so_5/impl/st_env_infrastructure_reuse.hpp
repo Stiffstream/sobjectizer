@@ -595,14 +595,11 @@ class stats_controller_t final
 	public :
 		//! Initializing constructor.
 		stats_controller_t(
-			//! Environment to work in.
-			environment_t & env,
 			//! Mbox for sending messages with run-time statistics.
 			mbox_t distribution_mbox,
 			//! Mbox for delayed messages for initiation of next turn.
 			mbox_t next_turn_mbox )
-			:	m_env( env )
-			,	m_distribution_mbox( std::move(distribution_mbox) )
+			:	m_distribution_mbox( std::move(distribution_mbox) )
 			,	m_next_turn_mbox( std::move(next_turn_mbox) )
 			{}
 
@@ -699,12 +696,6 @@ class stats_controller_t final
 				on
 			};
 
-		//! Environment to work in.
-		/*!
-		 * This reference is necessary for sending delayed messages.
-		 */
-		environment_t & m_env;
-
 		//! Mbox for sending messages with run-time statistics.
 		const mbox_t m_distribution_mbox;
 		//! Mbox for delayed messages for initiation of next turn.
@@ -776,7 +767,6 @@ class stats_controller_t final
 			const int run_id )
 			{
 				send_delayed< next_turn >(
-						m_env,
 						m_next_turn_mbox,
 						pause,
 						outliving_mutable( *this ),

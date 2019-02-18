@@ -52,7 +52,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< finish >( *this );
+		so_5::send< finish >( *this );
 	}
 };
 

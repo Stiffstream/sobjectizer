@@ -160,7 +160,7 @@ public :
 			so_subscribe_self().event( [=]( const In & evt ) {
 					auto r = m_handler( evt );
 					if( r )
-						m_next->deliver_message( move( r ) );
+						so_5::send( m_next, to_be_redirected(r) );
 				} );
 		else
 			// There is no next stage. A very simple message handler
@@ -235,9 +235,8 @@ private :
 	void evt_broadcast( mhood_t< In > evt )
 	{
 		// The same message instance will be redirected to subsequent stages.
-		auto msg = evt.make_reference();
 		for( const auto & mbox : m_next_stages )
-			mbox->deliver_message( msg );
+			so_5::send( mbox, evt );
 	}
 };
 
@@ -761,7 +760,6 @@ public :
 		// One sample for each 10ms.
 		for( uint8_t i = 0; i < static_cast< uint8_t >(250); i += 10 )
 			send_delayed< raw_value >(
-					so_environment(),
 					pipeline,
 					chrono::milliseconds( i ),
 					raw_measure{ 0, 0, i } );

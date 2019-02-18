@@ -31,22 +31,24 @@ mbox_core_t::mbox_core_t(
 }
 
 mbox_t
-mbox_core_t::create_mbox()
+mbox_core_t::create_mbox(
+	environment_t & env )
 {
 	auto id = ++m_mbox_id_counter;
 	if( !m_msg_tracing_stuff.get().is_msg_tracing_enabled() )
-		return mbox_t{ new local_mbox_without_tracing{ id } };
+		return mbox_t{ new local_mbox_without_tracing{ id, env } };
 	else
-		return mbox_t{ new local_mbox_with_tracing{ id, m_msg_tracing_stuff } };
+		return mbox_t{ new local_mbox_with_tracing{ id, env, m_msg_tracing_stuff } };
 }
 
 mbox_t
 mbox_core_t::create_mbox(
+	environment_t & env,
 	nonempty_name_t mbox_name )
 {
 	return create_named_mbox(
 			std::move(mbox_name),
-			[this]() { return create_mbox(); } );
+			[&env, this]() { return create_mbox(env); } );
 }
 
 namespace {
@@ -123,11 +125,16 @@ mbox_core_t::destroy_mbox(
 
 mbox_t
 mbox_core_t::create_custom_mbox(
+	environment_t & env,
 	::so_5::custom_mbox_details::creator_iface_t & creator )
 {
 	const auto id = ++m_mbox_id_counter;
 	return creator.create(
-			mbox_creation_data_t( id, m_msg_tracing_stuff ) );
+			mbox_creation_data_t{
+					outliving_mutable(env),
+					id,
+					outliving_mutable(m_msg_tracing_stuff)
+			} );
 }
 
 namespace {

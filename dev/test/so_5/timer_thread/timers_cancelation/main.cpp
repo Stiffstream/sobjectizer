@@ -41,28 +41,33 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 			{
+				using namespace std::chrono_literals;
+
 				ensure_counter_value( m_message_counter, 0 );
 
-				m_id1 = so_environment().schedule_timer(
-						make_message_object(),
-						so_direct_mbox(),
-						6000,
-						0 );
-				m_id2 = so_environment().schedule_timer(
-						make_message_object(),
-						so_direct_mbox(),
-						6000,
-						1000 );
-				m_id3 = so_environment().schedule_timer(
-						make_message_object(),
-						so_direct_mbox(),
-						6000,
-						0 );
-				m_id4 = so_environment().schedule_timer(
-						make_message_object(),
-						so_direct_mbox(),
-						6000,
-						1000 );
+				m_id1 = so_5::send_periodic< msg_test >(
+						*this,
+						6000ms,
+						0ms,
+						std::ref(m_message_counter) );
+
+				m_id2 = so_5::send_periodic< msg_test >(
+						*this,
+						6000ms,
+						1000ms,
+						std::ref(m_message_counter) );
+
+				m_id3 = so_5::send_periodic< msg_test >(
+						*this,
+						6000ms,
+						0ms,
+						std::ref(m_message_counter) );
+
+				m_id4 = so_5::send_periodic< msg_test >(
+						*this,
+						6000ms,
+						1000ms,
+						std::ref(m_message_counter) );
 
 				m_id1.release();
 				m_id2.release();
@@ -79,13 +84,6 @@ class a_test_t : public so_5::agent_t
 		so_5::timer_id_t m_id2;
 		so_5::timer_id_t m_id3;
 		so_5::timer_id_t m_id4;
-
-		std::unique_ptr< msg_test >
-		make_message_object()
-			{
-				return std::unique_ptr< msg_test >(
-						new msg_test( m_message_counter ) );
-			}
 	};
 
 void

@@ -111,8 +111,8 @@ test_agent_t::so_evt_start()
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).in( m_state_b ).event(
 			&test_agent_t::evt_handler3 ) );
 
-	m_mbox->deliver_signal< msg_test >();
-	m_mbox->deliver_signal< msg_stop >();
+	so_5::send< msg_test >( m_mbox );
+	so_5::send< msg_stop >( m_mbox );
 }
 
 void

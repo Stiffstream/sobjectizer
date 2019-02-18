@@ -45,7 +45,6 @@ private :
 
 		cmd->m_content = "bye";
 		so_5::send_delayed(
-				so_environment(),
 				so_direct_mbox(),
 				std::chrono::milliseconds(25),
 				to_immutable( std::move(cmd) ) );
@@ -96,7 +95,6 @@ private :
 
 		cmd->m_content = "bye";
 		so_5::send_delayed(
-				so_environment(),
 				so_direct_mbox(),
 				std::chrono::milliseconds(25),
 				to_immutable( std::move(cmd) ) );

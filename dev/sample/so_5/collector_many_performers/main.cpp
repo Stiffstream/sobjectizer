@@ -274,7 +274,7 @@ private :
 		const so_5::mbox_t to = m_free_performers.front();
 		m_free_performers.pop_front();
 
-		to->deliver_message( what );
+		so_5::send( to, to_be_redirected( what ) );
 	}
 };
 

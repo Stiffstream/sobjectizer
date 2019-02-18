@@ -45,50 +45,53 @@ class named_local_mbox_t
 			impl::mbox_core_t & mbox_core );
 
 	public:
-		virtual ~named_local_mbox_t() override;
+		~named_local_mbox_t() override;
 
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override;
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
 			const so_5::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override;
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override;
 
-		virtual std::string
+		std::string
 		query_name() const override;
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override;
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) override;
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
+			unsigned int overlimit_reaction_deep ) override;
 
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
 			agent_t & subscriber ) override;
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
 			agent_t & subscriber ) noexcept override;
+
+		environment_t &
+		environment() const noexcept override;
 
 	private:
 		//! Mbox name.

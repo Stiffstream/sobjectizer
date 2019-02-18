@@ -324,13 +324,13 @@ class mchain_template
 			,	m_queue( params.capacity() )
 			{}
 
-		virtual mbox_id_t
+		mbox_id_t
 		id() const override
 			{
 				return m_id;
 			}
 
-		virtual void
+		void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
 			const so_5::message_limit::control_block_t * /*limit*/,
@@ -341,13 +341,13 @@ class mchain_template
 						"mchain doesn't suppor subscription" );
 			}
 
-		virtual void
+		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
 			agent_t * /*subscriber*/ ) override
 			{}
 
-		virtual std::string
+		std::string
 		query_name() const override
 			{
 				std::ostringstream s;
@@ -356,32 +356,29 @@ class mchain_template
 				return s.str();
 			}
 
-		virtual mbox_type_t
+		mbox_type_t
 		type() const override
 			{
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
-		virtual void
+		void
 		do_deliver_message(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
-				// Constness must be removed explicitly.
-				// Until do_deliver_message() lost const in v.5.6.0.
-				const_cast< mchain_template * >(this)->
-					try_to_store_message_to_queue(
+				this->try_to_store_message_to_queue(
 							msg_type,
 							message,
 							invocation_type_t::event );
 			}
 
-		virtual void
+		void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				// Constness must be removed explicitly.
 				// Until do_deliver_service_request() lost const in v.5.6.0.
@@ -408,7 +405,7 @@ class mchain_template
 		 * \attention Will throw an exception because delivery
 		 * filter is not applicable to MPSC-mboxes.
 		 */
-		virtual void
+		void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
@@ -419,13 +416,13 @@ class mchain_template
 						"set_delivery_filter is called for mchain" );
 			}
 
-		virtual void
+		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			agent_t & /*subscriber*/ ) noexcept override
 			{}
 
-		virtual extraction_status_t
+		extraction_status_t
 		extract(
 			demand_t & dest,
 			duration_t empty_queue_timeout ) override
@@ -474,19 +471,19 @@ class mchain_template
 				return extract_demand_from_not_empty_queue( dest );
 			}
 
-		virtual bool
+		bool
 		empty() const override
 			{
 				return m_queue.is_empty();
 			}
 
-		virtual std::size_t
+		std::size_t
 		size() const override
 			{
 				return m_queue.size();
 			}
 
-		virtual void
+		void
 		close( close_mode_t mode ) override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
@@ -524,14 +521,14 @@ class mchain_template
 					m_overflow_cond.notify_all();
 			}
 
-		virtual environment_t &
-		environment() const override
+		environment_t &
+		environment() const noexcept override
 			{
 				return m_env;
 			}
 
 	protected :
-		virtual extraction_status_t
+		extraction_status_t
 		extract(
 			demand_t & dest,
 			select_case_t & select_case ) override
@@ -555,7 +552,7 @@ class mchain_template
 					return extract_demand_from_not_empty_queue( dest );
 			}
 
-		virtual void
+		void
 		remove_from_select(
 			select_case_t & select_case ) override
 			{
@@ -581,7 +578,7 @@ class mchain_template
 					}
 			}
 
-		virtual void
+		void
 		do_deliver_message_from_timer(
 			const std::type_index & msg_type,
 			const message_ref_t & message ) override
@@ -615,15 +612,15 @@ class mchain_template
 		const not_empty_notification_func_t m_not_empty_notificator;
 
 		//! Chain's demands queue.
-		mutable Queue m_queue;
+		Queue m_queue;
 
 		//! Chain's lock.
-		mutable std::mutex m_lock;
+		std::mutex m_lock;
 
 		//! Condition variable for waiting on empty queue.
-		mutable std::condition_variable m_underflow_cond;
+		std::condition_variable m_underflow_cond;
 		//! Condition variable for waiting on full queue.
-		mutable std::condition_variable m_overflow_cond;
+		std::condition_variable m_overflow_cond;
 
 		/*!
 		 * \brief Count of threads sleeping on empty mchain.
@@ -642,7 +639,7 @@ class mchain_template
 		 * \since
 		 * v.5.5.16
 		 */
-		mutable select_case_t * m_select_tail = nullptr;
+		select_case_t * m_select_tail = nullptr;
 
 		//! Actual implementation of pushing message to the queue.
 		/*!
@@ -840,14 +837,11 @@ class mchain_template
 			}
 
 		/*!
-		 * \note This method declared as const by the same reason
-		 * as try_to_store_message_to_queue() method.
-		 *
 		 * \since
 		 * v.5.5.16
 		 */
 		void
-		notify_multi_chain_select_ops() const noexcept
+		notify_multi_chain_select_ops() noexcept
 			{
 				if( m_select_tail )
 					{

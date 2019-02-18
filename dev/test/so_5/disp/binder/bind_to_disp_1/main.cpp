@@ -22,7 +22,7 @@ struct test_message
 	:
 		public so_5::message_t
 {
-	test_message(): m_is_last( false ) {}
+	test_message( bool is_last = false ): m_is_last(is_last) {}
 	virtual ~test_message() {}
 
 	bool m_is_last;
@@ -85,7 +85,7 @@ test_agent_sender_t::so_define_agent()
 void
 test_agent_sender_t::so_evt_start()
 {
-	m_notification_mbox->deliver_signal< send_message_signal >();
+	so_5::send< send_message_signal >( m_notification_mbox );
 }
 
 void
@@ -94,7 +94,7 @@ test_agent_sender_t::evt_send_messages(
 {
 	for( unsigned int i = 0; i < g_send_at_once; ++i )
 	{
-		m_mbox_receiver->deliver_message( new test_message() );
+		so_5::send< test_message >( m_mbox_receiver );
 	}
 
 	++m_send_session_complited;
@@ -102,14 +102,11 @@ test_agent_sender_t::evt_send_messages(
 	// If all bunches are sent then final message should be sent.
 	if( g_send_session_count <= m_send_session_complited )
 	{
-		std::unique_ptr< test_message > tm( new test_message );
-		tm->m_is_last = true;
-
-		m_mbox_receiver->deliver_message( std::move(tm) );
+		so_5::send< test_message >( m_mbox_receiver, true );
 	}
 	else
 	{
-		m_notification_mbox->deliver_signal< send_message_signal >();
+		so_5::send< send_message_signal >( m_notification_mbox );
 	}
 }
 

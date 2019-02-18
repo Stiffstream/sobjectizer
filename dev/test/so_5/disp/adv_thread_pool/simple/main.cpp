@@ -37,7 +37,7 @@ class a_test_t : public so_5::agent_t
 		virtual void
 		so_evt_start()
 		{
-			so_direct_mbox()->deliver_signal< msg_hello >();
+			so_5::send< msg_hello >( *this );
 		}
 
 		void

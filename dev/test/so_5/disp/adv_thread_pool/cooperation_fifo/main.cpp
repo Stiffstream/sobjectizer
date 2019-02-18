@@ -50,7 +50,7 @@ class a_test_t : public so_5::agent_t
 				std::cout << "expected no more workers, but: " << w << std::endl;
 			}
 
-			m_shutdowner_mbox->deliver_signal< msg_shutdown >();
+			so_5::send< msg_shutdown >( m_shutdowner_mbox );
 		}
 
 	private :

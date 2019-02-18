@@ -31,7 +31,7 @@ class a_test_t : public so_5::agent_t
 			so_subscribe_self().event( [=](mhood_t< msg_tick >) {
 					m_ticks += 1;
 					if( m_ticks < 15 )
-						so_direct_mbox()->deliver_signal< msg_tick >();
+						so_5::send< msg_tick >( *this );
 					else
 						so_deregister_agent_coop_normally();
 				} );
@@ -40,7 +40,7 @@ class a_test_t : public so_5::agent_t
 		virtual void
 		so_evt_start()
 		{
-			so_direct_mbox()->deliver_signal< msg_tick >();
+			so_5::send< msg_tick >( *this );
 		}
 
 	private :

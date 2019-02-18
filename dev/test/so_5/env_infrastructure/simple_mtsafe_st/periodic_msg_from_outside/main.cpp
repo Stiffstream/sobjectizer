@@ -44,10 +44,10 @@ main()
 							test_mbox = coop.make_agent< a_test_t >()->so_direct_mbox();
 						} );
 
-						outside_thread = thread( [&env, test_mbox] {
+						outside_thread = thread( [test_mbox] {
 							this_thread::sleep_for( chrono::milliseconds( 350 ) );
 							auto timer = so_5::send_periodic< a_test_t::tick >(
-									env, test_mbox,
+									test_mbox,
 									chrono::milliseconds(100),
 									chrono::milliseconds(100) );
 							this_thread::sleep_for( chrono::seconds(1) );

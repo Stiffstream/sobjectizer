@@ -53,8 +53,7 @@ class a_second_t : public so_5::agent_t
 		virtual void
 		so_evt_start() override
 		{
-			so_environment().single_timer< msg_timer >(
-					so_direct_mbox(), 250 );
+			so_5::send_delayed< msg_timer >( *this, std::chrono::milliseconds(250) );
 		}
 
 	private :

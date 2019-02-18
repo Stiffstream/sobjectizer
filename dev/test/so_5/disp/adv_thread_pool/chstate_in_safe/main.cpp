@@ -52,11 +52,11 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_direct_mbox()->deliver_signal< msg_safe_signal >();
+			so_5::send< msg_safe_signal >( *this );
 
-			so_direct_mbox()->deliver_signal< msg_unsafe_signal >();
+			so_5::send< msg_unsafe_signal >( *this );
 
-			so_direct_mbox()->deliver_signal< msg_shutdown >();
+			so_5::send< msg_shutdown >( *this );
 		}
 
 		void

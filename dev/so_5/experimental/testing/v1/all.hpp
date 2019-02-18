@@ -842,18 +842,18 @@ class step_definition_proxy_t
 							std::forward<Args>(args)... )
 				};
 				// Mutability of a message should be changed appropriately.
-				change_message_mutability(
-						msg,
-						message_payload_type< Msg_Type >::mutability() );
+				so_5::details::mark_as_mutable_if_necessary<Msg_Type>( msg );
 
 				// Now we can create a lambda-function that will send
 				// the message instance at the appropriate time.
 				m_step->add_preactivate_action(
-						[to, msg]() noexcept {
-							to->deliver_message(
+						[to = std::move(to), msg = std::move(msg)]() noexcept {
+							using namespace so_5::low_level_api;
+							deliver_message(
+									*to,
 									message_payload_type< Msg_Type >
 											::subscription_type_index(),
-									msg );
+									std::move(msg) );
 						} );
 
 				return *this;

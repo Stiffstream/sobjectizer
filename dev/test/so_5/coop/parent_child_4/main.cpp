@@ -56,7 +56,7 @@ class a_child_t : public so_5::agent_t
 				}
 			}
 
-			m_mbox->deliver_signal< msg_check_signal >();
+			so_5::send< msg_check_signal >( m_mbox );
 		}
 
 		void
@@ -100,7 +100,7 @@ class a_parent_t : public so_5::agent_t
 		void
 		so_evt_start() override
 		{
-			m_mbox->deliver_signal< msg_parent_started >();
+			so_5::send< msg_parent_started >( m_mbox );
 		}
 
 		void
@@ -157,7 +157,9 @@ class a_driver_t : public so_5::agent_t
 
 			so_environment().register_coop( std::move( coop ) );
 
-			so_environment().single_timer< msg_shutdown >( m_mbox, 500 );
+			so_5::send_delayed< msg_shutdown >(
+					m_mbox,
+					std::chrono::milliseconds(500) );
 		}
 
 		void

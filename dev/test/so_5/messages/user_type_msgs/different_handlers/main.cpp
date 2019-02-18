@@ -66,17 +66,17 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< int >( *this, 1 );
-		so_5::send_to_agent< long >( *this, 2 );
-		so_5::send_to_agent< unsigned int >( *this, 3u );
-		so_5::send_to_agent< unsigned long >( *this, 4ul );
-		so_5::send_to_agent< short >( *this, static_cast< short >(5) );
-		so_5::send_to_agent< unsigned short >( *this, static_cast< unsigned short >(6) );
-		so_5::send_to_agent< std::string >( *this, "Hello" );
-		so_5::send_to_agent< msg1 >( *this, "Bye", "World" );
-		so_5::send_to_agent< msg2 >( *this, "Bye", "Bye" );
+		so_5::send< int >( *this, 1 );
+		so_5::send< long >( *this, 2 );
+		so_5::send< unsigned int >( *this, 3u );
+		so_5::send< unsigned long >( *this, 4ul );
+		so_5::send< short >( *this, static_cast< short >(5) );
+		so_5::send< unsigned short >( *this, static_cast< unsigned short >(6) );
+		so_5::send< std::string >( *this, "Hello" );
+		so_5::send< msg1 >( *this, "Bye", "World" );
+		so_5::send< msg2 >( *this, "Bye", "Bye" );
 
-		so_5::send_to_agent< stop >( *this );
+		so_5::send< stop >( *this );
 	}
 
 private :

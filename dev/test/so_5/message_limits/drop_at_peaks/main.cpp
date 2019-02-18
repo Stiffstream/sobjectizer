@@ -45,7 +45,7 @@ public :
 					if( m_series_sent < max_series )
 						send_pings();
 					else if( m_series_sent == max_series )
-						so_5::send_to_agent< msg_finish >( *this );
+						so_5::send< msg_finish >( *this );
 				}
 			} );
 

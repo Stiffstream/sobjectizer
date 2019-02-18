@@ -28,7 +28,6 @@ public :
 		try
 		{
 			m_timer = so_5::send_periodic< so_5::mutable_msg<first> >(
-					so_environment(),
 					m_mbox,
 					std::chrono::milliseconds(50),
 					std::chrono::milliseconds::zero() );
@@ -68,7 +67,6 @@ public :
 		try
 		{
 			m_timer = so_5::send_periodic< so_5::mutable_msg<first> >(
-					so_environment(),
 					m_mbox,
 					std::chrono::milliseconds(50),
 					std::chrono::milliseconds::zero() );

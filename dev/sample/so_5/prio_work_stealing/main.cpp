@@ -532,7 +532,9 @@ class request_scheduler : public so_5::agent_t
 
 							// Message must be delivered to processor who asks
 							// for new work.
-							free_processor_info.m_processor->deliver_message( req );
+							so_5::send(
+									free_processor_info.m_processor,
+									to_be_redirected( req ) );
 							free_processor_info.m_processor_is_free = false;
 							break;
 						}

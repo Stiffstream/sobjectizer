@@ -47,14 +47,14 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
-		so_5::send_to_agent< msg_one >( *this );
+		so_5::send< msg_one >( *this );
+		so_5::send< msg_one >( *this );
+		so_5::send< msg_one >( *this );
+		so_5::send< msg_one >( *this );
+		so_5::send< msg_one >( *this );
+		so_5::send< msg_one >( *this );
 
-		so_5::send_to_agent< msg_two >( *this );
+		so_5::send< msg_two >( *this );
 	}
 
 private :
@@ -83,9 +83,9 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send_to_agent< msg_one >( *this );
+		so_5::send< msg_one >( *this );
 
-		so_5::send_to_agent< msg_two >( *this );
+		so_5::send< msg_two >( *this );
 	}
 };
 

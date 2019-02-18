@@ -83,7 +83,7 @@ class a_test_t : public so_5::agent_t
 		{
 			m_collector.add_current_thread();
 
-			so_direct_mbox()->deliver_signal< msg_hello >();
+			so_5::send< msg_hello >( *this );
 		}
 
 		void
@@ -93,9 +93,9 @@ class a_test_t : public so_5::agent_t
 
 			++m_messages_sent;
 			if( m_messages_sent >= 20 )
-				m_shutdowner_mbox->deliver_signal< msg_shutdown >();
+				so_5::send< msg_shutdown >( m_shutdowner_mbox );
 			else
-				so_direct_mbox()->deliver_signal< msg_hello >();
+				so_5::send< msg_hello >( *this );
 		}
 
 	private :
