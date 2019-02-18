@@ -545,8 +545,41 @@ class mhood_t< user_type_message_t< M > >;
 template< typename M >
 using mutable_mhood_t = mhood_t< mutable_msg<M> >;
 
-//FIXME: document this!
 /*!
+ * \brief Helper function for simplifying resending of preallocated message.
+ *
+ * Since v.5.6.0 there is no public method \a deliver_message in
+ * \a abstract_message_box_t class. Ordinary \a send() function should
+ * be used for sending/resending of preallocated messages. But there is
+ * no send() function that accepts intrusive_ptr_t. Because of that
+ * this helper function should be used with send() function. For example:
+ * \code
+ * class some_agent final : public so_5::agent_t
+ * {
+ * 	// A message to be send by this agent.
+ * 	class do_something { ... };
+ *
+ * 	// A single preallocated instance of that message.
+ * 	so_5::intrusive_ptr_t<do_something> msg_;
+ * 	...
+ * 	void on_some_cmd(mhood_t<some_command> cmd) {
+ * 		...
+ * 		// The preallocated message should be sent to someone.
+ * 		so_5::send(cmd->target_, so_5::to_be_redirected(msg_));
+ * 		...
+ * 	}
+ * 	...
+ * };
+ * \endcode
+ *
+ * \note
+ * This function allows to send/resend immutable message only.
+ *
+ * \attention
+ * This function returns a temprary object with raw references and pointers
+ * inside. Do not store it for a long time because this references/pointer
+ * can become invalid.
+ *
  * \since
  * v.5.6.0
  */
@@ -557,8 +590,6 @@ to_be_redirected( const intrusive_ptr_t<M> & what )
 		message_ref_t m{ what };
 		return { m };
 	}
-
-//FIXME: may be to_be_redirected_as_mutable is necessary too?
 
 } /* namespace so_5 */
 

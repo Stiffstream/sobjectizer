@@ -760,7 +760,6 @@ public :
 		// One sample for each 10ms.
 		for( uint8_t i = 0; i < static_cast< uint8_t >(250); i += 10 )
 			send_delayed< raw_value >(
-					so_environment(),
 					pipeline,
 					chrono::milliseconds( i ),
 					raw_measure{ 0, 0, i } );

@@ -31,8 +31,6 @@
 namespace so_5
 {
 
-class environment_t;
-
 namespace impl
 {
 
@@ -66,9 +64,8 @@ class mbox_core_t
 {
 		friend class mbox_core_ref_t;
 
-		mbox_core_t( const mbox_core_t & );
-		void
-		operator = ( const mbox_core_t & );
+		mbox_core_t( const mbox_core_t & ) = delete;
+		mbox_core_t & operator=( const mbox_core_t & ) = delete;
 
 	public:
 		mbox_core_t(
@@ -80,7 +77,7 @@ class mbox_core_t
 			\note always creates a new mbox.
 		*/
 		mbox_t
-		create_mbox();
+		create_mbox( environment_t & env );
 
 		//! Create local named mbox.
 		/*!
@@ -91,6 +88,8 @@ class mbox_core_t
 		*/
 		mbox_t
 		create_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
 			//! Mbox name.
 			nonempty_name_t mbox_name );
 
@@ -127,6 +126,9 @@ class mbox_core_t
 		 */
 		mbox_t
 		create_custom_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
+			//! Creator for new mbox.
 			::so_5::custom_mbox_details::creator_iface_t & creator );
 
 		/*!

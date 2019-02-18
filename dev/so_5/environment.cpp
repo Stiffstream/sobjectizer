@@ -397,7 +397,7 @@ struct environment_t::internals_t
 					params,
 					// A special mbox for distributing monitoring information
 					// must be created and passed to stats_controller.
-					m_mbox_core->create_mbox() ) )
+					m_mbox_core->create_mbox(env) ) )
 		,	m_dispatchers(
 				env,
 				params.so5__giveout_named_dispatcher_map(),
@@ -444,16 +444,16 @@ environment_t::~environment_t()
 }
 
 mbox_t
-environment_t::create_mbox( )
+environment_t::create_mbox()
 {
-	return m_impl->m_mbox_core->create_mbox();
+	return m_impl->m_mbox_core->create_mbox( *this );
 }
 
 mbox_t
 environment_t::create_mbox(
 	nonempty_name_t nonempty_name )
 {
-	return m_impl->m_mbox_core->create_mbox( std::move(nonempty_name) );
+	return m_impl->m_mbox_core->create_mbox( *this, std::move(nonempty_name) );
 }
 
 mchain_t
@@ -713,7 +713,7 @@ mbox_t
 environment_t::do_make_custom_mbox(
 	custom_mbox_details::creator_iface_t & creator )
 {
-	return m_impl->m_mbox_core->create_custom_mbox( creator );
+	return m_impl->m_mbox_core->create_custom_mbox( *this, creator );
 }
 
 stop_guard_t::setup_result_t

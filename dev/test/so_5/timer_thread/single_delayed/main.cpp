@@ -41,7 +41,6 @@ class test_agent_t
 		{
 			// Send a delayed for 1 second message.
 			m_timer_ref = so_5::send_periodic< test_message >(
-					so_environment(),
 					m_test_mbox,
 					std::chrono::seconds(1),
 					std::chrono::seconds(0) );

@@ -42,7 +42,6 @@ private :
 		if( 1 == m_received )
 		{
 			m_timer = so_5::send_periodic(
-					so_environment(),
 					so_direct_mbox(),
 					std::chrono::milliseconds(25),
 					std::chrono::milliseconds::zero(),
@@ -86,7 +85,6 @@ private :
 		if( 1 == m_received )
 		{
 			m_timer = so_5::send_periodic(
-					so_environment(),
 					so_direct_mbox(),
 					std::chrono::milliseconds(25),
 					std::chrono::milliseconds::zero(),

@@ -45,7 +45,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		do_deliver_message(
 			const std::type_index & type_index,
 			const so_5::message_ref_t & message_ref,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				m_actual_mbox->do_deliver_message(
 						type_index, message_ref, overlimit_reaction_deep );
@@ -55,7 +55,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		do_deliver_service_request(
 			const std::type_index & type_index,
 			const so_5::message_ref_t & svc_request_ref,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int overlimit_reaction_deep ) override
 			{
 				m_actual_mbox->do_deliver_service_request(
 						type_index,
@@ -106,6 +106,12 @@ class test_mbox_t : public so_5::abstract_message_box_t
 			so_5::agent_t & subscriber ) noexcept override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
+			}
+
+		so_5::environment_t &
+		environment() const noexcept override
+			{
+				return m_actual_mbox->environment();
 			}
 
 		static so_5::mbox_t

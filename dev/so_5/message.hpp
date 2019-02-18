@@ -204,7 +204,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		virtual const void *
 		so5__payload_ptr() const;
 
-		//FIXME: this method should be marked as noexcept in v.5.6.0
 		/*!
 		 * \brief Get message mutability flag.
 		 *

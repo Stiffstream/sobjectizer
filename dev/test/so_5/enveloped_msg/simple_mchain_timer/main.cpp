@@ -40,21 +40,17 @@ run_test()
 			"mb" );
 
 	so_5::send_delayed<so_based_msg>(
-			sobj.environment(),
 			special_mbox,
 			std::chrono::milliseconds(10),
 			"First" );
 	so_5::send_delayed<user_msg>(
-			sobj.environment(),
 			special_mbox,
 			std::chrono::milliseconds(15),
 			"Second" );
 	so_5::send_delayed<simple_signal>(
-			sobj.environment(),
 			special_mbox,
 			std::chrono::milliseconds(20) );
 	so_5::send_delayed<dummy_msg>(
-			sobj.environment(),
 			special_mbox,
 			std::chrono::milliseconds(25) );
 

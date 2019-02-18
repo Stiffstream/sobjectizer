@@ -100,7 +100,6 @@ private :
 	void reschedule_timer()
 	{
 		m_timer = so_5::send_periodic< intercom_messages::deactivate >(
-				so_environment(),
 				m_intercom_mbox,
 				inactivity_time,
 				std::chrono::seconds::zero() );

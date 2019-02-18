@@ -2155,9 +2155,13 @@ introduce_child_coop(
 namespace low_level_api
 {
 
-//FIXME: more documentation is needed.
 //! Schedule periodic timer event.
 /*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \attention
  * Values of \a pause and \a period should be non-negative.
  *
@@ -2166,10 +2170,6 @@ namespace low_level_api
  */
 SO_5_NODISCARD inline so_5::timer_id_t
 schedule_timer(
-	//FIXME: this argument should be removed after addition of
-	//environment's reference to mbox.
-	//! Environment to be used.
-	environment_t & env,
 	//! Message type for searching subscribers.
 	const std::type_index & subscription_type,
 	//! Message to be sent after timeout.
@@ -2185,7 +2185,7 @@ schedule_timer(
 	*/
 	std::chrono::steady_clock::duration period )
 {
-	return env.so_schedule_timer(
+	return mbox->environment().so_schedule_timer(
 			schedule_timer_params_t{
 					std::cref(subscription_type),
 					std::cref(msg),
@@ -2194,9 +2194,13 @@ schedule_timer(
 					period } );
 }
 
-//FIXME: more documentation is needed.
 //! Schedule single timer event.
 /*!
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \attention
  * Value \a period should be non-negative.
  *
@@ -2205,10 +2209,6 @@ schedule_timer(
  */
 inline void
 single_timer(
-	//FIXME: this argument should be removed after addition of
-	//environment's reference to mbox.
-	//! Environment to be used.
-	environment_t & env,
 	//! Message type for searching subscribers.
 	const std::type_index & subscription_type,
 	//! Message to be sent after timeout.
@@ -2218,7 +2218,7 @@ single_timer(
 	//! Timeout before the delivery.
 	std::chrono::steady_clock::duration pause )
 {
-	return env.so_single_timer(
+	return mbox->environment().so_single_timer(
 			single_timer_params_t{
 					std::cref(subscription_type),
 					std::cref(msg),

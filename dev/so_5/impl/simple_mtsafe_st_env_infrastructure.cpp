@@ -435,9 +435,8 @@ env_infrastructure_t< Activity_Tracker >::env_infrastructure_t(
 			outliving_mutable(m_event_queue),
 			outliving_mutable(m_activity_tracker) )
 	,	m_stats_controller(
-			m_env,
 			std::move(stats_distribution_mbox),
-			stats::impl::st_env_stuff::next_turn_mbox_t::make() )
+			stats::impl::st_env_stuff::next_turn_mbox_t::make(m_env) )
 	{}
 
 template< typename Activity_Tracker >

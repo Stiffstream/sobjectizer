@@ -765,7 +765,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! This is type_index for service Param type.
 			const std::type_index & msg_type,
 			//! This is reference to msg_service_request_t<Result,Param> instance.
-			const message_ref_t & message ) const
+			const message_ref_t & message )
 			{
 				this->do_deliver_service_request( msg_type, message, 1 );
 			}
@@ -828,11 +828,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
-		 *
-		 * \note
-		 * It is obvious that do_deliver_message() must be non-const method.
-		 * The constness is here now to keep compatibility in 5.5.* versions.
-		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_message(
@@ -841,18 +836,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A message instance to be delivered.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) const = 0;
+			unsigned int overlimit_reaction_deep ) = 0;
 
 		/*!
 		 * \since
 		 * v.5.5.4
 		 *
 		 * \brief Deliver service request.
-		 *
-		 * \note
-		 * It is obvious that do_deliver_message() must be non-const method.
-		 * The constness is here now to keep compatibility in 5.5.* versions.
-		 * The constness will be removed in v.5.6.0.
 		 */
 		virtual void
 		do_deliver_service_request(
@@ -861,7 +851,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! This is reference to msg_service_request_t<Result,Param> instance.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) const = 0;
+			unsigned int overlimit_reaction_deep ) = 0;
 
 		/*!
 		 * \brief Deliver enveloped message.
@@ -922,6 +912,14 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		/*!
 		 * \}
 		 */
+
+		//! SObjectizer Environment for which the mbox is created.
+		/*!
+		 * \since
+		 * v.5.6.0
+		 */
+		virtual so_5::environment_t &
+		environment() const noexcept = 0;
 
 	protected :
 		/*!
@@ -1294,10 +1292,18 @@ wait_for_service_invoke_proxy_t< Result, Duration >::make_sync_get(
 
 namespace low_level_api {
 
-//FIXME: documentation should be expanded.
 //! Deliver message.
 /*!
  * Mbox takes care about destroying a message object.
+ *
+ * \attention
+ * This function ensures that Message is a classical message
+ * with an actual data (e.g. \a msg shouldn't be nullptr).
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
  *
  * \since
  * v.5.6.0
@@ -1321,11 +1327,15 @@ deliver_message(
 			1u );
 	}
 
-//FIXME: documentation should be expanded.
 //! Deliver message.
 /*!
  * This function is necessary for cases when message object
  * is already present as message_ref_t.
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
  *
  * \since
  * v.5.6.0
@@ -1345,9 +1355,16 @@ deliver_message(
 				1u );
 	}
 
-//FIXME: documentation should be expanded.
 //! Deliver signal.
 /*!
+ * \attention
+ * This function ensures that Message is a type of a signal.
+ *
+ * \note
+ * This function is a part of low-level SObjectizer's interface.
+ * Because of that this function can be removed or changed in some
+ * future version without prior notice.
+ *
  * \since
  * v.5.6.0
  */
