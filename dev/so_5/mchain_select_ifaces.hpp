@@ -138,6 +138,20 @@ class select_case_t
 				m_next = next;
 			}
 
+		//! A special method to inform the select_case that its notification
+		//! has been processed.
+		/*!
+		 * This method should be called from inside of
+		 * select_notificator_t::notify(). This call informs select_case
+		 * that notification has been processed and m_notificator can be
+		 * set to nullptr.
+		 */
+		void
+		notification_handled() noexcept
+			{
+				m_notificator = nullptr;
+			}
+
 		//! Notification for all waiting select_cases.
 		/*!
 		 * This method is called by mchain if empty mchain becomes non-empty
@@ -155,11 +169,15 @@ class select_case_t
 					{
 						auto next = c->giveout_next();
 
+//FIXME: for testing purposes only!
+						c->m_notificator->notify( *c );
+#if 0
 						auto notificator = c->m_notificator;
 						// Notificator for select_case must be dropped because
 						// select_case do not belong to select_case queue anymore.
 						c->m_notificator = nullptr;
 						notificator->notify( *c );
+#endif
 
 						c = next;
 					}
