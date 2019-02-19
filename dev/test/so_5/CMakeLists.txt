@@ -42,6 +42,7 @@ add_subdirectory(coop/user_resource)
 add_subdirectory(coop/introduce_coop)
 add_subdirectory(coop/introduce_coop_2)
 add_subdirectory(coop/introduce_coop_3)
+add_subdirectory(coop/introduce_coop_4)
 add_subdirectory(coop/create_child_coop_5_5_8)
 
 add_subdirectory(mbox)

@@ -1882,9 +1882,16 @@ private :
 			lambda( *coop );
 			m_env.register_coop( std::move( coop ) );
 		}
+		else if constexpr( std::is_reference_v<return_type> )
+		{
+			auto && ret_val = lambda( *coop );
+			m_env.register_coop( std::move( coop ) );
+
+			return std::forward<decltype(ret_val)>(ret_val);
+		}
 		else
 		{
-			decltype(auto) ret_val = lambda( *coop );
+			auto ret_val = lambda( *coop );
 			m_env.register_coop( std::move( coop ) );
 
 			return ret_val;
