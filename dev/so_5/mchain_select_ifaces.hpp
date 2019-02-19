@@ -70,9 +70,20 @@ class select_case_t
 		/*!
 		 * Can be null. It means that select_case is not used in
 		 * select queue for the mchain at that moment.
-		 * It could be if select_case is already notified. Or if mchain
-		 * closed. Or if mchain has messages and those messages can be
-		 * extracted without any waiting.
+		 *
+		 * There are just two methods where m_notificator changes its value:
+		 *
+		 * - try_receive() where m_notificator receives an actual pointer
+		 * (m_notificator can become nullptr again in try_receive() if
+		 * mchain has messages or was closed);
+		 * - on_select_finish() where m_notificator receives nullptr value if
+		 * it wasn't null yet.
+		 *
+		 * It the previous versions of SObjectizer m_notificator received
+		 * nullptr value during notification of new messages arrival or
+		 * closing of mchain. But this lead to data races and the behaviour
+		 * was changed. Now m_notificator can hold an actual pointer even
+		 * after notification was initiated.
 		 */
 		select_notificator_t * m_notificator = nullptr;
 
@@ -138,20 +149,6 @@ class select_case_t
 				m_next = next;
 			}
 
-		//! A special method to inform the select_case that its notification
-		//! has been processed.
-		/*!
-		 * This method should be called from inside of
-		 * select_notificator_t::notify(). This call informs select_case
-		 * that notification has been processed and m_notificator can be
-		 * set to nullptr.
-		 */
-		void
-		notification_handled() noexcept
-			{
-				m_notificator = nullptr;
-			}
-
 		//! Notification for all waiting select_cases.
 		/*!
 		 * This method is called by mchain if empty mchain becomes non-empty
@@ -169,15 +166,7 @@ class select_case_t
 					{
 						auto next = c->giveout_next();
 
-//FIXME: for testing purposes only!
 						c->m_notificator->notify( *c );
-#if 0
-						auto notificator = c->m_notificator;
-						// Notificator for select_case must be dropped because
-						// select_case do not belong to select_case queue anymore.
-						c->m_notificator = nullptr;
-						notificator->notify( *c );
-#endif
 
 						c = next;
 					}
@@ -211,6 +200,9 @@ class select_case_t
 		mchain_receive_result_t
 		try_receive( select_notificator_t & notificator )
 			{
+				// Please note that value of m_notificator will be
+				// returned to nullptr if a message extracted or
+				// channel is closed.
 				m_notificator = &notificator;
 
 				demand_t demand;

@@ -305,9 +305,6 @@ class actual_select_notificator_t : public select_notificator_t
 					push_to_notified_chain( what );
 				}
 
-				// Now select_case can safely drop its notificator pointer.
-				what.notification_handled();
-
 				if( !old_tail )
 					m_condition.notify_one();
 			}
