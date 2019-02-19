@@ -1511,7 +1511,7 @@ class SO_5_TYPE environment_t
 			\endcode
 		 */
 		template< typename... Args >
-		void
+		decltype(auto)
 		introduce_coop( Args &&... args );
 
 		/*!
@@ -1855,6 +1855,42 @@ namespace details
  */
 class introduce_coop_helper_t
 {
+private :
+	//! Environment for creation of cooperation.
+	environment_t & m_env;
+	//! Optional name of parent cooperation.
+	/*!
+	 * Value nullptr means that there is no parent.
+	 */
+	const std::string * m_parent_coop_name;
+
+	template< typename Coop_Name, typename Lambda >
+	decltype(auto)
+	build_and_register_coop(
+		Coop_Name && name,
+		disp_binder_unique_ptr_t binder,
+		Lambda && lambda )
+	{
+		auto coop = m_env.create_coop( name, std::move( binder ) );
+		if( m_parent_coop_name )
+			coop->set_parent_coop_name( *m_parent_coop_name );
+
+		using return_type = std::invoke_result_t<Lambda, so_5::coop_t &>;
+
+		if constexpr( std::is_void_v<return_type> )
+		{
+			lambda( *coop );
+			m_env.register_coop( std::move( coop ) );
+		}
+		else
+		{
+			decltype(auto) ret_val = lambda( *coop );
+			m_env.register_coop( std::move( coop ) );
+
+			return ret_val;
+		}
+	}
+
 public :
 	//! Constructor for the case of creation a cooperation without parent.
 	introduce_coop_helper_t( environment_t & env )
@@ -1875,10 +1911,10 @@ public :
 	 * - default dispatcher is used.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce( L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				so_5::autoname,
 				create_default_disp_binder(),
 				std::forward< L >( lambda ) );
@@ -1890,10 +1926,10 @@ public :
 	 * - default dispatcher is used.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce( autoname_indicator_t(), L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				so_5::autoname,
 				create_default_disp_binder(),
 				std::forward< L >( lambda ) );
@@ -1905,10 +1941,10 @@ public :
 	 * - dispatcher builder is specified.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce( disp_binder_unique_ptr_t binder, L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				so_5::autoname,
 				std::move( binder ),
 				std::forward< L >( lambda ) );
@@ -1920,13 +1956,13 @@ public :
 	 * - dispatcher builder is specified.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce(
 		autoname_indicator_t(),
 		disp_binder_unique_ptr_t binder,
 		L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				so_5::autoname,
 				std::move( binder ),
 				std::forward< L >( lambda ) );
@@ -1938,10 +1974,10 @@ public :
 	 * - default dispatcher is used.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce( const std::string & name, L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				name,
 				create_default_disp_binder(),
 				std::forward< L >( lambda ) );
@@ -1953,50 +1989,28 @@ public :
 	 * - dispatcher builder is specified.
 	 */
 	template< typename L >
-	void
+	decltype(auto)
 	introduce(
 		const std::string & name,
 		disp_binder_unique_ptr_t binder,
 		L && lambda )
 	{
-		build_and_register_coop(
+		return build_and_register_coop(
 				name,
 				std::move( binder ),
 				std::forward< L >( lambda ) );
 	}
 
-private :
-	//! Environment for creation of cooperation.
-	environment_t & m_env;
-	//! Optional name of parent cooperation.
-	/*!
-	 * Value nullptr means that there is no parent.
-	 */
-	const std::string * m_parent_coop_name;
-
-	template< typename Coop_Name, typename Lambda >
-	void
-	build_and_register_coop(
-		Coop_Name && name,
-		disp_binder_unique_ptr_t binder,
-		Lambda && lambda )
-	{
-		auto coop = m_env.create_coop( name, std::move( binder ) );
-		if( m_parent_coop_name )
-			coop->set_parent_coop_name( *m_parent_coop_name );
-		lambda( *coop );
-		m_env.register_coop( std::move( coop ) );
-	}
 };
 
 } /* namespace details */
 
 template< typename... Args >
-void
+decltype(auto)
 environment_t::introduce_coop( Args &&... args )
 {
 	details::introduce_coop_helper_t helper{ *this };
-	helper.introduce( std::forward< Args >( args )... );
+	return helper.introduce( std::forward< Args >( args )... );
 }
 
 /*!
@@ -2100,16 +2114,17 @@ create_child_coop(
  * that method.
  */
 template< typename... Args >
-void
+decltype(auto)
 introduce_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
 	//! Arguments for the environment_t::introduce_coop() method.
 	Args&&... args )
 {
-	details::introduce_coop_helper_t{
-			owner.so_environment(),
-			owner.so_coop_name() }.introduce( std::forward< Args >(args)... );
+	return details::introduce_coop_helper_t{
+					owner.so_environment(),
+					owner.so_coop_name()
+			}.introduce( std::forward< Args >(args)... );
 }
 
 /*!
@@ -2140,16 +2155,17 @@ introduce_child_coop(
  * that method.
  */
 template< typename... Args >
-void
+decltype(auto)
 introduce_child_coop(
 	//! Parent cooperation.
 	const coop_t & parent,
 	//! Arguments for the environment_t::introduce_coop() method.
 	Args&&... args )
 {
-	details::introduce_coop_helper_t{
-			parent.environment(),
-			parent.query_coop_name() }.introduce( std::forward< Args >(args)... );
+	return details::introduce_coop_helper_t{
+					parent.environment(),
+					parent.query_coop_name()
+			}.introduce( std::forward< Args >(args)... );
 }
 
 namespace low_level_api
