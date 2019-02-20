@@ -142,7 +142,7 @@ extern "C" int create_converter( converter ** handle_receiver )
 		std::unique_ptr< so_5::wrapped_env_t > env{ new so_5::wrapped_env_t{} };
 
 		// A single coop with conversion agent must be added into Environment.
-		env->environment().introduce_coop( [&]( so_5::coop_t & coop ) {
+		env->environment().introduce_coop( []( so_5::coop_t & coop ) {
 				coop.make_agent<service_t>();
 			} );
 

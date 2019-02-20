@@ -38,10 +38,9 @@ int main()
 	try
 	{
 		so_5::launch( []( so_5::environment_t & env ) {
-			so_5::mbox_t m;
-			env.introduce_coop( [&]( so_5::coop_t & coop ) {
+			auto m = env.introduce_coop( []( so_5::coop_t & coop ) {
 					auto led = coop.make_agent< blinking_led >();
-					m = led->so_direct_mbox();
+					return led->so_direct_mbox();
 				} );
 
 			auto pause = []( unsigned int v ) {

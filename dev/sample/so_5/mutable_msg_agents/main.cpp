@@ -81,9 +81,8 @@ int main()
 	try
 	{
 		so_5::launch( [](so_5::environment_t & env) {
-			so_5::mbox_t chain_head;
 			// Create a coop with agents chain.
-			env.introduce_coop( [&](so_5::coop_t & coop) {
+			auto chain_head = env.introduce_coop( [](so_5::coop_t & coop) {
 				// Agents will be created from the last to the first.
 				auto last = coop.make_agent<last_agent>();
 				auto third = coop.make_agent<chain_agent>(
@@ -92,7 +91,7 @@ int main()
 						"second", " {", "} ", third->so_direct_mbox() );
 				auto first = coop.make_agent<chain_agent>(
 						"first", " (", ") ", second->so_direct_mbox() );
-				chain_head = first->so_direct_mbox();
+				return first->so_direct_mbox();
 			} );
 
 			// Send mutable message with initial content.
