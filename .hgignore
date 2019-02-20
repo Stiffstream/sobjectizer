@@ -9,6 +9,7 @@ dev/__*.vim
 dev/local-build.rb
 dev/doc
 doxygen/doxygen.log
+dev/*.log
 o/*
 cmake_build/*
 *.sublime-project

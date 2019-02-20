@@ -51,18 +51,16 @@ main()
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * first{};
-			so_5::agent_t * second{};
-
-			env.environment().introduce_coop(
+			auto [first, second] = env.environment().introduce_coop(
 				[&](so_5::coop_t & coop) {
-					first = coop.make_agent< first_t >();
-					second = coop.make_agent< second_t >();
+					return std::make_tuple(
+							coop.make_agent< first_t >(),
+							coop.make_agent< second_t >() );
 				} );
 
 			env.scenario().define_step( "test" )
-				.impact( [first, second] {
-							so_5::send< msg_take >( *first, second->so_direct_mbox() );
+				.impact( [f=first, s=second] {
+							so_5::send< msg_take >( *f, s->so_direct_mbox() );
 						} )
 				.when_all(
 						*first & tests::reacts_to< msg_take >()

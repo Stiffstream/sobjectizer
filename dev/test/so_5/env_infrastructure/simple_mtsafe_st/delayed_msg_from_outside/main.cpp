@@ -35,10 +35,10 @@ main()
 
 				so_5::launch(
 					[&]( so_5::environment_t & env ) {
-						so_5::mbox_t test_mbox;
-						env.introduce_coop( [&]( so_5::coop_t & coop ) {
-							test_mbox = coop.make_agent< a_test_t >()->so_direct_mbox();
-						} );
+						so_5::mbox_t test_mbox = env.introduce_coop(
+							[&]( so_5::coop_t & coop ) {
+								return coop.make_agent< a_test_t >()->so_direct_mbox();
+							} );
 
 						outside_thread = thread( [test_mbox] {
 							this_thread::sleep_for( chrono::milliseconds( 350 ) );

@@ -98,18 +98,14 @@ so_5::mbox_t create_logger_coop( so_5::environment_t & env )
 					}
 			};
 
-		so_5::mbox_t result;
-
-		env.introduce_coop( [&]( so_5::coop_t & coop )
+		return env.introduce_coop( [&]( so_5::coop_t & coop )
 			{
 				// Logger agent.
 				auto a = coop.make_agent< logger_t >();
 
 				// Direct mbox of logger agent will be returned.
-				result = a->so_direct_mbox();
+				return a->so_direct_mbox();
 			} );
-
-		return result;
 	}
 
 //

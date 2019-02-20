@@ -77,13 +77,12 @@ int main()
 	try
 	{
 		so_5::launch( [](so_5::environment_t & env) {
-			so_5::mbox_t modificator_mbox;
 			// Create a coop with agents
-			env.introduce_coop( [&](so_5::coop_t & coop) {
+			auto modificator_mbox = env.introduce_coop( [](so_5::coop_t & coop) {
 				auto receiver = coop.make_agent<receiver_agent>();
 				auto modificator = coop.make_agent<modificator_agent>(
 						"<{(", ")}>", receiver->so_direct_mbox() );
-				modificator_mbox = modificator->so_direct_mbox();
+				return modificator->so_direct_mbox();
 			} );
 
 			// Send mutable message with initial content.

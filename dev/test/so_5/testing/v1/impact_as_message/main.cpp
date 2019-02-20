@@ -62,10 +62,10 @@ UT_UNIT_TEST( impact_as_message )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
-				} );
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+					[](so_5::coop_t & coop) {
+						return coop.make_agent< test_agent_t >();
+					} );
 
 			define_step< hello >( env, "hello", *test_agent );
 			define_step< so_msg >( env, "so_msg", *test_agent, 1 );

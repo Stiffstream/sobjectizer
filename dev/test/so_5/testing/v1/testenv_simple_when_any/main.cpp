@@ -58,9 +58,9 @@ UT_UNIT_TEST( send_hello_1 )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[](so_5::coop_t & coop) {
+					return coop.make_agent< test_agent_t >();
 				} );
 
 			setup_triggers(
@@ -85,9 +85,9 @@ UT_UNIT_TEST( send_hello_2 )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[](so_5::coop_t & coop) {
+					return coop.make_agent< test_agent_t >();
 				} );
 
 			setup_triggers(
@@ -112,9 +112,9 @@ UT_UNIT_TEST( send_dummy )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[](so_5::coop_t & coop) {
+					return coop.make_agent< test_agent_t >();
 				} );
 
 			setup_triggers(

@@ -37,7 +37,7 @@ main()
 							}
 						};
 
-						env.introduce_coop( [&]( so_5::coop_t & coop ) {
+						env.introduce_coop( []( so_5::coop_t & coop ) {
 							coop.make_agent< actor_t >();
 						} );
 					},

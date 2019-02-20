@@ -45,21 +45,17 @@ main()
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * first{};
-			so_5::agent_t * second{};
-			so_5::agent_t * third{};
-			so_5::agent_t * fourth{};
-
 			const auto broadcast = env.environment().create_mbox();
 
-			env.environment().introduce_coop(
+			auto [first, second, third, fourth] = env.environment().introduce_coop(
 				so_5::disp::active_obj::create_private_disp(
 						env.environment() )->binder(),
 				[&](so_5::coop_t & coop) {
-					first = coop.make_agent< test_agent_t >( broadcast );
-					second = coop.make_agent< test_agent_t >( broadcast );
-					third = coop.make_agent< test_agent_t >( broadcast );
-					fourth = coop.make_agent< test_agent_t >( broadcast );
+					return std::make_tuple(
+							coop.make_agent< test_agent_t >( broadcast ),
+							coop.make_agent< test_agent_t >( broadcast ),
+							coop.make_agent< test_agent_t >( broadcast ),
+							coop.make_agent< test_agent_t >( broadcast ) );
 				} );
 
 			env.scenario().define_step( "test" )

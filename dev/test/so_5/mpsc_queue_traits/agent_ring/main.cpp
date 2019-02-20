@@ -277,9 +277,7 @@ create_coop(
 	so_5::environment_t & env,
 	case_setter_t & setter )
 	{
-		so_5::mbox_t first_agent_mbox;
-
-		env.introduce_coop(
+		so_5::mbox_t first_agent_mbox = env.introduce_coop(
 			[&]( so_5::coop_t & coop )
 			{
 				const std::size_t ring_size = 16;
@@ -304,7 +302,7 @@ create_coop(
 								mboxes[ (i + 1) % ring_size ] );
 					}
 
-				first_agent_mbox = mboxes[ 0 ]; 
+				return mboxes[ 0 ]; 
 			} );
 
 		so_5::send< a_ring_member_t::msg_start >( first_agent_mbox );

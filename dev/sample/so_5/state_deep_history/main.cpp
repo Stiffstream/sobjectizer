@@ -344,12 +344,9 @@ private :
 // Helper for creation of coop with console agent.
 so_5::mbox_t create_console( so_5::environment_t & env )
 {
-	so_5::mbox_t console_mbox;
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		console_mbox = coop.make_agent< console >()->so_direct_mbox();
+	return env.introduce_coop( []( so_5::coop_t & coop ) {
+		return coop.make_agent< console >()->so_direct_mbox();
 	} );
-
-	return console_mbox;
 }
 
 void demo()

@@ -571,18 +571,17 @@ private :
 // Helper for creation of coop with intercom's agents.
 so_5::mbox_t create_intercom( so_5::environment_t & env )
 {
-	so_5::mbox_t intercom_mbox;
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		intercom_mbox = env.create_mbox();
+	return env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		auto intercom_mbox = env.create_mbox();
 
 		coop.make_agent< controller >( intercom_mbox );
 		coop.make_agent< inactivity_watcher >( intercom_mbox );
 		coop.make_agent< keyboard_lights >( intercom_mbox );
 		coop.make_agent< display >( intercom_mbox );
 		coop.make_agent< ringer >( intercom_mbox );
-	} );
 
-	return intercom_mbox;
+		return intercom_mbox;
+	} );
 }
 
 void demo()

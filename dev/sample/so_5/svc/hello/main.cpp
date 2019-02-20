@@ -136,9 +136,9 @@ void init( so_5::environment_t & env )
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[&env]( so_5::coop_t & coop )
+				[]( so_5::coop_t & coop )
 				{
-					auto svc_mbox = env.create_mbox();
+					auto svc_mbox = coop.environment().create_mbox();
 
 					define_hello_service( coop, svc_mbox );
 					define_convert_service( coop, svc_mbox );
