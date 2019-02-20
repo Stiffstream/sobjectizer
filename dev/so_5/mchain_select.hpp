@@ -183,24 +183,35 @@ class select_cases_holder_t
 		 * Implements ForwardIterator concept.
 		 */
 		class const_iterator
-			: public std::iterator< std::forward_iterator_tag, select_case_t >
 			{
 				using actual_it_t = typename array_type_t::const_iterator;
 
 				actual_it_t m_it;
 
 			public :
-				const_iterator() {}
-				const_iterator( actual_it_t it ) : m_it( std::move(it) ) {}
+				using difference_type = std::ptrdiff_t;
+				using value_type = select_case_t;
+				using pointer = const value_type*;
+				using reference = const value_type&;
+				using iterator_category = std::forward_iterator_tag;
 
-				const_iterator & operator++() { ++m_it; return *this; }
-				const_iterator operator++(int) { const_iterator o{ m_it }; ++m_it; return o; }
+				const_iterator() = default;
+				const_iterator( actual_it_t it ) noexcept : m_it( std::move(it) ) {}
 
-				bool operator==( const const_iterator & o ) const { return m_it == o.m_it; }
-				bool operator!=( const const_iterator & o ) const { return m_it != o.m_it; }
+				const_iterator & operator++() noexcept
+					{ ++m_it; return *this; }
+				const_iterator operator++(int) noexcept
+					{ const_iterator o{ m_it }; ++m_it; return o; }
 
-				select_case_t & operator*() const { return **m_it; }
-				select_case_t * operator->() const { return m_it->get(); }
+				bool operator==( const const_iterator & o ) const noexcept
+					{ return m_it == o.m_it; }
+				bool operator!=( const const_iterator & o ) const noexcept
+					{ return m_it != o.m_it; }
+
+				select_case_t & operator*() const noexcept
+					{ return **m_it; }
+				select_case_t * operator->() const noexcept
+					{ return m_it->get(); }
 			};
 
 		//! Get iterator for the first item in select_cases_holder.
