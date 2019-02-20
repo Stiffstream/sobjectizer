@@ -71,18 +71,17 @@ UT_UNIT_TEST( workers_and_manager )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * first_worker{};
-			so_5::agent_t * second_worker{};
-			so_5::agent_t * manager{};
-
 			const auto control_mbox = env.environment().create_mbox();
 
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					first_worker = coop.make_agent< worker_t >( control_mbox );
-					second_worker = coop.make_agent< worker_t >( control_mbox );
+			auto [first_worker, second_worker] =
+				env.environment().introduce_coop(
+					[&](so_5::coop_t & coop) {
+						coop.make_agent< manager_t >( control_mbox );
 
-					manager = coop.make_agent< manager_t >( control_mbox );
-				} );
+						return std::make_tuple(
+								coop.make_agent< worker_t >( control_mbox ),
+								coop.make_agent< worker_t >( control_mbox ) );
+					} );
 
 			auto scenario = env.scenario();
 

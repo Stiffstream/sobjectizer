@@ -398,9 +398,7 @@ create_coop(
 	measure_result_t & result,
 	so_5::environment_t & env )
 	{
-		so_5::mbox_t first_agent_mbox;
-
-		env.introduce_coop(
+		so_5::mbox_t first_agent_mbox = env.introduce_coop(
 			create_disp_binder( env, cfg ),
 			[&]( so_5::coop_t & coop )
 			{
@@ -428,7 +426,7 @@ create_coop(
 								mboxes[ (i + 1) % cfg.m_ring_size ] );
 					}
 
-				first_agent_mbox = mboxes[ 0 ]; 
+				return mboxes[ 0 ]; 
 			} );
 
 		so_5::send< a_ring_member_t::msg_start >( first_agent_mbox );

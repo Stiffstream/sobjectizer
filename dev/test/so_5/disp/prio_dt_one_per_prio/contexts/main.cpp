@@ -85,10 +85,8 @@ public:
 void
 init( so_5::environment_t & env )
 {
-	so_5::mbox_t supervisor_mbox;
-	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		auto a = coop.make_agent< a_supervisor_t >();
-		supervisor_mbox = a->so_direct_mbox();
+	so_5::mbox_t supervisor_mbox = env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		return coop.make_agent< a_supervisor_t >()->so_direct_mbox();
 	} );
 
 	using namespace so_5::disp::prio_dedicated_threads::one_per_prio;

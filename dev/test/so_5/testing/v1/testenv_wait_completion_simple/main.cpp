@@ -56,22 +56,20 @@ main()
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * first{};
-			so_5::agent_t * second{};
-
 			auto second_mbox = env.environment().create_mbox();
 
-			env.environment().introduce_coop(
+			auto [first, second] = env.environment().introduce_coop(
 				so_5::disp::active_obj::create_private_disp(
 						env.environment() )->binder(),
 				[&](so_5::coop_t & coop) {
-					first = coop.make_agent< first_agent_t >( second_mbox );
-					second = coop.make_agent< second_agent_t >( second_mbox );
+					return std::make_tuple(
+							coop.make_agent< first_agent_t >( second_mbox ),
+							coop.make_agent< second_agent_t >( second_mbox ) );
 				} );
 
 			env.scenario().define_step( "hello_one_received" )
-				.impact( [first] {
-							so_5::send< hello_one >( *first );
+				.impact( [f=first] {
+							so_5::send< hello_one >( *f );
 						} )
 				.when( *first
 						& tests::reacts_to< hello_one >()

@@ -37,9 +37,9 @@ UT_UNIT_TEST( impact_as_lambda )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[](so_5::coop_t & coop) {
+					return coop.make_agent< test_agent_t >();
 				} );
 
 			env.scenario().define_step( "hello_received" )
@@ -64,9 +64,9 @@ UT_UNIT_TEST( impact_as_message )
 		{
 			tests::testing_env_t env;
 
-			so_5::agent_t * test_agent;
-			env.environment().introduce_coop( [&](so_5::coop_t & coop) {
-					test_agent = coop.make_agent< test_agent_t >();
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[](so_5::coop_t & coop) {
+					return coop.make_agent< test_agent_t >();
 				} );
 
 			env.scenario().define_step( "hello_received" )
