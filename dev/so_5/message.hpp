@@ -353,22 +353,22 @@ struct user_type_message_t : public message_t
 	//! Initializing constructor.
 	template< typename... Args >
 	user_type_message_t( Args &&... args )
-		:	m_payload( T{ std::forward< Args >( args )... } )
+		:	m_payload{ std::forward< Args >( args )... }
 		{}
 
 	//! Initialization from const T object.
 	user_type_message_t( const T & o )
-		:	m_payload( o )
+		:	m_payload{ o }
 		{}
 
 	//! Initialization from non-const T object.
 	user_type_message_t( T & o )
-		:	m_payload( o )
+		:	m_payload{ o }
 		{}
 
 	//! Initialization from temporary T object.
 	user_type_message_t( T && o )
-		:	m_payload( std::move(o) )
+		:	m_payload{ std::move(o) }
 		{}
 
 private :
