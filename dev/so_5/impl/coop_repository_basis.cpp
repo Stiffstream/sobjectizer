@@ -421,24 +421,21 @@ coop_repository_basis_t::final_deregister_coop(
 std::size_t
 coop_repository_basis_t::deregister_all_coop() noexcept
 {
-	// Because VC++ 12.0 doesn't support noexcept we use invoke_noexcept_code.
-	return so_5::details::invoke_noexcept_code( [this] {
-		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
+	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
-		for( auto & info : m_registered_coop )
-			coop_private_iface_t::do_deregistration_specific_actions(
-					*(info.second),
-					coop_dereg_reason_t( dereg_reason::shutdown ) );
-				
-		m_deregistered_coop.insert(
-			m_registered_coop.begin(),
-			m_registered_coop.end() );
+	for( auto & info : m_registered_coop )
+		coop_private_iface_t::do_deregistration_specific_actions(
+				*(info.second),
+				coop_dereg_reason_t( dereg_reason::shutdown ) );
+			
+	m_deregistered_coop.insert(
+		m_registered_coop.begin(),
+		m_registered_coop.end() );
 
-		m_registered_coop.clear();
-		m_deregistration_started = true;
+	m_registered_coop.clear();
+	m_deregistration_started = true;
 
-		return m_deregistered_coop.size();
-	} );
+	return m_deregistered_coop.size();
 }
 
 coop_repository_basis_t::initiate_deregistration_result_t
