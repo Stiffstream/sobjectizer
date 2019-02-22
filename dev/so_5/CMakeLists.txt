@@ -42,8 +42,6 @@ set(SO_5_SRC exception.cpp
 	rt/agent_coop_notifications.cpp
 	rt/queue_locks_defaults_manager.cpp
 	rt/environment.cpp
-	rt/disp.cpp
-	rt/disp_binder.cpp
 	rt/so_layer.cpp
 
 	rt/impl/msg_tracing_helpers.cpp
@@ -56,7 +54,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/named_local_mbox.cpp
 	rt/impl/mbox_core.cpp
 	rt/impl/coop_repository_basis.cpp
-	rt/impl/disp_repository.cpp
 	rt/impl/layer_core.cpp
 	rt/impl/state_listener_controller.cpp
 	rt/impl/mt_env_infrastructure.cpp

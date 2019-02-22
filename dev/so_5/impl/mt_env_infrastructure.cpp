@@ -235,12 +235,6 @@ mt_env_infrastructure_t::stats_repository() noexcept
 		return m_stats_controller;
 	}
 
-dispatcher_t &
-mt_env_infrastructure_t::query_default_dispatcher()
-	{
-		return *m_default_dispatcher;
-	}
-
 environment_infrastructure_t::coop_repository_stats_t
 mt_env_infrastructure_t::query_coop_repository_stats()
 	{
@@ -256,8 +250,7 @@ mt_env_infrastructure_t::query_timer_thread_stats()
 disp_binder_unique_ptr_t
 mt_env_infrastructure_t::make_default_disp_binder()
 	{
-		return so_5::disp::one_thread::internals::create_binder_for_specific_dispatcher(
-				*m_default_dispatcher );
+//FIXME: implement this!
 	}
 
 void

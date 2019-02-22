@@ -43,8 +43,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 		cpp_source 'msg_tracing.cpp'
 
-		cpp_source 'wrapped_env.cpp'
-
 		# Run-time.
 		cpp_source 'message.cpp'
 		cpp_source 'enveloped_msg.cpp'
@@ -65,12 +63,11 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		cpp_source 'agent_coop_notifications.cpp'
 
 		cpp_source 'queue_locks_defaults_manager.cpp'
-		cpp_source 'environment.cpp'
-
-		cpp_source 'disp.cpp'
-		cpp_source 'disp_binder.cpp'
 
 		cpp_source 'so_layer.cpp'
+
+		cpp_source 'environment.cpp'
+		cpp_source 'wrapped_env.cpp'
 
 		sources_root( 'impl' ) {
 			cpp_source 'msg_tracing_helpers.cpp'
@@ -88,7 +85,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 			cpp_source 'coop_repository_basis.cpp'
 
-			cpp_source 'disp_repository.cpp'
 			cpp_source 'layer_core.cpp'
 			cpp_source 'state_listener_controller.cpp'
 
@@ -110,6 +106,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			}
 		}
 
+=begin
 		sources_root( 'disp' ) {
 			sources_root( 'mpsc_queue_traits' ) {
 				cpp_source 'pub.cpp'
@@ -154,7 +151,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				}
 			}
 		}
-
+=end
 		sources_root( 'experimental' ) {
 			sources_root( 'testing' ) {
 				sources_root( 'v1' ) {

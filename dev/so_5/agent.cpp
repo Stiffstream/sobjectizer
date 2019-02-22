@@ -708,7 +708,7 @@ agent_t::so_bind_to_dispatcher(
 
 		// Cooperation usage counter should be incremented.
 		// It will be decremented during final agent event execution.
-		coop_t::increment_usage_count( *m_agent_coop );
+		coop_t::so_increment_usage_count( *m_agent_coop );
 
 		// A starting demand must be sent first.
 		actual_queue->push(
@@ -1162,7 +1162,7 @@ agent_t::demand_handler_on_finish(
 	}
 
 	// Cooperation should receive notification about agent deregistration.
-	coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
+	coop_t::so_decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 demand_handler_pfn_t

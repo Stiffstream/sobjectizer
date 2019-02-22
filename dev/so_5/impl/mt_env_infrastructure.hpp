@@ -213,16 +213,13 @@ class mt_env_infrastructure_t
 		virtual ::so_5::stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual dispatcher_t &
-		query_default_dispatcher() override;
-
 		virtual coop_repository_stats_t
 		query_coop_repository_stats() override;
 
 		virtual timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_unique_ptr_t
+		virtual disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :

@@ -224,10 +224,6 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual ::so_5::stats::repository_t &
 		stats_repository() noexcept = 0;
 
-		//! Get the default dispatcher.
-		virtual dispatcher_t &
-		query_default_dispatcher() = 0;
-
 		//! Query run-time statistics for cooperation repository.
 		virtual coop_repository_stats_t
 		query_coop_repository_stats() = 0;
@@ -237,7 +233,7 @@ class SO_5_TYPE environment_infrastructure_t
 		query_timer_thread_stats() = 0;
 
 		//! Create a binder for the default dispatcher.
-		virtual disp_binder_unique_ptr_t
+		virtual disp_binder_shptr_t
 		make_default_disp_binder() = 0;
 	};
 

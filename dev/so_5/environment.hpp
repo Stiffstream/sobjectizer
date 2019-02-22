@@ -30,7 +30,6 @@
 #include <so_5/mchain.hpp>
 #include <so_5/message.hpp>
 #include <so_5/agent_coop.hpp>
-#include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
 #include <so_5/so_layer.hpp>
 #include <so_5/coop_listener.hpp>
@@ -150,22 +149,6 @@ class SO_5_TYPE environment_params_t
 		 */
 		void
 		swap( environment_params_t & other );
-
-		//! Add a named dispatcher.
-		/*!
-		 * By default the SObjectizer Environment has only one dispatcher
-		 * with one working thread. A user can add his own dispatcher:
-		 * named ones.
-		 *
-		 * \note If a dispatcher with \a name is already registered it
-		 * will be replaced by a new dispatcher \a dispatcher.
-		 */
-		environment_params_t &
-		add_named_dispatcher(
-			//! Dispatcher name.
-			nonempty_name_t name,
-			//! Dispatcher.
-			dispatcher_unique_ptr_t dispatcher );
 
 		//! Set the timer_thread factory.
 		/*!
@@ -505,13 +488,6 @@ class SO_5_TYPE environment_params_t
 		 * \name Methods for internal use only.
 		 * \{
 		 */
-		//! Get map of named dispatchers.
-		named_dispatcher_map_t
-		so5__giveout_named_dispatcher_map()
-		{
-			return std::move( m_named_dispatcher_map );
-		}
-
 		//! Get map of default SObjectizer's layers.
 		const layer_map_t &
 		so5__layers_map() const
@@ -609,9 +585,6 @@ class SO_5_TYPE environment_params_t
 			const std::type_index & type,
 			//! A layer to be added.
 			layer_unique_ptr_t layer_ptr );
-
-		//! Named dispatchers.
-		named_dispatcher_map_t m_named_dispatcher_map;
 
 		//! Timer thread factory.
 		so_5::timer_thread_factory_t m_timer_thread_factory;
@@ -907,47 +880,10 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 
-		//! Access to the default dispatcher.
-		dispatcher_t &
-		query_default_dispatcher();
-
-		//! Get named dispatcher.
-		/*!
-		 * \return A reference to the dispatcher with the name \a disp_name.
-		 * Zero reference if a dispatcher with such name is not found.
-		 */
-		dispatcher_ref_t
-		query_named_dispatcher(
-			//! Dispatcher name.
-			const std::string & disp_name );
-
 		//! Set up an exception logger.
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Add named dispatcher if it is not exists.
-		 *
-		 * \par Usage:
-			\code
-			so_5::environment_t & env = ...;
-			env.add_dispatcher_if_not_exists(
-				"my_coop_dispatcher",
-				[]() { so_5::disp::one_thread::create_disp(); } );
-			\endcode
-		 *
-		 * \throw so_5::exception_t if dispatcher cannot be added.
-		 */
-		dispatcher_ref_t
-		add_dispatcher_if_not_exists(
-			//! Dispatcher name.
-			const std::string & disp_name,
-			//! Dispatcher factory.
-			std::function< dispatcher_unique_ptr_t() > disp_factory );
 		/*!
 		 * \}
 		 */
@@ -1003,7 +939,7 @@ class SO_5_TYPE environment_t
 			//! A new cooperation name.
 			nonempty_name_t name,
 			//! A default binder for this cooperation.
-			disp_binder_unique_ptr_t disp_binder );
+			disp_binder_shptr_t disp_binder );
 
 		//! Create a cooperation with automatically generated name.
 		/*!
@@ -1018,7 +954,7 @@ class SO_5_TYPE environment_t
 			//! A new cooperation name.
 			autoname_indicator_t indicator(),
 			//! A default binder for this cooperation.
-			disp_binder_unique_ptr_t disp_binder );
+			disp_binder_shptr_t disp_binder );
 
 		//! Register a cooperation.
 		/*!
@@ -1164,7 +1100,7 @@ class SO_5_TYPE environment_t
 		register_agent_as_coop(
 			nonempty_name_t coop_name,
 			std::unique_ptr< A > agent,
-			disp_binder_unique_ptr_t disp_binder )
+			disp_binder_shptr_t disp_binder )
 		{
 			auto coop = create_coop(
 					std::move( coop_name ), std::move( disp_binder ) );
@@ -1197,73 +1133,11 @@ class SO_5_TYPE environment_t
 		register_agent_as_coop(
 			autoname_indicator_t indicator(),
 			std::unique_ptr< A > agent,
-			disp_binder_unique_ptr_t disp_binder )
+			disp_binder_shptr_t disp_binder )
 		{
 			auto coop = create_coop( indicator, std::move( disp_binder ) );
 			coop->add_agent( std::move( agent ) );
 			register_coop( std::move( coop ) );
-		}
-
-		/*!
-		 * \brief Register single agent as a cooperation with specified
-		 * dispatcher binder.
-		 *
-		 * \since
-		 * v.5.2.1
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   so_env.register_agent_as_coop(
-		   	"sample_coop",
-		   	new my_agent_t(...),
-		   	so_5::disp::active_group::create_disp_binder(
-		   			"active_group",
-		   			"some_active_group" ) );
-		 * \endcode
-		 */
-		inline void
-		register_agent_as_coop(
-			nonempty_name_t coop_name,
-			agent_t * agent,
-			disp_binder_unique_ptr_t disp_binder )
-		{
-			register_agent_as_coop(
-					std::move( coop_name ),
-					std::unique_ptr< agent_t >( agent ),
-					std::move( disp_binder ) );
-		}
-
-		/*!
-		 * \brief Register single agent as a cooperation with specified
-		 * dispatcher binder and automatically generated name.
-		 *
-		 * \since
-		 * v.5.5.1
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   so_env.register_agent_as_coop(
-				so_5::autoname,
-		   	new my_agent_t(...),
-		   	so_5::disp::active_group::create_disp_binder(
-		   			"active_group",
-		   			"some_active_group" ) );
-		 * \endcode
-		 */
-		inline void
-		register_agent_as_coop(
-			autoname_indicator_t indicator(),
-			agent_t * agent,
-			disp_binder_unique_ptr_t disp_binder )
-		{
-			register_agent_as_coop(
-					indicator,
-					std::unique_ptr< agent_t >( agent ),
-					std::move( disp_binder ) );
 		}
 
 		//! Deregister the cooperation.
@@ -1535,7 +1409,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.5.19
 		 */
-		disp_binder_unique_ptr_t
+		disp_binder_shptr_t
 		so_make_default_disp_binder();
 
 		/*!
@@ -1826,12 +1700,6 @@ class SO_5_TYPE environment_t
 		impl__run_layers_and_go_further();
 
 		/*!
-		 * \brief Run dispatchers and call next run stage.
-		 */
-		void
-		impl__run_dispatcher_and_go_further();
-
-		/*!
 		 * \brief Launch environment infrastructure and wait for finish.
 		 *
 		 * \since
@@ -1868,7 +1736,7 @@ private :
 	decltype(auto)
 	build_and_register_coop(
 		Coop_Name && name,
-		disp_binder_unique_ptr_t binder,
+		disp_binder_shptr_t binder,
 		Lambda && lambda )
 	{
 		auto coop = m_env.create_coop( name, std::move( binder ) );
@@ -1923,7 +1791,7 @@ public :
 	{
 		return build_and_register_coop(
 				so_5::autoname,
-				create_default_disp_binder(),
+				m_env.so_make_default_disp_binder(),
 				std::forward< L >( lambda ) );
 	}
 
@@ -1938,7 +1806,7 @@ public :
 	{
 		return build_and_register_coop(
 				so_5::autoname,
-				create_default_disp_binder(),
+				m_env.so_make_default_disp_binder(),
 				std::forward< L >( lambda ) );
 	}
 
@@ -1949,7 +1817,7 @@ public :
 	 */
 	template< typename L >
 	decltype(auto)
-	introduce( disp_binder_unique_ptr_t binder, L && lambda )
+	introduce( disp_binder_shptr_t binder, L && lambda )
 	{
 		return build_and_register_coop(
 				so_5::autoname,
@@ -1966,7 +1834,7 @@ public :
 	decltype(auto)
 	introduce(
 		autoname_indicator_t(),
-		disp_binder_unique_ptr_t binder,
+		disp_binder_shptr_t binder,
 		L && lambda )
 	{
 		return build_and_register_coop(
@@ -1986,7 +1854,7 @@ public :
 	{
 		return build_and_register_coop(
 				name,
-				create_default_disp_binder(),
+				m_env.so_make_default_disp_binder(),
 				std::forward< L >( lambda ) );
 	}
 
@@ -1999,7 +1867,7 @@ public :
 	decltype(auto)
 	introduce(
 		const std::string & name,
-		disp_binder_unique_ptr_t binder,
+		disp_binder_shptr_t binder,
 		L && lambda )
 	{
 		return build_and_register_coop(

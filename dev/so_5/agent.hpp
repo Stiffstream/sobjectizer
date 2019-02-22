@@ -28,7 +28,6 @@
 
 #include <so_5/agent_ref_fwd.hpp>
 #include <so_5/agent_context.hpp>
-#include <so_5/disp.hpp>
 #include <so_5/mbox.hpp>
 #include <so_5/agent_state_listener.hpp>
 #include <so_5/event_queue.hpp>

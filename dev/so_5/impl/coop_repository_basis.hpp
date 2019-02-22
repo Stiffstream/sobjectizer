@@ -249,7 +249,7 @@ public:
 
 protected:
 	//! Typedef for map from cooperation name to the cooperation.
-	typedef std::map< std::string, coop_ref_t > coop_map_t;
+	typedef std::map< std::string, coop_shptr_t > coop_map_t;
 
 	/*!
 	 * \since
@@ -338,7 +338,7 @@ protected:
 	struct final_remove_result_t
 		{
 			//! Cooperation to be destroyed.
-			coop_ref_t m_coop;
+			coop_shptr_t m_coop;
 			//! Deregistration notifications.
 			info_for_dereg_notification_t m_notifications;
 
@@ -348,7 +348,7 @@ protected:
 
 			//! Initializing constructor.
 			final_remove_result_t(
-				coop_ref_t coop,
+				coop_shptr_t coop,
 				info_for_dereg_notification_t notifications )
 				:	m_coop( std::move( coop ) )
 				,	m_notifications( std::move( notifications ) )
@@ -455,7 +455,7 @@ protected:
 	void
 	next_coop_reg_step__update_registered_coop_map(
 		//! Cooperation to be registered.
-		const coop_ref_t & coop_ref,
+		const coop_shptr_t & coop_ref,
 		//! Pointer to parent cooperation.
 		//! Equal to nullptr if \a coop has no parent.
 		coop_t * parent_coop_ptr );
@@ -472,7 +472,7 @@ protected:
 	void
 	next_coop_reg_step__parent_child_relation(
 		//! Cooperation to be registered.
-		const coop_ref_t & coop,
+		const coop_shptr_t & coop,
 		//! Pointer to parent cooperation.
 		//! Equal to nullptr if \a coop has no parent.
 		coop_t * parent_coop_ptr );
