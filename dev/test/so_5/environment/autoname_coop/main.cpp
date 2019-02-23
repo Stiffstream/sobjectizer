@@ -34,23 +34,19 @@ main()
 						for( int i = 0; i < 1024; ++i )
 						{
 							auto coop = env.create_coop( so_5::autoname );
-							coop->add_agent( new a_test_t( env ) );
+							coop->add_agent( std::make_unique< a_test_t >( env ) );
 
 							env.register_coop( std::move( coop ) );
 
 							env.register_agent_as_coop( so_5::autoname,
-									new a_test_t( env ) );
+									std::make_unique< a_test_t >( env ) );
 
-							env.register_agent_as_coop( so_5::autoname,
-									new a_test_t( env ),
-									so_5::disp::one_thread::create_disp_binder(
-											"another" ) );
+							env.register_agent_as_coop(
+									so_5::autoname,
+									std::make_unique< a_test_t >( env ),
+									so_5::disp::one_thread::make_dispatcher(
+											env, "another" ).binder() );
 						}
-					},
-					[]( so_5::environment_params_t & params )
-					{
-						params.add_named_dispatcher( "another",
-							so_5::disp::one_thread::create_disp() );
 					} );
 			},
 			20,

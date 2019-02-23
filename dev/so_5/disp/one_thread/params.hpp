@@ -55,6 +55,8 @@ class disp_params_t
 	public :
 		//! Default constructor.
 		disp_params_t() {}
+//FIXME: can the default implementations of copy/move constructors
+//and copy/move operators be used?
 		//! Copy constructor.
 		disp_params_t( const disp_params_t & o )
 			:	activity_tracking_mixin_t( o )
@@ -66,7 +68,8 @@ class disp_params_t
 			,	m_queue_params{ std::move(o.m_queue_params) }
 			{}
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b )
+		friend inline void
+		swap( disp_params_t & a, disp_params_t & b ) noexcept
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
@@ -75,14 +78,16 @@ class disp_params_t
 			}
 
 		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
+		disp_params_t &
+		operator=( const disp_params_t & o ) noexcept
 			{
 				disp_params_t tmp{ o };
 				swap( *this, tmp );
 				return *this;
 			}
 		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
+		disp_params_t &
+		operator=( disp_params_t && o ) noexcept
 			{
 				disp_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
@@ -129,15 +134,6 @@ class disp_params_t
 		//! Queue parameters.
 		queue_traits::queue_params_t m_queue_params;
 	};
-
-//
-// params_t
-//
-/*!
- * \brief Old alias for disp_params for compatibility with previous versions.
- * \deprecated Use disp_params_t instead.
- */
-using params_t = disp_params_t;
 
 } /* namespace one_thread */
 

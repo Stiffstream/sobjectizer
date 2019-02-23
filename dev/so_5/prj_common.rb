@@ -89,8 +89,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'state_listener_controller.cpp'
 
 			cpp_source 'mt_env_infrastructure.cpp'
-			cpp_source 'simple_mtsafe_st_env_infrastructure.cpp'
-			cpp_source 'simple_not_mtsafe_st_env_infrastructure.cpp'
+#			cpp_source 'simple_mtsafe_st_env_infrastructure.cpp'
+#			cpp_source 'simple_not_mtsafe_st_env_infrastructure.cpp'
 		}
 
 		sources_root( 'stats' ) {
@@ -106,7 +106,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			}
 		}
 
-=begin
 		sources_root( 'disp' ) {
 			sources_root( 'mpsc_queue_traits' ) {
 				cpp_source 'pub.cpp'
@@ -120,6 +119,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				cpp_source 'pub.cpp'
 			}
 
+=begin
 			sources_root( 'active_obj' ) {
 				cpp_source 'pub.cpp'
 			}
@@ -150,8 +150,9 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 					cpp_source 'pub.cpp'
 				}
 			}
-		}
 =end
+		}
+
 		sources_root( 'experimental' ) {
 			sources_root( 'testing' ) {
 				sources_root( 'v1' ) {

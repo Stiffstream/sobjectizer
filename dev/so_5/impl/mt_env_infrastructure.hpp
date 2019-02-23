@@ -15,7 +15,7 @@
 #include <so_5/environment_infrastructure.hpp>
 #include <so_5/mchain.hpp>
 
-#include <so_5/disp/one_thread/params.hpp>
+#include <so_5/disp/one_thread/pub.hpp>
 
 #include <so_5/impl/coop_repository_basis.hpp>
 
@@ -225,8 +225,10 @@ class mt_env_infrastructure_t
 	private :
 		environment_t & m_env;
 
+		//! Parameters for the default dispatcher.
+		const disp::one_thread::disp_params_t m_default_dispatcher_params;
 		//! Default dispatcher.
-		dispatcher_unique_ptr_t m_default_dispatcher;
+		disp::one_thread::dispatcher_handle_t m_default_dispatcher;
 
 		//! Timer thread to be used by the environment.
 		timer_thread_unique_ptr_t m_timer_thread;
