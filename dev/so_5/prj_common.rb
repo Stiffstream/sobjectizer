@@ -90,7 +90,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 			cpp_source 'mt_env_infrastructure.cpp'
 			cpp_source 'simple_mtsafe_st_env_infrastructure.cpp'
-#			cpp_source 'simple_not_mtsafe_st_env_infrastructure.cpp'
+			cpp_source 'simple_not_mtsafe_st_env_infrastructure.cpp'
 		}
 
 		sources_root( 'stats' ) {

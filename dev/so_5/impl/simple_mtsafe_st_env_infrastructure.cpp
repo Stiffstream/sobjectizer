@@ -215,7 +215,7 @@ struct disp_ds_name_parts_t
 // default_dispatcher_t
 //
 /*!
- * \brief An implementation of dispatcher interface to be used in
+ * \brief An implementation of dispatcher to be used in
  * places where default dispatcher is needed.
  *
  * \tparam Activity_Tracker a type of activity tracker to be used
