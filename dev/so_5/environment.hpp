@@ -2043,6 +2043,38 @@ introduce_child_coop(
 			}.introduce( std::forward< Args >(args)... );
 }
 
+//
+// make_default_disp_binder
+//
+/*!
+ * \brief Create an instance of the default dispatcher binder.
+ *
+ * \note This function takes into account a possibility to have
+ * different types of environment infrastructures (introduced in v.5.5.19)
+ * and creates a default dispatcher binder with respect to the
+ * actual environment infrastructure type.
+ *
+ * Usage example:
+ * \code
+ * so_5::launch( [](so_5::environment_t & env) {
+ * 	env.introduce_coop(
+ * 		// Agents from that coop will be bound to the default dispatcher.
+ * 		so_5::make_default_disp_binder(env),
+ * 		[](so_5::coop_t & coop) {
+ * 			coop.make_agent<...>(...);
+ * 		} );
+ * } );
+ * \endcode
+ *
+ * \since
+ * v.5.5.19
+ */
+inline disp_binder_shptr_t
+make_default_disp_binder( environment_t & env )
+	{
+		return env.so_make_default_disp_binder();
+	}
+
 namespace low_level_api
 {
 

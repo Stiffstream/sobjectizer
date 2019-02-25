@@ -88,39 +88,5 @@ class SO_5_TYPE disp_binder_t
 //! Typedef for the disp_binder smart pointer.
 using disp_binder_shptr_t = std::shared_ptr< disp_binder_t >;
 
-#if 0
-//FIXME: may be it should stay here for compatibility reasons?
-//Because it can be a simple inline-function that calls the corresponding
-//method from environment_t.
-//
-// make_default_disp_binder
-//
-/*!
- * \brief Create an instance of the default dispatcher binder.
- *
- * \note This function takes into account a possibility to have
- * different types of environment infrastructures (introduced in v.5.5.19)
- * and creates a default dispatcher binder with respect to the
- * actual environment infrastructure type.
- *
- * Usage example:
- * \code
- * so_5::launch( [](so_5::environment_t & env) {
- * 	env.introduce_coop(
- * 		// Agents from that coop will be bound to the default dispatcher.
- * 		so_5::make_default_disp_binder(env),
- * 		[](so_5::coop_t & coop) {
- * 			coop.make_agent<...>(...);
- * 		} );
- * } );
- * \endcode
- *
- * \since
- * v.5.5.19
- */
-SO_5_FUNC disp_binder_unique_ptr_t
-make_default_disp_binder( environment_t & env );
-#endif
-
 } /* namespace so_5 */
 
