@@ -364,6 +364,26 @@ struct environment_t::internals_t
 	 */
 	event_queue_hook_unique_ptr_t m_event_queue_hook;
 
+	/*!
+	 * \brief Lock object for protection of exception logger object.
+	 *
+	 * \note
+	 * Manipulations with m_event_exception_logger are performed
+	 * only under that lock.
+	 *
+	 * \since
+	 * v.5.6.0
+	 */
+	std::mutex m_event_exception_logger_lock;
+
+	/*!
+	 * \brief Logger for exceptions thrown from event-handlers.
+	 *
+	 * \since
+	 * v.5.6.0
+	 */
+	event_exception_logger_unique_ptr_t m_event_exception_logger;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -399,6 +419,8 @@ struct environment_t::internals_t
 		,	m_event_queue_hook(
 				ensure_event_queue_hook_exists(
 					params.so5__giveout_event_queue_hook() ) )
+		,	m_event_exception_logger{
+				params.so5__giveout_event_exception_logger() }
 	{}
 };
 
@@ -445,9 +467,18 @@ environment_t::create_mchain(
 
 void
 environment_t::install_exception_logger(
-	event_exception_logger_unique_ptr_t /*logger*/ )
+	event_exception_logger_unique_ptr_t logger )
 {
-//FIXME: implement this!
+	if( logger )
+	{
+		std::lock_guard< std::mutex > lock{
+				m_impl->m_event_exception_logger_lock };
+
+		using std::swap;
+		swap( m_impl->m_event_exception_logger, logger );
+
+		m_impl->m_event_exception_logger->on_install( std::move( logger ) );
+	}
 }
 
 coop_unique_ptr_t
@@ -616,10 +647,12 @@ environment_t::stop()
 
 void
 environment_t::call_exception_logger(
-	const std::exception & /*event_exception*/,
-	const std::string & /*coop_name*/ )
+	const std::exception & event_exception,
+	const std::string & coop_name )
 {
-//FIXME: implement this!
+	std::lock_guard< std::mutex > lock{ m_impl->m_event_exception_logger_lock };
+
+	m_impl->m_event_exception_logger->log_exception( event_exception, coop_name );
 }
 
 exception_reaction_t
