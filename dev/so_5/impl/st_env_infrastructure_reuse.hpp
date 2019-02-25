@@ -188,28 +188,32 @@ class coop_repo_t final
 	};
 
 //
-// default_disp_impl_basis_t
+// default_dispatcher_basis_t
 //
 /*!
- * \brief A basic part of implementation of dispatcher interface to be used in
+ * \brief A basic part of implementation of dispatcher to be used in
  * places where default dispatcher is needed.
  *
  * \note
  * This part is not dependent of activity tracking policy which can be used in
  * derived classes.
  *
+ * \note
+ * Implements disp_binder_t interface.
+ *
  * \tparam Event_Queue_Type An actual type of event queue.
  *
  * \since
- * v.5.5.19
+ * v.5.5.19, v.5.6.0
  */
 template< typename Event_Queue_Type >
-class default_disp_impl_basis_t : public dispatcher_t
+class default_dispatcher_basis_t : public disp_binder_t
 	{
 	public :
-		default_disp_impl_basis_t(
+		default_dispatcher_basis_t(
 			outliving_reference_t< Event_Queue_Type > event_queue )
-			:	m_event_queue( std::move(event_queue) )
+			:	m_event_queue{ std::move(event_queue) }
+			,	m_thread_id{ query_current_thread_id() }
 			{}
 
 		void
@@ -232,13 +236,30 @@ class default_disp_impl_basis_t : public dispatcher_t
 			}
 
 		void
-		agent_bound() noexcept
+		preallocate_resources(
+			agent_t & /*agent*/ ) override
 			{
+				// Nothing to do.
+			}
+
+		void
+		undo_preallocation(
+			agent_t & /*agent*/ ) noexcept override
+			{
+				// Nothing to do.
+			}
+
+		void
+		bind(
+			agent_t & agent ) noexcept override
+			{
+				agent.so_bind_to_dispatcher( this->event_queue() );
 				++m_agents_bound;
 			}
 
 		void
-		agent_unbound() noexcept
+		unbind(
+			agent_t & /*agent*/ ) noexcept override
 			{
 				--m_agents_bound;
 			}
@@ -259,7 +280,7 @@ class default_disp_impl_basis_t : public dispatcher_t
 		 * of the main thread.
 		 *
 		 * \note
-		 * Receives the value only in start() method.
+		 * Receives value in the constructor.
 		 */
 		current_thread_id_t m_thread_id;
 
@@ -268,62 +289,15 @@ class default_disp_impl_basis_t : public dispatcher_t
 	};
 
 //
-// default_disp_binder_t
+// default_dispatcher_t
 //
 /*!
- * \brief An implementation of disp_binder interface for default dispatcher
- * for this environment infrastructure.
- *
- * \tparam Disp_Iface An actual dispatcher interface type.
- * Expected to be default_disp_impl_basis_t<EQ>.
- *
- * \since
- * v.5.5.19
- */
-template< typename Disp_Iface >
-class default_disp_binder_t final : public so_5::disp_binder_t
-	{
-	public :
-		default_disp_binder_t(
-			outliving_reference_t< Disp_Iface > actual_disp )
-			:	m_actual_disp( std::move(actual_disp) )
-			{}
-
-		virtual disp_binding_activator_t
-		bind_agent(
-			environment_t & /*env*/,
-			agent_ref_t agent ) override
-			{
-				auto result = [agent, this]() {
-					agent->so_bind_to_dispatcher( m_actual_disp.get().event_queue() );
-				};
-
-				// Dispatcher must know about yet another agent bound.
-				m_actual_disp.get().agent_bound();
-
-				return result;
-			}
-
-		virtual void
-		unbind_agent(
-			environment_t & /*env*/,
-			agent_ref_t /*agent*/ ) override
-			{
-				// Dispatcher must know about yet another agent bound.
-				m_actual_disp.get().agent_unbound();
-			}
-
-	private :
-		//! Actual default dispatcher implementation.
-		outliving_reference_t< Disp_Iface > m_actual_disp;
-	};
-
-//
-// default_disp_impl_t
-//
-/*!
- * \brief An implementation of dispatcher interface to be used in
+ * \brief An implementation of dispatcher to be used in
  * places where default dispatcher is needed.
+ *
+ * \note
+ * Implements disp_binder_t interface (via inheritance from
+ * default_dispatcher_basis_t).
  *
  * \tparam Event_Queue_Type a type of actual event queue for the dispatcher.
  *
@@ -340,50 +314,25 @@ class default_disp_binder_t final : public so_5::disp_binder_t
  * \endcode
  *
  * \since
- * v.5.5.19
+ * v.5.6.0
  */
 template<
 	typename Event_Queue_Type,
 	typename Activity_Tracker,
 	typename Data_Source_Name_Parts >
-class default_disp_impl_t final
-	: public default_disp_impl_basis_t< Event_Queue_Type >
+class default_dispatcher_t final
+	: public default_dispatcher_basis_t< Event_Queue_Type >
 	{
 	public :
-		default_disp_impl_t(
+		default_dispatcher_t(
+			outliving_reference_t< environment_t > env,
 			outliving_reference_t< Event_Queue_Type > event_queue,
 			outliving_reference_t< Activity_Tracker > activity_tracker )
-			:	default_disp_impl_basis_t< Event_Queue_Type >( std::move(event_queue) )
-			,	m_data_source( outliving_mutable( *this ) )
-			,	m_activity_tracker( std::move(activity_tracker) )
+			:	default_dispatcher_basis_t< Event_Queue_Type >{
+					std::move(event_queue) }
+			,	m_data_source{ env, outliving_mutable( *this ) }
+			,	m_activity_tracker{ std::move(activity_tracker) }
 			{}
-
-		virtual void
-		start(
-			environment_t & env ) override
-			{
-				this->m_thread_id = query_current_thread_id();
-				m_data_source.start( outliving_mutable(env.stats_repository()) );
-			}
-
-		virtual void
-		shutdown() override
-			{
-				m_data_source.stop();
-			}
-
-		virtual void
-		wait() override
-			{
-				// Nothing to do.
-			}
-
-		virtual void
-		set_data_sources_name_base(
-			const std::string & name ) override
-			{
-				m_data_source.set_data_sources_name_base( name );
-			}
 
 		Activity_Tracker &
 		activity_tracker() noexcept
@@ -401,17 +350,39 @@ class default_disp_impl_t final
 		 */
 		class disp_data_source_t final : public stats::manually_registered_source_t
 			{
+				//! SObjectizer Environment to work in.
+				outliving_reference_t< environment_t > m_env;
+
 				//! Dispatcher to work with.
-				outliving_reference_t< default_disp_impl_t > m_dispatcher;
+				outliving_reference_t< default_dispatcher_t > m_dispatcher;
 
 				//! Basic prefix for data sources.
 				stats::prefix_t m_base_prefix;
 
 			public :
 				disp_data_source_t(
-					outliving_reference_t< default_disp_impl_t > disp )
-					:	m_dispatcher( std::move(disp) )
-					{}
+					outliving_reference_t< environment_t > env,
+					outliving_reference_t< default_dispatcher_t > disp )
+					:	m_env{ env }
+					,	m_dispatcher{ disp }
+					{
+						// Name of data source should be constructed.
+						using namespace so_5::disp::reuse;
+
+						m_base_prefix = make_disp_prefix(
+								Data_Source_Name_Parts::disp_type_part(),
+								"DEFAULT",
+								&m_dispatcher.get() );
+
+						// Data source can be added to stats controller.
+						m_env.get().stats_repository().add( *this );
+					}
+
+				~disp_data_source_t() noexcept override
+					{
+						// Environment should forget about this data source.
+						m_env.get().stats_repository().remove( *this );
+					}
 
 				void
 				distribute( const mbox_t & mbox ) override
@@ -456,7 +427,6 @@ class default_disp_impl_t final
 		//! Activity tracker.
 		outliving_reference_t< Activity_Tracker > m_activity_tracker;
 	};
-
 
 //
 // actual_elapsed_timers_collector_t

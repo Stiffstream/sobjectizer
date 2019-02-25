@@ -226,8 +226,27 @@ class mt_env_infrastructure_t
 		environment_t & m_env;
 
 		//! Parameters for the default dispatcher.
+		/*!
+		 * \note
+		 * There wasn't such attribute in previous versions of SObjectizer-5
+		 * because creation and running of the default dispatcher was separated.
+		 * In v.5.6.0 the default dispatcher is created inside lauch() and
+		 * we have to store parameters for the default dispatcher somewhere.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
 		const disp::one_thread::disp_params_t m_default_dispatcher_params;
+
 		//! Default dispatcher.
+		/*!
+		 * \attention
+		 * The actual value is created only in
+		 * run_default_dispatcher_and_go_further() function. And this
+		 * value is dropped after return from that function.
+		 * It means that default dispatcher exists only while
+		 * lauch() is running.
+		 */
 		disp::one_thread::dispatcher_handle_t m_default_dispatcher;
 
 		//! Timer thread to be used by the environment.

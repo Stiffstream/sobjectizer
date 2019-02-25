@@ -160,7 +160,7 @@ class data_source_t
 template< typename Work_Thread >
 class actual_dispatcher_t : public disp_binder_t
 	{
-		auto self_ptr() { return this; }
+		auto self_ptr() noexcept { return this; }
 
 	public:
 		actual_dispatcher_t(
