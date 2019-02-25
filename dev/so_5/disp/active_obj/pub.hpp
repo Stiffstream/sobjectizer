@@ -13,7 +13,6 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
@@ -54,17 +53,7 @@ class disp_params_t
 
 	public :
 		//! Default constructor.
-		disp_params_t() {}
-		//! Copy constructor.
-		disp_params_t( const disp_params_t & o )
-			:	activity_tracking_mixin_t( o )
-			,	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		disp_params_t( disp_params_t && o )
-			:	activity_tracking_mixin_t( std::move(o) )
-			,	m_queue_params{ std::move(o.m_queue_params) }
-			{}
+		disp_params_t() = default;
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
@@ -73,21 +62,6 @@ class disp_params_t
 						static_cast< activity_tracking_mixin_t & >(b) );
 
 				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
-			{
-				disp_params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
-			{
-				disp_params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
 			}
 
 		//! Setter for queue parameters.
@@ -132,15 +106,6 @@ class disp_params_t
 	};
 
 //
-// params_t
-//
-/*!
- * \brief Old alias for disp_params for compatibility with previous versions.
- * \deprecated Use disp_params_t instead.
- */
-using params_t = disp_params_t;
-
-//
 // private_dispatcher_t
 //
 
@@ -168,24 +133,6 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
  */
 using private_dispatcher_handle_t =
 	so_5::intrusive_ptr_t< private_dispatcher_t >;
-
-/*!
- * \brief Create an instance of dispatcher to be used as named dispatcher.
- *
- * \since
- * v.5.5.10
- */
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
-	//! Parameters for dispatcher.
-	disp_params_t params );
-
-//! Create a dispatcher.
-inline dispatcher_unique_ptr_t
-create_disp()
-	{
-		return create_disp( disp_params_t{} );
-	}
 
 /*!
  * \brief Create a private %active_obj dispatcher.
@@ -271,12 +218,6 @@ create_private_disp(
 	{
 		return create_private_disp( env, std::string() );
 	}
-
-//! Create an agent binder.
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Dispatcher name to be bound to.
-	const std::string & disp_name );
 
 } /* namespace active_obj */
 

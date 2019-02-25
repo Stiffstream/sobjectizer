@@ -547,17 +547,6 @@ class real_private_dispatcher_t : public private_dispatcher_t
 } /* namespace impl */
 
 //
-// create_disp
-//
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
-	disp_params_t params )
-	{
-		return std::make_unique< impl::proxy_dispatcher_t >(
-				std::move(params) );
-	}
-
-//
 // create_private_disp
 //
 SO_5_FUNC private_dispatcher_handle_t
@@ -571,15 +560,6 @@ create_private_disp(
 						env,
 						data_sources_name_base,
 						std::move(params) } );
-	}
-
-//
-// create_disp_binder
-//
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder( const std::string & disp_name )
-	{
-		return std::make_unique< impl::disp_binder_t >( disp_name );
 	}
 
 } /* namespace active_obj */

@@ -51,7 +51,7 @@ class dispatcher_handle_t
 		//! Binder for the dispatcher.
 		disp_binder_shptr_t m_binder;
 
-		dispatcher_handle_t( disp_binder_shptr_t binder )
+		dispatcher_handle_t( disp_binder_shptr_t binder ) noexcept
 			:	m_binder{ std::move(binder) }
 			{}
 

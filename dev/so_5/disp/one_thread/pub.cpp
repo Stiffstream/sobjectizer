@@ -239,7 +239,7 @@ class dispatcher_handle_maker_t
 	{
 	public :
 		static dispatcher_handle_t
-		make( disp_binder_shptr_t binder )
+		make( disp_binder_shptr_t binder ) noexcept
 			{
 				return { std::move( binder ) };
 			}
