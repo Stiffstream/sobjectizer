@@ -55,6 +55,10 @@ class dispatcher_handle_t
 			:	m_binder{ std::move(binder) }
 			{}
 
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_binder; }
+
 	public :
 		dispatcher_handle_t() noexcept = default;
 		~dispatcher_handle_t() noexcept = default;
@@ -65,10 +69,6 @@ class dispatcher_handle_t
 			{
 				return m_binder;
 			}
-
-		//! Is this handle empty?
-		bool
-		empty() const noexcept { return !m_binder; }
 
 		//! Is this handle empty?
 		operator bool() const noexcept { return empty(); }
