@@ -110,7 +110,7 @@ public :
 
 		ensure_valid_value(
 			introduce_child_coop( *this,
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( coop_t & coop ) -> test_object_t && {
 					define_agent( coop );
 					return std::move(g_test_object);
@@ -127,7 +127,7 @@ public :
 		ensure_valid_value(
 			introduce_child_coop( *this,
 				so_5::autoname,
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( coop_t & coop ) -> test_object_t && {
 					define_agent( coop );
 					return std::move(g_test_object);
@@ -144,7 +144,7 @@ public :
 		ensure_valid_value(
 			introduce_child_coop( *this,
 				"child-test-2",
-				so_5::disp::one_thread::create_private_disp( env )->binder(),
+				so_5::disp::one_thread::make_dispatcher( env ).binder(),
 				[]( coop_t & coop ) -> test_object_t && {
 					define_agent( coop );
 					return std::move(g_test_object);
@@ -170,7 +170,7 @@ init( so_5::environment_t & env )
 
 	ensure_valid_value(
 		env.introduce_coop(
-			so_5::disp::active_obj::create_private_disp( env )->binder(),
+			so_5::disp::active_obj::make_dispatcher( env ).binder(),
 			[]( coop_t & coop ) -> test_object_t && {
 				define_agent( coop );
 				return std::move(g_test_object);
@@ -187,7 +187,7 @@ init( so_5::environment_t & env )
 	ensure_valid_value(
 		env.introduce_coop(
 			so_5::autoname,
-			so_5::disp::active_obj::create_private_disp( env )->binder(),
+			so_5::disp::active_obj::make_dispatcher( env ).binder(),
 			[]( coop_t & coop ) -> test_object_t && {
 				define_agent( coop );
 				return std::move(g_test_object);
@@ -203,7 +203,7 @@ init( so_5::environment_t & env )
 
 	ensure_valid_value(
 		env.introduce_coop( "test-2",
-			so_5::disp::one_thread::create_private_disp( env )->binder(),
+			so_5::disp::one_thread::make_dispatcher( env ).binder(),
 			[]( coop_t & coop ) -> test_object_t && {
 				define_agent( coop );
 				return std::move(g_test_object);
