@@ -124,7 +124,7 @@ class data_source_t
 				m_env.get().stats_repository().add( *this );
 			}
 
-		~data_source_t() override
+		~data_source_t() noexcept override
 			{
 				// Environment should forget about this data source.
 				m_env.get().stats_repository().remove( *this );
@@ -235,6 +235,9 @@ class actual_dispatcher_t : public disp_binder_t
 		data_source_t< Work_Thread > m_data_source;
 	};
 
+//
+// dispatcher_handle_maker_t
+//
 class dispatcher_handle_maker_t
 	{
 	public :
