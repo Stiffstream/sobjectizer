@@ -72,19 +72,16 @@ a_ordinary_t::some_handler(
 }
 
 class dispatcher_t
-	:	public so_5::dispatcher_t
 {
 	public :
-		dispatcher_t()
-			:	m_bind_calls( 0 )
-			,	m_unbind_calls( 0 )
-		{}
-		~dispatcher_t() override
+		dispatcher_t() = default;
+		~dispatcher_t()
 		{
 			if( !m_agents.empty() )
 			{
 				std::cerr << "error: there must not be any agents in "
-					"dispatcher_t destructor";
+					"dispatcher_t destructor; agents.size()="
+					<< m_agents.size();
 				std::abort();
 			}
 
@@ -97,34 +94,15 @@ class dispatcher_t
 			}
 		}
 
-		virtual void
-		start( so_5::environment_t & /*env*/ ) override
-		{}
-
-		virtual void
-		shutdown() override
-		{
-			if( !m_agents.empty() )
-			{
-				std::cerr << "error: there must not be any agents in "
-					"dispatcher_t::shutdown";
-				std::abort();
-			}
-		}
-
-		virtual void
-		wait() override
-		{}
-
 		void
-		bind_agent( so_5::agent_ref_t agent )
+		bind_agent( so_5::agent_t & agent )
 		{
-			m_agents.emplace_back( std::move( agent ) );
+			m_agents.insert( &agent );
 			++m_bind_calls;
 		}
 
 		void
-		unbind_agent( so_5::agent_ref_t agent )
+		unbind_agent( so_5::agent_t & agent )
 		{
 			if( m_agents.empty() )
 			{
@@ -132,23 +110,23 @@ class dispatcher_t
 				std::abort();
 			}
 
-			if( m_agents.back().get() != agent.get() )
+			auto it = m_agents.find( &agent );
+			if( it == m_agents.end() )
 			{
-				std::cerr << "error: unexpected agent in unbind_agent: "
-					<< "actual: " << agent.get() << ", expected: "
-					<< m_agents.back().get();
+				std::cerr << "error: unknown agent in unbind_agent: "
+					<< "agent: " << &agent;
 				std::abort();
 			}
 
-			m_agents.pop_back();
+			m_agents.erase( it );
 			m_unbind_calls++;
 		}
 
 	private :
-		std::vector< so_5::agent_ref_t > m_agents;
+		std::set< so_5::agent_t * > m_agents;
 
-		unsigned int m_bind_calls;
-		unsigned int m_unbind_calls;
+		unsigned int m_bind_calls{};
+		unsigned int m_unbind_calls{};
 };
 
 class throwing_disp_binder_t
@@ -156,56 +134,62 @@ class throwing_disp_binder_t
 		public so_5::disp_binder_t
 {
 	public:
-		throwing_disp_binder_t() : m_agents_bound( 0 ) {}
-		virtual ~throwing_disp_binder_t() {}
+		throwing_disp_binder_t( dispatcher_t & disp )
+			:	m_disp{ disp }
+			{}
 
-		virtual so_5::disp_binding_activator_t
-		bind_agent(
-			so_5::environment_t & env,
-			so_5::agent_ref_t agent_ref )
+		void
+		preallocate_resources(
+			so_5::agent_t & agent ) override
 		{
-			auto & disp = dynamic_cast< dispatcher_t & >(
-					*env.query_named_dispatcher( "test" ).get() );
-
 			if( m_agents_bound < 3 )
 			{
 				m_agents_bound++;
-				disp.bind_agent( std::move( agent_ref ) );
+				m_disp.bind_agent( agent );
 
-				return []() {};
+				return;
 			}
 
 			throw std::runtime_error( "test exception from disp_binder" );
 		}
 
-		virtual void
-		unbind_agent(
-			so_5::environment_t & env,
-			so_5::agent_ref_t agent_ref )
+		void
+		undo_preallocation(
+			so_5::agent_t & agent ) noexcept override
 		{
-			auto & disp = dynamic_cast< dispatcher_t & >(
-					*env.query_named_dispatcher( "test" ).get() );
-			disp.unbind_agent( std::move( agent_ref ) );
+			m_disp.unbind_agent( agent );
+		}
+
+		void
+		bind(
+			so_5::agent_t & /*agent*/ ) noexcept override {}
+
+		void
+		unbind(
+			so_5::agent_t & agent ) noexcept override
+		{
+			m_disp.unbind_agent( agent );
 		}
 
 	private :
-		unsigned int m_agents_bound;
+		dispatcher_t & m_disp;
+		unsigned int m_agents_bound{};
 };
 
 void
 reg_coop(
-	so_5::environment_t & env )
+	so_5::environment_t & env,
+	dispatcher_t & disp )
 {
 	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
-			so_5::disp_binder_unique_ptr_t(
-					new throwing_disp_binder_t() )  );
+			std::make_shared< throwing_disp_binder_t >( std::ref(disp) ) );
 
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
 
 	try
 	{
@@ -221,7 +205,9 @@ reg_coop(
 void
 init( so_5::environment_t & env )
 {
-	reg_coop( env );
+	dispatcher_t disp;
+
+	reg_coop( env, disp );
 
 	env.stop();
 }
@@ -231,14 +217,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher(
-					"test",
-					so_5::dispatcher_unique_ptr_t( new dispatcher_t() ) );
-			} );
+		so_5::launch( &init );
 
 		if( 0 != g_agents_count )
 		{

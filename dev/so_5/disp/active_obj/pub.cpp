@@ -154,14 +154,17 @@ class dispatcher_template_t : public disp_binder_t
 		undo_preallocation(
 			agent_t & agent ) noexcept override
 			{
-				std::lock_guard lock{ m_lock };
+				const auto eject_thread = [&] {
+					std::lock_guard lock{ m_lock };
 
-//FIXME: refactor this with local function.
-				auto it = m_agent_threads.find( &agent );
-				auto thread = it->second;
-				m_agent_threads.erase( it );
+					auto it = m_agent_threads.find( &agent );
+					auto thread = it->second;
+					m_agent_threads.erase( it );
 
-				shutdown_and_wait( *thread );
+					return thread;
+				};
+
+				shutdown_and_wait( *eject_thread() );
 			}
 
 		void

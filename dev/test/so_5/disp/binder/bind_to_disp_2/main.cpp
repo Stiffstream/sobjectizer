@@ -93,15 +93,13 @@ init( so_5::environment_t & env )
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
+	auto disp = so_5::disp::active_obj::make_dispatcher( env );
 	for( std::size_t i = 0; i < test_agent_t::agents_cout(); ++i )
 	{
-		coop->add_agent(
-			new test_agent_t( env ),
-			so_5::disp::active_obj::create_disp_binder(
-				"active_obj" ) );
+		coop->make_agent_with_binder< test_agent_t >( disp.binder() );
 	}
 
-	coop->add_agent( new test_agent_finisher_t( env ) );
+	coop->make_agent< test_agent_finisher_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -111,14 +109,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-			} );
+		so_5::launch( &init );
 
 		if( !test_agent_t::ok() )
 			throw std::runtime_error( "!test_agent_t::ok()" );
