@@ -54,7 +54,7 @@ class a_parent_t
 			child->set_parent_coop_name( so_coop_name() );
 
 			auto mbox = so_environment().create_mbox();
-			child->add_agent( new a_test_t( so_environment(), mbox ) );
+			child->make_agent< a_test_t >( mbox );
 
 			so_environment().register_coop( std::move(child) );
 
@@ -66,8 +66,8 @@ void
 init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "test" );
-	coop->add_agent( new a_parent_t( env ) );
-	coop->add_agent( new a_time_sentinel_t( env ) );
+	coop->make_agent< a_parent_t >();
+	coop->make_agent< a_time_sentinel_t >();
 
 	env.register_coop( std::move( coop ) );
 }

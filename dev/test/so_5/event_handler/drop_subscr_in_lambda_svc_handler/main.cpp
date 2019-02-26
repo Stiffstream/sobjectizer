@@ -93,7 +93,7 @@ void
 init( so_5::environment_t & env )
 {
 	env.introduce_coop(
-		so_5::disp::active_obj::create_private_disp( env )->binder(),
+		so_5::disp::active_obj::make_dispatcher( env ).binder(),
 		[]( so_5::coop_t & coop ) {
 			auto consumer = coop.make_agent< a_service_consumer_t >();
 			coop.make_agent< a_service_provider_t >( consumer->so_direct_mbox() );

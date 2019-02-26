@@ -81,7 +81,7 @@ main()
 			[&sequence]( so_5::environment_t & env )
 			{
 				auto coop = env.create_coop( "test",
-					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+					so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 				auto a_test = coop->make_agent< a_test_t >( std::ref(sequence) );
 
@@ -112,11 +112,6 @@ main()
 				coop->make_agent< a_sender_t >( a_test->so_direct_mbox() );
 
 				env.register_coop( std::move( coop ) );
-			},
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher( "active_obj",
-					so_5::disp::active_obj::create_disp() );
 			} );
 
 		const std::string expected = "e1:e3:e2:e4:";

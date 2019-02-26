@@ -81,7 +81,7 @@ void
 init( so_5::environment_t & env )
 {
 	env.introduce_coop(
-			so_5::disp::active_obj::create_private_disp( env )->binder(),
+			so_5::disp::active_obj::make_dispatcher( env ).binder(),
 			[&]( so_5::coop_t & coop ) {
 				const auto mbox = env.create_mbox();
 
