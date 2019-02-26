@@ -110,20 +110,20 @@ reg_coop(
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
 
 	// An agent which will throw an exception.
-	coop->add_agent( new a_throwing_t( env ) );
+	coop->make_agent< a_throwing_t >();
 
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
 
 	try {
 		env.register_coop( std::move( coop ) );
@@ -143,14 +143,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-			} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

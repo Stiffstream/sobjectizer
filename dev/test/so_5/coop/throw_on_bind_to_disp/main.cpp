@@ -107,25 +107,25 @@ class throwing_disp_binder_t
 		public so_5::disp_binder_t
 {
 	public:
-		throwing_disp_binder_t() {}
-		virtual ~throwing_disp_binder_t() {}
-
-		virtual so_5::disp_binding_activator_t
-		bind_agent(
-			so_5::environment_t &,
-			so_5::agent_ref_t )
+		void
+		preallocate_resources(
+			so_5::agent_t & /*agent*/ ) override
 		{
 			throw std::runtime_error(
 				"throwing while binding agent to disp" );
 		}
 
-		virtual void
-		unbind_agent(
-			so_5::environment_t &,
-			so_5::agent_ref_t )
-		{
-		}
+		void
+		undo_preallocation(
+			so_5::agent_t & /*agent*/ ) noexcept override {}
 
+		void
+		bind(
+			so_5::agent_t & /*agent*/ ) noexcept override {}
+
+		virtual void
+		unbind(
+			so_5::agent_t & /*agent*/ ) noexcept override {}
 };
 
 void
@@ -143,21 +143,20 @@ reg_coop(
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
 
 	// This agent will throw an exception during binding for dispatcher.
-	coop->add_agent(
-		new a_throwing_t( env ),
-		so_5::disp_binder_unique_ptr_t( new throwing_disp_binder_t ) );
+	coop->make_agent_with_binder< a_throwing_t >(
+			std::make_shared< throwing_disp_binder_t >() );
 
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
+	coop->make_agent< a_ordinary_t >();
 
 	try
 	{
@@ -179,14 +178,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-			} );
+		so_5::launch( &init );
 
 		if( 0 != g_agents_count )
 		{

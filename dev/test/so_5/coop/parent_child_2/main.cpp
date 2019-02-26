@@ -134,14 +134,12 @@ create_and_register_agent(
 	if( level )
 		coop->set_parent_coop_name( parent_coop_name );
 
-	coop->add_agent(
-			new a_test_t(
-					env,
-					coop->query_coop_name(),
-					parent_coop_name,
-					max_children,
-					level,
-					max_deep ) );
+	coop->make_agent< a_test_t >(
+			coop->query_coop_name(),
+			parent_coop_name,
+			max_children,
+			level,
+			max_deep );
 
 	env.register_coop( std::move( coop ) );
 }

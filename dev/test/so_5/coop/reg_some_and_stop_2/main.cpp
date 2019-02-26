@@ -85,8 +85,8 @@ reg_coop(
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( coop_name );
 
-	coop->add_agent( new test_agent_t( env, test_mbox ) );
-	coop->add_agent( new test_agent_t( env, test_mbox ) );
+	coop->make_agent< test_agent_t >( test_mbox );
+	coop->make_agent< test_agent_t >( test_mbox );
 
 	env.register_coop( std::move( coop ) );
 }

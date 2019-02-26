@@ -67,7 +67,7 @@ class test_agent_coop_t
 	public :
 		test_agent_coop_t(
 			so_5::nonempty_name_t name,
-			so_5::disp_binder_unique_ptr_t coop_disp_binder,
+			so_5::disp_binder_shptr_t coop_disp_binder,
 			so_5::environment_t & env,
 			sequence_holder_t & sequence )
 			:	base_type_t( std::move(name), std::move(coop_disp_binder), env )
@@ -118,8 +118,8 @@ class a_test_starter_t : public so_5::agent_t
 					so_5::make_coop_dereg_notificator( m_self_mbox ) );
 
 			resource_t * r = coop->take_under_control(
-					new resource_t( m_sequence ) );
-			coop->add_agent( new a_test_t( so_environment(), *r ) );
+					std::make_unique< resource_t >( m_sequence ) );
+			coop->make_agent< a_test_t >( *r );
 
 			so_environment().register_coop( std::move( coop ) );
 		}
