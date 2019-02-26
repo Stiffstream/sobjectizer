@@ -61,7 +61,6 @@ class dispatcher_handle_t
 
 	public :
 		dispatcher_handle_t() noexcept = default;
-		~dispatcher_handle_t() noexcept = default;
 
 		//! Get a binder for that private dispatcher.
 		disp_binder_shptr_t
