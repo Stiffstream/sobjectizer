@@ -40,8 +40,8 @@ main()
 			tests::testing_env_t env;
 
 			auto [first, second] = env.environment().introduce_coop(
-				so_5::disp::active_obj::create_private_disp(
-						env.environment() )->binder(),
+				so_5::disp::active_obj::make_dispatcher(
+						env.environment() ).binder(),
 				[](so_5::coop_t & coop) {
 					auto first = coop.make_agent< first_t >();
 					return std::make_tuple(

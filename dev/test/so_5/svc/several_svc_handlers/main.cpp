@@ -101,14 +101,14 @@ init(
 	{
 		auto coop = env.create_coop(
 				"test_coop",
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 		auto svc_mbox = env.create_mbox();
 
-		coop->add_agent( new a_convert_service_t( env, svc_mbox ) );
-		coop->add_agent( new a_convert_service_t( env, svc_mbox ) );
-		coop->add_agent( new a_client_t( env, svc_mbox ) );
-		coop->add_agent( new a_time_sentinel_t( env ) );
+		coop->make_agent< a_convert_service_t >( svc_mbox );
+		coop->make_agent< a_convert_service_t >( svc_mbox );
+		coop->make_agent< a_client_t >( svc_mbox );
+		coop->make_agent< a_time_sentinel_t >();
 
 		env.register_coop( std::move( coop ) );
 	}
@@ -118,14 +118,7 @@ main()
 	{
 		try
 			{
-				so_5::launch(
-					&init,
-					[]( so_5::environment_params_t & params )
-					{
-						params.add_named_dispatcher(
-								"active_obj",
-								so_5::disp::active_obj::create_disp() );
-					} );
+				so_5::launch( &init );
 			}
 		catch( const std::exception & ex )
 			{

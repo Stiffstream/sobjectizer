@@ -59,8 +59,8 @@ main()
 			auto second_mbox = env.environment().create_mbox();
 
 			auto [first, second] = env.environment().introduce_coop(
-				so_5::disp::active_obj::create_private_disp(
-						env.environment() )->binder(),
+				so_5::disp::active_obj::make_dispatcher(
+						env.environment() ).binder(),
 				[&](so_5::coop_t & coop) {
 					return std::make_tuple(
 							coop.make_agent< first_agent_t >( second_mbox ),
