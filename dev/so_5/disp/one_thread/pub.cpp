@@ -88,25 +88,23 @@ track_activity(
  */
 template< typename Work_Thread >
 class data_source_t
-	:	public stats::source_t
+	:	public stats::auto_registered_source_t
 	,	protected data_source_details::common_data_t< Work_Thread >
 	{
 	public :
 		using actual_work_thread_type_t = Work_Thread;
 
-		//! SObjectizer Environment to work in.
-		outliving_reference_t< environment_t > m_env;
-
-	public :
 		data_source_t(
 			outliving_reference_t< environment_t > env,
 			actual_work_thread_type_t & work_thread,
 			std::atomic< std::size_t > & agents_bound,
 			const std::string & name_base,
 			const void * pointer_to_disp )
-			:	data_source_details::common_data_t< Work_Thread >{
+			:	stats::auto_registered_source_t{
+					outliving_mutable( env.get().stats_repository() )
+				}
+			,	data_source_details::common_data_t< Work_Thread >{
 					work_thread, agents_bound }
-			,	m_env{ env }
 			{
 				// Names of data sources must be formed.
 				using namespace so_5::disp::reuse;
@@ -119,15 +117,6 @@ class data_source_t
 				this->m_work_thread_prefix = make_disp_working_thread_prefix(
 						this->m_base_prefix,
 						0 );
-
-				// Environment should know about this data source.
-				m_env.get().stats_repository().add( *this );
-			}
-
-		~data_source_t() noexcept override
-			{
-				// Environment should forget about this data source.
-				m_env.get().stats_repository().remove( *this );
 			}
 
 		void

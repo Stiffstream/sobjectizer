@@ -202,13 +202,8 @@ class dispatcher_template_t : public disp_binder_t
 		 * \since
 		 * v.5.5.4
 		 */
-//FIXME: may be automatically registered source should be used instead
-//of manually_registered_source_t?
-		class disp_data_source_t : public stats::manually_registered_source_t
+		class disp_data_source_t : public stats::auto_registered_source_t
 			{
-				//! SObjectizer Environment to work in.
-				outliving_reference_t< environment_t > m_env;
-
 				//! Dispatcher to work with.
 				outliving_reference_t< dispatcher_template_t > m_dispatcher;
 
@@ -220,7 +215,9 @@ class dispatcher_template_t : public disp_binder_t
 					outliving_reference_t< environment_t > env,
 					const std::string & name_base,
 					outliving_reference_t< dispatcher_template_t > disp )
-					:	m_env{ env }
+					:	stats::auto_registered_source_t{
+							outliving_mutable( env.get().stats_repository() )
+						}
 					,	m_dispatcher{ disp }
 					{
 						using namespace so_5::disp::reuse;
@@ -229,15 +226,6 @@ class dispatcher_template_t : public disp_binder_t
 								"ao", // ao -- active_objects
 								name_base,
 								&(m_dispatcher.get()) );
-
-						// Environment should know about this data source.
-						m_env.get().stats_repository().add( *this );
-					}
-
-				~disp_data_source_t() noexcept override
-					{
-						// Environment should forget about this data source.
-						m_env.get().stats_repository().remove( *this );
 					}
 
 				void
