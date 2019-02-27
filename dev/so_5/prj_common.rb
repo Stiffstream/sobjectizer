@@ -123,11 +123,11 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				cpp_source 'pub.cpp'
 			}
 
-=begin
 			sources_root( 'active_group' ) {
 				cpp_source 'pub.cpp'
 			}
 
+=begin
 			sources_root( 'thread_pool' ) {
 				cpp_source 'pub.cpp'
 			}

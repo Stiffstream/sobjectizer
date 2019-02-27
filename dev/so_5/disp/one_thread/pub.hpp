@@ -62,7 +62,7 @@ class dispatcher_handle_t
 	public :
 		dispatcher_handle_t() noexcept = default;
 
-		//! Get a binder for that private dispatcher.
+		//! Get a binder for that dispatcher.
 		disp_binder_shptr_t
 		binder() const noexcept
 			{

@@ -9,16 +9,17 @@
 
 #pragma once
 
-#include <string>
-
 #include <so_5/declspec.hpp>
 
-#include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
+#include <so_5/nonempty_name.hpp>
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
+
+#include <string>
+#include <string_view>
 
 namespace so_5
 {
@@ -54,17 +55,7 @@ class disp_params_t
 
 	public :
 		//! Default constructor.
-		disp_params_t() {}
-		//! Copy constructor.
-		disp_params_t( const disp_params_t & o )
-			:	activity_tracking_mixin_t{ o }
-			,	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		disp_params_t( disp_params_t && o )
-			:	activity_tracking_mixin_t{ std::move(o) }
-			,	m_queue_params{ std::move(o.m_queue_params) }
-			{}
+		disp_params_t() = default;
 
 		friend inline void
 		swap( disp_params_t & a, disp_params_t & b ) noexcept
@@ -73,21 +64,6 @@ class disp_params_t
 						static_cast< activity_tracking_mixin_t & >(a),
 						static_cast< activity_tracking_mixin_t & >(b) );
 				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
-			{
-				disp_params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
-			{
-				disp_params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
 			}
 
 		//! Setter for queue parameters.
@@ -131,64 +107,84 @@ class disp_params_t
 		queue_traits::queue_params_t m_queue_params;
 	};
 
-//
-// params_t
-//
-/*!
- * \brief Old alias for disp_params for compatibility with previous versions.
- * \deprecated Use disp_params_t instead.
- */
-using params_t = disp_params_t;
+namespace impl {
 
-//
-// private_dispatcher_t
-//
+class actual_dispatcher_iface_t;
 
-/*!
- * \brief An interface for %active_group private dispatcher.
- *
- * \since
- * v.5.5.4
- */
-class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
+//FIXME: document this!
+//
+// basic_dispatcher_iface_t
+//
+class basic_dispatcher_iface_t
+	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
 	{
 	public :
-		virtual ~private_dispatcher_t() noexcept = default;
-
-		//! Create a binder for that private dispatcher.
-		virtual so_5::disp_binder_unique_ptr_t
-		binder(
-			//! Active group name to be bound to.
-			const std::string & group_name ) = 0;
+		virtual disp_binder_shptr_t
+		binder( nonempty_name_t group_name ) = 0;
 	};
 
-/*!
- * \brief A handle for the %active_group private dispatcher.
- *
- * \since
- * v.5.5.4
- */
-using private_dispatcher_handle_t =
-	so_5::intrusive_ptr_t< private_dispatcher_t >;
+using basic_dispatcher_iface_shptr_t =
+		std::shared_ptr< basic_dispatcher_iface_t >;
+
+class dispatcher_handle_maker_t;
+
+} /* namespace impl */
+
+//
+// dispatcher_handle_t
+//
 
 /*!
- * \brief Create an instance of dispatcher to be used as named dispatcher.
- *
  * \since
- * v.5.5.10
+ * v.5.6.0
+ *
+ * \brief A handle for %active_group dispatcher.
  */
-SO_5_FUNC so_5::dispatcher_unique_ptr_t
-create_disp(
-	//! Parameters for dispatcher.
-	disp_params_t params );
-
-//! Creates the dispatcher.
-inline so_5::dispatcher_unique_ptr_t
-create_disp()
+class dispatcher_handle_t
 	{
-		return create_disp( disp_params_t{} );
-	}
+		friend class impl::dispatcher_handle_maker_t;
 
+		//! A reference to actual implementation of a dispatcher.
+		impl::basic_dispatcher_iface_shptr_t m_dispatcher;
+
+		dispatcher_handle_t(
+			impl::basic_dispatcher_iface_shptr_t dispatcher ) noexcept
+			:	m_dispatcher{ std::move(dispatcher) }
+			{}
+
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_dispatcher; }
+
+	public :
+		dispatcher_handle_t() noexcept = default;
+
+		//! Get a binder for that dispatcher.
+		/*!
+		 * \attention
+		 * An attempt to call this method on empty handle is UB.
+		 */
+		disp_binder_shptr_t
+		binder(
+			//! Name of group for a new agent.
+			nonempty_name_t group_name ) const
+			{
+				return m_dispatcher->binder( std::move(group_name) );
+			}
+
+		//! Is this handle empty?
+		operator bool() const noexcept { return empty(); }
+
+		//! Does this handle contain a reference to dispatcher?
+		bool
+		operator!() const noexcept { return !empty(); }
+
+		//! Drop the content of handle.
+		void
+		reset() noexcept { m_dispatcher.reset(); }
+	};
+
+//FIXME: fix comment content!
 /*!
  * \brief Create a private %active_group dispatcher.
  *
@@ -211,16 +207,17 @@ auto coop = env.create_coop( so_5::autoname,
 	private_disp->binder( "request_handler" ) );
 \endcode
  */
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	so_5::environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
+//FIXME: fix comment content!
 /*!
  * \brief Create a private %active_group dispatcher.
  *
@@ -239,17 +236,18 @@ auto coop = env.create_coop( so_5::autoname,
 	private_disp->binder( "passive_objects" ) );
 \endcode
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	so_5::environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base )
 	{
-		return create_private_disp( env, data_sources_name_base, disp_params_t{} );
+		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
 
+//FIXME: fix comment content!
 /*!
  * \brief Create a private %active_group dispatcher.
  *
@@ -266,21 +264,13 @@ auto coop = env.create_coop( so_5::autoname,
 	private_disp->binder( "passive_objects" ) );
 \endcode
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	so_5::environment_t & env )
 	{
-		return create_private_disp( env, std::string() );
+		return make_dispatcher( env, std::string_view{} );
 	}
-
-//! Creates the dispatcher binder.
-SO_5_FUNC so_5::disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Dispatcher name.
-	const std::string & disp_name,
-	//! Active group name to be bound to.
-	const std::string & group_name );
 
 } /* namespace active_group */
 
