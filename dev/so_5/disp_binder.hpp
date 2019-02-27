@@ -26,7 +26,7 @@ namespace so_5
  * Dispatcher binders are used in the agent registration process to
  * binding of agents to desired dispatchers.
  */
-class SO_5_TYPE disp_binder_t
+class disp_binder_t
 	: private std::enable_shared_from_this< disp_binder_t >
 {
 		// Note: clang-3.9 requires this on Windows platform.
