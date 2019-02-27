@@ -694,35 +694,31 @@ agent_t::so_environment() const
 
 void
 agent_t::so_bind_to_dispatcher(
-	event_queue_t & queue )
+	event_queue_t & queue ) noexcept
 {
-	// We don't expect exceptions here.
-	// And can't restore after them
-	so_5::details::invoke_noexcept_code( [&] {
-		// Since v.5.5.24 we should use event_queue_hook to get an
-		// actual event_queue.
-		auto * actual_queue = impl::internal_env_iface_t{ m_env }
-				.event_queue_on_bind( this, &queue );
+	// Since v.5.5.24 we should use event_queue_hook to get an
+	// actual event_queue.
+	auto * actual_queue = impl::internal_env_iface_t{ m_env }
+			.event_queue_on_bind( this, &queue );
 
-		std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-		// Cooperation usage counter should be incremented.
-		// It will be decremented during final agent event execution.
-		coop_t::so_increment_usage_count( *m_agent_coop );
+	// Cooperation usage counter should be incremented.
+	// It will be decremented during final agent event execution.
+	coop_t::so_increment_usage_count( *m_agent_coop );
 
-		// A starting demand must be sent first.
-		actual_queue->push(
-				execution_demand_t(
-						this,
-						message_limit::control_block_t::none(),
-						0,
-						typeid(void),
-						message_ref_t(),
-						&agent_t::demand_handler_on_start ) );
-		
-		// Only then pointer to the queue could be stored.
-		m_event_queue = actual_queue;
-	} );
+	// A starting demand must be sent first.
+	actual_queue->push(
+			execution_demand_t(
+					this,
+					message_limit::control_block_t::none(),
+					0,
+					typeid(void),
+					message_ref_t(),
+					&agent_t::demand_handler_on_start ) );
+	
+	// Only then pointer to the queue could be stored.
+	m_event_queue = actual_queue;
 }
 
 execution_hint_t

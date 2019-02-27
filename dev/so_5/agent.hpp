@@ -2094,11 +2094,16 @@ class SO_5_TYPE agent_t
 		 * \brief Binding agent to the dispatcher.
 		 *
 		 * This is an actual start of agent's work in SObjectizer.
+		 *
+		 * \note
+		 * This method was a de-facto noexcept in previous versions of
+		 * SObjectizer. But didn't marked as noexcept because of need of
+		 * support old C++ compilers. Since v.5.6.0 it is officially noexcept.
 		 */
 		void
 		so_bind_to_dispatcher(
 			//! Actual event queue for an agent.
-			event_queue_t & queue );
+			event_queue_t & queue ) noexcept;
 
 		/*!
 		 * \since
