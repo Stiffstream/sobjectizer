@@ -230,7 +230,7 @@ class data_source_t : public stats::manually_registered_source_t
 			//! 'atp' for adv-thread-pool-dispatcher.
 			const char * disp_type,
 			//! Optional name to be used as part of data-source prefix.
-			const std::string & name_basic,
+			const std::string_view name_basic,
 			//! Pointer to the dispatcher object.
 			//! Will be used if \a name_basic is empty.
 			const void * disp_pointer )

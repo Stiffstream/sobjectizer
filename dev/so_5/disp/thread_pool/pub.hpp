@@ -20,6 +20,7 @@
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
 #include <utility>
+#include <thread>
 
 namespace so_5
 {
@@ -53,45 +54,20 @@ class disp_params_t
 
 	public :
 		//! Default constructor.
-		disp_params_t() {}
-		//! Copy constructor.
-		disp_params_t( const disp_params_t & o )
-			:	activity_tracking_mixin_t( o )
-			,	m_thread_count{ o.m_thread_count }
-			,	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		disp_params_t( disp_params_t && o )
-			:	activity_tracking_mixin_t( std::move(o) )
-			,	m_thread_count{ std::move(o.m_thread_count) }
-			,	m_queue_params{ std::move(o.m_queue_params) }
-			{}
+		disp_params_t() = default;
 
 		friend inline void
 		swap(
 			disp_params_t & a, disp_params_t & b ) noexcept
 			{
+				using std::swap;
+
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
 						static_cast< activity_tracking_mixin_t & >(b) );
 
-				std::swap( a.m_thread_count, b.m_thread_count );
+				swap( a.m_thread_count, b.m_thread_count );
 				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
-			{
-				disp_params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
-			{
-				disp_params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
 			}
 
 		//! Setter for thread count.
@@ -233,17 +209,6 @@ class bind_params_t
 	};
 
 //
-// params_t
-//
-/*!
- * \brief Alias for bind_params.
- * \deprecated Since v.5.5.11 bind_params_t must be used instead.
- * \since
- * v.5.4.0
- */
-using params_t = bind_params_t;
-
-//
 // default_thread_pool_size
 //
 /*!
@@ -262,149 +227,119 @@ default_thread_pool_size()
 		return c;
 	}
 
+namespace impl {
+
+class actual_dispatcher_iface_t;
+
+//FIXME: document this!
 //
-// private_dispatcher_t
+// basic_dispatcher_iface_t
+//
+class basic_dispatcher_iface_t
+	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
+	{
+	public :
+		virtual ~basic_dispatcher_iface_t() noexcept = default;
+
+		virtual disp_binder_shptr_t
+		binder( bind_params_t params ) = 0;
+	};
+
+using basic_dispatcher_iface_shptr_t =
+		std::shared_ptr< basic_dispatcher_iface_t >;
+
+class dispatcher_handle_maker_t;
+
+} /* namespace impl */
+
+//
+// dispatcher_handle_t
 //
 
 /*!
- * \brief An interface for %thread_pool private dispatcher.
  * \since
- * v.5.5.4
+ * v.5.6.0
+ *
+ * \brief A handle for %thread_pool dispatcher.
  */
-class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
+class dispatcher_handle_t
 	{
+		friend class impl::dispatcher_handle_maker_t;
+
+		//! A reference to actual implementation of a dispatcher.
+		impl::basic_dispatcher_iface_shptr_t m_dispatcher;
+
+		dispatcher_handle_t(
+			impl::basic_dispatcher_iface_shptr_t dispatcher ) noexcept
+			:	m_dispatcher{ std::move(dispatcher) }
+			{}
+
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_dispatcher; }
+
 	public :
-		virtual ~private_dispatcher_t() noexcept = default;
+		dispatcher_handle_t() noexcept = default;
 
-		//! Create a binder for that private dispatcher.
-		virtual disp_binder_unique_ptr_t
+		//! Get a binder for that dispatcher.
+		/*!
+		 * \attention
+		 * An attempt to call this method on empty handle is UB.
+		 */
+		disp_binder_shptr_t
 		binder(
-			//! Binding parameters for the agent.
-			const bind_params_t & params ) = 0;
+			bind_params_t params ) const
+			{
+				return m_dispatcher->binder( params );
+			}
 
-		//! Create a binder for that private dispatcher.
+		//! Create a binder for that dispatcher.
 		/*!
 		 * This method allows parameters tuning via lambda-function
 		 * or other functional objects.
+		 *
+		 * \attention
+		 * An attempt to call this method on empty handle is UB.
 		 */
 		template< typename Setter >
-		inline disp_binder_unique_ptr_t
+		disp_binder_shptr_t
 		binder(
 			//! Function for the parameters tuning.
-			Setter params_setter )
+			Setter && params_setter )
 			{
 				bind_params_t p;
 				params_setter( p );
 
 				return this->binder( p );
 			}
+
+		//! Get a binder for that dispatcher with default binding params.
+		/*!
+		 * \attention
+		 * An attempt to call this method on empty handle is UB.
+		 */
+		disp_binder_shptr_t
+		binder() const
+			{
+				return this->binder( bind_params_t{} );
+			}
+
+		//! Is this handle empty?
+		operator bool() const noexcept { return empty(); }
+
+		//! Does this handle contain a reference to dispatcher?
+		bool
+		operator!() const noexcept { return !empty(); }
+
+		//! Drop the content of handle.
+		void
+		reset() noexcept { m_dispatcher.reset(); }
 	};
 
-/*!
- * \brief A handle for the %thread_pool private dispatcher.
- * \since
- * v.5.5.4
- */
-using private_dispatcher_handle_t =
-	so_5::intrusive_ptr_t< private_dispatcher_t >;
-
 //
-// create_disp
+// make_dispatcher
 //
-/*!
- * \brief Create thread pool dispatcher.
- *
- * \par Usage sample
-\code
-so_5::launch( []( so_5::environment_t & env ) {...},
-	[]( so_5::environment_params_t & env_params ) {
-		using namespace so_5::disp::thread_pool;
-		env_params.add_named_dispatcher( create_disp( 
-			disp_params_t{}
-				.thread_count( 16 )
-				.tune_queue_params( queue_traits::queue_params_t & params ) {
-						params.lock_factory( queue_traits::simple_lock_factory() );
-					} ) );
-	} );
-\endcode
- * \since
- * v.5.5.11
- */
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
-	//! Parameters for the dispatcher.
-	disp_params_t params );
-
-//
-// create_disp
-//
-/*!
- * \brief Create thread pool dispatcher.
- * \since
- * v.5.4.0
- */
-inline dispatcher_unique_ptr_t
-create_disp(
-	//! Count of working threads.
-	std::size_t thread_count )
-	{
-		return create_disp( disp_params_t{}.thread_count( thread_count ) );
-	}
-
-//
-// create_disp
-//
-/*!
- * \brief Create thread pool dispatcher.
- *
- * Size of pool is detected automatically.
- * \since
- * v.5.4.0
- */
-inline dispatcher_unique_ptr_t
-create_disp()
-	{
-		return create_disp( default_thread_pool_size() );
-	}
-
-//
-// create_private_disp
-//
-/*!
- * \brief Create a private %thread_pool dispatcher.
- *
- * \par Usage sample
-\code
-using namespace so_5::disp::thread_pool;
-auto private_disp = create_private_disp(
-	env,
-	disp_params_t{}
-		.thread_count( 16 )
-		.tune_queue_params( []( queue_traits::queue_params_t & params ) {
-				params.lock_factory( queue_traits::simple_lock_factory() );
-			} ),
-	"db_workers_pool" );
-auto coop = env.create_coop( so_5::autoname,
-	// The main dispatcher for that coop will be
-	// private thread_pool dispatcher.
-	private_disp->binder( bind_params_t{} ) );
-\endcode
- * \since
- * v.5.5.11
- */
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
-	//! SObjectizer Environment to work in.
-	environment_t & env,
-	//! Parameters for the dispatcher.
-	disp_params_t disp_params,
-	//! Value for creating names of data sources for
-	//! run-time monitoring.
-	const std::string & data_sources_name_base );
-
-//
-// create_private_disp
-//
+//FIXME: modify description!
 /*!
  * \since
  * v.5.5.15.1
@@ -431,25 +366,20 @@ auto coop = env.create_coop( so_5::autoname,
  * This function is added to fix order of parameters and make it similar
  * to create_private_disp from other dispatchers.
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Parameters for the dispatcher.
-	disp_params_t disp_params )
-	{
-		return create_private_disp(
-				env,
-				std::move(disp_params),
-				data_sources_name_base );
-	}
+	disp_params_t disp_params );
 
 //
-// create_private_disp
+// make_dispatcher
 //
+//FIXME: modify description!
 /*!
  * \brief Create a private %thread_pool dispatcher.
  *
@@ -457,8 +387,8 @@ create_private_disp(
 \code
 auto private_disp = so_5::disp::thread_pool::create_private_disp(
 	env,
-	16,
-	"db_workers_pool" );
+	"db_workers_pool",
+	16 );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private thread_pool dispatcher.
@@ -468,22 +398,23 @@ auto coop = env.create_coop( so_5::autoname,
  * \since
  * v.5.5.4
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
-	//! Count of working threads.
-	std::size_t thread_count,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base,
+	//! Count of working threads.
+	std::size_t thread_count )
 	{
-		return create_private_disp(
+		return make_dispatcher(
 				env,
-				disp_params_t{}.thread_count( thread_count ),
-				data_sources_name_base );
+				data_sources_name_base,
+				disp_params_t{}.thread_count( thread_count ) );
 	}
 
+//FIXME: modify description!
 /*!
  * \brief Create a private %thread_pool dispatcher.
  *
@@ -500,19 +431,20 @@ auto coop = env.create_coop( so_5::autoname,
  * \since
  * v.5.5.4
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
 	//! Count of working threads.
 	std::size_t thread_count )
 	{
-		return create_private_disp( env, thread_count, std::string() );
+		return make_dispatcher( env, std::string_view{}, thread_count );
 	}
 
 //
-// create_private_disp
+// make_dispatcher
 //
+//FIXME: modify description!
 /*!
  * \brief Create a private %thread_pool dispatcher with the default
  * count of working threads.
@@ -530,59 +462,15 @@ auto coop = env.create_coop( so_5::autoname,
  * \since
  * v.5.5.4
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env )
 	{
-		return create_private_disp(
+		return make_dispatcher(
 				env,
-				default_thread_pool_size(),
-				std::string() );
-	}
-
-//
-// create_disp_binder
-//
-/*!
- * \brief Create dispatcher binder for thread pool dispatcher.
- * \since
- * v.5.4.0
- */
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Name of the dispatcher.
-	std::string disp_name,
-	//! Parameters for binding.
-	const bind_params_t & params );
-
-/*!
- * \brief Create dispatcher binder for thread pool dispatcher.
- *
- * Usage example:
-\code
-create_disp_binder( "tpool",
-	[]( so_5::disp::thread_pool::bind_params_t & p ) {
-		p.fifo( so_5::disp::thread_pool::fifo_t::individual );
-		p.max_demands_at_once( 128 );
-	} );
-\endcode
- *
- * \since
- * v.5.4.0
- */
-template< typename Setter >
-inline disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Name of the dispatcher.
-	std::string disp_name,
-	//! Function for setting the binding's params.
-	Setter params_setter )
-	{
-		bind_params_t params;
-		params_setter( params );
-
-		return create_disp_binder( std::move(disp_name), params );
+				std::string_view{},
+				default_thread_pool_size() );
 	}
 
 } /* namespace thread_pool */

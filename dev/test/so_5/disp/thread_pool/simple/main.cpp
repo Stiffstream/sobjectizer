@@ -55,18 +55,18 @@ do_test()
 				so_5::launch(
 					[&]( so_5::environment_t & env )
 					{
-						auto disp = create_private_disp( env,
+						auto disp = make_dispatcher( env,
+								std::string_view{},
 								disp_params_t{}
 									.thread_count(4)
 									.set_queue_params(
 										queue_traits::queue_params_t{}
-											.lock_factory( factory ) ),
-								std::string() );
+											.lock_factory( factory ) ) );
 
 						env.register_agent_as_coop(
 								"test",
-								new a_test_t( env ),
-								disp->binder( bind_params_t{} ) );
+								env.make_agent< a_test_t >(),
+								disp.binder() );
 					} );
 			},
 			20,

@@ -119,6 +119,8 @@ class basic_dispatcher_iface_t
 	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
 	{
 	public :
+		virtual ~basic_dispatcher_iface_t() noexcept = default;
+
 		virtual disp_binder_shptr_t
 		binder( nonempty_name_t group_name ) = 0;
 	};

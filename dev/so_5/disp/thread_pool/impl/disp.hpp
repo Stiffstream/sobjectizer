@@ -11,16 +11,7 @@
 
 #pragma once
 
-#include <vector>
-#include <queue>
-#include <thread>
-#include <memory>
-#include <map>
-#include <iostream>
-#include <atomic>
-
 #include <so_5/event_queue.hpp>
-#include <so_5/disp.hpp>
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
@@ -85,7 +76,7 @@ class agent_queue_t
 			//! Dispatcher queue to work with.
 			dispatcher_queue_t & disp_queue,
 			//! Parameters for the queue.
-			const params_t & params )
+			const bind_params_t & params )
 			:	m_disp_queue( disp_queue )
 			,	m_max_demands_at_once( params.query_max_demands_at_once() )
 			,	m_tail( &m_head )
@@ -215,7 +206,7 @@ class agent_queue_t
 		 * dangling pointer to agent_queue in woring thread.
 		 */
 		void
-		wait_for_emptyness()
+		wait_for_emptyness() noexcept
 			{
 				bool empty = false;
 				while( !empty )
@@ -609,6 +600,7 @@ using work_thread_with_activity_tracking_t =
  */
 struct adaptation_t
 	{
+//FIXME: it is better to return string_view.
 		static const char *
 		dispatcher_type_name()
 			{
@@ -616,13 +608,13 @@ struct adaptation_t
 			}
 
 		static bool
-		is_individual_fifo( const params_t & params )
+		is_individual_fifo( const bind_params_t & params )
 			{
 				return fifo_t::individual == params.query_fifo();
 			}
 
 		static void
-		wait_for_queue_emptyness( agent_queue_t & queue )
+		wait_for_queue_emptyness( agent_queue_t & queue ) noexcept
 			{
 				queue.wait_for_emptyness();
 			}
@@ -646,7 +638,7 @@ using dispatcher_template_t =
 				Work_Thread,
 				dispatcher_queue_t,
 				agent_queue_t,
-				params_t,
+				bind_params_t,
 				adaptation_t >;
 
 } /* namespace impl */
