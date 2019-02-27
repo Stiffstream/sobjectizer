@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <ostream>
 
 namespace so_5 {
@@ -29,11 +29,11 @@ namespace ios_helpers {
  */
 struct length_limited_string
 	{
-		const std::string & m_what;
+		const std::string_view m_what;
 		const std::size_t m_limit;
 
 		length_limited_string(
-			const std::string & what,
+			const std::string_view what,
 			std::size_t limit )
 			:	m_what( what )
 			,	m_limit( limit )

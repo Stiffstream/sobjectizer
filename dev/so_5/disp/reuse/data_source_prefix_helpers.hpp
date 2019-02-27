@@ -35,9 +35,9 @@ namespace ios_helpers = so_5::details::ios_helpers;
 inline so_5::stats::prefix_t
 make_disp_prefix(
 	//! Textual marker of dispatcher type (like ot, ao, ag, tp, atp, ...).
-	const char * disp_type,
+	const std::string_view disp_type,
 	//! User-supplied optional base for name. Can be empty.
-	const std::string data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Pointer to dispatcher instance.
 	//! Will be used if \a data_sources_name_base is empty.
 	const void * disp_this_pointer )

@@ -18,6 +18,8 @@
 
 #include <so_5/stats/work_thread_activity.hpp>
 
+#include <string_view>
+
 namespace so_5
 {
 
@@ -270,7 +272,7 @@ template<
 std::unique_ptr< Common_Disp_Iface_Type >
 create_appropriate_disp(
 	outliving_reference_t< Env > env,
-	const std::string & name_base,
+	const std::string_view name_base,
 	Disp_Params disp_params,
 	Args && ...args )
 	{

@@ -9,14 +9,14 @@
 
 #pragma once
 
-#include <string>
-
 #include <so_5/declspec.hpp>
 
 #include <so_5/disp_binder.hpp>
 #include <so_5/nonempty_name.hpp>
 
 #include <so_5/disp/one_thread/params.hpp>
+
+#include <string_view>
 
 namespace so_5
 {
@@ -109,7 +109,7 @@ make_dispatcher(
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Parameters for the dispatcher.
 	disp_params_t params );
 
@@ -137,7 +137,7 @@ make_dispatcher(
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base )
 	{
 		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
@@ -162,7 +162,7 @@ auto coop = env.create_coop( so_5::autoname,
 inline dispatcher_handle_t
 make_dispatcher( environment_t & env )
 	{
-		return make_dispatcher( env, std::string(), disp_params_t{} );
+		return make_dispatcher( env, std::string_view{}, disp_params_t{} );
 	}
 
 } /* namespace one_thread */

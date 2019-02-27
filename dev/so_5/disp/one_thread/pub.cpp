@@ -98,7 +98,7 @@ class data_source_t
 			outliving_reference_t< environment_t > env,
 			actual_work_thread_type_t & work_thread,
 			std::atomic< std::size_t > & agents_bound,
-			const std::string & name_base,
+			const std::string_view name_base,
 			const void * pointer_to_disp )
 			:	stats::auto_registered_source_t{
 					outliving_mutable( env.get().stats_repository() )
@@ -154,7 +154,7 @@ class actual_dispatcher_t : public disp_binder_t
 	public:
 		actual_dispatcher_t(
 			outliving_reference_t< environment_t > env,
-			const std::string & name_base,
+			const std::string_view name_base,
 			disp_params_t params )
 			:	m_work_thread{ params.queue_params().lock_factory() }
 			,	m_data_source{
@@ -245,7 +245,7 @@ class dispatcher_handle_maker_t
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
 	environment_t & env,
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	disp_params_t params )
 	{
 		using namespace so_5::disp::reuse;

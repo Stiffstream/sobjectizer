@@ -107,7 +107,7 @@ class dispatcher_template_t : public disp_binder_t
 			//! SObjectizer Environment to work in.
 			outliving_reference_t< environment_t > env,
 			//! Base part of data sources names.
-			const std::string & name_base,
+			const std::string_view name_base,
 			//! Dispatcher's parameters.
 			disp_params_t params )
 			:	m_params{ std::move(params) }
@@ -121,12 +121,12 @@ class dispatcher_template_t : public disp_binder_t
 		~dispatcher_template_t() noexcept override
 			{
 				// All working threads should receive stop signal.
-				for( auto & [_, wt]: m_agent_threads )
-					wt->shutdown();
+				for( auto & p: m_agent_threads )
+					p.second->shutdown();
 
 				// All working threads should be joined.
-				for( auto & [_, wt]: m_agent_threads )
-					wt->wait();
+				for( auto & p: m_agent_threads )
+					p.second->wait();
 			}
 
 		void
@@ -213,7 +213,7 @@ class dispatcher_template_t : public disp_binder_t
 			public :
 				disp_data_source_t(
 					outliving_reference_t< environment_t > env,
-					const std::string & name_base,
+					const std::string_view name_base,
 					outliving_reference_t< dispatcher_template_t > disp )
 					:	stats::auto_registered_source_t{
 							outliving_mutable( env.get().stats_repository() )
@@ -307,7 +307,7 @@ class dispatcher_handle_maker_t
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
 	environment_t & env,
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	disp_params_t params )
 	{
 		using namespace so_5::disp::reuse;

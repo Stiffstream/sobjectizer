@@ -188,7 +188,7 @@ make_dispatcher(
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
@@ -217,7 +217,7 @@ make_dispatcher(
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base )
 	{
 		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
@@ -244,7 +244,7 @@ make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env )
 	{
-		return make_dispatcher( env, std::string() );
+		return make_dispatcher( env, std::string_view{} );
 	}
 
 } /* namespace active_obj */

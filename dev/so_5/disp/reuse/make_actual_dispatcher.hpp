@@ -16,6 +16,8 @@
 
 #include <so_5/impl/internal_env_iface.hpp>
 
+#include <string_view>
+
 namespace so_5 {
 
 namespace disp {
@@ -49,7 +51,7 @@ template<
 std::unique_ptr< Disp_Iface_Type >
 make_actual_dispatcher(
 	outliving_reference_t< environment_t > env,
-	const std::string & name_base,
+	const std::string_view name_base,
 	Disp_Params_Type disp_params,
 	Args && ...args )
 	{
