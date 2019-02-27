@@ -130,9 +130,9 @@ public :
 void
 init( so_5::environment_t & env )
 {
-	auto one_thread = so_5::disp::one_thread::create_private_disp( env );
-	auto active_obj = so_5::disp::active_obj::create_private_disp( env );
-	auto active_group = so_5::disp::active_group::create_private_disp( env );
+	auto one_thread = so_5::disp::one_thread::make_dispatcher( env );
+	auto active_obj = so_5::disp::active_obj::make_dispatcher( env );
+	auto active_group = so_5::disp::active_group::make_dispatcher( env );
 	auto thread_pool = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( env, 10 );
 

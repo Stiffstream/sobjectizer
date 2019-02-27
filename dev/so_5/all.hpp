@@ -24,9 +24,9 @@
 
 #include <so_5/disp/one_thread/pub.hpp>
 #include <so_5/disp/active_obj/pub.hpp>
+#include <so_5/disp/active_group/pub.hpp>
 //FIXME: uncomment this after implementation of the corresponding dispatchers.
 #if 0
-#include <so_5/disp/active_group/pub.hpp>
 #include <so_5/disp/thread_pool/pub.hpp>
 #include <so_5/disp/adv_thread_pool/pub.hpp>
 #include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>

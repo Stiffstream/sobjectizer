@@ -68,38 +68,51 @@ void init( so_5::environment_t & env )
 
 		// Adding agents which will work on the dispatcher 
 		// with name 'single_thread'.
-		for( int i = 0; i < 3; ++i )
 		{
-			coop.make_agent_with_binder< a_disp_user_t >(
-				so_5::disp::one_thread::create_disp_binder( "single_thread" ),
-				create_agent_name( "single_thread", i+1 ) );
+			auto disp = so_5::disp::one_thread::make_dispatcher(
+					coop.environment(), "single_thread" );
+			for( int i = 0; i < 3; ++i )
+			{
+				coop.make_agent_with_binder< a_disp_user_t >(
+					disp.binder(),
+					create_agent_name( "single_thread", i+1 ) );
+			}
 		}
 
 		// Adding agents which will work on the dispatcher with active groups
-		// named as 'active_group'. Agents will be bound to a group 'A'.
-		for( int i = 0; i < 2; ++i )
+		// named as 'active_group'.
 		{
-			coop.make_agent_with_binder< a_disp_user_t >(
-				so_5::disp::active_group::create_disp_binder( "active_group", "A" ),
-				create_agent_name( "active_group_A", i+1 ) );
-		}
+			auto disp = so_5::disp::active_group::make_dispatcher(
+					coop.environment(), "active_group" );
 
-		// Adding agents which will work on the dispatcher with active groups
-		// named as 'active_group'. Agents will be bound to a group 'B'.
-		for( int i = 0; i < 2; ++i )
-		{
-			coop.make_agent_with_binder< a_disp_user_t >(
-				so_5::disp::active_group::create_disp_binder( "active_group", "B" ),
-				create_agent_name( "active_group_B", i+1 ) );
+			// Agents will be bound to a group 'A'.
+			for( int i = 0; i < 2; ++i )
+			{
+				coop.make_agent_with_binder< a_disp_user_t >(
+					disp.binder( "A" ),
+					create_agent_name( "active_group_A", i+1 ) );
+			}
+
+			// Agents will be bound to a group 'B'.
+			for( int i = 0; i < 2; ++i )
+			{
+				coop.make_agent_with_binder< a_disp_user_t >(
+					disp.binder( "B" ),
+					create_agent_name( "active_group_B", i+1 ) );
+			}
 		}
 
 		// Adding agents which will work on the dispatcher for active objects.
 		// This dispatcher will have name 'active_obj'.
-		for( int i = 0; i < 4; ++i )
 		{
-			coop.make_agent_with_binder< a_disp_user_t >(
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-				create_agent_name( "active_obj", i+1 ) );
+			auto disp = so_5::disp::active_obj::make_dispatcher(
+					coop.environment(), "active_obj" );
+			for( int i = 0; i < 4; ++i )
+			{
+				coop.make_agent_with_binder< a_disp_user_t >(
+					disp.binder(),
+					create_agent_name( "active_obj", i+1 ) );
+			}
 		}
 	});
 
@@ -111,20 +124,7 @@ int main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & p )
-			{
-				p.add_named_dispatcher(
-					"single_thread",
-					so_5::disp::one_thread::create_disp() )
-				.add_named_dispatcher(
-					"active_group",
-					so_5::disp::active_group::create_disp() )
-				.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp() );
-			} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{
