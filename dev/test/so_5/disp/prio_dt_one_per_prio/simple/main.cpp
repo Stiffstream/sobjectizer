@@ -52,14 +52,8 @@ main()
 					{
 						env.register_agent_as_coop(
 								"test",
-								new a_test_t( env ),
-								create_disp_binder( "prio_dispatcher" ) );
-					},
-					[]( so_5::environment_params_t & params )
-					{
-						params.add_named_dispatcher(
-								"prio_dispatcher",
-								create_disp() );
+								env.make_agent< a_test_t >(),
+								make_dispatcher( env ).binder() );
 					} );
 			},
 			20,

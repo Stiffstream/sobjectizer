@@ -31,8 +31,8 @@
 #if 0
 #include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>
 #include <so_5/disp/prio_one_thread/quoted_round_robin/pub.hpp>
-#include <so_5/disp/prio_dedicated_threads/one_per_prio/pub.hpp>
 #endif
+#include <so_5/disp/prio_dedicated_threads/one_per_prio/pub.hpp>
 
 #include <so_5/version.hpp>
 

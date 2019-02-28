@@ -57,15 +57,14 @@ main()
 				so_5::launch(
 					[]( so_5::environment_t & env )
 					{
-						using namespace so_5::disp::prio_one_thread::strictly_ordered;
+						using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
 
 						env.introduce_coop(
-								create_private_disp( env )->binder(),
+								make_dispatcher( env ).binder(),
 								fill_coop );
 					} );
 			},
-			20,
-			"deregistration of coop on prio_one_thread::strictly_ordered dispatcher test" );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{
