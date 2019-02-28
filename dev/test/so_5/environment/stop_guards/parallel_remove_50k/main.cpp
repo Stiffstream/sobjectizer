@@ -136,7 +136,7 @@ void make_stuff( so_5::environment_t & env )
 	auto notify_mbox = env.create_mbox();
 
 	env.introduce_coop(
-		tpdisp::create_private_disp( env )->binder(
+		tpdisp::make_dispatcher( env ).binder(
 				tpdisp::bind_params_t().fifo( tpdisp::fifo_t::individual ) ),
 		[&]( so_5::coop_t & coop ) {
 			auto first = coop.make_agent< first_worker_t >();

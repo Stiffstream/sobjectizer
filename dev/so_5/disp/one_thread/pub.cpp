@@ -149,8 +149,6 @@ class data_source_t
 template< typename Work_Thread >
 class actual_dispatcher_t : public disp_binder_t
 	{
-		auto self_ptr() noexcept { return this; }
-
 	public:
 		actual_dispatcher_t(
 			outliving_reference_t< environment_t > env,
@@ -162,7 +160,7 @@ class actual_dispatcher_t : public disp_binder_t
 					m_work_thread,
 					m_agents_bound,
 					name_base,
-					self_ptr() }
+					this }
 			{
 				m_work_thread.start();
 			}
