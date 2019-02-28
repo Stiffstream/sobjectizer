@@ -13,11 +13,8 @@
 
 #pragma once
 
-#include <string>
-
 #include <so_5/declspec.hpp>
 
-#include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
 
 #include <so_5/priority.hpp>
@@ -27,6 +24,8 @@
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
+
+#include <string>
 
 namespace so_5 {
 
@@ -62,16 +61,6 @@ class disp_params_t
 	public :
 		//! Default constructor.
 		disp_params_t() {}
-		//! Copy constructor.
-		disp_params_t( const disp_params_t & o )
-			:	activity_tracking_mixin_t{ o }
-			,	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		disp_params_t( disp_params_t && o )
-			:	activity_tracking_mixin_t{ std::move(o) }
-			,	m_queue_params{ std::move(o.m_queue_params) }
-			{}
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
@@ -80,21 +69,6 @@ class disp_params_t
 						static_cast< activity_tracking_mixin_t & >(b) );
 
 				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
-			{
-				disp_params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
-			{
-				disp_params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
 			}
 
 		//! Setter for queue parameters.
@@ -139,66 +113,64 @@ class disp_params_t
 		queue_traits::queue_params_t m_queue_params;
 	};
 
-//
-// params_t
-//
-/*!
- * \brief Old alias for disp_params for compatibility with previous versions.
- * \deprecated Use disp_params_t instead.
- */
-using params_t = disp_params_t;
+namespace impl
+{
+
+class dispatcher_handle_maker_t;
+
+} /* namespace impl */
 
 //
-// private_dispatcher_t
+// dispatcher_handle_t
 //
 
 /*!
- * \brief An interface for %quoted_round_robin private dispatcher.
- *
  * \since
- * v.5.5.8
+ * v.5.6.0
+ *
+ * \brief A handle for %prio_one_thread::strictly_ordered dispatcher.
  */
-class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
+class dispatcher_handle_t
 	{
-	public :
-		virtual ~private_dispatcher_t() noexcept = default;
+		friend class impl::dispatcher_handle_maker_t;
 
-		//! Create a binder for that private dispatcher.
-		virtual disp_binder_unique_ptr_t
-		binder() = 0;
+		//! Binder for the dispatcher.
+		disp_binder_shptr_t m_binder;
+
+		dispatcher_handle_t( disp_binder_shptr_t binder ) noexcept
+			:	m_binder{ std::move(binder) }
+			{}
+
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_binder; }
+
+	public :
+		dispatcher_handle_t() noexcept = default;
+
+		//! Get a binder for that dispatcher.
+		disp_binder_shptr_t
+		binder() const noexcept
+			{
+				return m_binder;
+			}
+
+		//! Is this handle empty?
+		operator bool() const noexcept { return empty(); }
+
+		//! Does this handle contain a reference to dispatcher?
+		bool
+		operator!() const noexcept { return !empty(); }
+
+		//! Drop the content of handle.
+		void
+		reset() noexcept { m_binder.reset(); }
 	};
 
-/*!
- * \brief A handle for the %quoted_round_robin private dispatcher.
- *
- * \since
- * v.5.5.8
- */
-using private_dispatcher_handle_t =
-	so_5::intrusive_ptr_t< private_dispatcher_t >;
-
-/*!
- * \brief Create an instance of dispatcher to be used as named dispatcher.
- *
- * \since
- * v.5.5.10
- */
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
-	//! Quotes for every priority.
-	const quotes_t & quotes,
-	//! Parameters for dispatcher.
-	disp_params_t params );
-
-//! Create a dispatcher.
-inline dispatcher_unique_ptr_t
-create_disp(
-	//! Quotes for every priority.
-	const quotes_t & quotes )
-	{
-		return create_disp( quotes, disp_params_t{} );
-	}
-
+//
+// make_dispatcher
+//
+//FIXME: modify description!
 /*!
  * \brief Create a private %quoted_round_robin dispatcher.
  *
@@ -210,8 +182,8 @@ create_disp(
 using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 auto common_thread_disp = create_private_disp(
 	env,
-	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 	"request_processor",
+	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ),
 	disp_params_t{}.tune_queue_params(
 		[]( queue_traits::queue_params_t & p ) {
 			p.lock_factory( queue_traits::simple_lock_factory() );
@@ -222,18 +194,22 @@ auto coop = env.create_coop( so_5::autoname,
 	common_thread_disp->binder() );
 \endcode
  */
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
-	//! Quotes for every priority.
-	const quotes_t & quotes,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
+	//! Quotes for every priority.
+	const quotes_t & quotes,
 	//! Parameters for the dispatcher.
 	disp_params_t params );
 
+//
+// make_dispatcher
+//
+//FIXME: modify description!
 /*!
  * \brief Create a private %quoted_round_robin dispatcher.
  *
@@ -245,32 +221,35 @@ create_private_disp(
 using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 auto common_thread_disp = create_private_disp(
 	env,
-	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ),
-	"request_processor" );
+	"request_processor",
+	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private quoted_round_robin dispatcher.
 	common_thread_disp->binder() );
 \endcode
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
-	//! Quotes for every priority.
-	const quotes_t & quotes,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base,
+	//! Quotes for every priority.
+	const quotes_t & quotes )
 	{
-		return create_private_disp(
+		return make_dispatcher(
 				env,
-				quotes,
 				data_sources_name_base,
+				quotes,
 				disp_params_t{} );
 	}
 
-
+//
+// make_dispatcher
+//
+//FIXME: modify description!
 /*!
  * \brief Create a private %quoted_round_robin dispatcher.
  *
@@ -290,21 +269,15 @@ auto coop = env.create_coop( so_5::autoname,
 	common_thread_disp->binder() );
 \endcode
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
 	//! Quotes for every priority.
 	const quotes_t & quotes )
 	{
-		return create_private_disp( env, quotes, std::string() );
+		return make_dispatcher( env, std::string_view{}, quotes );
 	}
-
-//! Create a dispatcher binder object.
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Name of the dispatcher to be bound to.
-	const std::string & disp_name );
 
 } /* namespace quoted_round_robin */
 

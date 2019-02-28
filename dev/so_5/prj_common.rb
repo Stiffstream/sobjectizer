@@ -139,12 +139,11 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				sources_root( 'strictly_ordered' ) {
 					cpp_source 'pub.cpp'
 				}
-=begin
 				sources_root( 'quoted_round_robin' ) {
 					cpp_source 'pub.cpp'
 				}
-=end
 			}
+
 			sources_root( 'prio_dedicated_threads' ) {
 				sources_root( 'one_per_prio' ) {
 					cpp_source 'pub.cpp'

@@ -60,12 +60,11 @@ main()
 						using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 
 						env.introduce_coop(
-								create_private_disp( env, quotes_t{ 100 } )->binder(),
+								make_dispatcher( env, quotes_t{ 100 } ).binder(),
 								fill_coop );
 					} );
 			},
-			20,
-			"deregistration of coop on prio_one_thread::quoted_round_robin dispatcher test" );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{

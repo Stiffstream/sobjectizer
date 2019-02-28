@@ -23,7 +23,7 @@ struct msg_reply : public so_5::message_t
 void
 define_receiver_agent(
 	so_5::coop_t & coop,
-	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::quoted_round_robin::dispatcher_handle_t & disp,
 	so_5::priority_t priority,
 	const so_5::mbox_t & common_mbox )
 	{
@@ -58,7 +58,7 @@ define_receiver_agent(
 void
 define_message_sender(
 	so_5::coop_t & coop,
-	so_5::disp::prio_one_thread::quoted_round_robin::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::quoted_round_robin::dispatcher_handle_t & disp,
 	const so_5::mbox_t & common_mbox )
 	{
 		class actor_t final : public so_5::agent_t
@@ -159,17 +159,17 @@ fill_coop(
 		using namespace so_5::prio;
 
 		auto common_mbox = coop.environment().create_mbox();
-		auto rr_disp = create_private_disp( coop.environment(),
+		auto rr_disp = make_dispatcher( coop.environment(),
 				quotes_t{2}
 					.set( p7, 5 )
 					.set( p5, 4 )
 					.set( p3, 3 ) );
 
 		define_supervison_agent( coop, common_mbox );
-		define_message_sender( coop, *rr_disp, common_mbox );
-		define_receiver_agent( coop, *rr_disp, p7, common_mbox );
-		define_receiver_agent( coop, *rr_disp, p5, common_mbox );
-		define_receiver_agent( coop, *rr_disp, p3, common_mbox );
+		define_message_sender( coop, rr_disp, common_mbox );
+		define_receiver_agent( coop, rr_disp, p7, common_mbox );
+		define_receiver_agent( coop, rr_disp, p5, common_mbox );
+		define_receiver_agent( coop, rr_disp, p3, common_mbox );
 	}
 
 int
