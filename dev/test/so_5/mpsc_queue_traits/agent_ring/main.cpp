@@ -65,6 +65,37 @@ class a_ring_member_t : public so_5::agent_t
 
 using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
 
+class case_setter_t;
+
+class case_setter_cleaner_t
+	{
+		case_setter_t * m_setter;
+
+		void clean() noexcept;
+
+	public :
+		case_setter_cleaner_t( case_setter_t & setter ) noexcept : m_setter{&setter} {}
+		case_setter_cleaner_t( case_setter_cleaner_t && other ) noexcept
+			:	m_setter{ other.m_setter }
+			{
+				other.m_setter = nullptr;
+			}
+		~case_setter_cleaner_t() noexcept
+			{
+				clean();
+			}
+
+		case_setter_cleaner_t &
+		operator=( case_setter_cleaner_t && other ) noexcept
+			{
+				clean();
+				m_setter = other.m_setter;
+				other.m_setter = nullptr;
+
+				return *this;
+			}
+	};
+
 class case_setter_t
 	{
 	public :
@@ -79,14 +110,14 @@ class case_setter_t
 				// Nothing to do by default.
 			}
 
-		virtual void
+		virtual case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) = 0;
 
 		virtual so_5::disp_binder_shptr_t
 		make_binder() = 0;
 
 		virtual void
-		cleanup() = 0;
+		cleanup() noexcept = 0;
 
 	protected :
 		const lock_factory_t &
@@ -110,6 +141,12 @@ class case_setter_t
 
 using case_setter_unique_ptr_t = std::unique_ptr< case_setter_t >;
 
+void
+case_setter_cleaner_t::clean() noexcept
+	{
+		if( m_setter ) m_setter->cleanup();
+	}
+
 class default_disp_setter_t final : public case_setter_t
 	{
 		so_5::disp_binder_shptr_t m_binder;
@@ -124,10 +161,11 @@ class default_disp_setter_t final : public case_setter_t
 					setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
 			}
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				m_binder = so_5::make_default_disp_binder( env );
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -137,7 +175,7 @@ class default_disp_setter_t final : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_binder.reset();
 			}
@@ -150,13 +188,14 @@ class one_thread_case_setter_t final : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				m_disp = so_5::disp::one_thread::make_dispatcher(
 						env,
 						"one_thread",
 						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -166,7 +205,7 @@ class one_thread_case_setter_t final : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -179,7 +218,7 @@ class active_obj_case_setter_t : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				m_disp = so_5::disp::active_obj::make_dispatcher(
@@ -187,6 +226,8 @@ class active_obj_case_setter_t : public case_setter_t
 						"active_obj",
 						setup_lock_factory(
 								so_5::disp::active_obj::disp_params_t{} ) );
+
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -196,7 +237,7 @@ class active_obj_case_setter_t : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -209,7 +250,7 @@ class active_group_case_setter_t : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				m_disp = so_5::disp::active_group::make_dispatcher(
@@ -217,6 +258,8 @@ class active_group_case_setter_t : public case_setter_t
 						"active_group",
 						setup_lock_factory(
 								so_5::disp::active_group::disp_params_t{} ) );
+
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -227,7 +270,7 @@ class active_group_case_setter_t : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -243,7 +286,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				namespace disp_ns = so_5::disp::prio_one_thread::strictly_ordered;
@@ -251,6 +294,8 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 						env,
 						"prio::strictly_ordered",
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
+
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -260,7 +305,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -273,7 +318,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				namespace disp_ns = so_5::disp::prio_one_thread::quoted_round_robin;
@@ -282,6 +327,8 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 						"prio::quoted_round_robin",
 						disp_ns::quotes_t{ 10 },
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
+				
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -291,7 +338,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -304,7 +351,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 	public :
 		using case_setter_t::case_setter_t;
 
-		void
+		case_setter_cleaner_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				namespace disp_ns = so_5::disp::prio_dedicated_threads::one_per_prio;
@@ -312,6 +359,8 @@ class one_per_prio_case_setter_t : public case_setter_t
 						env,
 						"prio::one_per_prio",
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
+
+				return { *this };
 			}
 
 		so_5::disp_binder_shptr_t
@@ -321,7 +370,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 			}
 
 		void
-		cleanup() override
+		cleanup() noexcept override
 			{
 				m_disp.reset();
 			}
@@ -332,10 +381,7 @@ create_coop(
 	so_5::environment_t & env,
 	case_setter_t & setter )
 	{
-		setter.make_dispatcher( env );
-		auto setter_cleanup = so_5::details::at_scope_exit( [&setter] {
-				setter.cleanup();
-			} );
+		auto setter_cleaner = setter.make_dispatcher( env );
 
 		so_5::mbox_t first_agent_mbox = env.introduce_coop(
 			[&]( so_5::coop_t & coop )
