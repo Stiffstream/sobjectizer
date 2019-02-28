@@ -602,13 +602,13 @@ struct adaptation_t
 	{
 //FIXME: it is better to return string_view.
 		static const char *
-		dispatcher_type_name()
+		dispatcher_type_name() noexcept
 			{
 				return "tp"; // thread_pool.
 			}
 
 		static bool
-		is_individual_fifo( const bind_params_t & params )
+		is_individual_fifo( const bind_params_t & params ) noexcept
 			{
 				return fifo_t::individual == params.query_fifo();
 			}

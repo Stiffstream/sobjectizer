@@ -12,25 +12,18 @@
 
 #pragma once
 
-#include <vector>
-#include <queue>
-#include <thread>
-#include <memory>
-#include <map>
-#include <iostream>
-#include <forward_list>
-
 #include <so_5/spinlocks.hpp>
 #include <so_5/atomic_refcounted.hpp>
 
 #include <so_5/event_queue.hpp>
-#include <so_5/disp.hpp>
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
 #include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 
 #include <so_5/disp/thread_pool/impl/common_implementation.hpp>
+
+#include <forward_list>
 
 #if 0
 	#define SO_5_CHECK_INVARIANT_IMPL(what, data, file, line) \
@@ -113,7 +106,7 @@ class agent_queue_t
 			//! Dummy argument. It is necessary here because of
 			//! common implementation for thread-pool and
 			//! adv-thread-pool dispatchers.
-			const params_t & )
+			const bind_params_t & )
 			:	m_disp_queue( disp_queue )
 			,	m_tail( &m_head )
 			,	m_active( false )
@@ -660,20 +653,21 @@ using work_thread_with_activity_tracking_t =
  */
 struct adaptation_t
 	{
+//FIXME: it is better to return string_view.
 		static const char *
-		dispatcher_type_name()
+		dispatcher_type_name() noexcept
 			{
 				return "atp"; // adv_thread_pool.
 			}
 
 		static bool
-		is_individual_fifo( const params_t & params )
+		is_individual_fifo( const bind_params_t & params ) noexcept
 			{
 				return fifo_t::individual == params.query_fifo();
 			}
 
 		static void
-		wait_for_queue_emptyness( agent_queue_t & /*queue*/ )
+		wait_for_queue_emptyness( agent_queue_t & /*queue*/ ) noexcept
 			{
 				// This type of agent_queue doesn't require waiting for emptyness.
 			}
@@ -697,7 +691,7 @@ using dispatcher_template_t =
 				Work_Thread,
 				dispatcher_queue_t,
 				agent_queue_t,
-				params_t,
+				bind_params_t,
 				adaptation_t >;
 
 } /* namespace impl */

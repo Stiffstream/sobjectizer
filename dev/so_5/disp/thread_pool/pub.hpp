@@ -303,8 +303,7 @@ class dispatcher_handle_t
 		 */
 		template< typename Setter >
 		std::enable_if_t<
-				!std::is_same_v< bind_params_t, std::decay_t<Setter> > &&
-						std::is_invocable_v< Setter, bind_params_t >,
+				std::is_invocable_v< Setter, bind_params_t >,
 				disp_binder_shptr_t >
 		binder(
 			//! Function for the parameters tuning.
