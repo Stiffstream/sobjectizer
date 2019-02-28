@@ -159,13 +159,19 @@ run_sobjectizer(
 			so_5::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
-				auto a = c->add_agent(
-						new a_shutdowner_t( env, total_agent_count ) );
+				auto a = c->make_agent< a_shutdowner_t >( total_agent_count );
 				shutdowner_mbox = a->so_direct_mbox();
 				env.register_coop( std::move( c ) );
 			}
 
 			std::size_t collector_index = 0;
+
+			auto disp = tp_disp::make_dispatcher(
+					env, "thread_pool",
+					tp_disp::disp_params_t{}
+						.thread_count( thread_count )
+						.set_queue_params( tp_disp::queue_traits::queue_params_t{}
+								.lock_factory( factory ) ) );
 
 			tp_disp::bind_params_t bind_params;
 			bind_params.fifo( tp_disp::fifo_t::individual );
@@ -176,32 +182,16 @@ run_sobjectizer(
 				ss << "coop_" << i;
 
 				auto c = env.create_coop( ss.str(),
-						tp_disp::create_disp_binder(
-								"thread_pool", bind_params ) );
+						disp.binder( bind_params ) );
 				for( std::size_t a = 0; a != cooperation_size;
 						++a, ++collector_index )
 				{
-					c->add_agent(
-							new a_test_t(
-									env,
-									*(collectors[ collector_index ]),
-									shutdowner_mbox ) );
+					c->make_agent< a_test_t >(
+							*(collectors[ collector_index ]),
+							shutdowner_mbox );
 				}
 				env.register_coop( std::move( c ) );
 			}
-		},
-		[&]( so_5::environment_params_t & params )
-		{
-			using namespace so_5::disp::thread_pool;
-			params.add_named_dispatcher(
-					"thread_pool",
-					create_disp(
-						disp_params_t{}
-							.thread_count( thread_count )
-							.set_queue_params( queue_traits::queue_params_t{}
-									.lock_factory( factory ) )
-					)
-			);
 		} );
 }
 
