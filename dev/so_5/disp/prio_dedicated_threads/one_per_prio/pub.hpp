@@ -58,7 +58,7 @@ class disp_params_t
 
 	public :
 		//! Default constructor.
-		disp_params_t() {}
+		disp_params_t() = default;
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{

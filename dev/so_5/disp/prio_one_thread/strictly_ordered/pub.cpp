@@ -16,9 +16,8 @@
 #include <so_5/disp/prio_one_thread/strictly_ordered/impl/demand_queue.hpp>
 #include <so_5/disp/prio_one_thread/reuse/work_thread.hpp>
 
-#include <so_5/disp/reuse/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
-#include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
+#include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
 #include <so_5/stats/repository.hpp>
 #include <so_5/stats/messages.hpp>
@@ -37,31 +36,6 @@ namespace strictly_ordered {
 namespace impl {
 
 namespace stats = so_5::stats;
-
-//
-// actual_disp_iface_t
-//
-/*!
- * \brief An actual interface of strictly ordered priority dispatcher.
- *
- * \since
- * v.5.5.18
- */
-class actual_disp_iface_t : public so_5::dispatcher_t
-	{
-	public :
-		//! Create binding for an agent with given priority.
-		virtual event_queue_t *
-		get_agent_binding( priority_t priority ) = 0;
-
-		//! Notification about binding of yet another agent.
-		virtual void
-		agent_bound( priority_t priority ) = 0;
-
-		//! Notification about unbinding of an agent.
-		virtual void
-		agent_unbound( priority_t priority ) = 0;
-	};
 
 namespace {
 
@@ -100,66 +74,67 @@ send_thread_activity_stats(
  * thread and support of demand priorities in form of template class.
  *
  * \since
- * v.5.5.8, v.5.5.18
+ * v.5.5.8, v.5.5.18, v.5.6.0
  */
 template< typename Work_Thread >
-class dispatcher_template_t : public actual_disp_iface_t
+class dispatcher_template_t : public disp_binder_t
 	{
 		friend class disp_data_source_t;
 
 	public:
-		dispatcher_template_t( disp_params_t params )
+		dispatcher_template_t(
+			outliving_reference_t< environment_t > env,
+			const std::string_view name_base,
+			disp_params_t params )
 			:	m_demand_queue{ params.queue_params().lock_factory()() }
 			,	m_work_thread{ m_demand_queue }
-			,	m_data_source{ self() }
-			{}
-
-		virtual void
-		start( environment_t & env ) override
+			,	m_data_source{
+					env,
+					name_base,
+					outliving_mutable(*this)
+				}
 			{
-				m_data_source.start( outliving_mutable(env.stats_repository()) );
-
-				so_5::details::do_with_rollback_on_exception(
-						[this] { m_work_thread.start(); },
-						[this] { m_data_source.stop(); } );
+				m_work_thread.start();
 			}
 
-		virtual void
-		shutdown() override
+		~dispatcher_template_t() noexcept override
 			{
 				m_demand_queue.stop();
-			}
-
-		virtual void
-		wait() override
-			{
 				m_work_thread.join();
-
-				m_data_source.stop();
 			}
 
-		virtual void
-		set_data_sources_name_base(
-			const std::string & name_base ) override
+		void
+		preallocate_resources(
+			agent_t & /*agent*/ ) override
 			{
-				m_data_source.set_data_sources_name_base( name_base );
+				// Nothing to do.
 			}
 
-		virtual event_queue_t *
-		get_agent_binding( priority_t priority ) override
+		void
+		undo_preallocation(
+			agent_t & /*agent*/ ) noexcept override
 			{
-				return &m_demand_queue.event_queue_by_priority( priority );
+				// Nothing to do.
 			}
 
-		virtual void
-		agent_bound( priority_t priority ) override
+		void
+		bind(
+			agent_t & agent ) noexcept override
 			{
+				const auto priority = agent.so_priority();
+
+				agent.so_bind_to_dispatcher(
+						m_demand_queue.event_queue_by_priority( priority ) );
+
 				m_demand_queue.agent_bound( priority );
 			}
 
-		virtual void
-		agent_unbound( priority_t priority ) override
+		void
+		unbind(
+			agent_t & agent ) noexcept override
 			{
+				const auto priority = agent.so_priority();
+
 				m_demand_queue.agent_unbound( priority );
 			}
 
@@ -171,25 +146,38 @@ class dispatcher_template_t : public actual_disp_iface_t
 		 * \since
 		 * v.5.5.8
 		 */
-		class disp_data_source_t : public stats::manually_registered_source_t
+		class disp_data_source_t : public stats::auto_registered_source_t
 			{
 				//! Dispatcher to work with.
-				dispatcher_template_t & m_dispatcher;
+				outliving_reference_t< dispatcher_template_t > m_dispatcher;
 
 				//! Basic prefix for data sources.
 				stats::prefix_t m_base_prefix;
 
 			public :
-				disp_data_source_t( dispatcher_template_t & disp )
-					:	m_dispatcher( disp )
+				disp_data_source_t(
+					outliving_reference_t< environment_t > env,
+					const std::string_view name_base,
+					outliving_reference_t< dispatcher_template_t > disp )
+					:	stats::auto_registered_source_t{
+							outliving_mutable(env.get().stats_repository())
+						}
+					,	m_dispatcher{ disp }
+					,	m_base_prefix{ so_5::disp::reuse::make_disp_prefix(
+								"pot-so",
+								name_base,
+								&(disp.get()) )
+						}
 					{}
 
 				void
 				distribute( const mbox_t & mbox ) override
 					{
+						auto & disp = m_dispatcher.get();
+
 						std::size_t agents_count = 0;
 
-						m_dispatcher.m_demand_queue.handle_stats_for_each_prio(
+						disp.m_demand_queue.handle_stats_for_each_prio(
 							[&]( const demand_queue_t::queue_stats_t & stat ) {
 								distribute_value_for_priority(
 									mbox,
@@ -209,19 +197,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 						send_thread_activity_stats(
 								mbox,
 								m_base_prefix,
-								m_dispatcher.m_work_thread );
-					}
-
-				void
-				set_data_sources_name_base(
-					const std::string & name_base )
-					{
-						using namespace so_5::disp::reuse;
-
-						m_base_prefix = make_disp_prefix(
-								"pot-so",
-								name_base,
-								&m_dispatcher );
+								disp.m_work_thread );
 					}
 
 			private:
@@ -259,241 +235,52 @@ class dispatcher_template_t : public actual_disp_iface_t
 
 		//! Data source for run-time monitoring.
 		disp_data_source_t m_data_source;
-
-		/*!
-		 * \brief Just a helper method for getting reference to itself.
-		 */
-		dispatcher_template_t &
-		self()
-			{
-				return *this;
-			}
 	};
 
 //
-// proxy_dispatcher_t
+// dispatcher_handle_maker_t
 //
-
-using proxy_dispatcher_base_t =
-		so_5::disp::reuse::proxy_dispatcher_template_t<
-				actual_disp_iface_t,
-				disp_params_t >;
-
-/*!
- * \brief A proxy dispatcher which creates actual dispatcher at start.
- *
- * \since
- * v.5.5.18
- *
- * This proxy is necessary because named dispatchers which are created
- * by create_disp() functions do not have a reference to SObjectizer
- * Environment at creation time. That reference is available in start()
- * method. Because of that creation of actual dispatcher (with or without
- * activity tracking) is delayed and performed only in start() method.
- */
-class proxy_dispatcher_t : public proxy_dispatcher_base_t
-	{
-	public:
-		proxy_dispatcher_t( disp_params_t params )
-			:	proxy_dispatcher_base_t( std::move(params) )
-			{}
-
-		virtual event_queue_t *
-		get_agent_binding( priority_t priority ) override
-			{
-				return m_disp->get_agent_binding( priority );
-			}
-
-		virtual void
-		agent_bound( priority_t priority ) override
-			{
-				m_disp->agent_bound( priority );
-			}
-
-		virtual void
-		agent_unbound( priority_t priority ) override
-			{
-				m_disp->agent_unbound( priority );
-			}
-
-	protected :
-		virtual void
-		do_actual_start( environment_t & env ) override
-			{
-				using namespace so_5::disp::prio_one_thread::reuse;
-
-				using dispatcher_no_activity_tracking_t =
-						dispatcher_template_t<
-							work_thread_no_activity_tracking_t<
-								demand_queue_t > >;
-
-				using dispatcher_with_activity_tracking_t =
-						dispatcher_template_t<
-							work_thread_with_activity_tracking_t<
-								demand_queue_t > >;
-
-				make_actual_dispatcher<
-							dispatcher_no_activity_tracking_t,
-							dispatcher_with_activity_tracking_t >(
-						env,
-						m_disp_params );
-			}
-
-	};
-
-//
-// binding_actions_mixin_t
-//
-/*!
- * \brief Implementation of binding actions to be reused
- * in various binder implementation.
- *
- * \since
- * v.5.5.8
- */
-class binding_actions_mixin_t
-	{
-	protected :
-		disp_binding_activator_t
-		do_bind(
-			actual_disp_iface_t & disp,
-			agent_ref_t agent )
-			{
-				auto result = [agent, &disp]() {
-					agent->so_bind_to_dispatcher(
-							*(disp.get_agent_binding( agent->so_priority() )) );
-				};
-
-				// Dispatcher must know about yet another agent bound.
-				disp.agent_bound( agent->so_priority() );
-
-				return result;
-			}
-
-		void
-		do_unbind(
-			actual_disp_iface_t & disp,
-			agent_ref_t agent )
-			{
-				// Dispatcher must know about yet another agent bound.
-				disp.agent_unbound( agent->so_priority() );
-			}
-	};
-
-//
-// disp_binder_t
-//
-/*!
- * \brief Binder for public dispatcher.
- *
- * \since
- * v.5.5.8
- */
-using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
-		proxy_dispatcher_t, binding_actions_mixin_t >;
-
-//
-// private_dispatcher_binder_t
-//
-
-/*!
- * \brief A binder for the private %strictly_ordered dispatcher.
- *
- * \since
- * v.5.5.8
- */
-using private_dispatcher_binder_t =
-	so_5::disp::reuse::binder_for_private_disp_template_t<
-		private_dispatcher_handle_t,
-		proxy_dispatcher_t,
-		binding_actions_mixin_t >;
-
-//
-// real_private_dispatcher_t
-//
-/*!
- * \brief A real implementation of private_dispatcher interface.
- *
- * \since
- * v.5.5.8
- */
-class real_private_dispatcher_t : public private_dispatcher_t
+class dispatcher_handle_maker_t
 	{
 	public :
-		/*!
-		 * Constructor creates a dispatcher instance and launces it.
-		 */
-		real_private_dispatcher_t(
-			//! SObjectizer Environment to work in.
-			environment_t & env,
-			//! Value for creating names of data sources for
-			//! run-time monitoring.
-			const std::string & data_sources_name_base,
-			//! Parameters for the dispatcher.
-			disp_params_t params )
-			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
+		static dispatcher_handle_t
+		make( disp_binder_shptr_t binder ) noexcept
 			{
-				m_disp->set_data_sources_name_base( data_sources_name_base );
-				m_disp->start( env );
+				return { std::move( binder ) };
 			}
-
-		/*!
-		 * Destructors shuts an instance down and waits for it.
-		 */
-		~real_private_dispatcher_t() override
-			{
-				m_disp->shutdown();
-				m_disp->wait();
-			}
-
-		virtual disp_binder_unique_ptr_t
-		binder() override
-			{
-				return std::make_unique< private_dispatcher_binder_t >(
-						private_dispatcher_handle_t( this ),
-						*m_disp );
-			}
-
-	private :
-		std::unique_ptr< proxy_dispatcher_t > m_disp;
 	};
 
 } /* namespace impl */
 
 //
-// create_disp
+// make_dispatcher
 //
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp( disp_params_t params )
-	{
-		return std::make_unique< impl::proxy_dispatcher_t >(
-				std::move(params) );
-	}
-
-//
-// create_private_disp
-//
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
 	environment_t & env,
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	disp_params_t params )
 	{
-		return private_dispatcher_handle_t(
-				new impl::real_private_dispatcher_t(
-						env,
-						data_sources_name_base,
-						std::move(params) ) );
-	}
+		using namespace so_5::disp::reuse;
+		using namespace so_5::disp::prio_one_thread::reuse;
 
-//
-// create_disp_binder
-//
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	const std::string & disp_name )
-	{
-		return std::make_unique< impl::disp_binder_t >( disp_name );
+		using dispatcher_no_activity_tracking_t =
+				impl::dispatcher_template_t<
+						work_thread_no_activity_tracking_t< impl::demand_queue_t > >;
+
+		using dispatcher_with_activity_tracking_t =
+				impl::dispatcher_template_t<
+						work_thread_with_activity_tracking_t< impl::demand_queue_t > >;
+
+		disp_binder_shptr_t binder = so_5::disp::reuse::make_actual_dispatcher<
+						disp_binder_t,
+						dispatcher_no_activity_tracking_t,
+						dispatcher_with_activity_tracking_t >(
+				outliving_reference_t(env),
+				data_sources_name_base,
+				std::move(params) );
+
+		return impl::dispatcher_handle_maker_t::make( std::move(binder) );
 	}
 
 } /* namespace strictly_ordered */

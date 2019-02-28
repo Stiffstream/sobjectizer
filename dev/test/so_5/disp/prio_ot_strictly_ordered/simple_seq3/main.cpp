@@ -107,7 +107,7 @@ main()
 
 							auto common_mbox = env.create_mbox();
 							env.introduce_coop(
-								create_private_disp( env )->binder(),
+								make_dispatcher( env ).binder(),
 								[&common_mbox]( so_5::coop_t & coop ) {
 									fill_coop( common_mbox, coop );
 								} );
@@ -115,8 +115,7 @@ main()
 							so_5::send< msg_hello >( common_mbox );
 						} );
 				},
-				20,
-				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
+				20 );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;
