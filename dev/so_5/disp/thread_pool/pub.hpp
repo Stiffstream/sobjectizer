@@ -241,6 +241,7 @@ class basic_dispatcher_iface_t
 	public :
 		virtual ~basic_dispatcher_iface_t() noexcept = default;
 
+		SO_5_NODISCARD
 		virtual disp_binder_shptr_t
 		binder( bind_params_t params ) = 0;
 	};
@@ -262,7 +263,7 @@ class dispatcher_handle_maker_t;
  *
  * \brief A handle for %thread_pool dispatcher.
  */
-class dispatcher_handle_t
+class SO_5_NODISCARD dispatcher_handle_t
 	{
 		friend class impl::dispatcher_handle_maker_t;
 
@@ -286,6 +287,7 @@ class dispatcher_handle_t
 		 * \attention
 		 * An attempt to call this method on empty handle is UB.
 		 */
+		SO_5_NODISCARD
 		disp_binder_shptr_t
 		binder(
 			bind_params_t params ) const
@@ -302,6 +304,7 @@ class dispatcher_handle_t
 		 * An attempt to call this method on empty handle is UB.
 		 */
 		template< typename Setter >
+		SO_5_NODISCARD
 		std::enable_if_t<
 				std::is_invocable_v< Setter, bind_params_t >,
 				disp_binder_shptr_t >
@@ -320,6 +323,7 @@ class dispatcher_handle_t
 		 * \attention
 		 * An attempt to call this method on empty handle is UB.
 		 */
+		SO_5_NODISCARD
 		disp_binder_shptr_t
 		binder() const
 			{

@@ -304,6 +304,7 @@ class dispatcher_handle_maker_t
 //
 // make_dispatcher
 //
+SO_5_NODISCARD
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
 	environment_t & env,
