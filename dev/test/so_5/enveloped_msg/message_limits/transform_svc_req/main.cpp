@@ -100,8 +100,8 @@ run_test()
 
 			env.introduce_coop( [&]( so_5::coop_t & coop ) {
 					coop.make_agent_with_binder< service_t >(
-							so_5::disp::one_thread::create_private_disp(
-									env )->binder(),
+							so_5::disp::one_thread::make_dispatcher(
+									env ).binder(),
 							mbox,
 							so_5::outliving_mutable(trace) );
 

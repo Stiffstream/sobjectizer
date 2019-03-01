@@ -133,8 +133,8 @@ init( so_5::environment_t & env )
 	auto one_thread = so_5::disp::one_thread::make_dispatcher( env );
 	auto active_obj = so_5::disp::active_obj::make_dispatcher( env );
 	auto active_group = so_5::disp::active_group::make_dispatcher( env );
-	auto thread_pool = so_5::disp::thread_pool::create_private_disp( env, 3 );
-	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( env, 10 );
+	auto thread_pool = so_5::disp::thread_pool::make_dispatcher( env, 3 );
+	auto adv_thread_pool = so_5::disp::adv_thread_pool::make_dispatcher( env, 10 );
 
 	auto start_mbox = env.create_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
@@ -156,31 +156,31 @@ init( so_5::environment_t & env )
 				text );
 	};
 
-	make_hello_sender( one_thread->binder(), "one_thread" );
-	make_hello_sender( active_obj->binder(), "active_obj-1" );
-	make_hello_sender( active_obj->binder(), "active_obj-2" );
-	make_hello_sender( active_group->binder( "agOne"), "active_group-1" );
-	make_hello_sender( active_group->binder( "agTwo"), "active_group-2-1" );
-	make_hello_sender( active_group->binder( "agTwo"), "active_group-2-2" );
+	make_hello_sender( one_thread.binder(), "one_thread" );
+	make_hello_sender( active_obj.binder(), "active_obj-1" );
+	make_hello_sender( active_obj.binder(), "active_obj-2" );
+	make_hello_sender( active_group.binder( "agOne"), "active_group-1" );
+	make_hello_sender( active_group.binder( "agTwo"), "active_group-2-1" );
+	make_hello_sender( active_group.binder( "agTwo"), "active_group-2-2" );
 
 	const auto tp_params = so_5::disp::thread_pool::bind_params_t{}
 			.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 	make_hello_sender_with_pause(
-			thread_pool->binder( tp_params ),
+			thread_pool.binder( tp_params ),
 			"thread_pool-1" );
 	make_hello_sender_with_pause(
-			thread_pool->binder( tp_params ),
+			thread_pool.binder( tp_params ),
 			"thread_pool-2" );
 	make_hello_sender_with_pause(
-			thread_pool->binder( tp_params ),
+			thread_pool.binder( tp_params ),
 			"thread_pool-3" );
 
 	const auto atp_params = so_5::disp::adv_thread_pool::bind_params_t{}
 			.fifo( so_5::disp::adv_thread_pool::fifo_t::individual );
 
 	coop->make_agent_with_binder< a_hello_sender_for_atp_dispatcher_t >(
-			adv_thread_pool->binder( atp_params ),
+			adv_thread_pool.binder( atp_params ),
 			start_mbox,
 			collector,
 			"adv_thread_pool" );

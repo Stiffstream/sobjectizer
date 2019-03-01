@@ -305,18 +305,18 @@ show_result(
 	}
 
 template<
-	typename DISP_PARAMS,
-	typename COMBINED_FACTORY,
-	typename SIMPLE_FACTORY,
-	typename QUEUE_PARAMS_TUNER >
-DISP_PARAMS
+	typename Disp_Params,
+	typename Combined_Factory,
+	typename Simple_Factory,
+	typename Queue_Params_Tuner >
+Disp_Params
 make_disp_params(
 	const cfg_t & cfg,
-	COMBINED_FACTORY combined_factory,
-	SIMPLE_FACTORY simple_factory,
-	QUEUE_PARAMS_TUNER queue_params_tuner )
+	Combined_Factory combined_factory,
+	Simple_Factory simple_factory,
+	Queue_Params_Tuner queue_params_tuner )
 	{
-		DISP_PARAMS disp_params;
+		Disp_Params disp_params;
 		using queue_params_t =
 			typename std::decay< decltype(disp_params.queue_params()) >::type;
 
@@ -330,7 +330,7 @@ make_disp_params(
 		return disp_params;
 	}
 
-so_5::disp_binder_unique_ptr_t
+so_5::disp_binder_shptr_t
 create_disp_binder(
 	so_5::environment_t & env,
 	const cfg_t & cfg )
@@ -344,7 +344,7 @@ create_disp_binder(
 					[]{ return queue_traits::combined_lock_factory(); },
 					[]{ return queue_traits::simple_lock_factory(); },
 					[]( queue_traits::queue_params_t & ) {} );
-			return create_private_disp( env, "disp", disp_params )->binder();
+			return make_dispatcher( env, "disp", disp_params ).binder();
 		}
 		else if( dispatcher_type_t::thread_pool == t )
 		{
@@ -357,7 +357,7 @@ create_disp_binder(
 						qp.next_thread_wakeup_threshold(
 								cfg.m_next_thread_wakeup_threshold );
 					} );
-			return create_private_disp( env, "disp", disp_params )->binder(
+			return make_dispatcher( env, "disp", disp_params ).binder(
 					[&cfg]( bind_params_t & p ) {
 						if( pool_fifo_t::individual == cfg.m_fifo )
 							p.fifo( fifo_t::individual );
@@ -374,7 +374,7 @@ create_disp_binder(
 						qp.next_thread_wakeup_threshold(
 								cfg.m_next_thread_wakeup_threshold );
 					} );
-			return create_private_disp( env, "disp", disp_params )->binder(
+			return make_dispatcher( env, "disp", disp_params ).binder(
 					[cfg]( bind_params_t & p ) {
 						if( pool_fifo_t::individual == cfg.m_fifo )
 							p.fifo( fifo_t::individual );
@@ -388,7 +388,7 @@ create_disp_binder(
 					[]{ return queue_traits::combined_lock_factory(); },
 					[]{ return queue_traits::simple_lock_factory(); },
 					[]( queue_traits::queue_params_t & ) {} );
-			return create_private_disp( env, "disp", disp_params )->binder();
+			return make_dispatcher( env, "disp", disp_params ).binder();
 		}
 	}
 

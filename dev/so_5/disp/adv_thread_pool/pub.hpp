@@ -292,11 +292,11 @@ class SO_5_NODISCARD dispatcher_handle_t
 		template< typename Setter >
 		SO_5_NODISCARD
 		std::enable_if_t<
-				std::is_invocable_v< Setter, bind_params_t >,
+				std::is_invocable_v< Setter, bind_params_t& >,
 				disp_binder_shptr_t >
 		binder(
 			//! Function for the parameters tuning.
-			Setter && params_setter )
+			Setter && params_setter ) const
 			{
 				bind_params_t p;
 				params_setter( p );
