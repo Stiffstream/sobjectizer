@@ -145,7 +145,7 @@ class actual_dispatcher_implementation_t final
 				m_impl.start( env.get() );
 			}
 
-		~actual_dispatcher_implementation_t() noexcept
+		~actual_dispatcher_implementation_t() noexcept override
 			{
 				m_impl.shutdown_then_wait();
 			}

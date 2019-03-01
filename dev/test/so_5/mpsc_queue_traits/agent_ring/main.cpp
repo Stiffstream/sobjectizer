@@ -67,34 +67,12 @@ using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
 
 class case_setter_t;
 
-class case_setter_cleaner_t
+struct cleanup_caller_t
 	{
-		case_setter_t * m_setter;
-
-		void clean() noexcept;
-
-	public :
-		case_setter_cleaner_t( case_setter_t & setter ) noexcept : m_setter{&setter} {}
-		case_setter_cleaner_t( case_setter_cleaner_t && other ) noexcept
-			:	m_setter{ other.m_setter }
-			{
-				other.m_setter = nullptr;
-			}
-		~case_setter_cleaner_t() noexcept
-			{
-				clean();
-			}
-
-		case_setter_cleaner_t &
-		operator=( case_setter_cleaner_t && other ) noexcept
-			{
-				clean();
-				m_setter = other.m_setter;
-				other.m_setter = nullptr;
-
-				return *this;
-			}
+		void operator()(case_setter_t *) noexcept;
 	};
+
+using case_setter_cleaner_t = std::unique_ptr<case_setter_t, cleanup_caller_t>;
 
 class case_setter_t
 	{
@@ -135,6 +113,11 @@ class case_setter_t
 				return params;
 			}
 
+		auto make_cleaner() noexcept
+			{
+				return case_setter_cleaner_t{ this };
+			}
+
 	private :
 		const lock_factory_t m_lock_factory;
 	};
@@ -142,9 +125,9 @@ class case_setter_t
 using case_setter_unique_ptr_t = std::unique_ptr< case_setter_t >;
 
 void
-case_setter_cleaner_t::clean() noexcept
+cleanup_caller_t::operator()( case_setter_t * setter ) noexcept
 	{
-		if( m_setter ) m_setter->cleanup();
+		setter->cleanup();
 	}
 
 class default_disp_setter_t final : public case_setter_t
@@ -165,7 +148,7 @@ class default_disp_setter_t final : public case_setter_t
 		make_dispatcher( so_5::environment_t & env ) override
 			{
 				m_binder = so_5::make_default_disp_binder( env );
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -195,7 +178,7 @@ class one_thread_case_setter_t final : public case_setter_t
 						env,
 						"one_thread",
 						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -227,7 +210,7 @@ class active_obj_case_setter_t : public case_setter_t
 						setup_lock_factory(
 								so_5::disp::active_obj::disp_params_t{} ) );
 
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -259,7 +242,7 @@ class active_group_case_setter_t : public case_setter_t
 						setup_lock_factory(
 								so_5::disp::active_group::disp_params_t{} ) );
 
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -295,7 +278,7 @@ class prio_strictly_ordered_case_setter_t : public case_setter_t
 						"prio::strictly_ordered",
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
 
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -328,7 +311,7 @@ class prio_quoted_round_robin_case_setter_t : public case_setter_t
 						disp_ns::quotes_t{ 10 },
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
 				
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t
@@ -360,7 +343,7 @@ class one_per_prio_case_setter_t : public case_setter_t
 						"prio::one_per_prio",
 						setup_lock_factory( disp_ns::disp_params_t{} ) );
 
-				return { *this };
+				return make_cleaner();
 			}
 
 		so_5::disp_binder_shptr_t

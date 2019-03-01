@@ -205,7 +205,7 @@ class dispatcher_template_t : public actual_dispatcher_iface_t
 				}
 			{}
 
-		~dispatcher_template_t() noexcept
+		~dispatcher_template_t() noexcept override
 			{
 				// All working threads should receive stop signal.
 				for( auto & p: m_groups )
@@ -225,7 +225,7 @@ class dispatcher_template_t : public actual_dispatcher_iface_t
 			}
 
 		void
-		allocate_thread_for_group( const std::string & group_name )
+		allocate_thread_for_group( const std::string & group_name ) override
 			{
 				std::lock_guard lock{ m_lock };
 
