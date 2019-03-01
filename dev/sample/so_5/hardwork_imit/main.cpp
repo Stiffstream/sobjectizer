@@ -106,7 +106,7 @@ class a_manager_t : public so_5::agent_t
 so_5::coop_unique_ptr_t
 create_test_coop(
 	so_5::environment_t & env,
-	so_5::disp_binder_unique_ptr_t disp_binder,
+	so_5::disp_binder_shptr_t disp_binder,
 	unsigned int requests,
 	unsigned int milliseconds )
 {

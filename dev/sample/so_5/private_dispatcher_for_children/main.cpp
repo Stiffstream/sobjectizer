@@ -20,7 +20,7 @@ public :
 		// Mbox of the coordinator.
 		so_5::mbox_t coordinator,
 		// Dispatcher to be used for child.
-		so_5::disp::active_obj::private_dispatcher_handle_t dispatcher,
+		so_5::disp::active_obj::dispatcher_handle_t dispatcher,
 		// Current generation.
 		int generation,
 		// Max generation.
@@ -43,7 +43,7 @@ public :
 private :
 	const so_5::mbox_t m_coordinator;
 
-	so_5::disp::active_obj::private_dispatcher_handle_t m_dispatcher;
+	so_5::disp::active_obj::dispatcher_handle_t m_dispatcher;
 
 	const int m_generation;
 	const int m_max_generation;
@@ -67,7 +67,7 @@ private :
 				// Name will be generated automatically.
 				so_5::autoname,
 				// The same dispatcher will be used for child cooperation.
-				m_dispatcher->binder(),
+				m_dispatcher.binder(),
 				[this]( so_5::coop_t & coop ) {
 					coop.make_agent< a_child_t >(
 							m_coordinator,
@@ -112,7 +112,7 @@ private :
 	void create_first_child_coop()
 	{
 		// The private dispatcher for the family of child cooperations.
-		auto disp = so_5::disp::active_obj::create_private_disp(
+		auto disp = so_5::disp::active_obj::make_dispatcher(
 				so_environment() );
 		so_5::introduce_child_coop(
 				// This agent will be parent for new cooperation.
@@ -121,7 +121,7 @@ private :
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// the private dispatcher.
-				disp->binder(),
+				disp.binder(),
 				[&]( so_5::coop_t & coop ) {
 					coop.make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
 				} );

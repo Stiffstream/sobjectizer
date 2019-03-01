@@ -43,7 +43,7 @@ private :
 	void create_first_child_coop()
 	{
 		// The first cooperation will use one_thread dispatcher.
-		auto disp = so_5::disp::one_thread::create_private_disp(
+		auto disp = so_5::disp::one_thread::make_dispatcher(
 				so_environment() );
 		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
@@ -52,7 +52,7 @@ private :
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// the private one_thread dispatcher.
-				disp->binder() );
+				disp.binder() );
 
 		fill_and_register_coop( std::move( coop ), "one_thread" );
 	}
@@ -60,7 +60,7 @@ private :
 	void create_second_child_coop()
 	{
 		// The second cooperation will use active_obj dispatcher.
-		auto disp = so_5::disp::active_obj::create_private_disp(
+		auto disp = so_5::disp::active_obj::make_dispatcher(
 				so_environment() );
 		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
@@ -69,7 +69,7 @@ private :
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// the private active_obj dispatcher.
-				disp->binder() );
+				disp.binder() );
 
 		fill_and_register_coop( std::move( coop ), "active_obj" );
 	}
