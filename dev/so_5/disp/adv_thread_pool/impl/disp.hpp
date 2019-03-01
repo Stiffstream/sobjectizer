@@ -70,7 +70,7 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \since
  * v.5.4.0
  */
-class agent_queue_t
+class agent_queue_t final
 	:	public event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
@@ -469,7 +469,7 @@ class with_activity_tracking_impl_t : protected common_data_t
  * v.5.5.18
  */
 template< typename Impl >
-class work_thread_template_t : public Impl
+class work_thread_template_t final : public Impl
 	{
 	public :
 		//! Initializing constructor.
@@ -654,12 +654,14 @@ using work_thread_with_activity_tracking_t =
 struct adaptation_t
 	{
 //FIXME: it is better to return string_view.
+		SO_5_NODISCARD
 		static const char *
 		dispatcher_type_name() noexcept
 			{
 				return "atp"; // adv_thread_pool.
 			}
 
+		SO_5_NODISCARD
 		static bool
 		is_individual_fifo( const bind_params_t & params ) noexcept
 			{

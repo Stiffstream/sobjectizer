@@ -87,7 +87,7 @@ track_activity(
  * \brief Data source for one-thread dispatcher.
  */
 template< typename Work_Thread >
-class data_source_t
+class data_source_t final
 	:	public stats::auto_registered_source_t
 	,	protected data_source_details::common_data_t< Work_Thread >
 	{
@@ -147,7 +147,7 @@ class data_source_t
  * \brief A dispatcher with the single working thread and an event queue.
  */
 template< typename Work_Thread >
-class actual_dispatcher_t : public disp_binder_t
+class actual_dispatcher_t final : public disp_binder_t
 	{
 	public:
 		actual_dispatcher_t(
@@ -165,7 +165,7 @@ class actual_dispatcher_t : public disp_binder_t
 				m_work_thread.start();
 			}
 
-		~actual_dispatcher_t() override
+		~actual_dispatcher_t() noexcept override
 			{
 				m_work_thread.shutdown();
 				m_work_thread.wait();

@@ -134,7 +134,7 @@ using actual_dispatcher_iface_shptr_t =
 //
 // actual_binder_t
 //
-class actual_binder_t : public disp_binder_t
+class actual_binder_t final : public disp_binder_t
 	{
 		//! Dispatcher to be used.
 		actual_dispatcher_iface_shptr_t m_disp;
@@ -187,7 +187,7 @@ class actual_binder_t : public disp_binder_t
  * \brief Implementation of active object dispatcher in form of template class.
  */
 template< typename Work_Thread >
-class dispatcher_template_t : public actual_dispatcher_iface_t
+class dispatcher_template_t final : public actual_dispatcher_iface_t
 	{
 	public:
 		dispatcher_template_t(
@@ -290,7 +290,7 @@ class dispatcher_template_t : public actual_dispatcher_iface_t
 		 * \since
 		 * v.5.5.4
 		 */
-		class disp_data_source_t : public stats::auto_registered_source_t
+		class disp_data_source_t final : public stats::auto_registered_source_t
 			{
 				//! Dispatcher to work with.
 				outliving_reference_t< dispatcher_template_t > m_dispatcher;

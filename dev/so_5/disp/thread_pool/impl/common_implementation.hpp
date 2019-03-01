@@ -46,7 +46,7 @@ template<
 	typename Agent_Queue,
 	typename Params,
 	typename Adaptations >
-class dispatcher_t
+class dispatcher_t final
 	:	public tp_stats::stats_supplier_t
 	{
 	private :

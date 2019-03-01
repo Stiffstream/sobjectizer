@@ -75,7 +75,7 @@ using actual_dispatcher_iface_shptr_t =
 //
 // actual_binder_t
 //
-class actual_binder_t : public disp_binder_t
+class actual_binder_t final : public disp_binder_t
 	{
 		//! Dispatcher to be used.
 		actual_dispatcher_iface_shptr_t m_disp;

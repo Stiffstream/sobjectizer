@@ -100,7 +100,7 @@ send_thread_activity_stats(
  * \brief Implementation of active object dispatcher in form of template class.
  */
 template< typename Work_Thread >
-class dispatcher_template_t : public disp_binder_t
+class dispatcher_template_t final : public disp_binder_t
 	{
 	public:
 		dispatcher_template_t(
@@ -202,7 +202,7 @@ class dispatcher_template_t : public disp_binder_t
 		 * \since
 		 * v.5.5.4
 		 */
-		class disp_data_source_t : public stats::auto_registered_source_t
+		class disp_data_source_t final : public stats::auto_registered_source_t
 			{
 				//! Dispatcher to work with.
 				outliving_reference_t< dispatcher_template_t > m_dispatcher;

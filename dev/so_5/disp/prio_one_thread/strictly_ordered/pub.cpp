@@ -77,7 +77,7 @@ send_thread_activity_stats(
  * v.5.5.8, v.5.5.18, v.5.6.0
  */
 template< typename Work_Thread >
-class dispatcher_template_t : public disp_binder_t
+class dispatcher_template_t final : public disp_binder_t
 	{
 		friend class disp_data_source_t;
 
