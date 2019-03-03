@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj_s.rb'
 
-	target 'sample.so_5.private_dispatcher_hello_s'
+	target 'sample.so_5.dispatcher_restarts_s'
 
 	cpp_source 'main.cpp'
 }

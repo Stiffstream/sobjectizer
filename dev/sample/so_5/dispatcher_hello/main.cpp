@@ -1,5 +1,5 @@
 /*
- * Demonstration of very simple case for private dispatchers.
+ * Demonstration of very simple case for dispatchers.
  */
 
 #include <iostream>
@@ -51,7 +51,7 @@ private :
 				// Name for the cooperation will be generated automatically.
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
-				// the private one_thread dispatcher.
+				// one_thread dispatcher.
 				disp.binder() );
 
 		fill_and_register_coop( std::move( coop ), "one_thread" );
@@ -68,7 +68,7 @@ private :
 				// Name for the cooperation will be generated automatically.
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
-				// the private active_obj dispatcher.
+				// active_obj dispatcher.
 				disp.binder() );
 
 		fill_and_register_coop( std::move( coop ), "active_obj" );

@@ -391,7 +391,7 @@ void init( so_5::environment_t & env )
 {
 	auto receivers = create_processing_coops( env );
 
-	// A private dispatcher for generators cooperation.
+	// A dispatcher for generators cooperation.
 	auto generators_disp = so_5::disp::thread_pool::make_dispatcher( env, 3 );
 	// Registration of generator will start example.
 	env.introduce_coop(

@@ -167,7 +167,7 @@ private :
 
 		// Pinger and ponger will be started inside a new coop.
 		// They will work on different threads (management of those
-		// threads will be done by private active_obj dispatcher).
+		// threads will be done by active_obj dispatcher).
 		so_5::introduce_child_coop( *this,
 				so_5::disp::active_obj::make_dispatcher(
 						so_environment() ).binder(),

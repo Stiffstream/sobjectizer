@@ -1,5 +1,5 @@
 /*
- * Demonstration of usage of the same private dispatcher for children
+ * Demonstration of usage of the same dispatcher for children
  * cooperations.
  */
 
@@ -111,7 +111,7 @@ private :
 
 	void create_first_child_coop()
 	{
-		// The private dispatcher for the family of child cooperations.
+		// The dispatcher for the family of child cooperations.
 		auto disp = so_5::disp::active_obj::make_dispatcher(
 				so_environment() );
 		so_5::introduce_child_coop(
@@ -119,8 +119,7 @@ private :
 				*this,
 				// Name for the cooperation will be generated automatically.
 				so_5::autoname,
-				// The main dispatcher for the new cooperation is
-				// the private dispatcher.
+				// The main dispatcher for the new cooperation.
 				disp.binder(),
 				[&]( so_5::coop_t & coop ) {
 					coop.make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );

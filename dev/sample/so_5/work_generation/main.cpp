@@ -383,9 +383,9 @@ create_processing_coops( so_5::environment_t & env )
 
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 
-	// Private dispatcher for receivers.
+	// A dispatcher for receivers.
 	auto receiver_disp = so_5::disp::thread_pool::make_dispatcher( env, 2 );
-	// And private dispatcher for processors.
+	// And a dispatcher for processors.
 	auto processor_disp = so_5::disp::active_obj::make_dispatcher( env );
 
 	int i = 0;
@@ -416,7 +416,7 @@ void init( so_5::environment_t & env )
 
 	using namespace so_5::disp::thread_pool;
 
-	// A private dispatcher for generators cooperation.
+	// A dispatcher for generators cooperation.
 	auto generators_disp = make_dispatcher( env, 3 );
 	env.introduce_coop(
 			generators_disp.binder( bind_params_t{}.fifo( fifo_t::individual ) ),
