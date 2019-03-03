@@ -303,12 +303,12 @@ class a_contoller_t : public so_5::agent_t
 					return params;
 				};
 				const auto bind_params = [&] {
-					bind_params_t bind_params;
+					bind_params_t params;
 					if( m_cfg.m_individual_fifo )
-						bind_params.fifo( fifo_t::individual );
+						params.fifo( fifo_t::individual );
 					if( m_cfg.m_demands_at_once )
-						bind_params.max_demands_at_once( m_cfg.m_demands_at_once );
-					return bind_params;
+						params.max_demands_at_once( m_cfg.m_demands_at_once );
+					return params;
 				};
 
 				return make_dispatcher(

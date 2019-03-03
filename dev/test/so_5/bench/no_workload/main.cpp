@@ -169,7 +169,7 @@ main( int argc, char ** argv )
 				env.register_agent_as_coop( "test",
 						env.make_agent< a_contoller_t >( cfg ) );
 			},
-			[cfg]( so_5::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
 				// This timer thread doesn't consume resources without
 				// actual delayed/periodic messages.
