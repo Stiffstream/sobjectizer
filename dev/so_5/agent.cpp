@@ -1326,8 +1326,14 @@ agent_t::ensure_operation_is_on_working_thread(
 
 		s << operation_name
 			<< ": operation is enabled only on agent's working thread; "
-			<< "working_thread_id: " << m_working_thread_id
-			<< ", current_thread_id: " << so_5::query_current_thread_id();
+			<< "working_thread_id: ";
+
+		if( m_working_thread_id == null_current_thread_id() )
+			s << "<NONE>";
+		else
+			s << m_working_thread_id;
+
+		s << ", current_thread_id: " << so_5::query_current_thread_id();
 
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_operation_enabled_only_on_agent_working_thread,
