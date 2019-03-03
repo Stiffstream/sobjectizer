@@ -342,7 +342,7 @@ create_processing_coops( so_5::environment_t & env )
 	const std::size_t concurrent_slots = 5;
 
 	// There must be a dedicated dispatcher for collectors.
-	auto collector_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
+	auto collector_disp = so_5::disp::thread_pool::make_dispatcher( env, 2 );
 
 	int i = 0;
 	for( auto c : capacities )
@@ -350,19 +350,19 @@ create_processing_coops( so_5::environment_t & env )
 		env.introduce_coop( [&]( so_5::coop_t & coop ) {
 			// There must be a dedicated dispatcher for performer from
 			// that cooperation.
-			auto performer_disp = so_5::disp::adv_thread_pool::create_private_disp(
+			auto performer_disp = so_5::disp::adv_thread_pool::make_dispatcher(
 					env,
 					concurrent_slots );
 
 			auto collector = coop.make_agent_with_binder< a_collector_t >(
-					collector_disp->binder( so_5::disp::thread_pool::bind_params_t{} ),
+					collector_disp.binder(),
 					"r" + std::to_string(i), c, concurrent_slots );
 
 			auto collector_mbox = collector->so_direct_mbox();
 			result.push_back( collector_mbox );
 
 			auto performer = coop.make_agent_with_binder< a_performer_t >(
-					performer_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ),
+					performer_disp.binder(),
 					"p" + std::to_string(i), collector_mbox );
 
 			collector->set_performer_mbox( performer->so_direct_mbox() );
@@ -381,10 +381,10 @@ void init( so_5::environment_t & env )
 	auto receivers = create_processing_coops( env );
 
 	// A private dispatcher for generators cooperation.
-	auto generators_disp = create_private_disp( env, 3 );
+	auto generators_disp = make_dispatcher( env, 3 );
 	// Registration of generator will start example.
 	env.introduce_coop(
-			generators_disp->binder( []( bind_params_t & p ) {
+			generators_disp.binder( []( bind_params_t & p ) {
 				p.fifo( fifo_t::individual );
 			} ),
 			[&]( so_5::coop_t & coop ) {

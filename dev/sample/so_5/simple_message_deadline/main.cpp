@@ -329,7 +329,7 @@ void init( so_5::environment_t & env )
 	using namespace so_5::disp::thread_pool;
 
 	env.introduce_coop(
-		create_private_disp( env, 3 )->binder(
+		make_dispatcher( env, 3 ).binder(
 				bind_params_t{}.fifo( fifo_t::individual ) ),
 		[]( so_5::coop_t & c ) {
 			auto collector = c.make_agent< a_collector_t >();

@@ -101,7 +101,7 @@ void run_sample( so_5::disp::adv_thread_pool::fifo_t fifo_type )
 		namespace pool_disp = so_5::disp::adv_thread_pool;
 
 		env.introduce_coop(
-			pool_disp::create_private_disp( env, 4 )->binder(
+			pool_disp::make_dispatcher( env, 4 ).binder(
 				pool_disp::bind_params_t{}.fifo( fifo_type ) ),
 			[]( so_5::coop_t & coop )
 			{

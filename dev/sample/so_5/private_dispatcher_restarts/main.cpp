@@ -98,7 +98,7 @@ private :
 	void create_new_child_coop()
 	{
 		// The cooperation will use active_obj dispatcher.
-		auto disp = so_5::disp::active_obj::create_private_disp(
+		auto disp = so_5::disp::active_obj::make_dispatcher(
 				so_environment() );
 		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
@@ -107,7 +107,7 @@ private :
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// the private active_obj dispatcher.
-				disp->binder() );
+				disp.binder() );
 		// We should receive notification about complete
 		// child cooperation deregistration.
 		coop->add_dereg_notificator(

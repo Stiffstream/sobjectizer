@@ -384,23 +384,23 @@ create_processing_coops( so_5::environment_t & env )
 	std::size_t capacities[] = { 25, 35, 40, 15, 20 };
 
 	// Private dispatcher for receivers.
-	auto receiver_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
+	auto receiver_disp = so_5::disp::thread_pool::make_dispatcher( env, 2 );
 	// And private dispatcher for processors.
-	auto processor_disp = so_5::disp::active_obj::create_private_disp( env );
+	auto processor_disp = so_5::disp::active_obj::make_dispatcher( env );
 
 	int i = 0;
 	for( auto c : capacities )
 	{
 		env.introduce_coop( [&]( so_5::coop_t & coop ) {
 			auto receiver = coop.make_agent_with_binder< a_receiver_t >(
-					receiver_disp->binder( so_5::disp::thread_pool::bind_params_t{} ),
+					receiver_disp.binder(),
 					"r" + std::to_string(i), c );
 
 			const auto receiver_mbox = receiver->so_direct_mbox();
 			result.push_back( receiver_mbox );
 
 			coop.make_agent_with_binder< a_processor_t >(
-					processor_disp->binder(),
+					processor_disp.binder(),
 					"p" + std::to_string(i), receiver_mbox );
 		} );
 
@@ -417,9 +417,9 @@ void init( so_5::environment_t & env )
 	using namespace so_5::disp::thread_pool;
 
 	// A private dispatcher for generators cooperation.
-	auto generators_disp = create_private_disp( env, 3 );
+	auto generators_disp = make_dispatcher( env, 3 );
 	env.introduce_coop(
-			generators_disp->binder( bind_params_t{}.fifo( fifo_t::individual ) ),
+			generators_disp.binder( bind_params_t{}.fifo( fifo_t::individual ) ),
 			[&receivers]( so_5::coop_t & coop ) {
 				for( int i = 0; i != 3; ++i )
 					coop.make_agent< a_generator_t >(

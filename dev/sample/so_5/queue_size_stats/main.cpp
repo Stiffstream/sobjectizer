@@ -228,16 +228,16 @@ void init( so_5::environment_t & env )
 		// Run-time stats listener will work on a dedicated
 		// one-thread dispatcher.
 		coop.make_agent_with_binder< a_stats_listener_t >(
-				so_5::disp::one_thread::create_private_disp(
-						env, "stats_listener" )->binder(),
+				so_5::disp::one_thread::make_dispatcher(
+						env, "stats_listener" ).binder(),
 				logger->so_direct_mbox() );
 
 		// Bunch of workers.
 		// Must work on dedicated thread_pool dispatcher.
-		auto worker_disp = so_5::disp::thread_pool::create_private_disp(
+		auto worker_disp = so_5::disp::thread_pool::make_dispatcher(
 				env,
-				3, // Count of working threads.
-				"workers" ); // Name of dispatcher (for convience of monitoring).
+				"workers", // Name of dispatcher (for convience of monitoring).
+				3 ); // Count of working threads.
 		const auto worker_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
@@ -245,16 +245,16 @@ void init( so_5::environment_t & env )
 		for( int i = 0; i != 5; ++i )
 		{
 			auto w = coop.make_agent_with_binder< a_worker_t >(
-					worker_disp->binder( worker_binding_params ) );
+					worker_disp.binder( worker_binding_params ) );
 			workers.push_back( w->so_direct_mbox() );
 		}
 
 		// Generators will work on dedicated active_obj dispatcher.
-		auto generator_disp = so_5::disp::active_obj::create_private_disp(
+		auto generator_disp = so_5::disp::active_obj::make_dispatcher(
 				env, "generator" );
 
 		coop.make_agent_with_binder< a_generator_t >(
-				generator_disp->binder(),
+				generator_disp.binder(),
 				logger->so_direct_mbox(),
 				std::move( workers ) );
 	});
