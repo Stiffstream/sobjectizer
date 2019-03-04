@@ -160,16 +160,12 @@ class SO_5_NODISCARD dispatcher_handle_t
 		reset() noexcept { m_binder.reset(); }
 	};
 
-//FIXME: update comment!
 /*!
- * \brief Create a private %active_obj dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %active_obj dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp(
+auto disp = so_5::disp::active_obj::make_dispatcher(
 	env,
 	"db_handler",
 	// Additional params with specific options for queue's traits.
@@ -179,9 +175,12 @@ auto private_disp = so_5::disp::active_obj::create_private_disp(
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp->binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -193,24 +192,23 @@ make_dispatcher(
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
-//FIXME: update comment!
 /*!
- * \brief Create a private %active_obj dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %active_obj dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp(
+auto disp = so_5::disp::active_obj::make_dispatcher(
 	env,
 	"db_handler" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -223,22 +221,21 @@ make_dispatcher(
 		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
 
-//FIXME: update comment!
 /*!
  * \brief Create a private %active_obj dispatcher.
  *
- * \since
- * v.5.5.4
- *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp( env );
+auto disp = so_5::disp::active_obj::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(

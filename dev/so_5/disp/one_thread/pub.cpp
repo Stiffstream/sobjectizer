@@ -142,9 +142,16 @@ class data_source_t final
 // actual_dispatcher_t
 //
 
-//FIXME: more description is needed.
 /*!
  * \brief A dispatcher with the single working thread and an event queue.
+ *
+ * \note
+ * This class implements disp_binder_t. It makes possible to use instance
+ * of that class as dispatcher binder (this avoids creation of small
+ * binder objects).
+ *
+ * \since
+ * v.5.6.0
  */
 template< typename Work_Thread >
 class actual_dispatcher_t final : public disp_binder_t

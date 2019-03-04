@@ -111,10 +111,18 @@ namespace impl {
 
 class actual_dispatcher_iface_t;
 
-//FIXME: document this!
 //
 // basic_dispatcher_iface_t
 //
+/*!
+ * \brief The very basic interface of %active_group dispatcher.
+ *
+ * This class contains a minimum that is necessary for implementation
+ * of dispatcher_handle class.
+ *
+ * \since
+ * v.5.6.0
+ */
 class basic_dispatcher_iface_t
 	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
 	{
@@ -188,16 +196,12 @@ class SO_5_NODISCARD dispatcher_handle_t
 		reset() noexcept { m_dispatcher.reset(); }
 	};
 
-//FIXME: fix comment content!
 /*!
- * \brief Create a private %active_group dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %active_group dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_group::create_private_disp(
+auto disp = so_5::disp::active_group::make_dispatcher(
 	env,
 	"request_handler",
 	// Additional params with specific options for queue's traits.
@@ -207,9 +211,12 @@ auto private_disp = so_5::disp::active_group::create_private_disp(
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_group dispatcher.
-	private_disp->binder( "request_handler" ) );
+	// this instance of active_group dispatcher.
+	disp.binder( "request_handler" ) );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -221,24 +228,23 @@ make_dispatcher(
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
-//FIXME: fix comment content!
 /*!
- * \brief Create a private %active_group dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %active_group dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_group::create_private_disp(
+auto disp = so_5::disp::active_group::make_dispatcher(
 	env,
 	"long_req_handlers" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_group dispatcher.
-	private_disp->binder( "passive_objects" ) );
+	// this instance of active_group dispatcher.
+	disp.binder( "passive_objects" ) );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -251,22 +257,21 @@ make_dispatcher(
 		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
 
-//FIXME: fix comment content!
 /*!
- * \brief Create a private %active_group dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %active_group dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_group::create_private_disp( env );
+auto disp = so_5::disp::active_group::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_group dispatcher.
-	private_disp->binder( "passive_objects" ) );
+	// this instance of active_group dispatcher.
+	disp.binder( "passive_objects" ) );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(

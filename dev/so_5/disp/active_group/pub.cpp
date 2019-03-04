@@ -130,10 +130,15 @@ class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
 using actual_dispatcher_iface_shptr_t =
 		std::shared_ptr< actual_dispatcher_iface_t >;
 
-//FIXME: document this!
 //
 // actual_binder_t
 //
+/*!
+ * \brief Implementation of binder interface for %active_group dispatcher.
+ *
+ * \since
+ * v.5.6.0
+ */
 class actual_binder_t final : public disp_binder_t
 	{
 		//! Dispatcher to be used.

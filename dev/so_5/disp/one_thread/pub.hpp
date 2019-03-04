@@ -82,16 +82,16 @@ class SO_5_NODISCARD dispatcher_handle_t
 		reset() noexcept { m_binder.reset(); }
 	};
 
-//FIXME: fix comment content!
+//
+// make_dispatcher
+//
+
 /*!
- * \since
- * v.5.5.10
- *
- * \brief Create a private %one_thread dispatcher.
+ * \brief Create an instance of %one_thread dispatcher.
  *
  * \par Usage sample
 \code
-auto one_thread_disp = so_5::disp::one_thread::create_private_disp(
+auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
 	env,
 	"file_handler",
 	so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
@@ -100,9 +100,12 @@ auto one_thread_disp = so_5::disp::one_thread::create_private_disp(
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private one_thread dispatcher.
-	one_thread_disp->binder() );
+	// this instance of one_thread dispatcher.
+	one_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -114,23 +117,22 @@ make_dispatcher(
 	//! Parameters for the dispatcher.
 	disp_params_t params );
 
-//FIXME: fix comment content!
 /*!
- * \since
- * v.5.5.4
- *
- * \brief Create a private %one_thread dispatcher.
+ * \brief Create an instance of %one_thread dispatcher.
  *
  * \par Usage sample
 \code
-auto one_thread_disp = so_5::disp::one_thread::create_private_disp(
+auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
 	env,
 	"file_handler" );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private one_thread dispatcher.
-	one_thread_disp->binder() );
+	// this instance of one_thread dispatcher.
+	one_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -143,22 +145,21 @@ make_dispatcher(
 		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
 
-//FIXME: fix comment content!
 /*!
- * \since
- * v.5.5.4
- *
- * \brief Create a private %one_thread dispatcher.
+ * \brief Create an instance of %one_thread dispatcher.
  *
  * \par Usage sample
 \code
-auto one_thread_disp = so_5::disp::one_thread::create_private_disp( env );
+auto one_thread_disp = so_5::disp::one_thread::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private one_thread dispatcher.
-	one_thread_disp->binder() );
+	// this instance of one_thread dispatcher.
+	one_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher( environment_t & env )

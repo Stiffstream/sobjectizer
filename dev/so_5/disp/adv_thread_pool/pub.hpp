@@ -200,6 +200,9 @@ class bind_params_t
  * \brief A helper function for detecting default thread count for
  * thread pool.
  *
+ * Returns value of std::thread::hardware_concurrency() or 2 if
+ * hardware_concurrency() returns 0.
+ *
  * \since
  * v.5.4.0
  */
@@ -217,10 +220,18 @@ namespace impl {
 
 class actual_dispatcher_iface_t;
 
-//FIXME: document this!
 //
 // basic_dispatcher_iface_t
 //
+/*!
+ * \brief The very basic interface of %adv_thread_pool dispatcher.
+ *
+ * This class contains a minimum that is necessary for implementation
+ * of dispatcher_handle class.
+ *
+ * \since
+ * v.5.6.0
+ */
 class basic_dispatcher_iface_t
 	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
 	{
@@ -270,6 +281,28 @@ class SO_5_NODISCARD dispatcher_handle_t
 
 		//! Get a binder for that dispatcher.
 		/*!
+		 * Usage example:
+		 * \code
+		 * using namespace so_5::disp::adv_thread_pool;
+		 *
+		 * so_5::environment_t & env = ...;
+		 * auto disp = make_dispatcher( env );
+		 * bind_params_t params;
+		 * params.fifo( fifo_t::individual );
+		 *
+		 * env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		 * 	coop.make_agent_with_binder< some_agent_type >(
+		 * 		disp.binder( params ),
+		 * 		... );
+		 *
+		 * 	coop.make_agent_with_binder< another_agent_type >(
+		 * 		disp.binder( params ),
+		 * 		... );
+		 *
+		 * 	...
+		 * } );
+		 * \endcode
+		 *
 		 * \attention
 		 * An attempt to call this method on empty handle is UB.
 		 */
@@ -285,6 +318,22 @@ class SO_5_NODISCARD dispatcher_handle_t
 		/*!
 		 * This method allows parameters tuning via lambda-function
 		 * or other functional objects.
+		 *
+		 * Usage example:
+		 * \code
+		 * using namespace so_5::disp::adv_thread_pool;
+		 *
+		 * so_5::environment_t & env = ...;
+		 * env.introduce_coop( [&]( so_5::coop_t & coop ) {
+		 * 	coop.make_agent_with_binder< some_agent_type >(
+		 * 		// Create dispatcher instance.
+		 * 		make_dispatcher( env )
+		 * 			// Make and tune binder for that dispatcher.
+		 * 			.binder( []( auto & params ) {
+		 * 				params.fifo( fifo_t::individual );
+		 * 			} ),
+		 * 		... );
+		 * \endcode
 		 *
 		 * \attention
 		 * An attempt to call this method on empty handle is UB.
@@ -331,17 +380,13 @@ class SO_5_NODISCARD dispatcher_handle_t
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \since
- * v.5.5.15.1
- *
- * \brief Create a private %adv_thread_pool dispatcher.
+ * \brief Create an instance of %adv_thread_pool dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::adv_thread_pool;
-auto private_disp = create_private_disp(
+auto disp = make_dispatcher(
 	env,
 	"db_workers_pool",
 	disp_params_t{}
@@ -351,12 +396,12 @@ auto private_disp = create_private_disp(
 			} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private thread_pool dispatcher.
-	private_disp->binder( bind_params_t{} ) );
+	// this instance of adv_thread_pool dispatcher.
+	disp.binder() );
 \endcode
  *
- * This function is added to fix order of parameters and make it similar
- * to create_private_disp from other dispatchers.
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -371,24 +416,23 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %adv_thread_pool dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %adv_thread_pool dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::adv_thread_pool::create_private_disp(
+auto disp = so_5::disp::adv_thread_pool::make_dispatcher(
 	env,
-	16,
-	"req_processors" );
+	"req_processors",
+	16 );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private adv_thread_pool dispatcher.
-	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+	// this instance of adv_thread_pool dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -406,22 +450,21 @@ make_dispatcher(
 				disp_params_t{}.thread_count( thread_count ) );
 	}
 
-//FIXME: modify description!
 /*!
- * \brief Create a private %adv_thread_pool dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %adv_thread_pool dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env, 16 );
+auto disp = so_5::disp::adv_thread_pool::make_dispatcher( env, 16 );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private adv_thread_pool dispatcher.
-	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+	// this instance of adv_thread_pool dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -436,23 +479,25 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %adv_thread_pool dispatcher with the default
- * count of working threads.
+ * \brief Create an instance of %adv_thread_pool dispatcher with the default
+ * count of work threads.
  *
- * \since
- * v.5.5.4
+ * Count of work threads will be detected by default_thread_pool_size()
+ * function.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::adv_thread_pool::create_private_disp( env );
+auto disp = so_5::disp::adv_thread_pool::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private adv_thread_pool dispatcher.
-	private_disp->binder( so_5::disp::adv_thread_pool::bind_params_t{} ) );
+	// this instance of adv_thread_pool dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
