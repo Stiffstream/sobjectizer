@@ -24,7 +24,19 @@ namespace disp {
 
 namespace reuse {
 
-//FIXME: document this!
+/*!
+ * \brief Helper functions to adjust some dispatcher parameters with
+ * respect to settings from environment.
+ *
+ * If dispatcher params doesn't have lock-factory specified the
+ * lock-factory will be inherited from environment.
+ *
+ * \tparam Disp_Params_Type type of struct/class with dispatcher-related
+ * parameters. This type should have queue_params() method.
+ *
+ * \since
+ * v.5.6.0
+ */
 template< typename Disp_Params_Type >
 void
 modify_disp_params(
@@ -41,7 +53,40 @@ modify_disp_params(
 		}
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for creation of dispatcher instance with
+ * respect to work thread activity tracking flag.
+ *
+ * \note
+ * Calls modify_disp_params() before creation of dispatcher instance.
+ *
+ * \attention
+ * Dispatcher constructor should have the following format:
+ * \code
+ * Dispatcher(
+ * 	outliving_reference_t<environment_t> env,
+ * 	const std::string_view data_source_base_name,
+ * 	Disp_Params_Type disp_params,
+ * 	Args && ...additional_args );
+ * \endcode
+ *
+ * \tparem Disp_Iface_Type a type of interface for actual dispatcher. This type
+ * is expected to be a base class for Disp_No_Tracking and Disp_With_Tracking
+ * types.
+ *
+ * \tparam Disp_No_Tracking a type of dispatcher for case when thread
+ * activity tracking is not used.
+ *
+ * \tparam Disp_With_Tracking a type of dispatcher for case when thread
+ * activity tracking is used.
+ *
+ * \tparam Disp_Params_Type a type of dispatcher-specific parameters.
+ *
+ * \tparam Args types of additional arguments for dispatcher's constructor.
+ *
+ * \since
+ * v.5.6.0
+ */
 template<
 	typename Disp_Iface_Type,
 	typename Disp_No_Tracking,

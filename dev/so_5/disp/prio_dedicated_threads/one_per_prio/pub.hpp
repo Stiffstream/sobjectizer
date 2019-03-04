@@ -169,17 +169,13 @@ class SO_5_NODISCARD dispatcher_handle_t
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %one_per_prio dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %one_per_prio dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp(
+auto common_thread_disp = make_dispatcher(
 	env,
 	"request_processor"
 	disp_params_t{}.tune_queue_params(
@@ -189,8 +185,11 @@ auto common_thread_disp = create_private_disp(
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -205,23 +204,22 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %one_per_prio dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %one_per_prio dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp( env, "request_processor" );
+auto common_thread_disp = make_dispatcher( env, "request_processor" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.5.8
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -237,23 +235,22 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %one_per_prio dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %one_per_prio dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-auto common_thread_disp = create_private_disp( env );
+auto common_thread_disp = make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher( environment_t & env )

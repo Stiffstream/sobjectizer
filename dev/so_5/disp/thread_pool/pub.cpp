@@ -36,9 +36,10 @@ namespace impl
 //
 // actual_dispatcher_iface_t
 //
-//FIXME: document this!
 /*!
  * \brief An actual interface of thread-pool dispatcher.
+ *
+ * This interface defines a set of methods necessary for binder.
  *
  * \since
  * v.5.6.0
@@ -72,10 +73,15 @@ class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
 using actual_dispatcher_iface_shptr_t =
 		std::shared_ptr< actual_dispatcher_iface_t >;
 
-//FIXME: document this!
 //
 // actual_binder_t
 //
+/*!
+ * \brief Actual implementation of dispatcher binder for %thread_pool dispatcher.
+ *
+ * \since
+ * v.5.6.0
+ */
 class actual_binder_t final : public disp_binder_t
 	{
 		//! Dispatcher to be used.
@@ -124,7 +130,12 @@ class actual_binder_t final : public disp_binder_t
 //
 // actual_dispatcher_implementation_t
 //
-//FIXME: document this!
+/*!
+ * \brief Actual implementation of binder for %thread_pool dispatcher.
+ *
+ * \since
+ * v.5.6.0
+ */
 template< typename Work_Thread >
 class actual_dispatcher_implementation_t final
 	:	public actual_dispatcher_iface_t

@@ -171,17 +171,13 @@ class SO_5_NODISCARD dispatcher_handle_t
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %quoted_round_robin dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %quoted_round_robin dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-auto common_thread_disp = create_private_disp(
+auto common_thread_disp = make_dispatcher(
 	env,
 	"request_processor",
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ),
@@ -191,9 +187,12 @@ auto common_thread_disp = create_private_disp(
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	// this instance of quoted_round_robin dispatcher.
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -210,25 +209,24 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %quoted_round_robin dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %quoted_round_robin dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-auto common_thread_disp = create_private_disp(
+auto common_thread_disp = make_dispatcher(
 	env,
 	"request_processor",
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private quoted_round_robin dispatcher.
+	// this instance of quoted_round_robin dispatcher.
 	common_thread_disp->binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -250,25 +248,24 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %quoted_round_robin dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %quoted_round_robin dispatcher.
  *
  * \par Usage sample
 \code
 using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-auto common_thread_disp = create_private_disp(
+auto common_thread_disp = make_dispatcher(
 	env,
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private quoted_round_robin dispatcher.
-	common_thread_disp->binder() );
+	// this instance of quoted_round_robin dispatcher.
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(

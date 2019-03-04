@@ -169,16 +169,12 @@ class SO_5_NODISCARD dispatcher_handle_t
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %strictly_ordered dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %strictly_ordered dispatcher.
  *
  * \par Usage sample
 \code
-auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::make_dispatcher(
 	env,
 	"request_processor",
 	so_5::disp::prio_one_thread::strictly_ordered::disp_params_t{}.tune_queue_params(
@@ -187,9 +183,12 @@ auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	// this instance of strictly_ordered dispatcher.
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -204,23 +203,22 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %strictly_ordered dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %strictly_ordered dispatcher.
  *
  * \par Usage sample
 \code
-auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::make_dispatcher(
 	env,
 	"request_processor" );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	// this instance of strictly_ordered dispatcher.
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -236,22 +234,21 @@ make_dispatcher(
 //
 // make_dispatcher
 //
-//FIXME: modify description!
 /*!
- * \brief Create a private %strictly_ordered dispatcher.
- *
- * \since
- * v.5.5.8
+ * \brief Create an instance of %strictly_ordered dispatcher.
  *
  * \par Usage sample
 \code
-auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp( env );
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private strictly_ordered dispatcher.
-	common_thread_disp->binder() );
+	common_thread_disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher( environment_t & env )
