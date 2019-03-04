@@ -254,6 +254,8 @@ class a_contoller_t : public so_5::agent_t
 
 		const so_5::mbox_t m_self_mbox;
 
+		so_5::disp_binder_shptr_t m_binder;
+
 		benchmarker_t m_benchmarker;
 
 		std::unique_ptr< duration_meter_t > m_shutdown_duration;
@@ -271,7 +273,7 @@ class a_contoller_t : public so_5::agent_t
 				auto c = so_5::create_child_coop(
 						*this,
 						ss.str(),
-						create_binder() );
+						create_binder_if_necessary() );
 
 				for( std::size_t a = 0; a != m_cfg.m_agents; ++a )
 				{
@@ -285,8 +287,11 @@ class a_contoller_t : public so_5::agent_t
 		}
 
 		so_5::disp_binder_shptr_t
-		create_binder() const
+		create_binder_if_necessary()
 		{
+			if( m_binder )
+				return m_binder;
+
 			const std::size_t threads = m_cfg.m_threads ?
 					m_cfg.m_threads : default_thread_pool_size();
 
@@ -311,7 +316,7 @@ class a_contoller_t : public so_5::agent_t
 					return params;
 				};
 
-				return make_dispatcher(
+				m_binder = make_dispatcher(
 							so_environment(), "thread_pool", disp_params() )
 						.binder( bind_params() );
 			}
@@ -335,10 +340,12 @@ class a_contoller_t : public so_5::agent_t
 					return params;
 				};
 
-				return make_dispatcher(
+				m_binder = make_dispatcher(
 							so_environment(), "thread_pool", disp_params() )
 						.binder( bind_params() );
 			}
+
+			return m_binder;
 		}
 };
 
