@@ -230,7 +230,7 @@ class test_env_t
 		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
-					STARTER_COOP_NAME, new a_test_starter_t( env ) );
+					STARTER_COOP_NAME, env.make_agent< a_test_starter_t >() );
 		}
 
 		so_5::coop_listener_unique_ptr_t

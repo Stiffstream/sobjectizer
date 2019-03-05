@@ -69,11 +69,11 @@ MxxRu::Cpp::composite_target {
   required_prj "#{path}/ping_pong_minimal.ut.rb"
   required_prj "#{path}/ping_pong_minimal-static.ut.rb"
 
-  required_prj "#{path}/private_dispatcher_for_children.ut.rb"
-  required_prj "#{path}/private_dispatcher_for_children-static.ut.rb"
+  required_prj "#{path}/dispatcher_for_children.ut.rb"
+  required_prj "#{path}/dispatcher_for_children-static.ut.rb"
 
-  required_prj "#{path}/private_dispatcher_hello.ut.rb"
-  required_prj "#{path}/private_dispatcher_hello-static.ut.rb"
+  required_prj "#{path}/dispatcher_hello.ut.rb"
+  required_prj "#{path}/dispatcher_hello-static.ut.rb"
 
   required_prj "#{path}/subscriptions.ut.rb"
   required_prj "#{path}/subscriptions-static.ut.rb"

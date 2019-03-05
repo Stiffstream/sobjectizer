@@ -121,7 +121,7 @@ init(
 {
 	env.register_agent_as_coop(
 			"test_coop",
-			new test_agent_t( env ) );
+			env.make_agent< test_agent_t >() );
 }
 
 int

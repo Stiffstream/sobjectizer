@@ -33,13 +33,13 @@ init( so_5::environment_t & env )
 {
 	const std::string coop_name( "main_coop" );
 
-	env.register_agent_as_coop( coop_name, new test_agent_t( env ) );
+	env.register_agent_as_coop( coop_name, env.make_agent< test_agent_t >() );
 
 	bool exception_thrown = false;
 	try
 	{
 		// Create a duplicate.
-		env.register_agent_as_coop( coop_name, new test_agent_t( env ) );
+		env.register_agent_as_coop( coop_name, env.make_agent< test_agent_t >() );
 	}
 	catch( const so_5::exception_t & )
 	{

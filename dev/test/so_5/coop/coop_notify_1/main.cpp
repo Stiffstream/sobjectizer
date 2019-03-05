@@ -110,7 +110,7 @@ class test_env_t
 
 			env.register_agent_as_coop(
 					"test",
-					new a_test_t( env, on_reg, on_dereg ) );
+					env.make_agent< a_test_t >( on_reg, on_dereg ) );
 		}
 
 		void

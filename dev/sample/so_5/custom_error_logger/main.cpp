@@ -101,7 +101,7 @@ int main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.register_agent_as_coop( "parent", new a_parent_t( env ) );
+				env.register_agent_as_coop( "parent", env.make_agent< a_parent_t >() );
 			},
 			// Parameters for SObjectizer Environment.
 			[]( so_5::environment_params_t & params )

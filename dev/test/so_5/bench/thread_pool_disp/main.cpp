@@ -418,7 +418,7 @@ main( int argc, char ** argv )
 			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
-						new a_contoller_t( env, cfg ) );
+						env.make_agent< a_contoller_t >( cfg ) );
 			},
 			[cfg]( so_5::environment_params_t & params )
 			{

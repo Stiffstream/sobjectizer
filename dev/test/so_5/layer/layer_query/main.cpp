@@ -181,7 +181,7 @@ init( so_5::environment_t & env )
 
 
 #define ADD_LAYER( N ) \
-	.add_layer( new test_layer_t< N > )
+	.add_layer( std::make_unique< test_layer_t< N > >() )
 
 UT_UNIT_TEST( check_many_layers )
 {

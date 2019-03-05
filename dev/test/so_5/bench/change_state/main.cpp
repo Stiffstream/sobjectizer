@@ -108,7 +108,7 @@ main( int argc, char ** argv )
 			{
 				env.register_agent_as_coop(
 					"test",
-					new a_test_t( env, tick_count ) );
+					env.make_agent< a_test_t >( tick_count ) );
 			} );
 	}
 	catch( const std::exception & ex )

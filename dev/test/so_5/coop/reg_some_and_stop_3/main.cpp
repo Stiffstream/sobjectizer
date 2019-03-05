@@ -74,7 +74,7 @@ class a_master_t
 
 			so_environment().register_agent_as_coop(
 					so_coop_name() + "_slave",
-					new a_slave_t( so_environment(),  mbox ) );
+					so_environment().make_agent< a_slave_t >( mbox ) );
 		}
 
 		void
@@ -89,7 +89,7 @@ class a_master_t
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test_coop_1", new a_master_t( env ) );
+	env.register_agent_as_coop( "test_coop_1", env.make_agent< a_master_t >() );
 }
 
 int

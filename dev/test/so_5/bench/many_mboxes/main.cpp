@@ -473,8 +473,7 @@ main( int argc, char ** argv )
 			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
-						new a_starter_stopper_t(
-								env,
+						env.make_agent< a_starter_stopper_t >(
 								factory_by_cfg( cfg ),
 								cfg ) );
 			},

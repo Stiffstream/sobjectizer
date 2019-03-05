@@ -73,14 +73,15 @@ main()
 				so_5::launch(
 					[&actual]( so_5::environment_t & env )
 					{
-						env.register_agent_as_coop( "first", new a_first_t( env ) );
+						env.register_agent_as_coop( "first",
+								env.make_agent< a_first_t >() );
 
 						// Time for the first cooperation deregistration.
 						std::this_thread::sleep_for(
 							std::chrono::milliseconds( 250 ) );
 
 						env.register_agent_as_coop(
-							"second", new a_second_t( env, &actual ) );
+							"second", env.make_agent< a_second_t >( &actual ) );
 					} );
 			},
 			20,

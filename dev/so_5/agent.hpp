@@ -598,24 +598,24 @@ class subscription_bind_t
 	- so_add_destroyable_listener() is for listeners whose lifetime
 	  must be controlled by agent itself.
 
-	<b>Working thread identification</b>
+	<b>Work thread identification</b>
 
 	Since v.5.4.0 some operations for agent are enabled only on agent's
-	working thread. They are:
+	work thread. They are:
 	- subscription management operations (creation or dropping);
 	- changing agent's state.
 
-	Working thread for an agent is defined as follows:
-	- before invocation of so_define_agent() the working thread is a
+	Work thread for an agent is defined as follows:
+	- before invocation of so_define_agent() the work thread is a
 	  thread on which agent is created (id of that thread is detected in
 	  agent's constructor);
 	- during cooperation registration the working thread is a thread on
 	  which so_environment::register_coop() is working;
-	- after successful agent registration the working thread for it is
+	- after successful agent registration the work thread for it is
 	  specified by the dispatcher.
 
-	\note Some dispatchers could provide several working threads for
-	an agent. In such case there would not be working thread id. And
+	\note Some dispatchers could provide several work threads for
+	an agent. In such case there would not be work thread id. And
 	operations like changing agent state or creation of subscription
 	would be prohibited after agent registration.
 */
@@ -2246,83 +2246,8 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
-	protected :
-		/*!
-		 * \name Helpers for state object creation.
-		 * \{
-		 */
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Helper method for creation of anonymous state object.
-		 *
-		 * \par Usage:
-		 	\code
-			class my_agent_t : public so_5::agent_t
-			{
-				so_5::state_t st_1 = so_make_state();
-				so_5::state_t st_2 = so_make_state();
-				...
-			};
-			\endcode
-		 *
-		 * \deprecated Will be removed in v.5.6.0.
-		 * Just use ordinary constructors of state_t:
-		 	\code
-			class my_agent_t : public so_5::agent_t
-			{
-				state_t st_1{ this };
-				state_t st_2{ this };
-				...
-			}
-			\endcode
-		 */
-		inline state_t
-		so_make_state()
-		{
-			return state_t( self_ptr() );
-		}
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Helper method for creation of named state object.
-		 *
-		 * \par Usage:
-		 	\code
-			class my_agent_t : public so_5::agent_t
-			{
-				so_5::state_t st_1 = so_make_state( "st_one" );
-				so_5::state_t st_2 = so_make_state( "st_two" );
-				...
-			};
-			\endcode
-		 *
-		 *
-		 * \deprecated Will be removed in v.5.6.0.
-		 * Just use ordinary constructors of state_t:
-		 	\code
-			class my_agent_t : public so_5::agent_t
-			{
-				state_t st_1{ this, "st_one" };
-				state_t st_2{ this, "st_two" };
-				...
-			}
-			\endcode
-		 */
-		inline state_t
-		so_make_state( std::string name )
-		{
-			return state_t( self_ptr(), std::move( name ) );
-		}
-		/*!
-		 * \}
-		 */
-
 	private:
-		const state_t st_default = so_make_state( "<DEFAULT>" );
+		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
 		//! Current agent state.
 		const state_t * m_current_state_ptr;

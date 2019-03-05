@@ -84,7 +84,7 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 			&init,
 			[]( so_5::environment_params_t & params )
 			{
-				params.add_layer( new test_layer_t );
+				params.add_layer( std::make_unique< test_layer_t >() );
 			} );
 
 	test_layer_t::check_calls();

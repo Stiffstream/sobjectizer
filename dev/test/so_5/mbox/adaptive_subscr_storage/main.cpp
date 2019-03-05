@@ -355,7 +355,7 @@ do_test()
 						[&]( so_5::environment_t & env )
 						{
 							env.register_agent_as_coop( "test",
-								new a_test_t( env, f.second ) );
+								env.make_agent< a_test_t >( f.second ) );
 						} );
 			}, 
 			20,

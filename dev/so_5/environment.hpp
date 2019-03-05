@@ -147,8 +147,8 @@ class SO_5_TYPE environment_params_t
 		 * \since
 		 * v.5.2.3
 		 */
-		void
-		swap( environment_params_t & other );
+		friend SO_5_FUNC void
+		swap( environment_params_t & a, environment_params_t & b );
 
 		//! Set the timer_thread factory.
 		/*!
@@ -182,23 +182,6 @@ class SO_5_TYPE environment_params_t
 			}
 
 			return *this;
-		}
-
-		//! Add an additional layer to the SObjectizer Environment.
-		/*!
-		 * SObjectizer Environment takes control about \a layer_raw_ptr life time.
-		 *
-		 * If this layer is already added it will be replaced by \a layer_raw_ptr.
-		 * 
-		 * The method distinguishes layers from each other by the type SO_LAYER.
-		*/
-		template< class SO_Layer >
-		environment_params_t &
-		add_layer(
-			//! A layer to be added.
-			SO_Layer * layer_raw_ptr )
-		{
-			return add_layer( std::unique_ptr< SO_Layer >( layer_raw_ptr ) );
 		}
 
 		//! Set cooperation listener object.
@@ -281,9 +264,9 @@ class SO_5_TYPE environment_params_t
 		 * \brief Set error logger for the environment.
 		 */
 		environment_params_t &
-		error_logger( const error_logger_shptr_t & logger )
+		error_logger( error_logger_shptr_t logger )
 		{
-			m_error_logger = logger;
+			m_error_logger = std::move(logger);
 			return *this;
 		}
 
@@ -1027,55 +1010,6 @@ class SO_5_TYPE environment_t
 		}
 
 		/*!
-		 * \brief Register single agent as a cooperation.
-		 *
-		 * \since
-		 * v.5.2.1
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   so_env.register_agent_as_coop(
-		   	"sample_coop",
-		   	new my_agent_t(...) );
-		 * \endcode
-		 */
-		inline void
-		register_agent_as_coop(
-			nonempty_name_t coop_name,
-			agent_t * agent )
-		{
-			register_agent_as_coop(
-					std::move(coop_name),
-					std::unique_ptr< agent_t >( agent ) );
-		}
-
-		/*!
-		 * \brief Register single agent as a cooperation with automatically
-		 * generated name.
-		 *
-		 * \since
-		 * v.5.5.1
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   so_env.register_agent_as_coop( so_5::autoname, new my_agent_t(...) );
-		 * \endcode
-		 */
-		inline void
-		register_agent_as_coop(
-			autoname_indicator_t indicator(),
-			agent_t * agent )
-		{
-			register_agent_as_coop(
-					indicator,
-					std::unique_ptr< agent_t >( agent ) );
-		}
-
-		/*!
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
 		 *
@@ -1212,20 +1146,6 @@ class SO_5_TYPE environment_t
 			add_extra_layer(
 				std::type_index( typeid( SO_Layer ) ),
 				layer_ref_t( layer_ptr.release() ) );
-		}
-
-		/*!
-		 * \brief Add an additional layer via raw pointer.
-		 *
-		 * \since
-		 * v.5.2.0.4
-		 */
-		template< class SO_Layer >
-		void
-		add_extra_layer(
-			SO_Layer * layer_raw_ptr )
-		{
-			add_extra_layer( std::unique_ptr< SO_Layer >( layer_raw_ptr ) );
 		}
 		/*!
 		 * \}

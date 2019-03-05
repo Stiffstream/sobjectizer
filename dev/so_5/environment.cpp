@@ -70,34 +70,35 @@ environment_params_t &
 environment_params_t::operator=( environment_params_t && other )
 {
 	environment_params_t tmp( std::move( other ) );
-	this->swap( tmp );
+	swap( *this, tmp );
 
 	return *this;
 }
 
-void
-environment_params_t::swap( environment_params_t & other )
+SO_5_FUNC void
+swap( environment_params_t & a, environment_params_t & b )
 {
-	m_timer_thread_factory.swap( other.m_timer_thread_factory );
-	m_so_layers.swap( other.m_so_layers );
-	m_coop_listener.swap( other.m_coop_listener );
-	m_event_exception_logger.swap( other.m_event_exception_logger );
+	using std::swap;
 
-	std::swap( m_exception_reaction, other.m_exception_reaction );
-	std::swap( m_autoshutdown_disabled, other.m_autoshutdown_disabled );
+	swap( a.m_timer_thread_factory, b.m_timer_thread_factory );
+	swap( a.m_so_layers, b.m_so_layers );
+	swap( a.m_coop_listener, b.m_coop_listener );
+	swap( a.m_event_exception_logger, b.m_event_exception_logger );
 
-	m_error_logger.swap( other.m_error_logger );
-	m_message_delivery_tracer.swap( other.m_message_delivery_tracer );
-	m_message_delivery_tracer_filter.swap( other.m_message_delivery_tracer_filter );
+	swap( a.m_exception_reaction, b.m_exception_reaction );
+	swap( a.m_autoshutdown_disabled, b.m_autoshutdown_disabled );
 
-	std::swap( m_work_thread_activity_tracking,
-			other.m_work_thread_activity_tracking );
+	swap( a.m_error_logger, b.m_error_logger );
+	swap( a.m_message_delivery_tracer, b.m_message_delivery_tracer );
+	swap( a.m_message_delivery_tracer_filter, b.m_message_delivery_tracer_filter );
 
-	std::swap( m_queue_locks_defaults_manager, other.m_queue_locks_defaults_manager );
+	swap( a.m_work_thread_activity_tracking, b.m_work_thread_activity_tracking );
 
-	std::swap( m_infrastructure_factory, other.m_infrastructure_factory );
+	swap( a.m_queue_locks_defaults_manager, b.m_queue_locks_defaults_manager );
 
-	std::swap( m_event_queue_hook, other.m_event_queue_hook );
+	swap( a.m_infrastructure_factory, b.m_infrastructure_factory );
+
+	swap( a.m_event_queue_hook, b.m_event_queue_hook );
 }
 
 environment_params_t &
@@ -792,7 +793,7 @@ namespace autoshutdown_guard
 		if( !autoshutdown_disabled )
 			env.register_agent_as_coop(
 					"__so_5__init_autoshutdown_guard__",
-					new a_empty_agent_t( env ) );
+					env.make_agent< a_empty_agent_t >() );
 	}
 
 	void

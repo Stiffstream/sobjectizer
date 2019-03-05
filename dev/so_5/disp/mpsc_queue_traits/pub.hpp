@@ -339,12 +339,6 @@ class queue_params_t
 		lock_factory_t m_lock_factory;
 	};
 
-/*!
- * \brief Old alias for queue_params for compatibility.
- * \deprecated Use queue_params_t instead.
- */
-using params_t = queue_params_t;
-
 } /* namespace mpsc_queue_traits */
 
 } /* namespace disp */

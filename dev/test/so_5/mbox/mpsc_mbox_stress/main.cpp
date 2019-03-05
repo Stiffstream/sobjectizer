@@ -239,7 +239,7 @@ main( int argc, char ** argv )
 			[iterations]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "parent",
-					new a_parent_t( env, iterations ) );
+					env.make_agent< a_parent_t >( iterations ) );
 			} );
 	}
 	catch( const std::exception & ex )

@@ -76,7 +76,7 @@ class so_environment_error_checker_t
 				base_type_t(
 					std::move(
 						so_5::environment_params_t()
-							.add_layer( new test_layer_t< 0 >() )
+							.add_layer( std::make_unique< test_layer_t< 0 > >() )
 							.disable_autoshutdown() ) )
 		{}
 
@@ -97,7 +97,7 @@ UT_UNIT_TEST( check_errors )
 			const char * const null_str = nullptr;
 			// Try to set up layer which is already set.
 			try {
-				so_env.add_extra_layer( new test_layer_t< 0 > );
+				so_env.add_extra_layer( std::make_unique< test_layer_t< 0 > >() );
 				UT_CHECK_EQ( null_str, "exception must be thrown" );
 			}
 			catch( const so_5::exception_t & x )
@@ -121,11 +121,11 @@ UT_UNIT_TEST( check_errors )
 			}
 
 			// Try to add new layer. No errors expected.
-			so_env.add_extra_layer( new test_layer_t< 1 > );
+			so_env.add_extra_layer( std::make_unique< test_layer_t< 1 > >() );
 
 			// Try to add layer which is already set.
 			try {
-				so_env.add_extra_layer( new test_layer_t< 1 > );
+				so_env.add_extra_layer( std::make_unique< test_layer_t< 1 > >() );
 				UT_CHECK_EQ( null_str, "exception must be thrown" );
 			}
 			catch( const so_5::exception_t & x )
@@ -137,7 +137,7 @@ UT_UNIT_TEST( check_errors )
 
 			// Try to add layer which is failed to start.
 			try {
-				so_env.add_extra_layer(	new test_layer_bad_start_t() );
+				so_env.add_extra_layer(	std::make_unique< test_layer_bad_start_t >() );
 				UT_CHECK_EQ( null_str, "exception must be thrown" );
 			}
 			catch( const so_5::exception_t & x )

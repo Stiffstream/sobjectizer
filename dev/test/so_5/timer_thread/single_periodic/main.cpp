@@ -105,7 +105,7 @@ test_agent_t::evt_stop(
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
+	env.register_agent_as_coop( "test_coop", env.make_agent< test_agent_t >() );
 }
 
 int

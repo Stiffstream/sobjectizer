@@ -158,7 +158,7 @@ class test_env_t
 		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
-					"starter", new a_test_starter_t( env, m_sequence ) );
+					"starter", env.make_agent< a_test_starter_t >( m_sequence ) );
 		}
 
 		void

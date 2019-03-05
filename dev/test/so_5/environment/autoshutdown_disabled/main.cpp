@@ -102,7 +102,7 @@ main()
 							ss << "coop_" << i;
 
 							env.register_agent_as_coop(
-								ss.str(), new a_test_t( env ) );
+								ss.str(), env.make_agent< a_test_t >() );
 						}
 					},
 					[]( so_5::environment_params_t & params )

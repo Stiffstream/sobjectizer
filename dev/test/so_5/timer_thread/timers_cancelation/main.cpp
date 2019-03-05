@@ -94,7 +94,7 @@ do_test( so_5::timer_thread_factory_t factory )
 		so_5::launch(
 			[&counter]( so_5::environment_t & env ) {
 				env.register_agent_as_coop(
-						"test", new a_test_t( env, counter ) );
+						"test", env.make_agent< a_test_t >( counter ) );
 			},
 			[&factory]( so_5::environment_params_t & params ) {
 				params.timer_thread( factory );
