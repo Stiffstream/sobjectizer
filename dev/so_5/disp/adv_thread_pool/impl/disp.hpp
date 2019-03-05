@@ -653,12 +653,11 @@ using work_thread_with_activity_tracking_t =
  */
 struct adaptation_t
 	{
-//FIXME: it is better to return string_view.
 		SO_5_NODISCARD
-		static const char *
+		static constexpr std::string_view
 		dispatcher_type_name() noexcept
 			{
-				return "atp"; // adv_thread_pool.
+				return { "atp" }; // adv_thread_pool.
 			}
 
 		SO_5_NODISCARD

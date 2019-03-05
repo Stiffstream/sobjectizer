@@ -228,7 +228,7 @@ class data_source_t : public stats::manually_registered_source_t
 			//! Type of the dispatcher.
 			//! Like 'tp' for thread-pool-dispatcher or
 			//! 'atp' for adv-thread-pool-dispatcher.
-			const char * disp_type,
+			const std::string_view disp_type,
 			//! Optional name to be used as part of data-source prefix.
 			const std::string_view name_basic,
 			//! Pointer to the dispatcher object.
