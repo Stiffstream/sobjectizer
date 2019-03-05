@@ -446,16 +446,17 @@ so_5::mbox_t create_board_coop(
 		// Board cooperation will use quoted_round_robin dispatcher
 		// with different quotes for agents.
 		env.introduce_coop(
-			create_private_disp( env,
+			make_dispatcher( env,
 				quotes_t{ 1 }
 					.set( p1, 10 ) // 10 events for news_receiver.
 					.set( p2, 20 ) // 20 events for news_directory.
 					.set( p3, 30 ) // 30 events for story_extractor.
-				)->binder(),
+				).binder(),
 			[&]( so_5::coop_t & coop )
 			{
 				// Lifetime of news board data will be controlled by cooperation.
-				auto board_data = coop.take_under_control( new news_board_data() );
+				auto board_data = coop.take_under_control(
+						std::make_unique< news_board_data >() );
 
 				define_news_receiver_agent(
 						coop, *board_data, board_mbox, logger_mbox );
@@ -566,7 +567,7 @@ void create_publisher_coop(
 	{
 		// All publishers will work on the same working thread.
 		env.introduce_coop(
-			so_5::disp::one_thread::create_private_disp( env )->binder(),
+			so_5::disp::one_thread::make_dispatcher( env ).binder(),
 			[&]( so_5::coop_t & coop )
 			{
 				for( int i = 0; i != 5; ++i )
@@ -750,7 +751,7 @@ void create_reader_coop(
 	{
 		// All readers will work on the same working thread.
 		env.introduce_coop(
-			so_5::disp::one_thread::create_private_disp( env )->binder(),
+			so_5::disp::one_thread::make_dispatcher( env ).binder(),
 			[&]( so_5::coop_t & coop )
 			{
 				for( int i = 0; i != 50; ++i )

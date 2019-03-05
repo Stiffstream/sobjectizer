@@ -135,7 +135,7 @@ class a_parent_t : public so_5::agent_t
 void init( so_5::environment_t & env )
 {
 	env.introduce_coop( []( so_5::coop_t & coop ) {
-		auto logger = coop.take_under_control( new logger_t() );
+		auto logger = coop.take_under_control( std::make_unique< logger_t >() );
 		coop.make_agent< a_parent_t >( *logger, 2u );
 	} );
 }

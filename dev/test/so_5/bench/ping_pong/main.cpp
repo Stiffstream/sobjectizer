@@ -302,7 +302,7 @@ class test_env_t
 		init( so_5::environment_t & env )
 			{
 				auto binder = ( m_cfg.m_active_objects ?
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
+						so_5::disp::active_obj::make_dispatcher( env ).binder() :
 						so_5::make_default_disp_binder( env ) );
 
 				auto coop = env.create_coop( "test", std::move(binder) );
@@ -370,17 +370,6 @@ main( int argc, char ** argv )
 				if( cfg.m_simple_lock )
 					params.queue_locks_defaults_manager(
 							so_5::make_defaults_manager_for_simple_locks() );
-
-				if( cfg.m_active_objects )
-				{
-					so_5::disp::active_obj::queue_traits::queue_params_t queue_params;
-
-					params.add_named_dispatcher(
-							"active_obj",
-							so_5::disp::active_obj::create_disp(
-									so_5::disp::active_obj::disp_params_t{}.set_queue_params(
-											std::move(queue_params) ) ) );
-				}
 			} );
 
 		test_env.process_results();

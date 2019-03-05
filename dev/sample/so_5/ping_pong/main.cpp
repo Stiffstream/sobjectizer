@@ -141,7 +141,7 @@ void run_sample(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?
-						so_5::disp::active_obj::create_private_disp( env )->binder() :
+						so_5::disp::active_obj::make_dispatcher( env ).binder() :
 						so_5::make_default_disp_binder( env ),
 						[&]( so_5::coop_t & coop )
 						{

@@ -516,7 +516,7 @@ const machine_dictionary_t & create_machines(
 	machine_dictionary_t::dictionary_type_t dict_data;
 
 	// All machines will work on dedicated working thread.
-	auto machine_disp = so_5::disp::one_thread::create_private_disp(
+	auto machine_disp = so_5::disp::one_thread::make_dispatcher(
 			coop.environment() );
 
 	// Helper for creation of machine agent and adding it info into
@@ -525,7 +525,7 @@ const machine_dictionary_t & create_machines(
 			float initial, float warming_step, float cooling_step )
 			{
 				auto machine = coop.make_agent_with_binder< a_machine_t >(
-						machine_disp->binder(),
+						machine_disp.binder(),
 						name, status_distrib_mbox,
 						initial, warming_step, cooling_step );
 				dict_data[ name ] = machine->so_direct_mbox();
@@ -538,7 +538,7 @@ const machine_dictionary_t & create_machines(
 
 	// Machine dictionary could be created at that point.
 	return *( coop.take_under_control(
-			new machine_dictionary_t( std::move( dict_data ) ) ) );
+			std::make_unique< machine_dictionary_t >( std::move( dict_data ) ) ) );
 }
 
 void create_machine_controllers(
@@ -548,28 +548,28 @@ void create_machine_controllers(
 {
 	// There must be a priority-respected dispatcher.
 	auto disp = so_5::disp::prio_one_thread::strictly_ordered::
-			create_private_disp( coop.environment() );
+			make_dispatcher( coop.environment() );
 
 	coop.make_agent_with_binder< a_machine_controller_t< engine_stopper_t > >(
-			disp->binder(),
+			disp.binder(),
 			so_5::prio::p4,
 			status_distrib_mbox,
 			machines );
 
 	coop.make_agent_with_binder< a_machine_controller_t< cooler_starter_t > >(
-			disp->binder(),
+			disp.binder(),
 			so_5::prio::p3,
 			status_distrib_mbox,
 			machines );
 
 	coop.make_agent_with_binder< a_machine_controller_t< engine_starter_t > >(
-			disp->binder(),
+			disp.binder(),
 			so_5::prio::p2,
 			status_distrib_mbox,
 			machines );
 
 	coop.make_agent_with_binder< a_machine_controller_t< cooler_stopper_t > >(
-			disp->binder(),
+			disp.binder(),
 			so_5::prio::p1,
 			status_distrib_mbox,
 			machines );
@@ -610,14 +610,14 @@ void fill_coop( so_5::coop_t & coop )
 
 	// Machine dashboard will work on its own dedicated thread.
 	coop.make_agent_with_binder< a_total_status_dashboard_t >(
-			so_5::disp::one_thread::create_private_disp(
-					coop.environment() )->binder(),
+			so_5::disp::one_thread::make_dispatcher(
+					coop.environment() ).binder(),
 			status_distrib_mbox );
 
 	// Status analyzer will work on its own dedicated thread.
 	coop.make_agent_with_binder< a_statuses_analyzer_t >(
-			so_5::disp::one_thread::create_private_disp(
-					coop.environment() )->binder(),
+			so_5::disp::one_thread::make_dispatcher(
+					coop.environment() ).binder(),
 			status_distrib_mbox,
 			50.0f, // Safe temperature.
 			70.0f, // Warn temperature (cooler must be turned on)

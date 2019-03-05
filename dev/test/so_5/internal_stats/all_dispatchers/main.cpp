@@ -155,11 +155,11 @@ class a_controller_t : public so_5::agent_t
 			so_5::coop_t & coop,
 			workers_vector_t & workers )
 			{
-				auto disp = so_5::disp::one_thread::create_private_disp(
+				auto disp = so_5::disp::one_thread::make_dispatcher(
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] { return disp->binder(); } );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		void
@@ -167,11 +167,11 @@ class a_controller_t : public so_5::agent_t
 			so_5::coop_t & coop,
 			workers_vector_t & workers )
 			{
-				auto disp = so_5::disp::active_obj::create_private_disp(
+				auto disp = so_5::disp::active_obj::make_dispatcher(
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] { return disp->binder(); } );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		void
@@ -179,14 +179,14 @@ class a_controller_t : public so_5::agent_t
 			so_5::coop_t & coop,
 			workers_vector_t & workers )
 			{
-				auto disp = so_5::disp::active_group::create_private_disp(
+				auto disp = so_5::disp::active_group::make_dispatcher(
 						so_environment() );
 
 				unsigned int group_no = 0;
 
 				create_children_on( coop, workers,
-						[disp, &group_no] {
-							return disp->binder( "group#" +
+						[disp=std::move(disp), &group_no] {
+							return disp.binder( "group#" +
 									std::to_string( ++group_no ) );
 						} );
 			}
@@ -196,14 +196,11 @@ class a_controller_t : public so_5::agent_t
 			so_5::coop_t & coop,
 			workers_vector_t & workers )
 			{
-				auto disp = so_5::disp::thread_pool::create_private_disp(
+				auto disp = so_5::disp::thread_pool::make_dispatcher(
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] {
-								return disp->binder(
-									so_5::disp::thread_pool::bind_params_t{} );
-						} );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		void
@@ -213,11 +210,11 @@ class a_controller_t : public so_5::agent_t
 			{
 				using namespace so_5::disp::thread_pool;
 
-				auto disp = create_private_disp( so_environment() );
+				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] {
-								return disp->binder(
+						[disp=std::move(disp)] {
+								return disp.binder(
 									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
@@ -229,11 +226,11 @@ class a_controller_t : public so_5::agent_t
 			{
 				using namespace so_5::disp::adv_thread_pool;
 
-				auto disp = create_private_disp( so_environment() );
+				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] {
-								return disp->binder( bind_params_t{} );
+						[disp=std::move(disp)] {
+								return disp.binder();
 						} );
 			}
 
@@ -244,11 +241,11 @@ class a_controller_t : public so_5::agent_t
 			{
 				using namespace so_5::disp::adv_thread_pool;
 
-				auto disp = create_private_disp( so_environment() );
+				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] {
-								return disp->binder(
+						[disp=std::move(disp)] {
+								return disp.binder(
 									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
@@ -259,10 +256,10 @@ class a_controller_t : public so_5::agent_t
 			workers_vector_t & workers )
 			{
 				auto disp = so_5::disp::prio_one_thread::strictly_ordered::
-					create_private_disp( so_environment() );
+					make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] { return disp->binder(); } );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		void
@@ -272,10 +269,10 @@ class a_controller_t : public so_5::agent_t
 			{
 				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 
-				auto disp = create_private_disp( so_environment(), quotes_t{ 20 } );
+				auto disp = make_dispatcher( so_environment(), quotes_t{ 20 } );
 
 				create_children_on( coop, workers,
-						[disp] { return disp->binder(); } );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		void
@@ -285,10 +282,10 @@ class a_controller_t : public so_5::agent_t
 			{
 				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
 
-				auto disp = create_private_disp( so_environment() );
+				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp] { return disp->binder(); } );
+						[disp=std::move(disp)] { return disp.binder(); } );
 			}
 
 		template< typename LAMBDA >

@@ -14,8 +14,11 @@
 
 #include <so_5/types.hpp>
 #include <so_5/spinlocks.hpp>
+#include <so_5/outliving.hpp>
 
 #include <so_5/stats/work_thread_activity.hpp>
+
+#include <string_view>
 
 namespace so_5
 {
@@ -268,22 +271,29 @@ template<
 	typename... Args >
 std::unique_ptr< Common_Disp_Iface_Type >
 create_appropriate_disp(
-	Env & env,
-	const Disp_Params & disp_params,
+	outliving_reference_t< Env > env,
+	const std::string_view name_base,
+	Disp_Params disp_params,
 	Args && ...args )
 	{
 		std::unique_ptr< Common_Disp_Iface_Type > disp;
 
 		auto tracking = disp_params.work_thread_activity_tracking();
 		if( work_thread_activity_tracking_t::unspecified == tracking )
-			tracking = env.work_thread_activity_tracking();
+			tracking = env.get().work_thread_activity_tracking();
 
 		if( work_thread_activity_tracking_t::on == tracking )
-			disp.reset(
-				new Disp_With_Tracking{ std::forward<Args>(args)... } );
+			disp = std::make_unique< Disp_With_Tracking >(
+					env,
+					name_base,
+					std::move(disp_params),
+					std::forward<Args>(args)... );
 		else
-			disp.reset(
-				new Disp_No_Tracking{ std::forward<Args>(args)... } );
+			disp = std::make_unique< Disp_No_Tracking >(
+					env,
+					name_base,
+					std::move(disp_params),
+					std::forward<Args>(args)... );
 
 		return disp;
 	}

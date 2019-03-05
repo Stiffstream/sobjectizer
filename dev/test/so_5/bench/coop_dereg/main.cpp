@@ -79,7 +79,7 @@ try_parse_cmdline(
 	return tmp_cfg;
 }
 
-using binder_generator_t = std::function< so_5::disp_binder_unique_ptr_t() >;
+using binder_generator_t = std::function< so_5::disp_binder_shptr_t() >;
 
 class a_benchmarker_t : public so_5::agent_t
 	{
@@ -254,14 +254,14 @@ make_binder_generator(
 		if( dispatcher_type_t::one_thread == t )
 			{
 				using namespace so_5::disp::one_thread;
-				auto disp = create_private_disp( env );
-				return [disp] { return disp->binder(); };
+				auto disp = make_dispatcher( env );
+				return [disp] { return disp.binder(); };
 			}
 		else
 			{
 				using namespace so_5::disp::thread_pool;
-				auto disp = create_private_disp( env );
-				return [disp] { return disp->binder( bind_params_t{} ); };
+				auto disp = make_dispatcher( env );
+				return [disp] { return disp.binder(); };
 			}
 	}
 

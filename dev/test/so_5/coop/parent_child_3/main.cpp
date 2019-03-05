@@ -107,7 +107,7 @@ create_and_register_agent(
 	if( ordinal )
 		coop->set_parent_coop_name( create_coop_name( ordinal - 1 ) );
 
-	coop->add_agent( new a_test_t( env, ordinal, max_deep ) );
+	coop->make_agent< a_test_t >( ordinal, max_deep );
 
 	env.register_coop( std::move( coop ) );
 }

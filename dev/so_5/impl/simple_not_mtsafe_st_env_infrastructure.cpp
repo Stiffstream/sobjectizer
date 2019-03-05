@@ -111,32 +111,6 @@ class event_queue_impl_t final : public so_5::event_queue_t
 using coop_repo_t = reusable::coop_repo_t;
 
 //
-// default_disp_impl_basis_t
-//
-/*!
- * \brief A basic part of implementation of dispatcher interface to be used in
- * places where default dispatcher is needed.
- *
- * \since
- * v.5.5.19
- */
-using default_disp_impl_basis_t =
-	reusable::default_disp_impl_basis_t< event_queue_impl_t >;
-
-//
-// default_disp_binder_t
-//
-/*!
- * \brief An implementation of disp_binder interface for default dispatcher
- * for this environment infrastructure.
- *
- * \since
- * v.5.5.19
- */
-using default_disp_binder_t =
-	reusable::default_disp_binder_t< default_disp_impl_basis_t >;
-
-//
 // disp_ds_name_parts_t
 //
 /*!
@@ -147,14 +121,15 @@ using default_disp_binder_t =
  */
 struct disp_ds_name_parts_t
 	{
-		static const char * disp_type_part() { return "not_mtsafe_st_env"; }
+		static constexpr const char *
+		disp_type_part() noexcept { return "not_mtsafe_st_env"; }
 	};
 
 //
-// default_disp_impl_t
+// default_dispatcher_t
 //
 /*!
- * \brief An implementation of dispatcher interface to be used in
+ * \brief An implementation of dispatcher to be used in
  * places where default dispatcher is needed.
  *
  * \tparam Activity_Tracker a type of activity tracker to be used
@@ -164,8 +139,8 @@ struct disp_ds_name_parts_t
  * v.5.5.19
  */
 template< typename Activity_Tracker >
-using default_disp_impl_t =
-	reusable::default_disp_impl_t<
+using default_dispatcher_t =
+	reusable::default_dispatcher_t<
 			event_queue_impl_t,
 			Activity_Tracker,
 			disp_ds_name_parts_t >;
@@ -259,16 +234,13 @@ class env_infrastructure_t
 		virtual stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual dispatcher_t &
-		query_default_dispatcher() override;
-
 		virtual so_5::environment_infrastructure_t::coop_repository_stats_t
 		query_coop_repository_stats() override;
 
 		virtual timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_unique_ptr_t
+		virtual disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :
@@ -299,7 +271,11 @@ class env_infrastructure_t
 		Activity_Tracker m_activity_tracker;
 
 		//! Dispatcher to be used as default dispatcher.
-		default_disp_impl_t< Activity_Tracker > m_default_disp;
+		/*!
+		 * \note
+		 * Has an actual value only inside launch() method.
+		 */
+		std::shared_ptr< default_dispatcher_t< Activity_Tracker > > m_default_disp;
 
 		//! Stats controller for this environment.
 		stats_controller_t m_stats_controller;
@@ -341,9 +317,6 @@ env_infrastructure_t< Activity_Tracker >::env_infrastructure_t(
 				std::move(error_logger),
 				outliving_mutable(m_timers_collector) ) )
 	,	m_coop_repo( env, std::move(coop_listener) )
-	,	m_default_disp(
-			outliving_mutable(m_event_queue),
-			outliving_mutable(m_activity_tracker) )
 	,	m_stats_controller(
 			std::move(stats_distribution_mbox),
 			stats::impl::st_env_stuff::next_turn_mbox_t::make(m_env) )
@@ -450,13 +423,6 @@ env_infrastructure_t< Activity_Tracker >::stats_repository() noexcept
 	}
 
 template< typename Activity_Tracker >
-dispatcher_t &
-env_infrastructure_t< Activity_Tracker >::query_default_dispatcher()
-	{
-		return m_default_disp;
-	}
-
-template< typename Activity_Tracker >
 so_5::environment_infrastructure_t::coop_repository_stats_t
 env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 	{
@@ -478,11 +444,10 @@ env_infrastructure_t< Activity_Tracker >::query_timer_thread_stats()
 	}
 
 template< typename Activity_Tracker >
-disp_binder_unique_ptr_t
+disp_binder_shptr_t
 env_infrastructure_t< Activity_Tracker >::make_default_disp_binder()
 	{
-		return std::make_unique< default_disp_binder_t >(
-				outliving_mutable(m_default_disp) );
+		return { m_default_disp };
 	}
 
 template< typename Activity_Tracker >
@@ -493,14 +458,16 @@ env_infrastructure_t< Activity_Tracker >::run_default_dispatcher_and_go_further(
 		::so_5::impl::run_stage(
 				"run_default_dispatcher",
 				[this] {
-					m_default_disp.set_data_sources_name_base( "DEFAULT" );
-					m_default_disp.start( m_env );
+					m_default_disp = std::make_shared<
+							default_dispatcher_t< Activity_Tracker > >(
+									outliving_mutable(m_env),
+									outliving_mutable(m_event_queue),
+									outliving_mutable(m_activity_tracker) );
 				},
 				[this] {
-					m_default_disp.shutdown();
-					m_default_disp.wait();
+					m_default_disp.reset();
 				},
-				[this, init_fn] {
+				[this, init_fn=std::move(init_fn)] {
 					run_user_supplied_init_and_do_main_loop( std::move(init_fn) );
 				} );
 	}
@@ -556,7 +523,7 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any()
 				coops.swap( m_final_dereg_coops );
 
 				for( auto ptr : coops )
-					coop_t::call_final_deregister_coop( ptr );
+					coop_t::so_call_final_deregister_coop( ptr );
 			}
 	}
 
@@ -628,7 +595,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand()
 						[this]{ m_activity_tracker.work_stopped(); } );
 
 				// There is at least one demand to process.
-				m_default_disp.handle_demand( demand );
+				m_default_disp->handle_demand( demand );
 			}
 	}
 

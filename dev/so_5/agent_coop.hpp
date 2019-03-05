@@ -292,7 +292,7 @@ class SO_5_TYPE coop_t
 			//! Cooperation name.
 			nonempty_name_t name,
 			//! Default dispatcher binding.
-			disp_binder_unique_ptr_t coop_disp_binder,
+			disp_binder_shptr_t coop_disp_binder,
 			//! SObjectizer Environment.
 			environment_t & env );
 
@@ -313,26 +313,10 @@ class SO_5_TYPE coop_t
 			std::unique_ptr< Agent > agent )
 		{
 			Agent * p = agent.get();
-			this->do_add_agent( agent_ref_t( agent.release() ) );
+
+			this->do_add_agent( agent_ref_t{ std::move(agent) } );
 
 			return p;
-		}
-
-		//! Add agent to cooperation via raw pointer.
-		/*!
-		 * Cooperation takes care about agent lifetime.
-		 *
-		 * Default dispatcher binding is used for the agent.
-		 */
-		template< class Agent >
-		inline Agent *
-		add_agent(
-			//! Agent.
-			Agent * agent )
-		{
-			this->do_add_agent( agent_ref_t( agent ) );
-
-			return agent;
 		}
 
 		//! Add agent to the cooperation with the dispatcher binding.
@@ -346,36 +330,15 @@ class SO_5_TYPE coop_t
 			//! Agent.
 			std::unique_ptr< Agent > agent,
 			//! Agent to dispatcher binder.
-			disp_binder_unique_ptr_t disp_binder )
+			disp_binder_shptr_t disp_binder )
 		{
 			Agent * p = agent.get();
 
 			this->do_add_agent(
-				agent_ref_t( agent.release() ),
+				agent_ref_t{ std::move(agent) },
 				std::move(disp_binder) );
 
 			return p;
-		}
-
-		//! Add agent to the cooperation via raw pointer and with the dispatcher
-		//! binding.
-		/*!
-		 * Instead of the default dispatcher binding the \a disp_binder
-		 * is used for this agent during the cooperation registration.
-		 */
-		template< class Agent >
-		inline Agent *
-		add_agent(
-			//! Agent.
-			Agent * agent,
-			//! Agent to dispatcher binder.
-			disp_binder_unique_ptr_t disp_binder )
-		{
-			this->do_add_agent(
-				agent_ref_t( agent ),
-				std::move(disp_binder) );
-
-			return agent;
 		}
 
 		//! Internal SObjectizer method.
@@ -387,7 +350,7 @@ class SO_5_TYPE coop_t
 		 * Informs cooperation that it is used by yet another entity.
 		 */
 		static inline void
-		increment_usage_count( coop_t & coop )
+		so_increment_usage_count( coop_t & coop )
 		{
 			coop.increment_usage_count();
 		}
@@ -398,7 +361,7 @@ class SO_5_TYPE coop_t
 		 * child cooperation work.
 		 */
 		static inline void
-		decrement_usage_count( coop_t & coop )
+		so_decrement_usage_count( coop_t & coop )
 		{
 			coop.decrement_usage_count();
 		}
@@ -408,7 +371,7 @@ class SO_5_TYPE coop_t
 		 * Initiate a final deregistration stage.
 		 */
 		static inline void
-		call_final_deregister_coop( coop_t * coop )
+		so_call_final_deregister_coop( coop_t * coop )
 		{
 			coop->final_deregister_coop();
 		}
@@ -500,19 +463,6 @@ class SO_5_TYPE coop_t
 
 			return ret_value;
 		}
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Take a user resouce under cooperation control.
-		 */
-		template< class T >
-		T *
-		take_under_control( T * resource )
-		{
-			return take_under_control( std::unique_ptr< T >( resource ) );
-		}
 		/*!
 		 * \}
 		 */
@@ -595,12 +545,12 @@ class SO_5_TYPE coop_t
 		Agent *
 		make_agent( Args &&... args )
 		{
-			auto a = std::unique_ptr< Agent >(
-					new Agent( environment(), std::forward<Args>(args)... ) );
-
-			return this->add_agent( std::move( a ) );
+			return this->add_agent(
+					std::make_unique<Agent>(
+							environment(), std::forward<Args>(args)...) );
 		}
 
+//FIXME: check the correctness of this doxygen comment!
 		/*!
 		 * \since
 		 * v.5.5.4
@@ -633,14 +583,14 @@ class SO_5_TYPE coop_t
 		Agent *
 		make_agent_with_binder(
 			//! A dispatcher binder for the new agent.
-			so_5::disp_binder_unique_ptr_t binder,
+			so_5::disp_binder_shptr_t binder,
 			//! Arguments to be passed to the agent's constructor.
 			Args &&... args )
 		{
-			auto a = std::unique_ptr< Agent >(
-					new Agent( environment(), std::forward<Args>(args)... ) );
-
-			return this->add_agent( std::move( a ), std::move( binder ) );
+			return this->add_agent(
+					std::make_unique<Agent>(
+							environment(), std::forward<Args>(args)...),
+					std::move(binder) );
 		}
 
 		/*!
@@ -745,22 +695,21 @@ class SO_5_TYPE coop_t
 		struct agent_with_disp_binder_t
 		{
 			agent_with_disp_binder_t(
-				const agent_ref_t & agent_ref,
-				const disp_binder_ref_t & binder )
-				:
-					m_agent_ref( agent_ref ),
-					m_binder( binder )
+				agent_ref_t agent_ref,
+				disp_binder_shptr_t binder )
+				:	m_agent_ref{ std::move(agent_ref) }
+				,	m_binder{ std::move(binder) }
 			{}
 
 			//! Agent.
 			agent_ref_t m_agent_ref;
 
 			//! Agent to dispatcher binder.
-			disp_binder_ref_t m_binder;
+			disp_binder_shptr_t m_binder;
 		};
 
 		//! Typedef for the agent information container.
-		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
+		using agent_array_t = std::vector< agent_with_disp_binder_t >;
 
 		/*!
 		 * \since
@@ -792,7 +741,7 @@ class SO_5_TYPE coop_t
 		 *
 		 * \brief Type of user resource deleter.
 		 */
-		typedef std::function< void() > resource_deleter_t;
+		using resource_deleter_t = std::function< void() >;
 
 		/*!
 		 * \since
@@ -800,17 +749,18 @@ class SO_5_TYPE coop_t
 		 *
 		 * \brief Type of container for user resource deleters.
 		 */
-		typedef std::vector< resource_deleter_t > resource_deleter_vector_t;
+		using resource_deleter_vector_t = std::vector< resource_deleter_t >;
 
 		//! Cooperation name.
 		const std::string m_coop_name;
 
 		//! Default agent to the dispatcher binder.
-		disp_binder_ref_t m_coop_disp_binder;
+		disp_binder_shptr_t m_coop_disp_binder;
 
 		//! Cooperation agents.
 		agent_array_t m_agent_array;
 
+//FIXME: maybe outliving_reference should be used here?
 		//! SObjectizer Environment for which cooperation is created.
 		environment_t & m_env;
 
@@ -936,7 +886,8 @@ class SO_5_TYPE coop_t
 		 */
 		void
 		do_add_agent(
-			const agent_ref_t & agent_ref );
+			//! Agent to be bound to the coop.
+			agent_ref_t agent_ref );
 
 		//! Add agent to the cooperation with the dispatcher binding.
 		/*!
@@ -946,9 +897,9 @@ class SO_5_TYPE coop_t
 		void
 		do_add_agent(
 			//! Agent.
-			const agent_ref_t & agent_ref,
+			agent_ref_t agent_ref,
 			//! Agent to dispatcher binder.
-			disp_binder_unique_ptr_t disp_binder );
+			disp_binder_shptr_t disp_binder );
 
 		/*!
 		 * \since
@@ -999,15 +950,6 @@ class SO_5_TYPE coop_t
 		//! Bind agents to the dispatcher.
 		void
 		bind_agents_to_disp();
-
-		//! Unbind agent from the dispatcher.
-		/*!
-		 * Unbinds all agents in range [m_agent_array.begin(), it).
-		 */
-		void
-		unbind_agents_from_disp(
-			//! Right border of the processing range.
-			agent_array_t::iterator it );
 
 		/*!
 		 * \since
@@ -1134,11 +1076,10 @@ class coop_deleter_t
 };
 
 //! Typedef for the agent_coop autopointer.
-typedef std::unique_ptr< coop_t, coop_deleter_t >
-	coop_unique_ptr_t;
+using coop_unique_ptr_t = std::unique_ptr< coop_t, coop_deleter_t >;
 
 //! Typedef for the agent_coop smart pointer.
-typedef std::shared_ptr< coop_t > coop_ref_t;
+using coop_shptr_t = std::shared_ptr< coop_t >;
 
 } /* namespace so_5 */
 

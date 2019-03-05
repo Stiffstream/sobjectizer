@@ -15,6 +15,16 @@
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 #include <test/3rd_party/various_helpers/cmd_line_args_helpers.hpp>
 
+std::size_t 
+default_thread_pool_size()
+{
+	auto c = std::thread::hardware_concurrency();
+	if( !c )
+		c = 4;
+
+	return c;
+}
+
 enum class dispatcher_t
 	{
 		thread_pool,
@@ -244,6 +254,8 @@ class a_contoller_t : public so_5::agent_t
 
 		const so_5::mbox_t m_self_mbox;
 
+		so_5::disp_binder_shptr_t m_binder;
+
 		benchmarker_t m_benchmarker;
 
 		std::unique_ptr< duration_meter_t > m_shutdown_duration;
@@ -261,54 +273,81 @@ class a_contoller_t : public so_5::agent_t
 				auto c = so_5::create_child_coop(
 						*this,
 						ss.str(),
-						create_binder() );
+						create_binder_if_necessary() );
 
 				for( std::size_t a = 0; a != m_cfg.m_agents; ++a )
 				{
-					c->add_agent(
-							new a_test_t(
-									so_environment(),
+					c->make_agent< a_test_t >(
 									m_self_mbox,
 									m_cfg.m_messages,
-									m_cfg.m_messages_to_send_at_start ) );
+									m_cfg.m_messages_to_send_at_start );
 				}
 				so_environment().register_coop( std::move( c ) );
 			}
 		}
 
-		so_5::disp_binder_unique_ptr_t
-		create_binder() const
+		so_5::disp_binder_shptr_t
+		create_binder_if_necessary()
 		{
+			if( m_binder )
+				return m_binder;
+
+			const std::size_t threads = m_cfg.m_threads ?
+					m_cfg.m_threads : default_thread_pool_size();
+
 			if( dispatcher_t::thread_pool == m_cfg.m_dispatcher )
 			{
 				using namespace so_5::disp::thread_pool;
-				bind_params_t params;
-				if( m_cfg.m_individual_fifo )
-					params.fifo( fifo_t::individual );
-				if( m_cfg.m_demands_at_once )
-					params.max_demands_at_once( m_cfg.m_demands_at_once );
-				return create_disp_binder( "thread_pool", params );
+
+				const auto disp_params = [&] {
+					disp_params_t params;
+					params.thread_count( threads );
+					if( lock_type_t::simple_lock == m_cfg.m_lock_type )
+						params.set_queue_params( queue_traits::queue_params_t{}
+								.lock_factory( queue_traits::simple_lock_factory() ) );
+					return params;
+				};
+				const auto bind_params = [&] {
+					bind_params_t params;
+					if( m_cfg.m_individual_fifo )
+						params.fifo( fifo_t::individual );
+					if( m_cfg.m_demands_at_once )
+						params.max_demands_at_once( m_cfg.m_demands_at_once );
+					return params;
+				};
+
+				m_binder = make_dispatcher(
+							so_environment(), "thread_pool", disp_params() )
+						.binder( bind_params() );
 			}
 			else
 			{
 				using namespace so_5::disp::adv_thread_pool;
-				bind_params_t params;
-				if( m_cfg.m_individual_fifo )
-					params.fifo( fifo_t::individual );
-				return create_disp_binder( "thread_pool", params );
+
+				const auto disp_params = [&] {
+					disp_params_t params;
+					params.thread_count( threads );
+					if( lock_type_t::simple_lock == m_cfg.m_lock_type )
+						params.set_queue_params( queue_traits::queue_params_t{}
+								.lock_factory( queue_traits::simple_lock_factory() ) );
+					return params;
+				};
+
+				const auto bind_params = [&] {
+					bind_params_t params;
+					if( m_cfg.m_individual_fifo )
+						params.fifo( fifo_t::individual );
+					return params;
+				};
+
+				m_binder = make_dispatcher(
+							so_environment(), "thread_pool", disp_params() )
+						.binder( bind_params() );
 			}
+
+			return m_binder;
 		}
 };
-
-std::size_t 
-default_thread_pool_size()
-{
-	auto c = std::thread::hardware_concurrency();
-	if( !c )
-		c = 4;
-
-	return c;
-}
 
 void
 show_cfg( const cfg_t & cfg )
@@ -367,36 +406,6 @@ show_cfg( const cfg_t & cfg )
 	std::cout << std::endl;
 }
 
-so_5::dispatcher_unique_ptr_t
-create_dispatcher( const cfg_t & cfg )
-{
-	const auto threads = cfg.m_threads ?
-			cfg.m_threads : default_thread_pool_size();
-
-	if( dispatcher_t::adv_thread_pool == cfg.m_dispatcher )
-	{
-		using namespace so_5::disp::adv_thread_pool;
-		disp_params_t params;
-		params.thread_count( threads );
-		if( lock_type_t::simple_lock == cfg.m_lock_type )
-			params.set_queue_params( queue_traits::queue_params_t{}
-					.lock_factory( queue_traits::simple_lock_factory() ) );
-
-		return create_disp( params );
-	}
-	else
-	{
-		using namespace so_5::disp::thread_pool;
-		disp_params_t params;
-		params.thread_count( threads );
-		if( lock_type_t::simple_lock == cfg.m_lock_type )
-			params.set_queue_params( queue_traits::queue_params_t{}
-					.lock_factory( queue_traits::simple_lock_factory() ) );
-
-		return create_disp( params );
-	}
-}
-
 int
 main( int argc, char ** argv )
 {
@@ -415,10 +424,6 @@ main( int argc, char ** argv )
 			{
 				if( cfg.m_track_activity )
 					params.turn_work_thread_activity_tracking_on();
-
-				params.add_named_dispatcher(
-					"thread_pool",
-					create_dispatcher( cfg ) );
 
 				// This timer thread doesn't consume resources without
 				// actual delayed/periodic messages.

@@ -113,12 +113,11 @@ main()
 						{
 							using namespace so_5::disp::prio_one_thread::strictly_ordered;
 							env.introduce_coop(
-								create_private_disp( env )->binder(),
+								make_dispatcher( env ).binder(),
 								fill_coop );
 						} );
 				},
-				20,
-				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
+				20 );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;

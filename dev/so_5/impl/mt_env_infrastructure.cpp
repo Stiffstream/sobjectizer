@@ -47,7 +47,7 @@ coop_repo_t::start()
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
 			[]( coop_t * coop ) {
-				coop_t::call_final_deregister_coop( coop );
+				coop_t::so_call_final_deregister_coop( coop );
 			} );
 	} };
 }
@@ -141,9 +141,7 @@ mt_env_infrastructure_t::mt_env_infrastructure_t(
 	coop_listener_unique_ptr_t coop_listener,
 	mbox_t stats_distribution_mbox )
 	:	m_env( env )
-	,	m_default_dispatcher(
-				so_5::disp::one_thread::create_disp(
-						std::move(default_disp_params) ) )
+	,	m_default_dispatcher_params{ std::move(default_disp_params) }
 	,	m_timer_thread( std::move(timer_thread) )
 	,	m_coop_repo( env, std::move(coop_listener) )
 	,	m_stats_controller( std::move(stats_distribution_mbox) )
@@ -235,12 +233,6 @@ mt_env_infrastructure_t::stats_repository() noexcept
 		return m_stats_controller;
 	}
 
-dispatcher_t &
-mt_env_infrastructure_t::query_default_dispatcher()
-	{
-		return *m_default_dispatcher;
-	}
-
 environment_infrastructure_t::coop_repository_stats_t
 mt_env_infrastructure_t::query_coop_repository_stats()
 	{
@@ -253,11 +245,10 @@ mt_env_infrastructure_t::query_timer_thread_stats()
 		return m_timer_thread->query_stats();
 	}
 
-disp_binder_unique_ptr_t
+disp_binder_shptr_t
 mt_env_infrastructure_t::make_default_disp_binder()
 	{
-		return so_5::disp::one_thread::internals::create_binder_for_specific_dispatcher(
-				*m_default_dispatcher );
+		return m_default_dispatcher.binder();
 	}
 
 void
@@ -267,12 +258,15 @@ mt_env_infrastructure_t::run_default_dispatcher_and_go_further(
 		::so_5::impl::run_stage(
 				"run_default_dispatcher",
 				[this] {
-					m_default_dispatcher->set_data_sources_name_base( "DEFAULT" );
-					m_default_dispatcher->start( m_env );
+					// Default dispatcher should be created.
+					m_default_dispatcher = so_5::disp::one_thread::make_dispatcher(
+							m_env,
+							std::string{ "DEFAULT" },
+							m_default_dispatcher_params );
 				},
 				[this] {
-					m_default_dispatcher->shutdown();
-					m_default_dispatcher->wait();
+					// Default dispatcher is no more needed.
+					m_default_dispatcher.reset();
 				},
 				[this, init_fn] {
 					run_timer_thread_and_go_further( std::move(init_fn) );

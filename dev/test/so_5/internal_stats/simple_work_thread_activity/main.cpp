@@ -101,7 +101,8 @@ init( so_5::environment_t & env )
 			};
 
 			coop.make_agent_with_binder< actor_t >(
-				so_5::disp::one_thread::create_disp_binder( "busy" ) );
+				so_5::disp::one_thread::make_dispatcher(
+						coop.environment(), "busy" ).binder() );
 		} );
 	}
 
@@ -118,8 +119,6 @@ main()
 						namespace otd = so_5::disp::one_thread;
 
 						params.turn_work_thread_activity_tracking_on();
-						params.add_named_dispatcher( "empty", otd::create_disp() );
-						params.add_named_dispatcher( "busy", otd::create_disp() );
 					} );
 			},
 			20,

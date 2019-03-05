@@ -54,25 +54,21 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 		[&]()
 		{
 			so_5::launch(
-				[]( so_5::environment_t & env )
-				{
-					env.register_agent_as_coop(
-							"test",
-							new a_test_t( env ),
-							atp_disp::create_disp_binder(
-									"thread_pool",
-									atp_disp::bind_params_t() ) );
-				},
-				[&]( so_5::environment_params_t & params )
+				[&]( so_5::environment_t & env )
 				{
 					using namespace atp_disp;
-					params.add_named_dispatcher(
+					auto disp = make_dispatcher(
+							env,
 							"thread_pool",
-							create_disp(
-								disp_params_t{}
-									.thread_count( 4 )
-									.set_queue_params( queue_traits::queue_params_t{}
-										.lock_factory( factory ) ) ) );
+							disp_params_t{}
+								.thread_count( 4 )
+								.set_queue_params( queue_traits::queue_params_t{}
+									.lock_factory( factory ) ) );
+
+					env.register_agent_as_coop(
+							"test",
+							env.make_agent< a_test_t >(),
+							disp.binder() );
 				} );
 		},
 		20,

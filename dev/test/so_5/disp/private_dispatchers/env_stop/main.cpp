@@ -16,9 +16,9 @@
 
 struct msg_hello : public so_5::signal_t {};
 
-template< typename DISPATCHER_HANDLE >
+template< typename Dispatcher_Handle >
 void
-make_coop( so_5::environment_t & env, DISPATCHER_HANDLE disp )
+make_coop( so_5::environment_t & env, Dispatcher_Handle disp )
 {
 	using handler_t = std::function< void() >;
 
@@ -48,7 +48,7 @@ make_coop( so_5::environment_t & env, DISPATCHER_HANDLE disp )
 		}
 	};
 
-	env.introduce_coop( disp->binder(),
+	env.introduce_coop( disp.binder(),
 		[]( so_5::coop_t & coop ) {
 			auto a1 = coop.make_agent<actor_t>();
 			auto a2 = coop.make_agent<actor_t>();
@@ -102,7 +102,7 @@ make_stopper( so_5::environment_t & env )
 void
 init( so_5::environment_t & env )
 {
-	auto one_thread = so_5::disp::one_thread::create_private_disp( env );
+	auto one_thread = so_5::disp::one_thread::make_dispatcher( env );
 	make_coop( env, one_thread );
 	make_stopper( env );
 }

@@ -9,28 +9,13 @@
 
 #pragma once
 
-#include <memory>
-#include <functional>
-
 #include <so_5/declspec.hpp>
-#include <so_5/agent.hpp>
-#include <so_5/disp.hpp>
-
 #include <so_5/fwd.hpp>
+
+#include <memory>
 
 namespace so_5
 {
-
-//
-// disp_binding_activator_t
-//
-/*!
- * \since
- * v.5.4.0
- *
- * \brief Type of activator for agent to dispatcher binding.
- */
-using disp_binding_activator_t = std::function< void() >;
 
 //
 // disp_binder_t
@@ -41,7 +26,8 @@ using disp_binding_activator_t = std::function< void() >;
  * Dispatcher binders are used in the agent registration process to
  * binding of agents to desired dispatchers.
  */
-class SO_5_TYPE disp_binder_t
+class disp_binder_t
+	: private std::enable_shared_from_this< disp_binder_t >
 {
 		// Note: clang-3.9 requires this on Windows platform.
 		disp_binder_t( const disp_binder_t & ) = delete;
@@ -54,68 +40,53 @@ class SO_5_TYPE disp_binder_t
 		virtual ~disp_binder_t() noexcept = default;
 
 		//! Allocate resources in dispatcher for new agent.
-		virtual disp_binding_activator_t
-		bind_agent(
-			//! SObjectizer Environment where agent/cooperation/dispatcher
-			//! are working.
-			environment_t & env,
+		/*!
+		 * This method can and should throw on failure.
+		 */
+		virtual void
+		preallocate_resources(
 			//! Agent to be bound.
-			agent_ref_t agent_ref ) = 0;
+			agent_t & agent ) = 0;
+
+		//! Undo resources allocation.
+		/*!
+		 * This method will be called after preallocate_resources() if
+		 * cooperation can't be registered by some reasons.
+		 *
+		 * This method can't throw.
+		 */
+		virtual void
+		undo_preallocation(
+			//! Agent for that previous preallocate_resources() was called.
+			agent_t & agent ) noexcept = 0;
+
+		//! Bind agent to dispatcher.
+		/*!
+		 * This method will be called after preallocate_resources().
+		 *
+		 * The dispatcher should use resources created during
+		 * preallocate_resources() call. Because of that this method
+		 * must not throw.
+		 */
+		virtual void
+		bind(
+			//! Agent for that previous preallocate_resources() was called.
+			agent_t & agent ) noexcept = 0;
 
 		//! Unbind agent from dispatcher.
+		/*!
+		 * This method will be called after bind() method.
+		 *
+		 * This method can't throw.
+		 */
 		virtual void
-		unbind_agent(
-			//! SObjectizer Environment where agent/cooperation/dispatcher
-			//! are working.
-			environment_t & env,
-			//! Agent to be bound.
-			agent_ref_t agent_ref ) = 0;
-
+		unbind(
+			//! Agent for that previous bind() was called.
+			agent_t & agent ) noexcept = 0;
 };
 
-//! Typedef for the disp_binder autopointer.
-using disp_binder_unique_ptr_t = std::unique_ptr< disp_binder_t >;
-
 //! Typedef for the disp_binder smart pointer.
-using disp_binder_ref_t = std::shared_ptr< disp_binder_t >;
-
-//! Create an instance of the default dispatcher binder.
-/*!
- * \deprecated Since v.5.5.19 the dispatcher binder created by this
- * function has a significant overhead. Because of that it is recommended
- * to use make_default_disp_binder() function.
- */
-SO_5_FUNC disp_binder_unique_ptr_t
-create_default_disp_binder();
-
-//
-// make_default_disp_binder
-//
-/*!
- * \brief Create an instance of the default dispatcher binder.
- *
- * \note This function takes into account a possibility to have
- * different types of environment infrastructures (introduced in v.5.5.19)
- * and creates a default dispatcher binder with respect to the
- * actual environment infrastructure type.
- *
- * Usage example:
- * \code
- * so_5::launch( [](so_5::environment_t & env) {
- * 	env.introduce_coop(
- * 		// Agents from that coop will be bound to the default dispatcher.
- * 		so_5::make_default_disp_binder(env),
- * 		[](so_5::coop_t & coop) {
- * 			coop.make_agent<...>(...);
- * 		} );
- * } );
- * \endcode
- *
- * \since
- * v.5.5.19
- */
-SO_5_FUNC disp_binder_unique_ptr_t
-make_default_disp_binder( environment_t & env );
+using disp_binder_shptr_t = std::shared_ptr< disp_binder_t >;
 
 } /* namespace so_5 */
 

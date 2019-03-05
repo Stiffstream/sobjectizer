@@ -168,15 +168,13 @@ init( so_5::environment_t & env )
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
-	coop->add_agent(
-		new test_agent_sender_t( env, mbox ),
-		so_5::disp::one_thread::create_disp_binder(
-			"sender_disp" ) );
+	coop->make_agent_with_binder< test_agent_sender_t >(
+			so_5::disp::one_thread::make_dispatcher( env ).binder(),
+			mbox );
 
-	coop->add_agent(
-		new test_agent_receiver_t( env, mbox ),
-		so_5::disp::one_thread::create_disp_binder(
-			"receiver_disp" ) );
+	coop->make_agent_with_binder< test_agent_receiver_t >(
+			so_5::disp::one_thread::make_dispatcher( env ).binder(),
+			mbox );
 
 	env.register_coop( std::move( coop ) );
 }
@@ -186,16 +184,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			&init,
-			[]( so_5::environment_params_t & params ) {
-					params.add_named_dispatcher(
-						"sender_disp",
-						so_5::disp::one_thread::create_disp() );
-					params.add_named_dispatcher(
-						"receiver_disp",
-						so_5::disp::one_thread::create_disp() );
-			} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

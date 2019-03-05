@@ -67,6 +67,8 @@
 	#define SO_5_OVERLOAD_FOR_RVALUE_REF &&
 #endif
 
+//FIXME: is it really needed now?
+
 // Try to use __has_cpp_attribute if it is supported.
 #if defined(__has_cpp_attribute)
 	// clang-4 and clang-5 produce warnings when [[nodiscard]]

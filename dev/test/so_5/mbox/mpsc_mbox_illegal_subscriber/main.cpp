@@ -79,10 +79,9 @@ main()
 			{
 				auto coop = env.create_coop( "test" );
 
-				auto a_first = new a_first_t( env );
-				coop->add_agent( a_first );
+				auto a_first = coop->make_agent< a_first_t >();
 
-				coop->add_agent( new a_second_t( env, a_first->so_direct_mbox() ) );
+				coop->make_agent< a_second_t >( a_first->so_direct_mbox() );
 
 				env.register_coop( std::move( coop ) );
 			} );

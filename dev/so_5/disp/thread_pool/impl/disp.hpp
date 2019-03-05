@@ -11,16 +11,7 @@
 
 #pragma once
 
-#include <vector>
-#include <queue>
-#include <thread>
-#include <memory>
-#include <map>
-#include <iostream>
-#include <atomic>
-
 #include <so_5/event_queue.hpp>
-#include <so_5/disp.hpp>
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
@@ -57,7 +48,7 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \since
  * v.5.4.0
  */
-class agent_queue_t
+class agent_queue_t final
 	:	public event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
@@ -85,7 +76,7 @@ class agent_queue_t
 			//! Dispatcher queue to work with.
 			dispatcher_queue_t & disp_queue,
 			//! Parameters for the queue.
-			const params_t & params )
+			const bind_params_t & params )
 			:	m_disp_queue( disp_queue )
 			,	m_max_demands_at_once( params.query_max_demands_at_once() )
 			,	m_tail( &m_head )
@@ -215,7 +206,7 @@ class agent_queue_t
 		 * dangling pointer to agent_queue in woring thread.
 		 */
 		void
-		wait_for_emptyness()
+		wait_for_emptyness() noexcept
 			{
 				bool empty = false;
 				while( !empty )
@@ -437,7 +428,7 @@ class with_activity_tracking_impl_t : protected common_data_t
  * v.5.5.18
  */
 template< typename Impl >
-class work_thread_template_t : public Impl
+class work_thread_template_t final : public Impl
 	{
 	public :
 		//! Initializing constructor.
@@ -609,20 +600,22 @@ using work_thread_with_activity_tracking_t =
  */
 struct adaptation_t
 	{
-		static const char *
-		dispatcher_type_name()
+		SO_5_NODISCARD
+		static constexpr std::string_view
+		dispatcher_type_name() noexcept
 			{
-				return "tp"; // thread_pool.
+				return { "tp" }; // thread_pool.
 			}
 
+		SO_5_NODISCARD
 		static bool
-		is_individual_fifo( const params_t & params )
+		is_individual_fifo( const bind_params_t & params ) noexcept
 			{
 				return fifo_t::individual == params.query_fifo();
 			}
 
 		static void
-		wait_for_queue_emptyness( agent_queue_t & queue )
+		wait_for_queue_emptyness( agent_queue_t & queue ) noexcept
 			{
 				queue.wait_for_emptyness();
 			}
@@ -646,7 +639,7 @@ using dispatcher_template_t =
 				Work_Thread,
 				dispatcher_queue_t,
 				agent_queue_t,
-				params_t,
+				bind_params_t,
 				adaptation_t >;
 
 } /* namespace impl */

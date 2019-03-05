@@ -101,20 +101,18 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 	so_5::launch(
 		[&]( so_5::environment_t & env )
 		{
+			using namespace atp_disp;
 			env.register_agent_as_coop(
 					"test",
-					new a_test_t( env ),
-					atp_disp::create_disp_binder(
+					env.make_agent< a_test_t >(),
+					make_dispatcher(
+							env,
 							"thread_pool",
-							atp_disp::bind_params_t() ) );
-		},
-		[&]( so_5::environment_params_t & params )
-		{
-			using namespace atp_disp;
-			params.add_named_dispatcher(
-					"thread_pool",
-					create_disp( disp_params_t{}.set_queue_params(
-						queue_traits::queue_params_t{}.lock_factory( factory ) ) ) );
+							disp_params_t{}
+									.set_queue_params(
+											queue_traits::queue_params_t{}
+													.lock_factory( factory ) ) )
+					.binder() );
 		} );
 }
 

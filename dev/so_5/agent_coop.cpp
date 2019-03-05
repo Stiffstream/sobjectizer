@@ -26,12 +26,12 @@ coop_reg_notificators_container_t::call_all(
 	environment_t & env,
 	const std::string & coop_name ) const
 {
-	for( auto i = m_notificators.begin(); i != m_notificators.end(); ++i )
+	for( auto & n : m_notificators )
 	{
 		// Exceptions should not go out.
 		try
 		{
-			(*i)( env, coop_name );
+			n( env, coop_name );
 		}
 		catch( const std::exception & x )
 		{
@@ -52,12 +52,12 @@ coop_dereg_notificators_container_t::call_all(
 	const std::string & coop_name,
 	const coop_dereg_reason_t & reason ) const
 {
-	for( auto i = m_notificators.begin(); i != m_notificators.end(); ++i )
+	for( auto & n : m_notificators )
 	{
 		// Exceptions should not go out.
 		try
 		{
-			(*i)( env, coop_name, reason );
+			n( env, coop_name, reason );
 		}
 		catch( const std::exception & x )
 		{
@@ -96,16 +96,16 @@ coop_t::destroy( coop_t * coop )
 
 coop_t::coop_t(
 	nonempty_name_t name,
-	disp_binder_unique_ptr_t coop_disp_binder,
+	disp_binder_shptr_t coop_disp_binder,
 	environment_t & env )
 	:	m_coop_name( name.giveout_value() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )
+	,	m_reference_count( 0l )
 	,	m_parent_coop_ptr( nullptr )
 	,	m_registration_status( registration_status_t::coop_not_registered )
 	,	m_exception_reaction( inherit_exception_reaction )
 {
-	m_reference_count = 0l;
 }
 
 const std::string &
@@ -205,26 +205,19 @@ coop_t::deregister( int reason )
 
 void
 coop_t::do_add_agent(
-	const agent_ref_t & agent_ref )
+	agent_ref_t agent_ref )
 {
-	m_agent_array.push_back(
-		agent_with_disp_binder_t( agent_ref, m_coop_disp_binder ) );
+	m_agent_array.emplace_back(
+			std::move(agent_ref), m_coop_disp_binder );
 }
 
 void
 coop_t::do_add_agent(
-	const agent_ref_t & agent_ref,
-	disp_binder_unique_ptr_t disp_binder )
+	agent_ref_t agent_ref,
+	disp_binder_shptr_t disp_binder )
 {
-	disp_binder_ref_t dbinder( disp_binder.release() );
-
-	if( nullptr == dbinder.get() || nullptr == agent_ref.get() )
-		throw exception_t(
-			"zero ptr to agent or disp binder",
-			rc_coop_has_references_to_null_agents_or_binders );
-
-	m_agent_array.push_back(
-		agent_with_disp_binder_t( agent_ref, dbinder ) );
+	m_agent_array.emplace_back(
+			std::move(agent_ref), std::move(disp_binder) );
 }
 
 void
@@ -279,24 +272,18 @@ coop_t::reorder_agents_with_respect_to_priorities()
 void
 coop_t::bind_agents_to_coop()
 {
-	agent_array_t::iterator it = m_agent_array.begin();
-	agent_array_t::iterator it_end = m_agent_array.end();
-
-	for(; it != it_end; ++it )
+	for( auto & info : m_agent_array )
 	{
-		it->m_agent_ref->bind_to_coop( *this );
+		info.m_agent_ref->bind_to_coop( *this );
 	}
 }
 
 void
 coop_t::define_all_agents()
 {
-	agent_array_t::iterator it = m_agent_array.begin();
-	agent_array_t::iterator it_end = m_agent_array.end();
-
-	for(; it != it_end; ++it )
+	for( auto & info : m_agent_array )
 	{
-		it->m_agent_ref->so_initiate_agent_definition();
+		info.m_agent_ref->so_initiate_agent_definition();
 	}
 }
 
@@ -308,9 +295,6 @@ coop_t::bind_agents_to_disp()
 	// bound to its dispatchers.
 	std::lock_guard< std::mutex > binding_lock{ m_binding_lock };
 
-	std::vector< disp_binding_activator_t > activators;
-	activators.reserve( m_agent_array.size() );
-
 	// The first stage of binding to dispatcher:
 	// allocating necessary resources for agents.
 	// Exceptions on that stage will lead to simple unbinding
@@ -321,13 +305,14 @@ coop_t::bind_agents_to_disp()
 		{
 			for( it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
 			{
-				activators.emplace_back(
-						it->m_binder->bind_agent( m_env, it->m_agent_ref ) );
+				it->m_binder->preallocate_resources( *(it->m_agent_ref) );
 			}
 		}
 		catch( const std::exception & x )
 		{
-			unbind_agents_from_disp( it );
+			// All preallocated resources should be returned back.
+			for( auto it2 = m_agent_array.begin(); it2 != it; ++it2 )
+				it2->m_binder->undo_preallocation( *(it2->m_agent_ref) );
 
 			SO_5_THROW_EXCEPTION(
 					rc_agent_to_disp_binding_failed,
@@ -341,32 +326,8 @@ coop_t::bind_agents_to_disp()
 	// the first stage resources.
 	// Exceptions on that stage would lead to unpredictable application
 	// state. Therefore std::abort is called on exception.
-	try
-	{
-		for( auto & a : activators )
-			a();
-	}
-	catch( const std::exception & x )
-	{
-		so_5::details::abort_on_fatal_error( [&] {
-			SO_5_LOG_ERROR( m_env, log_stream ) {
-				log_stream << "an exception on the second stage of "
-						"agents to dispatcher binding; cooperation: "
-						<< m_coop_name << ", exception: " << x.what();
-			}
-		} );
-	}
-}
-
-inline void
-coop_t::unbind_agents_from_disp(
-	agent_array_t::iterator it )
-{
-	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
-	{
-		--it;
-		it->m_binder->unbind_agent( m_env, it->m_agent_ref );
-	}
+	for( auto & info : m_agent_array )
+		info.m_binder->bind( *(info.m_agent_ref) );
 }
 
 void
@@ -374,9 +335,9 @@ coop_t::shutdown_all_agents()
 {
 	try
 	{
-		for( auto it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
+		for( auto info : m_agent_array )
 		{
-			it->m_agent_ref->shutdown_agent();
+			info.m_agent_ref->shutdown_agent();
 		}
 	}
 	catch( const std::exception & x )
@@ -419,7 +380,8 @@ coop_t::decrement_usage_count()
 void
 coop_t::final_deregister_coop()
 {
-	unbind_agents_from_disp( m_agent_array.end() );
+	for( auto & info : m_agent_array )
+		info.m_binder->unbind( *(info.m_agent_ref) );
 
 	impl::internal_env_iface_t{ m_env }.final_deregister_coop( m_coop_name );
 }
@@ -445,10 +407,8 @@ coop_t::dereg_notificators() const
 void
 coop_t::delete_user_resources()
 {
-	for( auto d = m_resource_deleters.begin();
-			d != m_resource_deleters.end();
-			++d )
-		(*d)();
+	for( auto & d : m_resource_deleters )
+		d();
 }
 
 const coop_dereg_reason_t &

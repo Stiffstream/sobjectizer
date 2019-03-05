@@ -12,7 +12,7 @@ struct msg_hello : public so_5::signal_t {};
 void
 define_receiver_agent(
 	so_5::coop_t & coop,
-	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::strictly_ordered::dispatcher_handle_t & disp,
 	so_5::priority_t priority,
 	const so_5::mbox_t & common_mbox,
 	std::string & sequence )
@@ -46,7 +46,7 @@ define_receiver_agent(
 std::string &
 define_main_agent(
 	so_5::coop_t & coop,
-	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::strictly_ordered::dispatcher_handle_t & disp,
 	const so_5::mbox_t & common_mbox )
 	{
 		class actor_t final : public so_5::agent_t
@@ -77,17 +77,17 @@ define_main_agent(
 void
 define_starter_agent(
 	so_5::coop_t & coop,
-	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp )
+	so_5::disp::prio_one_thread::strictly_ordered::dispatcher_handle_t disp )
 	{
-		using disp_t = so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t;
+		using disp_t = so_5::disp::prio_one_thread::strictly_ordered::dispatcher_handle_t;
 
 		class actor_t final : public so_5::agent_t
 			{
-				disp_t & m_disp;
+				disp_t m_disp;
 			public :
-				actor_t( context_t ctx, disp_t & disp )
+				actor_t( context_t ctx, disp_t disp )
 					:	so_5::agent_t{ ctx + so_5::prio::p0 }
-					,	m_disp{ disp }
+					,	m_disp{ std::move(disp) }
 					{}
 
 				void so_evt_start() override
@@ -121,7 +121,7 @@ define_starter_agent(
 					}
 			};
 
-		coop.make_agent_with_binder< actor_t >( disp.binder(), std::ref(disp) );
+		coop.make_agent_with_binder< actor_t >( disp.binder(), disp );
 	}
 
 void
@@ -130,8 +130,7 @@ fill_coop(
 	{
 		using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
-		define_starter_agent( coop,
-			*(create_private_disp(coop.environment())) );
+		define_starter_agent( coop, make_dispatcher(coop.environment()) );
 	}
 
 int
@@ -152,8 +151,7 @@ main()
 							env.introduce_coop( fill_coop );
 						} );
 				},
-				20,
-				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
+				20 );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;

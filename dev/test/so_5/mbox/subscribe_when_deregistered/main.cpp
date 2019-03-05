@@ -144,16 +144,16 @@ init(
 	{
 		so_5::coop_unique_ptr_t coop = env.create_coop(
 			"test_coop",
-			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
-		coop->add_agent( new test_agent_t( env ) );
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
+		coop->make_agent< test_agent_t >();
 
 		env.register_coop( std::move( coop ) );
 		g_stage_monitors.wait_for_registration();
@@ -196,9 +196,6 @@ main()
 			&init,
 			[]( so_5::environment_params_t & params )
 			{
-				params.add_named_dispatcher(
-						"active_obj",
-						so_5::disp::active_obj::create_disp() );
 				params.coop_listener(
 						so_5::coop_listener_unique_ptr_t( new listener_t() ) );
 			} );

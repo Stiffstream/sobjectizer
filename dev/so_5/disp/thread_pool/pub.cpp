@@ -14,13 +14,12 @@
 
 #include <so_5/disp/thread_pool/impl/disp.hpp>
 
+#include <so_5/disp/reuse/make_actual_dispatcher.hpp>
+
 #include <so_5/ret_code.hpp>
 
 #include <so_5/disp_binder.hpp>
 #include <so_5/environment.hpp>
-
-#include <so_5/disp/reuse/disp_binder_helpers.hpp>
-#include <so_5/disp/reuse/proxy_dispatcher_template.hpp>
 
 namespace so_5
 {
@@ -31,190 +30,193 @@ namespace disp
 namespace thread_pool
 {
 
+namespace impl
+{
+
+//
+// actual_dispatcher_iface_t
+//
+/*!
+ * \brief An actual interface of thread-pool dispatcher.
+ *
+ * This interface defines a set of methods necessary for binder.
+ *
+ * \since
+ * v.5.6.0
+ */
+class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
+	{
+	public :
+		//! Preallocate all necessary resources for a new agent.
+		virtual void
+		preallocate_resources_for_agent(
+			agent_t & agent,
+			const bind_params_t & params ) = 0;
+
+		//! Undo preallocation of resources for a new agent.
+		virtual void
+		undo_preallocation_for_agent(
+			agent_t & agent ) noexcept = 0;
+
+		//! Get resources allocated for an agent.
+		virtual event_queue_t *
+		query_resources_for_agent( agent_t & agent ) noexcept = 0;
+
+		//! Unbind agent from the dispatcher.
+		virtual void
+		unbind_agent( agent_t & agent ) noexcept = 0;
+	};
+
+//
+// actual_dispatcher_iface_shptr_t
+//
+using actual_dispatcher_iface_shptr_t =
+		std::shared_ptr< actual_dispatcher_iface_t >;
+
+//
+// actual_binder_t
+//
+/*!
+ * \brief Actual implementation of dispatcher binder for %thread_pool dispatcher.
+ *
+ * \since
+ * v.5.6.0
+ */
+class actual_binder_t final : public disp_binder_t
+	{
+		//! Dispatcher to be used.
+		actual_dispatcher_iface_shptr_t m_disp;
+		//! Binding parameters.
+		const bind_params_t m_params;
+
+	public :
+		actual_binder_t(
+			actual_dispatcher_iface_shptr_t disp,
+			bind_params_t params ) noexcept
+			:	m_disp{ std::move(disp) }
+			,	m_params{ params }
+			{}
+
+		void
+		preallocate_resources(
+			agent_t & agent ) override
+			{
+				m_disp->preallocate_resources_for_agent( agent, m_params );
+			}
+
+		void
+		undo_preallocation(
+			agent_t & agent ) noexcept override
+			{
+				m_disp->undo_preallocation_for_agent( agent );
+			}
+
+		void
+		bind(
+			agent_t & agent ) noexcept override
+			{
+				auto queue = m_disp->query_resources_for_agent( agent );
+				agent.so_bind_to_dispatcher( *queue );
+			}
+
+		void
+		unbind(
+			agent_t & agent ) noexcept override
+			{
+				m_disp->unbind_agent( agent );
+			}
+	};
+
+//
+// actual_dispatcher_implementation_t
+//
+/*!
+ * \brief Actual implementation of binder for %thread_pool dispatcher.
+ *
+ * \since
+ * v.5.6.0
+ */
+template< typename Work_Thread >
+class actual_dispatcher_implementation_t final
+	:	public actual_dispatcher_iface_t
+	{
+		//! Real dispatcher.
+		dispatcher_template_t< Work_Thread > m_impl;
+
+	public :
+		actual_dispatcher_implementation_t(
+			//! SObjectizer Environment to work in.
+			outliving_reference_t< environment_t > env,
+			//! Base part of data sources names.
+			const std::string_view name_base,
+			//! Dispatcher's parameters.
+			disp_params_t params )
+			:	m_impl{ name_base, params.thread_count(), params.queue_params() }
+			{
+				m_impl.start( env.get() );
+			}
+
+		~actual_dispatcher_implementation_t() noexcept override
+			{
+				m_impl.shutdown_then_wait();
+			}
+
+		SO_5_NODISCARD
+		disp_binder_shptr_t
+		binder( bind_params_t params ) override
+			{
+				return std::make_shared< actual_binder_t >(
+						this->shared_from_this(),
+						params );
+			}
+
+		void
+		preallocate_resources_for_agent(
+			agent_t & agent,
+			const bind_params_t & params ) override
+			{
+				m_impl.preallocate_resources_for_agent( agent, params );
+			}
+
+		void
+		undo_preallocation_for_agent(
+			agent_t & agent ) noexcept override
+			{
+				m_impl.undo_preallocation_for_agent( agent );
+			}
+
+		event_queue_t *
+		query_resources_for_agent( agent_t & agent ) noexcept override
+			{
+				return m_impl.query_resources_for_agent( agent );
+			}
+
+		void
+		unbind_agent( agent_t & agent ) noexcept override
+			{
+				m_impl.unbind_agent( agent );
+			}
+	};
+
+//
+// dispatcher_handle_maker_t
+//
+class dispatcher_handle_maker_t
+	{
+	public :
+		static dispatcher_handle_t
+		make( actual_dispatcher_iface_shptr_t disp ) noexcept
+			{
+				return { std::move( disp ) };
+			}
+	};
+
+} /* namespace impl */
+
 namespace
 {
 
 using namespace so_5::disp::thread_pool::impl;
-
-using actual_disp_iface_t =
-		common_implementation::ext_dispatcher_iface_t< bind_params_t >;
-
-//
-// proxy_dispatcher_t
-//
-
-using proxy_dispatcher_base_t =
-		so_5::disp::reuse::proxy_dispatcher_template_t<
-				actual_disp_iface_t,
-				disp_params_t >;
-
-/*!
- * \brief A proxy dispatcher which creates actual dispatcher at start.
- *
- * \since
- * v.5.5.18
- *
- * This proxy is necessary because named dispatchers which are created
- * by create_disp() functions do not have a reference to SObjectizer
- * Environment at creation time. That reference is available in start()
- * method. Because of that creation of actual dispatcher (with or without
- * activity tracking) is delayed and performed only in start() method.
- */
-class proxy_dispatcher_t : public proxy_dispatcher_base_t
-	{
-	public:
-		proxy_dispatcher_t( disp_params_t params )
-			:	proxy_dispatcher_base_t( std::move(params) )
-			{}
-
-		virtual event_queue_t *
-		bind_agent( agent_ref_t agent, const bind_params_t & params ) override
-			{
-				return m_disp->bind_agent( agent, params );
-			}
-
-		virtual void
-		unbind_agent( agent_ref_t agent ) override
-			{
-				return m_disp->unbind_agent( agent );
-			}
-
-	protected :
-		virtual void
-		do_actual_start( environment_t & env ) override
-			{
-				using dispatcher_no_activity_tracking_t =
-						dispatcher_template_t< work_thread_no_activity_tracking_t >;
-
-				using dispatcher_with_activity_tracking_t =
-						dispatcher_template_t<
-								work_thread_with_activity_tracking_t >;
-
-				make_actual_dispatcher<
-							dispatcher_no_activity_tracking_t,
-							dispatcher_with_activity_tracking_t >(
-						env,
-						m_disp_params.thread_count(),
-						m_disp_params.queue_params() );
-			}
-	};
-
-//
-// binding_actions_t
-//
-/*!
- * \brief A mixin with implementation of main binding/unbinding actions.
- *
- * \since
- * v.5.5.4
- */
-class binding_actions_t
-	{
-	protected :
-		binding_actions_t( bind_params_t params )
-			:	m_params( std::move( params ) )
-			{}
-
-		disp_binding_activator_t
-		do_bind(
-			actual_disp_iface_t & disp,
-			agent_ref_t agent )
-			{
-				auto queue = disp.bind_agent( agent, m_params );
-
-				return [queue, agent]() {
-						agent->so_bind_to_dispatcher( *queue );
-					};
-			}
-
-		void
-		do_unbind(
-			actual_disp_iface_t & disp,
-			agent_ref_t agent )
-			{
-				disp.unbind_agent( std::move( agent ) );
-			}
-
-	private :
-		const bind_params_t m_params;
-	};
-
-//
-// disp_binder_t
-//
-/*!
- * \brief An actual dispatcher binder for thread pool dispatcher.
- * \since
- * v.5.4.0
- */
-using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
-		proxy_dispatcher_t, binding_actions_t >;
-
-//
-// private_dispatcher_binder_t
-//
-
-/*!
- * \brief A binder for the private %thread_pool dispatcher.
- * \since
- * v.5.5.4
- */
-using private_dispatcher_binder_t =
-	so_5::disp::reuse::binder_for_private_disp_template_t<
-		private_dispatcher_handle_t,
-		proxy_dispatcher_t,
-		binding_actions_t >;
-
-//
-// real_private_dispatcher_t
-//
-/*!
- * \brief A real implementation of private_dispatcher interface.
- *
- * \since
- * v.5.5.4
- */
-class real_private_dispatcher_t : public private_dispatcher_t
-	{
-	public :
-		/*!
-		 * Constructor creates a dispatcher instance and launces it.
-		 */
-		real_private_dispatcher_t(
-			//! SObjectizer Environment to work in.
-			environment_t & env,
-			//! Parameters for the dispatcher.
-			disp_params_t params,
-			//! Value for creating names of data sources for
-			//! run-time monitoring.
-			const std::string & data_sources_name_base )
-			:	m_disp( std::make_unique< proxy_dispatcher_t >(std::move(params)) )
-			{
-				m_disp->set_data_sources_name_base( data_sources_name_base );
-				m_disp->start( env );
-			}
-
-		/*!
-		 * Destructors shuts an instance down and waits for it.
-		 */
-		~real_private_dispatcher_t() override
-			{
-				m_disp->shutdown();
-				m_disp->wait();
-			}
-
-		virtual disp_binder_unique_ptr_t
-		binder( const bind_params_t & params ) override
-			{
-				return std::make_unique< private_dispatcher_binder_t >(
-						private_dispatcher_handle_t( this ),
-						*m_disp,
-						params );
-			}
-
-	private :
-		std::unique_ptr< proxy_dispatcher_t > m_disp;
-	};
 
 /*!
  * \brief Sets the thread count to default value if used do not
@@ -233,48 +235,35 @@ adjust_thread_count( disp_params_t & params )
 } /* namespace anonymous */
 
 //
-// create_disp
+// make_dispatcher
 //
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
+	environment_t & env,
+	const std::string_view data_sources_name_base,
 	disp_params_t params )
 	{
+		using namespace so_5::disp::reuse;
+
 		adjust_thread_count( params );
 
-		return std::make_unique< proxy_dispatcher_t >( std::move(params) );
-	}
+		using dispatcher_no_activity_tracking_t =
+				impl::actual_dispatcher_implementation_t<
+						impl::work_thread_no_activity_tracking_t >;
 
-//
-// create_private_disp
-//
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
-	//! SObjectizer Environment to work in.
-	environment_t & env,
-	//! Parameters for the dispatcher.
-	disp_params_t params,
-	//! Value for creating names of data sources for
-	//! run-time monitoring.
-	const std::string & data_sources_name_base )
-	{
-		adjust_thread_count( params );
+		using dispatcher_with_activity_tracking_t =
+				impl::actual_dispatcher_implementation_t<
+						impl::work_thread_with_activity_tracking_t >;
 
-		return private_dispatcher_handle_t{
-				new real_private_dispatcher_t{
-						env,
-						std::move(params),
-						data_sources_name_base } };
-	}
+		auto binder = so_5::disp::reuse::make_actual_dispatcher<
+						impl::actual_dispatcher_iface_t,
+						dispatcher_no_activity_tracking_t,
+						dispatcher_with_activity_tracking_t >(
+				outliving_reference_t(env),
+				data_sources_name_base,
+				std::move(params) );
 
-//
-// create_disp_binder
-//
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	std::string disp_name,
-	const bind_params_t & params )
-	{
-		return std::make_unique< disp_binder_t >( std::move(disp_name), params );
+		return impl::dispatcher_handle_maker_t::make( std::move(binder) );
 	}
 
 } /* namespace thread_pool */

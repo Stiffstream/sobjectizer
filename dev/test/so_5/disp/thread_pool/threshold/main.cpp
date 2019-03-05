@@ -77,14 +77,14 @@ class a_sender_t final : public agent_t
 		const mbox_t m_receiver;
 	};
 
-template< typename QUEUE_PARAMS_TUNER >
-private_dispatcher_handle_t
+template< typename Queue_Params_Tuner >
+dispatcher_handle_t
 make_disp(
 	environment_t & env,
-	std::string disp_name,
-	QUEUE_PARAMS_TUNER qp_tuner )
+	const std::string_view disp_name,
+	Queue_Params_Tuner qp_tuner )
 	{
-		return create_private_disp(
+		return make_dispatcher(
 			env,
 			disp_name,
 			disp_params_t{}
@@ -99,12 +99,12 @@ make_disp(
 void
 do_check(
 	environment_t & env,
-	private_dispatcher_handle_t disp,
+	dispatcher_handle_t disp,
 	string case_name,
 	predicate_t pred )
 	{
 		env.introduce_coop(
-			disp->binder( bind_params_t{}.fifo( fifo_t::individual ) ),
+			disp.binder( bind_params_t{}.fifo( fifo_t::individual ) ),
 			[case_name, pred]( coop_t & coop ) {
 				auto receiver_mbox = coop.make_agent< a_receiver_t >(
 						case_name, pred )->so_direct_mbox();

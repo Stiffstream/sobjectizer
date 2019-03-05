@@ -65,7 +65,7 @@ class a_test_t : public so_5::agent_t
 						so_5::send< msg_child_deregistered >( m_mbox );
 					} );
 
-			child_coop->add_agent( new a_child_t( so_environment() ) );
+			child_coop->make_agent< a_child_t >();
 
 			so_environment().register_coop( std::move( child_coop ) );
 		}

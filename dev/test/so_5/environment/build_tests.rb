@@ -5,7 +5,6 @@ MxxRu::Cpp::composite_target {
 
 	path = 'test/so_5/environment'
 
-	required_prj "#{path}/add_disp_after_start/prj.ut.rb"
 	required_prj "#{path}/autoname_coop/prj.ut.rb"
 	required_prj "#{path}/autoshutdown/prj.ut.rb"
 	required_prj "#{path}/autoshutdown_disabled/prj.ut.rb"

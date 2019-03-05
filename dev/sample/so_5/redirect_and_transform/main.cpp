@@ -268,43 +268,43 @@ void init( so_5::environment_t & env )
 
 		// Chain of performers.
 		// Must work on dedicated thread_pool dispatcher.
-		auto performer_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
+		auto performer_disp = so_5::disp::thread_pool::make_dispatcher( env, 3 );
 		auto performer_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 		// Start chain from the last agent.
 		auto p3 = coop.make_agent_with_binder< a_performer_t >(
-				performer_disp->binder( performer_binding_params ),
+				performer_disp.binder( performer_binding_params ),
 				"p3",
 				1.4f, // Each performer in chain is slower then previous.
 				a_performer_t::last_performer{},
 				logger->so_direct_mbox() );
 		auto p2 = coop.make_agent_with_binder< a_performer_t >(
-				performer_disp->binder( performer_binding_params ),
+				performer_disp.binder( performer_binding_params ),
 				"p2",
 				1.2f, // Each performer in chain is slower then previous.
 				a_performer_t::next_performer{ p3->so_direct_mbox() },
 				logger->so_direct_mbox() );
 		auto p1 = coop.make_agent_with_binder< a_performer_t >(
-				performer_disp->binder( performer_binding_params ),
+				performer_disp.binder( performer_binding_params ),
 				"p1",
 				1.0f, // The first performer is the fastest one.
 				a_performer_t::next_performer{ p2->so_direct_mbox() },
 				logger->so_direct_mbox() );
 
 		// Generators will work on dedicated thread_pool dispatcher.
-		auto generator_disp = so_5::disp::thread_pool::create_private_disp( env, 2 );
+		auto generator_disp = so_5::disp::thread_pool::make_dispatcher( env, 2 );
 		auto generator_binding_params = so_5::disp::thread_pool::bind_params_t{}
 				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 		coop.make_agent_with_binder< a_generator_t >(
-				generator_disp->binder( generator_binding_params ),
+				generator_disp.binder( generator_binding_params ),
 				"g1",
 				0,
 				p1->so_direct_mbox(),
 				logger->so_direct_mbox() );
 		coop.make_agent_with_binder< a_generator_t >(
-				generator_disp->binder( generator_binding_params ),
+				generator_disp.binder( generator_binding_params ),
 				"g2",
 				1000000,
 				p1->so_direct_mbox(),

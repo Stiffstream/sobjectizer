@@ -16,6 +16,16 @@
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 #include <test/3rd_party/various_helpers/cmd_line_args_helpers.hpp>
 
+std::size_t 
+default_thread_pool_size()
+{
+	auto c = std::thread::hardware_concurrency();
+	if( !c )
+		c = 4;
+
+	return c;
+}
+
 enum class dispatcher_t
 	{
 		thread_pool,
@@ -109,6 +119,8 @@ class a_contoller_t : public so_5::agent_t
 					*this,
 					std::chrono::seconds(1),
 					std::chrono::seconds(1) );
+
+			create_dispatcher();
 		}
 
 		void
@@ -126,29 +138,23 @@ class a_contoller_t : public so_5::agent_t
 		std::size_t m_remaining;
 
 		so_5::timer_thread::timer_id_ref_t m_timer;
+
+		so_5::disp_binder_shptr_t m_binder;
+
+		void
+		create_dispatcher()
+		{
+			const auto threads = m_cfg.m_threads ?
+					m_cfg.m_threads : default_thread_pool_size();
+
+			if( dispatcher_t::adv_thread_pool == m_cfg.m_dispatcher )
+				m_binder = so_5::disp::adv_thread_pool::make_dispatcher(
+						so_environment(), threads ).binder();
+			else
+				m_binder = so_5::disp::thread_pool::make_dispatcher(
+						so_environment(), threads ).binder();
+		}
 };
-
-std::size_t 
-default_thread_pool_size()
-{
-	auto c = std::thread::hardware_concurrency();
-	if( !c )
-		c = 4;
-
-	return c;
-}
-
-so_5::dispatcher_unique_ptr_t
-create_dispatcher( const cfg_t & cfg )
-{
-	const auto threads = cfg.m_threads ?
-			cfg.m_threads : default_thread_pool_size();
-
-	if( dispatcher_t::adv_thread_pool == cfg.m_dispatcher )
-		return so_5::disp::adv_thread_pool::create_disp( threads );
-
-	return so_5::disp::thread_pool::create_disp( threads );
-}
 
 int
 main( int argc, char ** argv )
@@ -161,14 +167,10 @@ main( int argc, char ** argv )
 			[cfg]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( "test",
-						new a_contoller_t( env, cfg ) );
+						env.make_agent< a_contoller_t >( cfg ) );
 			},
-			[cfg]( so_5::environment_params_t & params )
+			[]( so_5::environment_params_t & params )
 			{
-				params.add_named_dispatcher(
-					"dispatcher",
-					create_dispatcher( cfg ) );
-
 				// This timer thread doesn't consume resources without
 				// actual delayed/periodic messages.
 				params.timer_thread( so_5::timer_list_factory() );

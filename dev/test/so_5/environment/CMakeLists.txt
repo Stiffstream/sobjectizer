@@ -1,6 +1,5 @@
 project(tests)
 
-add_subdirectory(add_disp_after_start)
 add_subdirectory(autoname_coop)
 add_subdirectory(autoshutdown)
 add_subdirectory(autoshutdown_disabled)

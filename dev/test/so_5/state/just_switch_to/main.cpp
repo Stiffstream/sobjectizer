@@ -114,8 +114,8 @@ public :
 
 		// Service request must be initiated from different working thread.
 		so_5::introduce_child_coop( *this,
-			so_5::disp::one_thread::create_private_disp(
-				so_environment() )->binder(),
+			so_5::disp::one_thread::make_dispatcher(
+				so_environment() ).binder(),
 			[this]( so_5::coop_t & coop ) {
 				class actor_t final : public so_5::agent_t
 				{

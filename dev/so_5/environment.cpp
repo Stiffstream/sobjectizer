@@ -9,7 +9,6 @@
 #include <so_5/impl/internal_env_iface.hpp>
 
 #include <so_5/impl/mbox_core.hpp>
-#include <so_5/impl/disp_repository.hpp>
 #include <so_5/impl/layer_core.hpp>
 #include <so_5/impl/stop_guard_repo.hpp>
 #include <so_5/impl/std_msg_tracer_holder.hpp>
@@ -46,8 +45,7 @@ environment_params_t::environment_params_t()
 
 environment_params_t::environment_params_t(
 	environment_params_t && other )
-	:	m_named_dispatcher_map( std::move( other.m_named_dispatcher_map ) )
-	,	m_timer_thread_factory( std::move( other.m_timer_thread_factory ) )
+	:	m_timer_thread_factory( std::move( other.m_timer_thread_factory ) )
 	,	m_so_layers( std::move( other.m_so_layers ) )
 	,	m_coop_listener( std::move( other.m_coop_listener ) )
 	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
@@ -80,7 +78,6 @@ environment_params_t::operator=( environment_params_t && other )
 void
 environment_params_t::swap( environment_params_t & other )
 {
-	m_named_dispatcher_map.swap( other.m_named_dispatcher_map );
 	m_timer_thread_factory.swap( other.m_timer_thread_factory );
 	m_so_layers.swap( other.m_so_layers );
 	m_coop_listener.swap( other.m_coop_listener );
@@ -101,16 +98,6 @@ environment_params_t::swap( environment_params_t & other )
 	std::swap( m_infrastructure_factory, other.m_infrastructure_factory );
 
 	std::swap( m_event_queue_hook, other.m_event_queue_hook );
-}
-
-environment_params_t &
-environment_params_t::add_named_dispatcher(
-	nonempty_name_t name,
-	dispatcher_unique_ptr_t dispatcher )
-{
-	m_named_dispatcher_map[ name.query_name() ] =
-		dispatcher_ref_t( dispatcher.release() );
-	return *this;
 }
 
 environment_params_t &
@@ -307,9 +294,6 @@ struct environment_t::internals_t
 	 */
 	environment_infrastructure_unique_ptr_t m_infrastructure;
 
-	//! A repository of dispatchers.
-	impl::disp_repository_t m_dispatchers;
-
 	//! An utility for layers.
 	impl::layer_core_t m_layer_core;
 
@@ -380,6 +364,26 @@ struct environment_t::internals_t
 	 */
 	event_queue_hook_unique_ptr_t m_event_queue_hook;
 
+	/*!
+	 * \brief Lock object for protection of exception logger object.
+	 *
+	 * \note
+	 * Manipulations with m_event_exception_logger are performed
+	 * only under that lock.
+	 *
+	 * \since
+	 * v.5.6.0
+	 */
+	std::mutex m_event_exception_logger_lock;
+
+	/*!
+	 * \brief Logger for exceptions thrown from event-handlers.
+	 *
+	 * \since
+	 * v.5.6.0
+	 */
+	event_exception_logger_unique_ptr_t m_event_exception_logger;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -398,10 +402,6 @@ struct environment_t::internals_t
 					// A special mbox for distributing monitoring information
 					// must be created and passed to stats_controller.
 					m_mbox_core->create_mbox(env) ) )
-		,	m_dispatchers(
-				env,
-				params.so5__giveout_named_dispatcher_map(),
-				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
 				env,
 				params.so5__layers_map() )
@@ -419,6 +419,8 @@ struct environment_t::internals_t
 		,	m_event_queue_hook(
 				ensure_event_queue_hook_exists(
 					params.so5__giveout_event_queue_hook() ) )
+		,	m_event_exception_logger{
+				params.so5__giveout_event_exception_logger() }
 	{}
 };
 
@@ -463,56 +465,40 @@ environment_t::create_mchain(
 	return m_impl->m_mbox_core->create_mchain( *this, params );
 }
 
-dispatcher_t &
-environment_t::query_default_dispatcher()
-{
-	return m_impl->m_infrastructure->query_default_dispatcher();
-}
-
-dispatcher_ref_t
-environment_t::query_named_dispatcher(
-	const std::string & disp_name )
-{
-	return m_impl->m_dispatchers.query_named_dispatcher( disp_name );
-}
-
-dispatcher_ref_t
-environment_t::add_dispatcher_if_not_exists(
-	const std::string & disp_name,
-	std::function< dispatcher_unique_ptr_t() > disp_factory )
-{
-	return m_impl->m_dispatchers.add_dispatcher_if_not_exists(
-			disp_name,
-			disp_factory );
-}
-
 void
 environment_t::install_exception_logger(
 	event_exception_logger_unique_ptr_t logger )
 {
-	m_impl->m_dispatchers.install_exception_logger( std::move( logger ) );
+	if( logger )
+	{
+		std::lock_guard< std::mutex > lock{
+				m_impl->m_event_exception_logger_lock };
+
+		using std::swap;
+		swap( m_impl->m_event_exception_logger, logger );
+
+		m_impl->m_event_exception_logger->on_install( std::move( logger ) );
+	}
 }
 
 coop_unique_ptr_t
 environment_t::create_coop(
 	nonempty_name_t name )
 {
-	return create_coop(
-		std::move(name),
-		create_default_disp_binder() );
+	return create_coop( std::move(name), so_make_default_disp_binder() );
 }
 
 coop_unique_ptr_t
 environment_t::create_coop(
 	autoname_indicator_t indicator() )
 {
-	return create_coop( indicator, create_default_disp_binder() );
+	return create_coop( indicator, so_make_default_disp_binder() );
 }
 
 coop_unique_ptr_t
 environment_t::create_coop(
 	nonempty_name_t name,
-	disp_binder_unique_ptr_t disp_binder )
+	disp_binder_shptr_t disp_binder )
 {
 	return coop_unique_ptr_t( new coop_t(
 			std::move(name), std::move(disp_binder), self_ref() ) );
@@ -521,7 +507,7 @@ environment_t::create_coop(
 coop_unique_ptr_t
 environment_t::create_coop(
 	autoname_indicator_t (*)(),
-	disp_binder_unique_ptr_t disp_binder )
+	disp_binder_shptr_t disp_binder )
 {
 	auto counter = ++(m_impl->m_autoname_counter);
 	nonempty_name_t name( "__so5_autoname_" + std::to_string(counter) + "__" );
@@ -664,7 +650,9 @@ environment_t::call_exception_logger(
 	const std::exception & event_exception,
 	const std::string & coop_name )
 {
-	m_impl->m_dispatchers.call_exception_logger( event_exception, coop_name );
+	std::lock_guard< std::mutex > lock{ m_impl->m_event_exception_logger_lock };
+
+	m_impl->m_event_exception_logger->log_exception( event_exception, coop_name );
 }
 
 exception_reaction_t
@@ -697,7 +685,7 @@ environment_t::work_thread_activity_tracking() const
 	return m_impl->m_work_thread_activity_tracking;
 }
 
-disp_binder_unique_ptr_t
+disp_binder_shptr_t
 environment_t::so_make_default_disp_binder()
 {
 	return m_impl->m_infrastructure->make_default_disp_binder();
@@ -776,16 +764,6 @@ environment_t::impl__run_layers_and_go_further()
 			"run_layers",
 			[this] { m_impl->m_layer_core.start(); },
 			[this] { m_impl->m_layer_core.finish(); },
-			[this] { impl__run_dispatcher_and_go_further(); } );
-}
-
-void
-environment_t::impl__run_dispatcher_and_go_further()
-{
-	impl::run_stage(
-			"run_dispatcher",
-			[this] { m_impl->m_dispatchers.start(); },
-			[this] { m_impl->m_dispatchers.finish(); },
 			[this] { impl__run_infrastructure(); } );
 }
 

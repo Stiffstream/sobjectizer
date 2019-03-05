@@ -163,14 +163,21 @@ run_sobjectizer(
 			so_5::mbox_t shutdowner_mbox;
 			{
 				auto c = env.create_coop( "shutdowner" );
-				auto a = c->add_agent( new a_shutdowner_t( env,
-						cooperation_count * cooperation_size ) );
+				auto a = c->make_agent< a_shutdowner_t >(
+						cooperation_count * cooperation_size );
 				shutdowner_mbox = a->so_direct_mbox();
 				env.register_coop( std::move( c ) );
 			}
 
-			tp_disp::bind_params_t params;
-			params.max_demands_at_once( 1024 );
+			auto disp = tp_disp::make_dispatcher(
+					env,
+					"thread_pool",
+					tp_disp::disp_params_t{}
+							.thread_count( thread_count )
+							.set_queue_params( tp_disp::queue_traits::queue_params_t{}
+									.lock_factory( factory ) ) );
+
+			auto params = tp_disp::bind_params_t{}.max_demands_at_once( 1024 );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
 				// Lock collector for that cooperation until
@@ -185,30 +192,14 @@ run_sobjectizer(
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
-				auto c = env.create_coop( ss.str(),
-						tp_disp::create_disp_binder(
-								"thread_pool", params ) );
+				auto c = env.create_coop( ss.str(), disp.binder( params ) );
 				for( std::size_t a = 0; a != cooperation_size; ++a )
 				{
-					c->add_agent(
-							new a_test_t(
-									env,
-									*(collectors[ i ]),
-									shutdowner_mbox ) );
+					c->make_agent< a_test_t >(
+							*(collectors[ i ]), shutdowner_mbox );
 				}
 				env.register_coop( std::move( c ) );
 			}
-		},
-		[&]( so_5::environment_params_t & params )
-		{
-			using namespace tp_disp;
-			params.add_named_dispatcher(
-					"thread_pool",
-					create_disp( disp_params_t{}
-							.thread_count( thread_count )
-							.set_queue_params( queue_traits::queue_params_t{}
-								.lock_factory( factory ) ) )
-			);
 		} );
 }
 

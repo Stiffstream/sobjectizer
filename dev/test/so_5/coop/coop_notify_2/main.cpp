@@ -56,7 +56,8 @@ class a_test_t : public so_5::agent_t
 		{
 			auto child_coop = so_environment().create_coop(
 					"child",
-					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+					so_5::disp::active_obj::make_dispatcher(
+							so_environment() ).binder() );
 
 			child_coop->set_parent_coop_name( so_coop_name() );
 			child_coop->add_reg_notificator( m_reg_notificator );
@@ -69,7 +70,7 @@ class a_test_t : public so_5::agent_t
 						so_5::send< msg_child_deregistered >( m_mbox );
 					} );
 
-			child_coop->add_agent( new a_child_t( so_environment() ) );
+			child_coop->make_agent< a_child_t >();
 
 			so_environment().register_coop( std::move( child_coop ) );
 		}
@@ -135,14 +136,9 @@ class test_env_t
 		void
 		init( so_5::environment_t & env )
 		{
-			env.add_dispatcher_if_not_exists(
-					"active_obj",
-					[] { return so_5::disp::active_obj::create_disp(); } );
-
 			env.register_agent_as_coop(
 					"test",
-					new a_test_t(
-							env,
+					env.make_agent< a_test_t >(
 							create_on_reg_notificator(),
 							create_on_dereg_notificator() ) );
 		}

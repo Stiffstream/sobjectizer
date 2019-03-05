@@ -135,7 +135,7 @@ class a_client_t : public so_5::agent_t
 void init( so_5::environment_t & env )
 	{
 		env.introduce_coop(
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( so_5::coop_t & coop )
 				{
 					auto svc_mbox = coop.environment().create_mbox();

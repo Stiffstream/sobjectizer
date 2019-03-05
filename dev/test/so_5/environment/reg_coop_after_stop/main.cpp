@@ -92,8 +92,9 @@ class a_first_t : public so_5::agent_t
 			{
 				so_environment().register_agent_as_coop(
 						"second",
-						new a_second_t( so_environment(), m_log ),
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+						so_environment().make_agent< a_second_t >( m_log ),
+						so_5::disp::active_obj::make_dispatcher(
+								so_environment() ).binder() );
 			}
 			catch( const so_5::exception_t & x )
 			{
@@ -126,14 +127,9 @@ main()
 				so_5::launch(
 					[&log]( so_5::environment_t & env )
 					{
-						
-						env.add_dispatcher_if_not_exists(
-							"active_obj",
-							[] { return so_5::disp::active_obj::create_disp(); } );
-
 						env.register_agent_as_coop(
 								"first",
-								new a_first_t( env, log ) );
+								env.make_agent< a_first_t >( log ) );
 					} );
 			},
 			20,

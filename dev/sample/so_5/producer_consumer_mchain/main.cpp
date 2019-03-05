@@ -38,8 +38,8 @@ so_5::mbox_t make_logger( so_5::coop_t & coop )
 
 	// Logger will work on its own working thread.
 	auto logger = coop.make_agent_with_binder< logger_actor >(
-			so_5::disp::one_thread::create_private_disp(
-					coop.environment() )->binder() );
+			so_5::disp::one_thread::make_dispatcher(
+					coop.environment() ).binder() );
 
 	return logger->so_direct_mbox();
 }
@@ -295,13 +295,13 @@ void fill_demo_coop( so_5::coop_t & coop )
 	// Consumer agent must be created first.
 	// It will work on its own working thread.
 	auto consumer_mbox = coop.make_agent_with_binder< consumer >(
-			so_5::disp::one_thread::create_private_disp(
-					coop.environment() )->binder(),
+			so_5::disp::one_thread::make_dispatcher(
+					coop.environment() ).binder(),
 			logger_mbox )->consumer_mbox();
 
 	// All producers will work on thread pool dispatcher.
 	namespace tp_disp = so_5::disp::thread_pool;
-	auto disp = tp_disp::create_private_disp( coop.environment() );
+	auto disp = tp_disp::make_dispatcher( coop.environment() );
 	// All agents on this dispatcher will have independent event queues.
 	const auto bind_params = tp_disp::bind_params_t{}
 			.fifo( tp_disp::fifo_t::individual )
@@ -310,7 +310,7 @@ void fill_demo_coop( so_5::coop_t & coop )
 	// All producers can be created now.
 	for( unsigned int i = 0; i != producers; ++i )
 		coop.make_agent_with_binder< producer >(
-				disp->binder( bind_params ),
+				disp.binder( bind_params ),
 				"producer-" + std::to_string( i + 1 ),
 				logger_mbox,
 				consumer_mbox,

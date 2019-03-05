@@ -10,7 +10,7 @@ const unsigned int divider = 10;
 
 using number = unsigned long long;
 
-using disp_handle = disp::thread_pool::private_dispatcher_handle_t;
+using disp_handle = disp::thread_pool::dispatcher_handle_t;
 
 disp::thread_pool::bind_params_t bind_params()
 {
@@ -67,7 +67,7 @@ private :
 
 		so_environment().introduce_coop(
 			m_child,
-			m_disp->binder( bind_params() ),
+			m_disp.binder( bind_params() ),
 			[&]( coop_t & coop ) {
 				const auto subsize = m_size / divider;
 				coop.reserve( divider );
@@ -91,13 +91,13 @@ int main()
 	const auto start_at = clock_type::now();
 
 	so_5::launch( [&result]( environment_t & env ) {
-		auto tp_disp = disp::thread_pool::create_private_disp( env, pool_size() );
+		auto tp_disp = disp::thread_pool::make_dispatcher( env, pool_size() );
 
 		auto result_ch = env.create_mchain( make_unlimited_mchain_params() );
 
 		env.introduce_coop(
 			"0",
-			tp_disp->binder( bind_params() ),
+			tp_disp.binder(),
 			[&]( coop_t & coop ) {
 				coop.make_agent< skynet >(
 						tp_disp, result_ch->as_mbox(), 0u, 1000000u );

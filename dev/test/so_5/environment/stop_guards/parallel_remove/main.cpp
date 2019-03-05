@@ -97,7 +97,7 @@ void make_stuff( so_5::environment_t & env )
 	auto notify_mbox = env.create_mbox();
 
 	env.introduce_coop(
-		so_5::disp::active_obj::create_private_disp( env )->binder(),
+		so_5::disp::active_obj::make_dispatcher( env ).binder(),
 		[&]( so_5::coop_t & coop ) {
 			auto first = coop.make_agent< first_worker_t >( notify_mbox );
 			for( std::size_t i = 0; i != N; ++i )

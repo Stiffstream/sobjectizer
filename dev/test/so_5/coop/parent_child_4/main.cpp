@@ -138,22 +138,22 @@ class a_driver_t : public so_5::agent_t
 		{
 			so_environment().register_agent_as_coop(
 				"parent",
-				new a_parent_t( so_environment(), m_mbox ),
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_environment().make_agent< a_parent_t >( m_mbox ),
+				so_5::disp::active_obj::make_dispatcher( 
+						so_environment() ).binder() );
 		}
 
 		void
 		evt_parent_started(mhood_t< msg_parent_started >)
 		{
 			auto coop = so_environment().create_coop( "child",
-					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+					so_5::disp::active_obj::make_dispatcher(
+							so_environment() ).binder() );
 			coop->set_parent_coop_name( "parent" );
 
-			coop->add_agent(
-				new a_child_t(
-					so_environment(),
+			coop->make_agent< a_child_t >(
 					so_environment().create_mbox(),
-					m_mbox ) );
+					m_mbox );
 
 			so_environment().register_coop( std::move( coop ) );
 
@@ -176,10 +176,10 @@ void
 init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "driver",
-			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
-	coop->add_agent( new a_driver_t( env ) );
-	coop->add_agent( new a_time_sentinel_t( env ) );
+	coop->make_agent< a_driver_t >();
+	coop->make_agent< a_time_sentinel_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -189,12 +189,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-				&init,
-				[]( so_5::environment_params_t & p ) {
-					p.add_named_dispatcher( "active_obj",
-						so_5::disp::active_obj::create_disp() );
-				} );
+		so_5::launch( &init );
 	}
 	catch( const std::exception & ex )
 	{

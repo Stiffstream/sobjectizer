@@ -13,7 +13,6 @@
 
 #include <so_5/declspec.hpp>
 
-#include <so_5/disp.hpp>
 #include <so_5/disp_binder.hpp>
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
@@ -54,17 +53,7 @@ class disp_params_t
 
 	public :
 		//! Default constructor.
-		disp_params_t() {}
-		//! Copy constructor.
-		disp_params_t( const disp_params_t & o )
-			:	activity_tracking_mixin_t( o )
-			,	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		disp_params_t( disp_params_t && o )
-			:	activity_tracking_mixin_t( std::move(o) )
-			,	m_queue_params{ std::move(o.m_queue_params) }
-			{}
+		disp_params_t() = default;
 
 		friend inline void swap( disp_params_t & a, disp_params_t & b )
 			{
@@ -73,21 +62,6 @@ class disp_params_t
 						static_cast< activity_tracking_mixin_t & >(b) );
 
 				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		disp_params_t & operator=( const disp_params_t & o )
-			{
-				disp_params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		disp_params_t & operator=( disp_params_t && o )
-			{
-				disp_params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
 			}
 
 		//! Setter for queue parameters.
@@ -131,71 +105,67 @@ class disp_params_t
 		queue_traits::queue_params_t m_queue_params;
 	};
 
-//
-// params_t
-//
-/*!
- * \brief Old alias for disp_params for compatibility with previous versions.
- * \deprecated Use disp_params_t instead.
- */
-using params_t = disp_params_t;
+namespace impl
+{
+
+class dispatcher_handle_maker_t;
+
+} /* namespace impl */
 
 //
-// private_dispatcher_t
+// dispatcher_handle_t
 //
 
 /*!
- * \brief An interface for %active_obj private dispatcher.
- *
  * \since
- * v.5.5.4
+ * v.5.6.0
+ *
+ * \brief A handle for %active_obj dispatcher.
  */
-class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
+class SO_5_NODISCARD dispatcher_handle_t
 	{
-	public :
-		virtual ~private_dispatcher_t() noexcept = default;
+		friend class impl::dispatcher_handle_maker_t;
 
-		//! Create a binder for that private dispatcher.
-		virtual disp_binder_unique_ptr_t
-		binder() = 0;
+		//! Binder for the dispatcher.
+		disp_binder_shptr_t m_binder;
+
+		dispatcher_handle_t( disp_binder_shptr_t binder ) noexcept
+			:	m_binder{ std::move(binder) }
+			{}
+
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_binder; }
+
+	public :
+		dispatcher_handle_t() noexcept = default;
+
+		//! Get a binder for that dispatcher.
+		SO_5_NODISCARD
+		disp_binder_shptr_t
+		binder() const noexcept
+			{
+				return m_binder;
+			}
+
+		//! Is this handle empty?
+		operator bool() const noexcept { return empty(); }
+
+		//! Does this handle contain a reference to dispatcher?
+		bool
+		operator!() const noexcept { return !empty(); }
+
+		//! Drop the content of handle.
+		void
+		reset() noexcept { m_binder.reset(); }
 	};
 
 /*!
- * \brief A handle for the %active_obj private dispatcher.
- *
- * \since
- * v.5.5.4
- */
-using private_dispatcher_handle_t =
-	so_5::intrusive_ptr_t< private_dispatcher_t >;
-
-/*!
- * \brief Create an instance of dispatcher to be used as named dispatcher.
- *
- * \since
- * v.5.5.10
- */
-SO_5_FUNC dispatcher_unique_ptr_t
-create_disp(
-	//! Parameters for dispatcher.
-	disp_params_t params );
-
-//! Create a dispatcher.
-inline dispatcher_unique_ptr_t
-create_disp()
-	{
-		return create_disp( disp_params_t{} );
-	}
-
-/*!
- * \brief Create a private %active_obj dispatcher.
- *
- * \since
- * v.5.5.10
+ * \brief Create an instance of %active_obj dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp(
+auto disp = so_5::disp::active_obj::make_dispatcher(
 	env,
 	"db_handler",
 	// Additional params with specific options for queue's traits.
@@ -205,78 +175,75 @@ auto private_disp = so_5::disp::active_obj::create_private_disp(
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp->binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
-SO_5_FUNC private_dispatcher_handle_t
-create_private_disp(
+SO_5_FUNC dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base,
+	const std::string_view data_sources_name_base,
 	//! Parameters for dispatcher.
 	disp_params_t params );
 
 /*!
- * \brief Create a private %active_obj dispatcher.
- *
- * \since
- * v.5.5.4
+ * \brief Create an instance of %active_obj dispatcher.
  *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp(
+auto disp = so_5::disp::active_obj::make_dispatcher(
 	env,
 	"db_handler" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env,
 	//! Value for creating names of data sources for
 	//! run-time monitoring.
-	const std::string & data_sources_name_base )
+	const std::string_view data_sources_name_base )
 	{
-		return create_private_disp( env, data_sources_name_base, disp_params_t{} );
+		return make_dispatcher( env, data_sources_name_base, disp_params_t{} );
 	}
 
 /*!
  * \brief Create a private %active_obj dispatcher.
  *
- * \since
- * v.5.5.4
- *
  * \par Usage sample
 \code
-auto private_disp = so_5::disp::active_obj::create_private_disp( env );
+auto disp = so_5::disp::active_obj::make_dispatcher( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
-	private_disp->binder() );
+	// this instance of active_obj dispatcher.
+	disp.binder() );
 \endcode
+ *
+ * \since
+ * v.5.6.0
  */
-inline private_dispatcher_handle_t
-create_private_disp(
+inline dispatcher_handle_t
+make_dispatcher(
 	//! SObjectizer Environment to work in.
 	environment_t & env )
 	{
-		return create_private_disp( env, std::string() );
+		return make_dispatcher( env, std::string_view{} );
 	}
-
-//! Create an agent binder.
-SO_5_FUNC disp_binder_unique_ptr_t
-create_disp_binder(
-	//! Dispatcher name to be bound to.
-	const std::string & disp_name );
 
 } /* namespace active_obj */
 

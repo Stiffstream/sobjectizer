@@ -33,13 +33,13 @@ generate_agents(
 {
 	using namespace so_5::disp::thread_pool;
 
-	auto disp = create_private_disp( env );
+	auto disp = make_dispatcher( env );
 	for( std::size_t i = 0u; i != agent_count; ++i )
 	{
 		env.register_agent_as_coop(
 				so_5::autoname,
 				env.make_agent< test_agent_t >(),
-				disp->binder( bind_params_t{} ) );
+				disp.binder() );
 	}
 }
 

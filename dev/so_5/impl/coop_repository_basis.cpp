@@ -72,7 +72,7 @@ private :
 	coop_dereg_reason_t m_root_coop_dereg_reason;
 
 	//! Cooperations to be deregistered.
-	std::vector< coop_ref_t > m_coops_to_dereg;
+	std::vector< coop_shptr_t > m_coops_to_dereg;
 
 	//! Names of cooperations to be deregistered.
 	std::vector< std::string > m_coops_names_to_process;
@@ -86,12 +86,12 @@ private :
 	void
 	second_stage();
 
-	coop_ref_t
+	coop_shptr_t
 	ensure_root_coop_exists() const;
 
 	void
 	collect_and_modity_coop_info(
-		const coop_ref_t & root_coop );
+		const coop_shptr_t & root_coop );
 
 	void
 	collect_coops();
@@ -130,7 +130,7 @@ deregistration_processor_t::first_stage()
 	if( m_core.m_deregistered_coop.end() ==
 			m_core.m_deregistered_coop.find( m_root_coop_name ) )
 	{
-		coop_ref_t coop = ensure_root_coop_exists();
+		coop_shptr_t coop = ensure_root_coop_exists();
 
 		collect_and_modity_coop_info( coop );
 	}
@@ -170,7 +170,7 @@ deregistration_processor_t::second_stage()
 	}
 }
 
-coop_ref_t
+coop_shptr_t
 deregistration_processor_t::ensure_root_coop_exists() const
 {
 	// It is an error if the cooperation is not registered.
@@ -189,7 +189,7 @@ deregistration_processor_t::ensure_root_coop_exists() const
 
 void
 deregistration_processor_t::collect_and_modity_coop_info(
-	const coop_ref_t & root_coop )
+	const coop_shptr_t & root_coop )
 {
 	// Exceptions must lead to abort at this deregistration stage.
 	try
@@ -302,11 +302,11 @@ namespace
 			coop_usage_counter_guard_t( coop_t & coop )
 				:	m_coop( coop )
 			{
-				coop_t::increment_usage_count( coop );
+				coop_t::so_increment_usage_count( coop );
 			}
 			~coop_usage_counter_guard_t()
 			{
-				coop_t::decrement_usage_count( m_coop );
+				coop_t::so_decrement_usage_count( m_coop );
 			}
 
 		private :
@@ -321,7 +321,7 @@ coop_repository_basis_t::register_coop(
 {
 	/*!
 	 * \note For some important details see
-	 * coop_t::increment_usage_count().
+	 * coop_t::so_increment_usage_count().
 	 */
 
 	if( nullptr == coop_ptr.get() )
@@ -330,7 +330,7 @@ coop_repository_basis_t::register_coop(
 			"zero ptr to coop passed" );
 
 	// Cooperation object should life to the end of this routine.
-	coop_ref_t coop_ref( coop_ptr.release(), coop_deleter_t() );
+	coop_shptr_t coop_ref( coop_ptr.release(), coop_deleter_t() );
 
 	// Usage counter for cooperation should be incremented right now,
 	// and decremented at exit point.
@@ -513,7 +513,7 @@ coop_repository_basis_t::find_parent_coop_if_necessary(
 
 void
 coop_repository_basis_t::next_coop_reg_step__update_registered_coop_map(
-	const coop_ref_t & coop_ref,
+	const coop_shptr_t & coop_ref,
 	coop_t * parent_coop_ptr )
 {
 	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
@@ -535,7 +535,7 @@ coop_repository_basis_t::next_coop_reg_step__update_registered_coop_map(
 
 void
 coop_repository_basis_t::next_coop_reg_step__parent_child_relation(
-	const coop_ref_t & coop_ref,
+	const coop_shptr_t & coop_ref,
 	coop_t * parent_coop_ptr )
 {
 	auto do_actions = [&] {
@@ -570,7 +570,7 @@ coop_repository_basis_t::finaly_remove_cooperation_info(
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
 	{
-		coop_ref_t removed_coop = it->second;
+		coop_shptr_t removed_coop = it->second;
 		m_deregistered_coop.erase( it );
 		m_total_agent_count -= removed_coop->query_agent_count();
 
@@ -583,7 +583,7 @@ coop_repository_basis_t::finaly_remove_cooperation_info(
 							parent->query_coop_name(),
 							coop_name ) );
 
-			coop_t::decrement_usage_count( *parent );
+			coop_t::so_decrement_usage_count( *parent );
 		}
 
 		return final_remove_result_t{

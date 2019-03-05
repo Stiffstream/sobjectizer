@@ -65,6 +65,15 @@ class a_ring_member_t : public so_5::agent_t
 
 using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
 
+class case_setter_t;
+
+struct cleanup_caller_t
+	{
+		void operator()(case_setter_t *) noexcept;
+	};
+
+using case_setter_cleaner_t = std::unique_ptr<case_setter_t, cleanup_caller_t>;
+
 class case_setter_t
 	{
 	public :
@@ -74,10 +83,19 @@ class case_setter_t
 		virtual ~case_setter_t() {}
 
 		virtual void
-		tune_env_params( so_5::environment_params_t & ) = 0;
+		tune_env_params( so_5::environment_params_t & )
+			{
+				// Nothing to do by default.
+			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() = 0;
+		virtual case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) = 0;
+
+		virtual so_5::disp_binder_shptr_t
+		make_binder() = 0;
+
+		virtual void
+		cleanup() noexcept = 0;
 
 	protected :
 		const lock_factory_t &
@@ -95,103 +113,149 @@ class case_setter_t
 				return params;
 			}
 
+		auto make_cleaner() noexcept
+			{
+				return case_setter_cleaner_t{ this };
+			}
+
 	private :
 		const lock_factory_t m_lock_factory;
 	};
 
 using case_setter_unique_ptr_t = std::unique_ptr< case_setter_t >;
 
-class default_disp_setter_t : public case_setter_t
+void
+cleanup_caller_t::operator()( case_setter_t * setter ) noexcept
 	{
-	public :
-		default_disp_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		setter->cleanup();
+	}
 
-		virtual void
+class default_disp_setter_t final : public case_setter_t
+	{
+		so_5::disp_binder_shptr_t m_binder;
+
+	public :
+		using case_setter_t::case_setter_t;
+
+		void
 		tune_env_params( so_5::environment_params_t & params ) override
 			{
 				params.default_disp_params(
 					setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				return so_5::create_default_disp_binder();
+				m_binder = so_5::make_default_disp_binder( env );
+				return make_cleaner();
+			}
+
+		so_5::disp_binder_shptr_t
+		make_binder() override
+			{
+				return m_binder;
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_binder.reset();
 			}
 	};
 
-class one_thread_case_setter_t : public case_setter_t
+class one_thread_case_setter_t final : public case_setter_t
 	{
-	public :
-		one_thread_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::one_thread::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				params.add_named_dispatcher(
-					"one_thread",
-					so_5::disp::one_thread::create_disp(
-						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) )
-				);
+				m_disp = so_5::disp::one_thread::make_dispatcher(
+						env,
+						"one_thread",
+						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
+				return make_cleaner();
 			}
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
-				return so_5::disp::one_thread::create_disp_binder( "one_thread" );
+				return m_disp.binder();
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 	};
 
 class active_obj_case_setter_t : public case_setter_t
 	{
-	public :
-		active_obj_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::active_obj::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				params.add_named_dispatcher(
-					"active_obj",
-					so_5::disp::active_obj::create_disp(
-						setup_lock_factory( so_5::disp::active_obj::disp_params_t{} ) )
-				);
+				m_disp = so_5::disp::active_obj::make_dispatcher(
+						env,
+						"active_obj",
+						setup_lock_factory(
+								so_5::disp::active_obj::disp_params_t{} ) );
+
+				return make_cleaner();
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
-				return so_5::disp::active_obj::create_disp_binder( "active_obj" );
+				return m_disp.binder();
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 	};
 
 class active_group_case_setter_t : public case_setter_t
 	{
-	public :
-		active_group_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::active_group::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				params.add_named_dispatcher(
-					"active_group",
-					so_5::disp::active_group::create_disp(
-						setup_lock_factory( so_5::disp::active_group::disp_params_t{} ) )
-				);
+				m_disp = so_5::disp::active_group::make_dispatcher(
+						env,
+						"active_group",
+						setup_lock_factory(
+								so_5::disp::active_group::disp_params_t{} ) );
+
+				return make_cleaner();
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
 				auto id = ++m_id;
-				return so_5::disp::active_group::create_disp_binder(
-						"active_group", std::to_string(id) );
+				return m_disp.binder( std::to_string(id) );
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 
 	private :
@@ -200,75 +264,98 @@ class active_group_case_setter_t : public case_setter_t
 
 class prio_strictly_ordered_case_setter_t : public case_setter_t
 	{
-	public :
-		prio_strictly_ordered_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::prio_one_thread::strictly_ordered::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				using namespace so_5::disp::prio_one_thread::strictly_ordered;
-				params.add_named_dispatcher(
-					"prio::strictly_ordered",
-					create_disp( setup_lock_factory( disp_params_t{} ) )
-				);
+				namespace disp_ns = so_5::disp::prio_one_thread::strictly_ordered;
+				m_disp = disp_ns::make_dispatcher(
+						env,
+						"prio::strictly_ordered",
+						setup_lock_factory( disp_ns::disp_params_t{} ) );
+
+				return make_cleaner();
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
-				using namespace so_5::disp::prio_one_thread::strictly_ordered;
-				return create_disp_binder( "prio::strictly_ordered" );
+				return m_disp.binder();
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 	};
 
 class prio_quoted_round_robin_case_setter_t : public case_setter_t
 	{
-	public :
-		prio_quoted_round_robin_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::prio_one_thread::quoted_round_robin::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-				params.add_named_dispatcher(
-					"prio::quoted_round_robin",
-					create_disp( quotes_t{ 10 }, setup_lock_factory( disp_params_t{} ) )
-				);
+				namespace disp_ns = so_5::disp::prio_one_thread::quoted_round_robin;
+				m_disp = disp_ns::make_dispatcher(
+						env,
+						"prio::quoted_round_robin",
+						disp_ns::quotes_t{ 10 },
+						setup_lock_factory( disp_ns::disp_params_t{} ) );
+				
+				return make_cleaner();
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
-				using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-				return create_disp_binder( "prio::quoted_round_robin" );
+				return m_disp.binder();
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 	};
 
 class one_per_prio_case_setter_t : public case_setter_t
 	{
-	public :
-		one_per_prio_case_setter_t( lock_factory_t lock_factory )
-			:	case_setter_t{ std::move(lock_factory) }
-			{}
+		so_5::disp::prio_dedicated_threads::one_per_prio::dispatcher_handle_t m_disp;
 
-		virtual void
-		tune_env_params( so_5::environment_params_t & params ) override
+	public :
+		using case_setter_t::case_setter_t;
+
+		case_setter_cleaner_t
+		make_dispatcher( so_5::environment_t & env ) override
 			{
-				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-				params.add_named_dispatcher(
-					"prio::one_per_prio",
-					create_disp( setup_lock_factory( disp_params_t{} ) ) );
+				namespace disp_ns = so_5::disp::prio_dedicated_threads::one_per_prio;
+				m_disp = disp_ns::make_dispatcher(
+						env,
+						"prio::one_per_prio",
+						setup_lock_factory( disp_ns::disp_params_t{} ) );
+
+				return make_cleaner();
 			}
 
-		virtual so_5::disp_binder_unique_ptr_t
-		binder() override
+		so_5::disp_binder_shptr_t
+		make_binder() override
 			{
-				using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-				return create_disp_binder( "prio::one_per_prio" );
+				return m_disp.binder();
+			}
+
+		void
+		cleanup() noexcept override
+			{
+				m_disp.reset();
 			}
 	};
 
@@ -277,6 +364,8 @@ create_coop(
 	so_5::environment_t & env,
 	case_setter_t & setter )
 	{
+		auto setter_cleaner = setter.make_dispatcher( env );
+
 		so_5::mbox_t first_agent_mbox = env.introduce_coop(
 			[&]( so_5::coop_t & coop )
 			{
@@ -291,7 +380,7 @@ create_coop(
 				for( unsigned int i = 0; i != ring_size; ++i )
 					{
 						auto member = coop.make_agent_with_binder< a_ring_member_t >(
-								setter.binder() );
+								setter.make_binder() );
 						agents.push_back( member );
 						mboxes.push_back( member->so_direct_mbox() );
 					}
@@ -311,12 +400,11 @@ create_coop(
 using case_maker_t = std::function<
 	case_setter_unique_ptr_t(lock_factory_t) >;
 
-template< typename SETTER >
+template< typename Setter >
 case_maker_t maker()
 	{
 		return []( lock_factory_t lock_factory ) {
-			case_setter_unique_ptr_t setter{ new SETTER{ std::move(lock_factory) } };
-			return setter;
+			return std::make_unique< Setter >( std::move(lock_factory) );
 		};
 	}
 

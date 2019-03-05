@@ -13,7 +13,6 @@
 #pragma once
 
 #include <so_5/event_queue.hpp>
-#include <so_5/disp.hpp>
 
 #include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 #include <so_5/disp/reuse/thread_pool_stats.hpp>
@@ -34,31 +33,6 @@ namespace stats = so_5::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
-// ext_dispatcher_iface_t
-//
-/*!
- * \brief Type of extended dispatcher interface.
- *
- * This interface introduces dispatcher specific bind_agent and
- * unbind_agent methods.
- *
- * \since
- * v.5.5.18
- */
-template< typename Params >
-class ext_dispatcher_iface_t : public so_5::dispatcher_t
-	{
-	public :
-		//! Bind agent to the dispatcher.
-		virtual event_queue_t *
-		bind_agent( agent_ref_t agent, const Params & params ) = 0;
-
-		//! Unbind agent from the dispatcher.
-		virtual void
-		unbind_agent( agent_ref_t agent ) = 0;
-	};
-
-//
 // dispatcher_t
 //
 /*!
@@ -72,9 +46,8 @@ template<
 	typename Agent_Queue,
 	typename Params,
 	typename Adaptations >
-class dispatcher_t
-	:	public ext_dispatcher_iface_t< Params >
-	,	public tp_stats::stats_supplier_t
+class dispatcher_t final
+	:	public tp_stats::stats_supplier_t
 	{
 	private :
 		using agent_queue_ref_t = so_5::intrusive_ptr_t< Agent_Queue >;
@@ -209,6 +182,7 @@ class dispatcher_t
 
 		//! Constructor.
 		dispatcher_t(
+			const std::string_view name_base,
 			std::size_t thread_count,
 			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params )
 			:	m_queue{ queue_params, thread_count }
@@ -220,10 +194,15 @@ class dispatcher_t
 				for( std::size_t i = 0; i != m_thread_count; ++i )
 					m_threads.emplace_back( std::unique_ptr< Work_Thread >(
 								new Work_Thread( m_queue ) ) );
+
+				m_data_source.set_data_sources_name_base(
+						Adaptations::dispatcher_type_name(),
+						name_base,
+						this );
 			}
 
-		virtual void
-		start( environment_t & env ) override
+		void
+		start( environment_t & env )
 			{
 				m_data_source.start( outliving_mutable(env.stats_repository()) );
 
@@ -231,58 +210,47 @@ class dispatcher_t
 					t->start();
 			}
 
-		virtual void
-		shutdown() override
+		void
+		shutdown_then_wait() noexcept
 			{
 				m_queue.shutdown();
-			}
 
-		virtual void
-		wait() override
-			{
 				for( auto & t : m_threads )
 					t->join();
 
 				m_data_source.stop();
 			}
 
-		virtual void
-		set_data_sources_name_base(
-			const std::string & name_base ) override
+		//! Preallocate all necessary resources for a new agent.
+		void
+		preallocate_resources_for_agent(
+			agent_t & agent,
+			const Params & params )
 			{
-				m_data_source.set_data_sources_name_base(
-						Adaptations::dispatcher_type_name(),
-						name_base,
-						this );
-			}
-
-		//! Bind agent to the dispatcher.
-		virtual event_queue_t *
-		bind_agent( agent_ref_t agent, const Params & params ) override
-			{
-				std::lock_guard< std::mutex > lock( m_lock );
+				std::lock_guard lock{ m_lock };
 
 				if( Adaptations::is_individual_fifo( params ) )
-					return bind_agent_with_inidividual_fifo(
-							std::move( agent ), params );
-
-				return bind_agent_with_cooperation_fifo(
-						std::move( agent ), params );
+					bind_agent_with_inidividual_fifo(
+							agent_ref_t{ &agent }, params );
+				else
+					bind_agent_with_cooperation_fifo(
+							agent_ref_t{ &agent }, params );
 			}
 
-		//! Unbind agent from the dispatcher.
-		virtual void
-		unbind_agent( agent_ref_t agent ) override
+		//! Undo preallocation of resources for a new agent.
+		void
+		undo_preallocation_for_agent(
+			agent_t & agent ) noexcept
 			{
-				std::lock_guard< std::mutex > lock( m_lock );
+				std::lock_guard lock{ m_lock };
 
-				auto it = m_agents.find( agent.get() );
+				auto it = m_agents.find( &agent );
 				if( it != m_agents.end() )
 					{
 						if( it->second.cooperation_fifo() )
 							{
 								auto it_coop = m_cooperations.find(
-										agent->so_coop_name() );
+										agent.so_coop_name() );
 								if( it_coop != m_cooperations.end() &&
 										0 == --(it_coop->second.m_agents) )
 									{
@@ -302,6 +270,27 @@ class dispatcher_t
 
 						m_agents.erase( it );
 					}
+			}
+
+		//! Get resources allocated for an agent.
+		event_queue_t *
+		query_resources_for_agent( agent_t & agent ) noexcept
+			{
+				std::lock_guard lock{ m_lock };
+
+				auto it = m_agents.find( &agent );
+				if( it->second.cooperation_fifo() )
+					return m_cooperations.find( agent.so_coop_name() )->
+							second.m_queue.get();
+				else
+					return it->second.m_queue.get();
+			}
+
+		//! Unbind agent from the dispatcher.
+		void
+		unbind_agent( agent_t & agent ) noexcept
+			{
+				undo_preallocation_for_agent( agent );
 			}
 
 	private :
@@ -336,7 +325,7 @@ class dispatcher_t
 		tp_stats::data_source_t m_data_source;
 
 		//! Creation event queue for an agent with individual FIFO.
-		event_queue_t *
+		void
 		bind_agent_with_inidividual_fifo(
 			agent_ref_t agent,
 			const Params & params )
@@ -349,8 +338,6 @@ class dispatcher_t
 								queue,
 								m_data_source.prefix(),
 								agent.get() } );
-
-				return queue.get();
 			}
 
 		//! Creation event queue for an agent with individual FIFO.
@@ -358,7 +345,7 @@ class dispatcher_t
 		 * If the data for the agent's cooperation is not created yet
 		 * it will be created.
 		 */
-		event_queue_t *
+		void
 		bind_agent_with_cooperation_fifo(
 			agent_ref_t agent,
 			const Params & params )
@@ -387,8 +374,6 @@ class dispatcher_t
 							if( 0 == --(it->second.m_agents) )
 								m_cooperations.erase( it );
 						} );
-
-				return it->second.m_queue.get();
 			}
 
 		//! Helper method for creating event queue for agents/cooperations.
@@ -422,7 +407,7 @@ class dispatcher_t
 		supply( tp_stats::stats_consumer_t & consumer ) override
 			{
 				// Statics must be collected on locked object.
-				std::lock_guard< std::mutex > lock( m_lock );
+				std::lock_guard lock{ m_lock };
 
 				consumer.set_thread_count( m_threads.size() );
 
@@ -463,6 +448,4 @@ class dispatcher_t
 } /* namespace disp */
 
 } /* namespace so_5 */
-
-
 

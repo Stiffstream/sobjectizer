@@ -65,11 +65,11 @@ public :
 
 		// Create a ping-pong pair which will work on separate thread.
 		make_ping_pong_pair(
-			so_5::disp::one_thread::create_private_disp(
-					so_environment() )->binder() );
+			so_5::disp::one_thread::make_dispatcher(
+					so_environment() ).binder() );
 		// Create a ping-pong pair which will work on this work thread.
 		make_ping_pong_pair(
-			so_5::create_default_disp_binder() );
+			so_5::make_default_disp_binder( so_environment() ) );
 	}
 
 private :
@@ -78,7 +78,7 @@ private :
 		so_deregister_agent_coop_normally();
 	}
 
-	void make_ping_pong_pair( so_5::disp_binder_unique_ptr_t binder )
+	void make_ping_pong_pair( so_5::disp_binder_shptr_t binder )
 	{
 		// A mbox to be used by pinger and ponger agents.
 		const auto mbox = so_environment().create_mbox();

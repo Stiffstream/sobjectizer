@@ -415,10 +415,9 @@ class a_starter_stopper_t
 					m_workers.reserve( m_cfg.m_agents );
 					for( std::size_t i = 0; i != m_cfg.m_agents; ++i )
 						{
-							m_workers.push_back( new a_worker_t(
-									so_environment(),
-									m_subscr_storage_factory ) );
-							coop->add_agent( m_workers.back() );
+							m_workers.push_back(
+									coop->make_agent< a_worker_t >(
+											m_subscr_storage_factory ) );
 						}
 				}
 

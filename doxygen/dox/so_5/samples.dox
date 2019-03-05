@@ -135,15 +135,15 @@
  */
 
 /*!
- * \example so_5/private_dispatcher_hello/main.cpp
+ * \example so_5/dispatcher_hello/main.cpp
  */
 
 /*!
- * \example so_5/private_dispatcher_restarts/main.cpp
+ * \example so_5/dispatcher_restarts/main.cpp
  */
 
 /*!
- * \example so_5/private_dispatcher_for_children/main.cpp
+ * \example so_5/dispatcher_for_children/main.cpp
  */
 
 /*!

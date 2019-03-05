@@ -694,35 +694,31 @@ agent_t::so_environment() const
 
 void
 agent_t::so_bind_to_dispatcher(
-	event_queue_t & queue )
+	event_queue_t & queue ) noexcept
 {
-	// We don't expect exceptions here.
-	// And can't restore after them
-	so_5::details::invoke_noexcept_code( [&] {
-		// Since v.5.5.24 we should use event_queue_hook to get an
-		// actual event_queue.
-		auto * actual_queue = impl::internal_env_iface_t{ m_env }
-				.event_queue_on_bind( this, &queue );
+	// Since v.5.5.24 we should use event_queue_hook to get an
+	// actual event_queue.
+	auto * actual_queue = impl::internal_env_iface_t{ m_env }
+			.event_queue_on_bind( this, &queue );
 
-		std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-		// Cooperation usage counter should be incremented.
-		// It will be decremented during final agent event execution.
-		coop_t::increment_usage_count( *m_agent_coop );
+	// Cooperation usage counter should be incremented.
+	// It will be decremented during final agent event execution.
+	coop_t::so_increment_usage_count( *m_agent_coop );
 
-		// A starting demand must be sent first.
-		actual_queue->push(
-				execution_demand_t(
-						this,
-						message_limit::control_block_t::none(),
-						0,
-						typeid(void),
-						message_ref_t(),
-						&agent_t::demand_handler_on_start ) );
-		
-		// Only then pointer to the queue could be stored.
-		m_event_queue = actual_queue;
-	} );
+	// A starting demand must be sent first.
+	actual_queue->push(
+			execution_demand_t(
+					this,
+					message_limit::control_block_t::none(),
+					0,
+					typeid(void),
+					message_ref_t(),
+					&agent_t::demand_handler_on_start ) );
+	
+	// Only then pointer to the queue could be stored.
+	m_event_queue = actual_queue;
 }
 
 execution_hint_t
@@ -1162,7 +1158,7 @@ agent_t::demand_handler_on_finish(
 	}
 
 	// Cooperation should receive notification about agent deregistration.
-	coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
+	coop_t::so_decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 demand_handler_pfn_t
@@ -1330,8 +1326,14 @@ agent_t::ensure_operation_is_on_working_thread(
 
 		s << operation_name
 			<< ": operation is enabled only on agent's working thread; "
-			<< "working_thread_id: " << m_working_thread_id
-			<< ", current_thread_id: " << so_5::query_current_thread_id();
+			<< "working_thread_id: ";
+
+		if( m_working_thread_id == null_current_thread_id() )
+			s << "<NONE>";
+		else
+			s << m_working_thread_id;
+
+		s << ", current_thread_id: " << so_5::query_current_thread_id();
 
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_operation_enabled_only_on_agent_working_thread,

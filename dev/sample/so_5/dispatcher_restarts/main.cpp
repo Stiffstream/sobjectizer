@@ -1,6 +1,6 @@
 /*
  * Demonstration of creation and recreation of big amount of
- * children cooperations with private dispatchers.
+ * children cooperations with dispatchers.
  * If dispatchers are not destroyed with cooperation then
  * the example will earn all the system resources very quickly.
  */
@@ -98,7 +98,7 @@ private :
 	void create_new_child_coop()
 	{
 		// The cooperation will use active_obj dispatcher.
-		auto disp = so_5::disp::active_obj::create_private_disp(
+		auto disp = so_5::disp::active_obj::make_dispatcher(
 				so_environment() );
 		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
@@ -106,8 +106,8 @@ private :
 				// Name for the cooperation will be generated automatically.
 				so_5::autoname,
 				// The main dispatcher for the new cooperation is
-				// the private active_obj dispatcher.
-				disp->binder() );
+				// active_obj dispatcher.
+				disp.binder() );
 		// We should receive notification about complete
 		// child cooperation deregistration.
 		coop->add_dereg_notificator(

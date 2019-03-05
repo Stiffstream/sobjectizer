@@ -112,9 +112,8 @@ run_test()
 	so_5::launch( [&]( so_5::environment_t & env ) {
 			env.introduce_coop( [&]( so_5::coop_t & coop ) {
 					coop.make_agent_with_binder< test_case_t >(
-							so_5::disp::adv_thread_pool::create_private_disp(
-									env, 6 )->binder(
-											so_5::disp::adv_thread_pool::bind_params_t{} ) );
+							so_5::disp::adv_thread_pool::make_dispatcher(
+									env, 6 ).binder() );
 				} );
 		},
 		[]( so_5::environment_params_t & params ) {

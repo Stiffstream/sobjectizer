@@ -90,7 +90,7 @@ init( so_5::environment_t & env )
 	} );
 
 	using namespace so_5::disp::prio_dedicated_threads::one_per_prio;
-	env.introduce_coop( create_private_disp( env )->binder(),
+	env.introduce_coop( make_dispatcher( env ).binder(),
 		[&]( so_5::coop_t & coop )
 		{
 			so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {

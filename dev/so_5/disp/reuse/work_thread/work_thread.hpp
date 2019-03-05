@@ -175,7 +175,7 @@ private :
 	several concurrent threads.
 */
 template< typename Impl >
-class queue_template_t
+class queue_template_t final
 	:	public event_queue_t
 	,	public Impl
 {
@@ -544,7 +544,7 @@ private :
  * v.5.5.18
  */
 template< typename Impl >
-class work_thread_template_t : public Impl
+class work_thread_template_t final : public Impl
 {
 public :
 	work_thread_template_t(

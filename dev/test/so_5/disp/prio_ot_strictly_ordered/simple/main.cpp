@@ -48,21 +48,15 @@ main()
 				so_5::launch(
 					[]( so_5::environment_t & env )
 					{
+						using namespace so_5::disp::prio_one_thread::strictly_ordered;
+
 						env.register_agent_as_coop(
 								"test",
-								new a_test_t( env ),
-								so_5::disp::prio_one_thread::strictly_ordered::create_disp_binder(
-										"prio_dispatcher" ) );
-					},
-					[]( so_5::environment_params_t & params )
-					{
-						params.add_named_dispatcher(
-								"prio_dispatcher",
-								so_5::disp::prio_one_thread::strictly_ordered::create_disp() );
+								env.make_agent< a_test_t >(),
+								make_dispatcher( env ).binder() );
 					} );
 			},
-			20,
-			"simple prio_one_thread::strictly_ordered dispatcher test" );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{

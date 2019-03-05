@@ -127,7 +127,7 @@ init(
 	{
 		auto coop = env.create_coop(
 				"test_coop",
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 		so_5::intrusive_ptr_t< msg_param > msg( new msg_param() );
 
@@ -140,19 +140,17 @@ init(
 				if( i+1 != SVC_COUNT )
 					next_svc_mbox = env.create_mbox();
 
-				coop->add_agent(
-						new a_service_t(
-								env,
-								current_svc_mbox,
-								next_svc_mbox,
-								msg.get() ) );
+				coop->make_agent< a_service_t >(
+						current_svc_mbox,
+						next_svc_mbox,
+						msg.get() );
 
 				current_svc_mbox = next_svc_mbox;
 				next_svc_mbox = so_5::mbox_t();
 			}
 
-		coop->add_agent( new a_client_t( env, svc_mbox, msg ) );
-		coop->add_agent( new a_time_sentinel_t( env ) );
+		coop->make_agent< a_client_t >( svc_mbox, msg );
+		coop->make_agent< a_time_sentinel_t >();
 
 		env.register_coop( std::move( coop ) );
 	}
@@ -162,14 +160,7 @@ main()
 	{
 		try
 			{
-				so_5::launch(
-					&init,
-					[]( so_5::environment_params_t & params )
-					{
-						params.add_named_dispatcher(
-								"active_obj",
-								so_5::disp::active_obj::create_disp() );
-					} );
+				so_5::launch( &init );
 			}
 		catch( const std::exception & ex )
 			{

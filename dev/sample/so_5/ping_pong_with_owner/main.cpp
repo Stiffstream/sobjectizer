@@ -152,8 +152,8 @@ public :
 				// working threads.
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
-				so_5::disp::active_obj::create_private_disp(
-						so_environment() )->binder(),
+				so_5::disp::active_obj::make_dispatcher(
+						so_environment() ).binder(),
 				// Lambda for tuning cooperation object.
 				[this]( so_5::coop_t & coop ) {
 					// Filling the child cooperation.

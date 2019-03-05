@@ -47,7 +47,7 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
  *
  * \brief A single execution demand.
  */
-struct demand_t : public execution_demand_t
+struct demand_t final : public execution_demand_t
 	{
 		//! Next demand in the queue.
 		demand_t * m_next = nullptr;

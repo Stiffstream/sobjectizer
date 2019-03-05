@@ -216,7 +216,7 @@ init( so_5::environment_t & env )
 			using namespace so_5::disp::one_thread;
 
 			auto service = coop.make_agent_with_binder< a_service_t >(
-					create_private_disp( coop.environment() )->binder() );
+					make_dispatcher( coop.environment() ).binder() );
 
 			coop.make_agent< a_test_via_mbox_t >( service->so_direct_mbox() );
 		} );
@@ -225,7 +225,7 @@ init( so_5::environment_t & env )
 			using namespace so_5::disp::one_thread;
 
 			auto service = coop.make_agent_with_binder< a_service_t >(
-					create_private_disp( coop.environment() )->binder() );
+					make_dispatcher( coop.environment() ).binder() );
 
 			coop.make_agent< a_test_via_direct_mbox_t >( *service );
 		} );

@@ -78,13 +78,15 @@ init(
 		auto mbox = env.create_mbox();
 
 		auto coop = env.create_coop( "benchmark",
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
+				so_5::disp::active_obj::make_dispatcher(
+						env, "active_obj" ).binder() );
 		
 		for( unsigned int i = 0; i != agent_count; ++i )
-			coop->add_agent( new a_sender_t( env, mbox, send_count ) );
+			coop->make_agent< a_sender_t >( mbox, send_count );
 
-		coop->add_agent( new a_shutdowner_t( env, mbox, agent_count ),
-				so_5::make_default_disp_binder( env ) );
+		coop->make_agent_with_binder< a_shutdowner_t >(
+				so_5::make_default_disp_binder( env ),
+				mbox, agent_count );
 
 		env.register_coop( std::move( coop ) );
 	}
@@ -127,11 +129,6 @@ main( int argc, char ** argv )
 			[agent_count, send_count]( so_5::environment_t & env )
 			{
 				init( env, agent_count, send_count );
-			},
-			[]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher( "active_obj",
-					so_5::disp::active_obj::create_disp() );
 			} );
 
 		benchmark.finish_and_show_stats(

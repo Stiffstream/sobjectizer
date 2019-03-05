@@ -427,8 +427,8 @@ class request_scheduler : public so_5::agent_t
 				// It will use prio_dedicated_threads::one_per_prio dispacther.
 				so_5::introduce_child_coop(
 					*this,
-					so_5::disp::prio_dedicated_threads::one_per_prio::create_private_disp(
-							so_environment() )->binder(),
+					so_5::disp::prio_dedicated_threads::one_per_prio::make_dispatcher(
+							so_environment() ).binder(),
 					[this]( so_5::coop_t & coop )
 					{
 						so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
@@ -567,16 +567,16 @@ void init( so_5::environment_t & env )
 
 				// A special dispatcher.
 				namespace disp_ns = so_5::disp::prio_one_thread::strictly_ordered;
-				auto prio_disp = disp_ns::create_private_disp( coop.environment() );
+				auto prio_disp = disp_ns::make_dispatcher( coop.environment() );
 
 				// Common data for both agents. Will be controlled by the coop.
 				auto data = coop.take_under_control(
-						new request_scheduling_data{} );
+						std::make_unique< request_scheduling_data >() );
 
 				coop.make_agent_with_binder< request_scheduler >(
-						prio_disp->binder(), mbox, *data );
+						prio_disp.binder(), mbox, *data );
 				coop.make_agent_with_binder< request_acceptor >(
-						prio_disp->binder(), mbox, *data );
+						prio_disp.binder(), mbox, *data );
 
 				// Requests generator.
 				coop.make_agent< request_generator >( mbox );

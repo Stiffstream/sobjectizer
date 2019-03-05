@@ -15,7 +15,7 @@
 #include <so_5/environment_infrastructure.hpp>
 #include <so_5/mchain.hpp>
 
-#include <so_5/disp/one_thread/params.hpp>
+#include <so_5/disp/one_thread/pub.hpp>
 
 #include <so_5/impl/coop_repository_basis.hpp>
 
@@ -213,23 +213,41 @@ class mt_env_infrastructure_t
 		virtual ::so_5::stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual dispatcher_t &
-		query_default_dispatcher() override;
-
 		virtual coop_repository_stats_t
 		query_coop_repository_stats() override;
 
 		virtual timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_unique_ptr_t
+		virtual disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :
 		environment_t & m_env;
 
+		//! Parameters for the default dispatcher.
+		/*!
+		 * \note
+		 * There wasn't such attribute in previous versions of SObjectizer-5
+		 * because creation and running of the default dispatcher was separated.
+		 * In v.5.6.0 the default dispatcher is created inside lauch() and
+		 * we have to store parameters for the default dispatcher somewhere.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		const disp::one_thread::disp_params_t m_default_dispatcher_params;
+
 		//! Default dispatcher.
-		dispatcher_unique_ptr_t m_default_dispatcher;
+		/*!
+		 * \attention
+		 * The actual value is created only in
+		 * run_default_dispatcher_and_go_further() function. And this
+		 * value is dropped after return from that function.
+		 * It means that default dispatcher exists only while
+		 * lauch() is running.
+		 */
+		disp::one_thread::dispatcher_handle_t m_default_dispatcher;
 
 		//! Timer thread to be used by the environment.
 		timer_thread_unique_ptr_t m_timer_thread;

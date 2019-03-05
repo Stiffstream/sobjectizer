@@ -65,7 +65,8 @@ class a_vector_summator_t final : public so_5::agent_t
 					};
 				so_5::introduce_child_coop(
 						*this,
-						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
+						so_5::disp::one_thread::make_dispatcher(
+								so_environment() ).binder(),
 						[&]( so_5::coop_t & coop )
 						{
 							coop.make_agent< a_summator_t >(
@@ -147,7 +148,8 @@ class a_runner_t : public so_5::agent_t
 			{
 				so_5::introduce_child_coop(
 					*this,
-					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
+					so_5::disp::one_thread::make_dispatcher(
+							so_environment() ).binder(),
 					[this]( so_5::coop_t & coop ) {
 						coop.make_agent< a_vector_summator_t >( m_summator_mbox );
 					} );
@@ -186,16 +188,11 @@ int main( int argc, char ** argv )
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
 							env.introduce_coop(
-									so_5::disp::active_obj::create_disp_binder(
-											"active_obj" ),
+									so_5::disp::one_thread::make_dispatcher(
+											env ).binder(),
 									[&]( so_5::coop_t & coop ) {
 										coop.make_agent< a_runner_t >( ITERATIONS );
 									} );
-						},
-						[]( so_5::environment_params_t & p ) {
-							p.add_named_dispatcher(
-								"active_obj",
-								so_5::disp::active_obj::create_disp() );
 						} );
 			}
 		catch( const std::exception & ex )

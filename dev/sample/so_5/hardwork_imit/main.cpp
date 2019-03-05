@@ -106,7 +106,7 @@ class a_manager_t : public so_5::agent_t
 so_5::coop_unique_ptr_t
 create_test_coop(
 	so_5::environment_t & env,
-	so_5::disp_binder_unique_ptr_t disp_binder,
+	so_5::disp_binder_shptr_t disp_binder,
 	unsigned int requests,
 	unsigned int milliseconds )
 {
@@ -159,56 +159,47 @@ create_test_coop(
 	return c;
 }
 
-struct dispatcher_factories_t
-{
-	std::function< so_5::dispatcher_unique_ptr_t() > m_disp_factory;
-	std::function< so_5::disp_binder_unique_ptr_t() > m_binder_factory;
-};
+using dispatcher_factory_t = std::function<
+		so_5::disp_binder_shptr_t( so_5::environment_t & ) >;
 
-dispatcher_factories_t
-make_dispatcher_factories(
-	const std::string & type,
-	const std::string & name )
+dispatcher_factory_t
+make_dispatcher_factory( std::string_view type )
 {
-	dispatcher_factories_t res;
+	dispatcher_factory_t res;
 
 	if( "active_obj" == type )
 	{
 		using namespace so_5::disp::active_obj;
-		res.m_disp_factory = [] { return create_disp(); };
-		res.m_binder_factory = [name]() { return create_disp_binder( name ); };
+		res = []( so_5::environment_t & env ) {
+			return make_dispatcher( env ).binder();
+		};
 	}
 	else if( "thread_pool" == type )
 	{
 		using namespace so_5::disp::thread_pool;
-		res.m_disp_factory = []() { return create_disp(); };
-		res.m_binder_factory = 
-			[name]() {
-				return create_disp_binder(
-						name,
-						[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
-			};
+		res = []( so_5::environment_t & env ) {
+			return make_dispatcher( env ).binder(
+					[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
+		};
 	}
 	else if( "adv_thread_pool" == type )
 	{
 		using namespace so_5::disp::adv_thread_pool;
-		res.m_disp_factory = []() { return create_disp(); };
-		res.m_binder_factory = 
-			[name]() {
-				return create_disp_binder(
-						name,
-						[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
-			};
+		res = []( so_5::environment_t & env ) {
+			return make_dispatcher( env ).binder(
+					[]( bind_params_t & p ) { p.fifo( fifo_t::individual ); } );
+		};
 	}
 	else if( "one_thread" == type )
 	{
 		using namespace so_5::disp::one_thread;
-
-		res.m_disp_factory = [] { return create_disp(); };
-		res.m_binder_factory = [name]() { return create_disp_binder( name ); };
+		res = []( so_5::environment_t & env ) {
+			return make_dispatcher( env ).binder();
+		};
 	}
 	else
-		throw std::runtime_error( "unknown type of dispatcher: " + type );
+		throw std::runtime_error(
+				"unknown type of dispatcher: " + std::string{ type } );
 
 
 	return res;
@@ -216,14 +207,10 @@ make_dispatcher_factories(
 
 struct config_t
 {
-	dispatcher_factories_t m_factories;
+	dispatcher_factory_t m_factory;
 	unsigned int m_requests;
 	unsigned int m_milliseconds;
-
-	static const std::string dispatcher_name;
 };
-
-const std::string config_t::dispatcher_name = "dispatcher";
 
 config_t
 parse_params( int argc, char ** argv )
@@ -234,7 +221,7 @@ parse_params( int argc, char ** argv )
 				"sample.so_5.hardwork_imit <disp_type> [requests] [worktime_ms]" );
 
 	config_t r {
-			make_dispatcher_factories( argv[ 1 ], config_t::dispatcher_name ),
+			make_dispatcher_factory( argv[ 1 ] ),
 			200,
 			15
 		};
@@ -259,20 +246,14 @@ int main( int argc, char ** argv )
 		const config_t config = parse_params( argc, argv );
 
 		so_5::launch(
-			[config]( so_5::environment_t & env )
+			[&config]( so_5::environment_t & env )
 			{
 				env.register_coop(
 						create_test_coop(
 								env,
-								config.m_factories.m_binder_factory(),
+								config.m_factory( env ),
 								config.m_requests,
 								config.m_milliseconds ) );
-			},
-			[config]( so_5::environment_params_t & params )
-			{
-				params.add_named_dispatcher(
-						config_t::dispatcher_name,
-						config.m_factories.m_disp_factory() );
 			} );
 
 		return 0;
