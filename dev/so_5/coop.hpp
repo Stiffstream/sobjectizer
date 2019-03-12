@@ -52,6 +52,8 @@ using coop_shptr_t = std::shared_ptr< coop_t >;
  */
 class SO_5_NODISCARD coop_handle_t
 	{
+		friend class so_5::coop_t;
+
 		//! ID of cooperation.
 		coop_id_t m_id;
 
@@ -414,6 +416,18 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 		static void
 		destroy( coop_t * coop ) { delete coop; }
+
+		/*!
+		 * \brief Get handle for this coop.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		coop_handle_t
+		handle() noexcept
+			{
+				return coop_handle_t{ m_id, shared_from_this() };
+			}
 
 		/*!
 		 * \brief Get the ID of coop.

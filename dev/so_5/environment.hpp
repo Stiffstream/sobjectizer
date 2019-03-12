@@ -730,7 +730,7 @@ class SO_5_TYPE environment_params_t
  *
  * \section so_env__coop_methods Methods for working with cooperations.
  *
- * Cooperations can be created by environment_t::create_coop() methods.
+ * Cooperations can be created by environment_t::make_coop() methods.
  *
  * The method environment_t::register_coop() should be used for the 
  * cooperation registration.
@@ -878,27 +878,18 @@ class SO_5_TYPE environment_t
 
 		//! Create a cooperation.
 		/*!
-		 * \return A new cooperation with \a name. This cooperation
+		 * \return A new cooperation. This cooperation
 		 * will use default dispatcher binders.
-		 */
-		coop_unique_ptr_t
-		create_coop(
-			//! A new cooperation name.
-			nonempty_name_t name );
-
-		//! Create a cooperation with automatically generated name.
-		/*!
-		 * \since
-		 * v.5.5.1
 		 *
-		 * \return A new cooperation with automatically generated name. This
-		 * cooperation will use default dispatcher binders.
+		 * \since
+		 * v.5.6.0
 		 */
+		SO_5_NODISCARD
 		coop_unique_ptr_t
-		create_coop(
-			autoname_indicator_t indicator() );
+		make_coop();
 
-		//! Create a cooperation.
+//FIXME: example in the comment should be updated.
+		//! Create a cooperation with specified dispatcher binder.
 		/*!
 		 * A binder \a disp_binder will be used for binding cooperation
 		 * agents to the dispatcher. This binder will be default binder for
@@ -916,29 +907,51 @@ class SO_5_TYPE environment_t
 			// "some_active_group".
 			coop->make_agent< a_some_agent_t >();
 			\endcode
-		 */
-		coop_unique_ptr_t
-		create_coop(
-			//! A new cooperation name.
-			nonempty_name_t name,
-			//! A default binder for this cooperation.
-			disp_binder_shptr_t disp_binder );
-
-		//! Create a cooperation with automatically generated name.
-		/*!
-		 * \since
-		 * v.5.5.1
 		 *
-		 * \return A cooperation with automatically generated name and
-		 * \a disp_binder as the default dispatcher binder.
+		 * \since
+		 * v.5.6.0
 		 */
+		SO_5_NODISCARD
 		coop_unique_ptr_t
-		create_coop(
-			//! A new cooperation name.
-			autoname_indicator_t indicator(),
+		make_coop(
 			//! A default binder for this cooperation.
 			disp_binder_shptr_t disp_binder );
 
+//FIXME: an example should be provided in the comment!
+		/*!
+		 * \brief Create a new cooperation that will be a child for
+		 * specified parent coop.
+		 *
+		 * The new cooperation will use the default dispatcher binder.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		SO_5_NODISCARD
+		coop_unique_ptr_t
+		make_coop(
+			//! Parent coop.
+			coop_handle_t parent );
+
+//FIXME: an example should be provided in the comment!
+		/*!
+		 * \brief Create a new cooperation that will be a child for
+		 * specified parent coop.
+		 *
+		 * The new cooperation will use the specified dispatcher binder.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		SO_5_NODISCARD
+		coop_unique_ptr_t
+		make_coop(
+			//! Parent coop.
+			coop_handle_t parent,
+			//! A default binder for this cooperation.
+			disp_binder_shptr_t disp_binder );
+
+//FIXME: maybe SO_5_NODISCARD should be used here?
 		//! Register a cooperation.
 		/*!
 		 * The cooperation registration includes following steps:
@@ -953,62 +966,35 @@ class SO_5_TYPE environment_t
 		 * If all these actions are successful then the cooperation is
 		 * marked as registered.
 		 */
-		void
+		coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.
 			coop_unique_ptr_t agent_coop );
 
+//FIXME: maybe SO_5_NODISCARD should be used here?
 		/*!
 		 * \brief Register single agent as a cooperation.
 		 *
-		 * \since
-		 * v.5.2.1
-		 *
 		 * It is just a helper methods for convience.
 		 *
 		 * Usage sample:
 		 * \code
 		   std::unique_ptr< my_agent > a( new my_agent(...) );
-		   so_env.register_agent_as_coop( "sample_coop", std::move(a) );
+		   so_env.register_agent_as_coop( std::move(a) );
 		 * \endcode
 		 */
 		template< class A >
-		void
+		coop_handle_t
 		register_agent_as_coop(
-			nonempty_name_t coop_name,
 			std::unique_ptr< A > agent )
 		{
-			auto coop = create_coop( std::move(coop_name) );
+			auto coop = make_coop();
 			coop->add_agent( std::move( agent ) );
-			register_coop( std::move( coop ) );
+			return register_coop( std::move( coop ) );
 		}
 
-		/*!
-		 * \brief Register single agent as a cooperation with automatically
-		 * generated name.
-		 *
-		 * \since
-		 * v.5.5.1.
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   std::unique_ptr< my_agent > a( new my_agent(...) );
-		   so_env.register_agent_as_coop( so_5::autoname, std::move(a) );
-		 * \endcode
-		 */
-		template< class A >
-		void
-		register_agent_as_coop(
-			autoname_indicator_t indicator(),
-			std::unique_ptr< A > agent )
-		{
-			auto coop = create_coop( indicator );
-			coop->add_agent( std::move( agent ) );
-			register_coop( std::move( coop ) );
-		}
-
+//FIXME: maybe SO_5_NODISCARD should be used here?
+//FIXME: fix example in the comment.
 		/*!
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
@@ -1030,50 +1016,17 @@ class SO_5_TYPE environment_t
 		 * \endcode
 		 */
 		template< class A >
-		void
+		coop_handle_t
 		register_agent_as_coop(
-			nonempty_name_t coop_name,
 			std::unique_ptr< A > agent,
 			disp_binder_shptr_t disp_binder )
 		{
-			auto coop = create_coop(
-					std::move( coop_name ), std::move( disp_binder ) );
+			auto coop = make_coop( std::move( disp_binder ) );
 			coop->add_agent( std::move( agent ) );
-			register_coop( std::move( coop ) );
+			return register_coop( std::move( coop ) );
 		}
 
-		/*!
-		 * \brief Register single agent as a cooperation with specified
-		 * dispatcher binder and automatically generated name.
-		 *
-		 * \since
-		 * v.5.5.1
-		 *
-		 * It is just a helper methods for convience.
-		 *
-		 * Usage sample:
-		 * \code
-		   std::unique_ptr< my_agent > a( new my_agent(...) );
-		   so_env.register_agent_as_coop(
-					so_5::autoname,
-		   		std::move(a),
-		   		so_5::disp::active_group::create_disp_binder(
-		   				"active_group",
-		   				"some_active_group" ) );
-		 * \endcode
-		 */
-		template< class A >
-		void
-		register_agent_as_coop(
-			autoname_indicator_t indicator(),
-			std::unique_ptr< A > agent,
-			disp_binder_shptr_t disp_binder )
-		{
-			auto coop = create_coop( indicator, std::move( disp_binder ) );
-			coop->add_agent( std::move( agent ) );
-			register_coop( std::move( coop ) );
-		}
-
+//FIXME: check the correctness of the comment!
 		//! Deregister the cooperation.
 		/*!
 		 * Method searches the cooperation within registered cooperations and if
@@ -1096,8 +1049,8 @@ class SO_5_TYPE environment_t
 		 */
 		void
 		deregister_coop(
-			//! Name of the cooperation to be registered.
-			nonempty_name_t name,
+			//! The coop to be deregistered.
+			coop_handle_t coop,
 			//! Deregistration reason.
 			int reason );
 		/*!
@@ -1646,22 +1599,23 @@ class introduce_coop_helper_t
 private :
 	//! Environment for creation of cooperation.
 	environment_t & m_env;
-	//! Optional name of parent cooperation.
-	/*!
-	 * Value nullptr means that there is no parent.
-	 */
-	const std::string * m_parent_coop_name;
+	//! Optional parent coop.
+	coop_handle_t m_parent;
 
-	template< typename Coop_Name, typename Lambda >
+	template< typename Lambda >
 	decltype(auto)
 	build_and_register_coop(
-		Coop_Name && name,
 		disp_binder_shptr_t binder,
 		Lambda && lambda )
 	{
-		auto coop = m_env.create_coop( name, std::move( binder ) );
-		if( m_parent_coop_name )
-			coop->set_parent_coop_name( *m_parent_coop_name );
+		const auto coop_maker = [this, b = std::move(binder)] {
+			if( m_parent )
+				return m_env.make_coop( m_parent, std::move(b) );
+			else
+				return m_env.make_coop( std::move(b) );
+		};
+
+		auto coop = coop_maker();
 
 		using return_type = std::invoke_result_t<Lambda, so_5::coop_t &>;
 
@@ -1689,20 +1643,18 @@ private :
 public :
 	//! Constructor for the case of creation a cooperation without parent.
 	introduce_coop_helper_t( environment_t & env )
-		:	m_env( env )
-		,	m_parent_coop_name( nullptr )
+		:	m_env{ env }
 	{}
-	//! Constructor for the case of creation of child cooperation.
+	//! Constructor for the case of creation a cooperation with parent.
 	introduce_coop_helper_t(
 		environment_t & env,
-		const std::string & parent_coop_name )
-		:	m_env( env )
-		,	m_parent_coop_name( &parent_coop_name )
+		coop_handle_t parent )
+		:	m_env{ env }
+		,	m_parent{ std::move(parent) }
 	{}
 
 	/*!
 	 * For the case:
-	 * - name autogenerated;
 	 * - default dispatcher is used.
 	 */
 	template< typename L >
@@ -1710,29 +1662,12 @@ public :
 	introduce( L && lambda )
 	{
 		return build_and_register_coop(
-				so_5::autoname,
 				m_env.so_make_default_disp_binder(),
 				std::forward< L >( lambda ) );
 	}
 
 	/*!
 	 * For the case:
-	 * - name autogenerated;
-	 * - default dispatcher is used.
-	 */
-	template< typename L >
-	decltype(auto)
-	introduce( autoname_indicator_t(), L && lambda )
-	{
-		return build_and_register_coop(
-				so_5::autoname,
-				m_env.so_make_default_disp_binder(),
-				std::forward< L >( lambda ) );
-	}
-
-	/*!
-	 * For the case:
-	 * - name autogenerated;
 	 * - dispatcher builder is specified.
 	 */
 	template< typename L >
@@ -1740,62 +1675,9 @@ public :
 	introduce( disp_binder_shptr_t binder, L && lambda )
 	{
 		return build_and_register_coop(
-				so_5::autoname,
 				std::move( binder ),
 				std::forward< L >( lambda ) );
 	}
-
-	/*!
-	 * For the case:
-	 * - name autogenerated;
-	 * - dispatcher builder is specified.
-	 */
-	template< typename L >
-	decltype(auto)
-	introduce(
-		autoname_indicator_t(),
-		disp_binder_shptr_t binder,
-		L && lambda )
-	{
-		return build_and_register_coop(
-				so_5::autoname,
-				std::move( binder ),
-				std::forward< L >( lambda ) );
-	}
-
-	/*!
-	 * For the case:
-	 * - name explicitely specified;
-	 * - default dispatcher is used.
-	 */
-	template< typename L >
-	decltype(auto)
-	introduce( const std::string & name, L && lambda )
-	{
-		return build_and_register_coop(
-				name,
-				m_env.so_make_default_disp_binder(),
-				std::forward< L >( lambda ) );
-	}
-
-	/*!
-	 * For the case:
-	 * - name explicitely specified;
-	 * - dispatcher builder is specified.
-	 */
-	template< typename L >
-	decltype(auto)
-	introduce(
-		const std::string & name,
-		disp_binder_shptr_t binder,
-		L && lambda )
-	{
-		return build_and_register_coop(
-				name,
-				std::move( binder ),
-				std::forward< L >( lambda ) );
-	}
-
 };
 
 } /* namespace details */
@@ -1839,13 +1721,14 @@ create_child_coop(
 	//! Arguments for the environment_t::create_coop() method.
 	Args&&... args )
 {
-	auto coop = owner.so_environment().create_coop(
+//FIXME: coop handle from agent should be obtained and used as parent coop.
+	auto coop = owner.so_environment().make_coop(
 			std::forward< Args >(args)... );
-	coop->set_parent_coop_name( owner.so_coop_name() );
 
 	return coop;
 }
 
+//FIXME: check correctness of example in the comment!
 /*!
  * \brief A simple way for creating child cooperation when there is
  * a reference to the parent cooperation object.
@@ -1870,15 +1753,13 @@ template< typename... Args >
 coop_unique_ptr_t
 create_child_coop(
 	//! Parent cooperation.
-	const coop_t & parent,
+	coop_handle_t parent,
 	//! Arguments for the environment_t::create_coop() method.
 	Args&&... args )
 {
-	auto coop = parent.environment().create_coop(
+	return parent.to_shptr()->environment().make_coop(
+			parent,
 			std::forward< Args >(args)... );
-	coop->set_parent_coop_name( parent.query_coop_name() );
-
-	return coop;
 }
 
 /*!
@@ -1922,6 +1803,7 @@ introduce_child_coop(
 			}.introduce( std::forward< Args >(args)... );
 }
 
+//FIXME: check correctness of example in the comment!
 /*!
  * \brief A simple way for creating and registering child cooperation
  * when there is a reference to parent coop.
@@ -1953,13 +1835,13 @@ template< typename... Args >
 decltype(auto)
 introduce_child_coop(
 	//! Parent cooperation.
-	const coop_t & parent,
+	coop_handle_t parent,
 	//! Arguments for the environment_t::introduce_coop() method.
 	Args&&... args )
 {
 	return details::introduce_coop_helper_t{
-					parent.environment(),
-					parent.query_coop_name()
+					parent.to_shptr()->environment(),
+					parent
 			}.introduce( std::forward< Args >(args)... );
 }
 
