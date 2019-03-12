@@ -6,7 +6,7 @@
 
 #include <so_5/exception.hpp>
 
-//#include <so_5/environment.hpp>
+#include <so_5/environment.hpp>
 
 //#include <so_5/impl/internal_env_iface.hpp>
 
@@ -130,6 +130,23 @@ coop_impl_t::add_dereg_notificator(
 		do_add_notificator_to(
 				coop.m_dereg_notificators,
 				std::move(notificator) );
+	}
+
+SO_5_NODISCARD
+exception_reaction_t
+coop_impl_t::exception_reaction(
+	const coop_t & coop ) noexcept
+	{
+		if( inherit_exception_reaction == coop.m_exception_reaction )
+			{
+				const auto parent = coop.m_parent.to_shptr_noexcept();
+				if( parent )
+					return parent->exception_reaction();
+				else
+					return coop.environment().exception_reaction();
+			}
+
+		return coop.m_exception_reaction;
 	}
 
 } /* namespace impl */

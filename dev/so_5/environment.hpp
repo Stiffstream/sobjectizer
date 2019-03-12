@@ -1799,7 +1799,7 @@ introduce_child_coop(
 {
 	return details::introduce_coop_helper_t{
 					owner.so_environment(),
-					owner.so_coop_name()
+					owner.so_coop()
 			}.introduce( std::forward< Args >(args)... );
 }
 

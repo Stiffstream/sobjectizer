@@ -545,17 +545,6 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 	return e != std::find( begin(path), e, &state_to_check );
 }
 
-const std::string &
-agent_t::so_coop_name() const
-{
-	if( nullptr == m_agent_coop )
-		throw exception_t(
-			"agent isn't bound to cooperation yet",
-			rc_agent_has_no_cooperation );
-
-	return m_agent_coop->query_coop_name();
-}
-
 void
 agent_t::so_add_nondestroyable_listener(
 	agent_state_listener_t & state_listener )
@@ -690,6 +679,19 @@ environment_t &
 agent_t::so_environment() const
 {
 	return m_env;
+}
+
+SO_5_NODISCARD
+coop_handle_t
+agent_t::so_coop() const
+{
+	if( !m_agent_coop )
+		SO_5_THROW_EXCEPTION(
+				rc_agent_has_no_cooperation,
+				"agent_t::so_coop() can be completed because agent is not bound "
+				"to any cooperation" );
+
+	return m_agent_coop->handle();
 }
 
 void

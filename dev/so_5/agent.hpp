@@ -34,6 +34,7 @@
 #include <so_5/subscription_storage_fwd.hpp>
 #include <so_5/handler_makers.hpp>
 #include <so_5/message_handler_format_detector.hpp>
+#include <so_5/coop_handle.hpp>
 
 #include <atomic>
 #include <map>
@@ -935,20 +936,6 @@ class SO_5_TYPE agent_t
 		 */
 		bool
 		so_is_active_state( const state_t & state_to_check ) const noexcept;
-
-		//! Name of the agent's cooperation.
-		/*!
-		 * \note It is safe to use this method when agent is working inside 
-		 * SObjectizer because agent can be registered only in some
-		 * cooperation. When agent is not registered in SObjectizer this
-		 * method should be used carefully.
-		 *
-		 * \throw so_5::exception_t If the agent doesn't belong to any cooperation.
-		 *
-		 * \return Cooperation name if the agent is bound to the cooperation.
-		 */
-		const std::string &
-		so_coop_name() const;
 
 		//! Add a state listener to the agent.
 		/*!
@@ -2086,6 +2073,11 @@ class SO_5_TYPE agent_t
 		*/
 		environment_t &
 		so_environment() const;
+
+//FIXME: document this!
+		SO_5_NODISCARD
+		coop_handle_t
+		so_coop() const;
 
 		/*!
 		 * \since

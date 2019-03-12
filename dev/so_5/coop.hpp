@@ -17,7 +17,7 @@
 #include <so_5/exception.hpp>
 #include <so_5/types.hpp>
 
-#include <so_5/nonempty_name.hpp>
+#include <so_5/coop_handle.hpp>
 #include <so_5/agent.hpp>
 #include <so_5/disp_binder.hpp>
 
@@ -34,67 +34,6 @@
 
 namespace so_5
 {
-
-class coop_t;
-
-//! Typedef for the agent_coop smart pointer.
-using coop_shptr_t = std::shared_ptr< coop_t >;
-
-//
-// coop_handle_t
-//
-//FIXME: more documentation is needed.
-/*!
- * \brief Type of smart handle for a cooperation.
- *
- * \since
- * v.5.6.0
- */
-class SO_5_NODISCARD coop_handle_t
-	{
-		friend class so_5::coop_t;
-
-		//! ID of cooperation.
-		coop_id_t m_id;
-
-		//! Pointer for cooperation.
-		/*!
-		 * \attention
-		 * This is a weak pointer. It means that it can refer to already
-		 * destroyed cooperation.
-		 */
-		std::weak_ptr< coop_t > m_coop;
-
-		//! Initializing constructor.
-		coop_handle_t( coop_id_t id, std::shared_ptr< coop_t > coop )
-			:	m_id{ id }, m_coop{ coop }
-			{}
-
-	public :
-		static constexpr coop_id_t invalid_coop_id = 0u;
-
-		coop_handle_t() : m_id{ invalid_coop_id }
-			{}
-
-		operator bool() const noexcept { return invalid_coop_id != m_id; }
-
-		bool operator!() const noexcept { return invalid_coop_id == m_id; }
-
-//FIXME: should this method be public?
-		coop_shptr_t
-		to_shptr() const
-			{
-				auto result = m_coop.lock();
-				if( !result )
-					SO_5_THROW_EXCEPTION(
-							rc_coop_already_destroyed,
-							"coop object already destroyed, coop_id=" +
-							std::to_string(m_id) );
-				return result;
-			}
-	};
-
-//FIXME: maybe an operator<<(std::ostream) is necessary for coop_handle?
 
 namespace dereg_reason
 {
@@ -351,6 +290,13 @@ class SO_5_TYPE coop_impl_t
 			coop_t & coop,
 			//! Notificator to be added.
 			coop_dereg_notificator_t notificator );
+
+		//! Get exception reaction for coop.
+		SO_5_NODISCARD
+		static exception_reaction_t
+		exception_reaction(
+			//! Target coop.
+			const coop_t & coop ) noexcept;
 	};
 
 } /* namespace impl */
@@ -618,9 +564,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				m_exception_reaction = value;
 			}
 
-#if 0
-//FIXME: should be implemented later with respect to the fact that
-//coop_handle_t::to_shptr can throw.
 		/*!
 		 * \since
 		 * v.5.3.0
@@ -635,12 +578,15 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *   exception_reaction value returned;
 		 * - otherwise SO Environment's exception_reaction is returned.
 		 */
+		SO_5_NODISCARD
 		exception_reaction_t
-		exception_reaction() const;
+		exception_reaction() const noexcept
+			{
+				return impl::coop_impl_t::exception_reaction( *this );
+			}
 		/*!
 		 * \}
 		 */
-#endif
 
 		/*!
 		 * \since
