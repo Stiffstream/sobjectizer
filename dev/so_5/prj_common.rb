@@ -34,6 +34,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			define( 'SO_5__PLATFORM_REQUIRES_CDECL' )
 		end
 
+#FIXME: just be speed up development of new coop_t implementation.
+cpp_source 'coop.cpp'
 		# ./
 		cpp_source 'exception.cpp'
 
@@ -59,7 +61,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 
 		cpp_source 'agent.cpp'
 
-		cpp_source 'agent_coop.cpp'
+#		cpp_source 'coop.cpp'
 		cpp_source 'agent_coop_notifications.cpp'
 
 		cpp_source 'queue_locks_defaults_manager.cpp'

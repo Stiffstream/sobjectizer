@@ -121,5 +121,16 @@ enum class message_kind_t
 		enveloped_msg
 	};
 
+//
+// coop_id_t
+//
+/*!
+ * \brief ID of cooperation.
+ *
+ * \since
+ * v.5.6.0
+ */
+using coop_id_t = std::uint_fast64_t;
+
 } /* namespace so_5 */
 

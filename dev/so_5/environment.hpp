@@ -29,7 +29,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/message.hpp>
-#include <so_5/agent_coop.hpp>
+#include <so_5/coop.hpp>
 #include <so_5/disp_binder.hpp>
 #include <so_5/so_layer.hpp>
 #include <so_5/coop_listener.hpp>
