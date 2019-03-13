@@ -68,6 +68,8 @@ class SO_5_NODISCARD coop_handle_t
 
 		bool operator!() const noexcept { return invalid_coop_id == m_id; }
 
+		auto id() const noexcept { return m_id; }
+
 //FIXME: should this method be public?
 		coop_shptr_t
 		to_shptr() const

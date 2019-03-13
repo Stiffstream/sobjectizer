@@ -31,7 +31,7 @@ namespace impl {
 // coop_repo_t
 //
 coop_repo_t::coop_repo_t(
-	environment_t & env,
+	outliving_reference_t< environment_t > env,
 	coop_listener_unique_ptr_t coop_listener )
 	:	coop_repository_basis_t( env, std::move(coop_listener) )
 	{}
@@ -46,8 +46,10 @@ coop_repo_t::start()
 	m_final_dereg_thread = std::thread{ [this] {
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
-			[]( coop_t * coop ) {
-				coop_t::so_call_final_deregister_coop( coop );
+			[]( coop_shptr_t coop ) {
+//FIXME: final_deregister_coop should be called!
+(void)coop;
+//				coop_t::so_call_final_deregister_coop( coop );
 			} );
 	} };
 }
@@ -68,17 +70,17 @@ coop_repo_t::finish()
 
 void
 coop_repo_t::ready_to_deregister_notify(
-	coop_t * coop )
+	coop_shptr_t coop )
 {
-	so_5::send< coop_t * >( m_final_dereg_chain, coop );
+	so_5::send< coop_shptr_t >( m_final_dereg_chain, std::move(coop) );
 }
 
 bool
 coop_repo_t::final_deregister_coop(
-	std::string coop_name )
+	coop_shptr_t coop )
 {
 	const auto result =
-			coop_repository_basis_t::final_deregister_coop( std::move(coop_name) );
+			coop_repository_basis_t::final_deregister_coop( std::move(coop) );
 
 	if( result.m_total_deregistration_completed )
 		m_deregistration_finished_cond.notify_one();
@@ -99,21 +101,27 @@ coop_repo_t::start_deregistration()
 void
 coop_repo_t::wait_for_start_deregistration()
 {
+//FIXME: implement this!
+#if 0
 	std::unique_lock< std::mutex > lck( this->lock() );
 
 	m_deregistration_started_cond.wait( lck,
 			[this] { return m_deregistration_started; } );
+#endif
 }
 
 void
 coop_repo_t::wait_all_coop_to_deregister()
 {
+//FIXME: implement this!
+#if 0
 	std::unique_lock< std::mutex > lck( this->lock() );
 
 	// Must wait for a signal is there are cooperations in
 	// the deregistration process.
 	m_deregistration_finished_cond.wait( lck,
 			[this] { return m_deregistered_coop.empty(); } );
+#endif
 }
 
 environment_infrastructure_t::coop_repository_stats_t
@@ -143,7 +151,7 @@ mt_env_infrastructure_t::mt_env_infrastructure_t(
 	:	m_env( env )
 	,	m_default_dispatcher_params{ std::move(default_disp_params) }
 	,	m_timer_thread( std::move(timer_thread) )
-	,	m_coop_repo( env, std::move(coop_listener) )
+	,	m_coop_repo( outliving_mutable(env), std::move(coop_listener) )
 	,	m_stats_controller( std::move(stats_distribution_mbox) )
 	{
 	}
@@ -161,33 +169,42 @@ mt_env_infrastructure_t::stop()
 		m_coop_repo.start_deregistration();
 	}
 
-void
+SO_5_NODISCARD
+coop_unique_ptr_t
+mt_env_infrastructure_t::make_coop(
+	coop_handle_t parent,
+	disp_binder_shptr_t default_binder )
+{
+	return m_coop_repo.make_coop( std::move(parent), std::move(default_binder) );
+}
+
+coop_handle_t
 mt_env_infrastructure_t::register_coop(
 	coop_unique_ptr_t coop )
 	{
-		m_coop_repo.register_coop( std::move(coop) );
+		return m_coop_repo.register_coop( std::move(coop) );
 	}
 
 void
 mt_env_infrastructure_t::deregister_coop(
-	nonempty_name_t name,
+	coop_handle_t coop,
 	coop_dereg_reason_t dereg_reason )
 	{
-		m_coop_repo.deregister_coop( std::move(name), dereg_reason );
+		m_coop_repo.deregister_coop( std::move(coop), dereg_reason );
 	}
 
 void
 mt_env_infrastructure_t::ready_to_deregister_notify(
-	coop_t * coop )
+	coop_shptr_t coop )
 	{
-		m_coop_repo.ready_to_deregister_notify( coop );
+		m_coop_repo.ready_to_deregister_notify( std::move(coop) );
 	}
 
 bool
 mt_env_infrastructure_t::final_deregister_coop(
-	std::string coop_name )
+	coop_shptr_t coop )
 	{
-		return m_coop_repo.final_deregister_coop( std::move(coop_name) );
+		return m_coop_repo.final_deregister_coop( std::move(coop) );
 	}
 
 so_5::timer_id_t

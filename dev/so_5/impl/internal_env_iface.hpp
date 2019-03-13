@@ -63,7 +63,7 @@ class SO_5_TYPE internal_env_iface_t
 		void
 		final_deregister_coop(
 			//! Cooperation name to be deregistered.
-			const std::string & coop_name );
+			coop_shptr_t coop );
 
 		//! Is message delivery tracing enabled?
 		bool

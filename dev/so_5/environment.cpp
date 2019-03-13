@@ -832,10 +832,11 @@ internal_env_iface_t::ready_to_deregister_notify(
 
 void
 internal_env_iface_t::final_deregister_coop(
-	const std::string & coop_name )
+	coop_shptr_t coop )
 {
 	bool any_cooperation_alive = 
-			m_env.m_impl->m_infrastructure->final_deregister_coop( coop_name );
+			m_env.m_impl->m_infrastructure->final_deregister_coop(
+					std::move(coop) );
 
 	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
 		m_env.stop();

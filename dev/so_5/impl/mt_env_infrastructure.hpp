@@ -47,7 +47,7 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		//! Initializing constructor.
 		coop_repo_t(
 			//! SObjectizer Environment.
-			environment_t & env,
+			outliving_reference_t< environment_t > env,
 			//! Cooperation action listener.
 			coop_listener_unique_ptr_t coop_listener );
 
@@ -64,6 +64,8 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		void
 		finish();
 
+		using coop_repository_basis_t::make_coop;
+
 		using coop_repository_basis_t::register_coop;
 
 		using coop_repository_basis_t::deregister_coop;
@@ -71,7 +73,7 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		//! Notification about readiness of the cooperation deregistration.
 		void
 		ready_to_deregister_notify(
-			coop_t * coop );
+			coop_shptr_t coop );
 
 		//! Do final actions of the cooperation deregistration.
 		/*!
@@ -80,13 +82,8 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 */
 		bool
 		final_deregister_coop(
-			//! Cooperation name to be deregistered.
-			/*!
-			 * \note
-			 * Cooperation name must be passed by value because
-			 * reference can become invalid during work of this method.
-			*/
-			std::string coop_name );
+			//! Cooperation to be deregistered.
+			coop_shptr_t coop );
 
 		//! Initiate start of the cooperation deregistration.
 		void
@@ -175,22 +172,28 @@ class mt_env_infrastructure_t
 		virtual void
 		stop() override;
 
-		virtual void
+		SO_5_NODISCARD
+		virtual coop_unique_ptr_t
+		make_coop(
+			coop_handle_t parent,
+			disp_binder_shptr_t default_binder ) override;
+
+		virtual coop_handle_t
 		register_coop(
 			coop_unique_ptr_t coop ) override;
 
 		virtual void
 		deregister_coop(
-			nonempty_name_t name,
+			coop_handle_t coop,
 			coop_dereg_reason_t dereg_reason ) override;
 
 		virtual void
 		ready_to_deregister_notify(
-			coop_t * coop ) override;
+			coop_shptr_t coop ) override;
 
 		virtual bool
 		final_deregister_coop(
-			std::string coop_name ) override;
+			coop_shptr_t coop_name ) override;
 
 		virtual so_5::timer_id_t
 		schedule_timer(

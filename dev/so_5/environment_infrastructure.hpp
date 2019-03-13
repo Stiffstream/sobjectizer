@@ -188,13 +188,8 @@ class SO_5_TYPE environment_infrastructure_t
 		 */
 		virtual bool
 		final_deregister_coop(
-			//! Cooperation name to be deregistered.
-			/*!
-			 * \note
-			 * Cooperation name must be passed by value because
-			 * reference can become invalid during work of this method.
-			 */
-			std::string coop_name ) = 0;
+			//! Cooperation to be deregistered.
+			coop_shptr_t coop ) = 0;
 
 		//! Initiate a timer (delayed or periodic message).
 		virtual so_5::timer_id_t
