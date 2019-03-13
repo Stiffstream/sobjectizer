@@ -12,6 +12,8 @@
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
 
+#include <so_5/coop_handle.hpp>
+
 #include <exception>
 #include <string>
 #include <memory>
@@ -50,6 +52,7 @@ class SO_5_TYPE event_exception_logger_t
 		event_exception_logger_t() = default;
 		virtual ~event_exception_logger_t() noexcept = default;
 
+//FIXME: should be marked as noexcept!
 		/*!
 		 * \brief Log the exception caught.
 		 *
@@ -59,9 +62,10 @@ class SO_5_TYPE event_exception_logger_t
 		log_exception(
 			//! Exception caught.
 			const std::exception & event_exception,
-			//! Name of cooperation to which agent is belong.
-			const std::string & coop_name ) /* noexcept */ = 0;
+			//! Cooperation to which agent is belong.
+			const coop_handle_t & coop ) /* noexcept */ = 0;
 
+//FIXME: should be marked as noexcept!
 		/*!
 		 * \brief Installation hook.
 		 *

@@ -35,12 +35,12 @@ switch_agent_to_special_state_and_deregister_coop(
 	//! Agent who is the producer of the exception.
 	so_5::agent_t & a_exception_producer )
 	{
-		const std::string coop_name = a_exception_producer.so_coop_name();
+		const coop_handle_t coop = a_exception_producer.so_coop();
 		try
 		{
 			a_exception_producer.so_switch_to_awaiting_deregistration_state();
 			a_exception_producer.so_environment().deregister_coop(
-					coop_name,
+					coop,
 					so_5::dereg_reason::unhandled_exception );
 		}
 		catch( const std::exception & x )
@@ -49,8 +49,8 @@ switch_agent_to_special_state_and_deregister_coop(
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 				{
 					log_stream << "An exception '" << x.what()
-							<< "' during deregistring cooperation '"
-							<< coop_name << "' on unhandled exception"
+							<< "' during deregistring cooperation "
+							<< coop << " on unhandled exception"
 							"processing. Application will be aborted.";
 				}
 			} );
@@ -108,7 +108,7 @@ log_unhandled_exception(
 		{
 			a_exception_producer.so_environment().call_exception_logger(
 					ex_to_log,
-					a_exception_producer.so_coop_name() );
+					a_exception_producer.so_coop() );
 		}
 		catch( const std::exception & x )
 		{
@@ -117,9 +117,9 @@ log_unhandled_exception(
 				{
 					 log_stream << "An exception '" << x.what()
 							<< "' during logging unhandled exception '"
-							<< ex_to_log.what() << "' from cooperation '"
-							<< a_exception_producer.so_coop_name()
-							<< "'. Application will be aborted.";
+							<< ex_to_log.what() << "' from cooperation "
+							<< a_exception_producer.so_coop()
+							<< ". Application will be aborted.";
 				}
 			} );
 		}
@@ -154,8 +154,8 @@ process_unhandled_exception(
 							"abort_on_exception. "
 							"Application will be aborted. "
 							"Unhandled exception '" << ex.what()
-							<< "' from cooperation '"
-							<< a_exception_producer.so_coop_name() << "'";
+							<< "' from cooperation "
+							<< a_exception_producer.so_coop();
 				}
 			} );
 		}
@@ -166,8 +166,8 @@ process_unhandled_exception(
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 				{
 					log_stream << "Application will be aborted due to unhandled "
-							"exception '" << ex.what() << "' from cooperation '"
-							<< a_exception_producer.so_coop_name() << "'";
+							"exception '" << ex.what() << "' from cooperation "
+							<< a_exception_producer.so_coop();
 				}
 			} );
 		}
@@ -177,8 +177,8 @@ process_unhandled_exception(
 			{
 				log_stream << "SObjectizer will be shutted down due to "
 						"unhandled exception '" << ex.what()
-						<< "' from cooperation '"
-						<< a_exception_producer.so_coop_name() << "'";
+						<< "' from cooperation "
+						<< a_exception_producer.so_coop();
 			}
 
 			switch_agent_to_special_state_and_shutdown_sobjectizer(
@@ -188,9 +188,9 @@ process_unhandled_exception(
 		{
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
-				log_stream << "Cooperation '"
-						<< a_exception_producer.so_coop_name()
-						<< "' will be deregistered due to unhandled exception '"
+				log_stream << "Cooperation "
+						<< a_exception_producer.so_coop()
+						<< " will be deregistered due to unhandled exception '"
 						<< ex.what() << "'";
 			}
 
@@ -202,8 +202,8 @@ process_unhandled_exception(
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
 				log_stream << "Ignore unhandled exception '"
-						<< ex.what() << "' from cooperation '"
-						<< a_exception_producer.so_coop_name() << "'";
+						<< ex.what() << "' from cooperation "
+						<< a_exception_producer.so_coop();
 			}
 		}
 		else
@@ -214,8 +214,8 @@ process_unhandled_exception(
 					log_stream << "Unknown exception_reaction code: "
 							<< static_cast< int >(reaction)
 							<< ". Application will be aborted. Unhandled exception '"
-							<< ex.what() << "' from cooperation '"
-							<< a_exception_producer.so_coop_name() << "'";
+							<< ex.what() << "' from cooperation "
+							<< a_exception_producer.so_coop();
 				}
 			} );
 		}

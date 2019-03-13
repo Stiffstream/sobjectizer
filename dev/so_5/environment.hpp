@@ -1141,7 +1141,7 @@ class SO_5_TYPE environment_t
 			//! Exception caught.
 			const std::exception & event_exception,
 			//! A cooperation to which agent is belong.
-			const std::string & coop_name );
+			const coop_handle_t & coop );
 
 		/*!
 		 * \brief An exception reaction for the whole SO Environment.

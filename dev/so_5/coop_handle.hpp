@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
 namespace so_5
 {
@@ -86,9 +87,17 @@ class SO_5_NODISCARD coop_handle_t
 			{
 				return m_coop.lock();
 			}
-	};
 
-//FIXME: maybe an operator<<(std::ostream) is necessary for coop_handle?
+		//! A tool for dumping coop_handle to ostream.
+		friend inline std::ostream &
+		operator<<( std::ostream & to, const coop_handle_t & what )
+		{
+			if( what )
+				return (to << "{coop:id=" << what.m_id << "}");
+			else
+				return (to << "{empty-coop-handle}");
+		}
+	};
 
 } /* namespace so_5 */
 

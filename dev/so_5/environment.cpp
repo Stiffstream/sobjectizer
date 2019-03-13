@@ -645,11 +645,11 @@ environment_t::stop()
 void
 environment_t::call_exception_logger(
 	const std::exception & event_exception,
-	const std::string & coop_name )
+	const coop_handle_t & coop )
 {
 	std::lock_guard< std::mutex > lock{ m_impl->m_event_exception_logger_lock };
 
-	m_impl->m_event_exception_logger->log_exception( event_exception, coop_name );
+	m_impl->m_event_exception_logger->log_exception( event_exception, coop );
 }
 
 exception_reaction_t

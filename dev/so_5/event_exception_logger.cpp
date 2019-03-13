@@ -43,13 +43,12 @@ class std_event_exception_logger_t
 		virtual void
 		log_exception(
 			const std::exception & event_exception,
-			const std::string & coop_name )
+			const coop_handle_t & coop )
 		{
 			std::cerr
 				<< "SObjectizer event exception caught: "
 				<< event_exception.what()
-				<< "; cooperation: '" << coop_name << "'"
-				<< std::endl;
+				<< "; cooperation: " << coop << std::endl;
 		}
 };
 
