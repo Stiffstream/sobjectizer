@@ -12,21 +12,22 @@
 
 #pragma once
 
+#include <so_5/impl/coop_private_iface.hpp>
+
+#include <so_5/exception.hpp>
+
+#include <so_5/agent.hpp>
+#include <so_5/coop_listener.hpp>
+#include <so_5/environment_infrastructure.hpp>
+
+#include <so_5/stats/repository.hpp>
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <mutex>
 #include <condition_variable>
-
-#include <so_5/exception.hpp>
-
-#include <so_5/agent.hpp>
-#include <so_5/agent_coop.hpp>
-#include <so_5/coop_listener.hpp>
-#include <so_5/environment_infrastructure.hpp>
-
-#include <so_5/stats/repository.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)

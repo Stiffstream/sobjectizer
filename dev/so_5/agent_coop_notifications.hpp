@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/agent_coop.hpp>
+#include <so_5/coop.hpp>
 #include <so_5/mbox.hpp>
 
 #if defined( SO_5_MSVC )
@@ -41,11 +41,11 @@ struct SO_5_TYPE msg_coop_registered : public message_t
 	msg_coop_registered & operator=( msg_coop_registered && ) = delete;
 
 	msg_coop_registered(
-		std::string coop_name )
-		:	m_coop_name( std::move(coop_name) )
+		coop_handle_t coop )
+		:	m_coop( std::move(coop) )
 		{}
 
-	const std::string m_coop_name;
+	const coop_handle_t m_coop;
 };
 
 //
@@ -66,13 +66,13 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 	msg_coop_deregistered & operator=( msg_coop_deregistered && ) = delete;
 
 	msg_coop_deregistered(
-		std::string coop_name,
+		coop_handle_t coop,
 		coop_dereg_reason_t reason )
-		:	m_coop_name( std::move(coop_name) )
+		:	m_coop( std::move(coop) )
 		,	m_reason( reason )
 		{}
 
-	const std::string m_coop_name;
+	const coop_handle_t m_coop;
 	const coop_dereg_reason_t m_reason;
 };
 

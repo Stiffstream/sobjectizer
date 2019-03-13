@@ -297,6 +297,12 @@ class SO_5_TYPE coop_impl_t
 		exception_reaction(
 			//! Target coop.
 			const coop_t & coop ) noexcept;
+
+		//! Do decrement reference count for a coop.
+		static void
+		do_decrement_reference_count(
+			//! Target coop.
+			coop_t & coop );
 	};
 
 } /* namespace impl */
@@ -961,6 +967,26 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 		coop_shptr_t m_next_sibling;
 
+		/*!
+		 * \brief Increment usage count for the coop.
+		 */
+		void
+		increment_usage_count() noexcept
+			{
+				++m_reference_count;
+			}
+
+		/*!
+		 * \brief Decrement usage count for the coop.
+		 *
+		 * Note that is usage count is become 0 then final deregistration
+		 * actions will be initiated.
+		 */
+		void
+		decrement_usage_count()
+			{
+				impl::coop_impl_t::do_decrement_reference_count( *this );
+			}
 #if 0
 
 

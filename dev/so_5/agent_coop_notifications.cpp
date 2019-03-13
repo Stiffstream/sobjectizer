@@ -26,9 +26,9 @@ make_coop_reg_notificator(
 	{
 		return [mbox](
 				environment_t &,
-				const std::string & coop_name )
+				const coop_handle_t & coop )
 				{
-					so_5::send< msg_coop_registered >( mbox, coop_name );
+					so_5::send< msg_coop_registered >( mbox, coop );
 				};
 	}
 
@@ -41,12 +41,12 @@ make_coop_dereg_notificator(
 	{
 		return [mbox](
 				environment_t &,
-				const std::string & coop_name,
+				const coop_handle_t & coop,
 				const coop_dereg_reason_t & reason )
 				{
 					so_5::send< msg_coop_deregistered >(
 							mbox,
-							coop_name,
+							coop,
 							reason );
 				};
 	}

@@ -57,7 +57,7 @@ class SO_5_TYPE internal_env_iface_t
 		void
 		ready_to_deregister_notify(
 			//! Cooperation which is ready to be deregistered.
-			coop_t * coop );
+			coop_shptr_t coop );
 
 		//! Do the final actions of a cooperation deregistration.
 		void

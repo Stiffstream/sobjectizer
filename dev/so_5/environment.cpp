@@ -316,14 +316,6 @@ struct environment_t::internals_t
 	const bool m_autoshutdown_disabled;
 
 	/*!
-	 * \brief A counter for automatically generated cooperation names.
-	 *
-	 * \since
-	 * v.5.5.1
-	 */
-	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
-
-	/*!
 	 * \brief Data sources for core objects.
 	 *
 	 * \attention This instance must be created after stats_controller
@@ -482,56 +474,60 @@ environment_t::install_exception_logger(
 	}
 }
 
+SO_5_NODISCARD
 coop_unique_ptr_t
-environment_t::create_coop(
-	nonempty_name_t name )
+environment_t::make_coop()
 {
-	return create_coop( std::move(name), so_make_default_disp_binder() );
+	return m_impl->m_infrastructure->make_coop(
+			coop_handle_t{}, // No parent.
+			so_make_default_disp_binder() );
 }
 
+SO_5_NODISCARD
 coop_unique_ptr_t
-environment_t::create_coop(
-	autoname_indicator_t indicator() )
-{
-	return create_coop( indicator, so_make_default_disp_binder() );
-}
-
-coop_unique_ptr_t
-environment_t::create_coop(
-	nonempty_name_t name,
+environment_t::make_coop(
 	disp_binder_shptr_t disp_binder )
 {
-	return coop_unique_ptr_t( new coop_t(
-			std::move(name), std::move(disp_binder), self_ref() ) );
+	return m_impl->m_infrastructure->make_coop(
+			coop_handle_t{}, // No parent.
+			std::move(disp_binder) );
 }
 
+SO_5_NODISCARD
 coop_unique_ptr_t
-environment_t::create_coop(
-	autoname_indicator_t (*)(),
+environment_t::make_coop(
+	coop_handle_t parent )
+{
+	return m_impl->m_infrastructure->make_coop(
+			std::move(parent),
+			so_make_default_disp_binder() );
+}
+
+SO_5_NODISCARD
+coop_unique_ptr_t
+environment_t::make_coop(
+	coop_handle_t parent,
 	disp_binder_shptr_t disp_binder )
 {
-	auto counter = ++(m_impl->m_autoname_counter);
-	nonempty_name_t name( "__so5_autoname_" + std::to_string(counter) + "__" );
-	return coop_unique_ptr_t( new coop_t(
-			std::move(name),
-			std::move(disp_binder),
-			self_ref() ) );
+	return m_impl->m_infrastructure->make_coop(
+			std::move(parent),
+			std::move(disp_binder) );
 }
 
-void
+coop_handle_t
 environment_t::register_coop(
 	coop_unique_ptr_t agent_coop )
 {
-	m_impl->m_infrastructure->register_coop( std::move( agent_coop ) );
+	return m_impl->m_infrastructure->register_coop( std::move( agent_coop ) );
 }
 
 void
 environment_t::deregister_coop(
-	nonempty_name_t name,
+	coop_handle_t coop,
 	int reason )
 {
 	m_impl->m_infrastructure->deregister_coop(
-			std::move(name), coop_dereg_reason_t( reason ) );
+			std::move(coop), coop_dereg_reason_t( reason ) );
 }
 
 so_5::timer_id_t
@@ -768,50 +764,35 @@ environment_t::impl__run_layers_and_go_further()
 			[this] { impl__run_infrastructure(); } );
 }
 
-namespace autoshutdown_guard
+namespace
 {
-	//! An empty agent for the special cooperation for protection of
-	//! init function from autoshutdown feature.
-	class a_empty_agent_t : public agent_t
+	class autoshutdown_guard_t final
 	{
-		public :
-			a_empty_agent_t( environment_t & env )
-				:	agent_t( env )
-			{}
+		environment_t & m_env;
+		const bool m_autoshutdown_disabled;
+		coop_handle_t m_guard_coop;
+
+	public :
+		autoshutdown_guard_t(
+			environment_t & env,
+			bool autoshutdown_disabled )
+			:	m_env{ env }
+			,	m_autoshutdown_disabled{ autoshutdown_disabled }
+		{
+			if( !m_autoshutdown_disabled )
+			{
+				m_guard_coop = env.register_coop( env.make_coop() );
+			}
+		}
+
+		~autoshutdown_guard_t()
+		{
+			if( !m_autoshutdown_disabled )
+				m_env.deregister_coop( m_guard_coop, dereg_reason::normal );
+		}
 	};
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-prototypes"
-#endif
-
-	void
-	register_init_guard_cooperation(
-		environment_t & env,
-		bool autoshutdown_disabled )
-	{
-		if( !autoshutdown_disabled )
-			env.register_agent_as_coop(
-					"__so_5__init_autoshutdown_guard__",
-					env.make_agent< a_empty_agent_t >() );
-	}
-
-	void
-	deregistr_init_guard_cooperation(
-		environment_t & env,
-		bool autoshutdown_disabled )
-	{
-		if( !autoshutdown_disabled )
-			env.deregister_coop(
-					"__so_5__init_autoshutdown_guard__",
-					dereg_reason::normal );
-	}
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
-}
+} /* namespace anonymous */
 
 void
 environment_t::impl__run_infrastructure()
@@ -820,17 +801,12 @@ environment_t::impl__run_infrastructure()
 		[this]()
 		{
 			// init method must be protected from autoshutdown feature.
-			autoshutdown_guard::register_init_guard_cooperation(
+			autoshutdown_guard_t guard{
 					*this,
-					m_impl->m_autoshutdown_disabled );
+					m_impl->m_autoshutdown_disabled };
 
 			// Initilizing environment.
 			init();
-
-			// Protection is no more needed.
-			autoshutdown_guard::deregistr_init_guard_cooperation(
-					*this,
-					m_impl->m_autoshutdown_disabled );
 		} );
 }
 
@@ -849,9 +825,9 @@ internal_env_iface_t::create_mpsc_mbox(
 
 void
 internal_env_iface_t::ready_to_deregister_notify(
-	coop_t * coop )
+	coop_shptr_t coop )
 {
-	m_env.m_impl->m_infrastructure->ready_to_deregister_notify( coop );
+	m_env.m_impl->m_infrastructure->ready_to_deregister_notify( std::move(coop) );
 }
 
 void

@@ -150,8 +150,18 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual void
 		stop() = 0;
 
+//FIXME: document this!
+		SO_5_NODISCARD
+		virtual coop_unique_ptr_t
+		make_coop(
+			//! Optinal parent coop.
+			coop_handle_t parent,
+			//! Default binder for that coop.
+			disp_binder_shptr_t default_binder ) = 0;
+
 		//! Register new cooperation.
-		virtual void
+		SO_5_NODISCARD
+		virtual coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.
 			coop_unique_ptr_t coop ) = 0;
@@ -159,8 +169,8 @@ class SO_5_TYPE environment_infrastructure_t
 		//! Deregister cooperation.
 		virtual void
 		deregister_coop(
-			//! Cooperation name which being deregistered.
-			nonempty_name_t name,
+			//! Cooperation which being deregistered.
+			coop_handle_t coop,
 			//! Deregistration reason.
 			coop_dereg_reason_t dereg_reason ) = 0;
 
@@ -169,7 +179,7 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual void
 		ready_to_deregister_notify(
 			//! A cooperation which can be finaly deregistered.
-			coop_t * coop ) = 0;
+			coop_shptr_t coop ) = 0;
 
 		//! Do final actions of the cooperation deregistration.
 		/*!

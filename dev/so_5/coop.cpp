@@ -4,15 +4,13 @@
 
 #include <so_5/coop.hpp>
 
-#include <so_5/exception.hpp>
-
-#include <so_5/environment.hpp>
-
-//#include <so_5/impl/internal_env_iface.hpp>
-
+#include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/agent_ptr_compare.hpp>
 
 #include <so_5/details/abort_on_fatal_error.hpp>
+
+#include <so_5/exception.hpp>
+#include <so_5/environment.hpp>
 
 #include <exception>
 #include <algorithm>
@@ -147,6 +145,19 @@ coop_impl_t::exception_reaction(
 			}
 
 		return coop.m_exception_reaction;
+	}
+
+void
+coop_impl_t::do_decrement_reference_count(
+	coop_t & coop )
+	{
+		// If it is the last working agent then Environment should be
+		// informed that the cooperation is ready to be deregistered.
+		if( 0 == --coop.m_reference_count )
+		{
+			impl::internal_env_iface_t{ coop.m_env.get() }
+					.ready_to_deregister_notify( coop.shared_from_this() );
+		}
 	}
 
 } /* namespace impl */
