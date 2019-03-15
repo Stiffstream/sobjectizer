@@ -105,20 +105,17 @@ class SO_5_TYPE environment_infrastructure_t
 		 *
 		 * \brief Statistical data for run-time monitoring of coop repository
 		 * content.
+		 *
+		 * \note
+		 * Since v.5.6.0 there is only total count of coops without
+		 * separation to registered and deregistered coops count.
 		 */
 		struct coop_repository_stats_t
 			{
-				//! Count of registered cooperations.
-				std::size_t m_registered_coop_count;
-				//! Count of cooperations in the deregistration state.
-				std::size_t m_deregistered_coop_count;
+				//! Count of cooperations inside the environment.
+				std::size_t m_total_coop_count;
 
 				//! Count of registered agents.
-				/*!
-				 * This quantity includes quantity of agents in registered
-				 * cooperations as well as quantity of agents in cooperations
-				 * in the deregistration state.
-				 */
 				std::size_t m_total_agent_count;
 
 				/*!

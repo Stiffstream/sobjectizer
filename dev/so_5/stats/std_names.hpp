@@ -56,22 +56,12 @@ namespace suffixes {
 
 /*!
  * \since
- * v.5.5.4
+ * v.5.6.0
  *
- * \brief Suffix for data source with count of registered cooperations.
+ * \brief Suffix for data source with count of cooperations.
  */
 SO_5_FUNC suffix_t
-coop_reg_count();
-
-/*!
- * \since
- * v.5.5.4
- *
- * \brief Suffix for data source with count of cooperations in the
- * deregistration state.
- */
-SO_5_FUNC suffix_t
-coop_dereg_count();
+coop_count();
 
 /*!
  * \since

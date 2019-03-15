@@ -41,13 +41,8 @@ ds_agent_core_stats_t::distribute(
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
 				prefixes::coop_repository(),
-				suffixes::coop_reg_count(),
-				stats.m_registered_coop_count );
-
-		send< messages::quantity< std::size_t > >( distribution_mbox,
-				prefixes::coop_repository(),
-				suffixes::coop_dereg_count(),
-				stats.m_deregistered_coop_count );
+				suffixes::coop_count(),
+				stats.m_total_coop_count );
 
 		send< messages::quantity< std::size_t > >( distribution_mbox,
 				prefixes::coop_repository(),

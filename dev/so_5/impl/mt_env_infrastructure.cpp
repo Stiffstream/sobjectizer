@@ -91,10 +91,10 @@ coop_repo_t::final_deregister_coop(
 void
 coop_repo_t::start_deregistration()
 {
-	const auto result = coop_repository_basis_t::initiate_deregistration();
+	const auto result = coop_repository_basis_t::try_switch_to_shutdown();
 
-	if( coop_repository_basis_t::initiate_deregistration_result_t
-			::initiated_first_time == result )
+	if( coop_repository_basis_t::try_switch_to_shutdown_result_t
+			::switched == result )
 		m_deregistration_started_cond.notify_one();
 }
 
@@ -132,8 +132,7 @@ coop_repo_t::query_stats()
 	const auto basis_stats = coop_repository_basis_t::query_stats();
 
 	return {
-			basis_stats.m_registered_coop_count,
-			basis_stats.m_deregistered_coop_count,
+			basis_stats.m_total_coop_count,
 			basis_stats.m_total_agent_count,
 			final_dereg_coops
 		};

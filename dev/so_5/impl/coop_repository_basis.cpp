@@ -25,11 +25,45 @@ namespace so_5
 namespace impl
 {
 
+//
+// root_coop_t
+//
+/*!
+ * \brief A type of special coop that will be used as the root coop.
+ *
+ * \since
+ * v.5.6.0
+ */
+class coop_repository_basis_t::root_coop_t final : public coop_t
+	{
+	public :
+		root_coop_t(
+			coop_id_t id,
+			outliving_reference_t< environment_t > env )
+			:	coop_t{ id,
+					coop_handle_t{}, // No parent coop.
+					disp_binder_shptr_t{}, // No binder.
+					env }
+			{
+				// Automaticaly increment usage count to prevent
+				// deregistration when last child coop will be destroyed.
+				coop_private_iface_t::increment_usage_count( *this );
+			}
+
+//FIXME: to be implemented!
+//FIXME: should this method be noexcept?
+		void
+		deregister_children();
+	};
+
 coop_repository_basis_t::coop_repository_basis_t(
 	outliving_reference_t< environment_t > environment,
 	coop_listener_unique_ptr_t /*coop_listener*/ )
 	:	m_env{ environment }
 {
+	m_root_coop = std::make_shared< root_coop_t >(
+			++m_coop_id_counter,
+			m_env );
 }
 
 SO_5_NODISCARD
@@ -38,10 +72,14 @@ coop_repository_basis_t::make_coop(
 	coop_handle_t parent,
 	disp_binder_shptr_t default_binder )
 {
-//FIXME: implement this!
-(void)parent;
-(void)default_binder;
-return {};
+	if( !parent )
+		parent = m_root_coop->handle();
+
+	return coop_private_iface_t::make_coop(
+			++m_coop_id_counter,
+			std::move(parent),
+			std::move(default_binder),
+			m_env );
 }
 
 #if 0
@@ -109,14 +147,12 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 return 0u;
 }
 
-coop_repository_basis_t::initiate_deregistration_result_t
-coop_repository_basis_t::initiate_deregistration()
+SO_5_NODISCARD
+coop_repository_basis_t::try_switch_to_shutdown_result_t
+coop_repository_basis_t::try_switch_to_shutdown()
 {
-	initiate_deregistration_result_t result =
-			initiate_deregistration_result_t::already_in_progress;
-
 //FIXME: implement this!
-	return result;
+return try_switch_to_shutdown_result_t::switched;
 }
 
 environment_t &
@@ -130,7 +166,6 @@ coop_repository_basis_t::query_stats()
 {
 //FIXME: implement this!
 	return {
-			0u,
 			0u,
 			0u,
 			0u

@@ -75,6 +75,7 @@ public:
 		//! Cooperation to be registered.
 		coop_unique_ptr_t agent_coop );
 
+//FIXME: it looks like this function is not needed.
 	//! Deregister cooperation.
 	void
 	deregister_coop(
@@ -107,6 +108,7 @@ public:
 				{}
 		};
 
+//FIXME: should it be marked as SO_5_NODISCARD?
 	//! Do final actions of the cooperation deregistration.
 	/*!
 	 * \retval true there are some live cooperations.
@@ -117,6 +119,7 @@ public:
 		//! Cooperation name to be deregistered.
 		coop_shptr_t coop );
 
+//FIXME: is the return value really needed?
 	//! Deregisted all cooperations.
 	/*!
 	 * All cooperations will be deregistered at the SObjectizer shutdown.
@@ -127,31 +130,31 @@ public:
 	deregister_all_coop() noexcept;
 
 	/*!
-	 * \brief Result of initiation of total deregistration process.
+	 * \brief Result of attempt to switch to shutdown state.
 	 *
 	 * \since
-	 * v.5.5.19
+	 * v.5.6.0
 	 */
-	enum class initiate_deregistration_result_t
+	enum class try_switch_to_shutdown_result_t
 		{
-			initiated_first_time,
-			already_in_progress
+			switched,
+			already_in_shutdown_state
 		};
 
 	/*!
-	 * \brief Try to start total deregistration process.
+	 * \brief Try to switch repository to shutdown state.
 	 *
 	 * \note
 	 * This method doesn't call deregister_all_coop().
-	 * If it is necessary to start deregistration process with
-	 * deregistration of all already registered coops then
-	 * deregister_all_coop() must be used.
+	 * It only changes state of repository to 'shutdown'.
+	 * This prevents from registration of new cooperations.
 	 *
 	 * \since
-	 * v.5.5.19
+	 * v.5.6.0
 	 */
-	initiate_deregistration_result_t
-	initiate_deregistration();
+	SO_5_NODISCARD
+	try_switch_to_shutdown_result_t
+	try_switch_to_shutdown();
 
 	/*!
 	 * \since
@@ -175,7 +178,20 @@ public:
 	query_stats();
 
 protected:
+	class root_coop_t;
+
+	//! Environment to work in.
 	outliving_reference_t< environment_t > m_env;
+
+	//! A counter for new coop ID.
+	std::atomic< coop_id_t > m_coop_id_counter{ 0 };
+
+	//! A special root coop.
+	/*!
+	 * \attention
+	 * This coop can't be deregistered!
+	 */
+	std::shared_ptr< root_coop_t > m_root_coop;
 };
 
 } /* namespace impl */
