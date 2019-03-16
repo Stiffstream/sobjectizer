@@ -626,11 +626,11 @@ class SO_5_TYPE agent_t
 {
 		friend class subscription_bind_t;
 		friend class intrusive_ptr_t< agent_t >;
-		friend class coop_t;
 		friend class state_t;
 
 		friend class so_5::impl::mpsc_mbox_t;
 		friend class so_5::impl::state_switch_guard_t;
+		friend class so_5::impl::internal_agent_iface_t;
 
 		friend class so_5::enveloped_msg::impl::agent_demand_handler_invoker_t;
 
@@ -2420,8 +2420,6 @@ class SO_5_TYPE agent_t
 		//! Bind agent to the cooperation.
 		/*!
 		 * Initializes an internal cooperation pointer.
-		 *
-		 * Drops m_is_coop_deregistered to false.
 		 */
 		void
 		bind_to_coop(

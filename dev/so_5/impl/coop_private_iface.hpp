@@ -68,32 +68,35 @@ class coop_private_iface_t
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder,
 			outliving_reference_t< environment_t > env )
-		{
-			return coop_unique_ptr_t{
-					new coop_t{
-						id,
-						std::move(parent),
-						std::move(default_binder),
-						env
-					}
-			};
-		}
+			{
+				return coop_unique_ptr_t{
+						new coop_t{
+							id,
+							std::move(parent),
+							std::move(default_binder),
+							env
+						}
+				};
+			}
 
 		static void
 		increment_usage_count( coop_t & coop ) noexcept
-		{
-			coop.increment_usage_count();
-		}
+			{
+				coop.increment_usage_count();
+			}
 
 		static void
 		decrement_usage_count( coop_t & coop )
-		{
-			coop.decrement_usage_count();
-		}
+			{
+				coop.decrement_usage_count();
+			}
 
 //FIXME: implement this!
 		static void
-		do_registration_specific_actions( coop_t & coop );
+		do_registration_specific_actions( coop_t & coop )
+			{
+				coop_impl_t::do_registration_specific_actions( coop );
+			}
 
 //FIXME: implement this!
 		static void

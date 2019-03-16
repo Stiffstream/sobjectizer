@@ -27,7 +27,7 @@ namespace impl {
  * agent's priorities.
  */
 inline bool
-special_agent_ptr_compare( const agent_t & a, const agent_t & b )
+special_agent_ptr_compare( const agent_t & a, const agent_t & b ) noexcept
 	{
 		auto p1 = a.so_priority();
 		auto p2 = b.so_priority();

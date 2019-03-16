@@ -5,6 +5,7 @@
 #include <so_5/coop.hpp>
 
 #include <so_5/impl/internal_env_iface.hpp>
+#include <so_5/impl/internal_agent_iface.hpp>
 #include <so_5/impl/agent_ptr_compare.hpp>
 
 #include <so_5/details/abort_on_fatal_error.hpp>
@@ -158,6 +159,216 @@ coop_impl_t::do_decrement_reference_count(
 			impl::internal_env_iface_t{ coop.m_env.get() }
 					.ready_to_deregister_notify( coop.shared_from_this() );
 		}
+	}
+
+class coop_impl_t::registration_performer_t
+	{
+		coop_t & m_coop;
+
+		void
+		perform_actions_without_rollback_on_exception()
+			{
+				reorder_agents_with_respect_to_priorities();
+				bind_agents_to_coop();
+				preallocate_disp_resources();
+			}
+
+		void
+		perform_actions_with_rollback_on_exception()
+			{
+				so_5::details::do_with_rollback_on_exception( [this] {
+						define_all_agents();
+
+						// Coop's lock should be acquired before notification
+						// of the parent coop.
+						std::lock_guard lock{ m_coop.m_lock };
+						make_relation_with_parent_coop();
+
+						// These actions shouldn't throw.
+						details::invoke_noexcept_code( [&] {
+							// This operation shouldn't throw because dispatchers
+							// allocated resources for agents.
+							//
+							// But it is possible that an exception will be throw
+							// during an attempt to send evt_start message to agents.
+							// In that case it is simpler to call std::terminate().
+							bind_agents_to_disp();
+
+							// Cooperation should assume that it is registered now.
+							m_coop.m_registration_status =
+									coop_t::registration_status_t::coop_registered;
+
+							// Increment reference count to reflect that cooperation
+							// is registered. This is necessary in v.5.5.12 to prevent
+							// automatic deregistration of the cooperation right after
+							// finish of registration process for empty cooperation.
+							m_coop.increment_usage_count();
+						} );
+					},
+					[this] {
+						// NOTE: we use the fact that actual binding of agents to
+						// dispatchers can't throw. It means that exception was thrown
+						// at earlier stages (in define_all_agents() or
+						// make_relation_with_parent_coop()).
+						deallocate_disp_resources();
+					} );
+			}
+
+		void
+		reorder_agents_with_respect_to_priorities() noexcept
+			{
+				std::sort(
+						std::begin(m_coop.m_agent_array),
+						std::end(m_coop.m_agent_array),
+						[]( const auto & a, const auto & b ) noexcept {
+							return special_agent_ptr_compare(
+									*a.m_agent_ref, *b.m_agent_ref );
+						} );
+			}
+
+		void
+		bind_agents_to_coop()
+			{
+				for( auto & i : m_coop.m_agent_array )
+					internal_agent_iface_t{ *i.m_agent_ref }.bind_to_coop( m_coop );
+			}
+
+		void
+		preallocate_disp_resources()
+			{
+				// In case of an exception we should undo preallocation only for
+				// those agents for which preallocation was successful.
+				coop_t::agent_array_t::iterator it;
+				try
+					{
+						for( it = m_coop.m_agent_array.begin();
+								it != m_coop.m_agent_array.end();
+								++it )
+							{
+								it->m_binder->preallocate_resources(
+										*(it->m_agent_ref) );
+							}
+					}
+				catch( const std::exception & x )
+					{
+						// All preallocated resources should be returned back.
+						for( auto it2 = m_coop.m_agent_array.begin();
+								it2 != it;
+								++it2 )
+							{
+								it2->m_binder->undo_preallocation(
+										*(it2->m_agent_ref) );
+							}
+
+						SO_5_THROW_EXCEPTION(
+								rc_agent_to_disp_binding_failed,
+								std::string{
+										"an exception during the first stage of "
+										"binding agent to the dispatcher, exception: " }
+								+ x.what() );
+					}
+			}
+
+		void
+		define_all_agents()
+			{
+				try
+					{
+						for( auto & info : m_coop.m_agent_array )
+							internal_agent_iface_t{ *info.m_agent_ref }
+									.initiate_agent_definition();
+					}
+				catch( const exception_t & )
+					{
+						throw;
+					}
+				catch( const std::exception & ex )
+					{
+						SO_5_THROW_EXCEPTION(
+							rc_coop_define_agent_failed,
+							ex.what() );
+					}
+				catch( ... )
+					{
+						SO_5_THROW_EXCEPTION(
+							rc_coop_define_agent_failed,
+							"exception of unknown type has been thrown in "
+							"so_define_agent()" );
+					}
+			}
+
+		void
+		make_relation_with_parent_coop()
+			{
+				m_coop.m_parent.to_shptr()->add_child(
+						m_coop.shared_from_this() );
+			}
+
+		void
+		bind_agents_to_disp() noexcept
+			{
+				for( auto & info : m_coop.m_agent_array )
+					info.m_binder->bind( *info.m_agent_ref );
+			}
+
+		void
+		deallocate_disp_resources() noexcept
+			{
+				for( auto & info : m_coop.m_agent_array )
+					info.m_binder->undo_preallocation( *(info.m_agent_ref) );
+			}
+
+	public :
+		explicit registration_performer_t( coop_t & coop ) noexcept
+			:	m_coop{ coop }
+			{}
+
+		void
+		perform()
+			{
+				// On first phase we perform actions that don't require
+				// any rollback on exception.
+				perform_actions_without_rollback_on_exception();
+
+				// Then we should perform some actions that require some
+				// rollback in the case of an exception.
+				perform_actions_with_rollback_on_exception();
+			}
+	};
+
+void
+coop_impl_t::do_registration_specific_actions( coop_t & coop )
+	{
+		registration_performer_t{ coop }.perform();
+	}
+
+void
+coop_impl_t::do_add_child(
+	coop_t & parent,
+	coop_shptr_t child )
+	{
+		// Modification of parent-child relationship must be performed
+		// on locked object.
+		std::lock_guard lock{ parent.m_lock };
+
+		// A new coop can't be added as a child if coop is being deregistered.
+		if( coop_t::registration_status_t::coop_registered !=
+				parent.m_registration_status )
+			SO_5_THROW_EXCEPTION(
+					//FIXME: this error code should be added.
+					rc_coop_is_not_in_registered_state,
+					"add_child() can be processed only when coop is registered" );
+
+		// New child will be inserted to the head of children list.
+		if( parent.m_first_child )
+			parent.m_first_child->m_prev_sibling = child;
+
+		child->m_next_sibling = std::move(parent.m_first_child);
+
+		parent.m_first_child = std::move(child);
+
+		// Count of users on this coop is incremented.
+		parent.increment_usage_count();
 	}
 
 } /* namespace impl */

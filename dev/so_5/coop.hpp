@@ -237,10 +237,13 @@ using coop_dereg_notificators_container_ref_t =
 namespace impl
 {
 
+class coop_private_iface_t;
+
 //FIXME: document this!
 class SO_5_TYPE coop_impl_t
 	{
 		friend class so_5::coop_t;
+		friend class so_5::impl::coop_private_iface_t;
 
 		//! Perform all necessary cleanup actions for coop.
 		static void
@@ -303,6 +306,20 @@ class SO_5_TYPE coop_impl_t
 		do_decrement_reference_count(
 			//! Target coop.
 			coop_t & coop );
+
+		//! Perform actions related to the registration of coop.
+		static void
+		do_registration_specific_actions( coop_t & coop );
+
+		class registration_performer_t;
+
+		//! Perform addition of a new child coop.
+		static void
+		do_add_child(
+			//! Parent coop.
+			coop_t & parent,
+			//! Child to be added.
+			coop_shptr_t child );
 	};
 
 } /* namespace impl */
@@ -331,6 +348,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		friend class agent_t;
 		friend class impl::coop_private_iface_t;
 		friend class impl::coop_impl_t;
+		friend class impl::coop_impl_t::registration_performer_t;
 
 		coop_t( const coop_t & ) = delete;
 		coop_t & operator=( const coop_t & ) = delete;
@@ -413,15 +431,15 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		add_agent(
 			//! Agent.
 			std::unique_ptr< Agent > agent )
-		{
-			Agent * p = agent.get();
+			{
+				Agent * p = agent.get();
 
-			impl::coop_impl_t::do_add_agent(
-					*this,
-					agent_ref_t{ std::move(agent) } );
+				impl::coop_impl_t::do_add_agent(
+						*this,
+						agent_ref_t{ std::move(agent) } );
 
-			return p;
-		}
+				return p;
+			}
 
 		//! Add agent to the cooperation with the dispatcher binding.
 		/*!
@@ -435,54 +453,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			std::unique_ptr< Agent > agent,
 			//! Agent to dispatcher binder.
 			disp_binder_shptr_t disp_binder )
-		{
-			Agent * p = agent.get();
+			{
+				Agent * p = agent.get();
 
-			impl::coop_impl_t::do_add_agent(
-				*this,
-				agent_ref_t{ std::move(agent) },
-				std::move(disp_binder) );
+				impl::coop_impl_t::do_add_agent(
+					*this,
+					agent_ref_t{ std::move(agent) },
+					std::move(disp_binder) );
 
-			return p;
-		}
-
-#if 0
-//FIXME: maybe those methods should be moved to coop_private_iface_t?
-		//! Internal SObjectizer method.
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 *
-		 * Informs cooperation that it is used by yet another entity.
-		 */
-		static inline void
-		so_increment_usage_count( coop_t & coop )
-		{
-			coop.increment_usage_count();
-		}
-
-		//! Internal SObjectizer method.
-		/*!
-		 * Informs cooperation about full finishing of agent's or
-		 * child cooperation work.
-		 */
-		static inline void
-		so_decrement_usage_count( coop_t & coop )
-		{
-			coop.decrement_usage_count();
-		}
-
-		//! Internal SObjectizer method.
-		/*!
-		 * Initiate a final deregistration stage.
-		 */
-		static inline void
-		so_call_final_deregister_coop( coop_t * coop )
-		{
-			coop->final_deregister_coop();
-		}
-#endif
+				return p;
+			}
 
 		/*!
 		 * \name Method for working with notificators.
@@ -960,6 +940,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * Can be nullptr if this coop is the first coop in the chain.
 		 *
+		 * \note
+		 * This field will be used only by parent coop.
+		 *
 		 * \since
 		 * v.5.6.0
 		 */
@@ -969,6 +952,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \brief The next coop in sibling's chain.
 		 *
 		 * Can be nullptr if this coop is the last coop in the chain.
+		 *
+		 * \note
+		 * This field will be used only by parent coop.
 		 *
 		 * \since
 		 * v.5.6.0
@@ -995,6 +981,28 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			{
 				impl::coop_impl_t::do_decrement_reference_count( *this );
 			}
+
+		/*!
+		 * \brief Add a new child to the parent coop.
+		 *
+		 * This method is called by child coop.
+		 *
+		 * \note
+		 * This method locks the parent coop object. But under that lock
+		 * fields m_prev_sibling and m_next_sibling of the child coop
+		 * are modified.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		void
+		add_child(
+			//! Child coop to be added.
+			coop_shptr_t child )
+			{
+				impl::coop_impl_t::do_add_child( *this, std::move(child) );
+			}
+
 #if 0
 
 

@@ -560,6 +560,18 @@ const int rc_coop_already_destroyed = 184;
  */
 const int rc_coop_cant_be_registered_on_shutdown = 185;
 
+/*!
+ * \brief An attempt to do something with coop that is not in registered
+ * state.
+ *
+ * For example if can be an attempt to add a new child coop when
+ * the parent coop is being deregistered.
+ *
+ * \since
+ * v.5.6.0
+ */
+const int rc_coop_is_not_in_registered_state = 186;
+
 //! \name Common error codes.
 //! \{
 
