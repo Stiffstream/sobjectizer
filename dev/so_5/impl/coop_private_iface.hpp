@@ -32,36 +32,6 @@ namespace impl
 class coop_private_iface_t
 {
 	public :
-#if 0
-		static void
-		do_deregistration_specific_actions(
-			coop_t & coop,
-			coop_dereg_reason_t dereg_reason )
-		{
-			coop.do_deregistration_specific_actions(
-					std::move( dereg_reason ) );
-		}
-
-
-		static coop_reg_notificators_container_ref_t
-		reg_notificators( const coop_t & coop )
-		{
-			return coop.reg_notificators();
-		}
-
-		static coop_dereg_notificators_container_ref_t
-		dereg_notificators( const coop_t & coop )
-		{
-			return coop.dereg_notificators();
-		}
-
-		static coop_dereg_reason_t
-		dereg_reason( const coop_t & coop )
-		{
-			return coop.dereg_reason();
-		}
-#endif
-
 		static coop_unique_ptr_t
 		make_coop(
 			coop_id_t id,
@@ -91,24 +61,36 @@ class coop_private_iface_t
 				coop.decrement_usage_count();
 			}
 
-//FIXME: implement this!
 		static void
 		do_registration_specific_actions( coop_t & coop )
 			{
 				coop_impl_t::do_registration_specific_actions( coop );
 			}
 
-//FIXME: implement this!
 		static void
-		call_reg_notificators( coop_t & coop ) noexcept;
+		call_reg_notificators( coop_t & coop ) noexcept
+			{
+				if( coop.m_reg_notificators )
+					coop.m_reg_notificators->call_all(
+							coop.environment(),
+							coop.handle() );
+			}
 
-//FIXME: implement this!
 		static void
-		call_dereg_notificators( coop_t & coop ) noexcept;
+		call_dereg_notificators( coop_t & coop ) noexcept
+			{
+				if( coop.m_dereg_notificators )
+					coop.m_dereg_notificators->call_all(
+							coop.environment(),
+							coop.handle(),
+							dereg_reason( coop ) );
+			}
 
-//FIXME: implement this!
 		static coop_dereg_reason_t
-		dereg_reason( const coop_t & coop ) noexcept;
+		dereg_reason( const coop_t & coop ) noexcept
+			{
+				return coop.m_dereg_reason;
+			}
 };
 
 } /* namespace impl */
