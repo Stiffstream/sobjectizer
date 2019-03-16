@@ -186,10 +186,10 @@ mt_env_infrastructure_t::register_coop(
 
 void
 mt_env_infrastructure_t::deregister_coop(
-	coop_handle_t coop,
-	coop_dereg_reason_t dereg_reason )
+	coop_handle_t /*coop*/,
+	coop_dereg_reason_t /*dereg_reason*/ )
 	{
-		m_coop_repo.deregister_coop( std::move(coop), dereg_reason );
+//FIXME: this method should be removed or implemented a different way!
 	}
 
 void

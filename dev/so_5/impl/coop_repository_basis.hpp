@@ -70,19 +70,11 @@ public:
 		disp_binder_shptr_t default_binder );
 
 	//! Register cooperation.
+	SO_5_NODISCARD
 	coop_handle_t
 	register_coop(
 		//! Cooperation to be registered.
 		coop_unique_ptr_t agent_coop );
-
-//FIXME: it looks like this function is not needed.
-	//! Deregister cooperation.
-	void
-	deregister_coop(
-		//! Cooperation which being deregistered.
-		coop_handle_t coop,
-		//! Deregistration reason.
-		coop_dereg_reason_t dereg_reason );
 
 	/*!
 	 * Type for return value of final_deregister_coop method.
@@ -95,7 +87,7 @@ public:
 	 * \since
 	 * v.5.5.19
 	 */
-	struct final_deregistration_resul_t
+	struct SO_5_NODISCARD final_deregistration_resul_t
 		{
 			const bool m_has_live_coop;
 			const bool m_total_deregistration_completed;
@@ -119,14 +111,13 @@ public:
 		//! Cooperation name to be deregistered.
 		coop_shptr_t coop );
 
-//FIXME: is the return value really needed?
 	//! Deregisted all cooperations.
 	/*!
 	 * All cooperations will be deregistered at the SObjectizer shutdown.
 	 *
 	 * \return Count of coops to be completely deregistered.
 	 */
-	std::size_t
+	void
 	deregister_all_coop() noexcept;
 
 	/*!
@@ -135,7 +126,7 @@ public:
 	 * \since
 	 * v.5.6.0
 	 */
-	enum class try_switch_to_shutdown_result_t
+	enum class SO_5_NODISCARD try_switch_to_shutdown_result_t
 		{
 			switched,
 			already_in_shutdown_state
@@ -152,7 +143,6 @@ public:
 	 * \since
 	 * v.5.6.0
 	 */
-	SO_5_NODISCARD
 	try_switch_to_shutdown_result_t
 	try_switch_to_shutdown();
 
@@ -165,6 +155,7 @@ public:
 	 * \note This access is necessary to use error_logger for
 	 * logging error messages.
 	 */
+	SO_5_NODISCARD
 	environment_t &
 	environment();
 
@@ -174,17 +165,48 @@ public:
 	 *
 	 * \brief Get the current statistic for run-time monitoring.
 	 */
+	SO_5_NODISCARD
 	environment_infrastructure_t::coop_repository_stats_t
 	query_stats();
 
 protected:
 	class root_coop_t;
 
+	//! Enumeration of possible repository statuses.
+	enum class status_t
+		{
+			normal,
+			pending_shutdown,
+			shutdown
+		};
+
 	//! Environment to work in.
 	outliving_reference_t< environment_t > m_env;
 
-	//! A counter for new coop ID.
-	std::atomic< coop_id_t > m_coop_id_counter{ 0 };
+	//! Counter for coop_ids.
+	std::atomic_uint_fast64_t m_coop_id_counter{ 0 }; 
+
+	//! Lock for coop repository.
+	std::mutex m_lock;
+
+	//! Status of repository.
+	status_t m_status{ status_t::normal };
+
+	//! Condition variable to wait a possibility to do actions
+	//! in deregister_all_coop.
+	std::condition_variable m_shutdown_enabled_cond;
+
+	//! Total count of coops.
+	std::size_t m_total_coops{};
+
+	//! Total count of agents.
+	std::size_t m_total_agents{};
+
+	//! Count of coops those are in registration now.
+	std::size_t m_registrations_in_progress{};
+
+	//! Cooperation actions listener.
+	coop_listener_unique_ptr_t m_coop_listener;
 
 	//! A special root coop.
 	/*!
@@ -192,6 +214,11 @@ protected:
 	 * This coop can't be deregistered!
 	 */
 	std::shared_ptr< root_coop_t > m_root_coop;
+
+	//! An actual implementation of registration of a coop.
+	SO_5_NODISCARD
+	coop_handle_t
+	do_registration_specific_actions( coop_unique_ptr_t coop_ptr );
 };
 
 } /* namespace impl */

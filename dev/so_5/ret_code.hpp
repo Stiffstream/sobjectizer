@@ -100,22 +100,6 @@ const int rc_coop_define_agent_failed = 24;
 
 /*!
  * \since
- * v.5.2.3
- *
- * \brief Cooperation has no the parent cooperation.
- */
-const int rc_coop_has_no_parent = 25;
-
-/*!
- * \since
- * v.5.2.3
- *
- * \brief Parent cooperation not found.
- */
-const int rc_parent_coop_not_found = 26;
-
-/*!
- * \since
  * v.5.4.0
  *
  * \brief Binding of agent to dispatcher failed.
@@ -567,6 +551,14 @@ const int rc_stored_state_name_not_found = 183;
  * v.5.6.0
  */
 const int rc_coop_already_destroyed = 184;
+
+/*!
+ * \brief A new coop can't registered because shutdown is in progress now.
+ *
+ * \since
+ * v.5.6.0
+ */
+const int rc_coop_cant_be_registered_on_shutdown = 185;
 
 //! \name Common error codes.
 //! \{

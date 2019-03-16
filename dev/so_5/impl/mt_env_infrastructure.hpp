@@ -68,8 +68,6 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 
 		using coop_repository_basis_t::register_coop;
 
-		using coop_repository_basis_t::deregister_coop;
-
 		//! Notification about readiness of the cooperation deregistration.
 		void
 		ready_to_deregister_notify(

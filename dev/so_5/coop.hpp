@@ -770,7 +770,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 #endif
 
-	private:
+	protected:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
 		{
@@ -946,6 +946,14 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 		exception_reaction_t m_exception_reaction{
 				inherit_exception_reaction };
+
+		/*!
+		 * \brief The head of list of children coops.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		coop_shptr_t m_first_child;
 
 		/*!
 		 * \brief The previous coop in sibling's chain.
