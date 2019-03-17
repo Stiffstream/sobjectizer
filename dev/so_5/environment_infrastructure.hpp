@@ -163,14 +163,6 @@ class SO_5_TYPE environment_infrastructure_t
 			//! Cooperation to be registered.
 			coop_unique_ptr_t coop ) = 0;
 
-		//! Deregister cooperation.
-		virtual void
-		deregister_coop(
-			//! Cooperation which being deregistered.
-			coop_handle_t coop,
-			//! Deregistration reason.
-			coop_dereg_reason_t dereg_reason ) = 0;
-
 		//! Notification about cooperation for which the final dereg step
 		//! can be performed.
 		virtual void

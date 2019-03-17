@@ -181,11 +181,6 @@ class mt_env_infrastructure_t
 			coop_unique_ptr_t coop ) override;
 
 		virtual void
-		deregister_coop(
-			coop_handle_t coop,
-			coop_dereg_reason_t dereg_reason ) override;
-
-		virtual void
 		ready_to_deregister_notify(
 			coop_shptr_t coop ) override;
 

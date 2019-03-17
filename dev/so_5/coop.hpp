@@ -319,6 +319,22 @@ class SO_5_TYPE coop_impl_t
 
 		class registration_performer_t;
 
+		//! Perform actions related to the deregistration of coop.
+		static void
+		do_deregistration_specific_actions(
+			//! Coop to be deregistered.
+			coop_t & coop,
+			//! Reason of coop's deregistration.
+			coop_dereg_reason_t reason );
+
+		class deregistration_performer_t;
+
+		//! Perform final deregistration actions for an coop.
+		static void
+		do_final_deregistration_actions(
+			//! Target coop.
+			coop_t & coop );
+
 		//! Perform addition of a new child coop.
 		static void
 		do_add_child(
@@ -326,6 +342,14 @@ class SO_5_TYPE coop_impl_t
 			coop_t & parent,
 			//! Child to be added.
 			coop_shptr_t child );
+
+		//! Perform removement of a child coop.
+		static void
+		do_remove_child(
+			//! Parent coop.
+			coop_t & parent,
+			//! Child to be removed.
+			coop_t & child );
 	};
 
 } /* namespace impl */
@@ -355,6 +379,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		friend class impl::coop_private_iface_t;
 		friend class impl::coop_impl_t;
 		friend class impl::coop_impl_t::registration_performer_t;
+		friend class impl::coop_impl_t::deregistration_performer_t;
 
 		coop_t( const coop_t & ) = delete;
 		coop_t & operator=( const coop_t & ) = delete;
@@ -707,7 +732,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		void
 		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
-#if 0
+//FIXME: check an example in the doxygen comment!
 		/*!
 		 * \since
 		 * v.5.5.8
@@ -726,16 +751,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				} );
 			\endcode
 		 *
-		 * \note This method is just a shorthand for:
-			\code
-			so_5::coop_t & coop = ...;
-			coop.environment().deregister_coop( coop.query_coop_name(), reason );
-			\endcode
 		 */
 		void
 		deregister(
 			//! Reason of cooperation deregistration.
-			int reason );
+			int reason )
+			{
+				impl::coop_impl_t::do_deregistration_specific_actions(
+						*this,
+						coop_dereg_reason_t{ reason } );
+			}
 
 		/*!
 		 * \since
@@ -749,12 +774,11 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			coop.deregister( so_5::dereg_reason::normal );
 			\endcode
 		 */
-		inline void
+		void
 		deregister_normally()
 			{
 				this->deregister( dereg_reason::normal );
 			}
-#endif
 
 	protected:
 		//! Information about agent and its dispatcher binding.
@@ -970,6 +994,27 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 
 		/*!
 		 * \brief Increment usage count for the coop.
+		 *
+		 * In v.5.2.3 the counter m_reference_count is used to
+		 * reflect count of references to the cooperation. There are
+		 * the following entities who can refer to cooperation:
+		 * - agents from that cooperation. When cooperation is successfully
+		 *   registered the counter is incremented by count of agents.
+		 *   During cooperation deregistration agents finish their work and
+		 *   each agent decrement cooperation usage counter;
+		 * - children cooperations. Each child cooperation increments
+		 *   reference counter on its registration and decrements counter
+		 *   on its deregistration;
+		 * - cooperation registration routine. It increment reference counter
+		 *   to prevent cooperation deregistration before the end of
+		 *   registration process. It is possible if cooperation do its
+		 *   work very quickly and initiates deregistration. When cooperation
+		 *   has coop_notificators its registration process may be longer
+		 *   then cooperation working time. And cooperation could be
+		 *   deregistered and even destroyed before return from registration
+		 *   routine. To prevent this cooperation registration routine
+		 *   increments cooperation usage counter and the begin of process
+		 *   and decrement it when registration process finished.
 		 */
 		void
 		increment_usage_count() noexcept
@@ -977,6 +1022,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				++m_reference_count;
 			}
 
+//FIXME: check for methods which call decrement_usage_count.
+//These methods can't be marked as noexcept!
 		/*!
 		 * \brief Decrement usage count for the coop.
 		 *
@@ -1010,6 +1057,45 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				impl::coop_impl_t::do_add_child( *this, std::move(child) );
 			}
 
+		/*!
+		 * \brief Remove a child from the parent coop.
+		 *
+		 * This method is called by child coop.
+		 *
+		 * \note
+		 * This method locks the parent coop object. But under that lock
+		 * fields m_prev_sibling and m_next_sibling of the child coop
+		 * are modified.
+		 *
+		 * \note
+		 * In contradiction to add_child() this method receives a reference
+		 * to child coop. This allows to avoid construction of temporary
+		 * shared_ptr object.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		void
+		remove_child(
+			//! Child coop to be removed.
+			coop_t & child )
+			{
+				impl::coop_impl_t::do_remove_child( *this, child );
+			}
+
+//FIXME: document this!
+		template< typename Lambda >
+		void
+		for_each_child( Lambda && lambda ) const
+			{
+				auto * child = m_first_child.get();
+				while( child )
+				{
+					lambda( *child );
+
+					child = child->m_next_sibling.get();
+				}
+			}
 #if 0
 
 

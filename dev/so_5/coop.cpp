@@ -342,11 +342,116 @@ coop_impl_t::do_registration_specific_actions( coop_t & coop )
 		registration_performer_t{ coop }.perform();
 	}
 
+class coop_impl_t::deregistration_performer_t
+	{
+		coop_t & m_coop;
+		const coop_dereg_reason_t m_reason;
+
+		enum class phase1_result_t
+			{
+				dereg_initiated,
+				dereg_already_in_progress
+			};
+
+		phase1_result_t
+		perform_phase1()
+			{
+				// The first phase should be performed on locked object.
+				std::lock_guard lock{ m_coop.m_lock };
+
+				if( coop_t::registration_status_t::coop_registered !=
+						m_coop.m_registration_status )
+					// Deregistration is already in progress.
+					// Nothing to do.
+					return phase1_result_t::dereg_already_in_progress;
+
+				// Deregistration process should be started.
+				m_coop.m_registration_status =
+						coop_t::registration_status_t::coop_deregistering;
+				m_coop.m_dereg_reason = m_reason;
+
+				initiate_deregistration_for_children();
+
+				return phase1_result_t::dereg_initiated;
+			}
+
+		void
+		shutdown_all_agents() noexcept
+			{
+				for( auto & info : m_coop.m_agent_array )
+					internal_agent_iface_t{ *info.m_agent_ref }.shutdown_agent();
+			}
+
+//FIXME: should it be marked as noexcept?
+		void
+		initiate_deregistration_for_children()
+			{
+				m_coop.for_each_child( []( coop_t & coop ) {
+						coop.deregister( dereg_reason::parent_deregistration );
+					} );
+			}
+
+	public :
+		deregistration_performer_t(
+			coop_t & coop,
+			coop_dereg_reason_t reason ) noexcept
+			:	m_coop{ coop }
+			,	m_reason{ reason }
+			{}
+
+//FIXME: maybe it should be noexcept?
+		void
+		perform()
+			{
+				auto result = perform_phase1();
+
+				if( phase1_result_t::dereg_initiated == result )
+					{
+						// Deregistration is initiated the first time.
+
+						// All agents should be shut down.
+						shutdown_all_agents();
+
+						// Reference count to this coop can be decremented.
+						// If there is no more uses of that coop then the coop
+						// will be deregistered completely.
+						m_coop.decrement_usage_count();
+					}
+			}
+	};
+
+void
+coop_impl_t::do_deregistration_specific_actions(
+	coop_t & coop,
+	coop_dereg_reason_t reason )
+	{
+		deregistration_performer_t{ coop, reason }.perform();
+	}
+
+void
+coop_impl_t::do_final_deregistration_actions(
+	coop_t & coop )
+	{
+		// Agents should be unbound from their dispatchers.
+		for( auto & info : coop.m_agent_array )
+			info.m_binder->unbind( *info.m_agent_ref );
+
+		// Now the coop can be removed from it's parent.
+		// We don't except an exception here because m_parent should
+		// contain an actual value.
+		// But if not then we have a serious problem and it is better
+		// to terminate the application.
+		coop.m_parent.to_shptr()->remove_child( coop );
+	}
+
 void
 coop_impl_t::do_add_child(
 	coop_t & parent,
 	coop_shptr_t child )
 	{
+		// Count of users on this coop is incremented.
+		parent.increment_usage_count();
+
 		// Modification of parent-child relationship must be performed
 		// on locked object.
 		std::lock_guard lock{ parent.m_lock };
@@ -366,252 +471,39 @@ coop_impl_t::do_add_child(
 		child->m_next_sibling = std::move(parent.m_first_child);
 
 		parent.m_first_child = std::move(child);
+	}
 
-		// Count of users on this coop is incremented.
-		parent.increment_usage_count();
+void
+coop_impl_t::do_remove_child(
+	coop_t & parent,
+	coop_t & child )
+	{
+		{
+			// Modification of parent-child relationship must be performed
+			// on locked object.
+			std::lock_guard lock{ parent.m_lock };
+
+			if( parent.m_first_child.get() == &child )
+			{
+				// Child was a head of children chain. There is no prev-sibling
+				// for the child to be removed.
+				parent.m_first_child = child.m_next_sibling;
+				if( parent.m_first_child )
+					parent.m_first_child->m_prev_sibling.reset();
+			}
+			else
+			{
+				child.m_prev_sibling->m_next_sibling = child.m_next_sibling;
+				if( child.m_next_sibling )
+					child.m_next_sibling->m_prev_sibling = child.m_prev_sibling;
+			}
+		}
+
+		// Count of references to the parent coop can be decremented now.
+		parent.decrement_usage_count();
 	}
 
 } /* namespace impl */
-
-#if 0
-coop_t::coop_t(
-	nonempty_name_t name,
-	disp_binder_shptr_t coop_disp_binder,
-	environment_t & env )
-	:	m_coop_name( name.giveout_value() )
-	,	m_coop_disp_binder( std::move(coop_disp_binder) )
-	,	m_env( env )
-	,	m_reference_count( 0l )
-	,	m_parent_coop_ptr( nullptr )
-	,	m_registration_status( registration_status_t::coop_not_registered )
-	,	m_exception_reaction( inherit_exception_reaction )
-{
-}
-
-void
-coop_t::set_exception_reaction(
-	exception_reaction_t value )
-{
-	m_exception_reaction = value;
-}
-
-exception_reaction_t
-coop_t::exception_reaction() const
-{
-	if( inherit_exception_reaction == m_exception_reaction )
-		{
-			if( m_parent_coop_ptr )
-				return m_parent_coop_ptr->exception_reaction();
-			else
-				return m_env.exception_reaction();
-		}
-
-	return m_exception_reaction;
-}
-
-void
-coop_t::deregister( int reason )
-{
-	environment().deregister_coop( query_coop_name(), reason );
-}
-
-void
-coop_t::do_registration_specific_actions(
-	coop_t * parent_coop )
-{
-	reorder_agents_with_respect_to_priorities();
-	bind_agents_to_coop();
-	define_all_agents();
-
-	bind_agents_to_disp();
-
-	m_parent_coop_ptr = parent_coop;
-	if( m_parent_coop_ptr )
-		// Parent coop should known about existence of that coop.
-		m_parent_coop_ptr->m_reference_count += 1;
-
-	// Cooperation should assume that it is registered now.
-	m_registration_status = registration_status_t::coop_registered;
-	// Increment reference count to reflect that cooperation is registered.
-	// This is necessary in v.5.5.12 to prevent automatic deregistration
-	// of the cooperation right after finish of registration process for
-	// empty cooperation.
-	m_reference_count += 1;
-}
-
-void
-coop_t::do_deregistration_specific_actions(
-	coop_dereg_reason_t dereg_reason )
-{
-	m_dereg_reason = std::move( dereg_reason );
-
-	shutdown_all_agents();
-
-	// Reference count could decremented.
-	// If coop was an empty coop then this action initiates the whole
-	// coop deregistration.
-	decrement_usage_count();
-}
-
-void
-coop_t::reorder_agents_with_respect_to_priorities()
-{
-	std::sort( std::begin(m_agent_array), std::end(m_agent_array),
-		[]( const agent_with_disp_binder_t & a,
-			const agent_with_disp_binder_t & b ) -> bool {
-			return impl::special_agent_ptr_compare(
-					*a.m_agent_ref, *b.m_agent_ref );
-		} );
-}
-
-void
-coop_t::bind_agents_to_coop()
-{
-	for( auto & info : m_agent_array )
-	{
-		info.m_agent_ref->bind_to_coop( *this );
-	}
-}
-
-void
-coop_t::define_all_agents()
-{
-	for( auto & info : m_agent_array )
-	{
-		info.m_agent_ref->so_initiate_agent_definition();
-	}
-}
-
-void
-coop_t::bind_agents_to_disp()
-{
-	// All the following actions must be performed on locked m_binding_lock.
-	// It prevents evt_start event from execution until all agents will be
-	// bound to its dispatchers.
-	std::lock_guard< std::mutex > binding_lock{ m_binding_lock };
-
-	// The first stage of binding to dispatcher:
-	// allocating necessary resources for agents.
-	// Exceptions on that stage will lead to simple unbinding
-	// agents from dispatchers.
-	{
-		agent_array_t::iterator it;
-		try
-		{
-			for( it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
-			{
-				it->m_binder->preallocate_resources( *(it->m_agent_ref) );
-			}
-		}
-		catch( const std::exception & x )
-		{
-			// All preallocated resources should be returned back.
-			for( auto it2 = m_agent_array.begin(); it2 != it; ++it2 )
-				it2->m_binder->undo_preallocation( *(it2->m_agent_ref) );
-
-			SO_5_THROW_EXCEPTION(
-					rc_agent_to_disp_binding_failed,
-					std::string( "an exception during the first stage of "
-							"binding agent to the dispatcher, cooperation: '" +
-							m_coop_name + "', exception: " + x.what() ) );
-		}
-	}
-
-	// The second stage of binding. Activation of the allocated on
-	// the first stage resources.
-	// Exceptions on that stage would lead to unpredictable application
-	// state. Therefore std::abort is called on exception.
-	for( auto & info : m_agent_array )
-		info.m_binder->bind( *(info.m_agent_ref) );
-}
-
-void
-coop_t::shutdown_all_agents()
-{
-	try
-	{
-		for( auto info : m_agent_array )
-		{
-			info.m_agent_ref->shutdown_agent();
-		}
-	}
-	catch( const std::exception & x )
-	{
-		so_5::details::abort_on_fatal_error( [&] {
-			SO_5_LOG_ERROR( m_env, log_stream ) {
-				log_stream << "Exception during shutting cooperation agents down. "
-						"Work cannot be continued. Cooperation: '"
-						<< m_coop_name << "'. Exception: " << x.what();
-			}
-		} ); 
-	}
-}
-
-void
-coop_t::increment_usage_count()
-{
-	m_reference_count += 1;
-}
-
-void
-coop_t::decrement_usage_count()
-{
-	// If it is the last working agent then Environment should be
-	// informed that the cooperation is ready to be deregistered.
-	if( 0 == --m_reference_count )
-	{
-		// NOTE: usage counter incremented and decremented during
-		// registration process even if registration of cooperation failed.
-		// So decrement_usage_count() could be called when cooperation
-		// has coop_not_registered status.
-		if( registration_status_t::coop_registered == m_registration_status )
-		{
-			m_registration_status = registration_status_t::coop_deregistering;
-			impl::internal_env_iface_t{ m_env }.ready_to_deregister_notify( this );
-		}
-	}
-}
-
-void
-coop_t::final_deregister_coop()
-{
-	for( auto & info : m_agent_array )
-		info.m_binder->unbind( *(info.m_agent_ref) );
-
-	impl::internal_env_iface_t{ m_env }.final_deregister_coop( m_coop_name );
-}
-
-coop_t *
-coop_t::parent_coop_ptr() const
-{
-	return m_parent_coop_ptr;
-}
-
-coop_reg_notificators_container_ref_t
-coop_t::reg_notificators() const
-{
-	return m_reg_notificators;
-}
-
-coop_dereg_notificators_container_ref_t
-coop_t::dereg_notificators() const
-{
-	return m_dereg_notificators;
-}
-
-void
-coop_t::delete_user_resources()
-{
-	for( auto & d : m_resource_deleters )
-		d();
-}
-
-const coop_dereg_reason_t &
-coop_t::dereg_reason() const
-{
-	return m_dereg_reason;
-}
-#endif
 
 } /* namespace so_5 */
 

@@ -521,15 +521,6 @@ environment_t::register_coop(
 	return m_impl->m_infrastructure->register_coop( std::move( agent_coop ) );
 }
 
-void
-environment_t::deregister_coop(
-	coop_handle_t coop,
-	int reason )
-{
-	m_impl->m_infrastructure->deregister_coop(
-			std::move(coop), coop_dereg_reason_t( reason ) );
-}
-
 so_5::timer_id_t
 environment_t::so_schedule_timer(
 	const low_level_api::schedule_timer_params_t params )

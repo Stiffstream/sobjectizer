@@ -50,10 +50,17 @@ class coop_repository_basis_t::root_coop_t final : public coop_t
 				coop_private_iface_t::increment_usage_count( *this );
 			}
 
-//FIXME: to be implemented!
 		void
-		deregister_children() noexcept
+		deregister_children_on_shutdown() noexcept
 			{
+				// List of children coop should be processed when
+				// the object is locked.
+				std::lock_guard lock{ m_lock };
+
+				// Every child should be deregistered with 'shutdown' reason.
+				for_each_child( []( coop_t & child ) {
+						child.deregister( dereg_reason::shutdown );
+					} );
 			}
 	};
 
@@ -152,6 +159,9 @@ coop_repository_basis_t::final_deregister_coop(
 
 		// We don't expect exceptions from the following actions.
 		so_5::details::invoke_noexcept_code( [&] {
+				// Coop should perform its final actions.
+				coop_private_iface_t::do_final_deregistration_actions( *coop );
+
 				// Coop's dereg notificators can be processed now.
 				coop_private_iface_t::call_dereg_notificators( *coop );
 
@@ -191,7 +201,7 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 		}
 
 		// Phase 2: deregistration of all coops.
-		m_root_coop->deregister_children();
+		m_root_coop->deregister_children_on_shutdown();
 	}
 
 SO_5_NODISCARD

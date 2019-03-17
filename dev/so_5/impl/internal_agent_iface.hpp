@@ -42,6 +42,12 @@ class internal_agent_iface_t final
 			{
 				m_agent.so_initiate_agent_definition();
 			}
+
+		void
+		shutdown_agent() noexcept
+			{
+				m_agent.shutdown_agent();
+			}
 	};
 
 } /* namespace impl */

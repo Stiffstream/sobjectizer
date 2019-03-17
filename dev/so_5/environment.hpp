@@ -1047,12 +1047,18 @@ class SO_5_TYPE environment_t
 		 * dispatchers. And name of the cooperation is removed from
 		 * the list of registered cooperations.
 		 */
+//FIXME: should this method be marked as noexcept?
 		void
 		deregister_coop(
 			//! The coop to be deregistered.
 			coop_handle_t coop,
 			//! Deregistration reason.
-			int reason );
+			int reason )
+		{
+			auto coop_shptr = coop.to_shptr_noexcept();
+			if( coop_shptr )
+				coop_shptr->deregister( reason );
+		}
 		/*!
 		 * \}
 		 */
