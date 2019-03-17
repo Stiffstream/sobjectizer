@@ -38,7 +38,7 @@ using coop_shptr_t = std::shared_ptr< coop_t >;
  * \since
  * v.5.6.0
  */
-class SO_5_NODISCARD coop_handle_t
+class coop_handle_t
 	{
 		friend class so_5::coop_t;
 

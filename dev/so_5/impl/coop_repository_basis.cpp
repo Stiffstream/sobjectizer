@@ -48,6 +48,10 @@ class coop_repository_basis_t::root_coop_t final : public coop_t
 				// Automaticaly increment usage count to prevent
 				// deregistration when last child coop will be destroyed.
 				coop_private_iface_t::increment_usage_count( *this );
+
+				// Status of the coop should be changed because
+				// this coop is already "registered".
+				m_registration_status = registration_status_t::coop_registered;
 			}
 
 		void
