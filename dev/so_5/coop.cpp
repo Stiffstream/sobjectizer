@@ -460,7 +460,6 @@ coop_impl_t::do_add_child(
 		if( coop_t::registration_status_t::coop_registered !=
 				parent.m_registration_status )
 			SO_5_THROW_EXCEPTION(
-					//FIXME: this error code should be added.
 					rc_coop_is_not_in_registered_state,
 					"add_child() can be processed only when coop is registered" );
 

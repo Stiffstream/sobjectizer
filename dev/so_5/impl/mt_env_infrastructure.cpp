@@ -13,6 +13,7 @@
 #include <so_5/impl/mt_env_infrastructure.hpp>
 
 #include <so_5/impl/run_stage.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
 #include <so_5/environment.hpp>
 #include <so_5/send_functions.hpp>
@@ -47,7 +48,11 @@ coop_repo_t::start()
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
 			[this]( coop_shptr_t coop ) {
-				final_deregister_coop( std::move(coop) );
+				// NOTE: we should call final_deregister_coop from
+				// environment because only this call handles autoshutdown flag.
+				auto & env = coop->environment();
+				so_5::impl::internal_env_iface_t{ env }.final_deregister_coop(
+						std::move(coop) );
 			} );
 	} };
 }

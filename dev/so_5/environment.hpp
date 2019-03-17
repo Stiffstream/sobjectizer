@@ -87,23 +87,6 @@ struct single_timer_params_t
 
 } /* namespace low_level_api */
 
-/*!
- * \brief Special type for autoname-cooperation implementation.
- *
- * \since
- * v.5.5.1
- */
-struct autoname_indicator_t {};
-
-/*!
- * \brief Special marker for indication of automatic name generation.
- *
- * \since
- * v.5.5.1
- */
-inline autoname_indicator_t
-autoname() { return autoname_indicator_t(); }
-
 //
 // environment_params_t
 //
@@ -1727,8 +1710,8 @@ create_child_coop(
 	//! Arguments for the environment_t::create_coop() method.
 	Args&&... args )
 {
-//FIXME: coop handle from agent should be obtained and used as parent coop.
 	auto coop = owner.so_environment().make_coop(
+			owner.so_coop(),
 			std::forward< Args >(args)... );
 
 	return coop;
