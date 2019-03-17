@@ -70,8 +70,9 @@ class coop_repository_basis_t::root_coop_t final : public coop_t
 
 coop_repository_basis_t::coop_repository_basis_t(
 	outliving_reference_t< environment_t > environment,
-	coop_listener_unique_ptr_t /*coop_listener*/ )
+	coop_listener_unique_ptr_t coop_listener )
 	:	m_env{ environment }
+	,	m_coop_listener{ std::move(coop_listener) }
 	{
 		m_root_coop = std::make_shared< root_coop_t >(
 				++m_coop_id_counter,

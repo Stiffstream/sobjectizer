@@ -46,10 +46,8 @@ coop_repo_t::start()
 	m_final_dereg_thread = std::thread{ [this] {
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
-			[]( coop_shptr_t coop ) {
-//FIXME: final_deregister_coop should be called!
-(void)coop;
-//				coop_t::so_call_final_deregister_coop( coop );
+			[this]( coop_shptr_t coop ) {
+				final_deregister_coop( std::move(coop) );
 			} );
 	} };
 }
@@ -101,27 +99,21 @@ coop_repo_t::start_deregistration()
 void
 coop_repo_t::wait_for_start_deregistration()
 {
-//FIXME: implement this!
-#if 0
-	std::unique_lock< std::mutex > lck( this->lock() );
+	std::unique_lock lck{ m_lock };
 
 	m_deregistration_started_cond.wait( lck,
-			[this] { return m_deregistration_started; } );
-#endif
+			[this] { return status_t::normal != m_status; } );
 }
 
 void
 coop_repo_t::wait_all_coop_to_deregister()
 {
-//FIXME: implement this!
-#if 0
-	std::unique_lock< std::mutex > lck( this->lock() );
+	std::unique_lock lck{ m_lock };
 
 	// Must wait for a signal is there are cooperations in
 	// the deregistration process.
 	m_deregistration_finished_cond.wait( lck,
-			[this] { return m_deregistered_coop.empty(); } );
-#endif
+			[this] { return 0u == m_total_coops; } );
 }
 
 environment_infrastructure_t::coop_repository_stats_t
