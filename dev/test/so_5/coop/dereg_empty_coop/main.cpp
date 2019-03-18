@@ -11,6 +11,8 @@ init( so_5::environment_t & env )
 {
 	class a_supervisor_t final : public so_5::agent_t
 	{
+		so_5::coop_handle_t m_child;
+
 	public :
 		using so_5::agent_t::agent_t;
 
@@ -19,7 +21,7 @@ init( so_5::environment_t & env )
 			so_subscribe_self()
 				.event( [this](mhood_t<so_5::msg_coop_registered>) {
 						so_environment().deregister_coop(
-								"child",
+								m_child,
 								so_5::dereg_reason::normal );
 					} )
 				.event( [this](mhood_t<so_5::msg_coop_deregistered>) {
@@ -29,8 +31,10 @@ init( so_5::environment_t & env )
 
 		void so_evt_start() override
 		{
-			so_5::introduce_child_coop( *this, "child",
+			so_5::introduce_child_coop( *this,
 					[this]( so_5::coop_t & coop ) {
+						m_child = coop.handle();
+
 						coop.add_reg_notificator(
 								so_5::make_coop_reg_notificator( so_direct_mbox() ) );
 						coop.add_dereg_notificator(
