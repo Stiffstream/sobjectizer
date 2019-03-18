@@ -32,21 +32,30 @@ namespace impl
 class coop_private_iface_t
 {
 	public :
-		static coop_unique_ptr_t
+		static coop_unique_holder_t
 		make_coop(
 			coop_id_t id,
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder,
 			outliving_reference_t< environment_t > env )
 			{
-				return coop_unique_ptr_t{
-						new coop_t{
-							id,
-							std::move(parent),
-							std::move(default_binder),
-							env
+				return {
+						coop_shptr_t {
+								new coop_t{
+									id,
+									std::move(parent),
+									std::move(default_binder),
+									env
+								},
+								coop_t::destroy
 						}
 				};
+			}
+
+		static coop_shptr_t
+		make_from( coop_unique_holder_t holder ) noexcept
+			{
+				return holder.release();
 			}
 
 		static void

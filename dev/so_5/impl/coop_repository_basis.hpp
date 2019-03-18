@@ -64,7 +64,7 @@ public:
 
 //FIXME: document this!
 	SO_5_NODISCARD
-	coop_unique_ptr_t
+	coop_unique_holder_t
 	make_coop(
 		coop_handle_t parent,
 		disp_binder_shptr_t default_binder );
@@ -74,7 +74,7 @@ public:
 	coop_handle_t
 	register_coop(
 		//! Cooperation to be registered.
-		coop_unique_ptr_t agent_coop );
+		coop_unique_holder_t agent_coop );
 
 	/*!
 	 * Type for return value of final_deregister_coop method.
@@ -218,7 +218,7 @@ protected:
 	//! An actual implementation of registration of a coop.
 	SO_5_NODISCARD
 	coop_handle_t
-	do_registration_specific_actions( coop_unique_ptr_t coop_ptr );
+	do_registration_specific_actions( coop_unique_holder_t coop_ptr );
 };
 
 } /* namespace impl */

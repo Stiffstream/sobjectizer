@@ -198,7 +198,7 @@ class env_infrastructure_t
 
 		virtual void
 		register_coop(
-			coop_unique_ptr_t coop ) override;
+			coop_unique_holder_t coop ) override;
 
 		virtual void
 		deregister_coop(
@@ -342,7 +342,7 @@ env_infrastructure_t< Activity_Tracker >::stop()
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::register_coop(
-	coop_unique_ptr_t coop )
+	coop_unique_holder_t coop )
 	{
 		m_coop_repo.register_coop( std::move(coop) );
 	}

@@ -373,7 +373,7 @@ class SO_5_TYPE coop_impl_t
  * the agent lifetime.
  */
 class coop_t : public std::enable_shared_from_this<coop_t>
-{
+	{
 	private :
 		friend class agent_t;
 		friend class impl::coop_private_iface_t;
@@ -621,7 +621,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_holder_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -659,7 +659,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 \code
 		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
 		 		so_5::disp::one_thread::create_private_disp();
-		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_holder_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -1029,6 +1029,18 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * Note that is usage count is become 0 then final deregistration
 		 * actions will be initiated.
+		 *
+		 * Cooperation deregistration is a long process. All agents
+		 * process events out of their queues. When an agent detects that
+		 * no more events in its queue it informs the cooperation about this.
+		 *
+		 * When cooperation detects that all agents have finished their
+		 * work it initiates the agent's destruction.
+		 *
+		 * Since v.5.2.3 this method used not only for agents of cooperation
+		 * but and for children cooperations. Because final step of
+		 * cooperation deregistration could be initiated only when all
+		 * children cooperations are deregistered and destroyed.
 		 */
 		void
 		decrement_usage_count()
@@ -1096,187 +1108,73 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 					child = child->m_next_sibling.get();
 				}
 			}
-#if 0
+	};
 
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Perform all neccessary actions related to
-		 * cooperation registration.
-		 */
-		void
-		do_registration_specific_actions(
-			//! Pointer to the parent cooperation.
-			//! Contains nullptr if there is no parent cooperation.
-			coop_t * agent_coop );
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Perform all necessary actions related to
-		 * cooperation deregistration.
-		 */
-		void
-		do_deregistration_specific_actions(
-			//! Deregistration reason.
-			coop_dereg_reason_t dereg_reason );
-
-		/*!
-		 * \since
-		 * v.5.5.8
-		 *
-		 * \brief Rearrangement of agents in agents storage with
-		 * respect to its priorities.
-		 *
-		 * This step is necessary to handle agents with high priorities
-		 * before agents with low priorities.
-		 */
-		void
-		reorder_agents_with_respect_to_priorities();
-
-		//! Bind agents to the cooperation.
-		void
-		bind_agents_to_coop();
-
-		//! Calls define_agent method for all cooperation agents.
-		void
-		define_all_agents();
-
-		//! Bind agents to the dispatcher.
-		void
-		bind_agents_to_disp();
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Shutdown all agents as a part of cooperation deregistration.
-		 *
-		 * An exception from agent_t::shutdown_agent() leads to call to abort().
-		 */
-		void
-		shutdown_all_agents();
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Increment usage counter for this cooperation.
-		 *
-		 * In v.5.2.3 the counter m_reference_count is used to
-		 * reflect count of references to the cooperation. There are
-		 * the following entities who can refer to cooperation:
-		 * - agents from that cooperation. When cooperation is successfully
-		 *   registered the counter is incremented by count of agents.
-		 *   During cooperation deregistration agents finish their work and
-		 *   each agent decrement cooperation usage counter;
-		 * - children cooperations. Each child cooperation increments
-		 *   reference counter on its registration and decrements counter
-		 *   on its deregistration;
-		 * - cooperation registration routine. It increment reference counter
-		 *   to prevent cooperation deregistration before the end of
-		 *   registration process. It is possible if cooperation do its
-		 *   work very quickly and initiates deregistration. When cooperation
-		 *   has coop_notificators its registration process may be longer
-		 *   then cooperation working time. And cooperation could be
-		 *   deregistered and even destroyed before return from registration
-		 *   routine. To prevent this cooperation registration routine
-		 *   increments cooperation usage counter and the begin of process
-		 *   and decrement it when registration process finished.
-		 */
-		void
-		increment_usage_count();
-
-		//! Process signal about finished work of an agent or
-		//! child cooperation.
-		/*!
-		 * Cooperation deregistration is a long process. All agents
-		 * process events out of their queues. When an agent detects that
-		 * no more events in its queue it informs the cooperation about this.
-		 *
-		 * When cooperation detects that all agents have finished their
-		 * work it initiates the agent's destruction.
-		 *
-		 * Since v.5.2.3 this method used not only for agents of cooperation
-		 * but and for children cooperations. Because final step of
-		 * cooperation deregistration could be initiated only when all
-		 * children cooperations are deregistered and destroyed.
-		 */
-		void
-		decrement_usage_count();
-
-		//! Do the final deregistration stage.
-		void
-		final_deregister_coop();
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Get pointer to the parent cooperation.
-		 *
-		 * \retval nullptr if there is no parent cooperation.
-		 */
-		coop_t *
-		parent_coop_ptr() const;
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Get registration notificators.
-		 */
-		coop_reg_notificators_container_ref_t
-		reg_notificators() const;
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Get deregistration notificators.
-		 */
-		coop_dereg_notificators_container_ref_t
-		dereg_notificators() const;
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Delete all user resources.
-		 */
-		void
-		delete_user_resources();
-
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Get deregistration reason.
-		 */
-		const coop_dereg_reason_t &
-		dereg_reason() const;
-#endif
-
-};
-
+//
+// coop_unique_holder_t
+//
 /*!
- * \since
- * v.5.2.3
+ * \brief A special type that plays role of unique_ptr for coop.
  *
- * \brief A custom deleter for cooperation.
+ * In previous versions of SObjectizer std::unique_ptr was used for
+ * holding coop before the coop will be passed to register_coop.
+ * But in v.5.6 shared_ptr should be used for holding a pointer
+ * to a coop object (otherwise a call to coop_t::shared_from_this()
+ * can throw std::bad_weak_ptr in some cases).
+ *
+ * Class coop_unique_holder_t is an replacement for coop_unique_ptr_t
+ * from previous versions of SObjectizer, but it holds shared_ptr inside.
+ *
+ * \since
+ * v.5.6.0
  */
-class coop_deleter_t
-{
-	public :
-		inline void
-		operator()( coop_t * coop ) { coop_t::destroy( coop ); }
-};
+class coop_unique_holder_t
+	{
+		friend class impl::coop_private_iface_t;
 
-//! Typedef for the agent_coop autopointer.
-using coop_unique_ptr_t = std::unique_ptr< coop_t, coop_deleter_t >;
+		//! A pointer to coop object.
+		coop_shptr_t m_coop;
+
+		coop_shptr_t
+		release() noexcept
+			{
+				return std::move(m_coop);
+			}
+
+	public :
+		coop_unique_holder_t() = default;
+		coop_unique_holder_t( coop_shptr_t coop ) : m_coop{ std::move(coop) } {}
+
+		coop_unique_holder_t( const coop_unique_holder_t & ) = delete;
+		coop_unique_holder_t( coop_unique_holder_t && ) = default;
+
+		coop_unique_holder_t &
+		operator=( const coop_unique_holder_t & ) = delete;
+
+		coop_unique_holder_t &
+		operator=( coop_unique_holder_t && ) = default;
+
+		friend void
+		swap( coop_unique_holder_t & a, coop_unique_holder_t & b ) noexcept
+			{
+				using std::swap;
+				swap( a.m_coop, b.m_coop );
+			}
+
+		operator bool() const noexcept { return static_cast<bool>(m_coop); }
+
+		bool operator!() const noexcept { return !m_coop; }
+
+		coop_t *
+		get() const noexcept { return m_coop.get(); }
+
+		coop_t *
+		operator->() const noexcept { return m_coop.get(); }
+
+		coop_t &
+		operator*() const noexcept { return *m_coop.get(); }
+	};
+
 
 } /* namespace so_5 */
 

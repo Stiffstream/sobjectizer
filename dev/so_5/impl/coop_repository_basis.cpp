@@ -80,7 +80,7 @@ coop_repository_basis_t::coop_repository_basis_t(
 	}
 
 SO_5_NODISCARD
-coop_unique_ptr_t
+coop_unique_holder_t
 coop_repository_basis_t::make_coop(
 	coop_handle_t parent,
 	disp_binder_shptr_t default_binder )
@@ -98,7 +98,7 @@ coop_repository_basis_t::make_coop(
 SO_5_NODISCARD
 coop_handle_t
 coop_repository_basis_t::register_coop(
-	coop_unique_ptr_t coop_ptr )
+	coop_unique_holder_t coop_ptr )
 	{
 		// Phase 1: check the posibility of registration of new coop.
 		// This check should be performed on locked object.
@@ -272,10 +272,10 @@ namespace
 
 coop_handle_t
 coop_repository_basis_t::do_registration_specific_actions(
-	coop_unique_ptr_t coop_ptr )
+	coop_unique_holder_t coop_ptr )
 {
 	// Cooperation object should life to the end of this routine.
-	coop_shptr_t coop{ coop_ptr.release(), coop_deleter_t() };
+	coop_shptr_t coop{ coop_private_iface_t::make_from( std::move(coop_ptr) ) };
 
 	// Usage counter for cooperation should be incremented right now,
 	// and decremented at exit point.

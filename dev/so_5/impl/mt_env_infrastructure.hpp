@@ -171,14 +171,14 @@ class mt_env_infrastructure_t
 		stop() override;
 
 		SO_5_NODISCARD
-		virtual coop_unique_ptr_t
+		virtual coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder ) override;
 
 		virtual coop_handle_t
 		register_coop(
-			coop_unique_ptr_t coop ) override;
+			coop_unique_holder_t coop ) override;
 
 		virtual void
 		ready_to_deregister_notify(

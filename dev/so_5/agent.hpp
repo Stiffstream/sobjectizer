@@ -2050,7 +2050,7 @@ class SO_5_TYPE agent_t
 			\code
 			void a_sample_t::evt_on_smth( mhood_t< some_message_t > msg )
 			{
-				so_5::coop_unique_ptr_t coop =
+				so_5::coop_unique_holder_t coop =
 					so_environment().create_coop( "first_coop" );
 
 				// Filling the cooperation...

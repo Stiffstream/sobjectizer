@@ -868,7 +868,7 @@ class SO_5_TYPE environment_t
 		 * v.5.6.0
 		 */
 		SO_5_NODISCARD
-		coop_unique_ptr_t
+		coop_unique_holder_t
 		make_coop();
 
 //FIXME: example in the comment should be updated.
@@ -879,7 +879,7 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::coop_unique_ptr_t coop = so_env.create_coop(
+			so_5::coop_unique_holder_t coop = so_env.create_coop(
 				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
@@ -895,7 +895,7 @@ class SO_5_TYPE environment_t
 		 * v.5.6.0
 		 */
 		SO_5_NODISCARD
-		coop_unique_ptr_t
+		coop_unique_holder_t
 		make_coop(
 			//! A default binder for this cooperation.
 			disp_binder_shptr_t disp_binder );
@@ -911,7 +911,7 @@ class SO_5_TYPE environment_t
 		 * v.5.6.0
 		 */
 		SO_5_NODISCARD
-		coop_unique_ptr_t
+		coop_unique_holder_t
 		make_coop(
 			//! Parent coop.
 			coop_handle_t parent );
@@ -927,7 +927,7 @@ class SO_5_TYPE environment_t
 		 * v.5.6.0
 		 */
 		SO_5_NODISCARD
-		coop_unique_ptr_t
+		coop_unique_holder_t
 		make_coop(
 			//! Parent coop.
 			coop_handle_t parent,
@@ -952,7 +952,7 @@ class SO_5_TYPE environment_t
 		coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.
-			coop_unique_ptr_t agent_coop );
+			coop_unique_holder_t agent_coop );
 
 //FIXME: maybe SO_5_NODISCARD should be used here?
 		/*!
@@ -1703,7 +1703,7 @@ environment_t::introduce_coop( Args &&... args )
 	\endcode
  */
 template< typename... Args >
-coop_unique_ptr_t
+coop_unique_holder_t
 create_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
@@ -1739,7 +1739,7 @@ create_child_coop(
 	\endcode
  */
 template< typename... Args >
-coop_unique_ptr_t
+coop_unique_holder_t
 create_child_coop(
 	//! Parent cooperation.
 	coop_handle_t parent,

@@ -166,7 +166,7 @@ mt_env_infrastructure_t::stop()
 	}
 
 SO_5_NODISCARD
-coop_unique_ptr_t
+coop_unique_holder_t
 mt_env_infrastructure_t::make_coop(
 	coop_handle_t parent,
 	disp_binder_shptr_t default_binder )
@@ -176,7 +176,7 @@ mt_env_infrastructure_t::make_coop(
 
 coop_handle_t
 mt_env_infrastructure_t::register_coop(
-	coop_unique_ptr_t coop )
+	coop_unique_holder_t coop )
 	{
 		return m_coop_repo.register_coop( std::move(coop) );
 	}

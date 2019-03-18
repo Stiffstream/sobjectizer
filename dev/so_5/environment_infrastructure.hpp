@@ -149,7 +149,7 @@ class SO_5_TYPE environment_infrastructure_t
 
 //FIXME: document this!
 		SO_5_NODISCARD
-		virtual coop_unique_ptr_t
+		virtual coop_unique_holder_t
 		make_coop(
 			//! Optinal parent coop.
 			coop_handle_t parent,
@@ -161,7 +161,7 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.
-			coop_unique_ptr_t coop ) = 0;
+			coop_unique_holder_t coop ) = 0;
 
 		//! Notification about cooperation for which the final dereg step
 		//! can be performed.
