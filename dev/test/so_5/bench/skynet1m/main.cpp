@@ -49,7 +49,7 @@ private :
 	const unsigned int m_size;
 	number m_sum = 0;
 	unsigned int m_received = 0;
-	string m_child;
+	so_5::coop_handle_t m_child;
 
 	void on_number( number v )
 	{ 
@@ -63,12 +63,11 @@ private :
 
 	void create_agents()
 	{
-		m_child = to_string( m_num ) + "/" + so_coop_name();
-
 		so_environment().introduce_coop(
-			m_child,
 			m_disp.binder( bind_params() ),
 			[&]( coop_t & coop ) {
+				m_child = coop.handle();
+
 				const auto subsize = m_size / divider;
 				coop.reserve( divider );
 				for( unsigned int i = 0; i != divider; ++i )
@@ -96,7 +95,6 @@ int main()
 		auto result_ch = env.create_mchain( make_unlimited_mchain_params() );
 
 		env.introduce_coop(
-			"0",
 			tp_disp.binder(),
 			[&]( coop_t & coop ) {
 				coop.make_agent< skynet >(
