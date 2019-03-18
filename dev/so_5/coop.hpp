@@ -387,11 +387,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		coop_t & operator=( coop_t && ) = delete;
 
 	protected :
-		virtual ~coop_t() 
-			{
-				impl::coop_impl_t::destroy_content( *this );
-			}
-
 		//! Constructor.
 		coop_t(
 			//! Cooperation ID.
@@ -409,14 +404,10 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			{}
 
 	public:
-		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 * \brief Deleter for agent_coop.
-		 */
-		static void
-		destroy( coop_t * coop ) { delete coop; }
+		virtual ~coop_t() 
+			{
+				impl::coop_impl_t::destroy_content( *this );
+			}
 
 		/*!
 		 * \brief Get handle for this coop.

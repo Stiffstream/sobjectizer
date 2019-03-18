@@ -46,8 +46,7 @@ class coop_private_iface_t
 									std::move(parent),
 									std::move(default_binder),
 									env
-								},
-								coop_t::destroy
+								}
 						}
 				};
 			}
