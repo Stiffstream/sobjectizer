@@ -71,7 +71,9 @@ create_and_register_agent(
 	unsigned int total_levels,
 	unsigned int level_size );
 
-struct msg_child_completed final : public so_5::signal_t {};
+struct msg_child_completed final {
+	unsigned int m_children_agents;
+};
 
 class a_child_t final : public so_5::agent_t
 {
@@ -116,8 +118,9 @@ class a_child_t final : public so_5::agent_t
 
 		void
 		evt_child_completed(
-			mhood_t< msg_child_completed > )
+			mhood_t< msg_child_completed > cmd )
 		{
+			m_children_agents += cmd->m_children_agents + 1u;
 			++m_children_completed;
 			if( m_children_completed == m_level_size )
 				complete_work();
@@ -131,12 +134,13 @@ class a_child_t final : public so_5::agent_t
 		const unsigned int m_total_levels;
 		const unsigned int m_level_size;
 
+		unsigned int m_children_agents{};
 		unsigned int m_children_completed{};
 
 		void
 		complete_work()
 		{
-			so_5::send< msg_child_completed >( m_parent_mbox );
+			so_5::send< msg_child_completed >( m_parent_mbox, m_children_agents );
 		}
 };
 
@@ -165,10 +169,12 @@ class a_root_t final : public so_5::agent_t
 		a_root_t(
 			context_t ctx,
 			so_5::disp_binder_shptr_t binder,
+			std::atomic_uint & result_receiver,
 			unsigned int total_levels,
 			unsigned int level_size )
 			:	so_5::agent_t{ std::move(ctx) }
 			,	m_binder{ std::move(binder) }
+			,	m_result_receiver{ result_receiver }
 			,	m_total_levels{ total_levels }
 			,	m_level_size{ level_size }
 		{}
@@ -196,17 +202,24 @@ class a_root_t final : public so_5::agent_t
 	private :
 		const so_5::disp_binder_shptr_t m_binder;
 
+		std::atomic_uint & m_result_receiver;
+
 		const unsigned int m_total_levels;
 		const unsigned int m_level_size;
 
+		unsigned int m_children_agents{};
 		unsigned int m_children_completed{};
 
 		void
-		on_child_completed( mhood_t<msg_child_completed> )
+		on_child_completed( mhood_t<msg_child_completed> cmd )
 		{
+			m_children_agents += cmd->m_children_agents + 1u;
 			++m_children_completed;
 			if( m_children_completed == m_level_size )
+			{
+				m_result_receiver = m_children_agents;
 				so_deregister_agent_coop_normally();
+			}
 		}
 };
 
@@ -224,20 +237,38 @@ show_cfg(
 void
 run_sobjectizer( const cfg_t & cfg )
 {
-	duration_meter_t meter{ "parallel_parent_child" };
+	std::vector< std::atomic_uint > results( cfg.m_root_count );
+	for( auto & v : results )
+		v = 0u;
 
-	so_5::launch( [&cfg]( so_5::environment_t & env ) {
-			for( unsigned int i = 0; i != cfg.m_root_count; ++i )
-			{
-				auto binder = so_5::disp::one_thread::make_dispatcher( env ).binder();
-				env.introduce_coop( [&]( so_5::coop_t & coop ) {
-						coop.make_agent< a_root_t >(
-								binder,
-								cfg.m_levels,
-								cfg.m_level_size );
-					} );
-			}
-		} );
+	{
+		duration_meter_t meter{ "parallel_parent_child" };
+
+		so_5::launch( [&]( so_5::environment_t & env ) {
+				for( unsigned int i = 0; i != cfg.m_root_count; ++i )
+				{
+					auto binder = so_5::disp::one_thread::make_dispatcher( env ).binder();
+					env.introduce_coop( [&]( so_5::coop_t & coop ) {
+							coop.make_agent< a_root_t >(
+									binder,
+									std::ref(results[i]),
+									cfg.m_levels,
+									cfg.m_level_size );
+						} );
+				}
+			} );
+	}
+
+	unsigned int total{};
+	for( auto & v : results )
+	{
+		const auto c = v.load();
+		std::cout << c << std::endl;
+
+		total += c;
+	}
+
+	std::cout << "Total: " << total << std::endl;
 }
 
 int
