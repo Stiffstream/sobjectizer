@@ -7,6 +7,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 struct sequence_holder_t
 {
 	typedef std::vector< int > vec_t;
@@ -51,9 +53,7 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_environment().deregister_coop(
-					so_coop_name(),
-					so_5::dereg_reason::normal );
+			so_deregister_agent_coop_normally();
 		}
 
 	private :
@@ -66,15 +66,19 @@ class test_agent_coop_t
 	typedef so_5::coop_t base_type_t;
 	public :
 		test_agent_coop_t(
-			so_5::nonempty_name_t name,
+			so_5::coop_id_t id,
+			so_5::coop_handle_t parent_coop,
 			so_5::disp_binder_shptr_t coop_disp_binder,
 			so_5::environment_t & env,
 			sequence_holder_t & sequence )
-			:	base_type_t( std::move(name), std::move(coop_disp_binder), env )
+			:	base_type_t{
+					id,
+					std::move(parent_coop),
+					std::move(coop_disp_binder),
+					so_5::outliving_mutable(env) }
 			,	m_sequence( sequence )
 		{}
 
-	protected :
 		~test_agent_coop_t()
 		{
 			m_sequence.m_sequence.push_back( ID_COOP );
@@ -107,13 +111,15 @@ class a_test_starter_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_5::coop_unique_ptr_t coop(
-					new test_agent_coop_t(
-							"child_coop",
-							so_5::make_default_disp_binder( so_environment() ),
-							so_environment(),
-							m_sequence ) );
-			coop->set_parent_coop_name( so_coop_name() );
+			so_5::coop_unique_holder_t coop(
+					so_5::coop_shptr_t{
+							new test_agent_coop_t(
+									1234567u,
+									so_coop(),
+									so_5::make_default_disp_binder( so_environment() ),
+									so_environment(),
+									m_sequence )
+					} );
 			coop->add_dereg_notificator(
 					so_5::make_coop_dereg_notificator( m_self_mbox ) );
 
@@ -158,7 +164,7 @@ class test_env_t
 		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
-					"starter", env.make_agent< a_test_starter_t >( m_sequence ) );
+					env.make_agent< a_test_starter_t >( m_sequence ) );
 		}
 
 		void
@@ -183,21 +189,16 @@ class test_env_t
 int
 main()
 {
-	try
-	{
-		test_env_t test_env;
-		so_5::launch(
-			[&]( so_5::environment_t & env ) {
-				test_env.init( env );
-			} );
+	run_with_time_limit( [] {
+			test_env_t test_env;
+			so_5::launch(
+				[&]( so_5::environment_t & env ) {
+					test_env.init( env );
+				} );
 
-		test_env.check_result();
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+			test_env.check_result();
+		},
+		10 );
 
 	return 0;
 }

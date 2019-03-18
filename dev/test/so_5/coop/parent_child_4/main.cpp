@@ -37,24 +37,9 @@ class a_child_t : public so_5::agent_t
 			so_subscribe( m_mbox ).event(
 					&a_child_t::evt_check_signal );
 
-			try
-			{
-				m_parent_mbox->run_one()
-						.wait_for( std::chrono::milliseconds( 100 ) )
-						.sync_get< msg_initiate_dereg >();
-
-				throw std::runtime_error( "timeout expected" );
-			}
-			catch( const so_5::exception_t & x )
-			{
-				if( so_5::rc_svc_result_not_received_yet != x.error_code() )
-				{
-					std::cerr << "timeout expiration expected, but "
-							"the actual error_code: "
-							<< x.error_code() << std::endl;
-					std::abort();
-				}
-			}
+			m_parent_mbox->run_one()
+					.wait_for( std::chrono::milliseconds( 100 ) )
+					.sync_get< msg_initiate_dereg >();
 
 			so_5::send< msg_check_signal >( m_mbox );
 		}
@@ -106,8 +91,7 @@ class a_parent_t : public so_5::agent_t
 		void
 		evt_initiate_dereg(mhood_t< msg_initiate_dereg >)
 		{
-			so_environment().deregister_coop( so_coop_name(),
-					so_5::dereg_reason::normal );
+			so_deregister_agent_coop_normally();
 		}
 
 	private :
@@ -136,8 +120,7 @@ class a_driver_t : public so_5::agent_t
 		void
 		so_evt_start() override
 		{
-			so_environment().register_agent_as_coop(
-				"parent",
+			m_parent = so_environment().register_agent_as_coop(
 				so_environment().make_agent< a_parent_t >( m_mbox ),
 				so_5::disp::active_obj::make_dispatcher( 
 						so_environment() ).binder() );
@@ -146,10 +129,10 @@ class a_driver_t : public so_5::agent_t
 		void
 		evt_parent_started(mhood_t< msg_parent_started >)
 		{
-			auto coop = so_environment().create_coop( "child",
+			auto coop = so_environment().make_coop(
+					m_parent,
 					so_5::disp::active_obj::make_dispatcher(
 							so_environment() ).binder() );
-			coop->set_parent_coop_name( "parent" );
 
 			coop->make_agent< a_child_t >(
 					so_environment().create_mbox(),
@@ -170,12 +153,14 @@ class a_driver_t : public so_5::agent_t
 
 	private :
 		const so_5::mbox_t m_mbox;
+
+		so_5::coop_handle_t m_parent;
 };
 
 void
 init( so_5::environment_t & env )
 {
-	auto coop = env.create_coop( "driver",
+	auto coop = env.make_coop(
 			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 	coop->make_agent< a_driver_t >();
