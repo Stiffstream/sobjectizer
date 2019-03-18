@@ -155,10 +155,18 @@ coop_impl_t::do_decrement_reference_count(
 		// If it is the last working agent then Environment should be
 		// informed that the cooperation is ready to be deregistered.
 		if( 0 == --coop.m_reference_count )
-		{
-			impl::internal_env_iface_t{ coop.m_env.get() }
-					.ready_to_deregister_notify( coop.shared_from_this() );
-		}
+			{
+				// NOTE: usage counter incremented and decremented during
+				// registration process even if registration of cooperation failed.
+				// So decrement_usage_count() could be called when cooperation
+				// has coop_not_registered status.
+				if( coop_t::registration_status_t::coop_not_registered !=
+						coop.m_registration_status )
+					{
+						impl::internal_env_iface_t{ coop.m_env.get() }
+								.ready_to_deregister_notify( coop.shared_from_this() );
+					}
+			}
 	}
 
 class coop_impl_t::registration_performer_t

@@ -116,7 +116,7 @@ coop_repository_basis_t::register_coop(
 		}
 
 		// Note: thid code should be called only on locked object.
-		const auto handle_registrations_in_progress = [this] {
+		const auto handle_registrations_in_progress = [this]() noexcept {
 				// Decrement count of registration in progress to enable
 				// pending shutdown (if it is).
 				--m_registrations_in_progress;
@@ -267,6 +267,34 @@ coop_repository_basis_t::query_stats()
 			};
 	}
 
+namespace
+{
+	/*!
+	 * \since
+	 * v.5.2.3
+	 *
+	 * \brief Special guard to increment and decrement cooperation
+	 * usage counters.
+	 */
+	class coop_usage_counter_guard_t
+	{
+		public :
+			coop_usage_counter_guard_t( coop_t & coop )
+				:	m_coop( coop )
+			{
+				coop_private_iface_t::increment_usage_count( coop );
+			}
+			~coop_usage_counter_guard_t()
+			{
+				coop_private_iface_t::decrement_usage_count( m_coop );
+			}
+
+		private :
+			coop_t & m_coop;
+	};
+
+} /* namespace anonymous */
+
 coop_handle_t
 coop_repository_basis_t::do_registration_specific_actions(
 	coop_unique_holder_t coop_ptr )
@@ -274,6 +302,13 @@ coop_repository_basis_t::do_registration_specific_actions(
 	// Cooperation object should life to the end of this routine.
 	coop_shptr_t coop{ coop_private_iface_t::make_from( std::move(coop_ptr) ) };
 
+	// This guard will guarantee, that reg_notificators for
+	// successfully registered coop will be called and completed before
+	// the dereg_notificators for that coop.
+	// Even if the coop will be deregitered while reg_notificators are
+	// still working.
+	coop_usage_counter_guard_t guard{ *coop };
+	
 	coop_private_iface_t::do_registration_specific_actions( *coop );
 
 	auto result = coop->handle();
