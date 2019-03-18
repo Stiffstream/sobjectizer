@@ -9,6 +9,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 so_5::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
 struct slave_coop_finished_signal : public so_5::signal_t {};
@@ -22,27 +24,22 @@ class a_slave_t
 	public:
 		a_slave_t(
 			so_5::environment_t & env,
-			const so_5::mbox_t & master_mbox )
+			so_5::mbox_t master_mbox )
 			:
 				base_type_t( env ),
-				m_master_mbox( master_mbox )
+				m_master_mbox( std::move(master_mbox) )
 		{}
 
-		virtual ~a_slave_t()
-		{}
-
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
-			so_environment().deregister_coop(
-				so_coop_name(),
-				so_5::dereg_reason::normal );
+			so_deregister_agent_coop_normally();
 
 			so_5::send< slave_coop_finished_signal >( m_master_mbox );
 		}
 
 	private:
-		so_5::mbox_t m_master_mbox;
+		const so_5::mbox_t m_master_mbox;
 
 };
 
@@ -59,22 +56,14 @@ class a_master_t
 				base_type_t( env )
 		{}
 
-		virtual ~a_master_t()
-		{}
-
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
-			so_5::mbox_t mbox = so_environment()
-				.create_mbox( so_coop_name() + "_mbox" );
-
-			so_subscribe( mbox )
-				.in( so_default_state() )
+			so_subscribe_self()
 					.event( &a_master_t::evt_slave_finished );
 
 			so_environment().register_agent_as_coop(
-					so_coop_name() + "_slave",
-					so_environment().make_agent< a_slave_t >( mbox ) );
+					so_environment().make_agent< a_slave_t >( so_direct_mbox() ) );
 		}
 
 		void
@@ -89,21 +78,16 @@ class a_master_t
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test_coop_1", env.make_agent< a_master_t >() );
+	env.register_agent_as_coop( env.make_agent< a_master_t >() );
 }
 
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( &init );
+		},
+		10 );
 
 	return 0;
 }

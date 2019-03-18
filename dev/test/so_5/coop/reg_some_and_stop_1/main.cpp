@@ -12,6 +12,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 // A dummy agent to be placed into test cooperations.
 class test_agent_t
 	:
@@ -29,36 +31,35 @@ class test_agent_t
 		virtual ~test_agent_t() {}
 };
 
-void
+so_5::coop_handle_t
 reg_coop(
-	const std::string & coop_name,
 	so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop( coop_name );
+	auto coop = env.make_coop();
 
 	coop->make_agent< test_agent_t >();
 	coop->make_agent< test_agent_t >();
 
-	env.register_coop( std::move( coop ) );
+	return env.register_coop( std::move( coop ) );
 }
 
 void
 init( so_5::environment_t & env )
 {
-	reg_coop( "test_coop_1", env );
-	reg_coop( "test_coop_2", env );
-	reg_coop( "test_coop_3", env );
-	reg_coop( "test_coop_4", env );
-	reg_coop( "test_coop_5", env );
-	reg_coop( "test_coop_6", env );
+	auto coop_1 = reg_coop( env );
+	reg_coop( env );
+	auto coop_3 = reg_coop( env );
+	reg_coop( env );
+	reg_coop( env );
+	auto coop_6 = reg_coop( env );
 
 	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
-	env.deregister_coop( "test_coop_1", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_1, so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_6", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_6, so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_3", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_3, so_5::dereg_reason::normal );
 
 	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
@@ -69,15 +70,10 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( init );
+		},
+		10 );
 
 	return 0;
 }

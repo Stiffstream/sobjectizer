@@ -14,6 +14,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 const char * g_test_mbox_name = "test_mbox";
 
 struct test_message : public so_5::signal_t {};
@@ -76,19 +78,18 @@ test_agent_t::evt_test(
 {
 	++m_message_rec_cnt;
 }
-void
+
+auto
 reg_coop(
-	const std::string & coop_name,
 	const so_5::mbox_t & test_mbox,
 	so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop =
-		env.create_coop( coop_name );
+	auto coop = env.make_coop();
 
 	coop->make_agent< test_agent_t >( test_mbox );
 	coop->make_agent< test_agent_t >( test_mbox );
 
-	env.register_coop( std::move( coop ) );
+	return env.register_coop( std::move( coop ) );
 }
 
 void
@@ -97,12 +98,12 @@ init( so_5::environment_t & env )
 	so_5::mbox_t test_mbox =
 		env.create_mbox( g_test_mbox_name );
 
-	reg_coop( "test_coop_1", test_mbox, env );
-	reg_coop( "test_coop_2", test_mbox, env );
-	reg_coop( "test_coop_3", test_mbox, env );
-	reg_coop( "test_coop_4", test_mbox, env );
-	reg_coop( "test_coop_5", test_mbox, env );
-	reg_coop( "test_coop_6", test_mbox, env );
+	auto coop_1 = reg_coop( test_mbox, env );
+	reg_coop( test_mbox, env );
+	auto coop_3 = reg_coop( test_mbox, env );
+	reg_coop( test_mbox, env );
+	reg_coop( test_mbox, env );
+	auto coop_6 = reg_coop( test_mbox, env );
 
 	// Give time to subscription.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -121,11 +122,11 @@ init( so_5::environment_t & env )
 			"test_agent_t::m_message_rec_cnt" );
 
 	// Deregister some cooperations.
-	env.deregister_coop( "test_coop_1", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_1, so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_6", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_6, so_5::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_3", so_5::dereg_reason::normal );
+	env.deregister_coop( coop_3, so_5::dereg_reason::normal );
 
 	test_agent_t::m_message_rec_cnt = 0;
 
@@ -152,15 +153,10 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( &init );
+		},
+		10 );
 
 	return 0;
 }
