@@ -115,18 +115,8 @@ coop_repository_basis_t::register_coop(
 			++m_registrations_in_progress;
 		}
 
-		// Phase 3: finishing of registration.
-		// Those actions should be performed on locked objects.
-		// Phase 3 will be performed automatically just after completion
-		// of Phase 2.
-		const auto at_exit = details::at_scope_exit(
-			[this, coop_size = coop_ptr->size()] {
-				std::lock_guard lock{ m_lock };
-
-				// Statistics should be updated.
-				m_total_agents += coop_size;
-				m_total_coops += 1;
-
+		// Note: thid code should be called only on locked object.
+		const auto handle_registrations_in_progress = [this] {
 				// Decrement count of registration in progress to enable
 				// pending shutdown (if it is).
 				--m_registrations_in_progress;
@@ -138,11 +128,46 @@ coop_repository_basis_t::register_coop(
 					{
 						m_shutdown_enabled_cond.notify_one();
 					}
-			} );
+			};
 
 		// Phase 2: registration by itself.
-		// Can be performed on unlocked object.
-		return do_registration_specific_actions( std::move(coop_ptr) );
+		coop_handle_t result;
+		try
+			{
+				// This values is necessary for updating stats if registration
+				// will be successful.
+				const auto coop_size = coop_ptr->size();
+
+				// Should be performed on unlocked object.
+				result = do_registration_specific_actions( std::move(coop_ptr) );
+
+				// Phase 3: finishing of registration.
+				// Those actions should be performed on locked objects.
+				details::invoke_noexcept_code( [&] {
+					std::lock_guard lock{ m_lock };
+
+					// Statistics should be updated.
+					m_total_agents += coop_size;
+					m_total_coops += 1;
+
+					handle_registrations_in_progress();
+				} );
+			}
+		catch( ... )
+			{
+				// Pending shutdown should be handled even in the presence
+				// of an exception.
+				details::invoke_noexcept_code( [&] {
+					std::lock_guard lock{ m_lock };
+
+					handle_registrations_in_progress();
+				} );
+
+				// Exception should be handled at some higher level.
+				throw;
+			}
+
+		return result;
 	}
 
 coop_repository_basis_t::final_deregistration_resul_t
@@ -242,44 +267,12 @@ coop_repository_basis_t::query_stats()
 			};
 	}
 
-namespace
-{
-	/*!
-	 * \since
-	 * v.5.2.3
-	 *
-	 * \brief Special guard to increment and decrement cooperation
-	 * usage counters.
-	 */
-	class coop_usage_counter_guard_t
-	{
-		public :
-			coop_usage_counter_guard_t( coop_t & coop )
-				:	m_coop( coop )
-			{
-				coop_private_iface_t::increment_usage_count( coop );
-			}
-			~coop_usage_counter_guard_t()
-			{
-				coop_private_iface_t::decrement_usage_count( m_coop );
-			}
-
-		private :
-			coop_t & m_coop;
-	};
-
-} /* namespace anonymous */
-
 coop_handle_t
 coop_repository_basis_t::do_registration_specific_actions(
 	coop_unique_holder_t coop_ptr )
 {
 	// Cooperation object should life to the end of this routine.
 	coop_shptr_t coop{ coop_private_iface_t::make_from( std::move(coop_ptr) ) };
-
-	// Usage counter for cooperation should be incremented right now,
-	// and decremented at exit point.
-	coop_usage_counter_guard_t coop_usage_quard( *coop );
 
 	coop_private_iface_t::do_registration_specific_actions( *coop );
 

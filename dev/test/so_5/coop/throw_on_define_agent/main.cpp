@@ -10,6 +10,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 const char * const g_test_mbox_name = "test_mbox";
 
 struct some_message : public so_5::signal_t {};
@@ -107,8 +109,7 @@ void
 reg_coop(
 	so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
+	auto coop = env.make_coop();
 
 	coop->make_agent< a_ordinary_t >();
 	coop->make_agent< a_ordinary_t >();
@@ -141,15 +142,10 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( &init );
+		},
+		10 );
 
 	return 0;
 }
