@@ -7,6 +7,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 struct msg_child_deregistered : public so_5::signal_t {};
 
 class a_child_t : public so_5::agent_t
@@ -54,12 +56,12 @@ class a_test_t : public so_5::agent_t
 		evt_coop_registered(
 			mhood_t< so_5::msg_coop_registered > evt )
 		{
-			std::cout << "registered: " << evt->m_coop_name << std::endl;
+			std::cout << "registered: " << evt->m_coop << std::endl;
 
 			so_change_state( st_wait_deregistration );
 
 			so_environment().deregister_coop(
-					evt->m_coop_name,
+					evt->m_coop,
 					so_5::dereg_reason::normal );
 		}
 
@@ -67,7 +69,7 @@ class a_test_t : public so_5::agent_t
 		evt_coop_deregistered(
 			mhood_t< so_5::msg_coop_deregistered > evt )
 		{
-			std::cout << "deregistered: " << evt->m_coop_name << std::endl;
+			std::cout << "deregistered: " << evt->m_coop << std::endl;
 
 			if( 5 == m_cycle )
 				so_environment().stop();
@@ -91,12 +93,11 @@ class a_test_t : public so_5::agent_t
 		void
 		create_next_coop()
 		{
-			auto child_coop = so_environment().create_coop(
-					make_coop_name(),
+			auto child_coop = so_environment().make_coop(
+					so_coop(),
 					so_5::disp::active_obj::make_dispatcher(
 							so_environment() ).binder() );
 
-			child_coop->set_parent_coop_name( so_coop_name() );
 			child_coop->add_reg_notificator(
 					so_5::make_coop_reg_notificator( m_mbox ) );
 			child_coop->add_dereg_notificator(
@@ -106,35 +107,20 @@ class a_test_t : public so_5::agent_t
 
 			so_environment().register_coop( std::move( child_coop ) );
 		}
-
-		std::string
-		make_coop_name() const
-		{
-			std::ostringstream s;
-			s << "coop_" << m_cycle;
-
-			return s.str();
-		}
 };
 
 int
 main()
 {
-	try
-	{
-		so_5::launch(
-			[]( so_5::environment_t & env )
-			{
-				env.register_agent_as_coop(
-						"test",
-						env.make_agent< a_test_t >() );
-			} );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch(
+				[]( so_5::environment_t & env )
+				{
+					env.register_agent_as_coop(
+							env.make_agent< a_test_t >() );
+				} );
+		},
+		10 );
 
 	return 0;
 }

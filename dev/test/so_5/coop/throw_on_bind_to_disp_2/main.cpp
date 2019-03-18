@@ -12,6 +12,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 so_5::atomic_counter_t g_agents_count;
 
 struct some_message : public so_5::signal_t {};
@@ -101,7 +103,7 @@ void
 reg_coop(
 	so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
+	auto coop = env.make_coop(
 			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 	coop->make_agent< a_ordinary_t >();
@@ -136,21 +138,16 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
+	run_with_time_limit( [] {
+			so_5::launch( &init );
 
-		if( 0 != g_agents_count )
-		{
-			std::cerr << "g_agents_count: " << g_agents_count << "\n";
-			throw std::runtime_error( "g_agents_count != 0" );
-		}
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+			if( 0 != g_agents_count )
+			{
+				std::cerr << "g_agents_count: " << g_agents_count << "\n";
+				throw std::runtime_error( "g_agents_count != 0" );
+			}
+		},
+		10 );
 
 	return 0;
 }
