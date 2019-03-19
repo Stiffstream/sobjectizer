@@ -248,13 +248,15 @@ run_sobjectizer( const cfg_t & cfg )
 				for( unsigned int i = 0; i != cfg.m_root_count; ++i )
 				{
 					auto binder = so_5::disp::one_thread::make_dispatcher( env ).binder();
-					env.introduce_coop( [&]( so_5::coop_t & coop ) {
-							coop.make_agent< a_root_t >(
-									binder,
-									std::ref(results[i]),
-									cfg.m_levels,
-									cfg.m_level_size );
-						} );
+					env.introduce_coop(
+							binder,
+							[&]( so_5::coop_t & coop ) {
+								coop.make_agent< a_root_t >(
+										binder,
+										std::ref(results[i]),
+										cfg.m_levels,
+										cfg.m_level_size );
+							} );
 				}
 			} );
 	}
