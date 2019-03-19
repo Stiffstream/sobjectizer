@@ -60,16 +60,12 @@ main()
 					{
 						for( int i = 0; i < 1024; ++i )
 						{
-							std::ostringstream ss;
-							ss << "coop_" << i;
-
 							env.register_agent_as_coop(
-								ss.str(), env.make_agent< a_test_t >() );
+								env.make_agent< a_test_t >() );
 						}
 					} );
 			},
-			20,
-			"SO Environment autoshutdown test" );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{

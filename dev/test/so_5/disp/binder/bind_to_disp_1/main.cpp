@@ -165,8 +165,7 @@ init( so_5::environment_t & env )
 {
 	so_5::mbox_t mbox = env.create_mbox();
 
-	so_5::coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
+	auto coop = env.make_coop();
 
 	coop->make_agent_with_binder< test_agent_sender_t >(
 			so_5::disp::one_thread::make_dispatcher( env ).binder(),

@@ -181,7 +181,7 @@ reg_coop(
 	so_5::environment_t & env,
 	dispatcher_t & disp )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
+	auto coop = env.make_coop(
 			std::make_shared< throwing_disp_binder_t >( std::ref(disp) ) );
 
 	coop->make_agent< a_ordinary_t >();

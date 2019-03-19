@@ -96,7 +96,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 		{
 			so_5::mbox_t shutdowner_mbox;
 			{
-				auto c = env.create_coop( "shutdowner" );
+				auto c = env.make_coop();
 				auto a = c->make_agent< a_shutdowner_t >( thread_count );
 				shutdowner_mbox = a->so_direct_mbox();
 				env.register_coop( std::move( c ) );
@@ -110,7 +110,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 						.set_queue_params( atp_disp::queue_traits::queue_params_t{}
 							.lock_factory( factory ) ) );
 
-			auto c = env.create_coop( "test_agents", disp.binder() );
+			auto c = env.make_coop( disp.binder() );
 			for( std::size_t i = 0; i != thread_count; ++i )
 			{
 				c->make_agent< a_test_t >( shutdowner_mbox );

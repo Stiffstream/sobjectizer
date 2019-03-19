@@ -162,7 +162,7 @@ run_sobjectizer(
 		{
 			so_5::mbox_t shutdowner_mbox;
 			{
-				auto c = env.create_coop( "shutdowner" );
+				auto c = env.make_coop();
 				auto a = c->make_agent< a_shutdowner_t >(
 						cooperation_count * cooperation_size );
 				shutdowner_mbox = a->so_direct_mbox();
@@ -189,10 +189,7 @@ run_sobjectizer(
 				std::lock_guard< thread_id_collector_t > collector_lock(
 						*(collectors[ i ]) );
 
-				std::ostringstream ss;
-				ss << "coop_" << i;
-
-				auto c = env.create_coop( ss.str(), disp.binder( params ) );
+				auto c = env.make_coop( disp.binder( params ) );
 				for( std::size_t a = 0; a != cooperation_size; ++a )
 				{
 					c->make_agent< a_test_t >(

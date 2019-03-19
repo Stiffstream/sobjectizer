@@ -1,7 +1,3 @@
-/*
- * A simple test for checking autoname feature of SO Environment.
- */
-
 #include <so_5/all.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
@@ -33,24 +29,22 @@ main()
 					{
 						for( int i = 0; i < 1024; ++i )
 						{
-							auto coop = env.create_coop( so_5::autoname );
+							auto coop = env.make_coop();
 							coop->add_agent( std::make_unique< a_test_t >( env ) );
 
 							env.register_coop( std::move( coop ) );
 
-							env.register_agent_as_coop( so_5::autoname,
+							env.register_agent_as_coop(
 									std::make_unique< a_test_t >( env ) );
 
 							env.register_agent_as_coop(
-									so_5::autoname,
 									std::make_unique< a_test_t >( env ),
 									so_5::disp::one_thread::make_dispatcher(
 											env, "another" ).binder() );
 						}
 					} );
 			},
-			20,
-			"SO Environment autoshutdown test" );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{

@@ -553,14 +553,6 @@ const int rc_stored_state_name_not_found = 183;
 const int rc_coop_already_destroyed = 184;
 
 /*!
- * \brief A new coop can't registered because shutdown is in progress now.
- *
- * \since
- * v.5.6.0
- */
-const int rc_coop_cant_be_registered_on_shutdown = 185;
-
-/*!
  * \brief An attempt to do something with coop that is not in registered
  * state.
  *
@@ -570,7 +562,7 @@ const int rc_coop_cant_be_registered_on_shutdown = 185;
  * \since
  * v.5.6.0
  */
-const int rc_coop_is_not_in_registered_state = 186;
+const int rc_coop_is_not_in_registered_state = 185;
 
 //! \name Common error codes.
 //! \{

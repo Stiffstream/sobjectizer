@@ -98,11 +98,8 @@ main()
 
 						for( unsigned int i = 0; i < agents_count; ++i )
 						{
-							std::ostringstream ss;
-							ss << "coop_" << i;
-
 							env.register_agent_as_coop(
-								ss.str(), env.make_agent< a_test_t >() );
+								env.make_agent< a_test_t >() );
 						}
 					},
 					[]( so_5::environment_params_t & params )

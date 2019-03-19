@@ -117,7 +117,7 @@ push_group(
 void
 init( so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop" );
+	auto coop = env.make_coop();
 
 	push_group( *coop, "grp_1", env );
 	push_group( *coop, "grp_2", env );

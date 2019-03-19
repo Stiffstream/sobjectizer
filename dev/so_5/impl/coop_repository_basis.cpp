@@ -106,7 +106,7 @@ coop_repository_basis_t::register_coop(
 			std::lock_guard lock{ m_lock };
 			if( status_t::normal != m_status )
 				SO_5_THROW_EXCEPTION(
-						rc_coop_cant_be_registered_on_shutdown,
+						rc_unable_to_register_coop_during_shutdown,
 						"a new coop can't be registered when shutdown "
 						"is in progress" );
 
