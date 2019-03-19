@@ -7,6 +7,7 @@
 #include <string>
 
 #include <so_5/impl/internal_env_iface.hpp>
+#include <so_5/impl/coop_private_iface.hpp>
 
 #include <so_5/impl/mbox_core.hpp>
 #include <so_5/impl/layer_core.hpp>
@@ -826,8 +827,14 @@ internal_env_iface_t::final_deregister_coop(
 	coop_shptr_t coop )
 {
 	bool any_cooperation_alive = 
-			m_env.m_impl->m_infrastructure->final_deregister_coop(
-					std::move(coop) );
+			m_env.m_impl->m_infrastructure->final_deregister_coop( coop );
+
+//FIXME: add more detailed explanation.
+	// Initiate cleanup of coop.
+	coop_private_iface_t::destroy_content( *coop );
+	// Coop object is no more needed. But reference to it can be hold
+	// in different places.
+	coop.reset();
 
 	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
 		m_env.stop();

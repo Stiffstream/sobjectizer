@@ -235,6 +235,7 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \see disable_autoshutdown()
 		 */
+		SO_5_NODISCARD
 		bool
 		autoshutdown_disabled() const
 		{

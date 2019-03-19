@@ -28,6 +28,19 @@ namespace default_mt {
 
 namespace impl {
 
+namespace {
+
+struct msg_final_coop_dereg final : public so_5::message_t
+	{
+		coop_shptr_t m_coop;
+
+		msg_final_coop_dereg( coop_shptr_t coop )
+			:	m_coop{ std::move(coop) }
+			{}
+	};
+
+} /* namespace anonymous */
+
 //
 // coop_repo_t
 //
@@ -47,12 +60,12 @@ coop_repo_t::start()
 	m_final_dereg_thread = std::thread{ [this] {
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
-			[this]( coop_shptr_t coop ) {
+			[this]( mutable_mhood_t<msg_final_coop_dereg> cmd ) {
 				// NOTE: we should call final_deregister_coop from
 				// environment because only this call handles autoshutdown flag.
-				auto & env = coop->environment();
+				auto & env = cmd->m_coop->environment();
 				so_5::impl::internal_env_iface_t{ env }.final_deregister_coop(
-						std::move(coop) );
+						std::move(cmd->m_coop) );
 			} );
 	} };
 }
@@ -75,7 +88,8 @@ void
 coop_repo_t::ready_to_deregister_notify(
 	coop_shptr_t coop )
 {
-	so_5::send< coop_shptr_t >( m_final_dereg_chain, std::move(coop) );
+	so_5::send< mutable_msg< msg_final_coop_dereg > >(
+			m_final_dereg_chain, std::move(coop) );
 }
 
 bool

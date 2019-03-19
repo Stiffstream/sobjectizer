@@ -70,6 +70,12 @@ class coop_private_iface_t
 			}
 
 		static void
+		destroy_content( coop_t & coop )
+			{
+				coop_impl_t::destroy_content( coop );
+			}
+
+		static void
 		do_registration_specific_actions( coop_t & coop )
 			{
 				coop_impl_t::do_registration_specific_actions( coop );
