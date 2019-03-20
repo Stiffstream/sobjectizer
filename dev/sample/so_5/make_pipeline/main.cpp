@@ -750,8 +750,7 @@ public :
 								alarm_distribution( cerr, v );
 							} )
 						)
-					),
-				autoname );
+					) );
 
 		// One second for imitation then shutdown.
 		send_delayed< shutdown >( *this, chrono::seconds(1) );
@@ -771,8 +770,7 @@ int main()
 	try
 	{
 		so_5::launch( []( environment_t & env ) {
-				env.register_agent_as_coop( autoname,
-						env.make_agent< a_parent_t >() );
+				env.register_agent_as_coop( env.make_agent< a_parent_t >() );
 			} );
 	}
 	catch( const exception & x )

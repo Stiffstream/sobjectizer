@@ -103,8 +103,6 @@ private :
 		auto coop = so_5::create_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
-				// Name for the cooperation will be generated automatically.
-				so_5::autoname,
 				// The main dispatcher for the new cooperation is
 				// active_obj dispatcher.
 				disp.binder() );
@@ -176,7 +174,6 @@ int main( int argc, char ** argv )
 			[iterations]( so_5::environment_t & env ) {
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
-						so_5::autoname,
 						env.make_agent< a_coordinator_t >( iterations ) );
 			} );
 

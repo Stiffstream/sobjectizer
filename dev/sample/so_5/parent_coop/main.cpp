@@ -138,7 +138,7 @@ class a_parent_t : public so_5::agent_t
 			std::cout << "Parent: starting a child to do task " << id << std::endl;
 
 			// Creating a child cooperation.
-			so_5::introduce_child_coop( *this, so_5::autoname,
+			so_5::introduce_child_coop( *this,
 				[&]( so_5::coop_t & coop ) {
 					// Adding agents to the cooperation.
 					coop.make_agent< a_child_t >( so_direct_mbox(), id );
@@ -153,8 +153,7 @@ int main()
 		so_5::launch( []( so_5::environment_t & env )
 			{
 				// Registering the parent cooperation.
-				env.register_agent_as_coop( "coop",
-						env.make_agent< a_parent_t >() );
+				env.register_agent_as_coop( env.make_agent< a_parent_t >() );
 
 				// Give some time to the agents.
 				std::this_thread::sleep_for( std::chrono::seconds( 3 ) );

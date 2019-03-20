@@ -103,7 +103,7 @@ class a_manager_t : public so_5::agent_t
 		std::chrono::steady_clock::time_point m_start_time;
 };
 
-so_5::coop_unique_ptr_t
+so_5::coop_unique_holder_t
 create_test_coop(
 	so_5::environment_t & env,
 	so_5::disp_binder_shptr_t disp_binder,
@@ -142,7 +142,7 @@ create_test_coop(
 		}
 	};
 
-	auto c = env.create_coop( "test", std::move( disp_binder ) );
+	auto c = env.make_coop( std::move( disp_binder ) );
 
 	auto worker = c->make_agent< worker_t >();
 	auto checker = c->make_agent< checker_t >();

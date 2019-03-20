@@ -11,19 +11,21 @@
 // A cooperation notificator which will not throw exceptions.
 void normal_coop_reg_notificator(
 	so_5::environment_t &,
-	const std::string & coop_name )
+	const so_5::coop_handle_t & coop )
 {
-	std::cout << "cooperation registered: " << coop_name << std::endl;
+	std::cout << "cooperation registered: " << coop << std::endl;
 }
 
 // A cooperation notificator which will throw exception.
 void invalid_coop_reg_notificator(
 	so_5::environment_t &,
-	const std::string & coop_name )
+	const so_5::coop_handle_t & coop )
 {
-	throw std::runtime_error(
-			"some problem during handling cooperation registration "
-			"notification for cooperation: " + coop_name );
+	std::ostringstream ss;
+	ss << "some problem during handling cooperation registration "
+			"notification for cooperation: " << coop;
+
+	throw std::runtime_error( ss.str() );
 }
 
 // A class of parent agent.
@@ -43,7 +45,7 @@ public :
 	{
 		using namespace so_5;
 
-		introduce_child_coop( *this, "child", [this]( coop_t & coop ) {
+		introduce_child_coop( *this, [this]( coop_t & coop ) {
 			// Add necessary cooperation notificators for coop.
 			coop.add_reg_notificator(
 					make_coop_reg_notificator( so_direct_mbox() ) );
@@ -61,7 +63,7 @@ public :
 			};
 			coop.make_agent<coop_agent_t>();
 
-			std::cout << "registering coop: " << coop.query_coop_name()
+			std::cout << "registering coop: " << coop.handle()
 					<< std::endl;
 		});
 	}
@@ -69,7 +71,7 @@ public :
 	void evt_child_created(
 		const so_5::msg_coop_registered & evt )
 	{
-		std::cout << "registration passed: " << evt.m_coop_name << std::endl;
+		std::cout << "registration passed: " << evt.m_coop << std::endl;
 
 		so_deregister_agent_coop_normally();
 	}
@@ -101,7 +103,7 @@ int main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.register_agent_as_coop( "parent", env.make_agent< a_parent_t >() );
+				env.register_agent_as_coop( env.make_agent< a_parent_t >() );
 			},
 			// Parameters for SObjectizer Environment.
 			[]( so_5::environment_params_t & params )

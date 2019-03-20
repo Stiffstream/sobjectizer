@@ -244,7 +244,7 @@ const int CREATURE_COUNT = 4;
 
 void init( so_5::environment_t & env, int meetings )
 	{
-		env.introduce_coop( "chameneos",
+		env.introduce_coop(
 				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[meetings]( so_5::coop_t & coop )
 				{

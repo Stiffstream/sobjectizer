@@ -19,7 +19,7 @@ class a_hello_t : public so_5::agent_t
 void init( so_5::environment_t & env )
 {
 	// Creating and registering a cooperation.
-	env.register_agent_as_coop( "coop", env.make_agent< a_hello_t >() );
+	env.register_agent_as_coop( env.make_agent< a_hello_t >() );
 
 	// Stopping SObjectizer.
 	env.stop();
@@ -35,20 +35,20 @@ class coop_listener_impl_t : public so_5::coop_listener_t
 		// A reaction to the cooperation registration.
 		virtual void on_registered(
 			so_5::environment_t &,
-			const std::string & coop_name ) override
+			const so_5::coop_handle_t & coop ) override
 		{
 			std::cout << "coop_listener: register coop '"
-				<< coop_name << "'\n";
+				<< coop << "'\n";
 		}
 
 		// A reaction to the cooperation deregistration.
 		virtual void on_deregistered(
 			so_5::environment_t &,
-			const std::string & coop_name,
+			const so_5::coop_handle_t & coop,
 			const so_5::coop_dereg_reason_t & reason ) override
 		{
 			std::cout << "coop_listener: deregister coop '"
-				<< coop_name << "', reason: "
+				<< coop << "', reason: "
 				<< reason.reason() << "\n";
 		}
 };

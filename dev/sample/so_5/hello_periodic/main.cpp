@@ -135,13 +135,13 @@ void a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 void create_hello_coop( so_5::environment_t & env )
 {
 	// Single agent can be registered as whole cooperation.
-	env.register_agent_as_coop( "hello", env.make_agent< a_hello_t >() );
+	env.register_agent_as_coop( env.make_agent< a_hello_t >() );
 }
 
 // Creation of 'shutdowner' cooperation.
 void create_shutdowner_coop( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "shutdowner", env.make_agent< a_shutdowner_t >() );
+	env.register_agent_as_coop( env.make_agent< a_shutdowner_t >() );
 }
 
 // The SObjectizer Environment initialization.
