@@ -169,10 +169,10 @@ class coop_repo_t final
 		//! Initializing constructor.
 		coop_repo_t(
 			//! SObjectizer Environment.
-			environment_t & env,
+			outliving_reference_t< environment_t > env,
 			//! Cooperation action listener.
 			coop_listener_unique_ptr_t coop_listener )
-			:	coop_repository_basis_t( env, std::move(coop_listener) )
+			:	coop_repository_basis_t{ env, std::move(coop_listener) }
 			{}
 
 		//! Is there any live coop?
@@ -182,8 +182,9 @@ class coop_repo_t final
 				// A lock is necessary here because coop_repo can be used
 				// in thread-safe environment where access to environment from
 				// different thread is allowed.
-				std::lock_guard< std::mutex > l{ lock() };
-				return !( m_registered_coop.empty() && m_deregistered_coop.empty() );
+				std::lock_guard l{ m_lock };
+				return 0u != m_registrations_in_progress ||
+						0u != m_total_coops;
 			}
 	};
 
