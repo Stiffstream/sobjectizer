@@ -107,7 +107,6 @@ main( int argc, char ** argv )
 			[tick_count]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop(
-					"test",
 					env.make_agent< a_test_t >( tick_count ) );
 			} );
 	}

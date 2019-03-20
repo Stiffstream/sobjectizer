@@ -37,7 +37,6 @@ generate_agents(
 	for( std::size_t i = 0u; i != agent_count; ++i )
 	{
 		env.register_agent_as_coop(
-				so_5::autoname,
 				env.make_agent< test_agent_t >(),
 				disp.binder() );
 	}
@@ -138,13 +137,12 @@ do_test()
 			ensure_or_die( expected == actual, ss.str() );
 		};
 
-	// There is an additional agent created by SObjectizer itself.
-	ensure_equal( "created", test_agents + 1, hook.created() );
-	ensure_equal( "destroyed", test_agents + 1, hook.destroyed() );
+	ensure_equal( "created", test_agents, hook.created() );
+	ensure_equal( "destroyed", test_agents, hook.destroyed() );
 
-	ensure_equal( "instances_created", test_agents + 1,
+	ensure_equal( "instances_created", test_agents,
 			test_event_queue_t::m_instances_created.load() );
-	ensure_equal( "instances_destroyed", test_agents + 1,
+	ensure_equal( "instances_destroyed", test_agents,
 			test_event_queue_t::m_instances_destroyed.load() );
 }
 

@@ -407,8 +407,7 @@ class a_starter_stopper_t
 						m_mboxes.emplace_back( so_environment().create_mbox() );
 				}
 
-				auto coop = so_environment().create_coop( "child" );
-				coop->set_parent_coop_name( so_coop_name() );
+				auto coop = so_5::create_child_coop( *this );
 				
 				{
 					duration_meter_t meter( "creating workers" );
@@ -472,7 +471,7 @@ main( int argc, char ** argv )
 		so_5::launch(
 			[cfg]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( "test",
+				env.register_agent_as_coop(
 						env.make_agent< a_starter_stopper_t >(
 								factory_by_cfg( cfg ),
 								cfg ) );

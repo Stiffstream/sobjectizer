@@ -305,7 +305,7 @@ class test_env_t
 						so_5::disp::active_obj::make_dispatcher( env ).binder() :
 						so_5::make_default_disp_binder( env ) );
 
-				auto coop = env.create_coop( "test", std::move(binder) );
+				auto coop = env.make_coop( std::move(binder) );
 
 				auto a_pinger = coop->make_agent< a_pinger_t >( m_cfg, m_result );
 				auto a_ponger = coop->make_agent< a_ponger_t >( m_cfg );

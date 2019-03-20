@@ -117,7 +117,7 @@ main( int argc, char ** argv )
 			so_5::launch(
 				[states, tick_count]( so_5::environment_t & env )
 				{
-					env.register_agent_as_coop( "test",
+					env.register_agent_as_coop(
 							env.make_agent< a_test_t >( states, tick_count ) );
 				} );
 
