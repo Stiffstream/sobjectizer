@@ -73,7 +73,7 @@ do_test(
 				so_5::launch(
 						[test_tuner]( so_5::environment_t & env )
 						{
-							auto coop = env.create_coop( so_5::autoname );
+							auto coop = env.make_coop();
 							auto agent = coop->make_agent< a_test_t >();
 
 							test_tuner( *agent );

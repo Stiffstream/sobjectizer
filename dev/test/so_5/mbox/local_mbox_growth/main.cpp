@@ -48,7 +48,7 @@ class a_test_t : public so_5::agent_t
 		std::size_t m_live_agents = { 0 };
 		std::size_t m_pongs_received = { 0 };
 
-		std::vector< std::string > m_live_coops;
+		std::vector< so_5::coop_handle_t > m_live_coops;
 
 		void
 		evt_coop_registered(
@@ -112,8 +112,7 @@ class a_test_t : public so_5::agent_t
 		void
 		create_next_coop()
 			{
-				std::string coop_name = "child_" + std::to_string( m_last_coop_size );
-				auto coop = so_5::create_child_coop( *this, coop_name );
+				auto coop = so_5::create_child_coop( *this );
 
 				coop->add_reg_notificator(
 						so_5::make_coop_reg_notificator( so_direct_mbox() ) );
@@ -142,16 +141,16 @@ class a_test_t : public so_5::agent_t
 							std::cref(m_ping_mbox),
 							so_direct_mbox() );
 
-				so_environment().register_coop( std::move( coop ) );
+				auto handle = so_environment().register_coop( std::move( coop ) );
 
 				m_live_agents += m_last_coop_size;
-				m_live_coops.push_back( coop_name );
+				m_live_coops.push_back( handle );
 			}
 
 		void
 		destroy_next_coop()
 			{
-				std::string coop_to_destroy = m_live_coops.back();
+				auto coop_to_destroy = m_live_coops.back();
 				m_live_coops.pop_back();
 				m_live_agents -= m_last_coop_size;
 				m_last_coop_size /= 2;
@@ -165,8 +164,7 @@ class a_test_t : public so_5::agent_t
 void
 init( so_5::environment_t & env )
 	{
-		env.register_agent_as_coop( so_5::autoname,
-				env.make_agent< a_test_t >() );
+		env.register_agent_as_coop( env.make_agent< a_test_t >() );
 	}
 
 int

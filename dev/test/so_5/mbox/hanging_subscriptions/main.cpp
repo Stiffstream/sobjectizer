@@ -197,7 +197,7 @@ main()
 				{
 					auto test_mbox = test_mbox_t::create( env );
 
-					auto coop1 = env.create_coop( "test" );
+					auto coop1 = env.make_coop();
 
 					{
 						(void)std::make_unique< a_first_t >(
@@ -208,7 +208,7 @@ main()
 					coop1->make_agent< a_third_t >( std::cref(test_mbox) );
 				}
 
-				env.introduce_coop( "test2", []( so_5::coop_t & coop ) {
+				env.introduce_coop( []( so_5::coop_t & coop ) {
 						coop.make_agent< a_stopper_t >();
 					} );
 			} );

@@ -90,15 +90,13 @@ public :
 void
 case_with_message_limits( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( so_5::autoname,
-			env.make_agent< a_with_limits_t >() );
+	env.register_agent_as_coop( env.make_agent< a_with_limits_t >() );
 }
 
 void
 case_without_message_limits( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( so_5::autoname,
-			env.make_agent< a_without_limits_t >() );
+	env.register_agent_as_coop( env.make_agent< a_without_limits_t >() );
 }
 
 int
