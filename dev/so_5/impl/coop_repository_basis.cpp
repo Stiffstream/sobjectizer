@@ -170,22 +170,17 @@ coop_repository_basis_t::register_coop(
 		return result;
 	}
 
-coop_repository_basis_t::final_deregistration_resul_t
+coop_repository_basis_t::final_deregistration_result_t
 coop_repository_basis_t::final_deregister_coop(
 	coop_shptr_t coop )
 	{
 		// Count of live agent and coops should be decremented.
-		const auto result = [&] {
-				std::lock_guard lock{ m_lock };
+		{
+			std::lock_guard lock{ m_lock };
 
-				m_total_agents -= coop->size();
-				--m_total_coops;
-
-				return final_deregistration_resul_t{
-						0u != m_total_coops,
-						status_t::shutdown == m_status && 0u == m_total_coops
-				};
-			}();
+			m_total_agents -= coop->size();
+			--m_total_coops;
+		}
 
 		// We don't expect exceptions from the following actions.
 		so_5::details::invoke_noexcept_code( [&] {
@@ -218,8 +213,18 @@ coop_repository_basis_t::final_deregister_coop(
 							handle,
 							dereg_reason );
 			} );
-		
-		return result;
+
+		// This additional lock is necessary because a new coop
+		// can be registered while final deregistration actions
+		// were in progress.
+		return [this] {
+				std::lock_guard lock{ m_lock };
+
+				return final_deregistration_result_t{
+						0u != m_total_coops,
+						status_t::shutdown == m_status && 0u == m_total_coops
+				};
+			}();
 	}
 
 void

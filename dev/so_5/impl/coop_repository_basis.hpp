@@ -87,12 +87,12 @@ public:
 	 * \since
 	 * v.5.5.19
 	 */
-	struct SO_5_NODISCARD final_deregistration_resul_t
+	struct SO_5_NODISCARD final_deregistration_result_t
 		{
-			const bool m_has_live_coop;
-			const bool m_total_deregistration_completed;
+			bool m_has_live_coop;
+			bool m_total_deregistration_completed;
 
-			final_deregistration_resul_t(
+			final_deregistration_result_t(
 				bool has_live_coop,
 				bool total_deregistration_completed )
 				:	m_has_live_coop( has_live_coop )
@@ -106,7 +106,7 @@ public:
 	 * \retval true there are some live cooperations.
 	 * \retval false there is no more live cooperations.
 	 */
-	final_deregistration_resul_t
+	final_deregistration_result_t
 	final_deregister_coop(
 		//! Cooperation name to be deregistered.
 		coop_shptr_t coop );
