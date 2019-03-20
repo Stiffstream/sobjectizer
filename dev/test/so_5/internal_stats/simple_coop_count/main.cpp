@@ -53,7 +53,7 @@ class a_test_t : public so_5::agent_t
 
 				if( stats::prefixes::coop_repository() == evt.m_prefix )
 					{
-						if( stats::suffixes::coop_reg_count() == evt.m_suffix )
+						if( stats::suffixes::coop_count() == evt.m_suffix )
 							{
 								// Count of registered cooperations could be
 								// 12 or 11 (it depends of deregistration of
@@ -61,18 +61,6 @@ class a_test_t : public so_5::agent_t
 								if( 12 != evt.m_value && 11 != evt.m_value )
 									throw std::runtime_error( "unexpected count of "
 											"registered cooperations: " +
-											std::to_string( evt.m_value ) );
-								else
-									++m_actual_values;
-							}
-						else if( stats::suffixes::coop_dereg_count() == evt.m_suffix )
-							{
-								// Count of registered cooperations could be
-								// 0 or 1 (it depends of deregistration of
-								// the special autoshutdown-guard cooperation).
-								if( 0 != evt.m_value && 1 != evt.m_value )
-									throw std::runtime_error( "unexpected count of "
-											"deregistered cooperations: " +
 											std::to_string( evt.m_value ) );
 								else
 									++m_actual_values;
@@ -119,7 +107,7 @@ class a_test_t : public so_5::agent_t
 				for( int i = 0; i != 10; ++i )
 					{
 						auto coop = so_5::create_child_coop(
-								*this, so_5::autoname );
+								*this );
 						coop->make_agent< empty_actor_t >();
 
 						so_environment().register_coop( std::move( coop ) );
@@ -130,7 +118,7 @@ class a_test_t : public so_5::agent_t
 void
 init( so_5::environment_t & env )
 	{
-		env.register_agent_as_coop( so_5::autoname,
+		env.register_agent_as_coop(
 				env.make_agent< a_test_t >() );
 	}
 

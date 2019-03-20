@@ -68,8 +68,7 @@ class a_test_t : public so_5::agent_t
 
 				for( int i = 0; i != 10; ++i )
 					{
-						auto coop = so_5::create_child_coop(
-								*this, so_5::autoname );
+						auto coop = so_5::create_child_coop( *this );
 						coop->make_agent< empty_actor_t >();
 
 						so_environment().register_coop( std::move( coop ) );

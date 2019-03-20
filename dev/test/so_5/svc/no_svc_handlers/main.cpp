@@ -68,8 +68,7 @@ void
 init(
 	so_5::environment_t & env )
 	{
-		auto coop = env.create_coop(
-				"test_coop",
+		auto coop = env.make_coop(
 				so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 		auto svc_mbox = env.create_mbox();
