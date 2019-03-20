@@ -170,16 +170,15 @@ class test_env_t
 		void
 		check_result() const
 		{
-			sequence_holder_t::vec_t expected;
-			expected.push_back( ID_COOP );
-			expected.push_back( ID_AGENT );
-			expected.push_back( ID_RESOURCE );
+			sequence_holder_t::vec_t expected1{ ID_COOP, ID_AGENT, ID_RESOURCE };
+			sequence_holder_t::vec_t expected2{ ID_AGENT, ID_RESOURCE, ID_COOP };
 
-			if( m_sequence.m_sequence != expected )
-				throw std::runtime_error( "Wrong deinit sequence: expected: " +
-						sequence_to_string( expected ) +
-						", actual: " +
-						sequence_to_string( m_sequence.m_sequence ) );
+			if( m_sequence.m_sequence != expected1 &&
+					m_sequence.m_sequence != expected2 )
+				throw std::runtime_error( "Wrong deinit sequence:\n"
+						"actual: " + sequence_to_string( m_sequence.m_sequence )
+						+ "\n" "expected1: " + sequence_to_string( expected1 ) +
+						"\n" "expected2: " + sequence_to_string( expected2 ) );
 		}
 
 	private :

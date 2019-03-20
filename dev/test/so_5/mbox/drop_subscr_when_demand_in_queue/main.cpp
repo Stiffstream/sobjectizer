@@ -8,6 +8,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 struct msg_one : public so_5::signal_t {};
 struct msg_two : public so_5::signal_t {};
 struct msg_three : public so_5::signal_t {};
@@ -86,21 +88,16 @@ class a_test_t : public so_5::agent_t
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test", env.make_agent< a_test_t >() );
+	env.register_agent_as_coop( env.make_agent< a_test_t >() );
 }
 
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( &init );
+		},
+		10 );
 
 	return 0;
 }

@@ -827,14 +827,8 @@ internal_env_iface_t::final_deregister_coop(
 	coop_shptr_t coop )
 {
 	bool any_cooperation_alive = 
-			m_env.m_impl->m_infrastructure->final_deregister_coop( coop );
-
-//FIXME: add more detailed explanation.
-	// Initiate cleanup of coop.
-	coop_private_iface_t::destroy_content( *coop );
-	// Coop object is no more needed. But reference to it can be hold
-	// in different places.
-	coop.reset();
+			m_env.m_impl->m_infrastructure->final_deregister_coop(
+					std::move(coop) );
 
 	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
 		m_env.stop();

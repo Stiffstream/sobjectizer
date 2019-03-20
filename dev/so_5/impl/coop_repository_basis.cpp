@@ -192,15 +192,31 @@ coop_repository_basis_t::final_deregister_coop(
 				// Coop should perform its final actions.
 				coop_private_iface_t::do_final_deregistration_actions( *coop );
 
+				// Now the coop object should be released.
+				// But before that we should store some values from it
+				// to process dereg notifications.
+				const auto handle = coop->handle();
+				const auto dereg_reason =
+						coop_private_iface_t::dereg_reason( *coop );
+				const auto dereg_notificators =
+						coop_private_iface_t::giveout_dereg_notificators( *coop );
+
+				// Release the coop.
+				coop.reset();
+
 				// Coop's dereg notificators can be processed now.
-				coop_private_iface_t::call_dereg_notificators( *coop );
+				if( dereg_notificators )
+					dereg_notificators->call_all(
+							m_env.get(),
+							handle,
+							dereg_reason );
 
 				// Coop's listener should be notified.
 				if( m_coop_listener )
 					m_coop_listener->on_deregistered(
 							m_env.get(),
-							coop->handle(),
-							coop_private_iface_t::dereg_reason( *coop ) );
+							handle,
+							dereg_reason );
 			} );
 		
 		return result;

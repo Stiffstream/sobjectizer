@@ -142,8 +142,7 @@ init(
 {
 	for( int i = 0; i < 8; ++i )
 	{
-		so_5::coop_unique_ptr_t coop = env.create_coop(
-			"test_coop",
+		auto coop = env.make_coop(
 			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 		coop->make_agent< test_agent_t >();
@@ -155,12 +154,10 @@ init(
 		coop->make_agent< test_agent_t >();
 		coop->make_agent< test_agent_t >();
 
-		env.register_coop( std::move( coop ) );
+		auto coop_handle = env.register_coop( std::move( coop ) );
 		g_stage_monitors.wait_for_registration();
 
-		env.deregister_coop(
-				"test_coop",
-				so_5::dereg_reason::normal );
+		env.deregister_coop( coop_handle, so_5::dereg_reason::normal );
 		g_stage_monitors.wait_for_deregistration();
 	}
 	env.stop();
@@ -172,7 +169,7 @@ class listener_t : public so_5::coop_listener_t
 		virtual void
 		on_registered(
 			so_5::environment_t &,
-			const std::string & )
+			const so_5::coop_handle_t & )
 		{
 			g_stage_monitors.notify_about_registration();
 		}
@@ -180,7 +177,7 @@ class listener_t : public so_5::coop_listener_t
 		virtual void
 		on_deregistered(
 			so_5::environment_t &,
-			const std::string &,
+			const so_5::coop_handle_t &,
 			const so_5::coop_dereg_reason_t &)
 		{
 			g_stage_monitors.notify_about_deregistration();

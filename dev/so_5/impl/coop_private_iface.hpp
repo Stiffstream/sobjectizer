@@ -96,14 +96,10 @@ class coop_private_iface_t
 							coop.handle() );
 			}
 
-		static void
-		call_dereg_notificators( coop_t & coop ) noexcept
+		static coop_dereg_notificators_container_ref_t
+		giveout_dereg_notificators( coop_t & coop ) noexcept
 			{
-				if( coop.m_dereg_notificators )
-					coop.m_dereg_notificators->call_all(
-							coop.environment(),
-							coop.handle(),
-							dereg_reason( coop ) );
+				return std::move(coop.m_dereg_notificators);
 			}
 
 		static coop_dereg_reason_t

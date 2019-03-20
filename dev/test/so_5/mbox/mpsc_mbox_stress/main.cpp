@@ -135,7 +135,7 @@ class a_parent_t
 			if( m_acks_received == m_max_agents )
 			{
 				m_state = state_t::awaiting_destroying;
-				so_environment().deregister_coop( "child",
+				so_environment().deregister_coop( m_child_coop_handle,
 						so_5::dereg_reason::normal );
 			}
 		}
@@ -173,6 +173,8 @@ class a_parent_t
 
 		std::vector< so_5::mbox_t > m_child_mboxes;
 
+		so_5::coop_handle_t m_child_coop_handle;
+
 		void
 		try_start_new_iteration()
 		{
@@ -194,8 +196,7 @@ class a_parent_t
 			m_child_mboxes = std::vector< so_5::mbox_t >();
 			m_child_mboxes.reserve( m_max_agents );
 
-			auto coop = so_environment().create_coop( "child" );
-			coop->set_parent_coop_name( so_coop_name() );
+			auto coop = so_environment().make_coop( so_coop() );
 			coop->add_reg_notificator(
 					so_5::make_coop_reg_notificator( so_direct_mbox() ) );
 			coop->add_dereg_notificator(
@@ -212,7 +213,7 @@ class a_parent_t
 				coop->add_agent( std::move( agent ) );
 			}
 
-			so_environment().register_coop( std::move( coop ) );
+			m_child_coop_handle = so_environment().register_coop( std::move( coop ) );
 		}
 
 		void
@@ -238,7 +239,7 @@ main( int argc, char ** argv )
 		so_5::launch(
 			[iterations]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( "parent",
+				env.register_agent_as_coop(
 					env.make_agent< a_parent_t >( iterations ) );
 			} );
 	}
