@@ -23,10 +23,10 @@ public:
 	void
 	log_exception(
 		const std::exception & ex,
-		const std::string & coop_name ) override
+		const so_5::coop_handle_t & coop ) override
 	{
 		if( m_prev )
-			m_prev->log_exception( ex, coop_name );
+			m_prev->log_exception( ex, coop );
 
 		const auto p = dynamic_cast<const so_5::exception_t *>(&ex);
 		if( p )

@@ -149,7 +149,7 @@ test_agent_t::evt_test_3(
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test_coop", env.make_agent< test_agent_t >() );
+	env.register_agent_as_coop( env.make_agent< test_agent_t >() );
 }
 
 int
