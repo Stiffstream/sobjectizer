@@ -146,7 +146,8 @@ coop_impl_t::exception_reaction(
 	{
 		if( inherit_exception_reaction == coop.m_exception_reaction )
 			{
-				const auto parent = coop.m_parent.to_shptr_noexcept();
+				const auto parent = so_5::low_level_api::to_shptr_noexcept(
+						coop.m_parent );
 				if( parent )
 					return parent->exception_reaction();
 				else
@@ -316,7 +317,7 @@ class coop_impl_t::registration_performer_t
 		void
 		make_relation_with_parent_coop()
 			{
-				m_coop.m_parent.to_shptr()->add_child(
+				so_5::low_level_api::to_shptr(m_coop.m_parent)->add_child(
 						m_coop.shared_from_this() );
 			}
 
@@ -457,7 +458,7 @@ coop_impl_t::do_final_deregistration_actions(
 		// contain an actual value.
 		// But if not then we have a serious problem and it is better
 		// to terminate the application.
-		coop.m_parent.to_shptr()->remove_child( coop );
+		so_5::low_level_api::to_shptr(coop.m_parent)->remove_child( coop );
 	}
 
 void

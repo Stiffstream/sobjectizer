@@ -2074,7 +2074,35 @@ class SO_5_TYPE agent_t
 		environment_t &
 		so_environment() const;
 
-//FIXME: document this!
+		/*!
+		 * \brief Get a handle of agent's coop.
+		 *
+		 * \note
+		 * This method is a replacement for so_coop_name() method
+		 * from previous versions of SObjectizer-5.
+		 *
+		 * \attention
+		 * If this method is called when agent is not registered (e.g.
+		 * there is no coop for agent) then this method will throw.
+		 *
+		 * Usage example:
+		 * \code
+		 * class parent final : public so_5::agent_t {
+		 * 	...
+		 * 	void so_evt_start() override {
+		 * 		// Create a child coop.
+		 * 		auto coop = so_environment().make_coop(
+		 * 			// We as a parent coop.
+		 * 			so_coop() );
+		 * 		...; // Fill the coop.
+		 * 		so_environment().register_coop( std::move(coop) );
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
 		SO_5_NODISCARD
 		coop_handle_t
 		so_coop() const;

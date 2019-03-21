@@ -872,7 +872,6 @@ class SO_5_TYPE environment_t
 		coop_unique_holder_t
 		make_coop();
 
-//FIXME: example in the comment should be updated.
 		//! Create a cooperation with specified dispatcher binder.
 		/*!
 		 * A binder \a disp_binder will be used for binding cooperation
@@ -880,10 +879,9 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::coop_unique_holder_t coop = so_env.create_coop(
-				"some_coop",
-				so_5::disp::active_group::create_disp_binder(
-					"active_group",
+			so_5::environment_t & so_env = ...;
+			so_5::coop_unique_holder_t coop = so_env.make_coop(
+				so_5::disp::active_group::make_dispatcher( so_env ).binder(
 					"some_active_group" ) );
 
 			// That agent will be bound to the dispatcher "active_group"
@@ -901,12 +899,24 @@ class SO_5_TYPE environment_t
 			//! A default binder for this cooperation.
 			disp_binder_shptr_t disp_binder );
 
-//FIXME: an example should be provided in the comment!
 		/*!
 		 * \brief Create a new cooperation that will be a child for
 		 * specified parent coop.
 		 *
 		 * The new cooperation will use the default dispatcher binder.
+		 *
+		 * Usage example:
+		 * \code
+		 * class parent_t final : public so_5::agent_t {
+		 * 	void on_some_event(mhood_t<some_message>) {
+		 * 		// We need to create a child coop.
+		 * 		auto coop = so_environment().make_coop(
+		 * 				// We as a parent.
+		 * 				so_coop());
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
 		 *
 		 * \since
 		 * v.5.6.0
@@ -1039,7 +1049,7 @@ class SO_5_TYPE environment_t
 			//! Deregistration reason.
 			int reason )
 		{
-			auto coop_shptr = coop.to_shptr_noexcept();
+			auto coop_shptr = low_level_api::to_shptr_noexcept( coop );
 			if( coop_shptr )
 				coop_shptr->deregister( reason );
 		}
@@ -1695,7 +1705,7 @@ environment_t::introduce_coop( Args &&... args )
 		virtual void
 		so_evt_start() override
 		{
-			auto child = so_5::create_child_coop( *this, so_5::autoname );
+			auto child = so_5::create_child_coop( *this );
 			child->make_agent< worker >();
 			...
 			so_environment().register_coop( std::move( child ) );
@@ -1747,7 +1757,7 @@ create_child_coop(
 	//! Arguments for the environment_t::create_coop() method.
 	Args&&... args )
 {
-	return parent.to_shptr()->environment().make_coop(
+	return low_level_api::to_shptr(parent)->environment().make_coop(
 			parent,
 			std::forward< Args >(args)... );
 }
@@ -1830,7 +1840,7 @@ introduce_child_coop(
 	Args&&... args )
 {
 	return details::introduce_coop_helper_t{
-					parent.to_shptr()->environment(),
+					low_level_api::to_shptr(parent)->environment(),
 					parent
 			}.introduce( std::forward< Args >(args)... );
 }

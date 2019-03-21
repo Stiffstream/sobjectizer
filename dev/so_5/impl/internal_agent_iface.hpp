@@ -21,7 +21,13 @@ namespace impl {
 //
 // internal_agent_iface_t
 //
-//FIXME: document this!
+/*!
+ * \brief A special class for access to private/protected members
+ * of agent class.
+ *
+ * \since
+ * v.5.6.0
+ */
 class internal_agent_iface_t final
 	{
 		agent_t & m_agent;

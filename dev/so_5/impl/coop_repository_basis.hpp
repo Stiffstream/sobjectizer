@@ -62,11 +62,18 @@ public:
 		//! Cooperation action listener.
 		coop_listener_unique_ptr_t coop_listener );
 
-//FIXME: document this!
+	//! Create an instance of a new coop.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
 	SO_5_NODISCARD
 	coop_unique_holder_t
 	make_coop(
+		//! Parent coop.
+		//! Can be empty. In that case there won't be any parent coop.
 		coop_handle_t parent,
+		//! Default binder for that coop.
 		disp_binder_shptr_t default_binder );
 
 	//! Register cooperation.
@@ -100,7 +107,6 @@ public:
 				{}
 		};
 
-//FIXME: should it be marked as SO_5_NODISCARD?
 	//! Do final actions of the cooperation deregistration.
 	/*!
 	 * \retval true there are some live cooperations.

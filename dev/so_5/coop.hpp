@@ -630,7 +630,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 								environment(), std::forward<Args>(args)...) );
 			}
 
-//FIXME: check the correctness of this doxygen comment!
 		/*!
 		 * \since
 		 * v.5.5.4
@@ -648,15 +647,14 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
-		 		so_5::disp::one_thread::create_private_disp();
-		 so_5::coop_unique_holder_t coop = env.create_coop( so_5::autoname );
+		 auto disp = so_5::disp::one_thread::make_dispatcher( env );
+		 auto coop = env.make_coop();
 		 // For the case of constructor like my_agent(environmen_t&).
-		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
+		 coop->make_agent_with_binder< my_agent >( disp.binder() ); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
-		 auto ya = coop->make_agent_with_binder< your_agent >( disp->binder(), "hello" );
+		 auto ya = coop->make_agent_with_binder< your_agent >( disp.binder(), "hello" );
 		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
-		 coop->make_agent_with_binder< their_agent >( disp->binder(), "bye", ya->so_direct_mbox() );
+		 coop->make_agent_with_binder< their_agent >( disp.binder(), "bye", ya->so_direct_mbox() );
 		 \endcode
 		 */
 		template< class Agent, typename... Args >
@@ -723,7 +721,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		void
 		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
-//FIXME: check an example in the doxygen comment!
 		/*!
 		 * \since
 		 * v.5.5.8
@@ -732,14 +729,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \par Usage example:
 			\code
-			so_5::environment_t & env = ...;
-			env.introduce_coop( []( so_5::coop_t & coop ) {
-					coop.define_agent()
-						.event< some_signal >( some_mbox, [&coop] {
-							...
-							coop.deregister( so_4::dereg_reason::user_defined_reason + 100 );
-						} );
-				} );
+			coop_t & coop = ...;
+			coop.deregister( so_4::dereg_reason::user_defined_reason + 100 );
 			\endcode
 		 *
 		 */
@@ -925,14 +916,13 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 		resource_deleter_vector_t m_resource_deleters;
 
-//FIXME: actualize comment after implementation of deregistration of coop.
 		/*!
 		 * \since
 		 * v.5.2.3
 		 *
 		 * \brief Deregistration reason.
 		 *
-		 * Receives actual value only in do_deregistration_specific_actions().
+		 * Receives actual value only in deregister() method.
 		 */
 		coop_dereg_reason_t m_dereg_reason;
 
@@ -1086,7 +1076,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				impl::coop_impl_t::do_remove_child( *this, child );
 			}
 
-//FIXME: document this!
+		/*!
+		 * \brief A helper method for doing some actions with children coops.
+		 *
+		 * This method is intended to be used in derived classes where an
+		 * access to m_first_child, m_prev_sibling and m_next_sibling from
+		 * another coop object will be prohibited.
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
 		template< typename Lambda >
 		void
 		for_each_child( Lambda && lambda ) const
