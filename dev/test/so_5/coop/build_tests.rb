@@ -18,8 +18,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/parent_child_1/prj.ut.rb" )
 	required_prj( "#{path}/parent_child_2/prj.ut.rb" )
 	required_prj( "#{path}/parent_child_3/prj.ut.rb" )
-#FIXME: resolve issue with this unit-test!
-#	required_prj( "#{path}/parent_child_4/prj.ut.rb" )
+	required_prj( "#{path}/parent_child_4/prj.ut.rb" )
 	required_prj( "#{path}/user_resource/prj.ut.rb" )
 	required_prj( "#{path}/introduce_coop/prj.ut.rb" )
 	required_prj( "#{path}/introduce_coop_2/prj.ut.rb" )

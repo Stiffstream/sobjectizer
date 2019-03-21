@@ -10,59 +10,50 @@
 
 #include "test/so_5/svc/a_time_sentinel.hpp"
 
-struct msg_parent_started : public so_5::signal_t {};
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
-struct msg_initiate_dereg : public so_5::signal_t {};
+struct msg_parent_started final : public so_5::signal_t {};
 
-struct msg_check_signal : public so_5::signal_t {};
+struct msg_initiate_dereg final : public so_5::message_t
+	{
+		std::promise<void> m_completion;
 
-struct msg_shutdown : public so_5::signal_t {};
+		msg_initiate_dereg() = default;
+	};
 
 class a_child_t : public so_5::agent_t
 {
 	public :
 		a_child_t(
 			so_5::environment_t & env,
-			const so_5::mbox_t & self_mbox,
 			const so_5::mbox_t & parent_mbox )
 			:	so_5::agent_t( env )
-			,	m_mbox( self_mbox )
 			,	m_parent_mbox( parent_mbox )
-			,	m_so_evt_finish_passed( false )
 		{}
 
 		void
 		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event(
-					&a_child_t::evt_check_signal );
+			auto original_msg_uptr = std::make_unique< msg_initiate_dereg >();
+			auto completion = original_msg_uptr->m_completion.get_future();
 
-			m_parent_mbox->run_one()
-					.wait_for( std::chrono::milliseconds( 100 ) )
-					.sync_get< msg_initiate_dereg >();
+			so_5::message_ref_t original_msg{ std::move(original_msg_uptr) };
+			so_5::send(
+					m_parent_mbox,
+					mutable_mhood_t< msg_initiate_dereg >{ original_msg } );
 
-			so_5::send< msg_check_signal >( m_mbox );
+			completion.wait();
 		}
 
 		void
 		so_evt_finish() override
 		{
-			m_so_evt_finish_passed = true;
-		}
-
-		void
-		evt_check_signal(mhood_t< msg_check_signal >)
-		{
-			if( m_so_evt_finish_passed )
-				throw std::runtime_error(
-						"evt_check_signal after so_evt_finish" );
+			std::cout << "a_child_t::so_evt_finish is called!" << std::endl;
+			std::abort();
 		}
 
 	private :
-		const so_5::mbox_t m_mbox;
 		const so_5::mbox_t m_parent_mbox;
-
-		bool m_so_evt_finish_passed;
 };
 
 class a_parent_t : public so_5::agent_t
@@ -78,7 +69,7 @@ class a_parent_t : public so_5::agent_t
 		void
 		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event(
+			so_subscribe_self().event(
 					&a_parent_t::evt_initiate_dereg );
 		}
 
@@ -89,9 +80,10 @@ class a_parent_t : public so_5::agent_t
 		}
 
 		void
-		evt_initiate_dereg(mhood_t< msg_initiate_dereg >)
+		evt_initiate_dereg( mutable_mhood_t< msg_initiate_dereg > cmd )
 		{
 			so_deregister_agent_coop_normally();
+			cmd->m_completion.set_value();
 		}
 
 	private :
@@ -104,26 +96,26 @@ class a_driver_t : public so_5::agent_t
 		a_driver_t(
 			so_5::environment_t & env )
 			:	so_5::agent_t( env )
-			,	m_mbox( env.create_mbox() )
 		{}
 
 		void
 		so_define_agent() override
 		{
-			so_subscribe( m_mbox ).event(
+			so_subscribe_self().event(
 					&a_driver_t::evt_parent_started );
-
-			so_subscribe( m_mbox ).event(
-					&a_driver_t::evt_shutdown );
 		}
 
 		void
 		so_evt_start() override
 		{
-			m_parent = so_environment().register_agent_as_coop(
-				so_environment().make_agent< a_parent_t >( m_mbox ),
-				so_5::disp::active_obj::make_dispatcher( 
-						so_environment() ).binder() );
+			auto coop = so_environment().make_coop(
+					so_5::disp::active_obj::make_dispatcher( 
+							so_environment() ).binder() );
+
+			m_parent_mbox = coop->make_agent< a_parent_t >( so_direct_mbox() )->
+					so_direct_mbox();
+
+			m_parent = so_environment().register_coop( std::move(coop) );
 		}
 
 		void
@@ -134,27 +126,30 @@ class a_driver_t : public so_5::agent_t
 					so_5::disp::active_obj::make_dispatcher(
 							so_environment() ).binder() );
 
-			coop->make_agent< a_child_t >(
-					so_environment().create_mbox(),
-					m_mbox );
+			coop->make_agent< a_child_t >( m_parent_mbox );
 
-			so_environment().register_coop( std::move( coop ) );
+			try
+			{
+				so_environment().register_coop( std::move( coop ) );
 
-			so_5::send_delayed< msg_shutdown >(
-					m_mbox,
-					std::chrono::milliseconds(500) );
-		}
+				std::cout << "An exception is expected in register_coop!"
+						<< std::endl;
+				std::abort();
+			}
+			catch( const so_5::exception_t & x )
+			{
+				ensure_or_die(
+						x.error_code() == so_5::rc_coop_is_not_in_registered_state,
+						"rc_coop_is_not_in_registered_state is expected, got: " +
+						std::to_string(x.error_code()) );
+			}
 
-		void
-		evt_shutdown(mhood_t< msg_shutdown >)
-		{
 			so_environment().stop();
 		}
 
 	private :
-		const so_5::mbox_t m_mbox;
-
 		so_5::coop_handle_t m_parent;
+		so_5::mbox_t m_parent_mbox;
 };
 
 void
