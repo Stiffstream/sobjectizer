@@ -543,9 +543,11 @@ const int rc_scenario_must_be_completed = 182;
  */
 const int rc_stored_state_name_not_found = 183;
 
-//FIXME: document this!
 /*!
  * \brief An attempt to get a pointer to already destroyed cooperation.
+ *
+ * This error can be reported when a coop_handle instance for already
+ * destroyed coop is used.
  *
  * \since
  * v.5.6.0

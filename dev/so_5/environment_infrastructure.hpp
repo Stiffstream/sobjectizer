@@ -147,7 +147,11 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual void
 		stop() = 0;
 
-//FIXME: document this!
+		//! Create an instance of a new coop.
+		/*!
+		 * \since
+		 * v.5.6.0
+		 */
 		SO_5_NODISCARD
 		virtual coop_unique_holder_t
 		make_coop(

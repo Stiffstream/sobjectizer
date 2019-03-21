@@ -927,12 +927,27 @@ class SO_5_TYPE environment_t
 			//! Parent coop.
 			coop_handle_t parent );
 
-//FIXME: an example should be provided in the comment!
 		/*!
 		 * \brief Create a new cooperation that will be a child for
 		 * specified parent coop.
 		 *
 		 * The new cooperation will use the specified dispatcher binder.
+		 *
+		 * Usage example:
+		 * \code
+		 * class parent_t final : public so_5::agent_t {
+		 * 	void on_some_event(mhood_t<some_message>) {
+		 * 		// We need to create a child coop.
+		 * 		auto coop = so_environment().make_coop(
+		 * 				// We as a parent.
+		 * 				so_coop(),
+		 * 				// The default dispatcher for the new coop.
+		 * 				so_5::disp::active_obj::make_dispatcher(
+		 * 						so_environment() ).binder() );
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
 		 *
 		 * \since
 		 * v.5.6.0
@@ -945,7 +960,6 @@ class SO_5_TYPE environment_t
 			//! A default binder for this cooperation.
 			disp_binder_shptr_t disp_binder );
 
-//FIXME: maybe SO_5_NODISCARD should be used here?
 		//! Register a cooperation.
 		/*!
 		 * The cooperation registration includes following steps:
@@ -965,7 +979,6 @@ class SO_5_TYPE environment_t
 			//! Cooperation to be registered.
 			coop_unique_holder_t agent_coop );
 
-//FIXME: maybe SO_5_NODISCARD should be used here?
 		/*!
 		 * \brief Register single agent as a cooperation.
 		 *
@@ -987,8 +1000,6 @@ class SO_5_TYPE environment_t
 			return register_coop( std::move( coop ) );
 		}
 
-//FIXME: maybe SO_5_NODISCARD should be used here?
-//FIXME: fix example in the comment.
 		/*!
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
@@ -1000,10 +1011,8 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		   std::unique_ptr< my_agent > a( new my_agent(...) );
 		   so_env.register_agent_as_coop(
-		   		"sample_coop",
-		   		std::move(a),
+					std::make_unique<my_agent>(...),
 		   		so_5::disp::active_group::create_disp_binder(
 		   				"active_group",
 		   				"some_active_group" ) );
@@ -1020,7 +1029,6 @@ class SO_5_TYPE environment_t
 			return register_coop( std::move( coop ) );
 		}
 
-//FIXME: check the correctness of the comment!
 		//! Deregister the cooperation.
 		/*!
 		 * Method searches the cooperation within registered cooperations and if
@@ -1034,12 +1042,12 @@ class SO_5_TYPE environment_t
 		 * agent informs the cooperation about this. When the cooperation 
 		 * receives all these signals from agents it informs 
 		 * the SObjectizer Run-Time.
-		 * Only after this the cooperation is deregistered on the special thread
+		 *
+		 * Only after this the cooperation is deregistered on the special
 		 * context.
 		 *
 		 * After the cooperation deregistration agents are unbound from
-		 * dispatchers. And name of the cooperation is removed from
-		 * the list of registered cooperations.
+		 * dispatchers.
 		 */
 //FIXME: should this method be marked as noexcept?
 		void
@@ -1728,7 +1736,6 @@ create_child_coop(
 	return coop;
 }
 
-//FIXME: check correctness of example in the comment!
 /*!
  * \brief A simple way for creating child cooperation when there is
  * a reference to the parent cooperation object.
@@ -1738,15 +1745,19 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::coop_t & coop ) {
-		coop.define_agent().on_start( [&coop] {
-			auto child = so_5::create_child_coop( coop, so_5::autoname );
-			child->make_agent< worker >();
+	class parent final : public so_5::agent_t {
+		void on_some_event(mhood_t<some_message>) {
+			auto child = so_5::create_child_coop(
+					// We as the parent coop.
+					so_coop(),
+					// The default binder for the new coop.
+					so_5::disp::one_thread::make_dispatcher(
+							so_environment().binder() ) );
 			...
-			coop.environment().register_coop( std::move( child ) );
-		} );
+			so_environment().register_coop( std::move(child) );
+		}
 		...
-	} );
+	};
 	\endcode
  */
 template< typename... Args >
@@ -1803,7 +1814,6 @@ introduce_child_coop(
 			}.introduce( std::forward< Args >(args)... );
 }
 
-//FIXME: check correctness of example in the comment!
 /*!
  * \brief A simple way for creating and registering child cooperation
  * when there is a reference to parent coop.
@@ -1813,17 +1823,18 @@ introduce_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::coop_t & parent ) {
-		coop.define_agent().on_start( [&parent] {
-			so_5::introduce_child_coop( parent,
-				[]( so_5::coop_t & child ) {
-					child.make_agent< worker >();
-					...
-				} );
-			...
-		} );
+	class owner : public so_5::agent_t
+	{
+	public :
 		...
-	} );
+		virtual void
+		so_evt_start() override
+		{
+			so_5::introduce_child_coop( so_coop(), []( so_5::coop_t & coop ) {
+				coop.make_agent< worker >();
+			} );
+		}
+	};
 	\endcode
 
  * \note This function is just a tiny wrapper around
