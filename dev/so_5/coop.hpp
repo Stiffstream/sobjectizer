@@ -245,7 +245,21 @@ namespace impl
 
 class coop_private_iface_t;
 
-//FIXME: document this!
+//
+// coop_impl_t
+//
+/*!
+ * \brief An internal class with real implementation of coop's logic.
+ *
+ * Class coop_t is derived from std::enable_shared_from_this. But when
+ * coop_t is exported from a DLL the VC++ compiler issue some warnings
+ * about dll-linkage of std::enable_shared_from_this. To avoid these
+ * warnings coop_t is just a colletion of data. All coop's logic is
+ * implemented by coop_impl_t.
+ *
+ * \since
+ * v.5.6.0
+ */
 class SO_5_TYPE coop_impl_t
 	{
 		friend class so_5::coop_t;
@@ -325,12 +339,17 @@ class SO_5_TYPE coop_impl_t
 		class registration_performer_t;
 
 		//! Perform actions related to the deregistration of coop.
+		/*!
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
+		 */
 		static void
 		do_deregistration_specific_actions(
 			//! Coop to be deregistered.
 			coop_t & coop,
 			//! Reason of coop's deregistration.
-			coop_dereg_reason_t reason );
+			coop_dereg_reason_t reason ) noexcept;
 
 		class deregistration_performer_t;
 
@@ -738,11 +757,15 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			coop.deregister( so_4::dereg_reason::user_defined_reason + 100 );
 			\endcode
 		 *
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
+		 *
 		 */
 		void
 		deregister(
 			//! Reason of cooperation deregistration.
-			int reason )
+			int reason ) noexcept
 			{
 				impl::coop_impl_t::do_deregistration_specific_actions(
 						*this,
@@ -755,14 +778,18 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \brief Deregistr the cooperation normally.
 		 *
-		 * \note This method is just a shorthand for:
+		 * This method is just a shorthand for:
 			\code
 			so_5::coop_t & coop = ...;
 			coop.deregister( so_5::dereg_reason::normal );
 			\endcode
+		 *
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
 		 */
 		void
-		deregister_normally()
+		deregister_normally() noexcept
 			{
 				this->deregister( dereg_reason::normal );
 			}

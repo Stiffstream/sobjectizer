@@ -362,6 +362,10 @@ coop_impl_t::do_registration_specific_actions( coop_t & coop )
 		registration_performer_t{ coop }.perform();
 	}
 
+//
+// deregistration_performer_t
+//
+//! A helper for coop's deregistration procedure.
 class coop_impl_t::deregistration_performer_t
 	{
 		coop_t & m_coop;
@@ -374,7 +378,7 @@ class coop_impl_t::deregistration_performer_t
 			};
 
 		phase1_result_t
-		perform_phase1()
+		perform_phase1() noexcept
 			{
 				// The first phase should be performed on locked object.
 				std::lock_guard lock{ m_coop.m_lock };
@@ -402,9 +406,8 @@ class coop_impl_t::deregistration_performer_t
 					internal_agent_iface_t{ *info.m_agent_ref }.shutdown_agent();
 			}
 
-//FIXME: should it be marked as noexcept?
 		void
-		initiate_deregistration_for_children()
+		initiate_deregistration_for_children() noexcept
 			{
 				m_coop.for_each_child( []( coop_t & coop ) {
 						coop.deregister( dereg_reason::parent_deregistration );
@@ -419,9 +422,8 @@ class coop_impl_t::deregistration_performer_t
 			,	m_reason{ reason }
 			{}
 
-//FIXME: maybe it should be noexcept?
 		void
-		perform()
+		perform() noexcept
 			{
 				auto result = perform_phase1();
 
@@ -443,7 +445,7 @@ class coop_impl_t::deregistration_performer_t
 void
 coop_impl_t::do_deregistration_specific_actions(
 	coop_t & coop,
-	coop_dereg_reason_t reason )
+	coop_dereg_reason_t reason ) noexcept
 	{
 		deregistration_performer_t{ coop, reason }.perform();
 	}

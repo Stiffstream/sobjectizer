@@ -1048,14 +1048,17 @@ class SO_5_TYPE environment_t
 		 *
 		 * After the cooperation deregistration agents are unbound from
 		 * dispatchers.
+		 *
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
 		 */
-//FIXME: should this method be marked as noexcept?
 		void
 		deregister_coop(
 			//! The coop to be deregistered.
 			coop_handle_t coop,
 			//! Deregistration reason.
-			int reason )
+			int reason ) noexcept
 		{
 			auto coop_shptr = low_level_api::to_shptr_noexcept( coop );
 			if( coop_shptr )
