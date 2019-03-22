@@ -62,7 +62,7 @@ class manager_t final
 				env.introduce_coop( [this]( so_5::coop_t & coop ) {
 						coop.add_reg_notificator(
 							[this]( so_5::environment_t & env,
-								const so_5::coop_handle_t & handle )
+								const so_5::coop_handle_t & handle ) noexcept
 							{
 								ensure_or_die( m_state == state_t::wait_first_reg_notify,
 										"m_state != state_t::wait_first_reg_notify" );
@@ -77,7 +77,7 @@ class manager_t final
 
 						coop.add_reg_notificator(
 							[this]( so_5::environment_t & /*env*/,
-								const so_5::coop_handle_t & /*handle*/ )
+								const so_5::coop_handle_t & /*handle*/ ) noexcept
 							{
 								ensure_or_die( m_state == state_t::wait_second_reg_notify,
 										"m_state != state_t::wait_second_reg_notify" );
@@ -88,7 +88,7 @@ class manager_t final
 						coop.add_dereg_notificator(
 							[this]( so_5::environment_t & env,
 								const so_5::coop_handle_t & /*handle*/,
-								const so_5::coop_dereg_reason_t & /*reason*/ )
+								const so_5::coop_dereg_reason_t & /*reason*/ ) noexcept
 							{
 								ensure_or_die( m_state == state_t::wait_first_dereg_notify,
 										"m_state != state_t::wait_first_dereg_notify" );
