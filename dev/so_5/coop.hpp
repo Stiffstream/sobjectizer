@@ -149,9 +149,6 @@ class SO_5_TYPE coop_reg_notificators_container_t
 		std::vector< coop_reg_notificator_t > m_notificators;
 };
 
-//FIXME: is this level of indirection really needed now?
-//Maybe coop_reg_notificators_container_t can just be a field of coop_t?
-
 //
 // coop_reg_notificators_container_ref_t
 //
@@ -224,9 +221,6 @@ class SO_5_TYPE coop_dereg_notificators_container_t
 	private :
 		std::vector< coop_dereg_notificator_t > m_notificators;
 };
-
-//FIXME: is this level of indirection really needed now?
-//Maybe coop_dereg_notificators_container_t can just be a field of coop_t?
 
 //
 // coop_dereg_notificators_container_ref_t

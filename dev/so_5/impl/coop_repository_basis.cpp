@@ -337,7 +337,10 @@ coop_repository_basis_t::do_registration_specific_actions(
 	// We don't expect exceptions from the following actions.
 	so_5::details::invoke_noexcept_code( [&] {
 			// Coop's dereg notificators can be processed now.
-			coop_private_iface_t::call_reg_notificators( *coop );
+			auto reg_notificators =
+					coop_private_iface_t::giveout_reg_notificators( *coop );
+			if( reg_notificators )
+				reg_notificators->call_all( m_env.get(), result );
 
 			// Coop's listener should be notified.
 			if( m_coop_listener )

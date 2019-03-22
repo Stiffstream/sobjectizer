@@ -87,13 +87,10 @@ class coop_private_iface_t
 				coop_impl_t::do_final_deregistration_actions( coop );
 			}
 
-		static void
-		call_reg_notificators( coop_t & coop ) noexcept
+		static coop_reg_notificators_container_ref_t
+		giveout_reg_notificators( coop_t & coop ) noexcept
 			{
-				if( coop.m_reg_notificators )
-					coop.m_reg_notificators->call_all(
-							coop.environment(),
-							coop.handle() );
+				return std::move(coop.m_reg_notificators);
 			}
 
 		static coop_dereg_notificators_container_ref_t
