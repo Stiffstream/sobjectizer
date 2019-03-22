@@ -14,6 +14,7 @@
 
 #include <so_5/coop.hpp>
 #include <so_5/mbox.hpp>
+#include <so_5/send_functions.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -79,30 +80,73 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 //
 // make_coop_reg_notificator
 //
+//FIXME: documentation should be extended with notion of noexcept!
 /*!
  * \since
  * v.5.2.3
  *
  * \brief Create notificator about cooperation registration completion.
  */
-SO_5_FUNC coop_reg_notificator_t
+inline auto
 make_coop_reg_notificator(
 	//! A mbox to which msg_coop_registered will be sent.
-	const mbox_t & mbox );
+	mbox_t target )
+{
+	class actual_notificator_t final
+		{
+			mbox_t m_target;
+
+		public :
+			actual_notificator_t( mbox_t target )
+				:	m_target{ std::move(target) }
+				{}
+
+			void operator()(
+				environment_t & /*env*/,
+				const coop_handle_t & handle ) const noexcept
+				{
+					so_5::send< msg_coop_registered >( m_target, handle );
+				}
+		};
+
+	return actual_notificator_t{ std::move(target) };
+}
 
 //
 // make_coop_dereg_notificator
 //
+//FIXME: documentation should be extended with notion of noexcept!
 /*!
  * \since
  * v.5.2.3
  *
  * \brief Create notificator about cooperation deregistration completion.
  */
-SO_5_FUNC coop_dereg_notificator_t
+inline auto
 make_coop_dereg_notificator(
 	//! A mbox to which msg_coop_deregistered will be sent.
-	const mbox_t & mbox );
+	mbox_t target )
+{
+	class actual_notificator_t final
+		{
+			mbox_t m_target;
+
+		public :
+			actual_notificator_t( mbox_t target )
+				:	m_target{ std::move(target) }
+				{}
+
+			void operator()(
+				environment_t & /*env*/,
+				const coop_handle_t & handle,
+				const coop_dereg_reason_t & reason ) const noexcept
+				{
+					so_5::send< msg_coop_deregistered >( m_target, handle, reason );
+				}
+		};
+
+	return actual_notificator_t{ std::move(target) };
+}
 
 } /* namespace so_5 */
 

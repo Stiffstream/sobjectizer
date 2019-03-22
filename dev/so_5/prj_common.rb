@@ -60,7 +60,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		cpp_source 'agent.cpp'
 
 		cpp_source 'coop.cpp'
-		cpp_source 'agent_coop_notifications.cpp'
 
 		cpp_source 'queue_locks_defaults_manager.cpp'
 

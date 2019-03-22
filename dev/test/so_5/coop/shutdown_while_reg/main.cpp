@@ -81,7 +81,9 @@ public :
 
 					coop.make_agent< small_actor_t >( std::ref(*ctx) );
 					coop.add_reg_notificator(
-							[ctx]( so_5::environment_t &, const so_5::coop_handle_t & ) {
+							[ctx](
+								so_5::environment_t &,
+								const so_5::coop_handle_t & ) noexcept {
 								// Wait while small_actor receive hello message.
 								ctx->m_hello_received.get_future().wait();
 							} );

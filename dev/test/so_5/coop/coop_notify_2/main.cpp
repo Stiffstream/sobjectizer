@@ -59,12 +59,21 @@ class a_test_t : public so_5::agent_t
 					so_5::disp::active_obj::make_dispatcher(
 							so_environment() ).binder() );
 
-			child_coop->add_reg_notificator( m_reg_notificator );
-			child_coop->add_dereg_notificator( m_dereg_notificator );
+			child_coop->add_reg_notificator(
+					[this](auto & env, const auto & handle) noexcept {
+						m_reg_notificator(env, handle);
+					} );
+			child_coop->add_dereg_notificator(
+					[this](
+						auto & env,
+						const auto & handle,
+						const auto & reason ) noexcept {
+						m_dereg_notificator( env, handle, reason );
+					} );
 			child_coop->add_dereg_notificator(
 					[this]( so_5::environment_t &,
 						const so_5::coop_handle_t &,
-						const so_5::coop_dereg_reason_t &)
+						const so_5::coop_dereg_reason_t &) noexcept
 					{
 						so_5::send< msg_child_deregistered >( m_mbox );
 					} );

@@ -26,6 +26,7 @@
 #include <mutex>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -508,34 +509,57 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \name Method for working with notificators.
 		 * \{
 		 */
+//FIXME: documentation should be extended with notion of noexcept!
 		/*!
 		 * \since
 		 * v.5.2.3
 		 *
 		 * \brief Add notificator about cooperation registration event.
 		 */
+		template< typename Lambda >
 		void
 		add_reg_notificator(
-			coop_reg_notificator_t notificator )
+			Lambda && notificator )
 			{
+				static_assert(
+						std::is_nothrow_invocable_v<
+								Lambda,
+								environment_t &,
+								const coop_handle_t & >,
+						"notificator should be noexcept function/functor" );
+
 				impl::coop_impl_t::add_reg_notificator(
 						*this,
-						std::move(notificator) );
+						coop_reg_notificator_t{
+								std::forward<Lambda>(notificator)
+						} );
 			}
 
+//FIXME: documentation should be extended with notion of noexcept!
 		/*!
 		 * \since
 		 * v.5.2.3
 		 *
 		 * \brief Add notificator about cooperation deregistration event.
 		 */
+		template< typename Lambda >
 		void
 		add_dereg_notificator(
-			coop_dereg_notificator_t notificator )
+			Lambda && notificator )
 			{
+				static_assert(
+						std::is_nothrow_invocable_v<
+								Lambda,
+								environment_t &,
+								const coop_handle_t &,
+								const coop_dereg_reason_t & >,
+						"notificator should be noexcept function/functor" );
+
 				impl::coop_impl_t::add_dereg_notificator(
 						*this,
-						std::move(notificator) );
+						coop_dereg_notificator_t{
+								std::forward<Lambda>(notificator)
+						} );
 			}
 		/*!
 		 * \}

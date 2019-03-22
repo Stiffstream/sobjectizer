@@ -8,9 +8,8 @@
 
 #include <so_5/all.hpp>
 
-#include "test/so_5/svc/a_time_sentinel.hpp"
-
 #include <test/3rd_party/various_helpers/ensure.hpp>
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 struct msg_parent_started final : public so_5::signal_t {};
 
@@ -159,7 +158,6 @@ init( so_5::environment_t & env )
 			so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 	coop->make_agent< a_driver_t >();
-	coop->make_agent< a_time_sentinel_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -167,15 +165,10 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+	run_with_time_limit( [] {
+			so_5::launch( &init );
+		},
+		10 );
 
 	return 0;
 }
