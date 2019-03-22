@@ -308,10 +308,15 @@ class SO_5_TYPE coop_impl_t
 			const coop_t & coop ) noexcept;
 
 		//! Do decrement reference count for a coop.
+		/*!
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
+		 */
 		static void
 		do_decrement_reference_count(
 			//! Target coop.
-			coop_t & coop );
+			coop_t & coop ) noexcept;
 
 		//! Perform actions related to the registration of coop.
 		static void
@@ -1003,8 +1008,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				++m_reference_count;
 			}
 
-//FIXME: check for methods which call decrement_usage_count.
-//These methods can't be marked as noexcept!
 		/*!
 		 * \brief Decrement usage count for the coop.
 		 *
@@ -1022,9 +1025,13 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * but and for children cooperations. Because final step of
 		 * cooperation deregistration could be initiated only when all
 		 * children cooperations are deregistered and destroyed.
+		 *
+		 * \note
+		 * This method is marked as noexcept because there is no way
+		 * to recover if any exception is raised here.
 		 */
 		void
-		decrement_usage_count()
+		decrement_usage_count() noexcept
 			{
 				impl::coop_impl_t::do_decrement_reference_count( *this );
 			}

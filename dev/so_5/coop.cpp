@@ -159,7 +159,7 @@ coop_impl_t::exception_reaction(
 
 void
 coop_impl_t::do_decrement_reference_count(
-	coop_t & coop )
+	coop_t & coop ) noexcept
 	{
 		// If it is the last working agent then Environment should be
 		// informed that the cooperation is ready to be deregistered.
@@ -172,6 +172,9 @@ coop_impl_t::do_decrement_reference_count(
 				if( coop_t::registration_status_t::coop_not_registered !=
 						coop.m_registration_status )
 					{
+//FIXME: this call should be noexcept.
+//It is required a refactoring of final deregistration procedure
+//in various env_infrastructure implementations.
 						impl::internal_env_iface_t{ coop.m_env.get() }
 								.ready_to_deregister_notify( coop.shared_from_this() );
 					}
