@@ -137,10 +137,10 @@ class test_coop_listener_t
 			,	m_active_coops( 0 )
 		{}
 
-		virtual void
+		void
 		on_registered(
 			so_5::environment_t &,
-			const so_5::coop_handle_t & coop )
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -154,11 +154,11 @@ class test_coop_listener_t
 			}
 		}
 
-		virtual void
+		void
 		on_deregistered(
 			so_5::environment_t & env,
 			const so_5::coop_handle_t & coop,
-			const so_5::coop_dereg_reason_t & reason )
+			const so_5::coop_dereg_reason_t & reason ) noexcept override
 		{
 			bool need_stop = false;
 			{

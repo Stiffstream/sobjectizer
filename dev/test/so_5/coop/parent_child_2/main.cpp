@@ -153,7 +153,7 @@ class test_coop_listener_t
 		void
 		on_registered(
 			so_5::environment_t &,
-			const so_5::coop_handle_t & coop ) override
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -164,7 +164,7 @@ class test_coop_listener_t
 		on_deregistered(
 			so_5::environment_t & env,
 			const so_5::coop_handle_t & coop,
-			const so_5::coop_dereg_reason_t &) override
+			const so_5::coop_dereg_reason_t &) noexcept override
 		{
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };

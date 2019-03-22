@@ -166,19 +166,19 @@ init(
 class listener_t : public so_5::coop_listener_t
 {
 	public :
-		virtual void
+		void
 		on_registered(
 			so_5::environment_t &,
-			const so_5::coop_handle_t & )
+			const so_5::coop_handle_t & ) noexcept override
 		{
 			g_stage_monitors.notify_about_registration();
 		}
 
-		virtual void
+		void
 		on_deregistered(
 			so_5::environment_t &,
 			const so_5::coop_handle_t &,
-			const so_5::coop_dereg_reason_t &)
+			const so_5::coop_dereg_reason_t &) noexcept override
 		{
 			g_stage_monitors.notify_about_deregistration();
 		}

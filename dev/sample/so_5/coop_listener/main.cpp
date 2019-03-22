@@ -33,19 +33,19 @@ class coop_listener_impl_t : public so_5::coop_listener_t
 		{}
 
 		// A reaction to the cooperation registration.
-		virtual void on_registered(
+		void on_registered(
 			so_5::environment_t &,
-			const so_5::coop_handle_t & coop ) override
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::cout << "coop_listener: register coop '"
 				<< coop << "'\n";
 		}
 
 		// A reaction to the cooperation deregistration.
-		virtual void on_deregistered(
+		void on_deregistered(
 			so_5::environment_t &,
 			const so_5::coop_handle_t & coop,
-			const so_5::coop_dereg_reason_t & reason ) override
+			const so_5::coop_dereg_reason_t & reason ) noexcept override
 		{
 			std::cout << "coop_listener: deregister coop '"
 				<< coop << "', reason: "
@@ -62,8 +62,7 @@ int main()
 			[]( so_5::environment_params_t & p ) {
 				// Adding a cooperation listener to show what happened
 				// with the sample cooperation.
-				p.coop_listener(
-					so_5::coop_listener_unique_ptr_t( new coop_listener_impl_t ) );
+				p.coop_listener( std::make_unique< coop_listener_impl_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

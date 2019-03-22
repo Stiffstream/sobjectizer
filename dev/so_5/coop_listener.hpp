@@ -44,23 +44,27 @@ class SO_5_TYPE coop_listener_t
 		coop_listener_t() = default;
 		virtual ~coop_listener_t() noexcept = default;
 
-//FIXME: method should be declared as noexcept.
 		//! Hook for the cooperation registration event.
 		/*!
 		 * Method will be called right after the successful 
 		 * cooperation registration.
+		 *
+		 * \note
+		 * Since v.5.6.0 this method is noexcept!
 		 */
 		virtual void
 		on_registered(
 			//! SObjectizer Environment.
 			environment_t & so_env,
 			//! Cooperation which was registered.
-			const coop_handle_t & coop ) = 0;
+			const coop_handle_t & coop ) noexcept = 0;
 
-//FIXME: method should be declared as noexcept.
 		//! Hook for the cooperation deregistration event.
 		/*!
 		 * Method will be called right after full cooperation deregistration.
+		 *
+		 * \note
+		 * Since v.5.6.0 this method is noexcept!
 		 */
 		virtual void
 		on_deregistered(
@@ -69,7 +73,7 @@ class SO_5_TYPE coop_listener_t
 			//! Cooperation which was registered.
 			const coop_handle_t & coop,
 			//! Reason of deregistration.
-			const coop_dereg_reason_t & reason ) = 0;
+			const coop_dereg_reason_t & reason ) noexcept = 0;
 };
 
 //! Typedef for the coop_listener autopointer.
