@@ -56,9 +56,6 @@ struct incident_info_t final
 		//! ID of mbox from that message/signal was received.
 		mbox_id_t m_src_mbox_id;
 
-// Note. These constructors are necessary because VC++12 doesn't
-// support initializators for structures in curly braces.
-		incident_info_t() = default;
 		incident_info_t(
 			const agent_t * agent,
 			const std::type_index & msg_type,
@@ -1186,7 +1183,7 @@ class scenario_result_t
 							case scenario_status_t::timed_out :
 								result = "timed_out";
 							break;
-							};
+							}
 						return result;
 					};
 

@@ -84,8 +84,8 @@ UT_UNIT_TEST( prepared_params )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( env_params_tuner );
-	UT_RUN_UNIT_TEST( prepared_params );
+	UT_RUN_UNIT_TEST( env_params_tuner )
+	UT_RUN_UNIT_TEST( prepared_params )
 
 	return 0;
 }

@@ -234,15 +234,15 @@ UT_UNIT_TEST( not_before_not_after_3 )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( not_before_1 );
-	UT_RUN_UNIT_TEST( not_before_2 );
+	UT_RUN_UNIT_TEST( not_before_1 )
+	UT_RUN_UNIT_TEST( not_before_2 )
 
-	UT_RUN_UNIT_TEST( not_after_1 );
-	UT_RUN_UNIT_TEST( not_after_2 );
+	UT_RUN_UNIT_TEST( not_after_1 )
+	UT_RUN_UNIT_TEST( not_after_2 )
 
-	UT_RUN_UNIT_TEST( not_before_not_after_1 );
-	UT_RUN_UNIT_TEST( not_before_not_after_2 );
-	UT_RUN_UNIT_TEST( not_before_not_after_3 );
+	UT_RUN_UNIT_TEST( not_before_not_after_1 )
+	UT_RUN_UNIT_TEST( not_before_not_after_2 )
+	UT_RUN_UNIT_TEST( not_before_not_after_3 )
 
 	return 0;
 }

@@ -97,19 +97,19 @@ test_agent_t::so_evt_start()
 			&test_agent_t::evt_handler3 );
 
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).event(
-			&test_agent_t::evt_handler1 ) );
+			&test_agent_t::evt_handler1 ) )
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).event(
-			&test_agent_t::evt_handler3 ) );
+			&test_agent_t::evt_handler3 ) )
 
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).in( m_state_a ).event(
-			&test_agent_t::evt_handler1 ) );
+			&test_agent_t::evt_handler1 ) )
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).in( m_state_a ).event(
-			&test_agent_t::evt_handler3 ) );
+			&test_agent_t::evt_handler3 ) )
 
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).in( m_state_b ).event(
-			&test_agent_t::evt_handler1 ) );
+			&test_agent_t::evt_handler1 ) )
 	ENSURE_EXCEPTION( so_subscribe( m_mbox ).in( m_state_b ).event(
-			&test_agent_t::evt_handler3 ) );
+			&test_agent_t::evt_handler3 ) )
 
 	so_5::send< msg_test >( m_mbox );
 	so_5::send< msg_stop >( m_mbox );

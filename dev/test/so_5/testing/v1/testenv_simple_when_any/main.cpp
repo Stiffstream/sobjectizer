@@ -135,9 +135,9 @@ UT_UNIT_TEST( send_dummy )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( send_hello_1 );
-	UT_RUN_UNIT_TEST( send_hello_2 );
-	UT_RUN_UNIT_TEST( send_dummy );
+	UT_RUN_UNIT_TEST( send_hello_1 )
+	UT_RUN_UNIT_TEST( send_hello_2 )
+	UT_RUN_UNIT_TEST( send_dummy )
 
 	return 0;
 }

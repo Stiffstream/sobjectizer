@@ -229,11 +229,11 @@ UT_UNIT_TEST( check_many_layers )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( check_all_exist );
-	UT_RUN_UNIT_TEST( check_1_2_exist );
-	UT_RUN_UNIT_TEST( check_1_3_exist );
-	UT_RUN_UNIT_TEST( check_2_3_exist );
-	UT_RUN_UNIT_TEST( check_many_layers );
+	UT_RUN_UNIT_TEST( check_all_exist )
+	UT_RUN_UNIT_TEST( check_1_2_exist )
+	UT_RUN_UNIT_TEST( check_1_3_exist )
+	UT_RUN_UNIT_TEST( check_2_3_exist )
+	UT_RUN_UNIT_TEST( check_many_layers )
 
 	return 0;
 }
