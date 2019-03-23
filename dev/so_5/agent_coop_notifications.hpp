@@ -80,7 +80,6 @@ struct SO_5_TYPE msg_coop_deregistered : public message_t
 //
 // make_coop_reg_notificator
 //
-//FIXME: documentation should be extended with notion of noexcept!
 /*!
  * \since
  * v.5.2.3

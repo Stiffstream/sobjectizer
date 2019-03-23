@@ -98,7 +98,6 @@ class coop_dereg_reason_t
 //
 // coop_reg_notificator_t
 //
-//FIXME: coop notificator should be a noexcept function.
 /*!
  * \since
  * v.5.2.3
@@ -165,7 +164,6 @@ using coop_reg_notificators_container_ref_t =
 //
 // coop_dereg_notificator_t
 //
-//FIXME: coop notificator should be a noexcept function.
 /*!
  * \since
  * v.5.2.3
@@ -509,12 +507,17 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \name Method for working with notificators.
 		 * \{
 		 */
-//FIXME: documentation should be extended with notion of noexcept!
 		/*!
 		 * \since
 		 * v.5.2.3
 		 *
 		 * \brief Add notificator about cooperation registration event.
+		 *
+		 * \attention
+		 * Since v.5.6.0 reg_notificator should be a noexcept function or
+		 * functor. Because of that a check in performed during compile time.  An
+		 * attempt to pass non-noexcept function or functor to
+		 * add_reg_notificator will lead to compilation error.
 		 */
 		template< typename Lambda >
 		void
@@ -535,12 +538,17 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 						} );
 			}
 
-//FIXME: documentation should be extended with notion of noexcept!
 		/*!
 		 * \since
 		 * v.5.2.3
 		 *
 		 * \brief Add notificator about cooperation deregistration event.
+		 *
+		 * \attention
+		 * Since v.5.6.0 dereg_notificator should be a noexcept function or
+		 * functor. Because of that a check in performed during compile time. An
+		 * attempt to pass non-noexcept function or functor to
+		 * add_dereg_notificator will lead to compilation error.
 		 */
 		template< typename Lambda >
 		void
@@ -854,7 +862,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			 * Reference count for cooperation in that state should
 			 * be zero.
 			 */
-			coop_deregistering
+			coop_deregistering,
+			//! Deregistration of the coop is in the final stage.
+			deregistration_in_final_stage
 		};
 
 		/*!

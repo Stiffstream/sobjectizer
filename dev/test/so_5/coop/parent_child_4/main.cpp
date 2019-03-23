@@ -166,7 +166,13 @@ int
 main()
 {
 	run_with_time_limit( [] {
-			so_5::launch( &init );
+			for( int i = 0; i < 500; ++i )
+			{
+				std::cout << i << "\r" << std::flush;
+				so_5::launch( &init );
+			}
+
+			std::cout << "Done" << std::endl;
 		},
 		10 );
 

@@ -169,8 +169,31 @@ coop_impl_t::do_decrement_reference_count(
 				// registration process even if registration of cooperation failed.
 				// So decrement_usage_count() could be called when cooperation
 				// has coop_not_registered status.
-				if( coop_t::registration_status_t::coop_not_registered !=
-						coop.m_registration_status )
+				//
+				// It is possible that reference counter become 0 several times.
+				// For example when a child coop is being registered while
+				// the parent coop is in deregistration process.
+				// Because of that it is necessary to check the current status
+				// of the coop.
+				// 
+				// If the coop should be deregistered finally its status should
+				// be changed to deregistration_in_final_stage.
+				const auto should_finalize = [&] {
+					std::lock_guard lock{ coop.m_lock };
+
+					using status_t = coop_t::registration_status_t;
+					if( status_t::coop_registered == coop.m_registration_status ||
+						status_t::coop_deregistering == coop.m_registration_status )
+						{
+							coop.m_registration_status =
+									status_t::deregistration_in_final_stage;
+							return true;
+						}
+					else
+						return false;
+				};
+
+				if( should_finalize() )
 					{
 //FIXME: this call should be noexcept.
 //It is required a refactoring of final deregistration procedure
@@ -474,24 +497,35 @@ coop_impl_t::do_add_child(
 		// Count of users on this coop is incremented.
 		parent.increment_usage_count();
 
-		// Modification of parent-child relationship must be performed
-		// on locked object.
-		std::lock_guard lock{ parent.m_lock };
+		// If an exception is throw below then usage count for the parent
+		// coop should be decremented.
+		so_5::details::do_with_rollback_on_exception( [&] {
+				// Modification of parent-child relationship must be performed
+				// on locked object.
+				std::lock_guard lock{ parent.m_lock };
 
-		// A new coop can't be added as a child if coop is being deregistered.
-		if( coop_t::registration_status_t::coop_registered !=
-				parent.m_registration_status )
-			SO_5_THROW_EXCEPTION(
-					rc_coop_is_not_in_registered_state,
-					"add_child() can be processed only when coop is registered" );
+				// A new coop can't be added as a child if coop is being
+				// deregistered.
+				if( coop_t::registration_status_t::coop_registered !=
+						parent.m_registration_status )
+					SO_5_THROW_EXCEPTION(
+							rc_coop_is_not_in_registered_state,
+							"add_child() can be processed only when coop "
+							"is registered" );
 
-		// New child will be inserted to the head of children list.
-		if( parent.m_first_child )
-			parent.m_first_child->m_prev_sibling = child;
+				// New child will be inserted to the head of children list.
+				if( parent.m_first_child )
+					parent.m_first_child->m_prev_sibling = child;
 
-		child->m_next_sibling = std::move(parent.m_first_child);
+				child->m_next_sibling = std::move(parent.m_first_child);
 
-		parent.m_first_child = std::move(child);
+				parent.m_first_child = std::move(child);
+			},
+			[&parent] {
+				// Something went wrong. Count of references should be
+				// returned back.
+				parent.decrement_usage_count();
+			} );
 	}
 
 void
