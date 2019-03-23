@@ -214,15 +214,15 @@ class test_coop_listener_t
 std::string
 sequence_to_string( const std::vector< so_5::coop_id_t > & s )
 {
-	std::string r;
+	std::ostringstream ss;
 	for( auto i = s.begin(); i != s.end(); ++i )
 	{
 		if( i != s.begin() )
-			r += ", ";
-		r += *i;
+			ss << ", ";
+		ss << *i;
 	}
 
-	return r;
+	return ss.str();
 }
 
 class test_env_t

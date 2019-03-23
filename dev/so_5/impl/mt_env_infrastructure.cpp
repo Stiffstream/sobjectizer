@@ -60,7 +60,7 @@ coop_repo_t::start()
 	m_final_dereg_thread = std::thread{ [this] {
 		// Process dereg demands until chain will be closed.
 		receive( from( m_final_dereg_chain ),
-			[this]( mutable_mhood_t<msg_final_coop_dereg> cmd ) {
+			[]( mutable_mhood_t<msg_final_coop_dereg> cmd ) {
 				// NOTE: we should call final_deregister_coop from
 				// environment because only this call handles autoshutdown flag.
 				auto & env = cmd->m_coop->environment();

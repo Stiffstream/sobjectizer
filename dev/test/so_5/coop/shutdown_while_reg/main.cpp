@@ -30,7 +30,7 @@ public :
 		,	m_check_context{ check_context }
 	{}
 
-	virtual ~small_actor_t()
+	virtual ~small_actor_t() override
 	{
 		ensure_or_die( m_evt_start_completed,
 				"!m_evt_start_completed" );

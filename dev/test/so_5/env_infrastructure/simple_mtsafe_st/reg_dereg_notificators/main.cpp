@@ -61,7 +61,7 @@ class manager_t final
 
 				env.introduce_coop( [this]( so_5::coop_t & coop ) {
 						coop.add_reg_notificator(
-							[this]( so_5::environment_t & env,
+							[this]( so_5::environment_t & environment,
 								const so_5::coop_handle_t & handle ) noexcept
 							{
 								ensure_or_die( m_state == state_t::wait_first_reg_notify,
@@ -69,7 +69,7 @@ class manager_t final
 
 								++m_agents_created;
 
-								env.deregister_coop( handle,
+								environment.deregister_coop( handle,
 										so_5::dereg_reason::normal );
 
 								m_state = state_t::wait_second_reg_notify;
@@ -86,7 +86,7 @@ class manager_t final
 							} );
 
 						coop.add_dereg_notificator(
-							[this]( so_5::environment_t & env,
+							[this]( so_5::environment_t & environment,
 								const so_5::coop_handle_t & /*handle*/,
 								const so_5::coop_dereg_reason_t & /*reason*/ ) noexcept
 							{
@@ -99,10 +99,10 @@ class manager_t final
 								{
 									std::cout << m_agents_created << "\r" << std::flush;
 
-									next_turn( env );
+									next_turn( environment );
 								}
 								else
-									env.stop();
+									environment.stop();
 							} );
 
 						coop.make_agent< actor_t >();

@@ -187,7 +187,7 @@ class a_root_t final : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			for( unsigned int i = 0; i != m_level_size; ++i )
 				create_and_register_agent(
