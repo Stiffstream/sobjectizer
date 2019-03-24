@@ -138,8 +138,10 @@ class a_driver_t : public so_5::agent_t
 			catch( const so_5::exception_t & x )
 			{
 				ensure_or_die(
-						x.error_code() == so_5::rc_coop_is_not_in_registered_state,
-						"rc_coop_is_not_in_registered_state is expected, got: " +
+						x.error_code() == so_5::rc_coop_is_not_in_registered_state ||
+						x.error_code() == so_5::rc_coop_already_destroyed,
+						"rc_coop_is_not_in_registered_state or "
+						"rc_coop_already_destroyed is expected, got: " +
 						std::to_string(x.error_code()) );
 			}
 

@@ -1725,6 +1725,7 @@ environment_t::introduce_coop( Args &&... args )
 	\endcode
  */
 template< typename... Args >
+SO_5_NODISCARD
 coop_unique_holder_t
 create_child_coop(
 	//! Owner of the cooperation.
@@ -1764,6 +1765,7 @@ create_child_coop(
 	\endcode
  */
 template< typename... Args >
+SO_5_NODISCARD
 coop_unique_holder_t
 create_child_coop(
 	//! Parent cooperation.

@@ -432,6 +432,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \since
 		 * v.5.6.0
 		 */
+		SO_5_NODISCARD
 		coop_handle_t
 		handle() noexcept
 			{
@@ -444,6 +445,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \since
 		 * v.5.6.0
 		 */
+		SO_5_NODISCARD
 		coop_id_t
 		id() const noexcept { return m_id; }
 
@@ -453,6 +455,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \brief Access to SO Environment for which cooperation is bound.
 		 */
+		SO_5_NODISCARD
 		environment_t &
 		environment() const noexcept
 			{
