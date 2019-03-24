@@ -221,7 +221,9 @@ coop_repository_basis_t::final_deregister_coop(
 				std::lock_guard lock{ m_lock };
 
 				return final_deregistration_result_t{
-						0u != m_total_coops,
+						// Coops those are in registration phase should also
+						// be counted as live.
+						0u != m_total_coops || 0 != m_registrations_in_progress,
 						status_t::shutdown == m_status && 0u == m_total_coops
 				};
 			}();
