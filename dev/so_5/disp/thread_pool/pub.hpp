@@ -99,7 +99,7 @@ class disp_params_t
 		 * queue parameters.
 			\code
 			using namespace so_5::disp::thread_pool;
-			create_private_disp( env,
+			auto disp = make_dispatcher( env,
 				"workers_disp",
 				disp_params_t{}
 					.thread_count( 10 )
@@ -409,7 +409,7 @@ auto disp = make_dispatcher(
 		.tune_queue_params( []( queue_traits::queue_params_t & params ) {
 				params.lock_factory( queue_traits::simple_lock_factory() );
 			} ) );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of thread_pool dispatcher.
 	disp.binder() );
@@ -440,7 +440,7 @@ auto disp = so_5::disp::thread_pool::make_dispatcher(
 	env,
 	"db_workers_pool",
 	16 );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of thread_pool dispatcher.
 	disp.binder() );
@@ -472,7 +472,7 @@ make_dispatcher(
 \code
 auto disp = so_5::disp::thread_pool::make_dispatcher( env, 16 );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of thread_pool dispatcher.
 	disp.binder() );
@@ -505,7 +505,7 @@ make_dispatcher(
 \code
 auto disp = so_5::disp::thread_pool::make_instance( env );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of thread_pool dispatcher.
 	disp.binder() );

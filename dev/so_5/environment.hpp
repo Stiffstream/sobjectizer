@@ -1251,7 +1251,7 @@ class SO_5_TYPE environment_t
 			// For the case when name is automatically generated and
 			// dispatcher binder is specified.
 			env.introduce_coop(
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
@@ -1261,7 +1261,7 @@ class SO_5_TYPE environment_t
 			// dispatcher binder is specified.
 			env.introduce_coop(
 				"main-coop",
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
+				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
@@ -1729,7 +1729,7 @@ coop_unique_holder_t
 create_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
-	//! Arguments for the environment_t::create_coop() method.
+	//! Arguments for the environment_t::make_coop() method.
 	Args&&... args )
 {
 	auto coop = owner.so_environment().make_coop(
@@ -1768,7 +1768,7 @@ coop_unique_holder_t
 create_child_coop(
 	//! Parent cooperation.
 	coop_handle_t parent,
-	//! Arguments for the environment_t::create_coop() method.
+	//! Arguments for the environment_t::make_coop() method.
 	Args&&... args )
 {
 	return low_level_api::to_shptr(parent)->environment().make_coop(

@@ -756,7 +756,7 @@ class SO_5_TYPE agent_t
 		 };
 
 		 // Then somewhere in the code:
-		 auto coop = env.create_coop( so_5::autoname );
+		 auto coop = env.make_coop();
 		 auto a = coop->make_agent< my_agent >();
 		 auto b = coop->make_agent< my_more_specific_agent >();
 		 * \endcode
@@ -2050,8 +2050,7 @@ class SO_5_TYPE agent_t
 			\code
 			void a_sample_t::evt_on_smth( mhood_t< some_message_t > msg )
 			{
-				so_5::coop_unique_holder_t coop =
-					so_environment().create_coop( "first_coop" );
+				so_5::coop_unique_holder_t coop = so_environment().make_coop();
 
 				// Filling the cooperation...
 				coop->make_agent< a_another_t >( ... );

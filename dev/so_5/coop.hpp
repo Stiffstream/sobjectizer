@@ -662,7 +662,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::coop_unique_holder_t coop = env.create_coop( so_5::autoname );
+		 auto coop = env.make_coop();
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).

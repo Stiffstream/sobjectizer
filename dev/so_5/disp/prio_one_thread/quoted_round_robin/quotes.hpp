@@ -39,13 +39,13 @@ namespace quoted_round_robin {
 	quotes.set( so_5::prio::p6, 250 ); // New quote for p6.
 		// All other quotes will be 150.
 	...
-	create_private_disp( env, quotes );
+	auto disp = make_dispatcher( env, quotes );
 	\endcode
 
 	Another example:
 	\code
 	using namespace so_5::disp::prio_one_thread::quoted_round_robin;
-	create_private_disp( env,
+	auto disp = make_dispatcher( env,
 		quotes_t{ 150 } // Default value for all priorites.
 			.set( so_5::prio::p7, 350 ) // New quote for p7.
 			.set( so_5::prio::p6, 250 ) // New quote for p6

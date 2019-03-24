@@ -310,7 +310,7 @@ class queue_params_t
 			using namespace so_5::disp::thread_pool;
 
 			environment_t & env = ...;
-			auto disp = create_private_disp(
+			auto disp = make_dispatcher(
 				env,
 				"my-thread-pool",
 				disp_params_t{}
