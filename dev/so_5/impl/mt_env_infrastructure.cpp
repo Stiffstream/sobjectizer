@@ -325,7 +325,7 @@ mt_env_infrastructure_t::run_user_supplied_init_and_wait_for_stop(
 		so_5::details::do_with_rollback_on_exception(
 			[this, &init_fn]
 			{
-				init_fn();
+				so_5::impl::wrap_init_fn_call( std::move(init_fn) );
 				m_coop_repo.wait_for_start_deregistration();
 			},
 			[this]

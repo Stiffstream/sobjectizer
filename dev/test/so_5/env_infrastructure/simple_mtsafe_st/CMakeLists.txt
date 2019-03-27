@@ -1,6 +1,7 @@
 project(tests)
 
 add_subdirectory(empty_init_fn)
+add_subdirectory(unknown_exception_init_fn)
 add_subdirectory(stop_in_init_fn)
 add_subdirectory(simple_agent)
 add_subdirectory(create_default_disp_binder)
