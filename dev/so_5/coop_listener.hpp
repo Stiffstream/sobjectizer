@@ -48,26 +48,32 @@ class SO_5_TYPE coop_listener_t
 		/*!
 		 * Method will be called right after the successful 
 		 * cooperation registration.
+		 *
+		 * \note
+		 * Since v.5.6.0 this method is noexcept!
 		 */
 		virtual void
 		on_registered(
 			//! SObjectizer Environment.
 			environment_t & so_env,
 			//! Cooperation which was registered.
-			const std::string & coop_name ) = 0;
+			const coop_handle_t & coop ) noexcept = 0;
 
 		//! Hook for the cooperation deregistration event.
 		/*!
 		 * Method will be called right after full cooperation deregistration.
+		 *
+		 * \note
+		 * Since v.5.6.0 this method is noexcept!
 		 */
 		virtual void
 		on_deregistered(
 			//! SObjectizer Environment.
 			environment_t & so_env,
 			//! Cooperation which was registered.
-			const std::string & coop_name,
+			const coop_handle_t & coop,
 			//! Reason of deregistration.
-			const coop_dereg_reason_t & reason ) = 0;
+			const coop_dereg_reason_t & reason ) noexcept = 0;
 };
 
 //! Typedef for the coop_listener autopointer.

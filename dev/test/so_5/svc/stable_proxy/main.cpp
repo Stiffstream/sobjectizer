@@ -190,8 +190,7 @@ init(
 	{
 		test_mbox_t::test_passed = false;
 
-		auto coop = env.create_coop(
-				"test_coop",
+		auto coop = env.make_coop(
 				so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 		coop->make_agent< a_client_t >();

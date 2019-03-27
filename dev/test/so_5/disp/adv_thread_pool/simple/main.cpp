@@ -66,7 +66,6 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 									.lock_factory( factory ) ) );
 
 					env.register_agent_as_coop(
-							"test",
 							env.make_agent< a_test_t >(),
 							disp.binder() );
 				} );

@@ -49,7 +49,7 @@ make_coop( so_5::environment_t & env, Dispatcher_Handle disp )
 	};
 
 	env.introduce_coop( disp.binder(),
-		[]( so_5::coop_t & coop ) {
+		[&]( so_5::coop_t & coop ) {
 			auto a1 = coop.make_agent<actor_t>();
 			auto a2 = coop.make_agent<actor_t>();
 			auto a3 = coop.make_agent<actor_t>();

@@ -160,7 +160,7 @@ init( so_5::environment_t & env )
 			max_demands_at_once( 1 );
 
 	for( unsigned int i = 0; i != 1000u; ++i )
-		env.register_agent_as_coop( so_5::autoname,
+		env.register_agent_as_coop(
 				env.make_agent< a_test_t >(),
 				disp.binder( params ) );
 }

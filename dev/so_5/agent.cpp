@@ -9,6 +9,7 @@
 #include <so_5/send_functions.hpp>
 
 #include <so_5/impl/internal_env_iface.hpp>
+#include <so_5/impl/coop_private_iface.hpp>
 
 #include <so_5/impl/state_listener_controller.hpp>
 #include <so_5/impl/subscription_storage_iface.hpp>
@@ -545,17 +546,6 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 	return e != std::find( begin(path), e, &state_to_check );
 }
 
-const std::string &
-agent_t::so_coop_name() const
-{
-	if( nullptr == m_agent_coop )
-		throw exception_t(
-			"agent isn't bound to cooperation yet",
-			rc_agent_has_no_cooperation );
-
-	return m_agent_coop->query_coop_name();
-}
-
 void
 agent_t::so_add_nondestroyable_listener(
 	agent_state_listener_t & state_listener )
@@ -692,6 +682,19 @@ agent_t::so_environment() const
 	return m_env;
 }
 
+SO_5_NODISCARD
+coop_handle_t
+agent_t::so_coop() const
+{
+	if( !m_agent_coop )
+		SO_5_THROW_EXCEPTION(
+				rc_agent_has_no_cooperation,
+				"agent_t::so_coop() can be completed because agent is not bound "
+				"to any cooperation" );
+
+	return m_agent_coop->handle();
+}
+
 void
 agent_t::so_bind_to_dispatcher(
 	event_queue_t & queue ) noexcept
@@ -705,7 +708,7 @@ agent_t::so_bind_to_dispatcher(
 
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
-	coop_t::so_increment_usage_count( *m_agent_coop );
+	impl::coop_private_iface_t::increment_usage_count( *m_agent_coop );
 
 	// A starting demand must be sent first.
 	actual_queue->push(
@@ -821,7 +824,7 @@ void
 agent_t::so_deregister_agent_coop( int dereg_reason )
 {
 	so_environment().deregister_coop(
-			so_coop_name(), dereg_reason );
+			m_agent_coop->handle(), dereg_reason );
 }
 
 void
@@ -1122,7 +1125,7 @@ agent_t::ensure_binding_finished()
 	// Nothing more to do.
 	// Just lock coop's binding_lock. If cooperation is not finished yet
 	// it would stop the current thread.
-	std::lock_guard< std::mutex > binding_lock{ m_agent_coop->m_binding_lock };
+	std::lock_guard< std::mutex > binding_lock{ m_agent_coop->m_lock };
 }
 
 demand_handler_pfn_t
@@ -1158,7 +1161,8 @@ agent_t::demand_handler_on_finish(
 	}
 
 	// Cooperation should receive notification about agent deregistration.
-	coop_t::so_decrement_usage_count( *(d.m_receiver->m_agent_coop) );
+	impl::coop_private_iface_t::decrement_usage_count(
+			*(d.m_receiver->m_agent_coop) );
 }
 
 demand_handler_pfn_t

@@ -78,7 +78,7 @@ class disp_params_t
 		 * Accepts lambda-function or functional object which tunes
 		 * queue parameters.
 			\code
-			so_5::disp::one_thread::create_private_disp( env,
+			so_5::disp::one_thread::make_dispatcher( env,
 				"my_one_thread_disp",
 				so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
 					[]( so_5::disp::one_thread::queue_traits::queue_params_t & p ) {

@@ -45,15 +45,9 @@ static const char s[] = val;\
 return suffix_t{ s };
 
 SO_5_FUNC suffix_t
-coop_reg_count()
+coop_count()
 	{
-		IMPL_SUFFIX( "/coop.reg.count" )
-	}
-
-SO_5_FUNC suffix_t
-coop_dereg_count()
-	{
-		IMPL_SUFFIX( "/coop.dereg.count" )
+		IMPL_SUFFIX( "/coop.count" )
 	}
 
 SO_5_FUNC suffix_t

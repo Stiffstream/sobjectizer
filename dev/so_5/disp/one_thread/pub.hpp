@@ -98,7 +98,7 @@ auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
 		[]( so_5::disp::one_thread::queue_traits::queue_params_t & p ) {
 			p.lock_factory( so_5::disp::one_thread::queue_traits::simple_lock_factory();
 		} ) );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of one_thread dispatcher.
 	one_thread_disp.binder() );
@@ -125,7 +125,7 @@ make_dispatcher(
 auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
 	env,
 	"file_handler" );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of one_thread dispatcher.
 	one_thread_disp.binder() );
@@ -152,7 +152,7 @@ make_dispatcher(
 \code
 auto one_thread_disp = so_5::disp::one_thread::make_dispatcher( env );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of one_thread dispatcher.
 	one_thread_disp.binder() );

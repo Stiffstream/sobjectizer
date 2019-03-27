@@ -110,7 +110,6 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 					using namespace atp_disp;
 
 					env.register_agent_as_coop(
-							"test",
 							env.make_agent< a_test_t >(),
 							make_dispatcher(
 									env,

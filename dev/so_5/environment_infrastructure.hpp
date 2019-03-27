@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/agent_coop.hpp>
+#include <so_5/coop.hpp>
 
 #include <so_5/stats/controller.hpp>
 #include <so_5/stats/repository.hpp>
@@ -105,20 +105,17 @@ class SO_5_TYPE environment_infrastructure_t
 		 *
 		 * \brief Statistical data for run-time monitoring of coop repository
 		 * content.
+		 *
+		 * \note
+		 * Since v.5.6.0 there is only total count of coops without
+		 * separation to registered and deregistered coops count.
 		 */
 		struct coop_repository_stats_t
 			{
-				//! Count of registered cooperations.
-				std::size_t m_registered_coop_count;
-				//! Count of cooperations in the deregistration state.
-				std::size_t m_deregistered_coop_count;
+				//! Count of cooperations inside the environment.
+				std::size_t m_total_coop_count;
 
 				//! Count of registered agents.
-				/*!
-				 * This quantity includes quantity of agents in registered
-				 * cooperations as well as quantity of agents in cooperations
-				 * in the deregistration state.
-				 */
 				std::size_t m_total_agent_count;
 
 				/*!
@@ -150,26 +147,32 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual void
 		stop() = 0;
 
+		//! Create an instance of a new coop.
+		/*!
+		 * \since
+		 * v.5.6.0
+		 */
+		SO_5_NODISCARD
+		virtual coop_unique_holder_t
+		make_coop(
+			//! Optinal parent coop.
+			coop_handle_t parent,
+			//! Default binder for that coop.
+			disp_binder_shptr_t default_binder ) = 0;
+
 		//! Register new cooperation.
-		virtual void
+		SO_5_NODISCARD
+		virtual coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.
-			coop_unique_ptr_t coop ) = 0;
-
-		//! Deregister cooperation.
-		virtual void
-		deregister_coop(
-			//! Cooperation name which being deregistered.
-			nonempty_name_t name,
-			//! Deregistration reason.
-			coop_dereg_reason_t dereg_reason ) = 0;
+			coop_unique_holder_t coop ) = 0;
 
 		//! Notification about cooperation for which the final dereg step
 		//! can be performed.
 		virtual void
 		ready_to_deregister_notify(
 			//! A cooperation which can be finaly deregistered.
-			coop_t * coop ) = 0;
+			coop_shptr_t coop ) = 0;
 
 		//! Do final actions of the cooperation deregistration.
 		/*!
@@ -178,13 +181,8 @@ class SO_5_TYPE environment_infrastructure_t
 		 */
 		virtual bool
 		final_deregister_coop(
-			//! Cooperation name to be deregistered.
-			/*!
-			 * \note
-			 * Cooperation name must be passed by value because
-			 * reference can become invalid during work of this method.
-			 */
-			std::string coop_name ) = 0;
+			//! Cooperation to be deregistered.
+			coop_shptr_t coop ) = 0;
 
 		//! Initiate a timer (delayed or periodic message).
 		virtual so_5::timer_id_t

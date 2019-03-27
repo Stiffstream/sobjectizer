@@ -115,40 +115,6 @@ public :
 					define_agent( coop );
 					return g_test_object;
 				} ) );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				so_5::autoname,
-				[]( coop_t & coop ) -> test_object_t & {
-					define_agent( coop );
-					return g_test_object;
-				} ) );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				so_5::autoname,
-				so_5::disp::active_obj::make_dispatcher( env ).binder(),
-				[]( coop_t & coop ) -> test_object_t & {
-					define_agent( coop );
-					return g_test_object;
-				} ) );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				"child-test-1",
-				[]( coop_t & coop ) -> test_object_t & {
-					define_agent( coop );
-					return g_test_object;
-				} ) );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				"child-test-2",
-				so_5::disp::one_thread::make_dispatcher( env ).binder(),
-				[]( coop_t & coop ) -> test_object_t & {
-					define_agent( coop );
-					return g_test_object;
-				} ) );
 	}
 };
 
@@ -157,8 +123,8 @@ init( so_5::environment_t & env )
 {
 	using namespace so_5;
 
-	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12u ) );
-	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
+	env.register_agent_as_coop( env.make_agent< a_manager_t >( 4u ) );
+	env.register_agent_as_coop( env.make_agent< a_child_owner_t >() );
 
 	ensure_valid_value(
 		env.introduce_coop(
@@ -171,39 +137,6 @@ init( so_5::environment_t & env )
 	ensure_valid_value(
 		env.introduce_coop(
 			so_5::disp::active_obj::make_dispatcher( env ).binder(),
-			[]( coop_t & coop ) -> test_object_t & {
-				define_agent( coop );
-				return g_test_object;
-			} ) );
-
-	ensure_valid_value(
-		env.introduce_coop(
-			so_5::autoname,
-			[]( coop_t & coop ) -> test_object_t & {
-				define_agent( coop );
-				return g_test_object;
-			} ) );
-
-	ensure_valid_value(
-		env.introduce_coop(
-			so_5::autoname,
-			so_5::disp::active_obj::make_dispatcher( env ).binder(),
-			[]( coop_t & coop ) -> test_object_t & {
-				define_agent( coop );
-				return g_test_object;
-			} ) );
-
-	ensure_valid_value(
-		env.introduce_coop(
-			"test-1",
-			[]( coop_t & coop ) -> test_object_t & {
-				define_agent( coop );
-				return g_test_object;
-			} ) );
-
-	ensure_valid_value(
-		env.introduce_coop( "test-2",
-			so_5::disp::one_thread::make_dispatcher( env ).binder(),
 			[]( coop_t & coop ) -> test_object_t & {
 				define_agent( coop );
 				return g_test_object;

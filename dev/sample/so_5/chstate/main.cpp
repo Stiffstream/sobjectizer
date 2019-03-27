@@ -192,7 +192,7 @@ void init( so_5::environment_t & env )
 			new state_monitor_t( "destroyable_listener" ) ) );
 
 	// Creating and registering a cooperation.
-	env.register_agent_as_coop( "coop", std::move(ag) );
+	env.register_agent_as_coop( std::move(ag) );
 }
 
 int main()

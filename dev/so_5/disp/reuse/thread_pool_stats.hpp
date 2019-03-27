@@ -105,15 +105,13 @@ using queue_description_holder_ref_t =
 inline queue_description_holder_ref_t
 make_queue_desc_holder(
 	const stats::prefix_t & prefix,
-	const std::string & coop_name,
+	coop_id_t coop_id,
 	std::size_t agent_count )
 	{
 		queue_description_holder_ref_t result( new queue_description_holder_t() );
 
 		std::ostringstream ss;
-		ss << prefix.c_str() << "/cq/"
-				<< so_5::disp::reuse::ios_helpers::length_limited_string{
-						coop_name, 16 };
+		ss << prefix.c_str() << "/cq/" << coop_id;
 
 		result->m_desc.m_prefix = stats::prefix_t{ ss.str() };
 		result->m_desc.m_agent_count = agent_count;

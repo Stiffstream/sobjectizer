@@ -80,7 +80,7 @@ main()
 		so_5::launch(
 			[&sequence]( so_5::environment_t & env )
 			{
-				auto coop = env.create_coop( "test",
+				auto coop = env.make_coop(
 					so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
 				auto a_test = coop->make_agent< a_test_t >( std::ref(sequence) );

@@ -13,6 +13,7 @@
 #include <so_5/fwd.hpp>
 
 #include <memory>
+#include <atomic>
 
 namespace so_5
 {

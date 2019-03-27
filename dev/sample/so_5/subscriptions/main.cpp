@@ -170,8 +170,7 @@ int main()
 		so_5::launch(
 			[]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( so_5::autoname,
-						env.make_agent< my_agent_t >() );
+				env.register_agent_as_coop( env.make_agent< my_agent_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

@@ -14,6 +14,7 @@ struct msg_child_started : public so_5::signal_t {};
 
 void
 create_and_register_agent(
+	const so_5::coop_handle_t & parent,
 	so_5::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
@@ -58,6 +59,7 @@ class a_test_t : public so_5::agent_t
 			{
 				for( int i = 0; i != m_max_children; ++i )
 					create_and_register_agent(
+							so_coop(),
 							so_environment(),
 							m_self_name,
 							i,
@@ -79,9 +81,7 @@ class a_test_t : public so_5::agent_t
 				if( m_level )
 					notify_parent();
 				else
-					so_environment().deregister_coop(
-							so_coop_name(),
-							so_5::dereg_reason::normal );
+					so_deregister_agent_coop_normally();
 			}
 		}
 
@@ -122,6 +122,7 @@ create_coop_name(
 
 void
 create_and_register_agent(
+	const so_5::coop_handle_t & parent,
 	so_5::environment_t & env,
 	const std::string & parent_coop_name,
 	int ordinal,
@@ -129,13 +130,10 @@ create_and_register_agent(
 	int level,
 	int max_deep )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop(
-			create_coop_name( parent_coop_name, level, ordinal ) );
-	if( level )
-		coop->set_parent_coop_name( parent_coop_name );
+	auto coop = env.make_coop( parent );
 
 	coop->make_agent< a_test_t >(
-			coop->query_coop_name(),
+			create_coop_name( parent_coop_name, level, ordinal ),
 			parent_coop_name,
 			max_children,
 			level,
@@ -148,38 +146,38 @@ class test_coop_listener_t
 	:	public so_5::coop_listener_t
 {
 	public :
-		test_coop_listener_t( std::set< std::string > & names )
-			:	m_names( names )
+		test_coop_listener_t( std::set< so_5::coop_id_t > & ids )
+			:	m_ids( ids )
 		{}
 
-		virtual void
+		void
 		on_registered(
 			so_5::environment_t &,
-			const std::string & coop_name ) override
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
 
-			m_names.insert( coop_name );
+			m_ids.insert( coop.id() );
 		}
 
-		virtual void
+		void
 		on_deregistered(
 			so_5::environment_t & env,
-			const std::string & coop_name,
-			const so_5::coop_dereg_reason_t &) override
+			const so_5::coop_handle_t & coop,
+			const so_5::coop_dereg_reason_t &) noexcept override
 		{
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
-				m_names.erase( coop_name );
+				m_ids.erase( coop.id() );
 			}
 
-			if( "a_0_0" == coop_name )
+			if( 2u == coop.id() )
 				env.stop();
 		}
 
 		static so_5::coop_listener_unique_ptr_t
-		make( std::set< std::string > & names )
+		make( std::set< so_5::coop_id_t > & names )
 		{
 			return so_5::coop_listener_unique_ptr_t(
 					new test_coop_listener_t( names ) );
@@ -187,7 +185,7 @@ class test_coop_listener_t
 
 	private :
 		std::mutex m_lock;
-		std::set< std::string > & m_names;
+		std::set< so_5::coop_id_t > & m_ids;
 };
 
 int
@@ -195,30 +193,31 @@ main()
 {
 	try
 	{
-		std::set< std::string > names;
+		std::set< so_5::coop_id_t > ids;
 
 		run_with_time_limit( [&] {
 			so_5::launch(
 				[&]( so_5::environment_t & env )
 				{
-					create_and_register_agent( env, "", 0, 4, 0, 8 );
+					create_and_register_agent(
+							so_5::coop_handle_t{}, env, "", 0, 4, 0, 8 );
 				},
 				[&]( so_5::environment_params_t & params )
 				{
-					params.coop_listener( test_coop_listener_t::make( names ) );
+					params.disable_autoshutdown();
+					params.coop_listener( test_coop_listener_t::make( ids ) );
 				} );
 			},
-			240,
-			"parent_child_2 test" );
+			240 );
 
-		if( !names.empty() )
+		if( !ids.empty() )
 		{
-			for( const auto & n : names )
+			for( const auto & n : ids )
 				std::cout << "unregistered coop: '" << n << "'" << std::endl;
 
 			throw std::runtime_error(
 					"There are some not deregistered cooperations (" +
-					std::to_string( names.size() ) + ")" );
+					std::to_string( ids.size() ) + ")" );
 		}
 	}
 	catch( const std::exception & ex )
@@ -229,3 +228,4 @@ main()
 
 	return 0;
 }
+

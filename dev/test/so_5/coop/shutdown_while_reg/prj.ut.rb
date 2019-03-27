@@ -1,7 +1,9 @@
 require 'mxx_ru/binary_unittest'
 
+path = 'test/so_5/coop/shutdown_while_reg'
+
 Mxx_ru::setup_target(
 	Mxx_ru::Binary_unittest_target.new(
-		"test/so_5/coop/duplicate_name/prj.ut.rb",
-		"test/so_5/coop/duplicate_name/prj.rb" )
+		"#{path}/prj.ut.rb",
+		"#{path}/prj.rb" )
 )

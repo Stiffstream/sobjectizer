@@ -105,7 +105,7 @@ private :
 void
 init( so_5::environment_t & env )
 {
-	auto coop = env.create_coop( so_5::autoname );
+	auto coop = env.make_coop();
 
 	auto w3 = coop->make_agent< a_worker_t >( "[three]" );
 	auto w2 = coop->make_agent< a_worker_t >( "[two]", w3->so_direct_mbox() );

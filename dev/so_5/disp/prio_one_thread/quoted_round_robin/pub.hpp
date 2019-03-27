@@ -85,7 +85,7 @@ class disp_params_t
 		 * queue parameters.
 			\code
 			namespace prio_disp = so_5::disp::prio_one_thread::quoted_round_robin;
-			prio_disp::create_private_disp( env,
+			auto disp = prio_disp::make_dispatcher( env,
 				"my_prio_disp",
 				prio_disp::disp_params_t{}.tune_queue_params(
 					[]( prio_disp::queue_traits::queue_params_t & p ) {
@@ -185,7 +185,7 @@ auto common_thread_disp = make_dispatcher(
 		[]( queue_traits::queue_params_t & p ) {
 			p.lock_factory( queue_traits::simple_lock_factory() );
 		} ) );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of quoted_round_robin dispatcher.
 	common_thread_disp.binder() );
@@ -219,7 +219,7 @@ auto common_thread_disp = make_dispatcher(
 	env,
 	"request_processor",
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of quoted_round_robin dispatcher.
 	common_thread_disp->binder() );
@@ -258,7 +258,7 @@ auto common_thread_disp = make_dispatcher(
 	env,
 	quotes_t{ 75 }.set( so_5::prio::p7, 150 ).set( so_5::prio::p6, 125 ) );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of quoted_round_robin dispatcher.
 	common_thread_disp.binder() );

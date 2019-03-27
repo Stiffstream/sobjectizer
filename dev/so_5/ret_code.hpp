@@ -100,22 +100,6 @@ const int rc_coop_define_agent_failed = 24;
 
 /*!
  * \since
- * v.5.2.3
- *
- * \brief Cooperation has no the parent cooperation.
- */
-const int rc_coop_has_no_parent = 25;
-
-/*!
- * \since
- * v.5.2.3
- *
- * \brief Parent cooperation not found.
- */
-const int rc_parent_coop_not_found = 26;
-
-/*!
- * \since
  * v.5.4.0
  *
  * \brief Binding of agent to dispatcher failed.
@@ -558,6 +542,29 @@ const int rc_scenario_must_be_completed = 182;
  * v.5.5.24
  */
 const int rc_stored_state_name_not_found = 183;
+
+/*!
+ * \brief An attempt to get a pointer to already destroyed cooperation.
+ *
+ * This error can be reported when a coop_handle instance for already
+ * destroyed coop is used.
+ *
+ * \since
+ * v.5.6.0
+ */
+const int rc_coop_already_destroyed = 184;
+
+/*!
+ * \brief An attempt to do something with coop that is not in registered
+ * state.
+ *
+ * For example if can be an attempt to add a new child coop when
+ * the parent coop is being deregistered.
+ *
+ * \since
+ * v.5.6.0
+ */
+const int rc_coop_is_not_in_registered_state = 185;
 
 //! \name Common error codes.
 //! \{

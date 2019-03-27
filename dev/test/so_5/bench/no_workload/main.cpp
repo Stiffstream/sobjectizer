@@ -166,7 +166,7 @@ main( int argc, char ** argv )
 		so_5::launch(
 			[cfg]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( "test",
+				env.register_agent_as_coop(
 						env.make_agent< a_contoller_t >( cfg ) );
 			},
 			[]( so_5::environment_params_t & params )

@@ -120,7 +120,7 @@ class a_parent_t : public so_5::agent_t
 
 		void register_child_coop()
 		{
-			so_5::introduce_child_coop( *this, "child",
+			so_5::introduce_child_coop( *this,
 				[this]( so_5::coop_t & coop ) 
 				{
 					for( size_t i = 0; i != m_child_count; ++i )

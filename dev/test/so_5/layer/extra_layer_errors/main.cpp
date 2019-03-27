@@ -187,8 +187,8 @@ UT_UNIT_TEST( check_exceptions )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( check_errors );
-	UT_RUN_UNIT_TEST( check_exceptions );
+	UT_RUN_UNIT_TEST( check_errors )
+	UT_RUN_UNIT_TEST( check_exceptions )
 
 	return 0;
 }

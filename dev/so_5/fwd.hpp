@@ -25,6 +25,7 @@ class agent_core_t;
 class coop_private_iface_t;
 class internal_env_iface_t;
 class internal_message_iface_t;
+class internal_agent_iface_t;
 class layer_core_t;
 class state_switch_guard_t;
 

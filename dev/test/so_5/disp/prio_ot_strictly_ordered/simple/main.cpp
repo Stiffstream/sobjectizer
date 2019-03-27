@@ -51,7 +51,6 @@ main()
 						using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
 						env.register_agent_as_coop(
-								"test",
 								env.make_agent< a_test_t >(),
 								make_dispatcher( env ).binder() );
 					} );

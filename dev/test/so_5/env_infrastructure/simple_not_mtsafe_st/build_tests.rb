@@ -17,4 +17,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/stats_on/prj.ut.rb"
 	required_prj "#{path}/stats_coop_count/prj.ut.rb"
 	required_prj "#{path}/stats_wt_activity/prj.ut.rb"
+	required_prj "#{path}/reg_dereg_notificators/prj.ut.rb"
 }

@@ -1,5 +1,5 @@
 /*
- * A sample for the custom error logger and cooperation notifications.
+ * A sample for the custom error logger.
  */
 
 #include <iostream>
@@ -8,75 +8,39 @@
 // Main SObjectizer header file.
 #include <so_5/all.hpp>
 
-// A cooperation notificator which will not throw exceptions.
-void normal_coop_reg_notificator(
-	so_5::environment_t &,
-	const std::string & coop_name )
+// A class that uses limit_then_redirect incorrectly.
+// Message is redirected too many times and this lead to error message.
+class actor_t final : public so_5::agent_t
 {
-	std::cout << "cooperation registered: " << coop_name << std::endl;
-}
+	struct hello final : public so_5::signal_t {};
+	struct bye final : public so_5::signal_t {};
 
-// A cooperation notificator which will throw exception.
-void invalid_coop_reg_notificator(
-	so_5::environment_t &,
-	const std::string & coop_name )
-{
-	throw std::runtime_error(
-			"some problem during handling cooperation registration "
-			"notification for cooperation: " + coop_name );
-}
-
-// A class of parent agent.
-class a_parent_t : public so_5::agent_t
-{
 public :
-	a_parent_t( context_t ctx ) :	so_5::agent_t( ctx )
+	actor_t( context_t ctx )
+		:	so_5::agent_t{ ctx
+				// There is a mistake: message is redirected to the same mbox.
+				+ limit_then_redirect< hello >(
+						1, [this]{ return so_direct_mbox(); } )
+				+ limit_then_abort< bye >( 1 ) }
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe_self()
-			.event( &a_parent_t::evt_child_created );
+			.event( []( mhood_t<hello> ) { std::cout << "Hello!" << std::endl; } )
+			.event( [this]( mhood_t<bye> ) { so_deregister_agent_coop_normally(); } );
 	}
 
 	void so_evt_start() override
 	{
-		using namespace so_5;
-
-		introduce_child_coop( *this, "child", [this]( coop_t & coop ) {
-			// Add necessary cooperation notificators for coop.
-			coop.add_reg_notificator(
-					make_coop_reg_notificator( so_direct_mbox() ) );
-			coop.add_reg_notificator( normal_coop_reg_notificator );
-			coop.add_reg_notificator( invalid_coop_reg_notificator );
-
-			// A cooperation agent.
-			class coop_agent_t final : public so_5::agent_t {
-			public :
-				using so_5::agent_t::agent_t;
-
-				void so_evt_start() override {
-					std::cout << "Child started!" << std::endl;
-				}
-			};
-			coop.make_agent<coop_agent_t>();
-
-			std::cout << "registering coop: " << coop.query_coop_name()
-					<< std::endl;
-		});
-	}
-
-	void evt_child_created(
-		const so_5::msg_coop_registered & evt )
-	{
-		std::cout << "registration passed: " << evt.m_coop_name << std::endl;
-
-		so_deregister_agent_coop_normally();
+		so_5::send< hello >( *this );
+		so_5::send< hello >( *this ); // This message will be redirected.
+		so_5::send< bye >( *this );
 	}
 };
 
 // Custom error logger.
-class custom_logger_t : public so_5::error_logger_t
+class custom_logger_t final : public so_5::error_logger_t
 {
 public :
 	custom_logger_t()
@@ -87,8 +51,12 @@ public :
 		unsigned int line,
 		const std::string & message ) override
 	{
-		std::clog << file_name << "(" << line << "): error: "
-			<< message << std::endl;
+		std::clog
+			<< "############################################################\n"
+			<< file_name << "(" << line << "): error: "
+			<< message << "\n"
+				"############################################################"
+			<< std::endl;
 	}
 };
 
@@ -101,7 +69,7 @@ int main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.register_agent_as_coop( "parent", env.make_agent< a_parent_t >() );
+				env.register_agent_as_coop( env.make_agent< actor_t >() );
 			},
 			// Parameters for SObjectizer Environment.
 			[]( so_5::environment_params_t & params )

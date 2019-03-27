@@ -107,44 +107,6 @@ public :
 					return "second"s;
 				} ),
 			"second"s );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				so_5::autoname,
-				[]( coop_t & coop ) {
-					define_agent( coop );
-					return "third"s;
-				} ),
-			"third"s );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				so_5::autoname,
-				so_5::disp::active_obj::make_dispatcher( env ).binder(),
-				[]( coop_t & coop ) {
-					define_agent( coop );
-					return "fourth"s;
-				} ),
-			"fourth"s );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				"child-test-1",
-				[]( coop_t & coop ) {
-					define_agent( coop );
-					return "fifth"s;
-				} ),
-			"fifth"s );
-
-		ensure_valid_value(
-			introduce_child_coop( *this,
-				"child-test-2",
-				so_5::disp::one_thread::make_dispatcher( env ).binder(),
-				[]( coop_t & coop ) {
-					define_agent( coop );
-					return "sixth"s;
-				} ),
-			"sixth"s );
 	}
 };
 
@@ -153,8 +115,8 @@ init( so_5::environment_t & env )
 {
 	using namespace so_5;
 
-	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12u ) );
-	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
+	env.register_agent_as_coop( env.make_agent< a_manager_t >( 4u ) );
+	env.register_agent_as_coop( env.make_agent< a_child_owner_t >() );
 
 	ensure_valid_value(
 		env.introduce_coop( []( auto & coop ) {
@@ -172,39 +134,6 @@ init( so_5::environment_t & env )
 				return "second"s;
 			} ),
 		"second"s );
-
-	ensure_valid_value(
-		env.introduce_coop( so_5::autoname, []( coop_t & coop ) {
-				define_agent( coop );
-				return "third"s;
-			} ),
-		"third"s );
-
-	ensure_valid_value(
-		env.introduce_coop(
-			so_5::autoname,
-			so_5::disp::active_obj::make_dispatcher( env ).binder(),
-			[]( coop_t & coop ) {
-				define_agent( coop );
-				return "fourth"s;
-			} ),
-		"fourth"s );
-
-	ensure_valid_value(
-		env.introduce_coop( "test-1", []( coop_t & coop ) {
-				define_agent( coop );
-				return "fifth"s;
-			} ),
-		"fifth"s );
-
-	ensure_valid_value(
-		env.introduce_coop( "test-2",
-			so_5::disp::one_thread::make_dispatcher( env ).binder(),
-			[]( coop_t & coop ) {
-				define_agent( coop );
-				return "sixth"s;
-			} ),
-		"sixth"s );
 }
 
 int

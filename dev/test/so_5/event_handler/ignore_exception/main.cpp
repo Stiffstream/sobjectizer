@@ -65,7 +65,7 @@ class a_test_t
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( "test", env.make_agent< a_test_t >() );
+	env.register_agent_as_coop( env.make_agent< a_test_t >() );
 }
 
 int

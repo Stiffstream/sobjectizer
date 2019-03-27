@@ -56,7 +56,7 @@ class a_parent_t : public so_5::agent_t
 		void evt_child_created(
 			const so_5::msg_coop_registered & evt )
 		{
-			std::cout << "coop_reg: " << evt.m_coop_name << std::endl;
+			std::cout << "coop_reg: " << evt.m_coop << std::endl;
 
 			if( m_counter >= m_max_counter )
 				so_deregister_agent_coop_normally();
@@ -67,7 +67,7 @@ class a_parent_t : public so_5::agent_t
 		void evt_child_destroyed(
 			const so_5::msg_coop_deregistered & evt )
 		{
-			std::cout << "coop_dereg: " << evt.m_coop_name
+			std::cout << "coop_dereg: " << evt.m_coop
 				<< ", reason: " << evt.m_reason.reason() << std::endl;
 
 			++m_counter;
@@ -78,7 +78,7 @@ class a_parent_t : public so_5::agent_t
 		{
 			using namespace so_5;
 
-			introduce_child_coop( *this, "child",
+			introduce_child_coop( *this,
 				[this]( coop_t & coop )
 				{
 					coop.add_reg_notificator(
@@ -89,7 +89,7 @@ class a_parent_t : public so_5::agent_t
 
 					coop.make_agent< a_child_t >( m_counter < m_max_counter );
 
-					std::cout << "registering coop: " << coop.query_coop_name()
+					std::cout << "registering coop: " << coop.handle()
 							<< std::endl;
 				} );
 		}
@@ -104,8 +104,7 @@ int main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
-				env.register_agent_as_coop( "parent",
-						env.make_agent< a_parent_t >() );
+				env.register_agent_as_coop( env.make_agent< a_parent_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

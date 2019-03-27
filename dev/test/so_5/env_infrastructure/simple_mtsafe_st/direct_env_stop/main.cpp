@@ -43,7 +43,6 @@ main()
 				so_5::launch(
 					[&]( so_5::environment_t & env ) {
 						env.register_agent_as_coop(
-								so_5::autoname,
 								env.make_agent< test_agent >() );
 					},
 					[]( so_5::environment_params_t & params ) {

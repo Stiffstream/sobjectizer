@@ -1036,7 +1036,7 @@ CLANG_ASSISTED_PARSING = YES
 # specified with INPUT and INCLUDE_PATH.
 # This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.
 
-CLANG_OPTIONS          = -I../dev
+CLANG_OPTIONS          = -I../dev -std=c++17
 
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index

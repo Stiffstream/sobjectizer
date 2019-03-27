@@ -179,7 +179,7 @@ prev( priority_t p )
 	\code
 	// Fill the new cooperation with agents with different priorities.
 	env.introduce_coop(
-		so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(env)->binder(),
+		so_5::disp::prio_one_thread::strictly_ordered::make_dispatcher(env).binder(),
 		[&]( so_5::coop_t & coop ) {
 			so_5::prio::for_each_priority( [&]( so_5::priority_t prio ) {
 					// Creation of new agent with next priority.

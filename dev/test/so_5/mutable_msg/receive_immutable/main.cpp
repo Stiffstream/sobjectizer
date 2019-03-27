@@ -143,13 +143,13 @@ main()
 			[]() {
 				so_5::launch(
 					[&](so_5::environment_t & env) {
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent<sobj_message_tester>());
 
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent<user_message_tester>());
 
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent<signal_tester>());
 					});
 			},

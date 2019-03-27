@@ -45,7 +45,7 @@ int main()
 		[](so_5::environment_t & env)
 		{
 			// Creating and registering single agent as a cooperation.
-			env.register_agent_as_coop(so_5::autoname, env.make_agent<two_handlers>() );
+			env.register_agent_as_coop( env.make_agent<two_handlers>() );
 		} );
 
 	return 0;

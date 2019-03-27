@@ -7,10 +7,13 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 struct msg_child_started : public so_5::signal_t {};
 
 void
 create_and_register_agent(
+	const so_5::coop_handle_t & parent,
 	so_5::environment_t & env,
 	int ordinal,
 	int max_deep );
@@ -48,6 +51,7 @@ class a_test_t : public so_5::agent_t
 		{
 			if( m_ordinal != m_max_deep )
 				create_and_register_agent(
+						so_coop(),
 						so_environment(),
 						m_ordinal + 1,
 						m_max_deep );
@@ -98,14 +102,12 @@ create_coop_name( int ordinal )
 
 void
 create_and_register_agent(
+	const so_5::coop_handle_t & parent,
 	so_5::environment_t & env,
 	int ordinal,
 	int max_deep )
 {
-	so_5::coop_unique_ptr_t coop = env.create_coop(
-			create_coop_name( ordinal ) );
-	if( ordinal )
-		coop->set_parent_coop_name( create_coop_name( ordinal - 1 ) );
+	auto coop = env.make_coop( parent );
 
 	coop->make_agent< a_test_t >( ordinal, max_deep );
 
@@ -124,16 +126,18 @@ class a_test_starter_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			create_and_register_agent( so_environment(), 0, 5 );
+			create_and_register_agent( so_coop(), so_environment(), 0, 5 );
 		}
 };
 
-const std::string STARTER_COOP_NAME = "starter_coop";
+// We just know that the first coop will have this ID in the current
+// version of SO-5.
+constexpr so_5::coop_id_t starter_coop_id = 2u;
 
 struct init_deinit_data_t
 {
-	std::vector< std::string > m_init_sequence;
-	std::vector< std::string > m_deinit_sequence;
+	std::vector< so_5::coop_id_t > m_init_sequence;
+	std::vector< so_5::coop_id_t > m_deinit_sequence;
 };
 
 class test_coop_listener_t
@@ -145,41 +149,41 @@ class test_coop_listener_t
 			,	m_active_coops( 0 )
 		{}
 
-		virtual void
+		void
 		on_registered(
 			so_5::environment_t &,
-			const std::string & coop_name )
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::lock_guard< std::mutex > lock{ m_lock };
 
-			std::cout << "registered: " << coop_name << std::endl;
+			std::cout << "registered: " << coop << std::endl;
 
-			if( STARTER_COOP_NAME != coop_name )
+			if( starter_coop_id != coop.id() )
 			{
-				m_data.m_init_sequence.push_back( coop_name );
+				m_data.m_init_sequence.push_back( coop.id() );
 
 				++m_active_coops;
 			}
 		}
 
-		virtual void
+		void
 		on_deregistered(
 			so_5::environment_t & env,
-			const std::string & coop_name,
-			const so_5::coop_dereg_reason_t & reason )
+			const so_5::coop_handle_t & coop,
+			const so_5::coop_dereg_reason_t & reason ) noexcept override
 		{
 			bool need_stop = false;
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
-				std::cout << "deregistered: " << coop_name
+				std::cout << "deregistered: " << coop
 						<< ", reason: " << reason.reason() << std::endl;
 
-				if( STARTER_COOP_NAME != coop_name )
+				if( starter_coop_id != coop.id() )
 				{
 					m_data.m_deinit_sequence.insert(
 							m_data.m_deinit_sequence.begin(),
-							coop_name );
+							coop.id() );
 
 					--m_active_coops;
 
@@ -208,17 +212,17 @@ class test_coop_listener_t
 };
 
 std::string
-sequence_to_string( const std::vector< std::string > & s )
+sequence_to_string( const std::vector< so_5::coop_id_t > & s )
 {
-	std::string r;
+	std::ostringstream ss;
 	for( auto i = s.begin(); i != s.end(); ++i )
 	{
 		if( i != s.begin() )
-			r += ", ";
-		r += *i;
+			ss << ", ";
+		ss << *i;
 	}
 
-	return r;
+	return ss.str();
 }
 
 class test_env_t
@@ -228,7 +232,7 @@ class test_env_t
 		init( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
-					STARTER_COOP_NAME, env.make_agent< a_test_starter_t >() );
+					env.make_agent< a_test_starter_t >() );
 		}
 
 		so_5::coop_listener_unique_ptr_t
@@ -254,27 +258,22 @@ class test_env_t
 int
 main()
 {
-	try
-	{
-		test_env_t test_env;
-		so_5::launch(
-				[&test_env]( so_5::environment_t & env )
-				{
-					test_env.init( env );
-				},
-				[&test_env]( so_5::environment_params_t & params )
-				{
-					params.coop_listener( test_env.make_listener() );
-					params.disable_autoshutdown();
-				} );
+	run_with_time_limit( [] {
+			test_env_t test_env;
+			so_5::launch(
+					[&test_env]( so_5::environment_t & env )
+					{
+						test_env.init( env );
+					},
+					[&test_env]( so_5::environment_params_t & params )
+					{
+						params.coop_listener( test_env.make_listener() );
+						params.disable_autoshutdown();
+					} );
 
-		test_env.check_result();
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+			test_env.check_result();
+		},
+		60 );
 
 	return 0;
 }

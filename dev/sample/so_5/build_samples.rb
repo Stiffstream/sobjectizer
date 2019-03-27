@@ -52,7 +52,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'machine_control' ]
 	example[ 'news_board' ]
 	example[ 'prio_work_stealing' ]
-	example[ 'wrapped_env_demo' ]
 	example[ 'convert_lib' ]
 	example[ 'mchain_svc_req' ]
 	example[ 'mchain_handler_formats' ]

@@ -49,9 +49,7 @@ class a_parent_t
 		virtual void
 		so_evt_start()
 		{
-			auto child = so_environment().create_coop(
-					so_coop_name() + "::child" );
-			child->set_parent_coop_name( so_coop_name() );
+			auto child = so_environment().make_coop( so_coop() );
 
 			auto mbox = so_environment().create_mbox();
 			child->make_agent< a_test_t >( mbox );
@@ -65,7 +63,7 @@ class a_parent_t
 void
 init( so_5::environment_t & env )
 {
-	auto coop = env.create_coop( "test" );
+	auto coop = env.make_coop();
 	coop->make_agent< a_parent_t >();
 	coop->make_agent< a_time_sentinel_t >();
 

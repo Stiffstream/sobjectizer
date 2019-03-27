@@ -91,7 +91,6 @@ class a_first_t : public so_5::agent_t
 			try
 			{
 				so_environment().register_agent_as_coop(
-						"second",
 						so_environment().make_agent< a_second_t >( m_log ),
 						so_5::disp::active_obj::make_dispatcher(
 								so_environment() ).binder() );
@@ -128,7 +127,6 @@ main()
 					[&log]( so_5::environment_t & env )
 					{
 						env.register_agent_as_coop(
-								"first",
 								env.make_agent< a_first_t >( log ) );
 					} );
 			},

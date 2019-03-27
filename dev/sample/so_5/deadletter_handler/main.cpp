@@ -34,7 +34,7 @@ public:
 int main() {
 	// Launch the SObjectizer with just one agent inside.
 	so_5::launch([](so_5::environment_t & env) {
-			env.register_agent_as_coop(so_5::autoname, env.make_agent<demo>());
+			env.register_agent_as_coop(env.make_agent<demo>());
 		});
 }
 

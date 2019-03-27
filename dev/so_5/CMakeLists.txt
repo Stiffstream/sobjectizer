@@ -39,7 +39,6 @@ set(SO_5_SRC exception.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp
 	rt/agent_coop.cpp
-	rt/agent_coop_notifications.cpp
 	rt/queue_locks_defaults_manager.cpp
 	rt/environment.cpp
 	rt/so_layer.cpp

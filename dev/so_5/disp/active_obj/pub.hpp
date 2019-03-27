@@ -77,7 +77,7 @@ class disp_params_t
 		 * Accepts lambda-function or functional object which tunes
 		 * queue parameters.
 			\code
-			so_5::disp::active_obj::create_private_disp( env,
+			so_5::disp::active_obj::make_dispatcher( env,
 				"my_active_obj_disp",
 				so_5::disp::active_obj::disp_params_t{}.tune_queue_params(
 					[]( so_5::disp::active_obj::queue_traits::queue_params_t & p ) {
@@ -173,7 +173,7 @@ auto disp = so_5::disp::active_obj::make_dispatcher(
 		[]( so_5::disp::active_obj::queue_traits::queue_params_t & p ) {
 			p.lock_factory( so_5::disp::active_obj::queue_traits::simple_lock_factory() );
 		} ) );
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of active_obj dispatcher.
 	disp->binder() );
@@ -201,7 +201,7 @@ auto disp = so_5::disp::active_obj::make_dispatcher(
 	env,
 	"db_handler" );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of active_obj dispatcher.
 	disp.binder() );
@@ -228,7 +228,7 @@ make_dispatcher(
 \code
 auto disp = so_5::disp::active_obj::make_dispatcher( env );
 
-auto coop = env.create_coop( so_5::autoname,
+auto coop = env.make_coop(
 	// The main dispatcher for that coop will be
 	// this instance of active_obj dispatcher.
 	disp.binder() );

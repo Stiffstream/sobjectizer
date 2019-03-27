@@ -137,7 +137,7 @@ init( so_5::environment_t & env )
 	auto adv_thread_pool = so_5::disp::adv_thread_pool::make_dispatcher( env, 10 );
 
 	auto start_mbox = env.create_mbox( "start" );
-	auto coop = env.create_coop( so_5::autoname );
+	auto coop = env.make_coop();
 	
 	auto collector = coop->make_agent< a_collector_t >( start_mbox, 9u + 10u );
 

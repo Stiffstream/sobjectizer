@@ -272,7 +272,6 @@ class a_contoller_t : public so_5::agent_t
 
 				auto c = so_5::create_child_coop(
 						*this,
-						ss.str(),
 						create_binder_if_necessary() );
 
 				for( std::size_t a = 0; a != m_cfg.m_agents; ++a )
@@ -417,7 +416,7 @@ main( int argc, char ** argv )
 		so_5::launch(
 			[cfg]( so_5::environment_t & env )
 			{
-				env.register_agent_as_coop( "test",
+				env.register_agent_as_coop(
 						env.make_agent< a_contoller_t >( cfg ) );
 			},
 			[cfg]( so_5::environment_params_t & params )

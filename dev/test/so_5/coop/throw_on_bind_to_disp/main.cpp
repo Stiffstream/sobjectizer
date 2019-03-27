@@ -12,6 +12,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 so_5::atomic_counter_t g_agents_count;
 so_5::atomic_counter_t g_evt_count;
 
@@ -94,11 +96,6 @@ class a_throwing_t
 		}
 
 		virtual void
-		so_define_agent()
-		{
-		}
-
-		virtual void
 		so_evt_start();
 };
 
@@ -140,8 +137,7 @@ void
 reg_coop(
 	so_5::environment_t & env )
 {
-	so_5::coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
+	auto coop = env.make_coop();
 
 	coop->make_agent< a_ordinary_t >();
 	coop->make_agent< a_ordinary_t >();
@@ -176,23 +172,18 @@ init( so_5::environment_t & env )
 int
 main()
 {
-	try
-	{
-		so_5::launch( &init );
+	run_with_time_limit( [] {
+			so_5::launch( &init );
 
-		if( 0 != g_agents_count )
-		{
-			std::cerr << "g_agents_count: " << g_agents_count << "\n";
-			throw std::runtime_error( "g_agents_count != 0" );
-		}
+			if( 0 != g_agents_count )
+			{
+				std::cerr << "g_agents_count: " << g_agents_count << "\n";
+				throw std::runtime_error( "g_agents_count != 0" );
+			}
 
-		std::cout << "event handled: " << g_evt_count << "\n";
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+			std::cout << "event handled: " << g_evt_count << "\n";
+		},
+		10 );
 
 	return 0;
 }

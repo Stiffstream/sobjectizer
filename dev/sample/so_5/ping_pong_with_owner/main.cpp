@@ -124,7 +124,7 @@ public :
 		so_default_state().event( [this](mhood_t< stop >) {
 				so_environment().deregister_coop(
 					// Cooperation name for deregistration.
-					"pinger_ponger",
+					m_child,
 					// The reason of deregistration.
 					// This value means that deregistration is caused
 					// by application logic.
@@ -142,27 +142,26 @@ public :
 
 	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
-		so_5::introduce_child_coop(
+		auto coop = so_5::create_child_coop(
 				// Parent of the new cooperation.
 				*this,
-				// Cooperation name.
-				"pinger_ponger",
 				// Child cooperation will use active_obj dispatcher.
 				// So pinger and ponger will work on the different
 				// working threads.
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
 				so_5::disp::active_obj::make_dispatcher(
-						so_environment() ).binder(),
-				// Lambda for tuning cooperation object.
-				[this]( so_5::coop_t & coop ) {
-					// Filling the child cooperation.
-					auto a_pinger = coop.make_agent< pinger >( so_direct_mbox() );
-					auto a_ponger = coop.make_agent< ponger >( so_direct_mbox() );
+						so_environment() ).binder() );
 
-					a_pinger->set_ponger_mbox( a_ponger->so_direct_mbox() );
-					a_ponger->set_pinger_mbox( a_pinger->so_direct_mbox() );
-				} );
+		// Filling the child cooperation.
+		auto a_pinger = coop->make_agent< pinger >( so_direct_mbox() );
+		auto a_ponger = coop->make_agent< ponger >( so_direct_mbox() );
+
+		a_pinger->set_ponger_mbox( a_ponger->so_direct_mbox() );
+		a_ponger->set_pinger_mbox( a_pinger->so_direct_mbox() );
+
+		// Registration of the child coop.
+		m_child = so_environment().register_coop( std::move(coop) );
 
 		// Limit the pinger/ponger exchange time.
 		so_5::send_delayed< stop >(
@@ -180,6 +179,10 @@ private :
 
 	// Result's accumulator.
 	std::string m_results;
+
+	// Handle of child coop.
+	// Will receive actual value when child will be registered.
+	so_5::coop_handle_t m_child;
 
 	// Event handler for the first result.
 	void evt_first_result( const run_result & evt ) {
@@ -214,9 +217,6 @@ int main()
 				// We must have the cooperation with just one
 				// agent inside it.
 				env.register_agent_as_coop(
-					// The name for the cooperation will be generated
-					// automatically by SO Environment.
-					so_5::autoname,
 					// The single agent in the cooperation.
 					env.make_agent< parent >() );
 			} );

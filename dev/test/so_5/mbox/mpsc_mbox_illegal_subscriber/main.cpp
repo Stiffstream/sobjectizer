@@ -77,7 +77,7 @@ main()
 		so_5::launch(
 			[]( so_5::environment_t & env )
 			{
-				auto coop = env.create_coop( "test" );
+				auto coop = env.make_coop();
 
 				auto a_first = coop->make_agent< a_first_t >();
 

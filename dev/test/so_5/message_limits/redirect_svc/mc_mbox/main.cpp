@@ -112,7 +112,7 @@ init( so_5::environment_t & env )
 	auto w3_mbox = env.create_mbox();
 	auto m_mbox = env.create_mbox();
 
-	auto coop = env.create_coop( so_5::autoname );
+	auto coop = env.make_coop();
 	
 	coop->make_agent< a_manager_t >( m_mbox, w1_mbox, "[one][two][three]" );
 

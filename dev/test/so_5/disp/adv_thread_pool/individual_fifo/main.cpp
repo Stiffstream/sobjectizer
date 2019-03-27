@@ -158,7 +158,7 @@ run_sobjectizer(
 		{
 			so_5::mbox_t shutdowner_mbox;
 			{
-				auto c = env.create_coop( "shutdowner" );
+				auto c = env.make_coop();
 				auto a = c->make_agent< a_shutdowner_t >( total_agent_count );
 				shutdowner_mbox = a->so_direct_mbox();
 				env.register_coop( std::move( c ) );
@@ -178,10 +178,7 @@ run_sobjectizer(
 			params.fifo( atp_disp::fifo_t::individual );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
-				std::ostringstream ss;
-				ss << "coop_" << i;
-
-				auto c = env.create_coop( ss.str(), disp.binder( params ) );
+				auto c = env.make_coop( disp.binder( params ) );
 				for( std::size_t a = 0; a != cooperation_size;
 						++a, ++collector_index )
 				{

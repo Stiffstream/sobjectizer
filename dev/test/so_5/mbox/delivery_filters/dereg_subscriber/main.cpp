@@ -93,8 +93,7 @@ private :
 void
 init( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( so_5::autoname,
-			env.make_agent< a_parent_t >() );
+	env.register_agent_as_coop( env.make_agent< a_parent_t >() );
 }
 
 int

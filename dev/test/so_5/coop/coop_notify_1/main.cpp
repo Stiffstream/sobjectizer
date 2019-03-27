@@ -7,6 +7,8 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+
 struct msg_child_deregistered : public so_5::signal_t {};
 
 class a_child_t : public so_5::agent_t
@@ -23,9 +25,7 @@ class a_child_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_environment().deregister_coop(
-					so_coop_name(),
-					so_5::dereg_reason::normal );
+			so_deregister_agent_coop_normally();
 		}
 };
 
@@ -53,14 +53,24 @@ class a_test_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			auto child_coop = so_environment().create_coop( "child" );
-			child_coop->set_parent_coop_name( so_coop_name() );
-			child_coop->add_reg_notificator( m_reg_notificator );
-			child_coop->add_dereg_notificator( m_dereg_notificator );
+			auto child_coop = so_environment().make_coop( so_coop() );
+			child_coop->add_reg_notificator(
+					[this](
+						auto & env,
+						const auto & handle ) noexcept {
+						m_reg_notificator( env, handle );
+					} );
+			child_coop->add_dereg_notificator(
+					[this](
+						auto & env,
+						const auto & handle,
+						const auto & reason ) noexcept {
+						m_dereg_notificator( env, handle, reason );
+					} );
 			child_coop->add_dereg_notificator(
 					[this]( so_5::environment_t &,
-						const std::string &,
-						const so_5::coop_dereg_reason_t &)
+						const so_5::coop_handle_t &,
+						const so_5::coop_dereg_reason_t &) noexcept
 					{
 						so_5::send< msg_child_deregistered >( m_mbox );
 					} );
@@ -96,20 +106,19 @@ class test_env_t
 		{
 			auto on_reg =
 					[this]( so_5::environment_t &,
-							const std::string & )
+							const so_5::coop_handle_t & )
 					{
 						m_reg_notify_received = true;
 					};
 			auto on_dereg =
 					[this]( so_5::environment_t &,
-							const std::string &,
+							const so_5::coop_handle_t &,
 							const so_5::coop_dereg_reason_t &)
 					{
 						m_dereg_notify_received = true;
 					};
 
 			env.register_agent_as_coop(
-					"test",
 					env.make_agent< a_test_t >( on_reg, on_dereg ) );
 		}
 
@@ -130,22 +139,17 @@ class test_env_t
 int
 main()
 {
-	try
-	{
-		test_env_t test_env;
-		so_5::launch(
-			[&test_env]( so_5::environment_t & env )
-			{
-				test_env.init( env );
-			} );
+	run_with_time_limit( [] {
+			test_env_t test_env;
+			so_5::launch(
+				[&test_env]( so_5::environment_t & env )
+				{
+					test_env.init( env );
+				} );
 
-		test_env.check_result();
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "Error: " << ex.what() << std::endl;
-		return 1;
-	}
+			test_env.check_result();
+		},
+		10 );
 
 	return 0;
 }

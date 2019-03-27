@@ -92,7 +92,7 @@ public :
 void
 init( so_5::environment_t & env )
 {
-	auto coop = env.create_coop( so_5::autoname );
+	auto coop = env.make_coop();
 
 	try
 	{

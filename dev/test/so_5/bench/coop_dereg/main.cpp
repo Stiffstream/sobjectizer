@@ -94,7 +94,6 @@ class a_benchmarker_t : public so_5::agent_t
 			:	so_5::agent_t{ ctx }
 			,	m_cfg{ std::move(cfg) }
 			,	m_binder_generator{ std::move(binder_generator) }
-			,	m_root_coop_name( "root" )
 			{
 				m_child_mboxes.reserve( cfg.m_coop_count * cfg.m_coop_size );
 			}
@@ -120,9 +119,10 @@ class a_benchmarker_t : public so_5::agent_t
 				// Root for children coops must be registered first.
 				so_5::introduce_child_coop(
 						*this,
-						m_root_coop_name,
 						m_binder_generator(),
 						[this]( so_5::coop_t & coop ) {
+							m_root_coop = coop.handle();
+
 							coop.add_dereg_notificator(
 									so_5::make_coop_dereg_notificator(
 											so_direct_mbox() ) );
@@ -140,7 +140,7 @@ class a_benchmarker_t : public so_5::agent_t
 		const cfg_t m_cfg;
 		const binder_generator_t m_binder_generator;
 
-		const std::string m_root_coop_name;
+		so_5::coop_handle_t m_root_coop;
 
 		std::vector< so_5::mbox_t > m_child_mboxes;
 
@@ -196,7 +196,7 @@ class a_benchmarker_t : public so_5::agent_t
 						// Initiate deregistration of all children.
 						m_dereg_bench.start();
 						so_environment().deregister_coop(
-								m_root_coop_name,
+								m_root_coop,
 								so_5::dereg_reason::normal );
 					}
 			}
@@ -218,10 +218,10 @@ class a_benchmarker_t : public so_5::agent_t
 							}
 					};
 
-				so_environment().introduce_coop(
+				so_5::introduce_child_coop(
+						m_root_coop,
 						m_binder_generator(),
 						[this]( so_5::coop_t & coop ) {
-							coop.set_parent_coop_name( m_root_coop_name );
 							coop.add_reg_notificator(
 									so_5::make_coop_reg_notificator(
 											so_direct_mbox() ) );

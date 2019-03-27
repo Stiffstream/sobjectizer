@@ -16,11 +16,11 @@ class sample_event_exception_logger_t
 		// A reaction to an exception.
 		virtual void log_exception(
 			const std::exception & event_exception,
-			const std::string & coop_name ) override
+			const so_5::coop_handle_t & coop ) override
 		{
 			std::cerr
 				<< "Event_exception, coop:"
-				<< coop_name << "; "
+				<< coop << "; "
 				" error: "
 				<< event_exception.what()
 				<< std::endl;
@@ -61,7 +61,7 @@ int main()
 			[]( so_5::environment_t & env )
 			{
 				// Creating and registering cooperation with a single agent.
-				env.register_agent_as_coop( "sample", env.make_agent< a_hello_t >() );
+				env.register_agent_as_coop( env.make_agent< a_hello_t >() );
 			} );
 	}
 	catch( const std::exception & ex )

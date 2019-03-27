@@ -11,7 +11,7 @@
 
 #include <so_5/message.hpp>
 #include <so_5/agent.hpp>
-#include <so_5/agent_coop.hpp>
+#include <so_5/coop.hpp>
 #include <so_5/state.hpp>
 #include <so_5/mhood.hpp>
 #include <so_5/mbox.hpp>

@@ -92,7 +92,7 @@ struct test_env_t
 	void
 	init( so_5::environment_t & env )
 	{
-		env.register_agent_as_coop( "test_coop",
+		env.register_agent_as_coop(
 				env.make_agent< a_test_t >( m_message_counter ) );
 	}
 };

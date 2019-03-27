@@ -116,8 +116,7 @@ class a_controller_t : public so_5::agent_t
 		create_child_coops()
 			{
 				auto coop = so_5::create_child_coop(
-						*this,
-						so_5::autoname );
+						*this );
 
 				workers_vector_t workers;
 				workers.reserve( 100 );
@@ -346,7 +345,7 @@ main()
 	try
 	{
 		so_5::launch( []( so_5::environment_t & env ) {
-				env.register_agent_as_coop( so_5::autoname,
+				env.register_agent_as_coop(
 						env.make_agent< a_controller_t >() );
 			},
 			[]( so_5::environment_params_t & params ) {

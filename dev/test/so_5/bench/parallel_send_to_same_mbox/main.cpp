@@ -77,7 +77,7 @@ init(
 	{
 		auto mbox = env.create_mbox();
 
-		auto coop = env.create_coop( "benchmark",
+		auto coop = env.make_coop(
 				so_5::disp::active_obj::make_dispatcher(
 						env, "active_obj" ).binder() );
 		

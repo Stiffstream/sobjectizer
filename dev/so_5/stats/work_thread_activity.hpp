@@ -42,7 +42,7 @@ static_assert( clock_type_t::is_steady,
  * \brief An alias for type for representing time duration.
  *
  * \since
- * \v.5.5.18
+ * v.5.5.18
  */
 using duration_t = clock_type_t::duration;
 

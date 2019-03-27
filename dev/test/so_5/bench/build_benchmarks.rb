@@ -14,6 +14,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/no_workload/prj.rb" 
 	required_prj "#{path}/agent_ring/prj.rb" 
 	required_prj "#{path}/coop_dereg/prj.rb" 
+	required_prj "#{path}/parallel_parent_child/prj.rb" 
 	required_prj "#{path}/skynet1m/prj.rb" 
 	required_prj "#{path}/prepared_receive/prj.rb" 
 	required_prj "#{path}/prepared_select/prj.rb" 

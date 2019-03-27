@@ -70,7 +70,7 @@ modify_disp_params(
  * 	Args && ...additional_args );
  * \endcode
  *
- * \tparem Disp_Iface_Type a type of interface for actual dispatcher. This type
+ * \tparam Disp_Iface_Type a type of interface for actual dispatcher. This type
  * is expected to be a base class for Disp_No_Tracking and Disp_With_Tracking
  * types.
  *

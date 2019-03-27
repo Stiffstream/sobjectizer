@@ -64,7 +64,6 @@ do_test()
 											.lock_factory( factory ) ) );
 
 						env.register_agent_as_coop(
-								"test",
 								env.make_agent< a_test_t >(),
 								disp.binder() );
 					} );

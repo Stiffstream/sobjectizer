@@ -76,13 +76,13 @@ class dispatcher_t final
 					agent_queue_ref_t queue,
 					std::size_t agents,
 					const stats::prefix_t & data_source_name_prefix,
-					const std::string & coop_name )
+					coop_id_t coop_id )
 					:	m_queue( std::move( queue ) )
 					,	m_agents( agents )
 					,	m_queue_desc(
 							tp_stats::make_queue_desc_holder(
 									data_source_name_prefix,
-									coop_name,
+									coop_id,
 									agents ) )
 					{}
 
@@ -101,7 +101,7 @@ class dispatcher_t final
 			};
 
 		//! Map from cooperation name to the cooperation data.
-		using cooperation_map_t = std::map< std::string, cooperation_data_t >;
+		using cooperation_map_t = std::map< coop_id_t, cooperation_data_t >;
 
 		//! Data for one agent.
 		struct agent_data_t
@@ -250,7 +250,7 @@ class dispatcher_t final
 						if( it->second.cooperation_fifo() )
 							{
 								auto it_coop = m_cooperations.find(
-										agent.so_coop_name() );
+										agent.so_coop().id() );
 								if( it_coop != m_cooperations.end() &&
 										0 == --(it_coop->second.m_agents) )
 									{
@@ -280,7 +280,7 @@ class dispatcher_t final
 
 				auto it = m_agents.find( &agent );
 				if( it->second.cooperation_fifo() )
-					return m_cooperations.find( agent.so_coop_name() )->
+					return m_cooperations.find( agent.so_coop().id() )->
 							second.m_queue.get();
 				else
 					return it->second.m_queue.get();
@@ -350,15 +350,17 @@ class dispatcher_t final
 			agent_ref_t agent,
 			const Params & params )
 			{
-				auto it = m_cooperations.find( agent->so_coop_name() );
+				const auto id = agent->so_coop().id();
+
+				auto it = m_cooperations.find( id );
 				if( it == m_cooperations.end() )
 					it = m_cooperations.emplace(
-							agent->so_coop_name(),
+							id,
 							cooperation_data_t(
 									make_new_agent_queue( params ),
 									1,
 									m_data_source.prefix(),
-									agent->so_coop_name() ) )
+									id ) )
 							.first;
 				else
 					it->second.m_agents += 1;

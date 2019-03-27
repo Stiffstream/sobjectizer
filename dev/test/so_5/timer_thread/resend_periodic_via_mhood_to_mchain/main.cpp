@@ -222,13 +222,13 @@ main()
 			[]() {
 				so_5::launch(
 					[&](so_5::environment_t & env) {
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent< first_tester >());
 
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent< second_tester >());
 
-						env.register_agent_as_coop(so_5::autoname,
+						env.register_agent_as_coop(
 								env.make_agent< third_tester >());
 					},
 					[](so_5::environment_params_t & params) {

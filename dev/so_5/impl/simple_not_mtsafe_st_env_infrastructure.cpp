@@ -11,7 +11,10 @@
  * v.5.5.19
  */
 
+#include <so_5/impl/st_env_infrastructure_reuse.hpp>
+
 #include <so_5/impl/run_stage.hpp>
+#include <so_5/impl/internal_env_iface.hpp>
 
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
@@ -20,8 +23,6 @@
 
 #include <so_5/details/at_scope_exit.hpp>
 #include <so_5/details/sync_helpers.hpp>
-
-#include <so_5/impl/st_env_infrastructure_reuse.hpp>
 
 namespace so_5 {
 
@@ -196,22 +197,23 @@ class env_infrastructure_t
 		virtual void
 		stop() override;
 
-		virtual void
-		register_coop(
-			coop_unique_ptr_t coop ) override;
+		SO_5_NODISCARD
+		virtual coop_unique_holder_t
+		make_coop(
+			coop_handle_t parent,
+			disp_binder_shptr_t default_binder ) override;
 
-		virtual void
-		deregister_coop(
-			nonempty_name_t name,
-			coop_dereg_reason_t dereg_reason ) override;
+		virtual coop_handle_t
+		register_coop(
+			coop_unique_holder_t coop ) override;
 
 		virtual void
 		ready_to_deregister_notify(
-			coop_t * coop ) override;
+			coop_shptr_t coop ) override;
 
 		virtual bool
 		final_deregister_coop(
-			std::string coop_name ) override;
+			coop_shptr_t coop_name ) override;
 
 		virtual so_5::timer_id_t
 		schedule_timer(
@@ -247,7 +249,7 @@ class env_infrastructure_t
 		environment_t & m_env;
 
 		//! Type of container for final deregistration demands.
-		using final_dereg_coop_container_t = std::deque< coop_t * >;
+		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
 
 		//! Queue for final deregistration demands.
 		final_dereg_coop_container_t m_final_dereg_coops;
@@ -316,7 +318,7 @@ env_infrastructure_t< Activity_Tracker >::env_infrastructure_t(
 			timer_factory(
 				std::move(error_logger),
 				outliving_mutable(m_timers_collector) ) )
-	,	m_coop_repo( env, std::move(coop_listener) )
+	,	m_coop_repo( outliving_mutable(env), std::move(coop_listener) )
 	,	m_stats_controller(
 			std::move(stats_distribution_mbox),
 			stats::impl::st_env_stuff::next_turn_mbox_t::make(m_env) )
@@ -340,36 +342,38 @@ env_infrastructure_t< Activity_Tracker >::stop()
 	}
 
 template< typename Activity_Tracker >
-void
-env_infrastructure_t< Activity_Tracker >::register_coop(
-	coop_unique_ptr_t coop )
+coop_unique_holder_t
+env_infrastructure_t< Activity_Tracker >::make_coop(
+	coop_handle_t parent,
+	disp_binder_shptr_t default_binder ) 
 	{
-		m_coop_repo.register_coop( std::move(coop) );
+		return m_coop_repo.make_coop(
+				std::move(parent),
+				std::move(default_binder) );
 	}
 
 template< typename Activity_Tracker >
-void
-env_infrastructure_t< Activity_Tracker >::deregister_coop(
-	nonempty_name_t name,
-	coop_dereg_reason_t dereg_reason )
+coop_handle_t
+env_infrastructure_t< Activity_Tracker >::register_coop(
+	coop_unique_holder_t coop )
 	{
-		m_coop_repo.deregister_coop( std::move(name), dereg_reason );
+		return m_coop_repo.register_coop( std::move(coop) );
 	}
 
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
-	coop_t * coop )
+	coop_shptr_t coop )
 	{
-		m_final_dereg_coops.push_back( coop );
+		m_final_dereg_coops.emplace_back( std::move(coop) );
 	}
 
 template< typename Activity_Tracker >
 bool
 env_infrastructure_t< Activity_Tracker >::final_deregister_coop(
-	std::string coop_name )
+	coop_shptr_t coop )
 	{
-		return m_coop_repo.final_deregister_coop( std::move(coop_name) )
+		return m_coop_repo.final_deregister_coop( std::move(coop) )
 				.m_has_live_coop;
 	}
 
@@ -429,8 +433,7 @@ env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 		const auto stats = m_coop_repo.query_stats();
 
 		return environment_infrastructure_t::coop_repository_stats_t{
-				stats.m_registered_coop_count,
-				stats.m_deregistered_coop_count,
+				stats.m_total_coop_count,
 				stats.m_total_agent_count,
 				m_final_dereg_coops.size()
 		};
@@ -522,8 +525,12 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any()
 				final_dereg_coop_container_t coops;
 				coops.swap( m_final_dereg_coops );
 
-				for( auto ptr : coops )
-					coop_t::so_call_final_deregister_coop( ptr );
+				for( auto & shptr : coops )
+					{
+						auto & env = shptr->environment();
+						so_5::impl::internal_env_iface_t{ env }
+								.final_deregister_coop( std::move(shptr) );
+					}
 			}
 	}
 

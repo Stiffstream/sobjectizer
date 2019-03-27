@@ -93,7 +93,7 @@ UT_UNIT_TEST( check_layer_lifecircle_op_calls )
 int
 main()
 {
-	UT_RUN_UNIT_TEST( check_layer_lifecircle_op_calls );
+	UT_RUN_UNIT_TEST( check_layer_lifecircle_op_calls )
 
 	return 0;
 }

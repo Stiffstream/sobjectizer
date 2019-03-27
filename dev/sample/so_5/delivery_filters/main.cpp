@@ -114,8 +114,7 @@ int main()
 	try
 	{
 		so_5::launch( []( environment_t & env ) {
-			env.register_agent_as_coop(
-					autoname, env.make_agent< a_example_t >() );
+			env.register_agent_as_coop( env.make_agent< a_example_t >() );
 		} );
 
 		return 0;

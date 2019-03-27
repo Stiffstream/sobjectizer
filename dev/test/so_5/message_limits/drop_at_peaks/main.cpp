@@ -108,7 +108,7 @@ private :
 void
 init( so_5::environment_t & env )
 {
-	auto coop = env.create_coop( so_5::autoname );
+	auto coop = env.make_coop();
 	auto sender = coop->make_agent< a_sender_t >();
 	auto receiver = coop->make_agent< a_receiver_t >( sender->so_direct_mbox() );
 	sender->set_receiver( receiver->so_direct_mbox() );

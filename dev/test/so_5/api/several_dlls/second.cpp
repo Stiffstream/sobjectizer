@@ -43,7 +43,7 @@ class demo_t final : public so_5::agent_t
 SECOND_FUNC void make_coop(void * env)
 {
 	auto & actual_env = *(reinterpret_cast<so_5::environment_t *>(env));
-	actual_env.register_agent_as_coop( "second", actual_env.make_agent<demo_t>() );
+	actual_env.register_agent_as_coop( actual_env.make_agent<demo_t>() );
 }
 
 } /* namespace second */
