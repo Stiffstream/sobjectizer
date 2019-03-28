@@ -27,6 +27,8 @@
 #include <so_5/stats/work_thread_activity.hpp>
 #include <so_5/stats/impl/activity_tracking.hpp>
 
+#include <so_5/impl/thread_join_stuff.hpp>
+
 namespace so_5
 {
 
@@ -579,6 +581,7 @@ public :
 	void
 	wait()
 	{
+		so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
 		this->m_thread.join();
 		this->m_queue.clear();
 	}

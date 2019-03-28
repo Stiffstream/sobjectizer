@@ -566,6 +566,14 @@ const int rc_coop_already_destroyed = 184;
  */
 const int rc_coop_is_not_in_registered_state = 185;
 
+/*!
+ * \brief An attempt to call join() from the joinable thread itself.
+ *
+ * \since
+ * v.5.6.0
+ */
+const int rc_unable_to_join_thread_by_itself = 186;
+
 //! \name Common error codes.
 //! \{
 

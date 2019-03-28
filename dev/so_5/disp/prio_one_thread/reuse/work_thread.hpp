@@ -20,6 +20,8 @@
 
 #include <so_5/details/at_scope_exit.hpp>
 
+#include <so_5/impl/thread_join_stuff.hpp>
+
 #include <thread>
 
 namespace so_5 {
@@ -181,6 +183,7 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 		void
 		join()
 			{
+				so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
 				this->m_thread.join();
 			}
 

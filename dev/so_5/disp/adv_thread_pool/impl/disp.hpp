@@ -23,6 +23,8 @@
 
 #include <so_5/disp/thread_pool/impl/common_implementation.hpp>
 
+#include <so_5/impl/thread_join_stuff.hpp>
+
 #include <forward_list>
 
 #if 0
@@ -480,6 +482,7 @@ class work_thread_template_t final : public Impl
 		void
 		join()
 			{
+				so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
 				this->m_thread.join();
 			}
 
