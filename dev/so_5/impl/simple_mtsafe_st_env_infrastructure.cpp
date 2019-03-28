@@ -589,7 +589,7 @@ void
 env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loop(
 	env_init_t init_fn )
 	{
-		init_fn();
+		so_5::impl::wrap_init_fn_call( std::move(init_fn) );
 		run_main_loop();
 	}
 

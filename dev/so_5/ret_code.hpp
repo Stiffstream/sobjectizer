@@ -586,6 +586,17 @@ const int rc_invalid_time_limit_for_state = 501;
  */
 const int rc_not_implemented = 502;
 
+/*!
+ * \brief An exception of unknown type is caught.
+ *
+ * SObjectizer expects that all exceptions are derived from std::exception
+ * class.
+ *
+ * \since
+ * v.5.5.24.3
+ */
+const int rc_unknown_exception_type = 503;
+
 //! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;
 //! \}

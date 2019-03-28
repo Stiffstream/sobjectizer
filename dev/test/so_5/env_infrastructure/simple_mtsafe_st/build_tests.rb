@@ -6,6 +6,7 @@ MxxRu::Cpp::composite_target {
 	path = 'test/so_5/env_infrastructure/simple_mtsafe_st'
 
 	required_prj "#{path}/empty_init_fn/prj.ut.rb"
+	required_prj "#{path}/unknown_exception_init_fn/prj.ut.rb"
 	required_prj "#{path}/stop_in_init_fn/prj.ut.rb"
 	required_prj "#{path}/simple_agent/prj.ut.rb"
 	required_prj "#{path}/create_default_disp_binder/prj.ut.rb"

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <so_5/environment.hpp>
+#include <so_5/ret_code.hpp>
 
 namespace so_5 {
 
@@ -195,6 +196,42 @@ default_lock_factory(
 	{
 		return internal_env_iface_t{ env }.default_mpmc_queue_lock_factory();
 	}
+
+//
+// wrap_init_fn_call
+//
+/*!
+ * \brief A special wrapper for calling init function.
+ *
+ * This wrapper calls init function and catch exception.
+ * If an exception is derived from std::exception it will be rethrown.
+ * If an exception is caught by catch(...) statement then an instance
+ * of so_5::exception_t will be thrown instead of caught exception.
+ *
+ * \since
+ * v.5.5.24.3
+ */
+template< typename Init_Fn >
+void
+wrap_init_fn_call( Init_Fn init_fn )
+	{
+		try
+			{
+				init_fn();
+			}
+		catch( const std::exception & )
+			{
+				throw; // Exception derived from std::exception
+					// will be caught automatically.
+			}
+		catch( ... )
+			{
+				SO_5_THROW_EXCEPTION(
+						rc_unknown_exception_type,
+						"exception of unknown type is thrown from init function" );
+			}
+	}
+
 
 } /* namespace impl */
 

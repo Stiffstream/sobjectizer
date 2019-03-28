@@ -11,6 +11,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/autoshutdown_in_init/prj.ut.rb"
 	required_prj "#{path}/moveable_params/prj.ut.rb"
 	required_prj "#{path}/reg_coop_after_stop/prj.ut.rb"
+	required_prj "#{path}/unknown_exception_run/prj.ut.rb"
 
 	required_prj "#{path}/stop_guards/build_tests.rb"
 }
