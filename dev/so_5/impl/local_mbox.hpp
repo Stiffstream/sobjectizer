@@ -830,25 +830,6 @@ class local_mbox_template
 			}
 
 		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
-			{
-				typename Tracing_Base::deliver_op_tracer tracer{
-						*this, // as Tracing_Base
-						*this, // as abstract_message_box_t
-						"deliver_service_request",
-						msg_type, message, overlimit_reaction_deep };
-
-				do_deliver_service_request_impl(
-						tracer,
-						msg_type,
-						message,
-						overlimit_reaction_deep );
-			}
-
-		void
 		do_deliver_enveloped_msg(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -1045,101 +1026,6 @@ class local_mbox_template
 				else
 					tracer.message_rejected(
 							agent_info.subscriber_pointer(), delivery_status );
-			}
-
-		void
-		do_deliver_service_request_impl(
-			typename Tracing_Base::deliver_op_tracer const & tracer,
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep )
-			{
-				using namespace so_5::message_limit::impl;
-
-				msg_service_request_base_t::dispatch_wrapper( message,
-					[&] {
-						read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
-
-						auto it = m_subscribers.find( msg_type );
-
-						if( it == m_subscribers.end() )
-							{
-								tracer.no_subscribers();
-
-								SO_5_THROW_EXCEPTION(
-										so_5::rc_no_svc_handlers,
-										std::string( "no service handlers (no subscribers for message)"
-										", msg_type: " ) + msg_type.name() );
-							}
-
-						if( 1 != it->second.size() )
-							SO_5_THROW_EXCEPTION(
-									so_5::rc_more_than_one_svc_handler,
-									std::string( "more than one service handler found"
-											", msg_type: " ) + msg_type.name() );
-
-						do_deliver_service_request_to_subscriber(
-								tracer,
-								*(it->second.begin()),
-								msg_type,
-								message,
-								overlimit_reaction_deep );
-					} );
-			}
-
-		void
-		do_deliver_service_request_to_subscriber(
-			typename Tracing_Base::deliver_op_tracer const & tracer,
-			const local_mbox_details::subscriber_info_t & agent_info,
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const
-			{
-				const auto delivery_status =
-						agent_info.must_be_delivered(
-								message,
-								[]( const message_ref_t & m ) -> message_t & {
-									return dynamic_cast< msg_service_request_base_t & >(
-											*m ).query_param();
-								} );
-
-				if( delivery_possibility_t::must_be_delivered == delivery_status )
-					{
-						using namespace so_5::message_limit::impl;
-
-						try_to_deliver_to_agent(
-								this->m_id,
-								invocation_type_t::service_request,
-								agent_info.subscriber_reference(),
-								agent_info.limit(),
-								msg_type,
-								message,
-								overlimit_reaction_deep,
-								tracer.overlimit_tracer(),
-								[&] {
-									tracer.push_to_queue( agent_info.subscriber_pointer() );
-
-									agent_t::call_push_event(
-											agent_info.subscriber_reference(),
-											agent_info.limit(),
-											m_id,
-											msg_type,
-											message );
-								} );
-					}
-				else
-					{
-						tracer.message_rejected(
-								agent_info.subscriber_pointer(),
-								delivery_status );
-
-						SO_5_THROW_EXCEPTION(
-								so_5::rc_no_svc_handlers,
-								std::string( "no service handlers (no subscribers "
-									"for message or subscriber is blocked by "
-									"delivery filter), msg_type: " )
-								+ msg_type.name() );
-					}
 			}
 
 		/*!

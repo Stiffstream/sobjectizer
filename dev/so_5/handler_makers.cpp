@@ -71,16 +71,6 @@ handlers_bunch_basics_t::find_and_use_handler(
 						it->m_handler( invocation, message );
 					break;
 
-					case invocation_type_t::service_request :
-						ret_value = true;
-						// Invocation should be done in a special wrapper.
-						msg_service_request_base_t::dispatch_wrapper(
-								message,
-								[&it, &message, invocation] {
-									it->m_handler( invocation, message );
-								} );
-					break;
-
 					case invocation_type_t::enveloped_msg :
 						// Invocation must be done a special way.
 						ret_value = process_envelope_when_handler_found( *it, message );

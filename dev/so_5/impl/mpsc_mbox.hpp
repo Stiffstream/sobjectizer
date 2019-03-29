@@ -138,33 +138,6 @@ class limitless_mpsc_mbox_template
 			}
 
 		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
-			{
-				typename Tracing_Base::deliver_op_tracer tracer{
-						*this, // as Tracing_Base
-						*this, // as abstract_message_box_t
-						"deliver_service_request",
-						msg_type, message, overlimit_reaction_deep };
-
-				this->do_delivery( tracer, [&] {
-					msg_service_request_base_t::dispatch_wrapper( message,
-						[&] {
-							tracer.push_to_queue( m_single_consumer );
-
-							agent_t::call_push_event(
-									*m_single_consumer,
-									so_5::message_limit::control_block_t::none(),
-									m_id,
-									msg_type,
-									message );
-						} );
-				} );
-			}
-
-		void
 		do_deliver_enveloped_msg(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -364,48 +337,6 @@ class limitful_mpsc_mbox_template
 										msg_type,
 										message );
 							} );
-				} );
-			}
-
-		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
-			{
-				typename Tracing_Base::deliver_op_tracer tracer{
-						*this, // as Tracing_Base
-						*this, // as abstract_message_box_t
-						"deliver_service_request",
-						msg_type, message, overlimit_reaction_deep };
-
-				this->do_delivery( tracer, [&] {
-					msg_service_request_base_t::dispatch_wrapper( message,
-						[&] {
-							using namespace so_5::message_limit::impl;
-
-							auto limit = m_limits.find( msg_type );
-
-							try_to_deliver_to_agent(
-									this->m_id,
-									invocation_type_t::service_request,
-									*(this->m_single_consumer),
-									limit,
-									msg_type,
-									message,
-									overlimit_reaction_deep,
-									tracer.overlimit_tracer(),
-									[&] {
-										tracer.push_to_queue( this->m_single_consumer );
-
-										agent_t::call_push_event(
-												*(this->m_single_consumer),
-												limit,
-												this->m_id,
-												msg_type,
-												message );
-									} );
-						} );
 				} );
 			}
 

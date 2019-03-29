@@ -155,17 +155,6 @@ class next_turn_mbox_t final : public abstract_message_box_t
 			}
 
 		void
-		do_deliver_service_request(
-			const std::type_index & /*msg_type*/,
-			const message_ref_t & /*message*/,
-			unsigned int /*overlimit_reaction_deep*/ ) override
-			{
-				SO_5_THROW_EXCEPTION( rc_not_implemented,
-						"call to do_deliver_service_request() is illegal for "
-						"next_turn_mbox_t" );
-			}
-
-		void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,

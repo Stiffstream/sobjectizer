@@ -191,20 +191,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		message_mutability_t m_mutability;
 
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
-		 * \brief Get the pointer to the message payload.
-		 *
-		 * \note This method is necessary for message delivery tracing.
-		 * For ordinal messages it will return a pointer to the message itself.
-		 * For service requests and user-defined messages it will return
-		 * pointer to a payload object.
-		 */
-		virtual const void *
-		so5__payload_ptr() const;
-
-		/*!
 		 * \brief Get message mutability flag.
 		 *
 		 * \note
@@ -919,136 +905,6 @@ make_message_instance( Args &&... args )
 
 } /* namespace details */
 
-//
-// msg_service_request_base_t
-//
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief A base class for concrete messages with information
- * about service requests.
- */
-class SO_5_TYPE msg_service_request_base_t : public message_t
-{
-	public:
-		//! Setup exception information to underlying promise/future objects.
-		virtual void
-		set_exception( std::exception_ptr ex ) = 0;
-
-		/*!
-		 * \since
-		 * v.5.5.5
-		 *
-		 * \brief Access to param of service_request.
-		 */
-		virtual message_t &
-		query_param() const noexcept = 0;
-
-		/*!
-		 * \since
-		 * v.5.5.4
-		 *
-		 * \brief Helper wrapper for handling exceptions during
-		 * service request dispatching.
-		 */
-		template< class Lambda >
-		static void
-		dispatch_wrapper(
-			const message_ref_t & what,
-			Lambda handler )
-		{
-			try
-			{
-				handler();
-			}
-			catch( ... )
-			{
-				msg_service_request_base_t & svc_request =
-						*(dynamic_cast< msg_service_request_base_t * >(
-								what.get() ));
-
-				svc_request.set_exception( std::current_exception() );
-			}
-		}
-
-	private :
-		// This method must be reimplemented in derived types.
-		virtual message_mutability_t
-		so5_message_mutability() const noexcept override = 0;
-
-		// This method must be reimplemented in derived types.
-		virtual void
-		so5_change_mutability( message_mutability_t ) override = 0;
-
-		kind_t
-		so5_message_kind() const noexcept override
-			{
-				return kind_t::service_request;
-			}
-};
-
-//
-// msg_service_request_t
-//
-/*!
- * \since
- * v.5.3.0
- *
- * \brief A concrete message with information about service request.
- */
-template< class Result, class Param >
-struct msg_service_request_t : public msg_service_request_base_t
-	{
-		//! A promise object for result of service function.
-		std::promise< Result > m_promise;
-		//! A parameter for service function.
-		message_ref_t m_param;
-
-		//! Constructor for the case where Param is a signal.
-		msg_service_request_t(
-			std::promise< Result > && promise )
-			:	m_promise( std::move( promise ) )
-			{}
-
-		//! Constructor for the case where Param is a message.
-		msg_service_request_t(
-			std::promise< Result > && promise,
-			message_ref_t && param )
-			:	m_promise( std::move( promise ) )
-			,	m_param( std::move( param ) )
-			{}
-
-		virtual void
-		set_exception( std::exception_ptr what ) override
-			{
-				m_promise.set_exception( what );
-			}
-
-		virtual message_t &
-		query_param() const noexcept override
-			{
-				return *m_param;
-			}
-
-	private :
-		virtual const void *
-		so5__payload_ptr() const override { return m_param.get(); }
-
-		virtual message_mutability_t
-		so5_message_mutability() const noexcept override
-			{
-				return message_mutability( m_param );
-			}
-
-		virtual void
-		so5_change_mutability( message_mutability_t v ) override
-			{
-				change_message_mutability( *m_param, v );
-			}
-	};
-
 // Note: after introduction of message_kind_t this enumeration
 // is seems to be obsolete. It will probably be removed in v.5.6.0
 //
@@ -1065,12 +921,6 @@ enum class invocation_type_t : int
 		//! Ordinal event handler invocation.
 		/*! Return value of event handler could be skipped. */
 		event,
-		//! Service handler invocation.
-		/*!
-		 * Return value of service handler should be stored into
-		 * underlying std::promise object.
-		 */
-		service_request,
 		//! Enveloped message.
 		/*!
 		 * This is a special envelope with some message/signal inside.
@@ -1098,10 +948,6 @@ detect_invocation_type_for_message_kind(
 			case message_t::kind_t::signal: /* event */ break;
 			case message_t::kind_t::classical_message: /* event */ break;
 			case message_t::kind_t::user_type_message: /* event */ break;
-
-			case message_t::kind_t::service_request:
-				result = invocation_type_t::service_request;
-			break;
 
 			case message_t::kind_t::enveloped_msg:
 				result = invocation_type_t::enveloped_msg;

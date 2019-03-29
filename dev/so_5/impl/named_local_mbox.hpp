@@ -74,12 +74,6 @@ class named_local_mbox_t
 			unsigned int overlimit_reaction_deep ) override;
 
 		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override;
-
-		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,

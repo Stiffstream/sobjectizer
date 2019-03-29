@@ -383,44 +383,16 @@ fill_trace_data_1(
 		// Just for compilation.
 	}
 
-inline std::tuple<const void *, const void *>
-detect_message_pointers( const message_ref_t & message )
-	{
-		// The first pointer is a pointer to envelope.
-		// The second pointer is a pointer to payload.
-		using msg_pointers = std::tuple< const void *, const void * >;
-		if( const message_t * envelope = message.get() )
-			{
-				// We can try cases with service requests and user-type messages.
-				const void * payload =
-						internal_message_iface_t{ *envelope }.payload_ptr();
-
-				if( payload != envelope )
-					// There are an envelope and payload inside it.
-					return msg_pointers{ envelope, payload };
-				else
-					// There is only payload.
-					return msg_pointers{ nullptr, envelope };
-			}
-		else
-			// It is a signal there is nothing.
-			return msg_pointers{ nullptr, nullptr };
-	}
-
 inline void
 make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
-		const void * envelope = nullptr;
-		const void * payload = nullptr;
-
-		std::tie(envelope,payload) = detect_message_pointers(message);
+		const void * envelope = message.get();
 
 		if( envelope )
 			s << "[envelope_ptr=" << pointer{envelope} << "]";
-		if( payload )
-			s << "[payload_ptr=" << pointer{payload} << "]";
 		else
 			s << "[signal]";
+
 		if( message_mutability_t::mutable_message == message_mutability(message) )
 			s << "[mutable]";
 	}
@@ -430,12 +402,9 @@ fill_trace_data_1(
 	actual_trace_data_t & d,
 	const message_ref_t & message )
 	{
-		const void * envelope = nullptr;
-		const void * payload = nullptr;
+		const void * envelope = message.get();
 
-		std::tie(envelope,payload) = detect_message_pointers(message);
-
-		if( !envelope && !payload )
+		if( !envelope )
 			{
 				// This is a signal.
 				d.set_message_or_signal(
@@ -450,7 +419,6 @@ fill_trace_data_1(
 				d.set_message_instance_info(
 						so_5::msg_tracing::message_instance_info_t{
 								envelope,
-								payload,
 								message_mutability(message) } );
 			}
 	}

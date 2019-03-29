@@ -120,13 +120,6 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 								m_handler_data.m_method );
 					break;
 
-					case invocation_type_t::service_request :
-						agent_t::process_service_request(
-								m_work_thread_id,
-								fresh_demand,
-								std::make_pair( true, &m_handler_data ) );
-					break;
-
 					case invocation_type_t::enveloped_msg :
 						agent_t::process_enveloped_msg(
 								m_work_thread_id,
@@ -150,10 +143,6 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 					{
 					case invocation_type_t::event :
 						result = &agent_t::demand_handler_on_message;
-					break;
-
-					case invocation_type_t::service_request :
-						result = &agent_t::demand_handler_on_service_request;
 					break;
 
 					case invocation_type_t::enveloped_msg :
@@ -203,18 +192,6 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 					case invocation_type_t::event :
 						m_was_handled = true;
 						m_handler.m_handler( invocation_type, payload.message() );
-					break;
-
-					case invocation_type_t::service_request :
-						m_was_handled = true;
-						// Invocation should be done in a special wrapper.
-						msg_service_request_base_t::dispatch_wrapper(
-								payload.message(),
-								[this, &payload] {
-									m_handler.m_handler(
-											invocation_type_t::service_request,
-											payload.message() );
-								} );
 					break;
 
 					case invocation_type_t::enveloped_msg :

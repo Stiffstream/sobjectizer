@@ -738,10 +738,8 @@ agent_t::so_create_execution_hint(
 	const auto demand_type =
 			(d.m_demand_handler == &agent_t::demand_handler_on_message ?
 				demand_type_t::message :
-				(d.m_demand_handler == &agent_t::demand_handler_on_service_request ?
-					demand_type_t::service_request :
-					(d.m_demand_handler == &agent_t::demand_handler_on_enveloped_msg ?
-						demand_type_t::enveloped_msg : demand_type_t::other)));
+				(d.m_demand_handler == &agent_t::demand_handler_on_enveloped_msg ?
+					demand_type_t::enveloped_msg : demand_type_t::other));
 
 	if( demand_type_t::other != demand_type )
 		{
@@ -765,27 +763,6 @@ agent_t::so_create_execution_hint(
 					else
 						// Handler not found.
 						return execution_hint_t::create_empty_execution_hint( d );
-				}
-			else if( demand_type_t::service_request == demand_type )
-				{
-					// There must be a special hint for service requests
-					// because absence of service handler processed by
-					// different way than absence of event handler.
-					return execution_hint_t(
-							d,
-							[handler](
-									execution_demand_t & demand,
-									current_thread_id_t thread_id ) {
-								process_service_request(
-										thread_id,
-										demand,
-										std::make_pair( true, handler ) );
-							},
-							handler ? handler->m_thread_safety :
-								// If there is no real handler then
-								// there will be only error processing.
-								// That processing is thread safe.
-								thread_safe );
 				}
 			else
 				{
@@ -1049,10 +1026,6 @@ select_demand_handler_for_message(
 		case message_t::kind_t::user_type_message : // Already has value.
 		break;
 
-		case message_t::kind_t::service_request :
-			result = &agent_t::demand_handler_on_service_request;
-		break;
-
 		case message_t::kind_t::enveloped_msg :
 			result = &agent_t::demand_handler_on_enveloped_msg;
 		break;
@@ -1201,27 +1174,6 @@ agent_t::get_demand_handler_on_message_ptr() noexcept
 }
 
 void
-agent_t::demand_handler_on_service_request(
-	current_thread_id_t working_thread_id,
-	execution_demand_t & d )
-{
-	message_limit::control_block_t::decrement( d.m_limit );
-
-	static const impl::event_handler_data_t * const null_handler_data = nullptr;
-
-	process_service_request(
-			working_thread_id,
-			d,
-			std::make_pair( false, null_handler_data ) );
-}
-
-demand_handler_pfn_t
-agent_t::get_service_request_handler_on_message_ptr() noexcept
-{
-	return &agent_t::demand_handler_on_service_request;
-}
-
-void
 agent_t::demand_handler_on_enveloped_msg(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
@@ -1263,50 +1215,6 @@ agent_t::process_message(
 		impl::process_unhandled_unknown_exception(
 				working_thread_id, *(d.m_receiver) );
 	}
-}
-
-void
-agent_t::process_service_request(
-	current_thread_id_t working_thread_id,
-	execution_demand_t & d,
-	std::pair< bool, const impl::event_handler_data_t * > handler_data )
-{
-	msg_service_request_base_t::dispatch_wrapper(
-		d.m_message_ref,
-		[&] {
-			const impl::event_handler_data_t * handler =
-					handler_data.first ?
-							handler_data.second :
-							d.m_receiver->m_handler_finder(
-									d, "process_service_request" );
-			if( handler )
-			{
-				working_thread_id_sentinel_t sentinel(
-						d.m_receiver->m_working_thread_id,
-						working_thread_id );
-
-				// This copy is necessary to prevent deallocation of
-				// event-handler if it is implemented as lambda-function.
-				// Deallocation is possible in such case:
-				//
-				// auto mbox = so_environment().create_mbox();
-				// so_subscribe( mbox ).event< some_signal >( [this, mbox] {
-				// 	so_drop_subscription< some_signal >( mbox );
-				// 	... // Some other actions.
-				// } );
-				auto method_to_call = handler->m_method;
-
-				method_to_call(
-						invocation_type_t::service_request, d.m_message_ref );
-			}
-			else
-				SO_5_THROW_EXCEPTION(
-						so_5::rc_svc_not_handled,
-						"service request handler is not found for "
-								"the current agent state; state: " +
-						d.m_receiver->so_current_state().query_name() +
-						", msg_type: " + d.m_msg_type.name() );
-		} );
 }
 
 void

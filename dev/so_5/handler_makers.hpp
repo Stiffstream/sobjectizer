@@ -62,37 +62,6 @@ get_actual_agent_pointer( agent_t & agent )
 }
 
 /*!
- * \brief Get actual msg_service_request pointer.
- *
- * \throw exception_t if dynamic_cast fails.
- */
-template< class Result, class Message >
-msg_service_request_t<
-		Result,
-		typename message_payload_type< Message >::envelope_type > *
-get_actual_service_request_pointer(
-	const message_ref_t & message_ref )
-{
-	using actual_request_msg_t =
-			msg_service_request_t<
-					Result,
-					typename message_payload_type< Message >::envelope_type >;
-
-	auto actual_request_ptr = dynamic_cast< actual_request_msg_t * >(
-			message_ref.get() );
-
-	if( !actual_request_ptr )
-		SO_5_THROW_EXCEPTION(
-				rc_msg_service_request_bad_cast,
-				std::string( "unable cast msg_service_request "
-						"instance to appropriate type, "
-						"expected type is: " ) +
-				typeid(actual_request_msg_t).name() );
-
-	return actual_request_ptr;
-}
-
-/*!
  * \brief A helper template for create an argument for event handler
  * in the case when argument is passed as value or const reference.
  *
@@ -282,32 +251,14 @@ msg_type_and_handler_pair_t
 make_handler_with_arg( Handler_Type lambda )
 	{
 		using arg_maker = event_handler_arg_maker< Arg >;
-		using payload_type = typename arg_maker::traits_type::payload_type;
 
 		arg_maker::ensure_appropriate_type();
 
 		auto method = [lambda](
-				invocation_type_t invocation_type,
+				invocation_type_t /*invocation_type*/,
 				message_ref_t & message_ref) mutable
 			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer<
-											Result, payload_type >( message_ref );
-
-						set_promise(
-								actual_request_ptr->m_promise,
-								[&] {
-									return lambda(
-											arg_maker::make_arg(
-													actual_request_ptr->m_param ) );
-								} );
-					}
-				else
-					{
-						lambda( arg_maker::make_arg( message_ref ) );
-					}
+				lambda( arg_maker::make_arg( message_ref ) );
 			};
 
 		return msg_type_and_handler_pair_t{
@@ -364,33 +315,13 @@ make_handler_with_arg_for_agent(
 				typename so_5::details::lambda_traits::plain_argument_type<
 						typename pfn_traits::argument_type>::type >;
 
-		using payload_type = typename arg_maker::traits_type::payload_type;
-		using result_type = typename pfn_traits::result_type;
-
 		arg_maker::ensure_appropriate_type();
 
 		auto method = [agent, pfn](
 				invocation_type_t invocation_type,
 				message_ref_t & message_ref)
 			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer<
-											result_type, payload_type >( message_ref );
-
-						set_promise(
-								actual_request_ptr->m_promise,
-								[&] {
-									return (agent->*pfn)(
-											arg_maker::make_arg(
-													actual_request_ptr->m_param ) );
-								} );
-					}
-				else
-					{
-						(agent->*pfn)( arg_maker::make_arg( message_ref ) );
-					}
+				(agent->*pfn)( arg_maker::make_arg( message_ref ) );
 			};
 
 		return msg_type_and_handler_pair_t{

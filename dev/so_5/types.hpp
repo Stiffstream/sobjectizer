@@ -115,8 +115,6 @@ enum class message_kind_t
 		classical_message,
 		//! Message is an user type message.
 		user_type_message,
-		//! Message is a service request.
-		service_request,
 		//! Message is an envelope with some other message inside.
 		enveloped_msg
 	};

@@ -181,11 +181,6 @@ struct message_instance_info_t
 		 * Can be null if message is not enveloped into a special wrapper.
 		 */
 		const void * m_envelope;
-		//! A pointer to payload.
-		/*!
-		 * Can't be null regardless of presence of envelope.
-		 */
-		const void * m_payload;
 		//! Information about message mutability.
 		message_mutability_t m_mutability;
 	};

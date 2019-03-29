@@ -375,21 +375,6 @@ class mchain_template
 			}
 
 		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
-			{
-				// Constness must be removed explicitly.
-				// Until do_deliver_service_request() lost const in v.5.6.0.
-				const_cast< mchain_template * >(this)->
-					try_to_store_message_to_queue(
-							msg_type,
-							message,
-							invocation_type_t::service_request );
-			}
-
-		void
 		do_deliver_enveloped_msg(
 			const std::type_index & msg_type,
 			const message_ref_t & message,

@@ -61,10 +61,6 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 						m_payload = payload;
 					break;
 
-					case invocation_type_t::service_request :
-						m_payload = payload;
-					break;
-
 					case invocation_type_t::enveloped_msg :
 						auto & envelope = message_to_envelope( payload.message() );
 						envelope.access_hook( m_context, *this );
@@ -119,9 +115,6 @@ message_to_be_inspected(
 			break;
 
 			case message_t::kind_t::user_type_message: // Already has a value.
-			break;
-
-			case message_t::kind_t::service_request: // Already has a value.
 			break;
 
 			case message_t::kind_t::enveloped_msg:

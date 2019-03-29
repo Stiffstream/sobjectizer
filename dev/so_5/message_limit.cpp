@@ -102,13 +102,6 @@ redirect_reaction(
 								ctx.m_reaction_deep + 1 );
 					break;
 
-					case invocation_type_t::service_request:
-						to->do_deliver_service_request(
-								ctx.m_msg_type,
-								ctx.m_message,
-								ctx.m_reaction_deep + 1 );
-					break;
-
 					case invocation_type_t::enveloped_msg:
 						to->do_deliver_enveloped_msg(
 								ctx.m_msg_type,
@@ -140,11 +133,10 @@ throw_exception_about_service_request_transformation(
 SO_5_FUNC
 void
 ensure_event_transform_reaction(
-	invocation_type_t invocation_type,
-	const overlimit_context_t & ctx )
+	invocation_type_t /*invocation_type*/,
+	const overlimit_context_t & /*ctx*/ )
 {
-	if( invocation_type_t::service_request == invocation_type )
-		throw_exception_about_service_request_transformation( ctx );
+//FIXME: is this function really needed after removement of service_requests?
 }
 
 SO_5_FUNC
