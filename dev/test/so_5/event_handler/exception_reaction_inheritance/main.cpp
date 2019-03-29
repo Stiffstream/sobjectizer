@@ -8,7 +8,7 @@
 
 #include <so_5/all.hpp>
 
-#include "../../svc/a_time_sentinel.hpp"
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 struct msg_test_signal : public so_5::signal_t {};
 
@@ -65,7 +65,6 @@ init( so_5::environment_t & env )
 {
 	auto coop = env.make_coop();
 	coop->make_agent< a_parent_t >();
-	coop->make_agent< a_time_sentinel_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -75,12 +74,15 @@ main()
 {
 	try
 	{
-		so_5::launch( &init,
-			[]( so_5::environment_params_t & params )
-			{
-				params.exception_reaction(
-						so_5::shutdown_sobjectizer_on_exception );
-			} );
+		run_with_time_limit( [] {
+				so_5::launch( &init,
+					[]( so_5::environment_params_t & params )
+					{
+						params.exception_reaction(
+								so_5::shutdown_sobjectizer_on_exception );
+					} );
+			},
+			10 );
 	}
 	catch( const std::exception & ex )
 	{

@@ -318,7 +318,7 @@ make_handler_with_arg_for_agent(
 		arg_maker::ensure_appropriate_type();
 
 		auto method = [agent, pfn](
-				invocation_type_t invocation_type,
+				invocation_type_t /*invocation_type*/,
 				message_ref_t & message_ref)
 			{
 				(agent->*pfn)( arg_maker::make_arg( message_ref ) );

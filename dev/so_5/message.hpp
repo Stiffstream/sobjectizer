@@ -358,9 +358,6 @@ struct user_type_message_t : public message_t
 		{}
 
 private :
-	virtual const void *
-	so5__payload_ptr() const override { return &m_payload; }
-
 	kind_t
 	so5_message_kind() const noexcept override
 		{

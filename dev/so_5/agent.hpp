@@ -3045,7 +3045,7 @@ subscription_bind_t::transfer_to_state(
 			m_agent, m_mbox_ref->id(), outliving_const(target_state) );
 
 	auto method = [op_state](
-			invocation_type_t invoke_type,
+			invocation_type_t /*invoke_type*/,
 			message_ref_t & msg )
 		{
 			// The current transfer_to_state operation should be inactive.

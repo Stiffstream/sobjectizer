@@ -42,18 +42,6 @@ class test_mbox_t : public so_5::abstract_message_box_t
 			}
 
 		virtual void
-		do_deliver_service_request(
-			const std::type_index & type_index,
-			const so_5::message_ref_t & svc_request_ref,
-			unsigned int overlimit_reaction_deep ) override
-			{
-				m_actual_mbox->do_deliver_service_request(
-						type_index,
-						svc_request_ref,
-						overlimit_reaction_deep );
-			}
-
-		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
 			const so_5::message_limit::control_block_t * limit,

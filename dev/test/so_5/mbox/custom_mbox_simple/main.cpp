@@ -71,16 +71,6 @@ public :
 		}
 
 	virtual void
-	do_deliver_service_request(
-		const std::type_index & msg_type,
-		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) override
-		{
-			m_actual_mbox->do_deliver_service_request(
-					msg_type, message, overlimit_reaction_deep );
-		}
-
-	virtual void
 	set_delivery_filter(
 		const std::type_index & msg_type,
 		const so_5::delivery_filter_t & filter,

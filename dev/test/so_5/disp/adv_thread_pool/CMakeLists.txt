@@ -1,4 +1,3 @@
-add_subdirectory(chained_svc_call)
 add_subdirectory(chstate_in_safe)
 add_subdirectory(cooperation_fifo)
 add_subdirectory(individual_fifo)

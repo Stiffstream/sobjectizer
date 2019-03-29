@@ -88,20 +88,6 @@ UT_UNIT_TEST( no_handlers )
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
-				agent_t::get_service_request_handler_on_message_ptr() );
-
-		auto hint = agent_t::so_create_execution_hint( demand );
-
-		UT_CHECK_EQ( true, hint );
-	}
-
-	{
-		execution_demand_t demand(
-				&agent,
-				message_limit::control_block_t::none(),
-				0,
-				typeid(msg_signal),
-				message_ref_t(),
 				agent_t::get_demand_handler_on_start_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
@@ -179,79 +165,11 @@ UT_UNIT_TEST( event_handler )
 	}
 }
 
-UT_UNIT_TEST( service_handler )
-{
-	using namespace so_5;
-
-	test_environment_t env;
-
-	a_test_t agent( env );
-
-	{
-		std::promise< std::string > promise;
-		auto f = promise.get_future();
-
-		message_ref_t msg(
-				new msg_service_request_t< std::string, msg_get_status >(
-						std::move(promise) ) );
-
-		execution_demand_t demand(
-				&agent,
-				message_limit::control_block_t::none(),
-				agent.so_direct_mbox()->id(),
-				typeid(msg_get_status),
-				msg,
-				agent_t::get_service_request_handler_on_message_ptr() );
-
-		auto hint = agent_t::so_create_execution_hint( demand );
-
-		UT_CHECK_EQ( true, hint );
-		UT_CHECK_EQ( true, hint.is_thread_safe() );
-
-		hint.exec( query_current_thread_id() );
-
-		UT_CHECK_THROW( exception_t, f.get() );
-
-		UT_CHECK_EQ( false, agent.m_get_status_handled );
-	}
-
-	agent.so_subscribe( agent.so_direct_mbox() )
-			.event( &a_test_t::evt_get_status );
-
-	{
-		std::promise< std::string > promise;
-		auto f = promise.get_future();
-
-		message_ref_t msg(
-				new msg_service_request_t< std::string, msg_get_status >(
-						std::move(promise) ) );
-
-		execution_demand_t demand(
-				&agent,
-				message_limit::control_block_t::none(),
-				agent.so_direct_mbox()->id(),
-				typeid(msg_get_status),
-				msg,
-				agent_t::get_service_request_handler_on_message_ptr() );
-
-		auto hint = agent_t::so_create_execution_hint( demand );
-
-		UT_CHECK_EQ( true, hint );
-		UT_CHECK_EQ( false, hint.is_thread_safe() );
-
-		hint.exec( query_current_thread_id() );
-
-		UT_CHECK_EQ( "OK", f.get() );
-		UT_CHECK_EQ( true, agent.m_get_status_handled );
-	}
-}
-
 int
 main()
 {
 	UT_RUN_UNIT_TEST( no_handlers )
 	UT_RUN_UNIT_TEST( event_handler )
-	UT_RUN_UNIT_TEST( service_handler )
 
 	return 0;
 }

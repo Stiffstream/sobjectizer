@@ -40,7 +40,6 @@ add_subdirectory(layer/extra_layer_errors)
 
 add_subdirectory(api/run_so_environment)
 
-add_subdirectory(svc)
 add_subdirectory(mutable_msg)
 
 add_subdirectory(internal_stats)

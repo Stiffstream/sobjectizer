@@ -18,12 +18,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/periodic/prj.ut.rb"
 	required_prj "#{path}/periodic_to_mpmc_mbox/prj.ut.rb"
 	required_prj "#{path}/delayed_mutable_with_timer_id/prj.ut.rb"
-	required_prj "#{path}/simple_svc/prj.ut.rb"
-	required_prj "#{path}/immutable_svc/prj.ut.rb"
 	required_prj "#{path}/simple_mchain/prj.ut.rb"
-	required_prj "#{path}/svc_redirect/prj.ut.rb"
-	required_prj "#{path}/svc_redirect_2/prj.ut.rb"
-	required_prj "#{path}/svc_redirect_signals/prj.ut.rb"
-	required_prj "#{path}/svc_redirect_signals_2/prj.ut.rb"
 	required_prj "#{path}/subscr_to_mutable_from_mpmc_mbox/prj.ut.rb"
 }

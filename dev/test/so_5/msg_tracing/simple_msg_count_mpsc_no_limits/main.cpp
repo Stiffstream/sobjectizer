@@ -52,7 +52,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		so_5::request_value< void, start >( m_other_mbox, so_5::infinite_wait );
+		so_5::send< start >( m_other_mbox );
 	}
 
 private :
