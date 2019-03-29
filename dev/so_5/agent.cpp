@@ -1203,7 +1203,7 @@ agent_t::process_message(
 
 	try
 	{
-		method( invocation_type_t::event, d.m_message_ref );
+		method( d.m_message_ref );
 	}
 	catch( const std::exception & x )
 	{

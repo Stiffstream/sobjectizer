@@ -55,13 +55,15 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 			{
 				using namespace so_5::enveloped_msg::impl;
 
-				switch( detect_invocation_type_for_message( payload.message() ) )
+				switch( message_kind( payload.message() ) )
 					{
-					case invocation_type_t::event :
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						m_payload = payload;
 					break;
 
-					case invocation_type_t::enveloped_msg :
+					case message_t::kind_t::enveloped_msg :
 						auto & envelope = message_to_envelope( payload.message() );
 						envelope.access_hook( m_context, *this );
 					break;

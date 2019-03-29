@@ -320,7 +320,6 @@ class limitful_mpsc_mbox_template
 
 					try_to_deliver_to_agent(
 							this->m_id,
-							invocation_type_t::event,
 							*(this->m_single_consumer),
 							limit,
 							msg_type,
@@ -365,7 +364,6 @@ class limitful_mpsc_mbox_template
 
 					try_to_deliver_to_agent(
 							this->m_id,
-							invocation_type_t::enveloped_msg,
 							*(this->m_single_consumer),
 							limit,
 							msg_type,

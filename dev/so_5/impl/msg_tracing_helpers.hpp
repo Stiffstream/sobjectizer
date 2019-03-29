@@ -865,8 +865,7 @@ struct mchain_tracing_disabled_base
 					const mchain_tracing_disabled_base &,
 					const abstract_message_chain_t &,
 					const std::type_index &,
-					const message_ref_t &,
-					const invocation_type_t )
+					const message_ref_t & )
 					{}
 
 				template< typename Queue >
@@ -897,14 +896,6 @@ class mchain_tracing_enabled_base
 	private :
 		so_5::msg_tracing::holder_t & m_tracer;
 
-		static const char *
-		message_or_svc_request(
-			invocation_type_t invocation )
-			{
-				return invocation_type_t::event == invocation ?
-						"message" : "service_request";
-			}
-
 	public :
 		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
 			:	m_tracer( tracer )
@@ -925,7 +916,8 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-								message_or_svc_request( d.m_demand_type ),
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+								"message",
 								"extracted" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -940,7 +932,8 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-								message_or_svc_request( d.m_demand_type ),
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+								"message",
 								"dropped_on_close" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -976,11 +969,11 @@ class mchain_tracing_enabled_base
 					const mchain_tracing_enabled_base & tracing_base,
 					const abstract_message_chain_t & chain,
 					const std::type_index & msg_type,
-					const message_ref_t & message,
-					const invocation_type_t invocation )
+					const message_ref_t & message )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_chain( chain )
-					,	m_op_name( message_or_svc_request( invocation ) )
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+					,	m_op_name( "message" )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
 					{}

@@ -825,8 +825,7 @@ class local_mbox_template
 						tracer,
 						msg_type,
 						message,
-						overlimit_reaction_deep,
-						invocation_type_t::event );
+						overlimit_reaction_deep );
 			}
 
 		void
@@ -847,8 +846,7 @@ class local_mbox_template
 						tracer,
 						msg_type,
 						message,
-						overlimit_reaction_deep,
-						invocation_type_t::enveloped_msg );
+						overlimit_reaction_deep );
 			}
 
 		void
@@ -962,8 +960,7 @@ class local_mbox_template
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep,
-			invocation_type_t invocation_type )
+			unsigned int overlimit_reaction_deep )
 			{
 				read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
@@ -976,8 +973,7 @@ class local_mbox_template
 									tracer,
 									msg_type,
 									message,
-									overlimit_reaction_deep,
-									invocation_type );
+									overlimit_reaction_deep );
 					}
 				else
 					tracer.no_subscribers();
@@ -989,8 +985,7 @@ class local_mbox_template
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep,
-			invocation_type_t invocation_type ) const
+			unsigned int overlimit_reaction_deep ) const
 			{
 				const auto delivery_status =
 						agent_info.must_be_delivered(
@@ -1005,7 +1000,6 @@ class local_mbox_template
 
 						try_to_deliver_to_agent(
 								this->m_id,
-								invocation_type,
 								agent_info.subscriber_reference(),
 								agent_info.limit(),
 								msg_type,

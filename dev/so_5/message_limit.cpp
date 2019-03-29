@@ -93,16 +93,18 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
-				switch( ctx.m_event_type )
+				switch( message_kind( ctx.m_message ) )
 					{
-					case invocation_type_t::event:
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						to->do_deliver_message(
 								ctx.m_msg_type,
 								ctx.m_message,
 								ctx.m_reaction_deep + 1 );
 					break;
 
-					case invocation_type_t::enveloped_msg:
+					case message_t::kind_t::enveloped_msg:
 						to->do_deliver_enveloped_msg(
 								ctx.m_msg_type,
 								ctx.m_message,
@@ -129,15 +131,6 @@ throw_exception_about_service_request_transformation(
 	}
 
 } /* namespace anonymous */
-
-SO_5_FUNC
-void
-ensure_event_transform_reaction(
-	invocation_type_t /*invocation_type*/,
-	const overlimit_context_t & /*ctx*/ )
-{
-//FIXME: is this function really needed after removement of service_requests?
-}
 
 SO_5_FUNC
 void

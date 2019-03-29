@@ -902,84 +902,6 @@ make_message_instance( Args &&... args )
 
 } /* namespace details */
 
-// Note: after introduction of message_kind_t this enumeration
-// is seems to be obsolete. It will probably be removed in v.5.6.0
-//
-// invocation_type_t
-//
-/*!
- * \since
- * v.5.3.0
- *
- * \brief Type of agent method invocation (event handling, service request).
- */
-enum class invocation_type_t : int
-	{
-		//! Ordinal event handler invocation.
-		/*! Return value of event handler could be skipped. */
-		event,
-		//! Enveloped message.
-		/*!
-		 * This is a special envelope with some message/signal inside.
-		 *
-		 * \since
-		 * v.5.5.23
-		 */
-		enveloped_msg
-	};
-
-//NOTE: this function should probably be removed in v.5.6.0.
-/*!
- * \brief Detect invocation type by analyzing message_kind value.
- *
- * \since
- * v.5.5.23
- */
-inline invocation_type_t
-detect_invocation_type_for_message_kind(
-	message_t::kind_t kind )
-	{
-		invocation_type_t result = invocation_type_t::event;
-		switch( kind )
-			{
-			case message_t::kind_t::signal: /* event */ break;
-			case message_t::kind_t::classical_message: /* event */ break;
-			case message_t::kind_t::user_type_message: /* event */ break;
-
-			case message_t::kind_t::enveloped_msg:
-				result = invocation_type_t::enveloped_msg;
-			break;
-			}
-
-		return result;
-	}
-
-/*!
- * \brief Detect invocation_type for a message.
- *
- * \since
- * v.5.5.23
- */
-inline invocation_type_t
-detect_invocation_type_for_message(
-	const message_t & msg )
-	{
-		return detect_invocation_type_for_message_kind( message_kind(msg) );
-	}
-
-/*!
- * \brief Detect invocation_type for a message.
- *
- * \since
- * v.5.5.23
- */
-inline invocation_type_t
-detect_invocation_type_for_message(
-	const message_ref_t & msg )
-	{
-		return detect_invocation_type_for_message_kind( message_kind(msg) );
-	}
-
 namespace message_limit
 {
 
@@ -1013,9 +935,6 @@ struct overlimit_context_t
 		//! Control block for message limit.
 		const control_block_t & m_limit;
 
-		//! Is it message delivery or service request delivery.
-		invocation_type_t m_event_type;
-
 		//! The current deep of overlimit reaction recursion.
 		const unsigned int m_reaction_deep;
 
@@ -1043,7 +962,6 @@ struct overlimit_context_t
 			mbox_id_t mbox_id,
 			const agent_t & receiver,
 			const control_block_t & limit,
-			invocation_type_t event_type,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -1051,7 +969,6 @@ struct overlimit_context_t
 			:	m_mbox_id( mbox_id )
 			,	m_receiver( receiver )
 			,	m_limit( limit )
-			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )
 			,	m_msg_type( msg_type )
 			,	m_message( message )

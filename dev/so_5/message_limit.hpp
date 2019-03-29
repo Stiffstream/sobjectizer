@@ -388,22 +388,6 @@ namespace impl
  * \since
  * v.5.5.4
  *
- * \brief Checks that service request will not be transformed.
- */
-SO_5_FUNC
-void
-ensure_event_transform_reaction(
-	//! Invocation type to be checked.
-	invocation_type_t invocation_type,
-	//! Context on which overlimit must be handled.
-	//! This context is necessary to make description for
-	//! exception to be thrown.
-	const overlimit_context_t & ctx );
-
-/*!
- * \since
- * v.5.5.4
- *
  * \brief Actual implementation of transform reaction.
  */
 SO_5_FUNC
@@ -753,7 +737,8 @@ struct message_limit_methods_mixin_t
 
 						// Envelopes should be handled a special way.
 						// Payload must be extrected and checked for presence.
-						if( invocation_type_t::enveloped_msg == ctx.m_event_type )
+						if( message_t::kind_t::enveloped_msg == message_kind(
+									ctx.m_message ) )
 							{
 								const auto opt_payload = ::so_5::enveloped_msg::
 										extract_payload_for_message_transformation(
@@ -763,18 +748,11 @@ struct message_limit_methods_mixin_t
 								// transformation only if payload is present.
 								if( opt_payload )
 									{
-										impl::ensure_event_transform_reaction(
-												detect_invocation_type_for_message(
-														opt_payload->message() ),
-												ctx );
 										actual_transform( opt_payload->message() );
 									}
 							}
 						else
 							{
-								impl::ensure_event_transform_reaction(
-										ctx.m_event_type,
-										ctx );
 								actual_transform( ctx.m_message );
 							}
 					};
@@ -808,7 +786,8 @@ struct message_limit_methods_mixin_t
 
 						// Envelopes should be handled a special way.
 						// Payload must be extrected and checked for presence.
-						if( invocation_type_t::enveloped_msg == ctx.m_event_type )
+						if( message_t::kind_t::enveloped_msg == message_kind(
+								ctx.m_message ) )
 							{
 								const auto opt_payload = ::so_5::enveloped_msg::
 										extract_payload_for_message_transformation(
@@ -818,18 +797,11 @@ struct message_limit_methods_mixin_t
 								// transformation only if payload is present.
 								if( opt_payload )
 									{
-										impl::ensure_event_transform_reaction(
-												detect_invocation_type_for_message(
-														opt_payload->message() ),
-												ctx );
 										actual_transform();
 									}
 							}
 						else
 							{
-								impl::ensure_event_transform_reaction(
-										ctx.m_event_type,
-										ctx );
 								actual_transform();
 							}
 
