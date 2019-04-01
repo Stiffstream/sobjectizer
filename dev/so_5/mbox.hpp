@@ -126,17 +126,6 @@ enum class mbox_type_t
  * All mboxes can be created via the SObjectizer Environment. References to
  * mboxes are stored and manipulated by so_5::mbox_t objects.
  *
- * abstract_message_box_t has two versions of the deliver_message() method. 
- * The first one requires pointer to the actual message data and is intended 
- * for delivering messages to agents.
- * The second one doesn't use a pointer to the actual message data and 
- * is intended for delivering signals to agents.
- *
- * abstract_message_box_t also is used for the delivery of delayed and periodic
- * messages.  The SObjectizer Environment stores mbox for which messages must
- * be delivered and the timer thread pushes message instances to the mbox at
- * the appropriate time.
- *
  * \see environment_t::schedule_timer(), environment_t::single_timer().
  */
 class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t

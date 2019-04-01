@@ -59,18 +59,6 @@
  */
 
 /*!
- * \example so_5/svc/hello/main.cpp
- */
-
-/*!
- * \example so_5/svc/exceptions/main.cpp
- */
-
-/*!
- * \example so_5/svc/parallel_sum/main.cpp
- */
-
-/*!
  * \example so_5/ping_pong_minimal/main.cpp
  */
 
@@ -103,10 +91,6 @@
  */
 
 /*!
- * \example so_5/work_generation/main.cpp
- */
-
-/*!
  * \example so_5/subscriptions/main.cpp
  */
 
@@ -120,14 +104,6 @@
 
 /*!
  * \example so_5/parent_coop/main.cpp
- */
-
-/*!
- * \example so_5/collector_performer_pair/main.cpp
- */
-
-/*!
- * \example so_5/collector_many_performers/main.cpp
  */
 
 /*!
@@ -176,14 +152,6 @@
 
 /*!
  * \example so_5/wrapped_env_demo/main.cpp
- */
-
-/*!
- * \example so_5/convert_lib/main.cpp
- */
-
-/*!
- * \example so_5/mchain_svc_req/main.cpp
  */
 
 /*!
