@@ -100,24 +100,6 @@ redirect_reaction(
 			}
 	}
 
-namespace {
-
-void
-throw_exception_about_service_request_transformation(
-	const overlimit_context_t & ctx )
-	{
-		std::ostringstream ss;
-		ss << "service_request cannot be transformed;"
-				<< " msg_type: " << ctx.m_msg_type.name()
-				<< ", limit: " << ctx.m_limit.m_limit
-				<< ", agent: " << &(ctx.m_receiver);
-		SO_5_THROW_EXCEPTION(
-				rc_svc_request_cannot_be_transfomred_on_overlimit,
-				ss.str() );
-	}
-
-} /* namespace anonymous */
-
 SO_5_FUNC
 void
 transform_reaction(
