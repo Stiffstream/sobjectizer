@@ -66,11 +66,11 @@ run_test()
 	so_5::intrusive_ptr_t< special_wrapper_t > env2{
 			std::make_unique<special_wrapper_t>(msg2) };
 
-	mchain->as_mbox()->do_deliver_enveloped_msg(
+	mchain->as_mbox()->do_deliver_message(
 			so_5::message_payload_type<just_test_msg>::subscription_type_index(),
 			env1,
 			1u );
-	mchain->as_mbox()->do_deliver_enveloped_msg(
+	mchain->as_mbox()->do_deliver_message(
 			so_5::message_payload_type<just_test_msg>::subscription_type_index(),
 			env2,
 			1u );

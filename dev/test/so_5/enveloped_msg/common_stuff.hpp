@@ -165,24 +165,7 @@ public :
 				allocate_counter(),
 				message );
 
-		m_actual_mbox->do_deliver_enveloped_msg(
-				msg_type,
-				so_5::message_ref_t{ std::move(envelope) },
-				overlimit_reaction_deep );
-	}
-
-	void
-	do_deliver_enveloped_msg(
-		const std::type_index & msg_type,
-		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) override
-	{
-		auto envelope = std::make_unique< Envelope >(
-				m_trace,
-				allocate_counter(),
-				message );
-
-		m_actual_mbox->do_deliver_enveloped_msg(
+		m_actual_mbox->do_deliver_message(
 				msg_type,
 				so_5::message_ref_t{ std::move(envelope) },
 				overlimit_reaction_deep );

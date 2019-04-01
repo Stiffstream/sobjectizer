@@ -218,6 +218,10 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
+		 *
+		 * \note
+		 * Since v.5.6.0 this method is used for deliverance of ordinary
+		 * messages/signals and for deliverance of enveloped messages.
 		 */
 		virtual void
 		do_deliver_message(
@@ -227,28 +231,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
 			unsigned int overlimit_reaction_deep ) = 0;
-
-		/*!
-		 * \brief Deliver enveloped message.
-		 *
-		 * \note
-		 * To keep source-code compatibility with previous versions
-		 * this method is not pure virtual. It has an implementation
-		 * that throws an exception with rc_not_implemented error code.
-		 * This method will be marked as pure virtual in v.5.6.0
-		 *
-		 * \since
-		 * v.5.5.23
-		 */
-		virtual void
-		do_deliver_enveloped_msg(
-			//! This is type_index for service Param type.
-			const std::type_index & msg_type,
-			//! This is reference to instance of an envelope.
-			//! This pointer can't be null.
-			const message_ref_t & message,
-			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep );
 
 		/*!
 		 * \name Methods for working with delivery filters.

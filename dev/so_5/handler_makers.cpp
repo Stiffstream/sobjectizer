@@ -63,8 +63,8 @@ handlers_bunch_basics_t::find_and_use_handler(
 				// Handler is found and must be called.
 				switch( message_kind( message ) )
 					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						// This is an async message.
 						// Simple call is enough.

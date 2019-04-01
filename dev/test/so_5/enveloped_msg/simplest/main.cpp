@@ -79,7 +79,7 @@ post_enveloped(
 					std::move(id),
 					std::move(msg) ) };
 
-	mbox->do_deliver_enveloped_msg(
+	mbox->do_deliver_message(
 			so_5::message_payload_type<Msg>::subscription_type_index(),
 			std::move(enveloped),
 			1 );

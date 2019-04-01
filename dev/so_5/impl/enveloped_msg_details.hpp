@@ -112,8 +112,8 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 
 				switch( msg_kind )
 					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						agent_t::process_message(
 								m_work_thread_id,
@@ -142,8 +142,8 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 				demand_handler_pfn_t result = nullptr;
 				switch( msg_kind )
 					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						result = &agent_t::demand_handler_on_message;
 					break;
@@ -191,8 +191,8 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 
 				switch( msg_kind )
 					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						m_was_handled = true;
 						m_handler.m_handler( payload.message() );

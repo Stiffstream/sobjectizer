@@ -93,24 +93,10 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
-				switch( message_kind( ctx.m_message ) )
-					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
-					case message_t::kind_t::user_type_message :
-						to->do_deliver_message(
-								ctx.m_msg_type,
-								ctx.m_message,
-								ctx.m_reaction_deep + 1 );
-					break;
-
-					case message_t::kind_t::enveloped_msg:
-						to->do_deliver_enveloped_msg(
-								ctx.m_msg_type,
-								ctx.m_message,
-								ctx.m_reaction_deep + 1 );
-					break;
-					}
+				to->do_deliver_message(
+						ctx.m_msg_type,
+						ctx.m_message,
+						ctx.m_reaction_deep + 1 );
 			}
 	}
 

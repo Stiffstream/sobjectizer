@@ -373,17 +373,6 @@ class mchain_template
 							message );
 			}
 
-		void
-		do_deliver_enveloped_msg(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
-			{
-				try_to_store_message_to_queue(
-						msg_type,
-						message );
-			}
-
 		/*!
 		 * \attention Will throw an exception because delivery
 		 * filter is not applicable to MPSC-mboxes.

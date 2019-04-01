@@ -57,8 +57,8 @@ class payload_access_handler_invoker_t final : public handler_invoker_t
 
 				switch( message_kind( payload.message() ) )
 					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						m_payload = payload;
 					break;
