@@ -3044,9 +3044,7 @@ subscription_bind_t::transfer_to_state(
 	auto op_state = std::make_shared< transfer_op_state_t >(
 			m_agent, m_mbox_ref->id(), outliving_const(target_state) );
 
-	auto method = [op_state](
-			invocation_type_t /*invoke_type*/,
-			message_ref_t & msg )
+	auto method = [op_state]( message_ref_t & msg )
 		{
 			// The current transfer_to_state operation should be inactive.
 			if( op_state->m_in_progress )
@@ -3094,7 +3092,7 @@ subscription_bind_t &
 subscription_bind_t::suppress()
 {
 	// A method with nothing inside.
-	auto method = []( invocation_type_t, message_ref_t & ) {};
+	auto method = []( message_ref_t & ) {};
 
 	create_subscription_for_states(
 			typeid( Msg ),
@@ -3111,8 +3109,7 @@ subscription_bind_t::just_switch_to(
 {
 	agent_t * agent_ptr = m_agent;
 
-	auto method = [agent_ptr, &target_state](
-			invocation_type_t, message_ref_t & )
+	auto method = [agent_ptr, &target_state]( message_ref_t & )
 		{
 			agent_ptr->so_change_state( target_state );
 		};

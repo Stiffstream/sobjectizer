@@ -154,66 +154,27 @@ struct demand_t
 		std::type_index m_msg_type;
 		//! Event incident.
 		so_5::message_ref_t m_message_ref;
-		//! Type of demand.
-		so_5::invocation_type_t m_demand_type;
-
-// NOTE: the full set of constructors and copy/move operators is defined
-// because VC++12.0 doesn't generate move constructors/operators automatically
-// and doesn't support '=default' construct.
 
 		//! Default constructor.
 		demand_t()
 			:	m_msg_type( typeid(void) )
-			,	m_demand_type( invocation_type_t::event )
 			{}
 		//! Initializing constructor.
 		demand_t(
 			std::type_index msg_type,
-			so_5::message_ref_t message_ref,
-			so_5::invocation_type_t demand_type )
+			so_5::message_ref_t message_ref )
 			:	m_msg_type{ std::move(msg_type) }
 			,	m_message_ref{ std::move(message_ref) }
-			,	m_demand_type{ demand_type }
-			{}
-
-		//! Copy constructor.
-		demand_t( const demand_t& o )
-			:	m_msg_type{ o.m_msg_type }
-			,	m_message_ref{ o.m_message_ref }
-			,	m_demand_type{ o.m_demand_type }
-			{}
-		//! Move constructor.
-		demand_t( demand_t && o )
-			:	m_msg_type{ std::move(o.m_msg_type) }
-			,	m_message_ref{ std::move(o.m_message_ref) }
-			,	m_demand_type{ std::move(o.m_demand_type) }
 			{}
 
 		//! Swap operation.
-		void
-		swap( demand_t & o )
+		friend void
+		swap( demand_t & a, demand_t & b )
 			{
-				std::swap( m_msg_type, o.m_msg_type );
-				m_message_ref.swap( o.m_message_ref );
-				std::swap( m_demand_type, o.m_demand_type );
-			}
+				using std::swap;
 
-		//! Copy operator.
-		demand_t &
-		operator=( const demand_t & o )
-			{
-				demand_t tmp{ o };
-				tmp.swap( *this );
-				return *this;
-			}
-
-		//! Move operator.
-		demand_t &
-		operator=( demand_t && o )
-			{
-				demand_t tmp{ std::move(o) };
-				tmp.swap( *this );
-				return *this;
+				swap( a.m_msg_type, b.m_msg_type );
+				swap( a.m_message_ref, b.m_message_ref );
 			}
 	};
 
@@ -952,8 +913,7 @@ receive(
 			{
 				const bool handled = bunch.handle(
 						extracted_demand.m_msg_type,
-						extracted_demand.m_message_ref,
-						extracted_demand.m_demand_type );
+						extracted_demand.m_message_ref );
 
 				return mchain_receive_result_t{ 1u, handled ? 1u : 0u, status };
 			}
@@ -1300,8 +1260,7 @@ class receive_actions_performer_t
 						++m_extracted_messages;
 						const bool handled = m_bunch.handle(
 								extracted_demand.m_msg_type,
-								extracted_demand.m_message_ref,
-								extracted_demand.m_demand_type );
+								extracted_demand.m_message_ref );
 						if( handled )
 							++m_handled_messages;
 					}

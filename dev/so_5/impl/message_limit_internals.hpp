@@ -279,8 +279,6 @@ try_to_deliver_to_agent(
 	 * Added in v.5.5.23 for support of enveloped messages.
 	 */
 	mbox_id_t mbox_id,
-	//! It is a message or service request?
-	invocation_type_t invocation_type,
 	//! Receiver of the message or service request.
 	const agent_t & receiver,
 	//! Optional message limit.
@@ -306,7 +304,6 @@ try_to_deliver_to_agent(
 				mbox_id,
 				receiver,
 				*limit,
-				invocation_type,
 				overlimit_reaction_deep,
 				msg_type,
 				what_to_deliver,
