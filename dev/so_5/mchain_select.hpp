@@ -101,8 +101,7 @@ class actual_select_case_t : public select_case_t
 			{
 				const bool handled = m_handlers.handle(
 						demand.m_msg_type,
-						demand.m_message_ref,
-						demand.m_demand_type );
+						demand.m_message_ref );
 
 				return mchain_receive_result_t{
 						1u,

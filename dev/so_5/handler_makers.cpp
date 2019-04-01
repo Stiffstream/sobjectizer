@@ -52,8 +52,7 @@ handlers_bunch_basics_t::find_and_use_handler(
 	const msg_type_and_handler_pair_t * left,
 	const msg_type_and_handler_pair_t * right,
 	const std::type_index & msg_type,
-	message_ref_t & message,
-	invocation_type_t invocation )
+	message_ref_t & message )
 	{
 		bool ret_value = false;
 
@@ -62,26 +61,18 @@ handlers_bunch_basics_t::find_and_use_handler(
 		if( it != right && it->m_msg_type == key.m_msg_type )
 			{
 				// Handler is found and must be called.
-				switch( invocation )
+				switch( message_kind( message ) )
 					{
-					case invocation_type_t::event :
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						// This is an async message.
 						// Simple call is enough.
 						ret_value = true;
-						it->m_handler( invocation, message );
+						it->m_handler( message );
 					break;
 
-					case invocation_type_t::service_request :
-						ret_value = true;
-						// Invocation should be done in a special wrapper.
-						msg_service_request_base_t::dispatch_wrapper(
-								message,
-								[&it, &message, invocation] {
-									it->m_handler( invocation, message );
-								} );
-					break;
-
-					case invocation_type_t::enveloped_msg :
+					case message_t::kind_t::enveloped_msg :
 						// Invocation must be done a special way.
 						ret_value = process_envelope_when_handler_found( *it, message );
 					break;

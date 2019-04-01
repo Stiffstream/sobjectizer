@@ -42,11 +42,5 @@ message_t::operator=( message_t && other )
 	return *this;
 }
 
-const void *
-message_t::so5__payload_ptr() const
-{
-	return this;
-}
-
 } /* namespace so_5 */
 

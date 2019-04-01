@@ -23,6 +23,8 @@ struct	cfg_t
 {
 	unsigned int	m_request_count = 1000;
 
+	bool	m_use_messages = false;
+
 	bool	m_active_objects = false;
 	bool	m_simple_lock = false;
 
@@ -61,6 +63,8 @@ try_parse_cmdline(
 							"                       default_mt (default),\n"
 							"                       simple_mtsafe,\n"
 							"                       simple_not_mtsafe\n"
+							"-M, --use-messages   use messages for interaction "
+									"(signals are used by default)\n"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -98,6 +102,8 @@ try_parse_cmdline(
 						throw std::runtime_error( "unknown type of "
 								"environment infrastructure: " + env_type_literal );
 				}
+			else if( is_arg( *current, "-M", "--use-messages" ) )
+				tmp_cfg.m_use_messages = true;
 			else
 				throw std::runtime_error(
 						std::string( "unknown argument: " ) + *current );
@@ -112,10 +118,14 @@ struct	measure_result_t
 	steady_clock::time_point	m_finish_time;
 };
 
-struct msg_data : public so_5::signal_t {};
+struct impact_signal final : public so_5::signal_t {};
+struct impact_message final : public so_5::message_t
+	{
+		impact_message() = default;
+	};
 
-class a_pinger_t
-	:	public so_5::agent_t
+template< typename Impact >
+class a_pinger_t final : public so_5::agent_t
 	{
 		typedef so_5::agent_t base_type_t;
 	
@@ -157,7 +167,7 @@ class a_pinger_t
 			}
 
 		void
-		evt_pong( mhood_t< msg_data > )
+		evt_pong( mhood_t< Impact > )
 			{
 				++m_requests_sent;
 				if( m_requests_sent < m_cfg.m_request_count )
@@ -181,21 +191,21 @@ class a_pinger_t
 		void
 		send_ping()
 			{
-				so_5::send< msg_data >( m_ponger_mbox );
+				so_5::send< Impact >( m_ponger_mbox );
 			}
 
 		static context_t
 		prepare_context( context_t ctx, const cfg_t & cfg )
 			{
 				if( cfg.m_message_limits )
-					return ctx + limit_then_abort< msg_data >( 1 );
+					return ctx + limit_then_abort< Impact >( 1 );
 				else
 					return ctx;
 			}
 	};
 
-class a_ponger_t
-	:	public so_5::agent_t
+template< typename Impact >
+class a_ponger_t final : public so_5::agent_t
 	{
 		typedef so_5::agent_t base_type_t;
 	
@@ -225,9 +235,9 @@ class a_ponger_t
 			}
 
 		void
-		evt_ping( mhood_t< msg_data > )
+		evt_ping( mhood_t< Impact > )
 			{
-				so_5::send< msg_data >( m_pinger_mbox );
+				so_5::send< Impact >( m_pinger_mbox );
 			}
 
 	private :
@@ -238,7 +248,7 @@ class a_ponger_t
 		prepare_context( context_t ctx, const cfg_t & cfg )
 			{
 				if( cfg.m_message_limits )
-					return ctx + limit_then_abort< msg_data >( 1 );
+					return ctx + limit_then_abort< Impact >( 1 );
 				else
 					return ctx;
 			}
@@ -258,6 +268,7 @@ show_cfg(
 			<< ", env: " << ( env_type_t::default_mt == cfg.m_env ?
 					"mt" : ( env_type_t::simple_mtsafe == cfg.m_env ?
 							"mtsafe" : "not_mtsafe" ) )
+			<< ", " << ( cfg.m_use_messages ? "messages" : "signals" )
 			<< std::endl;
 	}
 
@@ -306,20 +317,11 @@ class test_env_t
 						so_5::make_default_disp_binder( env ) );
 
 				auto coop = env.make_coop( std::move(binder) );
-
-				auto a_pinger = coop->make_agent< a_pinger_t >( m_cfg, m_result );
-				auto a_ponger = coop->make_agent< a_ponger_t >( m_cfg );
-
-				auto pinger_mbox = m_cfg.m_direct_mboxes ?
-						a_pinger->so_direct_mbox() : env.create_mbox();
-				auto ponger_mbox = m_cfg.m_direct_mboxes ?
-						a_ponger->so_direct_mbox() : env.create_mbox();
-
-				a_pinger->set_self_mbox( pinger_mbox );
-				a_pinger->set_ponger_mbox( ponger_mbox );
-
-				a_ponger->set_self_mbox( ponger_mbox );
-				a_ponger->set_pinger_mbox( pinger_mbox );
+				
+				if( m_cfg.m_use_messages )
+					fill_coop_with< impact_message >( *coop );
+				else
+					fill_coop_with< impact_signal >( *coop );
 
 				env.register_coop( std::move( coop ) );
 			}
@@ -333,6 +335,28 @@ class test_env_t
 	private :
 		const cfg_t m_cfg;
 		measure_result_t m_result;
+
+		template< typename Impact >
+		void
+		fill_coop_with( so_5::coop_t & coop )
+			{
+				auto a_pinger = coop.make_agent< a_pinger_t< Impact > >(
+						m_cfg, m_result );
+				auto a_ponger = coop.make_agent< a_ponger_t< Impact > >(
+						m_cfg );
+
+				auto pinger_mbox = m_cfg.m_direct_mboxes ?
+						a_pinger->so_direct_mbox() : coop.environment().create_mbox();
+				auto ponger_mbox = m_cfg.m_direct_mboxes ?
+						a_ponger->so_direct_mbox() : coop.environment().create_mbox();
+
+				a_pinger->set_self_mbox( pinger_mbox );
+				a_pinger->set_ponger_mbox( ponger_mbox );
+
+				a_ponger->set_self_mbox( ponger_mbox );
+				a_ponger->set_pinger_mbox( pinger_mbox );
+			}
+
 	};
 
 int

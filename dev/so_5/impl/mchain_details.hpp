@@ -370,23 +370,7 @@ class mchain_template
 			{
 				this->try_to_store_message_to_queue(
 							msg_type,
-							message,
-							invocation_type_t::event );
-			}
-
-		void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
-			{
-				// Constness must be removed explicitly.
-				// Until do_deliver_service_request() lost const in v.5.6.0.
-				const_cast< mchain_template * >(this)->
-					try_to_store_message_to_queue(
-							msg_type,
-							message,
-							invocation_type_t::service_request );
+							message );
 			}
 
 		void
@@ -397,8 +381,7 @@ class mchain_template
 			{
 				try_to_store_message_to_queue(
 						msg_type,
-						message,
-						invocation_type_t::enveloped_msg );
+						message );
 			}
 
 		/*!
@@ -583,16 +566,9 @@ class mchain_template
 			const std::type_index & msg_type,
 			const message_ref_t & message ) override
 			{
-				// Since v.5.5.23 we should detect actual invocation type
-				// for a timer event.
-				const auto invocation_type =
-						message_t::kind_t::enveloped_msg == message_kind( message ) ?
-						invocation_type_t::enveloped_msg : invocation_type_t::event;
-
 				try_to_store_message_from_timer_to_queue(
 						msg_type,
-						message,
-						invocation_type );
+						message );
 			}
 
 	private :
@@ -651,15 +627,13 @@ class mchain_template
 		void
 		try_to_store_message_to_queue(
 			const std::type_index & msg_type,
-			const message_ref_t & message,
-			invocation_type_t demand_type )
+			const message_ref_t & message )
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as tracing base.
 						*this, // as chain.
 						msg_type,
-						message,
-						demand_type };
+						message };
 
 				std::unique_lock< std::mutex > lock{ m_lock };
 
@@ -726,8 +700,7 @@ class mchain_template
 				complete_store_message_to_queue(
 						tracer,
 						msg_type,
-						message,
-						demand_type );
+						message );
 			}
 
 		/*!
@@ -751,15 +724,13 @@ class mchain_template
 		void
 		try_to_store_message_from_timer_to_queue(
 			const std::type_index & msg_type,
-			const message_ref_t & message,
-			invocation_type_t demand_type )
+			const message_ref_t & message )
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as tracing base.
 						*this, // as chain.
 						msg_type,
-						message,
-						demand_type };
+						message };
 
 				std::unique_lock< std::mutex > lock{ m_lock };
 
@@ -805,8 +776,7 @@ class mchain_template
 				complete_store_message_to_queue(
 						tracer,
 						msg_type,
-						message,
-						demand_type );
+						message );
 			}
 
 		/*!
@@ -866,13 +836,11 @@ class mchain_template
 		complete_store_message_to_queue(
 			typename Tracing_Base::deliver_op_tracer & tracer,
 			const std::type_index & msg_type,
-			const message_ref_t & message,
-			invocation_type_t demand_type )
+			const message_ref_t & message )
 			{
 				const bool was_empty = m_queue.is_empty();
 				
-				m_queue.push_back(
-						demand_t{ msg_type, message, demand_type } );
+				m_queue.push_back( demand_t{ msg_type, message } );
 
 				tracer.stored( m_queue );
 

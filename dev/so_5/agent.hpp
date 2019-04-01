@@ -2646,29 +2646,6 @@ class SO_5_TYPE agent_t
 
 		/*!
 		 * \since
-		 * v.5.3.0
-		 *
-		 * \note
-		 * Name of that method changed in v.5.5.23.
-		 *
-		 * \brief Calls request handler for message.
-		 */
-		static void
-		demand_handler_on_service_request(
-			current_thread_id_t working_thread_id,
-			execution_demand_t & d );
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \note This method is necessary for GCC on Cygwin.
-		 */
-		static demand_handler_pfn_t
-		get_service_request_handler_on_message_ptr() noexcept;
-
-		/*!
-		 * \since
 		 * v.5.5.23
 		 *
 		 * \brief Handles the enveloped message.
@@ -2711,23 +2688,6 @@ class SO_5_TYPE agent_t
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
 			event_handler_method_t method );
-
-		/*!
-		 * \since
-		 * v.5.4.0
-		 *
-		 * \brief Actual implementation of service request handling.
-		 *
-		 * \note handler_data.first == true only if handler_data.second is an
-		 * actual result of searching handler for the message. If
-		 * handler_data.first == second then it is necessary to search event
-		 * handler for the message.
-		 */
-		static void
-		process_service_request(
-			current_thread_id_t working_thread_id,
-			execution_demand_t & d,
-			std::pair< bool, const impl::event_handler_data_t * > handler_data );
 
 		/*!
 		 * \brief Actual implementation of enveloped message handling.
@@ -3084,9 +3044,7 @@ subscription_bind_t::transfer_to_state(
 	auto op_state = std::make_shared< transfer_op_state_t >(
 			m_agent, m_mbox_ref->id(), outliving_const(target_state) );
 
-	auto method = [op_state](
-			invocation_type_t invoke_type,
-			message_ref_t & msg )
+	auto method = [op_state]( message_ref_t & msg )
 		{
 			// The current transfer_to_state operation should be inactive.
 			if( op_state->m_in_progress )
@@ -3114,9 +3072,8 @@ subscription_bind_t::transfer_to_state(
 					op_state->m_mbox_id,
 					typeid( Msg ),
 					msg,
-					invocation_type_t::event == invoke_type ?
-							agent_t::get_demand_handler_on_message_ptr() :
-							agent_t::get_service_request_handler_on_message_ptr()
+//FIXME: other types of invocation should be handled here!
+					agent_t::get_demand_handler_on_message_ptr()
 			};
 
 			demand.call_handler( query_current_thread_id() );
@@ -3135,7 +3092,7 @@ subscription_bind_t &
 subscription_bind_t::suppress()
 {
 	// A method with nothing inside.
-	auto method = []( invocation_type_t, message_ref_t & ) {};
+	auto method = []( message_ref_t & ) {};
 
 	create_subscription_for_states(
 			typeid( Msg ),
@@ -3152,8 +3109,7 @@ subscription_bind_t::just_switch_to(
 {
 	agent_t * agent_ptr = m_agent;
 
-	auto method = [agent_ptr, &target_state](
-			invocation_type_t, message_ref_t & )
+	auto method = [agent_ptr, &target_state]( message_ref_t & )
 		{
 			agent_ptr->so_change_state( target_state );
 		};

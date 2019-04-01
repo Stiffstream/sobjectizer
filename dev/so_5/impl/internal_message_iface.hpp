@@ -18,6 +18,7 @@ namespace so_5 {
 
 namespace impl {
 
+//FIXME: is this class really needed?
 //
 // internal_message_iface_t
 //
@@ -38,13 +39,6 @@ class internal_message_iface_t
 		internal_message_iface_t( const message_t & msg )
 			:	m_msg( msg )
 			{}
-
-		//! Get the pointer to the actual message payload.
-		const void *
-		payload_ptr() const
-			{
-				return m_msg.so5__payload_ptr();
-			}
 	};
 
 } /* namespace impl */

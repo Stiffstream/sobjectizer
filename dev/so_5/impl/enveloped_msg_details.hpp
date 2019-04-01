@@ -97,8 +97,7 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 		void
 		invoke( const payload_info_t & payload ) noexcept override
 			{
-				const auto invocation_type = detect_invocation_type_for_message(
-						payload.message() );
+				const auto msg_kind = message_kind( payload.message() );
 
 				execution_demand_t fresh_demand{
 						m_demand.m_receiver,
@@ -108,26 +107,21 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 						payload.message(),
 						// May be it is not necessary at all but it
 						// is better to have properly constructed demand.
-						demand_handler_for_invocation_type( invocation_type )
+						demand_handler_for_invocation_type( msg_kind )
 				};
 
-				switch( invocation_type )
+				switch( msg_kind )
 					{
-					case invocation_type_t::event :
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						agent_t::process_message(
 								m_work_thread_id,
 								fresh_demand,
 								m_handler_data.m_method );
 					break;
 
-					case invocation_type_t::service_request :
-						agent_t::process_service_request(
-								m_work_thread_id,
-								fresh_demand,
-								std::make_pair( true, &m_handler_data ) );
-					break;
-
-					case invocation_type_t::enveloped_msg :
+					case message_t::kind_t::enveloped_msg :
 						agent_t::process_enveloped_msg(
 								m_work_thread_id,
 								fresh_demand,
@@ -143,20 +137,18 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 		 */
 		static demand_handler_pfn_t
 		demand_handler_for_invocation_type(
-			invocation_type_t type ) noexcept
+			message_t::kind_t msg_kind ) noexcept
 			{
 				demand_handler_pfn_t result = nullptr;
-				switch( type )
+				switch( msg_kind )
 					{
-					case invocation_type_t::event :
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						result = &agent_t::demand_handler_on_message;
 					break;
 
-					case invocation_type_t::service_request :
-						result = &agent_t::demand_handler_on_service_request;
-					break;
-
-					case invocation_type_t::enveloped_msg :
+					case message_t::kind_t::enveloped_msg :
 						result = &agent_t::demand_handler_on_enveloped_msg;
 					break;
 					}
@@ -195,29 +187,18 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 		void
 		invoke( const payload_info_t & payload ) noexcept override
 			{
-				const auto invocation_type = detect_invocation_type_for_message(
-						payload.message() );
+				const auto msg_kind = message_kind( payload.message() );
 
-				switch( invocation_type )
+				switch( msg_kind )
 					{
-					case invocation_type_t::event :
+					case message_t::kind_t::signal : [[fallthrough]]
+					case message_t::kind_t::classical_message : [[fallthrough]]
+					case message_t::kind_t::user_type_message :
 						m_was_handled = true;
-						m_handler.m_handler( invocation_type, payload.message() );
+						m_handler.m_handler( payload.message() );
 					break;
 
-					case invocation_type_t::service_request :
-						m_was_handled = true;
-						// Invocation should be done in a special wrapper.
-						msg_service_request_base_t::dispatch_wrapper(
-								payload.message(),
-								[this, &payload] {
-									m_handler.m_handler(
-											invocation_type_t::service_request,
-											payload.message() );
-								} );
-					break;
-
-					case invocation_type_t::enveloped_msg :
+					case message_t::kind_t::enveloped_msg :
 						{
 							// Do recurvise call.
 							// Value for was_handled will be detected in the

@@ -37,6 +37,14 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
+		so_evt_start() override
+		{
+			so_5::send< msg_one >( *this );
+			so_5::send< msg_two >( *this );
+			so_5::send< msg_three >( *this );
+		}
+
+		void
 		evt_one( mhood_t< msg_one > )
 		{
 			m_sequence += "e1:";
@@ -56,6 +64,11 @@ class a_test_t : public so_5::agent_t
 			so_drop_subscription( so_direct_mbox(), &a_test_t::evt_one );
 
 			so_subscribe( so_direct_mbox() ).event( &a_test_t::evt_two );
+
+			so_5::send< msg_one >( *this );
+			so_5::send< msg_two >( *this );
+
+			so_5::send< msg_four >( *this );
 		}
 
 		void
@@ -83,33 +96,7 @@ main()
 				auto coop = env.make_coop(
 					so_5::disp::active_obj::make_dispatcher( env ).binder() );
 
-				auto a_test = coop->make_agent< a_test_t >( std::ref(sequence) );
-
-				class a_sender_t final : public so_5::agent_t
-				{
-					const so_5::mbox_t m_to;
-				public :
-					a_sender_t( context_t ctx, so_5::mbox_t to )
-						:	so_5::agent_t{ std::move(ctx) }
-						,	m_to{ std::move(to) }
-					{}
-
-					void so_evt_start() override
-					{
-						so_5::send< msg_one >( m_to );
-						so_5::send< msg_two >( m_to );
-						m_to->run_one()
-							.wait_for( std::chrono::seconds(1) )
-							.sync_get< msg_three >();
-
-						so_5::send< msg_one >( m_to );
-						so_5::send< msg_two >( m_to );
-
-						so_5::send< msg_four >( m_to );
-					}
-				};
-
-				coop->make_agent< a_sender_t >( a_test->so_direct_mbox() );
+				coop->make_agent< a_test_t >( std::ref(sequence) );
 
 				env.register_coop( std::move( coop ) );
 			} );

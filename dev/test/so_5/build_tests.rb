@@ -47,7 +47,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/api/run_so_environment/prj.ut.rb" 
 	required_prj "#{path}/api/several_dlls/prj.ut.rb" 
 
-	required_prj "#{path}/svc/build_tests.rb" 
 	required_prj "#{path}/mutable_msg/build_tests.rb" 
 
 	required_prj "#{path}/internal_stats/build_tests.rb" 

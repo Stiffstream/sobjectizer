@@ -939,8 +939,6 @@ class special_event_queue_t final : public event_queue_t
 			{
 				return agent_t::get_demand_handler_on_message_ptr() ==
 								demand.m_demand_handler ||
-						agent_t::get_service_request_handler_on_message_ptr() ==
-								demand.m_demand_handler ||
 						agent_t::get_demand_handler_on_enveloped_msg_ptr() ==
 								demand.m_demand_handler;
 			}

@@ -94,11 +94,10 @@ public :
 		st_three
 			.on_enter( [this] { m_log += "+3"; } )
 			.on_exit( [this] { m_log += "-3"; } )
-			.event( [this](mhood_t< signal >) -> int {
+			.event( [this](mhood_t< signal >) {
 					m_log += "{s}";
 					this >>= so_default_state();
 					so_5::send< finish >( *this );
-					return 42;
 				} );
 	}
 
@@ -107,32 +106,7 @@ public :
 	{
 		this >>= st_one;
 
-		// Service request must be initiated from different working thread.
-		so_5::introduce_child_coop( *this,
-			so_5::disp::one_thread::make_dispatcher(
-				so_environment() ).binder(),
-			[this]( so_5::coop_t & coop ) {
-				class actor_t final : public so_5::agent_t
-				{
-					so_5::agent_t & m_service;
-				public:
-					actor_t( context_t ctx, so_5::agent_t & service )
-						:	so_5::agent_t::agent_t{ std::move(ctx) }
-						,	m_service{ service }
-					{}
-
-					void so_evt_start() override
-					{
-						const int r = so_5::request_value< int, signal >(
-								m_service, so_5::infinite_wait );
-						if( 42 != r )
-							throw std::runtime_error( "unexpected result: " +
-									std::to_string( r ) );
-					}
-				};
-
-				coop.make_agent< actor_t >( std::ref(*this) );
-			} );
+		so_5::send< signal >( *this );
 	}
 
 private :

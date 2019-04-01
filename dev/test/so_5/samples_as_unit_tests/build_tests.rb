@@ -60,12 +60,6 @@ MxxRu::Cpp::composite_target {
   required_prj "#{path}/mchain_select.ut.rb"
   required_prj "#{path}/mchain_select-static.ut.rb"
 
-  required_prj "#{path}/mchain_svc_req.ut.rb"
-  required_prj "#{path}/mchain_svc_req-static.ut.rb"
-
-  required_prj "#{path}/pimpl.ut.rb"
-  required_prj "#{path}/pimpl-static.ut.rb"
-
   required_prj "#{path}/ping_pong_minimal.ut.rb"
   required_prj "#{path}/ping_pong_minimal-static.ut.rb"
 
@@ -77,12 +71,6 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/subscriptions.ut.rb"
   required_prj "#{path}/subscriptions-static.ut.rb"
-
-  required_prj "#{path}/svc_exceptions.ut.rb"
-  required_prj "#{path}/svc_exceptions-static.ut.rb"
-
-  required_prj "#{path}/svc_hello.ut.rb"
-  required_prj "#{path}/svc_hello-static.ut.rb"
 
   required_prj "#{path}/mutable_msg_agents.ut.rb"
   required_prj "#{path}/mutable_msg_agents-static.ut.rb"

@@ -383,44 +383,16 @@ fill_trace_data_1(
 		// Just for compilation.
 	}
 
-inline std::tuple<const void *, const void *>
-detect_message_pointers( const message_ref_t & message )
-	{
-		// The first pointer is a pointer to envelope.
-		// The second pointer is a pointer to payload.
-		using msg_pointers = std::tuple< const void *, const void * >;
-		if( const message_t * envelope = message.get() )
-			{
-				// We can try cases with service requests and user-type messages.
-				const void * payload =
-						internal_message_iface_t{ *envelope }.payload_ptr();
-
-				if( payload != envelope )
-					// There are an envelope and payload inside it.
-					return msg_pointers{ envelope, payload };
-				else
-					// There is only payload.
-					return msg_pointers{ nullptr, envelope };
-			}
-		else
-			// It is a signal there is nothing.
-			return msg_pointers{ nullptr, nullptr };
-	}
-
 inline void
 make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
-		const void * envelope = nullptr;
-		const void * payload = nullptr;
-
-		std::tie(envelope,payload) = detect_message_pointers(message);
+		const void * envelope = message.get();
 
 		if( envelope )
 			s << "[envelope_ptr=" << pointer{envelope} << "]";
-		if( payload )
-			s << "[payload_ptr=" << pointer{payload} << "]";
 		else
 			s << "[signal]";
+
 		if( message_mutability_t::mutable_message == message_mutability(message) )
 			s << "[mutable]";
 	}
@@ -430,12 +402,9 @@ fill_trace_data_1(
 	actual_trace_data_t & d,
 	const message_ref_t & message )
 	{
-		const void * envelope = nullptr;
-		const void * payload = nullptr;
+		const void * envelope = message.get();
 
-		std::tie(envelope,payload) = detect_message_pointers(message);
-
-		if( !envelope && !payload )
+		if( !envelope )
 			{
 				// This is a signal.
 				d.set_message_or_signal(
@@ -450,7 +419,6 @@ fill_trace_data_1(
 				d.set_message_instance_info(
 						so_5::msg_tracing::message_instance_info_t{
 								envelope,
-								payload,
 								message_mutability(message) } );
 			}
 	}
@@ -897,8 +865,7 @@ struct mchain_tracing_disabled_base
 					const mchain_tracing_disabled_base &,
 					const abstract_message_chain_t &,
 					const std::type_index &,
-					const message_ref_t &,
-					const invocation_type_t )
+					const message_ref_t & )
 					{}
 
 				template< typename Queue >
@@ -929,14 +896,6 @@ class mchain_tracing_enabled_base
 	private :
 		so_5::msg_tracing::holder_t & m_tracer;
 
-		static const char *
-		message_or_svc_request(
-			invocation_type_t invocation )
-			{
-				return invocation_type_t::event == invocation ?
-						"message" : "service_request";
-			}
-
 	public :
 		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
 			:	m_tracer( tracer )
@@ -957,7 +916,8 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-								message_or_svc_request( d.m_demand_type ),
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+								"message",
 								"extracted" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -972,7 +932,8 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-								message_or_svc_request( d.m_demand_type ),
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+								"message",
 								"dropped_on_close" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -1008,11 +969,11 @@ class mchain_tracing_enabled_base
 					const mchain_tracing_enabled_base & tracing_base,
 					const abstract_message_chain_t & chain,
 					const std::type_index & msg_type,
-					const message_ref_t & message,
-					const invocation_type_t invocation )
+					const message_ref_t & message )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_chain( chain )
-					,	m_op_name( message_or_svc_request( invocation ) )
+//FIXME: kind of message (signal, classical, user_type) should be handled!
+					,	m_op_name( "message" )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
 					{}

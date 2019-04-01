@@ -60,12 +60,10 @@ class one_shot_subscription_t
 				const auto user_handler = user_handler_data.m_handler;
 
 				so_5::event_handler_method_t actual_handler =
-					[this, user_handler](
-						so_5::invocation_type_t invoke_type,
-						so_5::message_ref_t & msg )
+					[this, user_handler]( so_5::message_ref_t & msg )
 					{
 						drop_subscriptions();
-						user_handler( invoke_type, msg );
+						user_handler( msg );
 					};
 
 				m_subscriptions.emplace_back(

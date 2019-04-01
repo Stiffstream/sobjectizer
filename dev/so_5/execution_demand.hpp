@@ -31,7 +31,7 @@ namespace so_5
  *
  * \brief Type of event handler method.
  */
-typedef std::function< void(invocation_type_t, message_ref_t &) >
+typedef std::function< void(message_ref_t &) >
 		event_handler_method_t;
 
 struct execution_demand_t;
