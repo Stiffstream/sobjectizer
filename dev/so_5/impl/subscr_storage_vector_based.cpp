@@ -203,7 +203,7 @@ storage_t::create_event_subscription(
 						mbox->subscribe_event_handler(
 								msg_type,
 								limit,
-								owner() );
+								*owner() );
 					},
 					[&] {
 						m_events.pop_back();
@@ -240,7 +240,7 @@ storage_t::drop_subscription(
 						// If we are here then there is no more references
 						// to the mbox. And mbox must not hold reference
 						// to the agent.
-						mbox->unsubscribe_event_handlers( msg_type, owner() );
+						mbox->unsubscribe_event_handlers( msg_type, *owner() );
 					}
 			}
 	}
@@ -269,7 +269,7 @@ storage_t::drop_subscription_for_all_states(
 		// delivery tracing.
 
 		if( old_size != m_events.size() )
-			mbox->unsubscribe_event_handlers( msg_type, owner() );
+			mbox->unsubscribe_event_handlers( msg_type, *owner() );
 	}
 
 const event_handler_data_t *
@@ -345,7 +345,7 @@ storage_t::destroy_all_subscriptions()
 
 		// Third step: destroy subscription in mboxes.
 		for( auto m : mboxes )
-			m.m_mbox->unsubscribe_event_handlers( *m.m_msg_type, owner() );
+			m.m_mbox->unsubscribe_event_handlers( *m.m_msg_type, *owner() );
 
 		// Fourth step: cleanup subscription vector.
 		drop_content();

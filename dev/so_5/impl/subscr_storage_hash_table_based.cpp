@@ -326,7 +326,7 @@ storage_t::create_event_subscription(
 			so_5::details::do_with_rollback_on_exception(
 				[&] {
 					mbox_ref->subscribe_event_handler(
-							type_index, limit, owner() );
+							type_index, limit, *owner() );
 				},
 				[&] {
 					m_hash_table.erase( &(insertion_result.first->first) );
@@ -354,7 +354,7 @@ storage_t::drop_subscription(
 
 			if( !mbox_msg_known )
 			{
-				mbox_ref->unsubscribe_event_handlers( type_index, owner() );
+				mbox_ref->unsubscribe_event_handlers( type_index, *owner() );
 			}
 		}
 	}
@@ -381,7 +381,7 @@ storage_t::drop_subscription_for_all_states(
 				}
 			while( need_erase() );
 
-			mbox_ref->unsubscribe_event_handlers( type_index, owner() );
+			mbox_ref->unsubscribe_event_handlers( type_index, *owner() );
 		}
 	}
 
@@ -423,7 +423,7 @@ storage_t::destroy_all_subscriptions()
 						!previous->first.is_same_mbox_msg_pair( i.first ) )
 					i.second->unsubscribe_event_handlers(
 						i.first.m_msg_type,
-						owner() );
+						*owner() );
 
 				previous = &i;
 			}

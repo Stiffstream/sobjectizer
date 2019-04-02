@@ -334,7 +334,7 @@ class mchain_template
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
 			const so_5::message_limit::control_block_t * /*limit*/,
-			agent_t * /*subscriber*/ ) override
+			agent_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_subscriptions,
@@ -344,7 +344,7 @@ class mchain_template
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
-			agent_t * /*subscriber*/ ) override
+			agent_t & /*subscriber*/ ) override
 			{}
 
 		std::string

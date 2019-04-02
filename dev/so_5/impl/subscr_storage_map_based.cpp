@@ -253,7 +253,7 @@ storage_t::create_event_subscription(
 						mbox->subscribe_event_handler(
 								msg_type,
 								limit,
-								owner() );
+								*owner() );
 					},
 					[&] {
 						m_events.erase( ins_result.first );
@@ -285,7 +285,7 @@ storage_t::drop_subscription(
 
 				if( must_unsubscribe_mbox )
 					{
-						mbox->unsubscribe_event_handlers( msg_type, owner() );
+						mbox->unsubscribe_event_handlers( msg_type, *owner() );
 					}
 			}
 	}
@@ -318,7 +318,7 @@ storage_t::drop_subscription_for_all_states(
 				// it is MPSC mboxes. It is important for the case of message
 				// delivery tracing.
 
-				mbox->unsubscribe_event_handlers( msg_type, owner() );
+				mbox->unsubscribe_event_handlers( msg_type, *owner() );
 			}
 	}
 
@@ -362,7 +362,7 @@ storage_t::destroy_all_subscriptions()
 					{
 						cur->second.m_mbox->unsubscribe_event_handlers(
 								cur->first.m_msg_type,
-								owner() );
+								*owner() );
 					}
 
 				m_events.erase( cur );

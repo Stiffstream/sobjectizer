@@ -765,14 +765,14 @@ class local_mbox_template
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
 			const so_5::message_limit::control_block_t * limit,
-			agent_t * subscriber ) override
+			agent_t & subscriber ) override
 			{
 				insert_or_modify_subscriber(
 						type_wrapper,
-						subscriber,
+						&subscriber,
 						[&] {
 							return local_mbox_details::subscriber_info_t{
-									subscriber, limit };
+									&subscriber, limit };
 						},
 						[&]( local_mbox_details::subscriber_info_t & info ) {
 							info.set_limit( limit );
@@ -782,11 +782,11 @@ class local_mbox_template
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
-			agent_t * subscriber ) override
+			agent_t & subscriber ) override
 			{
 				modify_and_remove_subscriber_if_needed(
 						type_wrapper,
-						subscriber,
+						&subscriber,
 						[]( local_mbox_details::subscriber_info_t & info ) {
 							info.drop_limit();
 						} );

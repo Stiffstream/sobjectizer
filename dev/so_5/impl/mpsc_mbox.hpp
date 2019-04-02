@@ -70,11 +70,11 @@ class limitless_mpsc_mbox_template
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
 			const message_limit::control_block_t * /*limit*/,
-			agent_t * subscriber ) override
+			agent_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				if( subscriber != m_single_consumer )
+				if( &subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can create subscription to mpsc_mbox" );
@@ -84,11 +84,11 @@ class limitless_mpsc_mbox_template
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
-			agent_t * subscriber ) override
+			agent_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				if( subscriber != m_single_consumer )
+				if( &subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can remove subscription to mpsc_mbox" );

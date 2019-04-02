@@ -103,7 +103,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		subscribe_event_handler(
 			const std::type_index & /*type_index*/,
 			const message_limit::control_block_t * /*limit*/,
-			agent_t * /*subscriber*/ ) override
+			agent_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to subscribe_event_handler() is illegal for "
@@ -113,7 +113,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*type_index*/,
-			agent_t * /*subscriber*/ ) override
+			agent_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to unsubscribe_event_handler() is illegal for "

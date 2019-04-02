@@ -128,7 +128,7 @@ public :
 	subscribe_event_handler(
 		const std::type_index & type_index,
 		const so_5::message_limit::control_block_t * limit,
-		so_5::agent_t * subscriber ) override
+		so_5::agent_t & subscriber ) override
 	{
 		m_actual_mbox->subscribe_event_handler(
 				type_index, limit, subscriber );
@@ -137,7 +137,7 @@ public :
 	void
 	unsubscribe_event_handlers(
 		const std::type_index & type_index,
-		so_5::agent_t * subscriber ) override
+		so_5::agent_t & subscriber ) override
 	{
 		m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
 	}

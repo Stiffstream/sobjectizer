@@ -42,7 +42,7 @@ void
 named_local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
 	const so_5::message_limit::control_block_t * limit,
-	agent_t * subscriber )
+	agent_t & subscriber )
 {
 	m_mbox->subscribe_event_handler( type_wrapper, limit, subscriber );
 }
@@ -50,7 +50,7 @@ named_local_mbox_t::subscribe_event_handler(
 void
 named_local_mbox_t::unsubscribe_event_handlers(
 	const std::type_index & type_wrapper,
-	agent_t * subscriber )
+	agent_t & subscriber )
 {
 	return m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
 }

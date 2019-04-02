@@ -54,12 +54,12 @@ class named_local_mbox_t
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
 			const so_5::message_limit::control_block_t * limit,
-			agent_t * subscriber ) override;
+			agent_t & subscriber ) override;
 
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
-			agent_t * subscriber ) override;
+			agent_t & subscriber ) override;
 
 		std::string
 		query_name() const override;
