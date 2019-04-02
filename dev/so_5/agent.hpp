@@ -998,27 +998,6 @@ class SO_5_TYPE agent_t
 
 		/*!
 		 * \since
-		 * v.5.3.0
-		 *
-		 * \brief Push service request to the agent's event queue.
-		 *
-		 * \deprecated Obsolete in v.5.5.23 and will be removed in v.5.6.0
-		 * Use call_push_event() instead. Since v.5.5.23 event type is
-		 * automatically detected via message_kind().
-		 */
-		static inline void
-		call_push_service_request(
-			agent_t & agent,
-			const message_limit::control_block_t * limit,
-			mbox_id_t mbox_id,
-			std::type_index msg_type,
-			const message_ref_t & message )
-		{
-			agent.push_event( limit, mbox_id, msg_type, message );
-		}
-
-		/*!
-		 * \since
 		 * v.5.4.0
 		 *
 		 * \brief Get the agent's direct mbox.

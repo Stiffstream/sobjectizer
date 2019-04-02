@@ -704,14 +704,6 @@ class SO_5_TYPE environment_params_t
  * destroyed. So, to save the anonymous mbox, the mbox_ref from 
  * the create_mbox() should be stored somewhere.
  *
- * Named mbox must be destroyed manually by calling the 
- * environment_t::destroy_mbox() method. But physically the deletion of the 
- * named mbox postponed to the deletion of last reference to it. 
- * So if there is some reference to the named mbox it instance will live 
- * with this reference. But mbox itself will be removed from 
- * SObjectizer Environment lists.
- *
- *
  * \section so_env__coop_methods Methods for working with cooperations.
  *
  * Cooperations can be created by environment_t::make_coop() methods.
