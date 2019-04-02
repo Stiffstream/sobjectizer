@@ -171,7 +171,7 @@ struct event_handler_arg_maker< mhood_t< mutable_msg<Msg> > >
 template<typename T>
 struct always_false
 {
-	static const bool value = false;
+	static constexpr const bool value = false;
 };
 
 /*

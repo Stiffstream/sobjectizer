@@ -153,9 +153,9 @@ class rw_spinlock_t
 	private :
 		std::atomic_uint_fast32_t m_counters;
 
-		static const std::uint_fast32_t unlocked = 0;
-		static const std::uint_fast32_t write_lock = 1;
-		static const std::uint_fast32_t read_lock = 2;
+		static constexpr const std::uint_fast32_t unlocked = 0;
+		static constexpr const std::uint_fast32_t write_lock = 1;
+		static constexpr const std::uint_fast32_t read_lock = 2;
 
 	public :
 		rw_spinlock_t()

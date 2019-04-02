@@ -41,7 +41,7 @@ timer_thread()
 namespace suffixes {
 
 #define IMPL_SUFFIX(val) \
-static const char s[] = val;\
+static constexpr const char s[] = val;\
 return suffix_t{ s };
 
 SO_5_FUNC suffix_t

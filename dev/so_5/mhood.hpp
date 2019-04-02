@@ -371,7 +371,7 @@ private :
 template< typename T >
 struct mhood_type_detector
 {
-	static const mhood_type_t mhood_type =
+	static constexpr const mhood_type_t mhood_type =
 			is_signal< T >::value ?
 					mhood_type_t::classical_signal :
 					is_classical_message< T >::value ?
@@ -388,7 +388,7 @@ struct mhood_type_detector
 template< typename T >
 struct mhood_mutability_detector
 {
-	static const message_mutability_t mutability =
+	static constexpr const message_mutability_t mutability =
 		message_mutability_traits<T>::mutability;
 };
 

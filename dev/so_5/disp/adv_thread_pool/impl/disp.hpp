@@ -98,8 +98,8 @@ class agent_queue_t final
 			};
 
 	public :
-		static const unsigned int thread_safe_worker = 2;
-		static const unsigned int not_thread_safe_worker = 1;
+		static constexpr const unsigned int thread_safe_worker = 2;
+		static constexpr const unsigned int not_thread_safe_worker = 1;
 
 		//! Constructor.
 		agent_queue_t(

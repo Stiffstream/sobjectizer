@@ -110,7 +110,7 @@ class coop_handle_t
 			{}
 
 	public :
-		static constexpr coop_id_t invalid_coop_id = 0u;
+		static constexpr const coop_id_t invalid_coop_id = 0u;
 
 		coop_handle_t() : m_id{ invalid_coop_id }
 			{}

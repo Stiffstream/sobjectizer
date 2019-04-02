@@ -160,7 +160,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * \brief Max deep of nested states.
 		 */
-		static const std::size_t max_deep = 16;
+		static constexpr const std::size_t max_deep = 16;
 
 		/*!
 		 * \since

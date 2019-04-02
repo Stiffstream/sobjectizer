@@ -2527,7 +2527,7 @@ private :
 		 * This value is illegal index in heap-array because
 		 * position numbers in heap-array are started from 1, not from 0.
 		 */
-		static const std::size_t deactivation_indicator = 0;
+		static constexpr const std::size_t deactivation_indicator = 0;
 
 		//! Time of execution for this timer.
 		monotonic_clock::time_point m_when;

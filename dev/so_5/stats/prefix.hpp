@@ -32,9 +32,9 @@ class prefix_t
 	{
 	public :
 		//! Max length of prefix (not including 0-symbol at the end).
-		static const std::size_t max_length = 47;
+		static constexpr const std::size_t max_length = 47;
 		//! Max size of buffer for prefix value (including 0-symbol at the end).
-		static const std::size_t max_buffer_size = max_length + 1;
+		static constexpr const std::size_t max_buffer_size = max_length + 1;
 
 		//! Default constructor creates empty prefix.
 		inline

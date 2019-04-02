@@ -685,7 +685,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Short alias for %so_5::state_t::history_t::shallow.
 		 */
-		static const state_t::history_t shallow_history =
+		static constexpr const state_t::history_t shallow_history =
 				state_t::history_t::shallow;
 		/*!
 		 * \since
@@ -693,7 +693,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Short alias for %so_5::state_t::history_t::deep.
 		 */
-		static const state_t::history_t deep_history =
+		static constexpr const state_t::history_t deep_history =
 				state_t::history_t::deep;
 
 		//! Constructor.

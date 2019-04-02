@@ -270,8 +270,8 @@ class subscriber_adaptive_container_t
 	// There were no any benchmarks to prove that those values are useful.
 	struct size_limits
 	{
-		static const std::size_t switch_to_vector = 16;
-		static const std::size_t switch_to_map = 32;
+		static constexpr const std::size_t switch_to_vector = 16;
+		static constexpr const std::size_t switch_to_map = 32;
 	};
 
 	//! The current storage type to be used by container.

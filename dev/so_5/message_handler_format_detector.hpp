@@ -111,7 +111,7 @@ enum class method_arity
 template<method_arity Arity, typename T>
 struct is_agent_method_pointer
 	{
-		static const bool value = false;
+		static constexpr const bool value = false;
 	};
 
 namespace agent_method_pointer_details

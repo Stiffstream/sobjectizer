@@ -664,7 +664,7 @@ struct message_payload_type_impl
 		using subscription_type = typename mutability_traits::subscription_type;
 
 		//! Is it a signal type or message type.
-		static const bool is_signal = ::so_5::is_signal<T>::value;
+		static constexpr const bool is_signal = ::so_5::is_signal<T>::value;
 
 		//! Type ID for subscription.
 		inline static std::type_index subscription_type_index()
@@ -738,7 +738,7 @@ struct message_payload_type_impl< T, false >
 		 * \note
 		 * User-defined type can't be a signal.
 		 */
-		static const bool is_signal = false;
+		static constexpr const bool is_signal = false;
 
 		//! Type ID for subscription.
 		inline static std::type_index subscription_type_index()
