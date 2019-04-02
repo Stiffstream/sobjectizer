@@ -93,44 +93,12 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
-				switch( message_kind( ctx.m_message ) )
-					{
-					case message_t::kind_t::signal : [[fallthrough]]
-					case message_t::kind_t::classical_message : [[fallthrough]]
-					case message_t::kind_t::user_type_message :
-						to->do_deliver_message(
-								ctx.m_msg_type,
-								ctx.m_message,
-								ctx.m_reaction_deep + 1 );
-					break;
-
-					case message_t::kind_t::enveloped_msg:
-						to->do_deliver_enveloped_msg(
-								ctx.m_msg_type,
-								ctx.m_message,
-								ctx.m_reaction_deep + 1 );
-					break;
-					}
+				to->do_deliver_message(
+						ctx.m_msg_type,
+						ctx.m_message,
+						ctx.m_reaction_deep + 1 );
 			}
 	}
-
-namespace {
-
-void
-throw_exception_about_service_request_transformation(
-	const overlimit_context_t & ctx )
-	{
-		std::ostringstream ss;
-		ss << "service_request cannot be transformed;"
-				<< " msg_type: " << ctx.m_msg_type.name()
-				<< ", limit: " << ctx.m_limit.m_limit
-				<< ", agent: " << &(ctx.m_receiver);
-		SO_5_THROW_EXCEPTION(
-				rc_svc_request_cannot_be_transfomred_on_overlimit,
-				ss.str() );
-	}
-
-} /* namespace anonymous */
 
 SO_5_FUNC
 void

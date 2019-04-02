@@ -829,27 +829,6 @@ class local_mbox_template
 			}
 
 		void
-		do_deliver_enveloped_msg(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
-			{
-				typename Tracing_Base::deliver_op_tracer tracer{
-						*this, // as Tracing_base
-						*this, // as abstract_message_box_t
-						"deliver_enveloped_msg",
-						msg_type, message, overlimit_reaction_deep };
-
-				ensure_immutable_message( msg_type, message );
-
-				do_deliver_message_impl(
-						tracer,
-						msg_type,
-						message,
-						overlimit_reaction_deep );
-			}
-
-		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,

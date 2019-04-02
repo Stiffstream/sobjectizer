@@ -26,7 +26,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( &a_test_t::evt_one );
