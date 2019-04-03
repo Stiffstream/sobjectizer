@@ -32,7 +32,7 @@ check_drop_content1(
 	}
 
 	auto r = so_5::select(
-			so_5::no_wait,
+			so_5::from_all().handle_n(1).no_wait_on_empty(),
 			case_( ch1, []( int i ) { handle_unexpected(i); } ) );
 
 	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
@@ -55,7 +55,7 @@ check_drop_content3(
 	}
 
 	auto r = so_5::select(
-			so_5::no_wait,
+			so_5::from_all().handle_n(1).no_wait_on_empty(),
 			case_( ch1, []( int i ) { handle_unexpected(i); } ),
 			case_( ch2, []( int i ) { handle_unexpected(i); } ),
 			case_( ch3, []( int i ) { handle_unexpected(i); } ) );
@@ -85,7 +85,7 @@ check_retain_content1(
 				to_string( r.handled() ) );
 
 	r = so_5::select(
-			so_5::no_wait,
+			so_5::from_all().handle_n(1).no_wait_on_empty(),
 			case_( ch1, []( int i ) { handle_unexpected(i); } ) );
 
 	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
@@ -123,7 +123,7 @@ check_retain_content3(
 				to_string( r.handled() ) );
 
 	r = so_5::select(
-			so_5::no_wait,
+			so_5::from_all().handle_n(1).no_wait_on_empty(),
 			case_( ch1, []( int i ) { handle_unexpected(i); } ),
 			case_( ch2, []( int i ) { handle_unexpected(i); } ),
 			case_( ch3, []( int i ) { handle_unexpected(i); } ) );

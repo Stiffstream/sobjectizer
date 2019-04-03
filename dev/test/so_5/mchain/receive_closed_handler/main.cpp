@@ -20,7 +20,7 @@ check_op(
 			do
 			{
 				receive(
-					from( ch1 ).on_close(
+					from( ch1 ).handle_all().on_close(
 						[&must_continue]( const so_5::mchain_t & ) {
 							must_continue = false;
 						} ),

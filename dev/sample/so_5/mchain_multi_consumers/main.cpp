@@ -63,7 +63,7 @@ void demo()
 			// Receive all data from input chain.
 			size_t received = 0u;
 			uint64_t sum = 0u;
-			receive( from( values_ch ),
+			receive( from( values_ch ).handle_all(),
 				[&sum, &received]( unsigned int v ) {
 					++received;
 					sum += v;

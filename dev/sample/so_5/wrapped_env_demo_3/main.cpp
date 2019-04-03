@@ -44,7 +44,7 @@ void thread_body( so_5::mchain_t recv_chain, so_5::mchain_t write_chain )
 {
 	thread_state state;
 	receive(
-		from(recv_chain).stop_on( [&state]{ return state.must_stop(); } ),
+		from(recv_chain).handle_all().stop_on( [&state]{ return state.must_stop(); } ),
 		[&]( so_5::mhood_t<tick> ) {
 			std::cout << "Tick!" << std::endl;
 			state.reply_or_stop< tack >( write_chain );

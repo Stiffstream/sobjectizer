@@ -13,7 +13,7 @@ using namespace std;
 
 void reverse_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 {
-	receive( from( command_ch ), [&]( string str ) {
+	receive( from( command_ch ).handle_all(), [&]( string str ) {
 			this_thread::sleep_for( chrono::milliseconds( 10 * str.size() ) );
 			reverse( str.begin(), str.end() );
 			so_5::send< string >( reply_ch, str );
@@ -24,7 +24,7 @@ void reverse_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 
 void doubler_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 {
-	receive( from( command_ch ), [&]( string str ) {
+	receive( from( command_ch ).handle_all(), [&]( string str ) {
 			this_thread::sleep_for( chrono::milliseconds( 5 * str.size() * 2 ) );
 			so_5::send< string >( reply_ch, str + str );
 		} );
@@ -81,7 +81,7 @@ void demo()
 	so_5::send< string >( doubler_cmd_ch, *(doubler_it++) );
 
 	// Handle results and initiate new tasks.
-	select( so_5::from_all(),
+	select( so_5::from_all().handle_all(),
 		case_( reverse_reply_ch, [&]( const string & v ) {
 				cout << "reverse_result: " << v << endl;
 				if( reverse_it != strings.end() )

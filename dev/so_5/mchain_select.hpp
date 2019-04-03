@@ -35,9 +35,38 @@ namespace so_5 {
  * \since
  * v.5.5.16
  */
+template< mchain_props::msg_count_status_t Msg_Count_Status >
 class mchain_select_params_t final
-	: public mchain_bulk_processing_params_t< mchain_select_params_t >
-	{};
+	: public mchain_bulk_processing_params_t<
+	  		mchain_select_params_t< Msg_Count_Status > >
+	{
+		using base_type = mchain_bulk_processing_params_t<
+				mchain_select_params_t< Msg_Count_Status > >;
+
+	public :
+		//FIXME: document this!
+		// This constructor should be used only if Old_Msg_Count_Status
+		// is not equal to Msg_Count_Status.
+		template<
+			mchain_props::msg_count_status_t Old_Msg_Count_Status,
+			typename = std::enable_if_t<
+					Old_Msg_Count_Status != Msg_Count_Status > >
+		mchain_select_params_t(
+			const mchain_select_params_t< Old_Msg_Count_Status > & other )
+			:	base_type{ other.so5_basic_params() }
+			{}
+
+		//FIXME: document this!
+		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
+		mchain_select_params_t< New_Msg_Count_Status >
+		so5_clone() const noexcept
+			{
+				return { *this };
+			}
+
+		//! The default constructor.
+		mchain_select_params_t() = default;
+	};
 
 //
 // from_all
@@ -51,10 +80,10 @@ class mchain_select_params_t final
 	select( so_5::from_all().handle_n(3).empty_timeout(3s), ... );
  * \endcode
  */
-inline mchain_select_params_t
+inline mchain_select_params_t< mchain_props::msg_count_status_t::undefined >
 from_all()
 	{
-		return mchain_select_params_t{};
+		return {};
 	}
 
 namespace mchain_props {
@@ -175,7 +204,7 @@ class select_cases_holder_t
 
 		//! Get count of select_cases in holder.
 		std::size_t
-		size() const { return Cases_Count; }
+		size() const noexcept { return Cases_Count; }
 
 		//! Iterator class for accessing select_cases.
 		/*!
@@ -215,11 +244,11 @@ class select_cases_holder_t
 
 		//! Get iterator for the first item in select_cases_holder.
 		const_iterator
-		begin() const { return const_iterator{ m_cases.begin() }; }
+		begin() const noexcept { return const_iterator{ m_cases.begin() }; }
 
 		//! Get iterator for the item just behind the last item in select_cases_holder.
 		const_iterator
-		end() const { return const_iterator{ m_cases.end() }; }
+		end() const noexcept { return const_iterator{ m_cases.end() }; }
 	};
 
 //
@@ -382,7 +411,8 @@ class actual_select_notificator_t : public select_notificator_t
 template< typename Holder >
 class select_actions_performer_t
 	{
-		const mchain_select_params_t & m_params;
+		const mchain_select_params_t< msg_count_status_t::defined > & m_params;
+
 		const Holder & m_select_cases;
 		actual_select_notificator_t m_notificator;
 
@@ -394,7 +424,7 @@ class select_actions_performer_t
 
 	public :
 		select_actions_performer_t(
-			const mchain_select_params_t & params,
+			const mchain_select_params_t< msg_count_status_t::defined > & params,
 			const Holder & select_cases )
 			:	m_params( params )
 			,	m_select_cases( select_cases )
@@ -505,7 +535,7 @@ class select_actions_performer_t
 template< typename Holder >
 mchain_receive_result_t
 do_adv_select_with_total_time(
-	const mchain_select_params_t & params,
+	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
 	{
 		using namespace so_5::details;
@@ -526,7 +556,7 @@ do_adv_select_with_total_time(
 template< typename Holder >
 mchain_receive_result_t
 do_adv_select_without_total_time(
-	const mchain_select_params_t & params,
+	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
 	{
 		using namespace so_5::details;
@@ -571,7 +601,7 @@ template< typename Cases_Holder >
 mchain_receive_result_t
 perform_select(
 	//! Parameters for advanced select.
-	const mchain_select_params_t & params,
+	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	//! Select cases.
 	const Cases_Holder & cases_holder )
 	{
@@ -700,14 +730,21 @@ case_(
  * \since
  * v.5.5.16
  */
-template< typename... Cases >
+template<
+	mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Cases >
 mchain_receive_result_t
 select(
 	//! Parameters for advanced select.
-	const mchain_select_params_t & params,
+	const mchain_select_params_t< Msg_Count_Status > & params,
 	//! Select cases.
 	Cases &&... cases )
 	{
+		static_assert(
+				Msg_Count_Status == mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
 		using namespace mchain_props;
 		using namespace mchain_props::details;
 
@@ -744,7 +781,8 @@ template< std::size_t Cases_Count >
 class prepared_select_t
 	{
 		//! Parameters for select.
-		mchain_select_params_t m_params;
+		mchain_select_params_t<
+				mchain_props::msg_count_status_t::defined > m_params;
 
 		//! Cases for select.
 		mchain_props::details::select_cases_holder_t< Cases_Count > m_cases_holder;
@@ -757,7 +795,8 @@ class prepared_select_t
 		//! Initializing constructor.
 		template< typename... Cases >
 		prepared_select_t(
-			mchain_select_params_t params,
+			mchain_select_params_t<
+					mchain_props::msg_count_status_t::defined > params,
 			Cases &&... cases )
 			:	m_params( std::move(params) )
 			{
@@ -780,26 +819,27 @@ class prepared_select_t
 		operator=( prepared_select_t && other ) noexcept
 			{
 				prepared_select_t tmp( std::move(other) );
-				this->swap(tmp);
+				swap( *this, tmp);
 				return *this;
 			}
 
 		//! Swap operation.
-		void
-		swap( prepared_select_t & o ) noexcept
+		friend void
+		swap( prepared_select_t & a, prepared_select_t & b ) noexcept
 			{
-				std::swap( o.m_params, o.m_params );
-				m_cases_holder.swap( o.m_cases_holder );
+				using std::swap;
+				swap( a.m_params, b.m_params );
+				swap( a.m_cases_holder, b.m_cases_holder );
 			}
 
 		/*!
 		 * \name Getters
 		 * \{ 
 		 */
-		const mchain_select_params_t &
+		const auto &
 		params() const { return m_params; }
 
-		const mchain_props::details::select_cases_holder_t< Cases_Count > &
+		const auto &
 		cases() const { return m_cases_holder; }
 		/*!
 		 * \}
@@ -848,14 +888,21 @@ class prepared_select_t
  * \since
  * v.5.5.17
  */
-template< typename... Cases >
+template<
+	mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Cases >
 prepared_select_t< sizeof...(Cases) >
 prepare_select(
 	//! Parameters for advanced select.
-	const mchain_select_params_t & params,
+	const mchain_select_params_t< Msg_Count_Status > & params,
 	//! Select cases.
 	Cases &&... cases )
 	{
+		static_assert(
+				Msg_Count_Status == mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
 		return prepared_select_t< sizeof...(Cases) >(
 				params,
 				std::forward<Cases>(cases)... );

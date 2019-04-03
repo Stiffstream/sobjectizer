@@ -12,7 +12,7 @@
 
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 
-const unsigned long long max_iterations = 10000u;
+const unsigned long long max_iterations = 50000u;
 
 struct one {};
 struct two {};
@@ -41,7 +41,7 @@ raw_receive_case( so_5::environment_t & env )
 
 	while( iterations < max_iterations )
 	{
-		so_5::receive( ch1, so_5::no_wait,
+		so_5::receive( from( ch1 ).extract_n( 1 ).no_wait_on_empty(),
 				[&ch1]( one ) { so_5::send< two >( ch1 ); },
 				[&ch1]( two ) { so_5::send< three >( ch1 ); },
 				[&ch1]( three ) { so_5::send< one >( ch1 ); } );

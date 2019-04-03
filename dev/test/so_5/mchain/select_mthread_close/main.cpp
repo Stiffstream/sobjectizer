@@ -20,7 +20,7 @@ void
 worker_thread( so_5::mchain_t ready_ch, so_5::mchain_t test_ch )
 {
 	so_5::send< ready >( ready_ch );
-	so_5::select( so_5::infinite_wait, case_( test_ch, [](int) {} ) );
+	so_5::select( so_5::from_all().handle_n(1), case_( test_ch, [](int) {} ) );
 }
 
 so_5::mchain_params_t

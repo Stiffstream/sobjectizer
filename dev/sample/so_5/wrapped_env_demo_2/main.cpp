@@ -218,7 +218,7 @@ void demo()
 			// Now we can receive and handle responses.
 			// Wait for messages no more than 200ms.
 			auto r = receive(
-					from( chain ).empty_timeout( milliseconds(200) ),
+					from( chain ).handle_all().empty_timeout( milliseconds(200) ),
 					[]( a_supervisor::status_idle ) {
 						cout << "status: IDLE" << endl;
 					},
