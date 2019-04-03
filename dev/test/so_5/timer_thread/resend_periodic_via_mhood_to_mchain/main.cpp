@@ -64,7 +64,7 @@ private :
 
 	void on_mchain_has_messages( mhood_t< mchain_has_messages > )
 	{
-		so_5::receive( m_mchain, so_5::no_wait,
+		so_5::receive( from(m_mchain).handle_n(1),
 				[this]( mhood_t< hello > ) {
 					so_deregister_agent_coop_normally();
 				} );
@@ -133,7 +133,7 @@ private :
 
 	void on_mchain_has_messages( mhood_t< mchain_has_messages > )
 	{
-		so_5::receive( m_mchain, so_5::no_wait,
+		so_5::receive( from(m_mchain).handle_n(1),
 				[this]( mhood_t< hello > cmd ) {
 					ensure_or_die( "hello" == cmd->m_greeting,
 							"'hello' is expected in the message" );
@@ -204,7 +204,7 @@ private :
 
 	void on_mchain_has_messages( mhood_t< mchain_has_messages > )
 	{
-		so_5::receive( m_mchain, so_5::no_wait,
+		so_5::receive( from(m_mchain).handle_n(1),
 				[this]( mutable_mhood_t< hello > cmd ) {
 					ensure_or_die( "hello" == cmd->m_greeting,
 							"'hello' is expected in the message" );

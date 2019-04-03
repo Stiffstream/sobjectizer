@@ -782,7 +782,6 @@ make_limited_with_waiting_mchain_params(
  * \}
  */
 
-
 //
 // mchain_receive_result_t
 //
@@ -835,109 +834,23 @@ class mchain_receive_result_t
 		status() const { return m_status; }
 	};
 
-//
-// receive
-//
-/*!
- * \since
- * v.5.5.13
- *
- * \brief Receive and handle one message from message chain.
- *
- * \note Just one message will be extracted from the chain (if chain is not
- * empty). Then a handler for that message fill be searched in the \a handlers
- * list. If a handler is found then message will be passed to it. If not the
- * message will be discarded.
- *
- * \attention It is an error if there are more than one handler for the
- * same message type in \a handlers.
- *
- * \par Usage examples:
-	\code
-	so_5::environment_t & env = ...;
-	so_5::mchain_t ch = env.create_mchain(...);
+namespace mchain_props {
 
-	// Extract and handle one message without waiting if the mchain is empty.
-	auto r1 = receive(ch, so_5::no_wait, []( const my_message & m ) {...}, ...);
-
-	// Extract and handle one message with infinite waiting if the mchain is empty.
-	// The receive returns when message is extracted or mchain is closed.
-	auto r2 = receive(ch, so_5::infinite_wait, ...);
-	
-	// Extract and handle one message with waiting no more than 200ms on empty mchain.
-	auto r3 = receive(ch, std::chrono::milliseconds(200), ...);
-	\endcode
- *
- * \par Handlers format examples:
- * \code
-	receive( ch, so_5::infinite_wait,
-		// Message instance by const reference.
-		[]( const std::string & v ) {...},
-		// Message instance by value (efficient for small types like int).
-		[]( int v ) {...},
-		// Message instance via mhood_t value.
-		[]( so_5::mhood_t< some_message > v ) {...},
-		// Message instance via const reference to mhood_t.
-		[]( const so_5::mhood_t< some_another_message > & v ) {...},
-		// Explicitly specified signal handler.
-		so_5::handler< some_signal >( []{...} ),
-		// Signal handler via mhood_t value.
-		[]( so_5::mhood_t< some_another_signal > ) {...},
-		// Signal handler via const reference to mhood_t.
-		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
- * \endcode
- */
-template< typename Timeout, typename... Handlers >
-inline mchain_receive_result_t
-receive(
-	//! Message chain from which a message must be extracted.
-	const so_5::mchain_t & chain,
-	//! Maximum timeout for waiting for message on empty bag.
-	Timeout waiting_timeout,
-	//! Handlers for message processing.
-	Handlers &&... handlers )
+//FIXME: document this!
+enum class msg_count_status_t
 	{
-		using namespace so_5::details;
-		using namespace so_5::mchain_props;
-		using namespace so_5::mchain_props::details;
+		undefined,
+		defined
+	};
 
-		handlers_bunch_t< sizeof...(handlers) > bunch;
-		fill_handlers_bunch( bunch, 0,
-				std::forward< Handlers >(handlers)... );
-
-		demand_t extracted_demand;
-		const auto status = chain->extract(
-				extracted_demand,
-				actual_timeout( waiting_timeout ) );
-		if( extraction_status_t::msg_extracted == status )
-			{
-				const bool handled = bunch.handle(
-						extracted_demand.m_msg_type,
-						extracted_demand.m_message_ref );
-
-				return mchain_receive_result_t{ 1u, handled ? 1u : 0u, status };
-			}
-
-		return mchain_receive_result_t{ 0u, 0u, status };
-	}
+namespace details {
 
 //
-// mchain_bulk_processing_params_t
+// mchain_bulk_processing_basic_params_t
 //
-/*!
- * \brief Basic parameters for advanced receive from %mchain and for
- * multi chain select.
- *
- * \since
- * v.5.5.16
- */
-template< typename Derived >
-class mchain_bulk_processing_params_t
+class mchain_bulk_processing_basic_params_t
 	{
 	public :
-		//! Actual type of params.
-		using actual_type = Derived;
-
 		//! Type of stop-predicate.
 		/*!
 		 * Must return \a true if receive procedure should be stopped.
@@ -950,10 +863,6 @@ class mchain_bulk_processing_params_t
 		 * v.5.5.17
 		 */
 		using chain_closed_handler = std::function< void(const mchain_t &) >;
-
-	protected :
-		actual_type &
-		self_reference() { return static_cast< actual_type & >(*this); }
 
 	private :
 		//! Minimal count of messages to be extracted.
@@ -985,30 +894,171 @@ class mchain_bulk_processing_params_t
 		 */
 		chain_closed_handler m_chain_closed_handler;
 
-	public :
+	protected :
 		//! Set limit for count of messages to be extracted.
-		actual_type &
-		extract_n( std::size_t v )
+		void
+		set_extract_n( std::size_t v ) noexcept
 			{
 				m_to_extract = v;
-				return self_reference();
 			}
-
-		//! Get limit for count of messages to be extracted.
-		std::size_t
-		to_extract() const { return m_to_extract; }
 
 		//! Set limit for count of messages to be handled.
-		actual_type &
-		handle_n( std::size_t v )
+		void
+		set_handle_n( std::size_t v ) noexcept
 			{
 				m_to_handle = v;
-				return self_reference();
 			}
+
+		//! Set timeout for waiting on empty chain.
+		/*!
+		 * \note This value will be ignored if total_time() is also used
+		 * to set total receive time.
+		 *
+		 * \note Argument \a v can be of type duration_t or
+		 * so_5::infinite_wait or so_5::no_wait.
+		 */
+		template< typename Timeout >
+		void
+		set_empty_timeout( Timeout v ) noexcept
+			{
+				m_empty_timeout = mchain_props::details::actual_timeout( v );
+			}
+
+		//! Set total time for the whole receive operation.
+		/*!
+		 * \note Argument \a v can be of type duration_t or
+		 * so_5::infinite_wait or so_5::no_wait.
+		 */
+		template< typename Timeout >
+		void
+		set_total_time( Timeout v ) noexcept
+			{
+				m_total_time = mchain_props::details::actual_timeout( v );
+			}
+
+		//! Set user condition for stopping receive operation.
+		/*!
+		 * \note \a predicate should return \a true if receive must
+		 * be stopped.
+		 */
+		void
+		set_stop_on( stop_predicate predicate ) noexcept
+			{
+				m_stop_predicate = std::move(predicate);
+			}
+
+		//! Set handler for chain-closed event.
+		/*!
+		 * If there is a previously set handler the old handler will be lost.
+		 */
+		void
+		set_on_close( chain_closed_handler handler )
+			{
+				m_chain_closed_handler = std::move(handler);
+			}
+
+	public :
+		//! Get limit for count of messages to be extracted.
+		std::size_t
+		to_extract() const noexcept { return m_to_extract; }
 
 		//! Get limit for count of message to be handled.
 		std::size_t
-		to_handle() const { return m_to_handle; }
+		to_handle() const noexcept { return m_to_handle; }
+
+		//! Get timeout for waiting on empty chain.
+		const mchain_props::duration_t &
+		empty_timeout() const noexcept { return m_empty_timeout; }
+
+		//! Get total time for the whole receive operation.
+		const mchain_props::duration_t &
+		total_time() const noexcept { return m_total_time; }
+
+		//! Get user condition for stopping receive operation.
+		const stop_predicate &
+		stop_on() const noexcept
+			{
+				return m_stop_predicate;
+			}
+
+		//! Get handler for chain-closed event.
+		/*!
+		 * \since
+		 * v.5.5.17
+		 */
+		const chain_closed_handler &
+		closed_handler() const noexcept
+			{
+				return m_chain_closed_handler;
+			}
+	};
+
+} /* namespace details */
+
+} /* namespace mchain_props */
+
+//
+// mchain_bulk_processing_params_t
+//
+/*!
+ * \brief Basic parameters for advanced receive from %mchain and for
+ * multi chain select.
+ *
+ * \since
+ * v.5.5.16
+ */
+template< typename Derived >
+class mchain_bulk_processing_params_t
+	:	public mchain_props::details::mchain_bulk_processing_basic_params_t
+	{
+		using basic_t = mchain_props::details::mchain_bulk_processing_basic_params_t;
+
+	public :
+		using actual_type = Derived;
+
+		//FIXME: document this!
+		const basic_t &
+		so5_basic_params() const noexcept { return *this; }
+
+	protected :
+		actual_type &
+		self_reference() { return static_cast< actual_type & >(*this); }
+
+	public :
+		mchain_bulk_processing_params_t() = default;
+
+		mchain_bulk_processing_params_t(
+			const basic_t & basic_part )
+			:	basic_t{ basic_part }
+			{}
+
+//FIXME: usage example should be provided.
+		//! A directive to handle all messages until chain will be closed
+		//! or receiving will be stopped manually.
+		auto
+		handle_all() noexcept
+			{
+				return self_reference().template so5_clone<
+						mchain_props::msg_count_status_t::defined >();
+			}
+
+		//! Set limit for count of messages to be extracted.
+		auto
+		extract_n( std::size_t v ) noexcept
+			{
+				set_extract_n( v );
+				return self_reference().template so5_clone<
+						mchain_props::msg_count_status_t::defined >();
+			}
+
+		//! Set limit for count of messages to be handled.
+		auto
+		handle_n( std::size_t v ) noexcept
+			{
+				set_handle_n( v );
+				return self_reference().template so5_clone<
+						mchain_props::msg_count_status_t::defined >();
+			}
 
 		//! Set timeout for waiting on empty chain.
 		/*!
@@ -1020,15 +1070,13 @@ class mchain_bulk_processing_params_t
 		 */
 		template< typename Timeout >
 		actual_type &
-		empty_timeout( Timeout v )
+		empty_timeout( Timeout v ) noexcept
 			{
-				m_empty_timeout = mchain_props::details::actual_timeout( v );
+				set_empty_timeout( std::move(v) );
 				return self_reference();
 			}
 
-		//! Get timeout for waiting on empty chain.
-		const mchain_props::duration_t &
-		empty_timeout() const { return m_empty_timeout; }
+		using basic_t::empty_timeout;
 
 		/*!
 		 * \brief Disable waiting on the empty queue.
@@ -1045,7 +1093,7 @@ class mchain_bulk_processing_params_t
 		 * \endcode
 		 */
 		actual_type &
-		no_wait_on_empty()
+		no_wait_on_empty() noexcept
 			{
 				return empty_timeout(
 						mchain_props::details::no_wait_special_timevalue() );
@@ -1058,15 +1106,13 @@ class mchain_bulk_processing_params_t
 		 */
 		template< typename Timeout >
 		actual_type &
-		total_time( Timeout v )
+		total_time( Timeout v ) noexcept
 			{
-				m_total_time = mchain_props::details::actual_timeout( v );
+				set_total_time( std::move(v) );
 				return self_reference();
 			}
 
-		//! Get total time for the whole receive operation.
-		const mchain_props::duration_t &
-		total_time() const { return m_total_time; }
+		using basic_t::total_time;
 
 		//! Set user condition for stopping receive operation.
 		/*!
@@ -1074,18 +1120,13 @@ class mchain_bulk_processing_params_t
 		 * be stopped.
 		 */
 		actual_type &
-		stop_on( stop_predicate predicate )
+		stop_on( stop_predicate predicate ) noexcept
 			{
-				m_stop_predicate = std::move(predicate);
+				set_stop_on( std::move(predicate) );
 				return self_reference();
 			}
 
-		//! Get user condition for stopping receive operation.
-		const stop_predicate &
-		stop_on() const
-			{
-				return m_stop_predicate;
-			}
+		using basic_t::stop_on;
 
 		//! Set handler for chain-closed event.
 		/*!
@@ -1113,21 +1154,10 @@ class mchain_bulk_processing_params_t
 		 * v.5.5.17
 		 */
 		actual_type &
-		on_close( chain_closed_handler handler )
+		on_close( chain_closed_handler handler ) noexcept
 			{
-				m_chain_closed_handler = std::move(handler);
+				set_on_close( std::move(handler) );
 				return self_reference();
-			}
-
-		//! Get handler for chain-closed event.
-		/*!
-		 * \since
-		 * v.5.5.17
-		 */
-		const chain_closed_handler &
-		closed_handler() const
-			{
-				return m_chain_closed_handler;
 			}
 	};
 
@@ -1144,13 +1174,34 @@ class mchain_bulk_processing_params_t
  * \since
  * v.5.5.13
  */
+template< mchain_props::msg_count_status_t Msg_Count_Status >
 class mchain_receive_params_t final
-	: public mchain_bulk_processing_params_t< mchain_receive_params_t >
+	: public mchain_bulk_processing_params_t<
+	  		mchain_receive_params_t< Msg_Count_Status > >
 	{
+		using base_type = mchain_bulk_processing_params_t<
+				mchain_receive_params_t< Msg_Count_Status > >;
+
 		//! Chain from which messages must be extracted and handled.
 		mchain_t m_chain;
 
 	public :
+		//FIXME: document this!
+		template< mchain_props::msg_count_status_t Old_Msg_Count_Status >
+		mchain_receive_params_t(
+			const mchain_receive_params_t< Old_Msg_Count_Status > & other )
+			:	base_type{ other.so5_basic_params() }
+			,	m_chain{ other.chain() }
+			{}
+
+		//FIXME: document this!
+		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
+		mchain_receive_params_t< New_Msg_Count_Status >
+		so5_clone() const noexcept
+			{
+				return { *this };
+			}
+
 		//! Initializing constructor.
 		mchain_receive_params_t(
 			//! Chain from which messages must be extracted and handled.
@@ -1210,10 +1261,10 @@ class mchain_receive_params_t final
 			handlers... );
 	\endcode
  */
-inline mchain_receive_params_t
+inline mchain_receive_params_t< mchain_props::msg_count_status_t::undefined >
 from( mchain_t chain )
 	{
-		return mchain_receive_params_t{ std::move(chain) };
+		return { std::move(chain) };
 	}
 
 namespace mchain_props {
@@ -1233,7 +1284,7 @@ namespace details {
 template< typename Bunch >
 class receive_actions_performer_t
 	{
-		const mchain_receive_params_t & m_params;
+		const mchain_receive_params_t< msg_count_status_t::defined > & m_params;
 		const Bunch & m_bunch;
 
 		std::size_t m_extracted_messages = 0;
@@ -1242,7 +1293,7 @@ class receive_actions_performer_t
 
 	public :
 		receive_actions_performer_t(
-			const mchain_receive_params_t & params,
+			const mchain_receive_params_t< msg_count_status_t::defined > & params,
 			const Bunch & bunch )
 			:	m_params( params )
 			,	m_bunch( bunch )
@@ -1321,7 +1372,7 @@ class receive_actions_performer_t
 template< typename Bunch >
 inline mchain_receive_result_t
 receive_with_finite_total_time(
-	const mchain_receive_params_t & params,
+	const mchain_receive_params_t<msg_count_status_t::defined> & params,
 	const Bunch & bunch )
 	{
 		receive_actions_performer_t< Bunch > performer( params, bunch );
@@ -1350,7 +1401,7 @@ receive_with_finite_total_time(
 template< typename Bunch >
 inline mchain_receive_result_t
 receive_without_total_time(
-	const mchain_receive_params_t & params,
+	const mchain_receive_params_t<msg_count_status_t::defined> & params,
 	const Bunch & bunch )
 	{
 		receive_actions_performer_t< Bunch > performer{ params, bunch };
@@ -1381,7 +1432,7 @@ receive_without_total_time(
 template< typename Bunch >
 inline mchain_receive_result_t
 perform_receive(
-	const mchain_receive_params_t & params,
+	const mchain_receive_params_t<msg_count_status_t::defined> & params,
 	const Bunch & bunch )
 	{
 		if( !is_infinite_wait_timevalue( params.total_time() ) )
@@ -1469,14 +1520,21 @@ perform_receive(
 		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
  * \endcode
  */
-template< typename... Handlers >
+template<
+	mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Handlers >
 inline mchain_receive_result_t
 receive(
 	//! Parameters for receive.
-	const mchain_receive_params_t & params,
+	const mchain_receive_params_t<Msg_Count_Status> & params,
 	//! Handlers for message processing.
 	Handlers &&... handlers )
 	{
+		static_assert(
+				Msg_Count_Status == mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
 		using namespace so_5::details;
 		using namespace so_5::mchain_props;
 		using namespace so_5::mchain_props::details;
@@ -1487,6 +1545,9 @@ receive(
 
 		return perform_receive( params, bunch );
 	}
+
+//FIXME: uncomment after testing of new version of receive()!
+#if 0
 
 //
 // prepared_receive_t
@@ -1653,6 +1714,7 @@ receive(
 				prepared.params(),
 				prepared.handlers() );
 	}
+#endif
 
 } /* namespace so_5 */
 

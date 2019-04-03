@@ -719,42 +719,6 @@ select(
 	}
 
 //
-// select
-//
-/*!
- * \brief A simple form of multi chain select.
- *
- * This is just a shortcat for more advanced version of select(). A call:
- * \code
-	using namespace so_5;
-
-	select( std::chrono::seconds(5), case_(...), ... );
- * \endcode
- * Can be rewritten as:
- * \code
-	select( from_all().empty_timeout( std::chrono::seconds(5) ).extract_n(1),
-		case_(...), ... );
- * \endcode
- *
- * \note The function returns control if:
- * - there is no any message for \a wait_time;
- * - all mchains are closed;
- * - any message has been extracted from any mchain. It is possible that
- *   this message is not handled at all if there is no a handler of it.
- *
- * \since
- * v.5.5.16
- */
-template< typename Duration, typename... Cases >
-mchain_receive_result_t
-select( Duration wait_time, Cases &&... cases )
-	{
-		return select(
-				mchain_select_params_t{}.extract_n( 1 ).empty_timeout( wait_time ),
-				std::forward< Cases >(cases)... );
-	}
-
-//
 // prepared_select_t
 //
 /*!
