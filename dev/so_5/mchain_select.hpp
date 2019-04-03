@@ -22,6 +22,21 @@
 
 namespace so_5 {
 
+namespace mchain_props {
+
+namespace details {
+
+//
+// adv_select_data_t
+//
+//NOTE: there is no any additional data for select() function.
+using adv_select_data_t = bulk_processing_basic_data_t;
+
+} /* namespace details */
+
+} /* namespace mchain_props */
+
+
 //
 // mchain_select_params_t
 //
@@ -38,34 +53,42 @@ namespace so_5 {
 template< mchain_props::msg_count_status_t Msg_Count_Status >
 class mchain_select_params_t final
 	: public mchain_bulk_processing_params_t<
+	  		mchain_props::details::adv_select_data_t,
 	  		mchain_select_params_t< Msg_Count_Status > >
 	{
 		using base_type = mchain_bulk_processing_params_t<
+				mchain_props::details::adv_select_data_t,
 				mchain_select_params_t< Msg_Count_Status > >;
 
 	public :
-		//FIXME: document this!
-		// This constructor should be used only if Old_Msg_Count_Status
-		// is not equal to Msg_Count_Status.
-		template<
-			mchain_props::msg_count_status_t Old_Msg_Count_Status,
-			typename = std::enable_if_t<
-					Old_Msg_Count_Status != Msg_Count_Status > >
-		mchain_select_params_t(
-			const mchain_select_params_t< Old_Msg_Count_Status > & other )
-			:	base_type{ other.so5_basic_params() }
-			{}
-
-		//FIXME: document this!
+		//! Make of clone but with different Msg_Count_Status.
 		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		mchain_select_params_t< New_Msg_Count_Status >
-		so5_clone() const noexcept
+		std::enable_if_t<
+				New_Msg_Count_Status != Msg_Count_Status,
+				mchain_select_params_t< New_Msg_Count_Status > >
+		so5_clone_if_necessary() const noexcept
 			{
-				return { *this };
+				return { this->so5_data() };
+			}
+
+		//! Returns a reference to itself.
+		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
+		std::enable_if_t<
+				New_Msg_Count_Status == Msg_Count_Status,
+				mchain_select_params_t & >
+		so5_clone_if_necessary() noexcept
+			{
+				return *this;
 			}
 
 		//! The default constructor.
 		mchain_select_params_t() = default;
+
+		//! Initializing constructor for the case of cloning.
+		mchain_select_params_t(
+			typename base_type::data_type data )
+			:	base_type{ std::move(data) }
+			{}
 	};
 
 //

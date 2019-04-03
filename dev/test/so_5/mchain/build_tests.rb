@@ -5,6 +5,7 @@ MxxRu::Cpp::composite_target {
 
 	path = 'test/so_5/mchain'
 
+	required_prj( "#{path}/params_clone/prj.ut.rb" )
 	required_prj( "#{path}/infinite_wait/prj.ut.rb" )
 	required_prj( "#{path}/simple/prj.ut.rb" )
 	required_prj( "#{path}/func_as_handler/prj.ut.rb" )
