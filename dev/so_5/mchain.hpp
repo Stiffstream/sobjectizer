@@ -1187,7 +1187,12 @@ class mchain_receive_params_t final
 
 	public :
 		//FIXME: document this!
-		template< mchain_props::msg_count_status_t Old_Msg_Count_Status >
+		// This constructor should be used only if Old_Msg_Count_Status
+		// is not equal to Msg_Count_Status.
+		template<
+			mchain_props::msg_count_status_t Old_Msg_Count_Status,
+			typename = std::enable_if_t<
+					Old_Msg_Count_Status != Msg_Count_Status > >
 		mchain_receive_params_t(
 			const mchain_receive_params_t< Old_Msg_Count_Status > & other )
 			:	base_type{ other.so5_basic_params() }
@@ -1546,9 +1551,6 @@ receive(
 		return perform_receive( params, bunch );
 	}
 
-//FIXME: uncomment after testing of new version of receive()!
-#if 0
-
 //
 // prepared_receive_t
 //
@@ -1573,7 +1575,7 @@ template< std::size_t Handlers_Count >
 class prepared_receive_t
 	{
 		//! Parameters for receive.
-		mchain_receive_params_t m_params;
+		mchain_receive_params_t< mchain_props::msg_count_status_t::defined > m_params;
 
 		//! Cases for receive.
 		so_5::details::handlers_bunch_t< Handlers_Count > m_bunch;
@@ -1586,7 +1588,7 @@ class prepared_receive_t
 		//! Initializing constructor.
 		template< typename... Handlers >
 		prepared_receive_t(
-			mchain_receive_params_t params,
+			mchain_receive_params_t< mchain_props::msg_count_status_t::defined > params,
 			Handlers &&... cases )
 			:	m_params( std::move(params) )
 			{
@@ -1609,27 +1611,30 @@ class prepared_receive_t
 		operator=( prepared_receive_t && other ) noexcept
 			{
 				prepared_receive_t tmp( std::move(other) );
-				this->swap(tmp);
+				swap( &this, tmp );
+
 				return *this;
 			}
 
 		//! Swap operation.
-		void
-		swap( prepared_receive_t & o ) noexcept
+		friend void
+		swap( prepared_receive_t & a, prepared_receive_t & b ) noexcept
 			{
-				std::swap( o.m_params, o.m_params );
-				m_bunch.swap( o.m_bunch );
+				using std::swap;
+
+				swap( a.m_params, b.m_params );
+				swap( a.m_bunch, b.m_bunch );
 			}
 
 		/*!
 		 * \name Getters
 		 * \{ 
 		 */
-		const mchain_receive_params_t &
-		params() const { return m_params; }
+		const auto &
+		params() const noexcept { return m_params; }
 
-		const so_5::details::handlers_bunch_t< Handlers_Count > &
-		handlers() const { return m_bunch; }
+		const auto &
+		handlers() const noexcept { return m_bunch; }
 		/*!
 		 * \}
 		 */
@@ -1667,14 +1672,21 @@ class prepared_receive_t
  * \since
  * v.5.5.17
  */
-template< typename... Handlers >
+template<
+	mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Handlers >
 prepared_receive_t< sizeof...(Handlers) >
 prepare_receive(
 	//! Parameters for advanced receive.
-	const mchain_receive_params_t & params,
+	const mchain_receive_params_t< Msg_Count_Status > & params,
 	//! Handlers
 	Handlers &&... handlers )
 	{
+		static_assert(
+				Msg_Count_Status == mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
 		return prepared_receive_t< sizeof...(Handlers) >(
 				params,
 				std::forward<Handlers>(handlers)... );
@@ -1714,7 +1726,6 @@ receive(
 				prepared.params(),
 				prepared.handlers() );
 	}
-#endif
 
 } /* namespace so_5 */
 

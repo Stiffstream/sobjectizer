@@ -18,7 +18,7 @@ do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 {
 	std::thread child{ [&] {
 		auto r = receive(
-				from( chain ).empty_timeout( milliseconds( 500 ) ) );
+				from( chain ).handle_all().empty_timeout( milliseconds( 500 ) ) );
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
 		UT_CHECK_CONDITION(
@@ -57,7 +57,7 @@ do_check_total_time( const so_5::mchain_t & chain )
 
 	std::thread child{ [&] {
 		auto r = receive(
-				from( chain ).total_time( milliseconds( 500 ) ),
+				from( chain ).handle_all().total_time( milliseconds( 500 ) ),
 				[]( const std::string & ) {} );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
@@ -200,7 +200,7 @@ do_check_stop_pred(
 	std::thread child{ [&] {
 		int last_received = 0;
 		auto r = receive(
-				from( ch1 ).stop_on(
+				from( ch1 ).handle_all().stop_on(
 						[&last_received] { return last_received > 10; } ),
 				[&ch2, &last_received]( int i ) {
 					last_received = i;
@@ -214,7 +214,7 @@ do_check_stop_pred(
 	int i = 0;
 	so_5::send< int >( ch1, i );
 	auto r = receive(
-			from( ch2 ).stop_on( [&i] { return i > 10; } ),
+			from( ch2 ).handle_all().stop_on( [&i] { return i > 10; } ),
 			[&ch1, &i]( int ) {
 				++i;
 				so_5::send< int >( ch1, i );

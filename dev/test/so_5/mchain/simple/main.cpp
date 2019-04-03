@@ -38,8 +38,7 @@ main()
 					so_5::send< hello >( chain );
 
 					auto r = receive(
-							chain,
-							so_5::no_wait,
+							from(chain).handle_n(1).no_wait_on_empty(),
 							[]( int i ) {
 								if( 42 != i )
 									throw runtime_error( "unexpected int-message: "
