@@ -1055,6 +1055,8 @@ class mchain_bulk_processing_params_t
 		decltype(auto)
 		handle_all() noexcept
 			{
+				this->set_handle_n( 0u );
+				//FIXME: this construct can be moved to reusable method!
 				return self_reference().template so5_clone_if_necessary<
 						mchain_props::msg_count_status_t::defined >();
 			}
