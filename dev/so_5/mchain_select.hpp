@@ -98,6 +98,11 @@ class mchain_select_params_t final
  * \brief Helper function for creation of mchain_select_params instance
  * with default values.
  *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from_all() to select() or
+ * prepare_select() functions.
+ *
  * Usage example:
  * \code
 	select( so_5::from_all().handle_n(3).empty_timeout(3s), ... );
@@ -676,6 +681,10 @@ case_(
  * \attention The behaviour is not defined if a mchain is used in different
  * select_cases.
  *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from_all() to select() function.
+ *
  * \par Usage examples:
 	\code
 	using namespace so_5;
@@ -718,7 +727,7 @@ case_(
 	// If there is no message in any of mchains then wait no more than 500ms.
 	// A return from select will be after explicit close of all mchains
 	// or if there is no messages for more than 500ms.
-	select( from_all().empty_timeout( milliseconds(500) ),
+	select( from_all().handle_all().empty_timeout( milliseconds(500) ),
 		case_( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
@@ -729,7 +738,7 @@ case_(
 
 	// Receve any number of messages from mchains but do waiting and
 	// handling for no more than 2s.
-	select( from_all().total_time( seconds(2) ),
+	select( from_all().handle_all().total_time( seconds(2) ),
 		case_( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
@@ -832,7 +841,7 @@ class prepared_select_t
 
 		//! Move constructor.
 		prepared_select_t(
-			prepared_select_t && other )
+			prepared_select_t && other ) noexcept
 			:	m_params( std::move(other.m_params) )
 			,	m_cases_holder( std::move(other.m_cases_holder) )
 			{}
@@ -860,10 +869,10 @@ class prepared_select_t
 		 * \{ 
 		 */
 		const auto &
-		params() const { return m_params; }
+		params() const noexcept { return m_params; }
 
 		const auto &
-		cases() const { return m_cases_holder; }
+		cases() const noexcept { return m_cases_holder; }
 		/*!
 		 * \}
 		 */
@@ -874,6 +883,10 @@ class prepared_select_t
 //
 /*!
  * \brief Create prepared select statement to be used later.
+ *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from_all() to prepare_select() function.
  *
  * Accepts all parameters as advanced select() version. For example:
  * \code
@@ -898,7 +911,7 @@ class prepared_select_t
 	// A return from select will be after explicit close of all mchains
 	// or if there is no messages for more than 500ms.
 	auto prepared2 = prepare_select(
-		so_5::from_all().empty_timeout( milliseconds(500) ),
+		so_5::from_all().handle_all().empty_timeout( milliseconds(500) ),
 		case_( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),

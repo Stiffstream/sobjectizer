@@ -1040,6 +1040,15 @@ class mchain_bulk_processing_params_t
 		actual_type &
 		self_reference() { return static_cast< actual_type & >(*this); }
 
+		//! Helper method to make a clone with msg_count_status_t::defined
+		//! status.
+		decltype(auto)
+		clone_as_defined() noexcept
+			{
+				return self_reference().template so5_clone_if_necessary<
+						mchain_props::msg_count_status_t::defined >();
+			}
+
 	public :
 		//! Default constructor.
 		mchain_bulk_processing_params_t() = default;
@@ -1049,34 +1058,56 @@ class mchain_bulk_processing_params_t
 			:	basic_t{ std::move(data) }
 			{}
 
-//FIXME: usage example should be provided.
 		//! A directive to handle all messages until chain will be closed
 		//! or receiving will be stopped manually.
+		/*!
+		 * Usage example:
+		 * \code
+		 * so_5::receive(so_5::from(ch).handle_all(), ...);
+		 * \endcode
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
 		decltype(auto)
 		handle_all() noexcept
 			{
 				this->set_handle_n( 0u );
-				//FIXME: this construct can be moved to reusable method!
-				return self_reference().template so5_clone_if_necessary<
-						mchain_props::msg_count_status_t::defined >();
+				return clone_as_defined();
 			}
 
 		//! Set limit for count of messages to be extracted.
+		/*!
+		 * When extract_n() is used then receive() will be finished
+		 * after extraction of the specified number of message.
+		 * 
+		 * Usage example:
+		 * \code
+		 * so_5::receive(so_5::from(ch).extract_n(2), ...);
+		 * \endcode
+		 */
 		decltype(auto)
 		extract_n( std::size_t v ) noexcept
 			{
 				this->set_extract_n( v );
-				return self_reference().template so5_clone_if_necessary<
-						mchain_props::msg_count_status_t::defined >();
+				return clone_as_defined();
 			}
 
 		//! Set limit for count of messages to be handled.
+		/*!
+		 * When handled_n() is used then receive() will be finished
+		 * after handling of the specified number of message.
+		 * 
+		 * Usage example:
+		 * \code
+		 * so_5::receive(so_5::from(ch).handle_n(2), ...);
+		 * \endcode
+		 */
 		decltype(auto)
 		handle_n( std::size_t v ) noexcept
 			{
 				this->set_handle_n( v );
-				return self_reference().template so5_clone_if_necessary<
-						mchain_props::msg_count_status_t::defined >();
+				return clone_as_defined();
 			}
 
 		//! Set timeout for waiting on empty chain.
@@ -1160,6 +1191,7 @@ class mchain_bulk_processing_params_t
 		 * bool some_ch_closed = false;
 		 * so_5::select(
 		 * 	so_5::from_all()
+		 * 		.handle_all()
 		 * 		.on_close([&some_ch_closed](const so_5::mchain_t &) {
 		 * 				some_ch_closed = true;
 		 * 			})
@@ -1187,6 +1219,12 @@ namespace details {
 //
 // adv_receive_data_t
 //
+/*!
+ * \brief Container of parameters for receive() function.
+ *
+ * \since
+ * v.5.6.0
+ */
 struct adv_receive_data_t : public bulk_processing_basic_data_t
 	{
 		//! A chain to be used in receive operation.
@@ -1215,6 +1253,8 @@ struct adv_receive_data_t : public bulk_processing_basic_data_t
  *
  * \note Derived from basic_receive_params_t since v.5.5.16.
  *
+ * \tparam Msg_Count_Status status of message count limit.
+ *
  * \since
  * v.5.5.13
  */
@@ -1224,6 +1264,7 @@ class mchain_receive_params_t final
 	  		mchain_props::details::adv_receive_data_t,
 	  		mchain_receive_params_t< Msg_Count_Status > >
 	{
+		//! Short alias for base type.
 		using base_type = mchain_bulk_processing_params_t<
 				mchain_props::details::adv_receive_data_t,
 				mchain_receive_params_t< Msg_Count_Status > >;
@@ -1276,6 +1317,10 @@ class mchain_receive_params_t final
  *
  * \brief A helper function for simplification of creation of %mchain_receive_params instance.
  *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from() to receive() function.
+ *
  * \par Usage examples:
 	\code
 	so_5::mchain_t chain = env.create_mchain(...);
@@ -1300,12 +1345,12 @@ class mchain_receive_params_t final
 	// If there is no message in the chain then wait no more than 500ms.
 	// A return from receive will be after explicit close of the chain
 	// or if there is no messages for more than 500ms.
-	receive( from(chain).empty_timeout( milliseconds(500) ),
+	receive( from(chain).handle_all().empty_timeout( milliseconds(500) ),
 			handlers... );
 
 	// Receve any number of messages from the chain but do waiting and
 	// handling for no more than 2s.
-	receive( from(chain).total_time( seconds(2) ),
+	receive( from(chain).handle_all().total_time( seconds(2) ),
 			handlers... );
 
 	// Receve 1000 messages from the chain but do waiting and
@@ -1511,6 +1556,10 @@ perform_receive(
  * \attention It is an error if there are more than one handler for the
  * same message type in \a handlers.
  *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from() to receive() function.
+ *
  * \par Usage examples:
 	\code
 	so_5::mchain_t chain = env.create_mchain(...);
@@ -1537,13 +1586,13 @@ perform_receive(
 	// If there is no message in the chain then wait no more than 500ms.
 	// A return from receive will be after explicit close of the chain
 	// or if there is no messages for more than 500ms.
-	receive( from(chain).empty_timeout( milliseconds(500) ),
+	receive( from(chain).handle_all().empty_timeout( milliseconds(500) ),
 			[]( const first_message_type & msg ) { ... },
 			[]( const second_message_type & msg ) { ... }, ... );
 
 	// Receve any number of messages from the chain but do waiting and
 	// handling for no more than 2s.
-	receive( from(chain).total_time( seconds(2) ),
+	receive( from(chain).handle_all().total_time( seconds(2) ),
 			[]( const first_message_type & msg ) { ... },
 			[]( const second_message_type & msg ) { ... }, ... );
 
@@ -1694,6 +1743,10 @@ class prepared_receive_t
 /*!
  * \brief Create parameters for receive function to be used later.
  *
+ * \attention
+ * Since v.5.6.0 at least handle_all(), handle_n() or extract_n() should be
+ * called before passing result of from() to prepare_receive() function.
+ *
  * Accepts all parameters as advanced receive() version. For example:
  * \code
 	// Receive and handle 3 messages.
@@ -1712,7 +1765,7 @@ class prepared_receive_t
 	// A return from receive will be after explicit close of the chain
 	// or if there is no messages for more than 500ms.
 	auto prepared2 = prepare_receive(
-			from(chain).empty_timeout( milliseconds(500) ),
+			from(chain).handle_all().empty_timeout( milliseconds(500) ),
 			[]( const first_message_type & msg ) { ... },
 			[]( const second_message_type & msg ) { ... }, ... );
  * \endcode
