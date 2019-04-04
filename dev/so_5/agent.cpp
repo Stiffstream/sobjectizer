@@ -584,6 +584,14 @@ agent_t::so_direct_mbox() const
 	return m_direct_mbox;
 }
 
+mbox_t
+agent_t::so_make_new_direct_mbox()
+{
+	return impl::internal_env_iface_t{ so_environment() }.create_mpsc_mbox(
+			self_ptr(),
+			m_message_limits.get() );
+}
+
 const state_t &
 agent_t::so_default_state() const
 {

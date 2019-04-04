@@ -1006,6 +1006,49 @@ class SO_5_TYPE agent_t
 		so_direct_mbox() const;
 
 		/*!
+		 * \brief Create a new direct mbox for that agent.
+		 *
+		 * This method creates a new MPSC mbox which is connected
+		 * with that agent. Only agent for that so_make_new_direct_mbox()
+		 * has been called can make subscriptions for a new mbox.
+		 *
+		 * Note. The new mbox doesn't replaces the standard direct mbox
+		 * for the agent. Old direct mbox is still here and can still be used
+		 * for sending messages to the agent. But new mbox is not related
+		 * to the old direct mbox: they are different mboxes and can be used
+		 * for different subscriptions.
+		 * For example:
+		 * \code
+		 * class my_agent final : public so_5::agent_t {
+		 * 	...
+		 * 	void so_evt_start() override {
+		 * 		so_subscribe_self().event( [](mhood_t<hello>) {
+		 * 			std::cout << "hello from the direct mbox" << std::endl;
+		 * 		} );
+		 *
+		 * 		const new_mbox = so_make_new_direct_mbox();
+		 * 		so_subscribe( new_mbox ).event( [](mhood_t<hello) {
+		 * 			std::cout << "hello from a new mbox" << std::endl;
+		 * 		}
+		 *
+		 * 		so_5::send<hello>(*this);
+		 * 		so_5::send<hello>(new_mbox);
+		 * 	}
+		 * };
+		 * \endcode
+		 * The output will be:
+		 \verbatim
+		 hello from the direct mbox
+		 hello from a new mbox
+		 \endverbatim
+		 *
+		 * \since
+		 * v.5.6.0
+		 */
+		mbox_t
+		so_make_new_direct_mbox();
+
+		/*!
 		 * \since
 		 * v.5.5.3
 		 *

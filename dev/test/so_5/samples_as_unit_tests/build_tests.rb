@@ -80,4 +80,7 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/two_handlers.ut.rb"
   required_prj "#{path}/two_handlers-static.ut.rb"
+
+  required_prj "#{path}/make_new_direct_mbox.ut.rb"
+  required_prj "#{path}/make_new_direct_mbox-static.ut.rb"
 }

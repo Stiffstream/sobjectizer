@@ -67,4 +67,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'stop_guard' ]
 
 	example[ 'deadletter_handler' ]
+
+	example[ 'make_new_direct_mbox' ]
 }

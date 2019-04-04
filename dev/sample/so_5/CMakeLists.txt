@@ -61,3 +61,5 @@ add_subdirectory(two_handlers)
 add_subdirectory(stop_guard)
 
 add_subdirectory(deadletter_handler)
+
+add_subdirectory(make_new_direct_mbox)
