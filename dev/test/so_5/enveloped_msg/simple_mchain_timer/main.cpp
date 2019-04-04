@@ -55,7 +55,9 @@ run_test()
 			std::chrono::milliseconds(25) );
 
 	auto prepared = prepare_receive(
-			from( mchain ).empty_timeout( std::chrono::milliseconds(100) ),
+			from( mchain )
+					.handle_all()
+					.empty_timeout( std::chrono::milliseconds(100) ),
 			[&]( so_5::mhood_t<so_based_msg> cmd ) {
 				trace.append( "received{" + cmd->m_value + "};" );
 			},

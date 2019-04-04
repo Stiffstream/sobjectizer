@@ -26,7 +26,7 @@ do_check( const so_5::mchain_t & chain )
 			cv.notify_one();
 		}
 		
-		auto r = receive( chain, so_5::infinite_wait );
+		auto r = receive( from(chain).handle_all() );
 		if( so_5::mchain_props::extraction_status_t::chain_closed != r.status() )
 		{
 			std::cerr << "unexpected receive status: "

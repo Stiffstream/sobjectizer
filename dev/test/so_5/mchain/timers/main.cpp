@@ -34,7 +34,7 @@ check_delayed( const so_5::mchain_t & chain )
 			chrono::milliseconds(100),
 			[&] {
 				so_5::send_delayed< int >( chain, chrono::milliseconds(100), 1 );
-				receive( chain, so_5::infinite_wait,
+				receive( from(chain).handle_n(1),
 						[]( int i ) { UT_CHECK_CONDITION( i == 1 ); } );
 			} );
 }

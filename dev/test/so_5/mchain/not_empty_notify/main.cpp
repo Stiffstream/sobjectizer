@@ -52,7 +52,7 @@ do_check(
 		child_started.notify_one();
 		chain_not_empty.wait();
 		
-		receive( ch, so_5::infinite_wait,
+		receive( from(ch).handle_n(1),
 				[]( int i ) {
 					UT_CHECK_CONDITION( i != 0 );
 				} );

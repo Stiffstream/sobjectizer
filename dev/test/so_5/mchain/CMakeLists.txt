@@ -1,3 +1,4 @@
+add_subdirectory(params_clone)
 add_subdirectory(infinite_wait)
 add_subdirectory(simple)
 add_subdirectory(func_as_handler)

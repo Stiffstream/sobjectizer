@@ -19,8 +19,7 @@ check_drop_content( const so_5::mchain_t & chain )
 	close_drop_content( chain );
 
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_all().no_wait_on_empty(),
 			[]( int i ) {
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} );
@@ -40,8 +39,7 @@ check_retain_content( const so_5::mchain_t & chain )
 
 	so_5::mchain_receive_result_t r;
 	r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			[]( int i ) {
 				if( i != 0 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
@@ -52,8 +50,7 @@ check_retain_content( const so_5::mchain_t & chain )
 				"return code: " + to_string( r.handled() ) );
 
 	r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			[]( int i ) {
 				if( i != 1 )
 					throw runtime_error( "unexpected message: " + to_string(i) );

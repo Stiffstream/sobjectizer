@@ -34,8 +34,7 @@ check_by_value(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			&on_bye_1 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
@@ -50,8 +49,7 @@ check_ref_by_value(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			on_bye_1 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
@@ -66,8 +64,7 @@ check_by_mhood(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			&on_bye_2 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
@@ -82,8 +79,7 @@ check_ref_by_mhood(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			on_bye_2 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
@@ -98,8 +94,7 @@ check_by_mutable_mhood(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			&on_bye_3 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
@@ -114,8 +109,7 @@ check_ref_by_mutable_mhood(so_5::mchain_t chain )
 
 	g_bye_received = false;
 	auto r = receive(
-			chain,
-			so_5::no_wait,
+			from(chain).handle_n(1).no_wait_on_empty(),
 			on_bye_3 );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );

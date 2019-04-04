@@ -39,13 +39,13 @@ main()
 
 					std::thread second{ [ch1, ch2, ch3, ready]{
 						so_5::send< second_started >( ready );
-						so_5::select( so_5::infinite_wait,
+						so_5::select( so_5::from_all().handle_n(1),
 							case_( ch1, [](int) {} ),
 							case_( ch2, [](int) {} ),
 							case_( ch3, [](int) {} ) );
 					} };
 
-					receive( ready, so_5::infinite_wait,
+					receive( from(ready).handle_n(1),
 						[&ch1, &ch2, &ch3]( second_started ) {
 							std::cout << "second thread started, closing chains..."
 									<< std::endl;

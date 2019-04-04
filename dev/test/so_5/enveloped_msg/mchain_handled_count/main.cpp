@@ -79,7 +79,8 @@ run_test()
 
 	std::size_t processed{};
 
-	auto result = receive( from(mchain).no_wait_on_empty(),
+	auto result = receive(
+			from(mchain).handle_n(1).no_wait_on_empty(),
 			[&](so_5::mhood_t<just_test_msg> cmd) {
 				++processed;
 				std::cout << "Msg: " << cmd->m_v << std::endl;

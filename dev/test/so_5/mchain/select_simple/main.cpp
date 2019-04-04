@@ -38,7 +38,7 @@ main()
 
 					so_5::send< hello >( ch2 );
 
-					auto r = so_5::select( so_5::no_wait,
+					auto r = so_5::select( so_5::from_all().handle_n(1),
 							case_( ch1, []( hello ) {
 									throw std::runtime_error( "hello from ch1!" );
 								} ),

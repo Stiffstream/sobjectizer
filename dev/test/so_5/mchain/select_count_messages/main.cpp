@@ -73,7 +73,7 @@ main()
 
 				while( true )
 				{
-					auto r = so_5::select( so_5::infinite_wait,
+					auto r = so_5::select( so_5::from_all().handle_n(1),
 							case_( ch1, [&]( unsigned int v ) {
 									try_accept_value(
 											"ch1",

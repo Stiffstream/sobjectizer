@@ -17,7 +17,7 @@ public :
 void
 worker_thread( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 {
-	receive( from( command_ch ),
+	receive( from( command_ch ).handle_all(),
 		[reply_ch]( int i ) { so_5::send< string >( reply_ch, to_string(i) ); } );
 
 	close_retain_content( reply_ch );
@@ -59,7 +59,7 @@ do_test_case(
 		so_5::send< int >( second_cmd_ch, -i );
 	}
 
-	so_5::select( so_5::from_all().empty_timeout( chrono::milliseconds(500) ),
+	so_5::select( so_5::from_all().handle_all().empty_timeout( chrono::milliseconds(500) ),
 		case_( first_reply_ch, []( string s ) {
 				cout << "first: " << s << endl;
 			} ),

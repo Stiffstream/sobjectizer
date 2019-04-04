@@ -101,7 +101,7 @@ int main()
 						tp_disp, result_ch->as_mbox(), 0u, 1000000u );
 			} );
 
-		receive( result_ch, infinite_wait, [&result]( number v ) { result = v; } );
+		receive( from(result_ch).handle_n(1), [&result]( number v ) { result = v; } );
 
 
 		env.stop();

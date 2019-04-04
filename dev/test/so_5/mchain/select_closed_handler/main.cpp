@@ -23,7 +23,7 @@ check_op(
 			do
 			{
 				so_5::select(
-					so_5::from_all().on_close(
+					so_5::from_all().handle_all().on_close(
 						[&must_continue, &chains_closed]( const so_5::mchain_t & ch ) {
 							++chains_closed;
 							cout << "[" << ch->id() << "] closed ("
@@ -50,7 +50,7 @@ check_op(
 	close_retain_content( ch1 );
 	close_retain_content( ch2 );
 
-	receive( ch3, so_5::infinite_wait, []( size_t chains_closed ) {
+	receive( from(ch3).handle_n(1), []( size_t chains_closed ) {
 			cout << "total chains closed: " << chains_closed << endl;
 			ensure_or_die( 2u == chains_closed,
 					"expected value for chains_closed is 2" );

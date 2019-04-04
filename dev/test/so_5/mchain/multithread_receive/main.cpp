@@ -27,7 +27,7 @@ do_test( so_5::mchain_t & ch )
 	for( size_t i = 0; i != THREADS_COUNT; ++i )
 		threads.emplace_back( thread{ [&ch, &started_threads] {
 				++started_threads;
-				receive( ch, so_5::infinite_wait, []( hello ){} );
+				receive( from(ch).handle_n(1), []( hello ){} );
 			} } );
 
 	while( THREADS_COUNT != started_threads )
