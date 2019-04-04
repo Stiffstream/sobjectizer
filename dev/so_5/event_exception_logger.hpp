@@ -52,20 +52,19 @@ class SO_5_TYPE event_exception_logger_t
 		event_exception_logger_t() = default;
 		virtual ~event_exception_logger_t() noexcept = default;
 
-//FIXME: should be marked as noexcept!
 		/*!
 		 * \brief Log the exception caught.
 		 *
-		 * \attention This method will be marked as noexcept in v.5.6.0
+		 * \attention
+		 * This method is marked as noexcept in v.5.6.0
 		 */
 		virtual void
 		log_exception(
 			//! Exception caught.
 			const std::exception & event_exception,
 			//! Cooperation to which agent is belong.
-			const coop_handle_t & coop ) /* noexcept */ = 0;
+			const coop_handle_t & coop ) noexcept = 0;
 
-//FIXME: should be marked as noexcept!
 		/*!
 		 * \brief Installation hook.
 		 *
@@ -74,12 +73,13 @@ class SO_5_TYPE event_exception_logger_t
 		 *
 		 * Default implementation simply erases the old logger.
 		 *
-		 * \attention This method will be marked as noexcept in v.5.6.0
+		 * \attention
+		 * This method is marked as noexcept in v.5.6.0
 		 */
 		virtual void
 		on_install(
 			//! Old logger.
-			event_exception_logger_unique_ptr_t previous_logger ) /* noexcept */;
+			event_exception_logger_unique_ptr_t previous_logger ) noexcept;
 
 };
 

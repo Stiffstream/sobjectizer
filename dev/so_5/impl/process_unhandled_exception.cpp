@@ -95,34 +95,19 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
  *
  * \brief Log unhandled exception from cooperation.
  *
- * Calls abort() if an exception is raised during logging.
+ * \note
+ * This function is noexcept since v.5.6.0.
  */
 void
 log_unhandled_exception(
 	//! Raised and caught exception.
 	const std::exception & ex_to_log,
 	//! Agent who is the producer of the exception.
-	agent_t & a_exception_producer )
+	agent_t & a_exception_producer ) noexcept
 	{
-		try
-		{
-			a_exception_producer.so_environment().call_exception_logger(
-					ex_to_log,
-					a_exception_producer.so_coop() );
-		}
-		catch( const std::exception & x )
-		{
-			so_5::details::abort_on_fatal_error( [&] {
-				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-				{
-					 log_stream << "An exception '" << x.what()
-							<< "' during logging unhandled exception '"
-							<< ex_to_log.what() << "' from cooperation "
-							<< a_exception_producer.so_coop()
-							<< ". Application will be aborted.";
-				}
-			} );
-		}
+		a_exception_producer.so_environment().call_exception_logger(
+				ex_to_log,
+				a_exception_producer.so_coop() );
 	}
 
 } /* namespace anonymous */

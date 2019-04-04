@@ -14,9 +14,9 @@ class sample_event_exception_logger_t
 {
 	public:
 		// A reaction to an exception.
-		virtual void log_exception(
+		void log_exception(
 			const std::exception & event_exception,
-			const so_5::coop_handle_t & coop ) override
+			const so_5::coop_handle_t & coop ) noexcept override
 		{
 			std::cerr
 				<< "Event_exception, coop:"

@@ -637,7 +637,7 @@ environment_t::stop()
 void
 environment_t::call_exception_logger(
 	const std::exception & event_exception,
-	const coop_handle_t & coop )
+	const coop_handle_t & coop ) noexcept
 {
 	std::lock_guard< std::mutex > lock{ m_impl->m_event_exception_logger_lock };
 

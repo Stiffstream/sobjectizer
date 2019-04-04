@@ -1136,6 +1136,9 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Call event exception logger for logging an exception.
 		 *
+		 * \note
+		 * Since v.5.6.0 this method is marked as noexcept.
+		 *
 		 * \since
 		 * v.5.2.3.
 		 */
@@ -1144,7 +1147,7 @@ class SO_5_TYPE environment_t
 			//! Exception caught.
 			const std::exception & event_exception,
 			//! A cooperation to which agent is belong.
-			const coop_handle_t & coop );
+			const coop_handle_t & coop ) noexcept;
 
 		/*!
 		 * \brief An exception reaction for the whole SO Environment.

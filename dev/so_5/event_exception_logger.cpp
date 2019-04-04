@@ -15,7 +15,7 @@ namespace so_5
 
 void
 event_exception_logger_t::on_install(
-	event_exception_logger_unique_ptr_t previous_logger )
+	event_exception_logger_unique_ptr_t previous_logger ) noexcept
 {
 	// Default implementation deletes old logger.
 	previous_logger.reset();
@@ -40,10 +40,10 @@ class std_event_exception_logger_t
 		virtual ~std_event_exception_logger_t()
 		{}
 
-		virtual void
+		void
 		log_exception(
 			const std::exception & event_exception,
-			const coop_handle_t & coop )
+			const coop_handle_t & coop ) noexcept override
 		{
 			std::cerr
 				<< "SObjectizer event exception caught: "
