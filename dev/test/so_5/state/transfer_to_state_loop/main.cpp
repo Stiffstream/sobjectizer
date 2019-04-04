@@ -23,7 +23,7 @@ public:
 	void
 	log_exception(
 		const std::exception & ex,
-		const so_5::coop_handle_t & coop ) override
+		const so_5::coop_handle_t & coop ) noexcept override
 	{
 		if( m_prev )
 			m_prev->log_exception( ex, coop );
@@ -35,7 +35,7 @@ public:
 
 	void
 	on_install(
-		so_5::event_exception_logger_unique_ptr_t prev ) override
+		so_5::event_exception_logger_unique_ptr_t prev ) noexcept override
 	{
 		m_prev = std::move(prev);
 	}
