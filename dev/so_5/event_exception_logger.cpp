@@ -34,11 +34,7 @@ class std_event_exception_logger_t
 		public event_exception_logger_t
 {
 	public:
-		std_event_exception_logger_t()
-		{}
-
-		virtual ~std_event_exception_logger_t()
-		{}
+		std_event_exception_logger_t() = default;
 
 		void
 		log_exception(
