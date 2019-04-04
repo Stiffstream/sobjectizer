@@ -836,10 +836,21 @@ class mchain_receive_result_t
 
 namespace mchain_props {
 
-//FIXME: document this!
+//
+// msg_count_status_t
+//
+/*!
+ * \brief Status of limit for messages to be extracted/handled
+ * during a bulk operation on a mchain.
+ *
+ * \since
+ * v.5.6.0
+ */
 enum class msg_count_status_t
 	{
+		//! Message count limit is not set yet.
 		undefined,
+		//! Message count limit is set.
 		defined
 	};
 
