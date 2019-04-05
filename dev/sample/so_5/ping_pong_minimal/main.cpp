@@ -3,8 +3,8 @@
 #include <so_5/all.hpp>
 
 // Types of signals for the agents.
-struct msg_ping : public so_5::signal_t {};
-struct msg_pong : public so_5::signal_t {};
+struct msg_ping final : public so_5::signal_t {};
+struct msg_pong final : public so_5::signal_t {};
 
 // Class of pinger agent.
 class a_pinger_t final : public so_5::agent_t
@@ -16,12 +16,12 @@ class a_pinger_t final : public so_5::agent_t
 			,	m_pings_left{ pings_to_send }
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_subscribe( m_mbox ).event( &a_pinger_t::evt_pong );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				send_ping();
 			}

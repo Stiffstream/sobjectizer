@@ -9,7 +9,7 @@
 #include <so_5/all.hpp>
 
 // A class of the exception logger.
-class sample_event_exception_logger_t
+class sample_event_exception_logger_t final
 	: public so_5::event_exception_logger_t
 {
 	public:
@@ -28,14 +28,14 @@ class sample_event_exception_logger_t
 };
 
 // A class of an agent which will throw an exception.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
 		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
 		{}
 
 		// A reaction to start work in SObjectizer.
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			so_environment().install_exception_logger(
 				so_5::event_exception_logger_unique_ptr_t(
@@ -45,8 +45,7 @@ class a_hello_t : public so_5::agent_t
 		}
 
 		// An instruction to SObjectizer for unhandled exception.
-		virtual so_5::exception_reaction_t
-		so_exception_reaction() const override
+		so_5::exception_reaction_t so_exception_reaction() const override
 		{
 			return so_5::deregister_coop_on_exception;
 		}

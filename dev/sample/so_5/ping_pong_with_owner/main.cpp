@@ -7,10 +7,10 @@
 // Ping signal.
 // Signal is a special type of message which has no actual data.
 // Sending of signals is like sending only atoms in Erlang.
-struct ping : public so_5::signal_t {};
+struct ping final : public so_5::signal_t {};
 
 // Pong signal.
-struct pong : public so_5::signal_t {};
+struct pong final : public so_5::signal_t {};
 
 // Message with result of pinger/ponger run.
 // Unlike signal message it must have actual data.
@@ -20,7 +20,7 @@ struct run_result
 };
 
 // Pinger agent.
-class pinger : public so_5::agent_t
+class pinger final : public so_5::agent_t
 {
 public :
 	pinger(
@@ -40,7 +40,7 @@ public :
 
 	// This method is automatically called by SObjectizer
 	// during agent's registration procedure.
-	virtual void so_define_agent() override {
+	void so_define_agent() override {
 		// Subscription for only one signal.
 		so_default_state().event(
 			[this](mhood_t< pong >) {
@@ -52,14 +52,14 @@ public :
 	// This method is automatically called by SObjectizer
 	// just after successful registration.
 	// Pinger uses this method to initiate message exchange.
-	virtual void so_evt_start() override {
+	void so_evt_start() override {
 		// Sending signal by corresponding function.
 		so_5::send< ping >( m_ponger );
 	}
 
 	// This method is automatically called by SObjectizer
 	// just after successful agent's deregistration.
-	virtual void so_evt_finish() override {
+	void so_evt_finish() override {
 		// Sending result message by corresponding function.
 		so_5::send< run_result >(
 			// Receiver of the message.
@@ -77,7 +77,7 @@ private :
 // Ponger agent is very similar to pinger.
 // But it hasn't so_evt_start method because it will
 // wait the first ping signal from the pinger.
-class ponger : public so_5::agent_t
+class ponger final : public so_5::agent_t
 {
 public :
 	ponger( context_t ctx, so_5::mbox_t parent )
@@ -89,7 +89,7 @@ public :
 		m_pinger = mbox;
 	}
 
-	virtual void so_define_agent() override {
+	void so_define_agent() override {
 		so_default_state().event(
 			[this](mhood_t< ping >) {
 				++m_pings;
@@ -97,7 +97,7 @@ public :
 			} );
 	}
 
-	virtual void so_evt_finish() override {
+	void so_evt_finish() override {
 		so_5::send< run_result >(
 			m_parent,
 			"pings: " + std::to_string( m_pings ) );
@@ -112,13 +112,13 @@ private :
 // Parent agent.
 // Creates pair of pinger/ponger agents, then limits their working time,
 // then handles their run results.
-class parent : public so_5::agent_t
+class parent final : public so_5::agent_t
 {
 public :
 	parent( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	virtual void so_define_agent() override {
+	void so_define_agent() override {
 		// Arriving of time limit signal means that
 		// child cooperation must be deregistered.
 		so_default_state().event( [this](mhood_t< stop >) {
@@ -140,7 +140,7 @@ public :
 		st_first_result_got.event( &parent::evt_second_result );
 	}
 
-	virtual void so_evt_start() override {
+	void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
 		auto coop = so_5::create_child_coop(
 				// Parent of the new cooperation.

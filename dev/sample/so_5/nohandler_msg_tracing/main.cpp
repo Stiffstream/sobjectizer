@@ -37,7 +37,7 @@ public :
 		st_third.event( &a_example_t::on_third );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Change the state of the agent.
 		this >>= st_first;

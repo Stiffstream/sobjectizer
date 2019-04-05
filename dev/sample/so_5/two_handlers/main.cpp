@@ -20,12 +20,13 @@ public :
 			.event(&two_handlers::on_stop);
 	}
 
-	virtual void so_evt_start() override {
+	void so_evt_start() override {
 		so_5::send<M>(*this); // Immutable message is sent.
 		so_5::send<so_5::mutable_msg<M>>(*this); // Mutable message is sent.
 
 		so_5::send<stop>(*this); // Finish the work.
 	}
+
 private :
 	void on_immutable_M(mhood_t<M>) {
 		std::cout << "on immutable" << std::endl;

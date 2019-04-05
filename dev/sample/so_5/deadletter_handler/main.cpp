@@ -6,6 +6,7 @@ class demo final : public so_5::agent_t {
 	struct first_signal final : public so_5::signal_t {};
 	// ...and second by deadletter handler.
 	struct second_signal final : public so_5::signal_t {};
+
 public:
 	demo(context_t ctx) : so_5::agent_t(std::move(ctx)) {
 		// Create subscriptions.
@@ -21,7 +22,7 @@ public:
 			});
 	}
 
-	virtual void so_evt_start() override {
+	void so_evt_start() override {
 		// Send two different signal.
 		so_5::send<first_signal>(*this);
 		so_5::send<second_signal>(*this);

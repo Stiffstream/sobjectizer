@@ -46,7 +46,7 @@ public :
 	custom_logger_t()
 	{}
 
-	virtual void log(
+	void log(
 		const char * file_name,
 		unsigned int line,
 		const std::string & message ) override

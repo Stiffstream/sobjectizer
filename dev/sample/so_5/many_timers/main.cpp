@@ -119,10 +119,10 @@ void show_cfg( const cfg_t & cfg )
 }
 
 // Timer message.
-struct msg_timer : public so_5::signal_t {};
+struct msg_timer final : public so_5::signal_t {};
 
 // Agent-receiver.
-class a_receiver_t : public so_5::agent_t
+class a_receiver_t final : public so_5::agent_t
 {
 public :
 	a_receiver_t(
@@ -132,7 +132,7 @@ public :
 		,	m_messages_to_receive( messages )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe_self().event( &a_receiver_t::evt_timer );
 	}
@@ -150,7 +150,7 @@ private :
 };
 
 // Agent-sender.
-class a_sender_t : public so_5::agent_t
+class a_sender_t final : public so_5::agent_t
 {
 public :
 	a_sender_t(
@@ -164,7 +164,7 @@ public :
 		,	m_delay( delay )
 	{}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		for( unsigned long long i = 0; i != m_messages_to_send; ++i )
 			so_5::send_delayed< msg_timer >( m_dest_mbox, m_delay );

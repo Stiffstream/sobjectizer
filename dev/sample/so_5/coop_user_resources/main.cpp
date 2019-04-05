@@ -31,10 +31,10 @@ class logger_t
 };
 
 // A signal for parent cooperation about child work finish.
-struct msg_child_finished : public so_5::signal_t {};
+struct msg_child_finished final : public so_5::signal_t {};
 
 // A class of child agent.
-class a_child_t :	public so_5::agent_t
+class a_child_t final :	public so_5::agent_t
 {
 	public :
 		a_child_t(
@@ -54,7 +54,7 @@ class a_child_t :	public so_5::agent_t
 			m_logger.log( m_agent_name + ": destroyed" );
 		}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			m_logger.log( m_agent_name + ": finishing" );
 			so_5::send< msg_child_finished >( m_parent_mbox );
@@ -67,7 +67,7 @@ class a_child_t :	public so_5::agent_t
 };
 
 // A class of parent agent.
-class a_parent_t : public so_5::agent_t
+class a_parent_t final : public so_5::agent_t
 {
 	public :
 		a_parent_t(
@@ -87,7 +87,7 @@ class a_parent_t : public so_5::agent_t
 			m_logger.log( "parent destroyed" );
 		}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 		{
 			so_default_state().event(
 					&a_parent_t::evt_child_finished );

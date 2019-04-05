@@ -10,9 +10,9 @@
 #include <so_5/all.hpp>
 
 // Messages to be used for interaction with console agent.
-struct key_cancel : public so_5::signal_t {};
-struct key_bell : public so_5::signal_t {};
-struct key_grid : public so_5::signal_t {};
+struct key_cancel final : public so_5::signal_t {};
+struct key_bell final : public so_5::signal_t {};
+struct key_grid final : public so_5::signal_t {};
 
 struct key_digit
 {
@@ -107,7 +107,7 @@ public :
 			.time_limit( std::chrono::seconds{2}, dialog );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Agent starts in the default state. Switch to the appropriate one.
 		this >>= dialog;

@@ -95,7 +95,7 @@ struct request_metadata
 using request_metadata_shptr = std::shared_ptr< request_metadata >;
 
 // Request for image generation.
-struct generation_request : public so_5::message_t
+struct generation_request final : public so_5::message_t
 	{
 		const unsigned int m_id;
 		const unsigned int m_dimension;
@@ -116,7 +116,7 @@ struct generation_request : public so_5::message_t
 using generation_request_shptr = so_5::intrusive_ptr_t< generation_request >;
 
 // Positive response for image generation request.
-struct generation_result : public so_5::message_t
+struct generation_result final : public so_5::message_t
 	{
 		const unsigned int m_id;
 		request_metadata_shptr m_metadata;
@@ -130,7 +130,7 @@ struct generation_result : public so_5::message_t
 	};
 
 // Negative response for image generation request.
-struct generation_rejected : public so_5::message_t
+struct generation_rejected final : public so_5::message_t
 	{
 		const unsigned int m_id;
 
@@ -142,11 +142,11 @@ struct generation_rejected : public so_5::message_t
 //
 // Request generator agent.
 //
-class request_generator : public so_5::agent_t
+class request_generator final : public so_5::agent_t
 	{
 		// Signal which agent sends to itself with random delays.
 		// A new request will be produced for every occurrence of that signal.
-		struct produce_next : public so_5::signal_t {};
+		struct produce_next final : public so_5::signal_t {};
 
 	public :
 		request_generator(
@@ -156,7 +156,7 @@ class request_generator : public so_5::agent_t
 			,	m_interaction_mbox( std::move( interaction_mbox ) )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_subscribe_self()
 					.event( &request_generator::evt_produce_next );
@@ -166,7 +166,7 @@ class request_generator : public so_5::agent_t
 					.event( &request_generator::evt_generation_rejected );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				// Will start requests generation immediately.
 				so_5::send< produce_next >( *this );
@@ -304,7 +304,7 @@ struct request_scheduling_data
 
 // An information about a possibility to schedule request to
 // a free processor.
-struct processor_can_be_loaded : public so_5::message_t
+struct processor_can_be_loaded final : public so_5::message_t
 	{
 		// Priority of the processor.
 		so_5::priority_t m_priority;
@@ -315,7 +315,7 @@ struct processor_can_be_loaded : public so_5::message_t
 	};
 
 // Ask for next request to be processed.
-struct ask_for_work : public so_5::message_t
+struct ask_for_work final : public so_5::message_t
 	{
 		// Priority of the processor.
 		so_5::priority_t m_priority;
@@ -327,7 +327,7 @@ struct ask_for_work : public so_5::message_t
 
 // Request acceptor.
 // Accepts and stores requests to queue of appropriate priority.
-class request_acceptor : public so_5::agent_t
+class request_acceptor final : public so_5::agent_t
 	{
 	public :
 		request_acceptor(
@@ -349,7 +349,7 @@ class request_acceptor : public so_5::agent_t
 			,	m_data( data )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_subscribe( m_interaction_mbox )
 					.event( &request_acceptor::evt_request );
@@ -400,7 +400,7 @@ class request_acceptor : public so_5::agent_t
 // Request scheduler.
 // Creates child coop with processors at the start.
 // Processes ask_for_work requests from processors.
-class request_scheduler : public so_5::agent_t
+class request_scheduler final : public so_5::agent_t
 	{
 	public :
 		request_scheduler(
@@ -414,14 +414,14 @@ class request_scheduler : public so_5::agent_t
 			,	m_data( data )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_subscribe( m_interaction_mbox )
 					.event( &request_scheduler::evt_processor_can_be_loaded )
 					.event( &request_scheduler::evt_ask_for_work );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				// Child cooperation with actual processors must be created.
 				// It will use prio_dedicated_threads::one_per_prio dispacther.

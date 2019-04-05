@@ -17,11 +17,11 @@
 // Will be member of agent's chain.
 // If it is the last member of chain it will deregister
 // the whole cooperation.
-class a_chain_member_t : public so_5::agent_t
+class a_chain_member_t final : public so_5::agent_t
 {
 public :
 	// A signal to be sent from one chain's member to the next member.
-	struct msg_your_turn : public so_5::signal_t {};
+	struct msg_your_turn final : public so_5::signal_t {};
 
 	a_chain_member_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
@@ -31,7 +31,7 @@ public :
 		m_next = next;
 	}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event( [this](mhood_t< msg_your_turn >) {
 				if( m_next )
@@ -49,7 +49,7 @@ private :
 // Sample coordinator.
 // Works on the default dispatcher.
 // Creates and recreates children cooperations.
-class a_coordinator_t : public so_5::agent_t
+class a_coordinator_t final : public so_5::agent_t
 {
 public :
 	a_coordinator_t( context_t ctx, unsigned int iterations )
@@ -57,7 +57,7 @@ public :
 		,	m_remaining_iterations( iterations )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		// A notification on complete children cooperation deregistration
 		// must be received and handled.
@@ -79,7 +79,7 @@ public :
 			} );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		show_remaining_iterations();
 		create_new_child_coop();

@@ -18,7 +18,7 @@
 #include <so_5/all.hpp>
 
 // A request to be processed.
-struct msg_request : public so_5::message_t
+struct msg_request final : public so_5::message_t
 {
 	std::string m_id;
 	std::time_t m_deadline;
@@ -38,7 +38,7 @@ struct msg_request : public so_5::message_t
 using msg_request_smart_ptr_t = so_5::intrusive_ptr_t< msg_request >;
 
 // A successful reply to request.
-struct msg_positive_reply : public so_5::message_t
+struct msg_positive_reply final : public so_5::message_t
 {
 	std::string m_id;
 	std::string m_result;
@@ -55,7 +55,7 @@ struct msg_positive_reply : public so_5::message_t
 };
 
 // A negative reply to request.
-struct msg_negative_reply : public so_5::message_t
+struct msg_negative_reply final : public so_5::message_t
 {
 	std::string m_id;
 	std::time_t m_deadline;
@@ -78,7 +78,7 @@ std::string time_to_string( std::time_t t )
 }
 
 // Agent for generation of serie of requests.
-class a_generator_t : public so_5::agent_t
+class a_generator_t final : public so_5::agent_t
 {
 public :
 	a_generator_t( context_t ctx, so_5::mbox_t processor_mbox )
@@ -86,14 +86,14 @@ public :
 		,	m_processor_mbox( std::move(processor_mbox) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state()
 				.event( &a_generator_t::evt_positive_reply )
 				.event( &a_generator_t::evt_negative_reply );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		unsigned int delays[] = { 1, 4, 5, 3, 9, 15, 12 };
 
@@ -157,7 +157,7 @@ private :
 };
 
 // Agent-collector for handling message deadlines.
-class a_collector_t : public so_5::agent_t
+class a_collector_t final : public so_5::agent_t
 {
 public :
 	struct msg_select_next_job : public so_5::signal_t {};
@@ -170,7 +170,7 @@ public :
 		m_performer_mbox = mbox;
 	}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		this >>= st_performer_is_free;
 
@@ -289,7 +289,7 @@ private :
 };
 
 // Agent for handling requests.
-class a_performer_t : public so_5::agent_t
+class a_performer_t final : public so_5::agent_t
 {
 public :
 	a_performer_t( context_t ctx, so_5::mbox_t collector_mbox )
@@ -297,7 +297,7 @@ public :
 		,	m_collector_mbox( std::move(collector_mbox) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event( &a_performer_t::evt_request );
 	}

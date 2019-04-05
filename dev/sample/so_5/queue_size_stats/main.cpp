@@ -25,7 +25,7 @@ struct log_message
 };
 
 // Logger agent.
-class a_logger_t : public so_5::agent_t
+class a_logger_t final : public so_5::agent_t
 {
 public :
 	a_logger_t( context_t ctx )
@@ -37,7 +37,7 @@ public :
 		,	m_started_at( std::chrono::steady_clock::now() )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event(
 			[this]( const log_message & evt ) {
@@ -62,7 +62,7 @@ private :
 };
 
 // Agent for receiving run-time monitoring information.
-class a_stats_listener_t : public so_5::agent_t
+class a_stats_listener_t final : public so_5::agent_t
 {
 public :
 	a_stats_listener_t(
@@ -74,7 +74,7 @@ public :
 		,	m_logger( std::move( logger ) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		using namespace so_5::stats;
 
@@ -106,7 +106,7 @@ public :
 				} );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Change the speed of run-time monitor updates.
 		so_environment().stats_controller().set_distribution_period(
@@ -130,7 +130,7 @@ private :
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::agent_t
+class a_generator_t final : public so_5::agent_t
 {
 public :
 	a_generator_t(
@@ -146,13 +146,13 @@ public :
 		,	m_turn_pause( 600 )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state()
 			.event( &a_generator_t::evt_next_turn );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -201,7 +201,7 @@ private :
 };
 
 // Worker agent.
-class a_worker_t : public so_5::agent_t
+class a_worker_t final : public so_5::agent_t
 {
 public :
 	a_worker_t( context_t ctx )
@@ -210,7 +210,7 @@ public :
 				+ limit_then_drop< msg_start_thinking >( 50 ) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event( [](mhood_t< msg_start_thinking >) {
 				std::this_thread::sleep_for(

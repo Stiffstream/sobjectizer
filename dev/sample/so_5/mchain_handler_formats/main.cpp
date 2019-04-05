@@ -19,8 +19,8 @@ struct delayed_two_ints
 	int a, b;
 };
 
-struct just_signal : public so_5::signal_t {};
-struct periodic_signal : public so_5::signal_t {};
+struct just_signal final : public so_5::signal_t {};
+struct periodic_signal final : public so_5::signal_t {};
 
 void demo()
 {

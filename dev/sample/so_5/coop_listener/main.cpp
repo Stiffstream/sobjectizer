@@ -8,11 +8,10 @@
 #include <so_5/all.hpp>
 
 // An agent class definition.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
-		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
-		{}
+		using so_5::agent_t::agent_t;
 };
 
 // The SObjectizer Environment initialization.
@@ -29,9 +28,6 @@ void init( so_5::environment_t & env )
 class coop_listener_impl_t : public so_5::coop_listener_t
 {
 	public:
-		virtual ~coop_listener_impl_t() override
-		{}
-
 		// A reaction to the cooperation registration.
 		void on_registered(
 			so_5::environment_t &,

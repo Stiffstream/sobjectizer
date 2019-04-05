@@ -22,8 +22,7 @@ public :
 		so_5::mbox_t dest ) : m_dest( std::move(dest) )
 	{}
 
-	virtual void
-	stop() noexcept override
+	void stop() noexcept override
 	{
 		so_5::send< shutdown_started >( m_dest );
 	}
@@ -57,7 +56,7 @@ public:
 	}
 
 	// A reaction to start of work in SObjectizer.
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Stop_guard must be created and installed.
 		m_guard = std::make_shared< example_guard >( so_direct_mbox() );
@@ -116,7 +115,7 @@ public :
 		} );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		so_5::send_delayed< stop_work >( *this,
 				std::chrono::milliseconds(400) );

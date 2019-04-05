@@ -49,7 +49,7 @@ class a_shutdowner_t final : public so_5::agent_t
 };
 
 // An agent class definition.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
 		a_hello_t( context_t ctx )

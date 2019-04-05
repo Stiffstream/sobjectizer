@@ -22,7 +22,7 @@ struct msg_hello_to_you
 };
 
 // An agent class.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
 		a_hello_t( context_t ctx, std::string agent_name )
@@ -32,10 +32,10 @@ class a_hello_t : public so_5::agent_t
 		{}
 
 		// Definition of the agent for SObjectizer.
-		virtual void so_define_agent() override;
+		void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override;
+		void so_evt_start() override;
 
 		void evt_hello_to_all(
 			const msg_hello_to_all & evt_data );

@@ -11,13 +11,13 @@
 // Works on the default dispatcher.
 // Receives messages from children agents.
 // Finishes sample when all messages are received.
-class a_coordinator_t : public so_5::agent_t
+class a_coordinator_t final : public so_5::agent_t
 {
 public :
 	a_coordinator_t( context_t ctx ) : so_5::agent_t( ctx )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		// Just one message must be handled in the default agent state.
 		so_default_state().event( [this]( const std::string & msg ) {
@@ -29,7 +29,7 @@ public :
 			} );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Cooperation must be created at the start of agent's work.
 

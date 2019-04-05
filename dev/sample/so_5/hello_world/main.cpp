@@ -8,14 +8,13 @@
 #include <so_5/all.hpp>
 
 // Definition of an agent for SObjectizer.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
-		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
-		{}
+		using so_5::agent_t::agent_t;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			std::cout << "Hello, world! This is SObjectizer v.5 ("
 					<< SO_5_VERSION << ")" << std::endl;
@@ -25,7 +24,7 @@ class a_hello_t : public so_5::agent_t
 		}
 
 		// A reaction to finish of work in SObjectizer.
-		virtual void so_evt_finish() override
+		void so_evt_finish() override
 		{
 			std::cout << "Bye! This was SObjectizer v.5." << std::endl;
 		}

@@ -143,7 +143,7 @@ struct news_board_request_base : public news_board_message_base
 	};
 
 // Request for publishing new story.
-struct msg_publish_story_req : public news_board_request_base
+struct msg_publish_story_req final : public news_board_request_base
 	{
 		const std::string m_title;
 		const std::string m_content;
@@ -161,7 +161,7 @@ struct msg_publish_story_req : public news_board_request_base
 	};
 
 // Reply for publishing new story.
-struct msg_publish_story_resp : public news_board_message_base
+struct msg_publish_story_resp final : public news_board_message_base
 	{
 		story_id_type m_id;
 
@@ -174,7 +174,7 @@ struct msg_publish_story_resp : public news_board_message_base
 	};
 
 // Request for updates from news board.
-struct msg_updates_req : public news_board_request_base
+struct msg_updates_req final : public news_board_request_base
 	{
 		// Last known story ID.
 		story_id_type m_last_id;
@@ -191,7 +191,7 @@ struct msg_updates_req : public news_board_request_base
 	};
 
 // Reply for request for updates.
-struct msg_updates_resp : public news_board_message_base
+struct msg_updates_resp final : public news_board_message_base
 	{
 		// Type of new stories list.
 		using story_list = std::list< std::tuple< story_id_type, std::string > >;
@@ -208,7 +208,7 @@ struct msg_updates_resp : public news_board_message_base
 	};
 
 // Request for content of the story.
-struct msg_story_content_req : public news_board_request_base
+struct msg_story_content_req final : public news_board_request_base
 	{
 		// Story ID.
 		const story_id_type m_id;
@@ -224,7 +224,7 @@ struct msg_story_content_req : public news_board_request_base
 	};
 
 // Positive response to a request for story content.
-struct msg_story_content_resp_ack : public news_board_message_base
+struct msg_story_content_resp_ack final : public news_board_message_base
 	{
 		// Story content.
 		const std::string m_content;
@@ -239,7 +239,7 @@ struct msg_story_content_resp_ack : public news_board_message_base
 
 // Negative response to a request for story content.
 // This message is used when story was removed from the board.
-struct msg_story_content_resp_nack : public news_board_message_base
+struct msg_story_content_resp_nack final : public news_board_message_base
 	{
 		msg_story_content_resp_nack(
 			clock_type::time_point timestamp )
@@ -473,9 +473,9 @@ so_5::mbox_t create_board_coop(
 // Story publishers.
 //
 
-class story_publisher : public so_5::agent_t
+class story_publisher final : public so_5::agent_t
 	{
-		struct msg_time_for_new_story : public so_5::signal_t {};
+		struct msg_time_for_new_story final : public so_5::signal_t {};
 
 	public :
 		story_publisher(
@@ -489,7 +489,7 @@ class story_publisher : public so_5::agent_t
 			,	m_logger_mbox( std::move(logger_mbox) )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				this >>= st_await_new_story;
 
@@ -500,7 +500,7 @@ class story_publisher : public so_5::agent_t
 						&story_publisher::evt_publish_response );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				initiate_time_for_new_story_signal();
 			}
@@ -582,9 +582,9 @@ void create_publisher_coop(
 // News readers.
 //
 
-class news_reader : public so_5::agent_t
+class news_reader final : public so_5::agent_t
 	{
-		struct msg_time_for_updates : public so_5::signal_t {};
+		struct msg_time_for_updates final : public so_5::signal_t {};
 
 	public :
 		news_reader(
@@ -598,7 +598,7 @@ class news_reader : public so_5::agent_t
 			,	m_logger_mbox( std::move(logger_mbox) )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				this >>= st_sleeping;
 
@@ -614,7 +614,7 @@ class news_reader : public so_5::agent_t
 						&news_reader::evt_story_not_found );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				initiate_time_for_updates_signal();
 			}
@@ -761,7 +761,6 @@ void create_reader_coop(
 							logger_mbox );
 			} );
 	}
-
 
 void init( so_5::environment_t & env )
 	{

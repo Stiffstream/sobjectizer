@@ -140,7 +140,7 @@ private :
 // handler result to the next stage (if any).
 //
 template< typename In, typename Out >
-class a_stage_point_t : public agent_t
+class a_stage_point_t final : public agent_t
 {
 public :
 	a_stage_point_t(
@@ -152,7 +152,7 @@ public :
 		,	m_next{ move(next_stage) }
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		if( m_next )
 			// Because there is the next stage the appropriate
@@ -181,7 +181,7 @@ private :
 // return type.
 //
 template< typename In >
-class a_stage_point_t< In, void > : public agent_t
+class a_stage_point_t< In, void > final : public agent_t
 {
 public :
 	a_stage_point_t(
@@ -195,7 +195,7 @@ public :
 			throw std::runtime_error( "sink point cannot have next stage" );
 	}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe_self().event( [=]( const In & evt ) {
 				m_handler( evt );
@@ -214,7 +214,7 @@ private :
 // An agent of such type should be used only for terminal stages.
 //
 template< typename In >
-class a_broadcaster_t : public agent_t
+class a_broadcaster_t final : public agent_t
 {
 public :
 	a_broadcaster_t(
@@ -224,7 +224,7 @@ public :
 		,	m_next_stages( move(next_stages) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe_self().event( &a_broadcaster_t::evt_broadcast );
 	}
@@ -248,7 +248,7 @@ struct source_t {};
 //
 // Special constant to be used as indicator of the beginning of a pipeline.
 //
-static const source_t src = source_t{};
+static constexpr const source_t src = source_t{};
 
 //
 // An alias for functional object to build necessary agent for a
@@ -721,7 +721,7 @@ alarm_distribution( ostream & to, const alarm_detected & v )
  * several measures from a sensor.
  */
 
-class a_parent_t : public agent_t
+class a_parent_t final : public agent_t
 {
 	// Signal for finishing the imitation.
 	struct shutdown : public signal_t {};
@@ -730,14 +730,14 @@ public :
 	a_parent_t( context_t ctx ) : agent_t( ctx )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		// On shutdown the coop and its children must be deregistered.
 		so_subscribe_self().event(
 				[this](mhood_t< shutdown >) { so_deregister_agent_coop_normally(); } );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Construction of a pipeline.
 		auto pipeline = make_pipeline( *this,

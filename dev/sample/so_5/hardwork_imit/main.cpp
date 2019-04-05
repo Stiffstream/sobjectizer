@@ -31,7 +31,7 @@ struct msg_hardwork_checked
 	unsigned int m_index;
 };
 
-class a_manager_t : public so_5::agent_t
+class a_manager_t final : public so_5::agent_t
 {
 	public :
 		a_manager_t(
@@ -47,14 +47,14 @@ class a_manager_t : public so_5::agent_t
 			,	m_milliseconds( milliseconds )
 		{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 		{
 			so_subscribe_self()
 				.event( &a_manager_t::evt_hardwork_done )
 				.event( &a_manager_t::evt_hardwork_checked );
 		}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			m_start_time = std::chrono::steady_clock::now();
 

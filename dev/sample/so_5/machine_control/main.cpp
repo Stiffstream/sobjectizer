@@ -12,12 +12,12 @@ enum class engine_state_t { on, off };
 enum class cooler_state_t { on, off };
 
 // Signals to turn engine on and off.
-struct turn_engine_on : public so_5::signal_t {};
-struct turn_engine_off : public so_5::signal_t {};
+struct turn_engine_on final : public so_5::signal_t {};
+struct turn_engine_off final : public so_5::signal_t {};
 
 // Signals to turn cooler on and off.
-struct turn_cooler_on : public so_5::signal_t {};
-struct turn_cooler_off : public so_5::signal_t {};
+struct turn_cooler_on final : public so_5::signal_t {};
+struct turn_cooler_off final : public so_5::signal_t {};
 
 // Machine status message.
 struct machine_status
@@ -47,10 +47,10 @@ struct machine_needs_attention
 };
 
 // Agent for representing a machine.
-class a_machine_t : public so_5::agent_t
+class a_machine_t final : public so_5::agent_t
 {
 	// Periodic signal to update and distribute status of the machine.
-	struct update_status : public so_5::signal_t {};
+	struct update_status final : public so_5::signal_t {};
 
 public :
 	a_machine_t(
@@ -69,7 +69,7 @@ public :
 		,	m_engine_temperature{ initial_temperature }
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		this >>= st_engine_off;
 
@@ -85,7 +85,7 @@ public :
 			.event( &a_machine_t::evt_update_status_when_engine_off );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Periodic update_status signal must be initiated.
 		m_update_status_timer = so_5::send_periodic< update_status >(
@@ -168,10 +168,10 @@ private :
 };
 
 // An agent to collect and periodically show status of all machines.
-class a_total_status_dashboard_t : public so_5::agent_t
+class a_total_status_dashboard_t final : public so_5::agent_t
 {
 	// A signal to show the current state of all machines to the console.
-	struct show_dashboard : public so_5::signal_t {};
+	struct show_dashboard final : public so_5::signal_t {};
 
 public :
 	a_total_status_dashboard_t(
@@ -181,7 +181,7 @@ public :
 		,	m_status_distrib_mbox{ std::move( status_distrib_mbox ) }
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe( m_status_distrib_mbox )
 			.event( &a_total_status_dashboard_t::evt_machine_status );
@@ -190,7 +190,7 @@ public :
 				&a_total_status_dashboard_t::evt_show_dashboard );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Periodic signal must be initiated.
 		const auto period = std::chrono::milliseconds( 1500 );
@@ -284,7 +284,7 @@ private :
 
 // Agent which does analyzing of machine statuses and produces
 // machine_needs_attention messages.
-class a_statuses_analyzer_t : public so_5::agent_t
+class a_statuses_analyzer_t final : public so_5::agent_t
 {
 public :
 	a_statuses_analyzer_t(
@@ -300,7 +300,7 @@ public :
 		,	m_high_temperature{ high_temperature }
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe( m_status_distrib_mbox ).event(
 				&a_statuses_analyzer_t::evt_machine_status );
@@ -396,7 +396,7 @@ private :
 
 // A class for machine controllers.
 template< class Logic >
-class a_machine_controller_t : public so_5::agent_t
+class a_machine_controller_t final : public so_5::agent_t
 {
 public :
 	a_machine_controller_t(
@@ -410,7 +410,7 @@ public :
 		,	m_logic()
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_set_delivery_filter( m_status_distrib_mbox,
 			[this]( const machine_needs_attention & msg ) {

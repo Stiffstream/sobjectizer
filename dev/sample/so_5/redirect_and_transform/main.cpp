@@ -42,7 +42,7 @@ struct log_message
 };
 
 // Logger agent.
-class a_logger_t : public so_5::agent_t
+class a_logger_t final : public so_5::agent_t
 {
 public :
 	a_logger_t( context_t ctx )
@@ -54,7 +54,7 @@ public :
 		,	m_started_at( std::chrono::steady_clock::now() )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event(
 			[this]( const log_message & evt ) {
@@ -79,7 +79,7 @@ private :
 };
 
 // Load generation agent.
-class a_generator_t : public so_5::agent_t
+class a_generator_t final : public so_5::agent_t
 {
 public :
 	a_generator_t(
@@ -113,14 +113,14 @@ public :
 		,	m_last_id( id_starting_point )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state()
 			.event( &a_generator_t::evt_next_turn )
 			.event( &a_generator_t::evt_reply );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Start work cycle.
 		so_5::send< msg_next_turn >( *this );
@@ -182,7 +182,7 @@ private :
 };
 
 // Performer agent.
-class a_performer_t : public so_5::agent_t
+class a_performer_t final : public so_5::agent_t
 {
 public :
 	// A special indicator that agent must work with anotner performer.
@@ -230,7 +230,7 @@ public :
 		,	m_logger( std::move( logger ) )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_default_state().event( &a_performer_t::evt_request );
 	}

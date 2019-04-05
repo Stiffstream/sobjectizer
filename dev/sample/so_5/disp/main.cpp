@@ -9,7 +9,7 @@
 #include <so_5/all.hpp>
 
 // A class for an agent.
-class a_disp_user_t : public so_5::agent_t
+class a_disp_user_t final : public so_5::agent_t
 {
 	public:
 		a_disp_user_t( context_t ctx, std::string name )
@@ -18,7 +18,7 @@ class a_disp_user_t : public so_5::agent_t
 		{}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			SO_5_LOG_ERROR( so_environment(), log_stream )
 			{ log_stream << m_name << ".so_evt_start(): start pause"; }
@@ -31,7 +31,7 @@ class a_disp_user_t : public so_5::agent_t
 		}
 
 		// A reaction to finish of work in SObjectizer.
-		virtual void so_evt_finish() override
+		void so_evt_finish() override
 		{
 			SO_5_LOG_ERROR( so_environment(), log_stream )
 			{ log_stream << m_name << ".so_evt_finish(): start pause"; }

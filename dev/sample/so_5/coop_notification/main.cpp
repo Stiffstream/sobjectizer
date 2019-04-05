@@ -9,7 +9,7 @@
 #include <so_5/all.hpp>
 
 // A class of an agent which will throw an exception.
-class a_child_t :	public so_5::agent_t
+class a_child_t final :	public so_5::agent_t
 {
 	public :
 		a_child_t( context_t ctx, bool should_throw )
@@ -17,7 +17,7 @@ class a_child_t :	public so_5::agent_t
 			,	m_should_throw{ should_throw }
 		{}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			if( m_should_throw )
 				throw std::runtime_error( "A child agent failure!" );
@@ -28,7 +28,7 @@ class a_child_t :	public so_5::agent_t
 };
 
 // A class of parent agent.
-class a_parent_t : public so_5::agent_t
+class a_parent_t final : public so_5::agent_t
 {
 	public :
 		a_parent_t( context_t ctx )
@@ -37,7 +37,7 @@ class a_parent_t : public so_5::agent_t
 			,	m_max_counter{ 3 }
 		{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 		{
 			so_default_state()
 				.event( &a_parent_t::evt_child_created )

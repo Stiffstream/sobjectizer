@@ -25,7 +25,7 @@ struct msg_shutdown : public signal_t {};
 // Main example agent.
 // Ordinary agent is necessary because a delivery filter can be set
 // only by ordinary agent.
-class a_example_t : public agent_t
+class a_example_t final : public agent_t
 {
 public :
 	a_example_t( context_t ctx )
@@ -33,7 +33,7 @@ public :
 		,	m_mbox( so_environment().create_mbox() )
 	{}
 
-	virtual void so_define_agent() override
+	void so_define_agent() override
 	{
 		so_subscribe_self()
 			.event( &a_example_t::evt_second_part )
@@ -42,7 +42,7 @@ public :
 			} );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Subscribe for the message. Without filter.
 		so_subscribe( m_mbox ).event( []( const msg_sample & evt ) {

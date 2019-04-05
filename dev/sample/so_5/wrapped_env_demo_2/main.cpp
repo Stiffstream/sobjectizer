@@ -12,7 +12,7 @@ using namespace std;
 using namespace std::chrono;
 
 // A supervisor agent which will interact with main thread.
-class a_supervisor : public so_5::agent_t
+class a_supervisor final : public so_5::agent_t
 {
 	const state_t st_idle{ this };
 	const state_t st_started{ this };
@@ -47,8 +47,7 @@ public :
 		,	m_chain{ move(chain) }
 		{}
 
-	virtual void
-	so_define_agent() override
+	void so_define_agent() override
 		{
 			// Will start in idle state.
 			this >>= st_idle;

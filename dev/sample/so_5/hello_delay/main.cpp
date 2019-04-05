@@ -23,28 +23,27 @@ struct msg_hello
 };
 
 // Stop message.
-class msg_stop_signal : public so_5::signal_t {};
+class msg_stop_signal final : public so_5::signal_t {};
 
 // An agent class.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
-		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
-		{}
+		using so_5::agent_t::agent_t;
 
 		// Definition of an agent for SObjectizer.
-		virtual void so_define_agent() override;
+		void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override;
+		void so_evt_start() override;
 
+	private:
 		// Delayed message handler.
 		void evt_hello_delay( const msg_hello & msg );
 
 		// Stop signal handler.
 		void evt_stop_signal( mhood_t<msg_stop_signal> );
 
-	private:
 		// Helper function for printing messages.
 		static void show_message( const std::string & what );
 };

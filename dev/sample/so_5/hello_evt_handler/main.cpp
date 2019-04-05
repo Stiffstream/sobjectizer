@@ -8,26 +8,26 @@
 #include <so_5/all.hpp>
 
 // An agent class definition.
-class a_hello_t : public so_5::agent_t
+class a_hello_t final : public so_5::agent_t
 {
 	public:
-		a_hello_t( context_t ctx ) : so_5::agent_t( ctx )
-		{}
+		using so_5::agent_t::agent_t;
 
 		// Definition of an agent for SObjectizer.
-		virtual void so_define_agent() override
+		void so_define_agent() override
 		{
 			// The hello message subscription.
 			so_subscribe_self().event( &a_hello_t::evt_hello );
 		}
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override
+		void so_evt_start() override
 		{
 			// Send hello message.
 			so_5::send< std::string >( *this, "Hello, world! This is SObjectizer-5.");
 		}
 
+	private :
 		// Hello message handler.
 		void evt_hello( const std::string & msg )
 		{

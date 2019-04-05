@@ -31,16 +31,16 @@ struct my_another_message
 };
 
 // Sample message for the subscription demonstrtion.
-class my_agent_t : public so_5::agent_t
+class my_agent_t final : public so_5::agent_t
 {
 	public:
 		my_agent_t( context_t ctx );
 
 		// Definition of an agent for SObjectizer.
-		virtual void so_define_agent() override;
+		void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void so_evt_start() override;
+		void so_evt_start() override;
 
 		// Handle change state.
 		void change_state_event_handler( sample_state_t next_state );
@@ -58,7 +58,7 @@ class my_agent_t : public so_5::agent_t
 };
 
 my_agent_t::my_agent_t( context_t ctx )
-	: so_5::agent_t{ ctx }
+	: so_5::agent_t{ std::move(ctx) }
 {}
 
 void my_agent_t::so_define_agent()

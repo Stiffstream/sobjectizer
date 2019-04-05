@@ -18,10 +18,10 @@
 #include <so_5/all.hpp>
 
 // A sample agent class.
-class a_state_swither_t : public so_5::agent_t
+class a_state_swither_t final : public so_5::agent_t
 {
 	// Signal for changing agent state.
-	struct change_state_signal : public so_5::signal_t {};
+	struct change_state_signal final : public so_5::signal_t {};
 
 	// Demo message for showing different handlers in different states.
 	struct greeting_message
@@ -39,12 +39,8 @@ public:
 	a_state_swither_t( context_t ctx ) : so_5::agent_t{ ctx }
 	{}
 
-	virtual ~a_state_swither_t() override
-	{}
-
 	// Definition of the agent for SObjectizer.
-	virtual void
-	so_define_agent() override
+	void so_define_agent() override
 	{
 		// Actions for the default state.
 		so_default_state()
@@ -83,7 +79,7 @@ public:
 	}
 
 	// Reaction to start inside SObjectizer.
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		m_greeting_timer_id = so_5::send_periodic< greeting_message >(
 				*this,

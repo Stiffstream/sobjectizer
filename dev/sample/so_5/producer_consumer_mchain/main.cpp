@@ -76,7 +76,7 @@ inline void operator<<=( const so_5::mbox_t & to, msg_maker & maker )
  */
 class shutdowner final : public so_5::agent_t
 {
-	struct another_producer_finished : public so_5::signal_t {};
+	struct another_producer_finished final : public so_5::signal_t {};
 
 public :
 	shutdowner( context_t ctx, unsigned int producers_count )
@@ -124,7 +124,7 @@ struct reply
 class producer final : public so_5::agent_t
 {
 	// This signal allows to send next request for consumer.
-	struct send_next : public so_5::signal_t {};
+	struct send_next final : public so_5::signal_t {};
 
 public :
 	producer( context_t ctx,
@@ -143,7 +143,7 @@ public :
 			.event( &producer::evt_send_next );
 	}
 
-	virtual void so_evt_start() override
+	void so_evt_start() override
 	{
 		// Initiate request sending loop.
 		so_5::send< send_next >( *this );
@@ -213,7 +213,7 @@ class consumer final : public so_5::agent_t
 {
 	// This signal will be sent by not_empty_notificator when
 	// the first message is stored to the empty mchain.
-	struct chain_has_requests : public so_5::signal_t {};
+	struct chain_has_requests final : public so_5::signal_t {};
 
 public :
 	consumer( context_t ctx, so_5::mbox_t logger_mbox )
