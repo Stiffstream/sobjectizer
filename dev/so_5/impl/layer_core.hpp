@@ -51,7 +51,7 @@ struct typed_layer_ref_t
 };
 
 //! Typedef for typed_layer_ret container.
-typedef std::vector< typed_layer_ref_t > so_layer_list_t;
+using so_layer_list_t = std::vector< typed_layer_ref_t >;
 
 //
 // layer_core_t

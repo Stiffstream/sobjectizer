@@ -140,7 +140,7 @@ class timer_action_for_timer_thread_t
 template< class Timer_Thread >
 class actual_thread_t : public timer_thread_t
 	{
-		typedef actual_timer_t< Timer_Thread > timer_demand_t;
+		using timer_demand_t = actual_timer_t< Timer_Thread >;
 
 	public :
 		//! Initializing constructor.
@@ -261,7 +261,7 @@ class timer_action_for_timer_manager_t
 template< class Timer_Manager >
 class actual_manager_t : public timer_manager_t
 	{
-		typedef actual_timer_t< Timer_Manager > timer_demand_t;
+		using timer_demand_t = actual_timer_t< Timer_Manager >;
 
 	public :
 		//! Initializing constructor.

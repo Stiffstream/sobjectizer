@@ -713,10 +713,9 @@ struct data_t
 		 *
 		 * \brief Map from message type to subscribers.
 		 */
-		typedef std::map<
-						std::type_index,
-						subscriber_adaptive_container_t >
-				messages_table_t;
+		using messages_table_t = std::map<
+				std::type_index,
+				subscriber_adaptive_container_t >;
 
 		//! Map of subscribers to messages.
 		messages_table_t m_subscribers;

@@ -325,7 +325,7 @@ class agent_queue_t final
  * \since
  * v.5.4.0
  */
-typedef so_5::intrusive_ptr_t< agent_queue_t > agent_queue_ref_t;
+using agent_queue_ref_t = so_5::intrusive_ptr_t< agent_queue_t >;
 
 namespace work_thread_details {
 

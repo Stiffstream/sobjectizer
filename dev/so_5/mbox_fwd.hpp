@@ -26,7 +26,7 @@ class abstract_message_box_t;
 /*!
  * \note Defined as typedef since v.5.2.0
  */
-typedef intrusive_ptr_t< abstract_message_box_t > mbox_t;
+using mbox_t = intrusive_ptr_t< abstract_message_box_t >;
 
 namespace impl {
 

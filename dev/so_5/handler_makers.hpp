@@ -278,10 +278,10 @@ make_handler_from_lambda_of_free_function( Lambda && lambda )
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
 
-		typedef traits< typename std::decay< Lambda >::type > Traits;
-		typedef typename Traits::result_type Result;
-		typedef typename Traits::argument_type Message;
-		typedef typename Traits::pass_by_type Transformed_Lambda;
+		using Traits = traits< typename std::decay< Lambda >::type >;
+		using Result = typename Traits::result_type;
+		using Message = typename Traits::argument_type;
+		using Transformed_Lambda = typename Traits::pass_by_type;
 
 		return make_handler_with_arg< Transformed_Lambda, Result, Message >(
 				std::forward< Lambda >(lambda) );

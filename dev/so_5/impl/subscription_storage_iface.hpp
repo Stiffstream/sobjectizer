@@ -100,7 +100,7 @@ struct subscr_info_t
  *
  * \brief Type of vector with subscription information.
  */
-typedef std::vector< subscr_info_t > subscr_info_vector_t;
+using subscr_info_vector_t = std::vector< subscr_info_t >;
 
 /*!
  * \since

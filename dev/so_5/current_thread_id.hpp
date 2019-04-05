@@ -23,7 +23,7 @@
 namespace so_5
 {
 	//! Type of the current thread id.
-	typedef std::thread::id current_thread_id_t;
+	using current_thread_id_t = std::thread::id;
 
 	//! Get the ID of the current thread.
 	inline current_thread_id_t

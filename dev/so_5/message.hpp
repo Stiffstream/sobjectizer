@@ -272,7 +272,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 /*!
  * \note Defined as typedef since v.5.2.0
  */
-typedef intrusive_ptr_t< message_t > message_ref_t;
+using message_ref_t = intrusive_ptr_t< message_t >;
 
 //
 // signal_t

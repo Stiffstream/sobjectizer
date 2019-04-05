@@ -138,7 +138,7 @@ class storage_t : public subscription_storage_t
 			};
 
 		//! Type of subscriptions map.
-		typedef std::map< key_t, value_t > subscr_map_t;
+		using subscr_map_t = std::map< key_t, value_t >;
 
 		//! Subscription information.
 		subscr_map_t m_events;

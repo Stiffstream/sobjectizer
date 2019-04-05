@@ -72,7 +72,7 @@ struct key_t
 		{}
 
 	inline bool
-	operator<( const key_t & o ) const
+	operator<( const key_t & o ) const noexcept
 		{
 			if( m_mbox_id < o.m_mbox_id )
 				return true;
@@ -88,7 +88,7 @@ struct key_t
 		}
 
 	inline bool
-	operator==( const key_t & o ) const
+	operator==( const key_t & o ) const noexcept
 		{
 			return m_mbox_id == o.m_mbox_id &&
 					m_msg_type == o.m_msg_type &&
@@ -96,7 +96,7 @@ struct key_t
 		}
 
 	inline bool
-	is_same_mbox_msg_pair( const key_t & o ) const
+	is_same_mbox_msg_pair( const key_t & o ) const noexcept
 		{
 			return m_mbox_id == o.m_mbox_id &&
 					m_msg_type == o.m_msg_type;
@@ -114,18 +114,15 @@ struct key_t
  */
 struct hash_t
 	{
-		typedef const key_t * argument_type;
-		typedef std::size_t value_type;
-
-		value_type operator()( argument_type ptr ) const
+		std::size_t operator()( const key_t * ptr ) const noexcept
 			{
 				// This details have been borrowed from documentation fo
 				// boost::hash_combine function:
 				// http://www.boost.org/doc/libs/1_46_1/doc/html/hash/reference.html#boost.hash_combine
 				//
-				const value_type h1 =
+				const auto h1 =
 					std::hash< so_5::mbox_id_t >()( ptr->m_mbox_id );
-				const value_type h2 = h1 ^
+				const auto h2 = h1 ^
 					(std::hash< std::type_index >()( ptr->m_msg_type ) +
 					 	0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 
@@ -146,12 +143,7 @@ struct hash_t
  */
 struct equal_to_t
 	{
-		typedef bool result_type;
-		typedef const key_t * first_argument_type;
-		typedef const key_t * second_argument_type;
-
-		result_type operator()( first_argument_type a,
-			second_argument_type b ) const
+		bool operator()( const key_t * a, const key_t * b ) const
 			{
 				return (*a) == (*b);
 			}
@@ -256,7 +248,7 @@ class storage_t : public subscription_storage_t
 
 	private :
 		//! Type of subscription map.
-		typedef std::map< key_t, mbox_t > map_t;
+		using map_t = std::map< key_t, mbox_t >;
 
 		//! Map of subscriptions.
 		/*!
@@ -267,12 +259,11 @@ class storage_t : public subscription_storage_t
 		map_t m_map;
 
 		//! Type of event handlers hash table.
-		typedef std::unordered_map<
+		using hash_table_t = std::unordered_map<
 						const key_t *,
 						event_handler_data_t,
 						hash_t,
-						equal_to_t >
-				hash_table_t;
+						equal_to_t >;
 
 		//! Hash table of event handlers.
 		hash_table_t m_hash_table;

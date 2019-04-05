@@ -31,8 +31,7 @@ namespace so_5
  *
  * \brief Type of event handler method.
  */
-typedef std::function< void(message_ref_t &) >
-		event_handler_method_t;
+using event_handler_method_t = std::function< void(message_ref_t &) >;
 
 struct execution_demand_t;
 
@@ -45,7 +44,7 @@ struct execution_demand_t;
  *
  * \brief Demand handler prototype.
  */
-typedef void (*demand_handler_pfn_t)(
+using demand_handler_pfn_t = void (*)(
 	current_thread_id_t,
 	execution_demand_t & );
 

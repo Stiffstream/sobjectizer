@@ -42,7 +42,7 @@ namespace work_thread
 {
 
 //! Typedef for demand's container.
-typedef std::deque< execution_demand_t > demand_container_t;
+using demand_container_t = std::deque< execution_demand_t >;
 
 namespace queue_traits = so_5::disp::mpsc_queue_traits;
 

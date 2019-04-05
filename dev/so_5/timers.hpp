@@ -219,7 +219,7 @@ class SO_5_TYPE timer_thread_t
 	};
 
 //! Auxiliary typedef for timer_thread autopointer.
-typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
+using timer_thread_unique_ptr_t = std::unique_ptr< timer_thread_t >;
 
 //
 // timer_thread_factory_t

@@ -189,8 +189,9 @@ class mbox_core_t
 		};
 
 		//! Typedef for the map from the mbox name to the mbox information.
-		typedef std::map< std::string, named_mbox_info_t >
-			named_mboxes_dictionary_t;
+		using named_mboxes_dictionary_t = std::map<
+				std::string,
+				named_mbox_info_t >;
 
 		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;

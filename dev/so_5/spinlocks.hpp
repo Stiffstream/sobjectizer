@@ -131,7 +131,7 @@ class spinlock_t
 //
 // default_spinlock_t
 //
-typedef spinlock_t< pause_backoff_t > default_spinlock_t;
+using default_spinlock_t = spinlock_t< pause_backoff_t >;
 
 //
 // rw_spinlock_t
@@ -230,7 +230,7 @@ class rw_spinlock_t
 			}
 	};
 
-typedef rw_spinlock_t< pause_backoff_t > default_rw_spinlock_t;
+using default_rw_spinlock_t = rw_spinlock_t< pause_backoff_t >;
 
 //
 // read_lock_guard_t

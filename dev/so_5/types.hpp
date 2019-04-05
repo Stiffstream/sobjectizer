@@ -21,14 +21,14 @@ namespace so_5
 {
 
 //! Atomic counter type.
-typedef std::atomic_ulong atomic_counter_t;
+using atomic_counter_t = std::atomic_ulong;
 
 
 //! Atomic flag type.
-typedef std::atomic_ulong atomic_flag_t;
+using atomic_flag_t = std::atomic_ulong;
 
 //! A type for mbox indentifier.
-typedef unsigned long long mbox_id_t;
+using mbox_id_t = unsigned long long;
 
 /*!
  * \brief Default value for null mbox_id.

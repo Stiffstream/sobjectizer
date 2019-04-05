@@ -58,9 +58,8 @@ class state_listener_controller_t
 			const agent_state_listener_ref_t & agent_state_listener_ref );
 
 		//! Typedef for the listener container type.
-		typedef std::vector<
-				agent_state_listener_ref_t >
-			agent_state_listener_array_t;
+		using agent_state_listener_array_t = std::vector<
+				agent_state_listener_ref_t >;
 
 		//! Listeners.
 		agent_state_listener_array_t m_listeners;
