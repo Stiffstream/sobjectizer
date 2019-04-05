@@ -584,6 +584,7 @@ using mutable_mhood_t = mhood_t< mutable_msg<M> >;
  * v.5.6.0
  */
 template< typename M >
+SO_5_NODISCARD
 mhood_t<M>
 to_be_redirected( const intrusive_ptr_t<M> & what )
 	{
