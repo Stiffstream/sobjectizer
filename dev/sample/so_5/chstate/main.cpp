@@ -25,10 +25,10 @@
 #include <so_5/all.hpp>
 
 // Periodic message.
-class msg_periodic : public so_5::signal_t {};
+class msg_periodic final : public so_5::signal_t {};
 
 // State listener for fixing state changes.
-class state_monitor_t : public so_5::agent_state_listener_t
+class state_monitor_t final : public so_5::agent_state_listener_t
 {
 	const std::string m_type_hint;
 
@@ -37,7 +37,7 @@ class state_monitor_t : public so_5::agent_state_listener_t
 			:	m_type_hint( type_hint )
 		{}
 
-		virtual void changed(
+		void changed(
 			so_5::agent_t &,
 			const so_5::state_t & state ) override
 		{
@@ -48,7 +48,7 @@ class state_monitor_t : public so_5::agent_state_listener_t
 };
 
 // A sample agent class.
-class a_state_swither_t : public so_5::agent_t
+class a_state_swither_t final : public so_5::agent_t
 {
 		// Agent states.
 		const state_t st_1{ this, "state_1" };
@@ -62,10 +62,10 @@ class a_state_swither_t : public so_5::agent_t
 		{}
 
 		// Definition of the agent for SObjectizer.
-		virtual void so_define_agent() override;
+		void so_define_agent() override;
 
 		// Reaction to start into SObjectizer.
-		virtual void so_evt_start() override;
+		void so_evt_start() override;
 
 		// Message handler for the default state.
 		void evt_handler_default( mhood_t<msg_periodic> );
@@ -188,8 +188,7 @@ void init( so_5::environment_t & env )
 	// Adding another state listener.
 	// Its lifetime is controlled by the agent.
 	ag->so_add_destroyable_listener(
-		so_5::agent_state_listener_unique_ptr_t(
-			new state_monitor_t( "destroyable_listener" ) ) );
+		std::make_unique< state_monitor_t >( "destroyable_listener" ) );
 
 	// Creating and registering a cooperation.
 	env.register_agent_as_coop( std::move(ag) );

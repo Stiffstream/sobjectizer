@@ -54,14 +54,14 @@ struct msg_meeting_result
 		color_t m_color;
 	};
 
-struct msg_shutdown_request : public so_5::signal_t {};
+struct msg_shutdown_request final : public so_5::signal_t {};
 
 struct msg_shutdown_ack
 	{
 		int m_creatures_met;
 	};
 
-class a_meeting_place_t : public so_5::agent_t
+class a_meeting_place_t final : public so_5::agent_t
 	{
 	public :
 		a_meeting_place_t(
@@ -74,7 +74,7 @@ class a_meeting_place_t : public so_5::agent_t
 			,	m_total_meetings( 0 )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				this >>= st_empty;
 
@@ -86,6 +86,7 @@ class a_meeting_place_t : public so_5::agent_t
 					.event( &a_meeting_place_t::evt_second_creature );
 			}
 
+	private :
 		void evt_first_creature(
 			const msg_meeting_request & evt )
 			{
@@ -126,7 +127,6 @@ class a_meeting_place_t : public so_5::agent_t
 				}
 			}
 
-	private :
 		const state_t st_empty{ this, "empty" };
 		const state_t st_one_creature_inside{ this, "one_creature_inside" };
 
@@ -138,7 +138,7 @@ class a_meeting_place_t : public so_5::agent_t
 		color_t m_first_creature_color = { FADED };
 	};
 
-class a_creature_t : public so_5::agent_t
+class a_creature_t final : public so_5::agent_t
 	{
 	public :
 		a_creature_t(
@@ -151,20 +151,21 @@ class a_creature_t : public so_5::agent_t
 			,	m_color( color )
 			{}
 
-		virtual void so_define_agent() override
+		void so_define_agent() override
 			{
 				so_default_state()
 					.event( &a_creature_t::evt_meeting_result )
 					.event( &a_creature_t::evt_shutdown_request );
 			}
 
-		virtual void so_evt_start() override
+		void so_evt_start() override
 			{
 				so_5::send< msg_meeting_request >(
 						m_meeting_place_mbox,
 						so_direct_mbox(), m_color );
 			}
 
+	private :
 		void evt_meeting_result(
 			const msg_meeting_result & evt )
 			{
@@ -185,14 +186,13 @@ class a_creature_t : public so_5::agent_t
 						m_meeting_place_mbox, m_meeting_counter );
 			}
 
-	private :
 		const so_5::mbox_t m_meeting_place_mbox;
 
 		int m_meeting_counter;
 
 		color_t m_color;
 
-		color_t complement( color_t other ) const
+		color_t complement( color_t other ) const noexcept
 			{
 				switch( m_color )
 					{
@@ -209,7 +209,7 @@ class a_creature_t : public so_5::agent_t
 			}
 	};
 
-const int CREATURE_COUNT = 4;
+const int creature_count = 4;
 
 void init( so_5::environment_t & env, int meetings )
 	{
@@ -217,14 +217,14 @@ void init( so_5::environment_t & env, int meetings )
 				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[meetings]( so_5::coop_t & coop )
 				{
-					color_t creature_colors[ CREATURE_COUNT ] =
+					color_t creature_colors[ creature_count ] =
 						{ BLUE, RED, YELLOW, BLUE };
 
 					auto a_meeting_place = coop.make_agent< a_meeting_place_t >(
-							CREATURE_COUNT,
+							creature_count,
 							meetings );
 					
-					for( int i = 0; i != CREATURE_COUNT; ++i )
+					for( int i = 0; i != creature_count; ++i )
 						{
 							coop.make_agent< a_creature_t >(
 									a_meeting_place->so_direct_mbox(),

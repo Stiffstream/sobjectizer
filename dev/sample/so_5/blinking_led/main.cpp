@@ -13,7 +13,7 @@ class blinking_led final : public so_5::agent_t
 		blink_off{ substate_of{ blinking } };
 
 public :
-	struct turn_on_off : public so_5::signal_t {};
+	struct turn_on_off final : public so_5::signal_t {};
 
 	blinking_led( context_t ctx ) : so_5::agent_t{ ctx }
 	{

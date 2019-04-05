@@ -49,11 +49,11 @@ void trace( const so_5::agent_t & agent, std::string what )
 
 // Main part of the example.
 
-struct M1 : public so_5::signal_t {};
-struct M2 : public so_5::signal_t {};
-struct M3 : public so_5::signal_t {};
+struct M1 final : public so_5::signal_t {};
+struct M2 final : public so_5::signal_t {};
+struct M3 final : public so_5::signal_t {};
 
-struct stop : public so_5::signal_t {};
+struct stop final : public so_5::signal_t {};
 
 const std::chrono::milliseconds sleeping_time{ 200 };
 
