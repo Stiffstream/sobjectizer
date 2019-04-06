@@ -38,7 +38,7 @@ set(SO_5_SRC exception.cpp
 	mchain.cpp
 	event_exception_logger.cpp
 	agent.cpp
-	agent_coop.cpp
+	coop.cpp
 	queue_locks_defaults_manager.cpp
 	environment.cpp
 	so_layer.cpp
