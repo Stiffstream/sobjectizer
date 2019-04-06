@@ -592,10 +592,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			{
 				T * ret_value = resource.get();
 
-//FIXME: a custom deleter object of fixed size should be used here
-//instead of std::function!
-				resource_deleter_t d = [ret_value]() { delete ret_value; };
-				m_resource_deleters.emplace_back( std::move(d) );
+				m_resource_deleters.emplace_back( resource_deleter_t{ ret_value } );
 
 				resource.release();
 
@@ -871,12 +868,35 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		};
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Type of user resource deleter.
+		 *
+		 * Note. Before v.5.6.0 object of type std::function was used
+		 * as resource deleter. Since v.5.6.0 with functor is used as
+		 * lightweigt std::function alternative.
 		 */
-		using resource_deleter_t = std::function< void() >;
+		struct resource_deleter_t
+			{
+				using deleter_pfn_t = void(*)(void *) noexcept;
+
+				void * m_resource;
+				deleter_pfn_t m_deleter;
+
+				template< typename T >
+				resource_deleter_t( T * resource )
+					:	m_resource{ resource }
+					,	m_deleter{ [](void * raw_ptr) noexcept {
+								auto r = reinterpret_cast<T *>(raw_ptr);
+								delete r;
+							}
+						}
+					{}
+
+				void
+				operator()() noexcept
+					{
+						(*m_deleter)( m_resource );
+					}
+			};
 
 		/*!
 		 * \since
