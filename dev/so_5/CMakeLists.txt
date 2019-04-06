@@ -29,42 +29,42 @@ set(SO_5_SRC exception.cpp
 	timers.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
-	rt/message.cpp
-	rt/enveloped_msg.cpp
-	rt/handler_makers.cpp
-	rt/message_limit.cpp
-	rt/event_queue_hook.cpp
-	rt/mbox.cpp
-	rt/mchain.cpp
-	rt/event_exception_logger.cpp
-	rt/agent.cpp
-	rt/agent_coop.cpp
-	rt/queue_locks_defaults_manager.cpp
-	rt/environment.cpp
-	rt/so_layer.cpp
+	message.cpp
+	enveloped_msg.cpp
+	handler_makers.cpp
+	message_limit.cpp
+	event_queue_hook.cpp
+	mbox.cpp
+	mchain.cpp
+	event_exception_logger.cpp
+	agent.cpp
+	agent_coop.cpp
+	queue_locks_defaults_manager.cpp
+	environment.cpp
+	so_layer.cpp
 
-	rt/impl/msg_tracing_helpers.cpp
-	rt/impl/subscription_storage_iface.cpp
-	rt/impl/subscr_storage_vector_based.cpp
-	rt/impl/subscr_storage_map_based.cpp
-	rt/impl/subscr_storage_hash_table_based.cpp
-	rt/impl/subscr_storage_adaptive.cpp
-	rt/impl/process_unhandled_exception.cpp
-	rt/impl/named_local_mbox.cpp
-	rt/impl/mbox_core.cpp
-	rt/impl/coop_repository_basis.cpp
-	rt/impl/layer_core.cpp
-	rt/impl/mt_env_infrastructure.cpp
-	rt/impl/simple_mtsafe_st_env_infrastructure.cpp
-	rt/impl/simple_not_mtsafe_st_env_infrastructure.cpp
+	impl/msg_tracing_helpers.cpp
+	impl/subscription_storage_iface.cpp
+	impl/subscr_storage_vector_based.cpp
+	impl/subscr_storage_map_based.cpp
+	impl/subscr_storage_hash_table_based.cpp
+	impl/subscr_storage_adaptive.cpp
+	impl/process_unhandled_exception.cpp
+	impl/named_local_mbox.cpp
+	impl/mbox_core.cpp
+	impl/coop_repository_basis.cpp
+	impl/layer_core.cpp
+	impl/mt_env_infrastructure.cpp
+	impl/simple_mtsafe_st_env_infrastructure.cpp
+	impl/simple_not_mtsafe_st_env_infrastructure.cpp
 	
-	rt/stats/repository.cpp
-	rt/stats/std_names.cpp
+	stats/repository.cpp
+	stats/std_names.cpp
 
-	rt/stats/impl/std_controller.cpp
-	rt/stats/impl/ds_agent_core_stats.cpp
-	rt/stats/impl/ds_mbox_core_stats.cpp
-	rt/stats/impl/ds_timer_thread_stats.cpp
+	stats/impl/std_controller.cpp
+	stats/impl/ds_agent_core_stats.cpp
+	stats/impl/ds_mbox_core_stats.cpp
+	stats/impl/ds_timer_thread_stats.cpp
 	
 	disp/mpsc_queue_traits/pub.cpp
 	disp/mpmc_queue_traits/pub.cpp
