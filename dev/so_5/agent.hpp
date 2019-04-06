@@ -2319,8 +2319,7 @@ class SO_5_TYPE agent_t
 		agent_status_t m_current_status;
 
 		//! State listeners controller.
-		std::unique_ptr< impl::state_listener_controller_t >
-			m_state_listener_controller;
+		impl::state_listener_controller_t m_state_listener_controller;
 
 		/*!
 		 * \since
