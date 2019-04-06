@@ -11,7 +11,6 @@
 #include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/coop_private_iface.hpp>
 
-#include <so_5/impl/state_listener_controller.hpp>
 #include <so_5/impl/subscription_storage_iface.hpp>
 #include <so_5/impl/process_unhandled_exception.hpp>
 #include <so_5/impl/message_limit_internals.hpp>
@@ -489,7 +488,6 @@ agent_t::agent_t(
 	context_t ctx )
 	:	m_current_state_ptr( &st_default )
 	,	m_current_status( agent_status_t::not_defined_yet )
-	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_handler_finder(
 			// Actual handler finder is dependent on msg_tracing status.
 			impl::internal_env_iface_t( ctx.env() ).is_msg_tracing_enabled() ?
@@ -550,16 +548,18 @@ void
 agent_t::so_add_nondestroyable_listener(
 	agent_state_listener_t & state_listener )
 {
-	m_state_listener_controller->so_add_nondestroyable_listener(
-		state_listener );
+	m_state_listener_controller.add(
+			impl::state_listener_controller_t::wrap_nondestroyable(
+					state_listener ) );
 }
 
 void
 agent_t::so_add_destroyable_listener(
 	agent_state_listener_unique_ptr_t state_listener )
 {
-	m_state_listener_controller->so_add_destroyable_listener(
-		std::move( state_listener ) );
+	m_state_listener_controller.add(
+			impl::state_listener_controller_t::wrap_destroyable(
+					std::move( state_listener ) ) );
 }
 
 exception_reaction_t
@@ -648,7 +648,7 @@ agent_t::so_change_state(
 			do_state_switch( *actual_new_state );
 
 			// State listener should be informed.
-			m_state_listener_controller->changed(
+			m_state_listener_controller.changed(
 				*this,
 				*m_current_state_ptr );
 		}

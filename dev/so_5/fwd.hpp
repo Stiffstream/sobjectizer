@@ -17,7 +17,6 @@ namespace so_5 {
 namespace impl
 {
 
-class state_listener_controller_t;
 class mpsc_mbox_t;
 struct event_handler_data_t;
 class delivery_filter_storage_t;

@@ -54,7 +54,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/mbox_core.cpp
 	rt/impl/coop_repository_basis.cpp
 	rt/impl/layer_core.cpp
-	rt/impl/state_listener_controller.cpp
 	rt/impl/mt_env_infrastructure.cpp
 	rt/impl/simple_mtsafe_st_env_infrastructure.cpp
 	rt/impl/simple_not_mtsafe_st_env_infrastructure.cpp

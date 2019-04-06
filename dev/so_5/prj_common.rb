@@ -85,7 +85,6 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			cpp_source 'coop_repository_basis.cpp'
 
 			cpp_source 'layer_core.cpp'
-			cpp_source 'state_listener_controller.cpp'
 
 			cpp_source 'mt_env_infrastructure.cpp'
 			cpp_source 'simple_mtsafe_st_env_infrastructure.cpp'

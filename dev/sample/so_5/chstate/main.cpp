@@ -39,7 +39,7 @@ class state_monitor_t final : public so_5::agent_state_listener_t
 
 		void changed(
 			so_5::agent_t &,
-			const so_5::state_t & state ) override
+			const so_5::state_t & state ) noexcept override
 		{
 			std::cout << m_type_hint << " agent changed state to "
 				<< state.query_name()
