@@ -160,7 +160,7 @@ main()
 						(void)params;
 					} );
 			},
-			30 );
+			600 );
 	}
 	catch(const exception & ex)
 	{
