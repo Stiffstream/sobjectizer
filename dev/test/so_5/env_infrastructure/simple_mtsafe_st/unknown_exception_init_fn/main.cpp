@@ -28,7 +28,7 @@ main()
 						} );
 
 					// An exception should be thrown from so_5::launch.
-					std::cout << "We expect an exception from launch";
+					std::cout << "We expect an exception from launch" << std::endl;
 					std::abort();
 				}
 				catch( const so_5::exception_t & x )

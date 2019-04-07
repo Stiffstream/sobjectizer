@@ -589,7 +589,20 @@ void
 env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loop(
 	env_init_t init_fn )
 	{
-		so_5::impl::wrap_init_fn_call( std::move(init_fn) );
+		// In the case if init_fn throws an exception it is possible
+		// that some coop will be in m_final_dereg_coops container.
+		// But because run_main_loop() is not started there won't be
+		// a call to process_final_deregs_if_any().
+		// Therefore it is necessary to do that call if init_fn throws.
+		so_5::details::do_with_rollback_on_exception(
+			[&] {
+				so_5::impl::wrap_init_fn_call( std::move(init_fn) );
+			},
+			[this] {
+				std::unique_lock< std::mutex > lock( m_sync_objects.m_lock );
+				process_final_deregs_if_any( lock );
+			} );
+
 		run_main_loop();
 	}
 
