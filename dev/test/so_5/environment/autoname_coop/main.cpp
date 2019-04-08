@@ -41,10 +41,16 @@ main()
 									std::make_unique< a_test_t >( env ),
 									so_5::disp::one_thread::make_dispatcher(
 											env, "another" ).binder() );
+
+							std::cout << i << "\r" << std::flush;
 						}
+
+						std::cout << "Done." << std::flush;
 					} );
+
+				std::cout << " Completed." << std::endl;
 			},
-			20 );
+			600 );
 	}
 	catch( const std::exception & ex )
 	{
