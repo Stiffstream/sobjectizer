@@ -5,11 +5,7 @@
 
 #include <test/3rd_party/utest_helper/helper.hpp>
 
-#if defined(SO_5_NO_SUPPORT_FOR_INLINE_NAMESPACE)
-namespace tests = so_5::experimental::testing::v1;
-#else
 namespace tests = so_5::experimental::testing;
-#endif
 
 class worker_t final : public so_5::agent_t
 {
@@ -50,7 +46,7 @@ public :
 			.event( [this](mhood_t<start_work>) {
 					so_5::send< worker_t::acquire >( m_control_mbox );
 					so_5::send_delayed< finish_work >( *this,
-							std::chrono::milliseconds(100) );
+							std::chrono::milliseconds(150) );
 				} )
 			.event( [this](mhood_t<finish_work>) {
 					so_5::send< worker_t::release >( m_control_mbox );
@@ -69,7 +65,14 @@ UT_UNIT_TEST( workers_and_manager )
 	run_with_time_limit(
 		[]()
 		{
-			tests::testing_env_t env;
+			tests::testing_env_t env{
+				[]( so_5::environment_params_t & params ) {
+					(void)params;
+#if 0
+					params.message_delivery_tracer(
+						so_5::msg_tracing::std_clog_tracer() );
+#endif
+				} };
 
 			const auto control_mbox = env.environment().create_mbox();
 
@@ -95,7 +98,7 @@ UT_UNIT_TEST( workers_and_manager )
 							& tests::store_state_name( "second" ) )
 				.constraints(
 						tests::not_before( std::chrono::milliseconds(50) ),
-						tests::not_after( std::chrono::milliseconds(150) ) );
+						tests::not_after( std::chrono::milliseconds(1000) ) ) ;
 
 			scenario.define_step( "release" )
 				.when_all(
@@ -106,9 +109,9 @@ UT_UNIT_TEST( workers_and_manager )
 							& tests::reacts_to< worker_t::release >( control_mbox )
 							& tests::store_state_name( "second" ) )
 				.constraints(
-						tests::not_before( std::chrono::milliseconds(50) ) );
+						tests::not_before( std::chrono::milliseconds(75) ) );
 
-			scenario.run_for( std::chrono::seconds(1) );
+			scenario.run_for( std::chrono::seconds(4) );
 
 			UT_CHECK_EQ( tests::completed(), scenario.result() );
 
