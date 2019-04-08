@@ -480,20 +480,48 @@ void
 env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loop(
 	env_init_t init_fn )
 	{
-		// In the case if init_fn throws an exception it is possible
-		// that some coop will be in m_final_dereg_coops container.
-		// But because run_main_loop() is not started there won't be
-		// a call to process_final_deregs_if_any().
-		// Therefore it is necessary to do that call if init_fn throws.
-		so_5::details::do_with_rollback_on_exception(
-			[&] {
+		/*
+			If init_fn throws an exception we can found ourselves
+			in a situation where there are some working coops.
+			Those coops should be correctly deregistered. It means
+			that we should usual main loop even in the case of
+			an exception from init_fn. But this main loop should
+			work only until all coops will be deregistered.
+
+			To do that we will catch an exception from init and
+			initiate shutdown even before the call to run_main_loop().
+			Then we call run_main_loop() and wail for its completion.
+			Then we reraise the exception caught.
+
+			Note that in this scheme run_main_loop() should be
+			noexcept function because otherwise we will loose the
+			initial exception from init_fn.
+		*/
+		optional< std::exception_ptr > exception_from_init;
+		try
+			{
 				so_5::impl::wrap_init_fn_call( std::move(init_fn) );
-			},
-			[this] {
-				process_final_deregs_if_any();
+			}
+		catch( ... )
+			{
+				// We can't restore if there will be an exception.
+				so_5::details::invoke_noexcept_code( [&] {
+						// Store the content of the exception to reraise it later.
+						exception_from_init = std::current_exception();
+						// Execution should be stopped.
+						stop();
+					} );
+			}
+
+		// We don't expect exceptions from the main loop.
+		so_5::details::invoke_noexcept_code( [this] {
+				run_main_loop();
 			} );
 
-		run_main_loop();
+		// If there was an exception from init_fn this exception
+		// should be rethrown.
+		if( exception_from_init )
+			std::rethrow_exception( *exception_from_init );
 	}
 
 template< typename Activity_Tracker >
@@ -585,24 +613,29 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand()
 		// If there is no demands we must go to sleep for some time...
 		if( event_queue_impl_t::pop_result_t::empty_queue == pop_result )
 			{
-				// We must try to sleep for next timer but only if
-				// there is any timer.
-				if( !m_timer_manager->empty() )
+				// ... but we should go to sleep only if there is no
+				// pending final deregistration actions.
+				if( m_final_dereg_coops.empty() )
 					{
-						// Tracking time for 'waiting' state must be turned on.
-						m_activity_tracker.wait_start_if_not_started();
+						// We must try to sleep for next timer but only if
+						// there is any timer.
+						if( !m_timer_manager->empty() )
+							{
+								// Tracking time for 'waiting' state must be turned on.
+								m_activity_tracker.wait_start_if_not_started();
 
-						const auto sleep_time =
-								m_timer_manager->timeout_before_nearest_timer(
-										// We can use very large value here.
-										std::chrono::hours(24) );
+								const auto sleep_time =
+										m_timer_manager->timeout_before_nearest_timer(
+												// We can use very large value here.
+												std::chrono::hours(24) );
 
-						std::this_thread::sleep_for( sleep_time );
+								std::this_thread::sleep_for( sleep_time );
+							}
+						else
+							// There are no demands and there are no timers.
+							// Environment's work must be finished.
+							stop();
 					}
-				else
-					// There are no demands and there are no timers.
-					// Environment's work must be finished.
-					stop();
 			}
 		else
 			{
