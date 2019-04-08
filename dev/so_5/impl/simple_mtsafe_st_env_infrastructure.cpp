@@ -377,23 +377,23 @@ class env_infrastructure_t
 			env_init_t init_fn );
 
 		void
-		run_main_loop();
+		run_main_loop() noexcept;
 
 		void
 		process_final_deregs_if_any(
-			std::unique_lock< std::mutex > & acquired_lock );
+			std::unique_lock< std::mutex > & acquired_lock ) noexcept;
 
 		void
 		perform_shutdown_related_actions_if_needed(
-			std::unique_lock< std::mutex > & acquired_lock );
+			std::unique_lock< std::mutex > & acquired_lock ) noexcept;
 
 		void
 		handle_expired_timers_if_any(
-			std::unique_lock< std::mutex > & acquired_lock );
+			std::unique_lock< std::mutex > & acquired_lock ) noexcept;
 
 		void
 		try_handle_next_demand(
-			std::unique_lock< std::mutex > & acquired_lock );
+			std::unique_lock< std::mutex > & acquired_lock ) noexcept;
 	};
 
 template< typename Activity_Tracker >
@@ -589,26 +589,53 @@ void
 env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loop(
 	env_init_t init_fn )
 	{
-		// In the case if init_fn throws an exception it is possible
-		// that some coop will be in m_final_dereg_coops container.
-		// But because run_main_loop() is not started there won't be
-		// a call to process_final_deregs_if_any().
-		// Therefore it is necessary to do that call if init_fn throws.
-		so_5::details::do_with_rollback_on_exception(
-			[&] {
+		/*
+			If init_fn throws an exception we can found ourselves
+			in a situation where there are some working coops.
+			Those coops should be correctly deregistered. It means
+			that we should usual main loop even in the case of
+			an exception from init_fn. But this main loop should
+			work only until all coops will be deregistered.
+
+			To do that we will catch an exception from init and
+			initiate shutdown even before the call to run_main_loop().
+			Then we call run_main_loop() and wail for its completion.
+			Then we reraise the exception caught.
+
+			Note that in this scheme run_main_loop() should be
+			noexcept function because otherwise we will loose the
+			initial exception from init_fn.
+		*/
+		optional< std::exception_ptr > exception_from_init;
+		try
+			{
 				so_5::impl::wrap_init_fn_call( std::move(init_fn) );
-			},
-			[this] {
-				std::unique_lock< std::mutex > lock( m_sync_objects.m_lock );
-				process_final_deregs_if_any( lock );
+			}
+		catch( ... )
+			{
+				// We can't restore if there will be an exception.
+				so_5::details::invoke_noexcept_code( [&] {
+						// Store the content of the exception to reraise it later.
+						exception_from_init = std::current_exception();
+						// Execution should be stopped.
+						stop();
+					} );
+			}
+
+		// We don't expect exceptions from the main loop.
+		so_5::details::invoke_noexcept_code( [this] {
+				run_main_loop();
 			} );
 
-		run_main_loop();
+		// If there was an exception from init_fn this exception
+		// should be rethrown.
+		if( exception_from_init )
+			std::rethrow_exception( *exception_from_init );
 	}
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::run_main_loop()
+env_infrastructure_t< Activity_Tracker >::run_main_loop() noexcept
 	{
 		// Assume that waiting for new demands is started.
 		// This call is necessary because if there is a demand
@@ -641,7 +668,7 @@ env_infrastructure_t< Activity_Tracker >::run_main_loop()
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
-	std::unique_lock< std::mutex > & acquired_lock )
+	std::unique_lock< std::mutex > & acquired_lock ) noexcept
 	{
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
@@ -666,7 +693,7 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_needed(
-	std::unique_lock< std::mutex > & acquired_lock )
+	std::unique_lock< std::mutex > & acquired_lock ) noexcept
 	{
 		if( shutdown_status_t::must_be_started == m_shutdown_status )
 			{
@@ -693,7 +720,7 @@ env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_ne
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any(
-	std::unique_lock< std::mutex > & acquired_lock )
+	std::unique_lock< std::mutex > & acquired_lock ) noexcept
 	{
 		// All expired timers must be collected.
 		m_timer_manager->process_expired_timers();
@@ -714,27 +741,32 @@ env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any(
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::try_handle_next_demand(
-	std::unique_lock< std::mutex > & acquired_lock )
+	std::unique_lock< std::mutex > & acquired_lock ) noexcept
 	{
 		execution_demand_t demand;
 		const auto pop_result = m_event_queue.pop( demand );
 		// If there is no demands we must go to sleep for some time...
 		if( event_queue_impl_t::pop_result_t::empty_queue == pop_result )
 			{
-				// Tracking time for 'waiting' state must be turned on.
-				m_activity_tracker.wait_start_if_not_started();
+				// ... but we should go to sleep only if there is no
+				// pending final deregistration actions.
+				if( m_final_dereg_coops.empty() )
+					{
+						// Tracking time for 'waiting' state must be turned on.
+						m_activity_tracker.wait_start_if_not_started();
 
-				const auto sleep_time =
-						m_timer_manager->timeout_before_nearest_timer(
-								std::chrono::minutes(1) );
+						const auto sleep_time =
+								m_timer_manager->timeout_before_nearest_timer(
+										std::chrono::minutes(1) );
 
-				m_sync_objects.m_status = main_thread_status_t::waiting;
+						m_sync_objects.m_status = main_thread_status_t::waiting;
 
-				m_sync_objects.m_wakeup_condition.wait_for(
-						acquired_lock,
-						sleep_time );
+						m_sync_objects.m_wakeup_condition.wait_for(
+								acquired_lock,
+								sleep_time );
 
-				m_sync_objects.m_status = main_thread_status_t::working;
+						m_sync_objects.m_status = main_thread_status_t::working;
+					}
 			}
 		else
 			{
