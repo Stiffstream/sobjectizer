@@ -291,19 +291,19 @@ class env_infrastructure_t
 			env_init_t init_fn );
 
 		void
-		run_main_loop();
+		run_main_loop() noexcept;
 
 		void
-		process_final_deregs_if_any();
+		process_final_deregs_if_any() noexcept;
 
 		void
-		perform_shutdown_related_actions_if_needed();
+		perform_shutdown_related_actions_if_needed() noexcept;
 
 		void
-		handle_expired_timers_if_any();
+		handle_expired_timers_if_any() noexcept;
 
 		void
-		try_handle_next_demand();
+		try_handle_next_demand() noexcept;
 	};
 
 template< typename Activity_Tracker >
@@ -526,7 +526,7 @@ env_infrastructure_t< Activity_Tracker >::run_user_supplied_init_and_do_main_loo
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::run_main_loop()
+env_infrastructure_t< Activity_Tracker >::run_main_loop() noexcept
 	{
 		// Assume that waiting for new demands is started.
 		// This call is necessary because if there is a demand
@@ -555,7 +555,7 @@ env_infrastructure_t< Activity_Tracker >::run_main_loop()
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any()
+env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any() noexcept
 	{
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
@@ -576,7 +576,7 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any()
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_needed()
+env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_needed() noexcept
 	{
 		if( shutdown_status_t::must_be_started == m_shutdown_status )
 			{
@@ -597,7 +597,7 @@ env_infrastructure_t< Activity_Tracker >::perform_shutdown_related_actions_if_ne
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any()
+env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any() noexcept
 	{
 		// All expired timers must be collected.
 		// NOTE: a direct delivery happens in this environment infrastructure.
@@ -606,7 +606,7 @@ env_infrastructure_t< Activity_Tracker >::handle_expired_timers_if_any()
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::try_handle_next_demand()
+env_infrastructure_t< Activity_Tracker >::try_handle_next_demand() noexcept
 	{
 		execution_demand_t demand;
 		const auto pop_result = m_event_queue.pop( demand );
