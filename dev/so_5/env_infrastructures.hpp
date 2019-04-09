@@ -79,21 +79,19 @@ class params_t
 	public :
 		//! Setter for timer_manager factory.
 		params_t &
-		timer_manager( timer_manager_factory_t factory ) SO_5_OVERLOAD_FOR_REF
+		timer_manager( timer_manager_factory_t factory ) &
 			{
 				m_timer_factory = std::move(factory);
 				return *this;
 			}
 
-#if !defined( SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING )
 		//! Setter for timer_manager factory.
 		params_t &&
-		timer_manager( timer_manager_factory_t factory ) SO_5_OVERLOAD_FOR_RVALUE_REF
+		timer_manager( timer_manager_factory_t factory ) &&
 			{
 				m_timer_factory = std::move(factory);
 				return std::move(*this);
 			}
-#endif
 
 		//! Getter for timer_manager factory.
 		const timer_manager_factory_t &
@@ -186,21 +184,19 @@ class params_t
 	public :
 		//! Setter for timer_manager factory.
 		params_t &
-		timer_manager( timer_manager_factory_t factory ) SO_5_OVERLOAD_FOR_REF
+		timer_manager( timer_manager_factory_t factory ) &
 			{
 				m_timer_factory = std::move(factory);
 				return *this;
 			}
 
-#if !defined( SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING )
 		//! Setter for timer_manager factory.
 		params_t &&
-		timer_manager( timer_manager_factory_t factory ) SO_5_OVERLOAD_FOR_RVALUE_REF
+		timer_manager( timer_manager_factory_t factory ) &&
 			{
 				m_timer_factory = std::move(factory);
 				return std::move(*this);
 			}
-#endif
 
 		//! Getter for timer_manager factory.
 		const timer_manager_factory_t &

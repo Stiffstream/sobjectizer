@@ -27,7 +27,7 @@ namespace experimental {
 	
 namespace testing {
 	
-SO_5_INLINE_NS namespace v1 {
+inline namespace v1 {
 
 namespace details {
 
@@ -644,19 +644,8 @@ class trigger_holder_t final
 			:	m_trigger( std::move(trigger) )
 			{}
 
-#if defined(SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR)
-		trigger_holder_t( trigger_holder_t && o ) noexcept
-			:	m_trigger( std::move(o.m_trigger) )
-			{}
-		trigger_holder_t & operator=( trigger_holder_t && o ) noexcept
-			{
-				m_trigger = std::move(o.m_trigger);
-				return *this;
-			}
-#else
 		trigger_holder_t( trigger_holder_t && ) noexcept = default;
 		trigger_holder_t & operator=( trigger_holder_t && ) noexcept = default;
-#endif
 
 		trigger_holder_t( const trigger_holder_t & ) = delete;
 		trigger_holder_t & operator=( const trigger_holder_t & ) = delete;

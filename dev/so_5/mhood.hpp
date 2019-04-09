@@ -129,9 +129,7 @@ public :
 		: m_msg{ message_payload_type< M >::extract_payload_ptr( mf ) }
 		{}
 
-#if !defined( SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR )
 	mhood_base_t( const mhood_base_t & ) = delete;
-#endif
 
 	mhood_base_t( mhood_base_t && other ) noexcept
 		: m_msg{ other.m_msg }
@@ -146,10 +144,8 @@ public :
 			swap( a, b );
 		}
 
-#if !defined( SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR )
 	mhood_base_t &
 	operator=( const mhood_base_t & ) = delete;
-#endif
 
 	mhood_base_t &
 	operator=( mhood_base_t && other ) noexcept
@@ -300,9 +296,7 @@ public :
 		, m_envelope{ message_payload_type< M >::extract_envelope_ptr( mf ) }
 		{}
 
-#if !defined( SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR )
 	mhood_base_t( const mhood_base_t & ) = delete;
-#endif
 
 	mhood_base_t( mhood_base_t && other ) noexcept
 		: m_payload( other.m_payload )
@@ -320,10 +314,8 @@ public :
 			swap( a.m_envelope, b.m_envelope );
 		}
 
-#if !defined( SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR )
 	mhood_base_t &
 	operator=( const mhood_base_t & ) = delete;
-#endif
 
 	mhood_base_t &
 	operator=( mhood_base_t && other ) noexcept

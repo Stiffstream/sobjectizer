@@ -46,15 +46,7 @@ class SO_5_TYPE atomic_refcounted_t
 		/*!
 		 * Sets reference counter to 0.
 		 */
-#if defined(SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR)
-		atomic_refcounted_t() noexcept
-		{
-			m_ref_counter = 0;
-		}
-#else
-		atomic_refcounted_t() noexcept : m_ref_counter(0)
-		{}
-#endif
+		atomic_refcounted_t() noexcept : m_ref_counter(0) {}
 
 		//! Destructor.
 		/*!

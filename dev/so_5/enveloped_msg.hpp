@@ -88,10 +88,8 @@ class SO_5_TYPE handler_invoker_t
 		handler_invoker_t( const handler_invoker_t & ) = default;
 		handler_invoker_t & operator=( const handler_invoker_t & ) = default;
 
-#if !defined(SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR)
 		handler_invoker_t( handler_invoker_t && ) = default;
 		handler_invoker_t & operator=( handler_invoker_t && ) = default;
-#endif
 
 		~handler_invoker_t() = default;
 
@@ -182,10 +180,8 @@ class SO_5_TYPE envelope_t : public message_t
 		envelope_t( const envelope_t & ) = default;
 		envelope_t & operator=( const envelope_t & ) = default;
 
-#if !defined(SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR)
 		envelope_t( envelope_t && ) = default;
 		envelope_t & operator=( envelope_t && ) = default;
-#endif
 
 		virtual ~envelope_t() override = default;
 

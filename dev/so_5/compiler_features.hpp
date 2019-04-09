@@ -14,57 +14,10 @@
 
 #if defined( _MSC_VER )
 	#define SO_5_MSVC
-
-	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
-	// implementation.
-	#if _MSC_VER < 1900
-		// Visual C++ 2013 doesn't support methods overloading based on
-		// reference or rvalue reference.
-		#define SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING
-
-		#if _MSC_VER == 1800
-			// Visual C++2013 has problems with inheriting deleted
-			// copy constructors and copy operators.
-			#define SO_5_MSVC_CANT_INHERIT_DELETED_COPY_CONSTRUCTOR
-
-			// Visual C++2013 can't handle =default for
-			// move-constructor.
-			#define SO_5_MSVC_CANT_DEFAULT_MOVE_CONSTRUCTOR
-		#endif
-
-		// Visual C++ 2013 have no normal initializing constructor
-		// for std::atomic.
-		#define SO_5_STD_ATOMIC_HAS_ONLY_DEFAULT_CTOR
-
-		// Visual C++ 2013 doesn't understand move constructor as a
-		// special function and can't defaulted such constructors.
-		#define SO_5_NEED_MSVC_12_WORKAROUNDS
-
-		// Visual C++ 2013 doesn't support inline namespace.
-		#define SO_5_NO_SUPPORT_FOR_INLINE_NAMESPACE
-	#endif
-
-	#if _MSC_VER == 1700
-		// Please see details at:
-		// http://connect.microsoft.com/VisualStudio/feedback/details/761829/c-11-unexpected-behavior-for-std-future-wait-for-and-std-packaged-task
-		//
-		// Because of it is dangerous to use wait_for() with
-		// synchronous service calls.
-		#define SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED
-	#endif
-
 #endif
 
 #if defined( __clang__ )
 	#define SO_5_CLANG
-#endif
-
-#if defined( SO_5_NO_SUPPORT_FOR_RVALUE_REFERENCE_OVERLOADING )
-	#define SO_5_OVERLOAD_FOR_REF
-	#define SO_5_OVERLOAD_FOR_RVALUE_REF
-#else
-	#define SO_5_OVERLOAD_FOR_REF &
-	#define SO_5_OVERLOAD_FOR_RVALUE_REF &&
 #endif
 
 //FIXME: is it really needed now?
@@ -83,10 +36,4 @@
 #if !defined( SO_5_NODISCARD )
 	#define SO_5_NODISCARD
 #endif
-
-#if defined( SO_5_NO_SUPPORT_FOR_INLINE_NAMESPACE )
-	#define SO_5_INLINE_NS
-#else
-	#define SO_5_INLINE_NS inline
-#endif	
 

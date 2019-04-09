@@ -18,7 +18,7 @@ namespace experimental {
 	
 namespace testing {
 	
-SO_5_INLINE_NS namespace v1 {
+inline namespace v1 {
 
 namespace details {
 
