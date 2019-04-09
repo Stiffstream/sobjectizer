@@ -176,7 +176,7 @@ main()
 
 			std::cout << "Done" << std::endl;
 		},
-		10 );
+		600 );
 
 	return 0;
 }
