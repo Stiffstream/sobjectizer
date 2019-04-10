@@ -410,6 +410,15 @@ Android is possible by CMake only. See the corresponding section below.
 SObjectizer can also be installed and used via **vcpkg** and **Conan**
 dependency managers. See the appropriate sections below.
 
+## SObjectizer-5.6 requires C++17!
+
+The 5.6-branch of SObjectizer requires C++17.
+
+If you need support for C++14 or C++11 try to look to older versions of
+SObjectizer on [SourceForge](https://sourceforge.net/projects/sobjectizer).  Or
+contact [stiffstream](https://stiffstream.com/en/services.html) to discuss
+porting of SObjectizer-5.6 to older C++ standards.
+
 ## Building via Mxx_ru
 
 *NOTE. This is a standard way for building SObjectizer. This way is used in
