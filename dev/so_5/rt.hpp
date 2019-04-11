@@ -21,8 +21,6 @@
 
 #include <so_5/mchain_select.hpp>
 
-#include <so_5/chrono_helpers.hpp>
-
 #include <so_5/stats/std_names.hpp>
 #include <so_5/stats/messages.hpp>
 

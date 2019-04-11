@@ -64,7 +64,7 @@ class test_agent_t
 
 		so_5::mbox_t	m_test_mbox;
 
-		so_5::timer_thread::timer_id_ref_t	m_timer_ref;
+		so_5::timer_id_t	m_timer_ref;
 
 };
 

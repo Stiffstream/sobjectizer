@@ -107,18 +107,6 @@ class SO_5_TYPE timer_id_t
 		so_5::intrusive_ptr_t< timer_t > m_timer;
 	};
 
-namespace timer_thread
-{
-	/*!
-	 * \deprecated
-	 * \brief Synonym for timer_id.
-	 *
-	 * Saved for compatibility with previous versions.
-	 */
-	using timer_id_ref_t = timer_id_t;
-
-} /* namespace timer_thread */
-
 //
 // timer_thread_stats_t
 //

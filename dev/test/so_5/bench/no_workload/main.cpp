@@ -137,7 +137,7 @@ class a_contoller_t : public so_5::agent_t
 
 		std::size_t m_remaining;
 
-		so_5::timer_thread::timer_id_ref_t m_timer;
+		so_5::timer_id_t m_timer;
 
 		so_5::disp_binder_shptr_t m_binder;
 

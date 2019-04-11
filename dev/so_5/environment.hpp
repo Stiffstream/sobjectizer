@@ -757,25 +757,6 @@ class SO_5_TYPE environment_t
 		create_mbox(
 			//! Mbox name.
 			nonempty_name_t mbox_name );
-
-		/*!
-		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
-		 */
-		inline mbox_t
-		create_local_mbox()
-			{
-				return create_mbox();
-			}
-
-		/*!
-		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
-		 */
-		inline mbox_t
-		create_local_mbox(
-			nonempty_name_t mbox_name )
-			{
-				return create_mbox( std::move(mbox_name) );
-			}
 		/*!
 		 * \}
 		 */
