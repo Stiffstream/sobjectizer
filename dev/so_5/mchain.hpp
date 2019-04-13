@@ -1281,24 +1281,19 @@ class mchain_receive_params_t final
 				mchain_receive_params_t< Msg_Count_Status > >;
 
 	public :
-		//! Make of clone but with different Msg_Count_Status.
+		//! Make of clone with different Msg_Count_Status or return
+		//! a reference to the same object.
 		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		std::enable_if_t<
-				New_Msg_Count_Status != Msg_Count_Status,
-				mchain_receive_params_t< New_Msg_Count_Status > >
-		so5_clone_if_necessary() const noexcept
-			{
-				return { this->so5_data() };
-			}
-
-		//! Returns a reference to itself.
-		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		std::enable_if_t<
-				New_Msg_Count_Status == Msg_Count_Status,
-				mchain_receive_params_t & >
+		SO_5_NODISCARD
+		decltype(auto)
 		so5_clone_if_necessary() noexcept
 			{
-				return *this;
+				if constexpr( New_Msg_Count_Status != Msg_Count_Status )
+					return mchain_receive_params_t< New_Msg_Count_Status >{
+							this->so5_data()
+						};
+				else
+					return *this;
 			}
 
 		//! Initializing constructor.
