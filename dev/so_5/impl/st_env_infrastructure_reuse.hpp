@@ -314,6 +314,10 @@ class default_dispatcher_basis_t : public disp_binder_t
 		};
  * \endcode
  *
+ * \note
+ * This type is not marked as final because it can be used as a base
+ * class in external projects (like so_5_extra).
+ *
  * \since
  * v.5.6.0
  */
@@ -321,7 +325,7 @@ template<
 	typename Event_Queue_Type,
 	typename Activity_Tracker,
 	typename Data_Source_Name_Parts >
-class default_dispatcher_t final
+class default_dispatcher_t
 	: public default_dispatcher_basis_t< Event_Queue_Type >
 	{
 	public :
