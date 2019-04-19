@@ -587,7 +587,7 @@ to_be_redirected( const intrusive_ptr_t<M> & what )
 //FIXME: document this!
 template< typename M >
 SO_5_NODISCARD
-mhood_t< mutable_msg<M> >
+mhood_t< mutable_msg< typename message_payload_type<M>::payload_type > >
 to_be_redirected_as_mutable( intrusive_ptr_t<M> what )
 	{
 		message_ref_t m{ std::move(what) };
