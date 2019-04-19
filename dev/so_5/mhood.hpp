@@ -10,6 +10,7 @@
 #pragma once
 
 #include <so_5/message.hpp>
+#include <so_5/message_holder.hpp>
 
 #include <so_5/compiler_features.hpp>
 
@@ -81,10 +82,23 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() const noexcept
 		{
 			return intrusive_ptr_t< envelope_type >{m_msg};
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	SO_5_NODISCARD
+	message_holder_t< M >
+	make_holder() const noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.
@@ -160,12 +174,25 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
 			intrusive_ptr_t< envelope_type > result{m_msg};
 			m_msg = nullptr;
 			return result;
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	SO_5_NODISCARD
+	message_holder_t< M >
+	make_holder() noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.
@@ -256,6 +283,17 @@ public :
 			return intrusive_ptr_t< envelope_type >{m_envelope};
 		}
 
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	message_holder_t< M >
+	make_holder() const noexcept
+		{
+			return { make_reference() };
+		}
+
 	//! Access to the message.
 	const payload_type &
 	operator*() const noexcept { return *get(); }
@@ -330,6 +368,7 @@ public :
 	get() noexcept { return m_payload; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
@@ -339,6 +378,18 @@ public :
 			m_envelope = nullptr;
 
 			return result;
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	SO_5_NODISCARD
+	message_holder_t< M >
+	make_holder() noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.

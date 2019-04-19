@@ -268,6 +268,19 @@ send( Target && to, mhood_t< Message > what )
 				what.make_reference() );
 	}
 
+//FIXME: document this!
+template< typename Target, typename Message >
+void
+send( Target && to, message_holder_t< Message > what )
+	{
+		using namespace so_5::low_level_api;
+
+		deliver_message(
+				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
+				message_payload_type<Message>::subscription_type_index(),
+				what.make_reference() );
+	}
+
 /*!
  * \brief A version of %send function for redirection of a signal
  * from exising message hood.
@@ -466,6 +479,26 @@ send_delayed(
 		so_5::low_level_api::single_timer(
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
+				arg_to_mbox( to ),
+				pause );
+	}
+
+//FIXME: document this!
+template< typename Target, typename Message >
+void
+send_delayed(
+	//! Destination for the message.
+	Target && to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message instance owner.
+	message_holder_t< Message > msg )
+	{
+		using namespace send_functions_details;
+
+		so_5::low_level_api::single_timer(
+				message_payload_type< Message >::subscription_type_index(),
+				msg.make_reference(),
 				arg_to_mbox( to ),
 				pause );
 	}
@@ -674,6 +707,29 @@ send_periodic(
 		return so_5::low_level_api::schedule_timer( 
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
+				arg_to_mbox( target ),
+				pause,
+				period );
+	}
+
+//FIXME: document this!
+template< typename Target, typename Message >
+SO_5_NODISCARD timer_id_t
+send_periodic(
+	//! A destination for the periodic message.
+	Target && target,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Existing message hood for message to be sent.
+	message_holder_t< Message > what )
+	{
+		using namespace send_functions_details;
+
+		return so_5::low_level_api::schedule_timer( 
+				message_payload_type< Message >::subscription_type_index(),
+				what.make_reference(),
 				arg_to_mbox( target ),
 				pause,
 				period );
