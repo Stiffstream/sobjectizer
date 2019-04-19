@@ -577,7 +577,7 @@ using mutable_mhood_t = mhood_t< mutable_msg<M> >;
  */
 template< typename M >
 SO_5_NODISCARD
-mhood_t<M>
+mhood_t< typename message_payload_type<M>::payload_type >
 to_be_redirected( const intrusive_ptr_t<M> & what )
 	{
 		message_ref_t m{ what };
