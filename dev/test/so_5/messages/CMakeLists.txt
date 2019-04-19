@@ -1,4 +1,5 @@
 add_subdirectory(resend_message)
+add_subdirectory(resend_message_as_mutable)
 add_subdirectory(store_and_resend_later)
 add_subdirectory(three_messages)
 add_subdirectory(lambda_handlers)
