@@ -54,6 +54,55 @@ struct make_then_send_case_t
 	}
 };
 
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct make_then_send_delayed_case_t
+{
+	static constexpr const int expected = 1;
+
+	static void
+	run( const so_5::mbox_t & target )
+	{
+		so_5::send_delayed(
+				target,
+				std::chrono::milliseconds(10),
+				so_5::message_holder_t< Msg, Ownership >::make(
+						expected_a,
+						expected_b,
+						expected_c ) );
+	}
+};
+
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct make_then_send_periodic_case_t
+{
+	static constexpr const int expected = 1;
+
+	static auto
+	run( const so_5::mbox_t & target )
+	{
+		return so_5::send_periodic(
+				target,
+				std::chrono::milliseconds(5),
+				std::chrono::hours(10),
+				so_5::message_holder_t< Msg, Ownership >::make(
+						expected_a,
+						expected_b,
+						expected_c ) );
+	}
+};
+
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct make_then_send_periodic_case_t< so_5::mutable_msg<Msg>, Ownership >
+{
+	static constexpr const int expected = 0;
+
+	static auto
+	run( const so_5::mbox_t & /*target*/ )
+	{
+		return so_5::timer_id_t{};
+	}
+};
+
 template<
 	typename Msg,
 	so_5::message_ownership_t Ownership >
@@ -63,7 +112,10 @@ public :
 	test_t( context_t ctx )
 		:	so_5::agent_t{ std::move(ctx) }
 		,	m_values_to_receive{
-				make_then_send_case_t<Msg, Ownership>::expected
+				make_then_send_case_t<Msg, Ownership>::expected +
+				make_then_send_delayed_case_t<Msg, Ownership>::expected +
+				make_then_send_periodic_case_t<Msg, Ownership>::expected +
+				0 // just for simplification of adding new cases.
 			}
 	{
 		so_subscribe_self().event( &test_t::on_message );
@@ -73,16 +125,22 @@ public :
 	so_evt_start() override
 	{
 		make_then_send_case_t<Msg, Ownership>::run( so_direct_mbox() );
+		make_then_send_delayed_case_t<Msg, Ownership>::run( so_direct_mbox() );
+		m_timer_1 = make_then_send_periodic_case_t<Msg, Ownership>::run( so_direct_mbox() );
 	}
 
 private :
 	const int m_values_to_receive;
 	int m_values_received{};
 
+	so_5::timer_id_t m_timer_1;
+
 	void
 	on_message( mhood_t<Msg> cmd )
 	{
-		(void)cmd;
+		ensure_or_die( expected_a == cmd->m_a, "m_a mismatch!" );
+		ensure_or_die( expected_b == cmd->m_b, "m_b mismatch!" );
+		ensure_or_die( expected_c == cmd->m_c, "m_c mismatch!" );
 
 		m_values_received += 1;
 
