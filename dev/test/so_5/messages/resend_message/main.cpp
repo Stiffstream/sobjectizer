@@ -1,255 +1,137 @@
 /*
- * Test of resending the same message.
+ * Test of resending the same message as a mutable.
  */
-
-#include <iostream>
-#include <cstdlib>
-#include <stdexcept>
 
 #include <so_5/all.hpp>
 
-struct msg_test;
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
 
-class controller_t
+struct message final : public so_5::message_t
 {
-	private :
-		enum state_t
-		{
-			INITIAL,
-			MSG_CREATED,
-			MSG_SEND_1,
-			MSG_RECEIVE_1,
-			MSG_SEND_2,
-			MSG_RECEIVE_2,
-			MSG_DESTROYED
-		};
+	std::string m_value;
 
-		state_t m_state;
-
-		const msg_test * m_msg_ptr;
-
-		static const char *
-		state_name( state_t state )
-		{
-			const char * r = nullptr;
-			switch( state )
-			{
-				case INITIAL: r = "INITIAL"; break;
-				case MSG_CREATED: r = "MSG_CREATED"; break;
-				case MSG_SEND_1: r = "MSG_SEND_1"; break;
-				case MSG_RECEIVE_1: r = "MSG_RECEIVE_1"; break;
-				case MSG_SEND_2: r = "MSG_SEND_2"; break;
-				case MSG_RECEIVE_2: r = "MSG_RECEIVE_2"; break;
-				case MSG_DESTROYED: r = "MSG_DESTROYED"; break;
-			}
-			return r;
-		}
-
-		void
-		ensure_valid_state(
-			state_t expected_state ) const
-		{
-			if( m_state != expected_state )
-			{
-				std::cerr << "expected and actual states mismatch! "
-							"current state: "
-						<< state_name( m_state ) << " expected state: "
-						<< state_name( expected_state );
-
-				std::abort();
-			}
-		}
-
-		void
-		ensure_valid_msg_ptr(
-			const msg_test * ptr )
-		{
-			if( m_msg_ptr != ptr )
-			{
-				std::cerr << "message pointers mismatch!";
-				std::abort();
-			}
-		}
-
-	public :
-		controller_t()
-			:	m_state( INITIAL )
-			,	m_msg_ptr( nullptr )
-		{}
-
-		void
-		msg_created( const msg_test * ptr )
-		{
-			ensure_valid_state( INITIAL );
-			m_state = MSG_CREATED;
-			m_msg_ptr = ptr;
-		}
-
-		void
-		msg_send_1( const msg_test * ptr )
-		{
-			ensure_valid_state( MSG_CREATED );
-			ensure_valid_msg_ptr( ptr );
-
-			m_state = MSG_SEND_1;
-		}
-
-		void
-		msg_receive_1( const msg_test * ptr )
-		{
-			ensure_valid_state( MSG_SEND_1 );
-			ensure_valid_msg_ptr( ptr );
-
-			m_state = MSG_RECEIVE_1;
-		}
-
-		void
-		msg_send_2( const msg_test * ptr )
-		{
-			ensure_valid_state( MSG_RECEIVE_1 );
-			ensure_valid_msg_ptr( ptr );
-
-			m_state = MSG_SEND_2;
-		}
-
-		void
-		msg_receive_2( const msg_test * ptr )
-		{
-			ensure_valid_state( MSG_SEND_2 );
-			ensure_valid_msg_ptr( ptr );
-
-			m_state = MSG_RECEIVE_2;
-		}
-
-		void
-		msg_destroyed( const msg_test * ptr )
-		{
-			ensure_valid_state( MSG_RECEIVE_2 );
-			ensure_valid_msg_ptr( ptr );
-
-			m_state = MSG_DESTROYED;
-			m_msg_ptr = nullptr;
-		}
-
-		void
-		ensure_test_passed()
-		{
-			ensure_valid_state( MSG_DESTROYED );
-			ensure_valid_msg_ptr( nullptr );
-		}
+	message( std::string value ) : m_value{ std::move(value) } {}
 };
 
-struct msg_test : public so_5::message_t
+class first_sender_t final : public so_5::agent_t
 {
-	msg_test( controller_t & controller )
-		:	m_controller( controller )
+public :
+	first_sender_t( context_t ctx, so_5::mbox_t second )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_second{ std::move(second) }
+		,	m_message{ so_5::message_holder_t<message>::make( "hello!" ) }
+	{}
+
+	void
+	so_evt_start() override
 	{
-		m_controller.msg_created( this );
+		so_5::send( m_second, m_message );
 	}
 
-	virtual ~msg_test()
-	{
-		m_controller.msg_destroyed( this );
-	}
-
-	controller_t & m_controller;
+private :
+	const so_5::mbox_t m_second;
+	so_5::message_holder_t<message> m_message;
 };
 
-struct msg_stop : public so_5::signal_t
-{};
-
-class a_test_t : public so_5::agent_t
+class second_sender_t final : public so_5::agent_t
 {
-		typedef so_5::agent_t base_type_t;
+public :
+	second_sender_t( context_t ctx, so_5::mbox_t third )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_third{ std::move(third) }
+	{
+		so_subscribe_self().event( &second_sender_t::on_message );
+	}
 
-	public :
-		a_test_t(
-			so_5::environment_t & env,
-			controller_t & controller )
-			:	base_type_t( env )
-			,	m_controller( controller )
-			,	m_mbox_1( env.create_mbox() )
-			,	m_mbox_2( env.create_mbox() )
-		{
-		}
+private :
+	const so_5::mbox_t m_third;
 
-		void
-		so_define_agent()
-		{
-			so_subscribe( m_mbox_1 )
-				.event( &a_test_t::evt_msg_1 );
+	void
+	on_message( so_5::mhood_t<message> cmd )
+	{
+		so_5::send( m_third, std::move(cmd) );
+	}
+};
 
-			so_subscribe( m_mbox_2 )
-				.event( &a_test_t::evt_msg_2 );
+class third_sender_t final : public so_5::agent_t
+{
+	struct resend final : public so_5::signal_t {};
 
-			so_subscribe( m_mbox_2 )
-				.event( &a_test_t::evt_stop );
-		}
+public :
+	third_sender_t( context_t ctx, so_5::mbox_t fourth )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_fourth{ std::move(fourth) }
+	{
+		so_subscribe_self()
+			.event( &third_sender_t::on_message )
+			.event( &third_sender_t::on_resend );
+	}
 
-		void
-		so_evt_start()
-		{
-			so_5::intrusive_ptr_t msg{
-					std::make_unique< msg_test >(std::ref(m_controller)) };
+private :
+	const so_5::mbox_t m_fourth;
+	so_5::message_holder_t< message > m_message;
 
-			m_controller.msg_send_1( msg.get() );
+	void
+	on_message( so_5::mhood_t<message> cmd )
+	{
+		m_message = cmd.make_holder();
 
-			so_5::send( m_mbox_1, to_be_redirected(msg) );
-		}
+		so_5::send<resend>( *this );
+	}
 
-		void
-		evt_msg_1( mhood_t< msg_test > evt )
-		{
-			m_controller.msg_receive_1( evt.get() );
+	void
+	on_resend( so_5::mhood_t<resend> )
+	{
+		so_5::send( m_fourth, std::move(m_message) );
+	}
+};
 
-			m_controller.msg_send_2( evt.get() );
+class last_t final : public so_5::agent_t
+{
+public :
+	last_t( context_t ctx ) : so_5::agent_t{ std::move(ctx) }
+	{
+		so_subscribe_self().event( &last_t::on_message );
+	}
 
-			so_5::send( m_mbox_2, evt );
-		}
+private :
+	void
+	on_message( so_5::mhood_t<message> cmd )
+	{
+		ensure_or_die( cmd->m_value == "hello!",
+				"unexpected value: " + cmd->m_value );
 
-		void
-		evt_msg_2( mhood_t< msg_test > evt )
-		{
-			m_controller.msg_receive_2( evt.get() );
-
-			so_5::send< msg_stop >( m_mbox_2 );
-		}
-
-		void
-		evt_stop( mhood_t< msg_stop > )
-		{
-			so_environment().stop();
-		}
-
-	private :
-		controller_t & m_controller;
-
-		so_5::mbox_t m_mbox_1;
-		so_5::mbox_t m_mbox_2;
+		so_deregister_agent_coop_normally();
+	}
 };
 
 int
 main()
 {
-	try
-	{
-		controller_t controller;
+	run_with_time_limit( [] {
+			so_5::launch(
+				[]( so_5::environment_t & env )
+				{
+					env.introduce_coop( []( so_5::coop_t & coop ) {
+							auto last = coop.make_agent< last_t >();
+							auto third = coop.make_agent< third_sender_t >(
+									last->so_direct_mbox() );
+							auto second = coop.make_agent< second_sender_t >(
+									third->so_direct_mbox() );
+							coop.make_agent< first_sender_t >(
+									second->so_direct_mbox() );
+						} );
+				},
+				[]( so_5::environment_params_t & params )
+				{
+					params.message_delivery_tracer(
+							so_5::msg_tracing::std_cout_tracer() );
+				} );
+		},
+		10 );
 
-		so_5::launch(
-			[&]( so_5::environment_t & env )
-			{
-				env.register_agent_as_coop(
-						env.make_agent<a_test_t>( std::ref(controller) ) );
-			} );
-
-		controller.ensure_test_passed();
-
-		return 0;
-	}
-	catch( const std::exception & x )
-	{
-		std::cerr << "Exception caught: " << x.what() << std::endl;
-	}
+	return 0;
 
 	return 2;
 }
