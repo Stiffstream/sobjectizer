@@ -269,9 +269,12 @@ send( Target && to, mhood_t< Message > what )
 	}
 
 //FIXME: document this!
-template< typename Target, typename Message >
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership>
 void
-send( Target && to, message_holder_t< Message > what )
+send( Target && to, message_holder_t<Message, Ownership> what )
 	{
 		using namespace so_5::low_level_api;
 
@@ -484,7 +487,10 @@ send_delayed(
 	}
 
 //FIXME: document this!
-template< typename Target, typename Message >
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership >
 void
 send_delayed(
 	//! Destination for the message.
@@ -492,7 +498,7 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message instance owner.
-	message_holder_t< Message > msg )
+	message_holder_t<Message, Ownership> msg )
 	{
 		using namespace send_functions_details;
 
@@ -713,7 +719,10 @@ send_periodic(
 	}
 
 //FIXME: document this!
-template< typename Target, typename Message >
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership >
 SO_5_NODISCARD timer_id_t
 send_periodic(
 	//! A destination for the periodic message.
@@ -723,7 +732,7 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period,
 	//! Existing message hood for message to be sent.
-	message_holder_t< Message > what )
+	message_holder_t<Message, Ownership> what )
 	{
 		using namespace send_functions_details;
 

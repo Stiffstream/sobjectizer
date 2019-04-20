@@ -155,22 +155,21 @@ template<
 	message_ownership_t Ownership >
 struct message_holder_impl_selector
 	{
-		using payload_type = typename message_payload_type< Msg >::payload_type;
-		using envelope_type = typename message_payload_type< Msg >::envelope_type;
+		using P = typename message_payload_type< Msg >::payload_type;
+		using E = typename message_payload_type< Msg >::envelope_type;
 
 		using type = std::conditional_t<
 				message_ownership_t::autodetected == Ownership,
 					std::conditional_t<
 							message_mutability_t::immutable_message ==
 									message_mutability_traits<Msg>::mutability,
-							shared_message_holder_impl_t<payload_type, envelope_type>,
-							unique_message_holder_impl_t<payload_type, envelope_type> >,
+							shared_message_holder_impl_t<P, E>,
+							unique_message_holder_impl_t<P, E> >,
 					std::conditional_t<
 							message_ownership_t::shared == Ownership,
-							shared_message_holder_impl_t<payload_type, envelope_type>,
-							unique_message_holder_impl_t<payload_type, envelope_type> >
+							shared_message_holder_impl_t<P, E>,
+							unique_message_holder_impl_t<P, E> >
 			>;
-
 	};
 
 //FIXME: document this!
