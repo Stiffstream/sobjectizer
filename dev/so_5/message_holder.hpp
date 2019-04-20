@@ -153,7 +153,7 @@ class unique_message_holder_impl_t
 template<
 	typename Msg,
 	message_ownership_t Ownership >
-struct message_holder_impl_selector_t
+struct message_holder_impl_selector
 	{
 		using payload_type = typename message_payload_type< Msg >::payload_type;
 		using envelope_type = typename message_payload_type< Msg >::envelope_type;
@@ -172,6 +172,13 @@ struct message_holder_impl_selector_t
 			>;
 
 	};
+
+//FIXME: document this!
+template<
+	typename Msg,
+	message_ownership_t Ownership >
+using message_holder_impl_selector_t =
+		typename message_holder_impl_selector<Msg, Ownership>::type;
 
 //FIXME: document this!
 template< typename Base >
@@ -225,13 +232,20 @@ class non_const_accessors_t : public const_only_accessors_t<Base>
 template<
 	message_mutability_t Mutability,
 	typename Base >
-struct message_holder_accessor_selector_t
+struct message_holder_accessor_selector
 	{
 		using type = std::conditional_t<
 				message_mutability_t::immutable_message == Mutability,
 				const_only_accessors_t<Base>,
 				non_const_accessors_t<Base> >;
 	};
+
+//FIXME: document this!
+template<
+	message_mutability_t Mutability,
+	typename Base >
+using message_holder_accessor_selector_t =
+		typename message_holder_accessor_selector<Mutability, Base>::type;
 
 } /* namespace details */
 
@@ -242,15 +256,11 @@ template<
 class message_holder_t
 	:	public details::message_holder_accessor_selector_t<
 				details::message_mutability_traits<Msg>::mutability,
-				typename details::message_holder_impl_selector_t<
-						Msg, Ownership >::type
-			>::type
+				details::message_holder_impl_selector_t<Msg, Ownership> >
 	{
-		using base_type = typename details::message_holder_accessor_selector_t<
+		using base_type = details::message_holder_accessor_selector_t<
 				details::message_mutability_traits<Msg>::mutability,
-				typename details::message_holder_impl_selector_t<
-						Msg, Ownership >::type
-			>::type;
+				details::message_holder_impl_selector_t<Msg, Ownership> >;
 
 	public :
 		using base_type::base_type;
