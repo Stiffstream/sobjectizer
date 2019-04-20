@@ -1,3 +1,4 @@
+add_subdirectory(message_holder)
 add_subdirectory(resend_message)
 add_subdirectory(resend_message_2)
 add_subdirectory(resend_message_as_mutable)
