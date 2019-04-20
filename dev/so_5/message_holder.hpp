@@ -99,6 +99,12 @@ class shared_message_holder_impl_t
 			{
 				return m_msg;
 			}
+
+		void
+		reset() noexcept
+			{
+				m_msg.reset();
+			}
 	};
 
 //FIXME: document this!
@@ -143,9 +149,15 @@ class unique_message_holder_impl_t
 
 		SO_5_NODISCARD
 		intrusive_ptr_t< Envelope >
-		make_reference() const noexcept
+		make_reference() noexcept
 			{
 				return { std::move(m_msg) }; 
+			}
+
+		void
+		reset() noexcept
+			{
+				m_msg.reset();
 			}
 	};
 
@@ -210,6 +222,10 @@ class non_const_accessors_t : public const_only_accessors_t<Base>
 
 	public:
 		using direct_base_type::direct_base_type;
+
+		using direct_base_type::get;
+		using direct_base_type::operator*;
+		using direct_base_type::operator->;
 
 		SO_5_NODISCARD
 		auto *

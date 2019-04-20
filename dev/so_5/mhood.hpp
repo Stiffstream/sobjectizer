@@ -94,8 +94,10 @@ public :
 	 * \since
 	 * v.5.6.0
 	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
 	SO_5_NODISCARD
-	message_holder_t< M >
+	message_holder_t< M, Ownership >
 	make_holder() const noexcept
 		{
 			return { make_reference() };
@@ -188,8 +190,10 @@ public :
 	 * \since
 	 * v.5.6.0
 	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
 	SO_5_NODISCARD
-	message_holder_t< M >
+	message_holder_t< M, Ownership >
 	make_holder() noexcept
 		{
 			return { make_reference() };
@@ -288,7 +292,10 @@ public :
 	 * \since
 	 * v.5.6.0
 	 */
-	message_holder_t< M >
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
+	SO_5_NODISCARD
+	message_holder_t< M, Ownership >
 	make_holder() const noexcept
 		{
 			return { make_reference() };
@@ -385,8 +392,10 @@ public :
 	 * \since
 	 * v.5.6.0
 	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
 	SO_5_NODISCARD
-	message_holder_t< M >
+	message_holder_t< M, Ownership >
 	make_holder() noexcept
 		{
 			return { make_reference() };

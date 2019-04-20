@@ -52,28 +52,32 @@ struct msg_meeting_result final : public so_5::message_t
 			{}
 	};
 
-using msg_meeting_result_smart_ref_t =
-		so_5::intrusive_ptr_t< msg_meeting_result >;
+using meeting_result_msg_holder_t =
+		so_5::message_holder_t<
+				so_5::mutable_msg<msg_meeting_result>,
+				so_5::message_ownership_t::shared >;
 
 struct msg_meeting_request final : public so_5::message_t
 	{
 		so_5::mbox_t m_who;
 		color_t m_color;
 
-		msg_meeting_result_smart_ref_t m_result_message;
+		meeting_result_msg_holder_t m_result_message;
 
 		msg_meeting_request(
 			const so_5::mbox_t & who,
 			color_t color,
-			msg_meeting_result_smart_ref_t result_message )
+			meeting_result_msg_holder_t result_message )
 			:	m_who( who )
 			,	m_color( color )
-			,	m_result_message( result_message )
+			,	m_result_message( std::move(result_message) )
 			{}
 	};
 
-using msg_meeting_request_smart_ref_t =
-		so_5::intrusive_ptr_t< msg_meeting_request >;
+using meeting_request_msg_holder_t =
+		so_5::message_holder_t<
+				so_5::mutable_msg<msg_meeting_request>,
+				so_5::message_ownership_t::shared >;
 
 struct msg_shutdown_request final : public so_5::signal_t {};
 
@@ -112,28 +116,29 @@ class a_meeting_place_t final : public so_5::agent_t
 			}
 
 	private :
-		void evt_first_creature( mhood_t< msg_meeting_request > evt )
+		void evt_first_creature( mutable_mhood_t< msg_meeting_request > evt )
 			{
 				if( m_remaining_meetings )
 				{
 					this >>= st_one_creature_inside;
 
-					m_first_creature_info = evt.make_reference();
+					m_first_creature_info =
+							evt.make_holder<so_5::message_ownership_t::shared>();
 				}
 				else
 					so_5::send< msg_shutdown_request >( evt->m_who );
 			}
 
 		void evt_second_creature(
-			const msg_meeting_request & evt )
+			mutable_mhood_t< msg_meeting_request > evt )
 			{
-				evt.m_result_message->m_color =
+				evt->m_result_message->m_color =
 						m_first_creature_info->m_color;
-				m_first_creature_info->m_result_message->m_color = evt.m_color;
+				m_first_creature_info->m_result_message->m_color = evt->m_color;
 
-				so_5::send( evt.m_who, to_be_redirected(evt.m_result_message) );
+				so_5::send( evt->m_who, evt->m_result_message );
 				so_5::send( m_first_creature_info->m_who,
-						to_be_redirected(m_first_creature_info->m_result_message) );
+						m_first_creature_info->m_result_message );
 
 				m_first_creature_info.reset();
 
@@ -162,7 +167,7 @@ class a_meeting_place_t final : public so_5::agent_t
 		int m_remaining_meetings;
 		int m_total_meetings;
 
-		msg_meeting_request_smart_ref_t m_first_creature_info;
+		meeting_request_msg_holder_t m_first_creature_info;
 	};
 
 class a_creature_t final :	public so_5::agent_t
@@ -193,18 +198,17 @@ class a_creature_t final :	public so_5::agent_t
 			{
 				so_5::send(
 						m_meeting_place_mbox,
-						to_be_redirected(m_request_message) );
+						m_request_message );
 			}
 
 	private :
 		void evt_meeting_result(
-			const msg_meeting_result & evt )
+			mutable_mhood_t< msg_meeting_result > evt )
 			{
-				m_request_message->m_color = complement( evt.m_color );
+				m_request_message->m_color = complement( evt->m_color );
 				m_meeting_counter++;
 
-				so_5::send( m_meeting_place_mbox,
-						to_be_redirected( m_request_message ) );
+				so_5::send( m_meeting_place_mbox, m_request_message );
 			}
 
 		void evt_shutdown_request( mhood_t< msg_shutdown_request > )
@@ -220,8 +224,8 @@ class a_creature_t final :	public so_5::agent_t
 
 		int m_meeting_counter;
 
-		msg_meeting_result_smart_ref_t m_response_message;
-		msg_meeting_request_smart_ref_t m_request_message;
+		meeting_result_msg_holder_t m_response_message;
+		meeting_request_msg_holder_t m_request_message;
 
 		color_t complement( color_t other ) const noexcept
 			{
