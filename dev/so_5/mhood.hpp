@@ -475,6 +475,7 @@ using actual_mhood_base_type = mhood_base_t<
 	const M * operator->() const;
 	const M & operator*() const;
 	so_5::intrusive_ptr_t< M > make_reference() const;
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>() const;
  * \endcode
  * If M is a type derived from so_5::signal_t, then there will no be methods
  * at all. It is because there is no actual message object for a signal.
@@ -485,6 +486,7 @@ using actual_mhood_base_type = mhood_base_t<
 	const M * operator->() const;
 	const M & operator*() const;
 	so_5::intrusive_ptr_t< so_5::user_type_message_t<M> > make_reference() const;
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>() const;
  * \endcode
  * For mutable message M there will be the following methods is M is
  * derived from so_5::message_t:
@@ -493,6 +495,7 @@ using actual_mhood_base_type = mhood_base_t<
 	M * operator->();
 	M & operator*();
 	so_5::intrusive_ptr_t< M > make_reference();
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>();
  * \endcode
  * If mutable message M is not derived from so_5::message_t then there
  * will be the following methods:
@@ -501,12 +504,39 @@ using actual_mhood_base_type = mhood_base_t<
 	M * operator->();
 	M & operator*();
 	so_5::intrusive_ptr_t< so_5::user_type_message_t<M> > make_reference();
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>();
  * \endcode
  *
+ * \note
+ * Method make_holder() uses so_5::message_ownership_t::autodetected by
+ * default.
+ *
  * \attention
- * Method make_reference for mhood_t<mutable_msg<M>> will leave mhood object
+ * Methods make_reference() for mhood_t<mutable_msg<M>> will leave mhood object
  * in nullptr state. It means that mhood must not be used after calling
  * make_reference().
+ *
+ * \attention
+ * Methods make_holder() for mhood_t<mutable_msg<M>> will leave
+ * the mhood object empty always. Regardless of Ownership parameter.
+ * Methods make_holder() for mhood_t<M> and mhood_t<immutable_msg<M>> will
+ * leave value for mhood object regardless of Ownership parameter.
+ * For example:
+ * \code
+ * class demo : public agent_t {
+ * 	void on_immutable_msg(mhood_t<some_msg> cmd) {
+ * 		auto unique_holder = cmd.make_holder<so_5::message_ownership_t::unique>();
+ * 		auto v = cmd->some_value(); // cmd still has its value.
+ * 		...
+ * 	}
+ *		...
+ *		void on_mutable_msg(mhood_t< mutable_msg<another_msg> > cmd) {
+ * 		auto shared_holder = cmd.make_holder<so_5::message_ownership_t::shared>();
+ * 		// Now cmd is empty!
+ * 		auto v = cmd->some_value(); // THIS IS UB!	
+ *		}
+ * };
+ * \endcode
  *
  * \note Class mhood_t can be used for redirection of messages of user types.
  * For example (since v.5.5.19):

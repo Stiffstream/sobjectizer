@@ -4,7 +4,10 @@
 
 /*!
 	\file
-	\brief Definition of the template class mhood.
+	\brief Definition of the template class message_holder.
+
+	\since
+	v.5.6.0
 */
 
 #pragma once
