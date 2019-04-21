@@ -69,7 +69,7 @@ get_non_const_ptr( intrusive_ptr_t< user_type_message_t<M> > & msg ) noexcept
 
 //FIXME: document this!
 template< typename Payload, typename Envelope >
-class shared_message_holder_impl_t
+class basic_message_holder_impl_t
 	{
 		intrusive_ptr_t< Envelope > m_msg;
 
@@ -86,52 +86,63 @@ class shared_message_holder_impl_t
 		using payload_type = Payload;
 		using envelope_type = Envelope;
 
-		shared_message_holder_impl_t() noexcept = default;
+		basic_message_holder_impl_t() noexcept = default;
 
-		shared_message_holder_impl_t(
+		basic_message_holder_impl_t(
 			intrusive_ptr_t< Envelope > msg )
 			:	m_msg{ std::move(msg) }
 			{}
-
-		SO_5_NODISCARD
-		intrusive_ptr_t< Envelope >
-		make_reference() const noexcept
-			{
-				return m_msg;
-			}
 
 		void
 		reset() noexcept
 			{
 				m_msg.reset();
 			}
+
+		bool
+		empty() const noexcept
+			{
+				return static_cast<bool>( m_msg );
+			}
+
+		operator bool() const noexcept
+			{
+				return !this->empty();
+			}
+
+		bool operator!() const noexcept
+			{
+				return this->empty();
+			}
+	};
+
+//FIXME: document this!
+template< typename Payload, typename Envelope >
+class shared_message_holder_impl_t
+	:	public basic_message_holder_impl_t<Payload, Envelope>
+	{
+		using direct_base_type = basic_message_holder_impl_t<Payload, Envelope>;
+
+	public :
+		using direct_base_type::direct_base_type;
+
+		SO_5_NODISCARD
+		intrusive_ptr_t< Envelope >
+		make_reference() const noexcept
+			{
+				return this->message_reference();
+			}
 	};
 
 //FIXME: document this!
 template< typename Payload, typename Envelope >
 class unique_message_holder_impl_t
+	:	public basic_message_holder_impl_t<Payload, Envelope>
 	{
-		intrusive_ptr_t< Envelope > m_msg;
-
-	protected :
-		SO_5_NODISCARD
-		const auto &
-		message_reference() const noexcept { return m_msg; }
-
-		SO_5_NODISCARD
-		auto &
-		message_reference() noexcept { return m_msg; }
+		using direct_base_type = basic_message_holder_impl_t<Payload, Envelope>;
 
 	public :
-		using payload_type = Payload;
-		using envelope_type = Envelope;
-
-		unique_message_holder_impl_t() noexcept = default;
-
-		unique_message_holder_impl_t(
-			intrusive_ptr_t< Envelope > msg )
-			:	m_msg{ std::move(msg) }
-			{}
+		using direct_base_type::direct_base_type;
 
 		unique_message_holder_impl_t(
 			const unique_message_holder_impl_t & ) = delete;
@@ -151,13 +162,7 @@ class unique_message_holder_impl_t
 		intrusive_ptr_t< Envelope >
 		make_reference() noexcept
 			{
-				return { std::move(m_msg) }; 
-			}
-
-		void
-		reset() noexcept
-			{
-				m_msg.reset();
+				return { std::move(this->message_reference()) }; 
 			}
 	};
 

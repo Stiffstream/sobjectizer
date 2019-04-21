@@ -113,7 +113,7 @@ struct generation_request final : public so_5::message_t
 
 // Alias for smart pointer to generation_request. It will be used
 // for storing and resending pending requests.
-using generation_request_shptr = so_5::intrusive_ptr_t< generation_request >;
+using generation_request_holder = so_5::message_holder_t< generation_request >;
 
 // Positive response for image generation request.
 struct generation_result final : public so_5::message_t
@@ -273,7 +273,7 @@ class request_generator final : public so_5::agent_t
 struct request_scheduling_data
 	{
 		// Type of queue for storing pending requests.
-		using request_queue = std::queue< generation_request_shptr >;
+		using request_queue = std::queue< generation_request_holder >;
 
 		struct priority_data
 			{
@@ -384,7 +384,7 @@ class request_acceptor final : public so_5::agent_t
 									m_interaction_mbox,
 									so_5::to_priority_t( pos ) );
 
-						info.m_requests.push( evt.make_reference() );
+						info.m_requests.push( evt.make_holder() );
 
 						// Update request information.
 						evt->m_metadata->m_queued_at = clock_type::now();
@@ -534,7 +534,7 @@ class request_scheduler final : public so_5::agent_t
 							// for new work.
 							so_5::send(
 									free_processor_info.m_processor,
-									to_be_redirected( req ) );
+									req );
 							free_processor_info.m_processor_is_free = false;
 							break;
 						}
