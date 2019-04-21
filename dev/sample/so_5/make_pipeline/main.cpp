@@ -55,7 +55,7 @@ using namespace so_5;
 // returned as stage processing result.
 //
 template< typename M >
-using stage_result_t = intrusive_ptr_t< M >;
+using stage_result_t = message_holder_t< M >;
 
 //
 // Just a helper function for creating new message instance.
@@ -65,7 +65,7 @@ template< typename M, typename... Args >
 stage_result_t< M >
 make_result( Args &&... args )
 {
-	return stage_result_t< M >( new M(forward< Args >(args)...) );
+	return stage_result_t< M >::make(forward< Args >(args)...);
 }
 
 //
@@ -160,7 +160,7 @@ public :
 			so_subscribe_self().event( [=]( const In & evt ) {
 					auto r = m_handler( evt );
 					if( r )
-						so_5::send( m_next, to_be_redirected(r) );
+						so_5::send( m_next, r );
 				} );
 		else
 			// There is no next stage. A very simple message handler
