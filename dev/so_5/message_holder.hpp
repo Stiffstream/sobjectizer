@@ -398,9 +398,12 @@ using accessor_selector_t =
 
 } /* namespace details */
 
-//FIXME: document this!
 /*!
  * \brief A class for holding an instance of a message.
+ *
+ * \attention
+ * This class should be used with messages only. Signals are not supported
+ * by that class.
  *
  * This class is intended for simplification of holding message instances
  * for some time and resending them later. For example:
@@ -496,25 +499,133 @@ using accessor_selector_t =
  *
  * \par Getters are depend on mutability of message
  *
- * Every message_holder has a bunch of const-getters:
+ * If a message_holder holds an immutable message then there are the following
+ * getter methods:
  * \code
  * const payload_type * get() const noexcept;
  * const payload_type & operator*() const noexcept;
  * const payload_type * operator->() const noexcept;
  * \endcode
- * But if message_holder holds a mutable message then there are also
- * non-const-getters:
+ * But if message_holder holds a mutable message those getters are still here
+ * but they have non-const return type:
  * \code
- * payload_type * get() noexcept;
- * payload_type & operator*() noexcept;
- * payload_type * operator->() noexcept;
+ * payload_type * get() const noexcept;
+ * payload_type & operator*() const noexcept;
+ * payload_type * operator->() const noexcept;
  * \endcode
  *
  * \par Shared and unique ownership
  *
- * \attention
- * This class should be used with messages only. Signals are not supported
- * by that class.
+ * A message_holder works like a smart pointer. But what kind of smart pointer?
+ *
+ * It depends on Ownership template parameters.
+ *
+ * But default Ownership is so_5::message_ownership_t::autodetected.
+ * In this case the behavior of a message_holder depends of the mutability
+ * of message. If message is immutable then message_holders is like
+ * std::shared_ptr: several message_holders can hold pointers to the
+ * same message instances.
+ *
+ * If message is mutable then message_holder is like
+ * std::unique_ptr: only one message_holder can hold a pointer to a message
+ * instance.
+ *
+ * For example:
+ * \code
+ * // Immutable message.
+ * so_5::message_holder_t<my_msg> msg1{std::piecewise_construct, ...};
+ * so_5::message_holder_t<my_msg> msg2{ msg1 };
+ * assert(msg1.get() == msg2.get()); // Now msg1 and msg2 refer to the same msg.
+ *
+ * // Mutable message.
+ * so_5::message_holder_t<so_5::mutable_msg<my_msg>> msg3{...};
+ * so_5::message_holder_t<so_5::mutable_msg<my_msg>> msg4{ msg3 }; // WON'T COMPILE!
+ * so_5::message_holder_t<so_5::mutable_msg<my_msg>> msg5{ std::move(msg3) };
+ * assert(msg3.empty()); // Now msg3 is empty.
+ * assert(!msg5.empty()); // And only msg5 holds the message.
+ * \endcode
+ *
+ * The value of Ownership parameter can be specified manually.
+ * In that case we can have an unique-holder for an immutable message:
+ * \code
+ * so_5::message_holder_t<my_msg, so_5::message_ownership_t::unique> msg1{...};
+ * // WON'T COMPILE!
+ * so_5::message_holder_t<my_msg, so_5::message_ownership_t::unique> msg2{ msg1 };
+ * // Will compile but ownership will be moved: 
+ * so_5::message_holder_t<my_msg, so_5::message_ownership_t::unique> msg3{ std::move(msg) };
+ * \endcode
+ * There can also be a shared-holder for a mutable message:
+ * \code
+ * so_5::message_holder_t<my_msg, so_5::message_ownership_t::shared> msg1{...};
+ * // No problems.
+ * so_5::message_holder_t<my_msg, so_5::message_ownership_t::shared> msg2{ msg1 };
+ * \endcode
+ * But this approach should be taken with an additional care because it allows
+ * to make several sends of the same mutable message instances at the same time.
+ *
+ * If a message_holder works as std::shared_ptr then there is the following
+ * methods:
+ * \code
+ * // Copy constructor and operator.
+ * message_holder_t(const message_holder_t &) noexcept;
+ * message_holder_t & operator=(const message_holder_t &) noexcept;
+ * // Move constructor and operator.
+ * message_holder_t(message_holder_t &&) noexcept;
+ * message_holder_t & operator=(message_holder_t &&) noexcept;
+ *
+ * // Getter for the underlying smart pointer.
+ * intrusive_ptr_t<envelope_type> make_reference() const noexcept;
+ * \endcode
+ *
+ * If a message_holder works as std::unique_ptr then copy operator/constructors
+ * are disabled and make_reference() leaves the message_holder object empty:
+ * \code
+ * // Move constructor and operator.
+ * message_holder_t(message_holder_t &&) noexcept;
+ * message_holder_t & operator=(message_holder_t &&) noexcept;
+ *
+ * // Extracts the underlying smart pointer.
+ * // Leaves the message_holder object empty.
+ * intrusive_ptr_t<envelope_type> make_reference() noexcept;
+ * \endcode
+ *
+ * \par Creation of an instance of message to be stored inside a message_holder
+ *
+ * There are several ways of creation of a message to be stored inside
+ * a message_holder object.
+ *
+ * The recommended way is to use the constructor of message_holder with
+ * std::piecewise_construct_t argument. This constructor automatically
+ * creates an underlying message instance:
+ * \code
+ * struct my_msg {
+ * 	int a_;
+ * 	std::string b_;
+ * };
+ * so_5::message_holder_t<my_msg> msg{std::piecewise_construct,
+ * 	0, // value for my_msg's a_ field.
+ * 	"hello" // value for my_msg's b_ field.
+ * };
+ * \endcode
+ * Sometimes a static method make() can be used for similar purpose:
+ * \code
+ * auto make_message() {
+ * 	return so_5::message_holder_t<my_msg>::make(0, "hello");
+ * }
+ * \endcode
+ *
+ * But sometimes an instance of message is present as raw pointer,
+ * std::unique_ptr or so_5::intrusive_ptr_t objects. In that case the
+ * constructor that accepts intrusive_ptr_t can be used:
+ * \code
+ * // Somewhere in 3rd-party library.
+ * std::unique_ptr<some_message> make_message() {
+ * 	return std::make_unique<some_message>(...);
+ * }
+ *
+ * // Somewhere in your code.
+ * so_5::message_holder_t<some_message> msg{make_message()};
+ * \endcode 
  *
  * \since
  * v.5.6.0
@@ -539,6 +650,22 @@ class message_holder_t
 
 		//! Special constructor for constructing message_holder with
 		//! a new message instance inside.
+		/*!
+		 * Usage example:
+		 * \code
+		 * struct my_message {
+		 * 	int a_;
+		 * 	std::string b_;
+		 * 	std::chrono::millisecons c_;
+		 * };
+		 *
+		 * so_5::message_holder_t<my_message> msg{ std::piecewise_construct,
+		 * 		0, // value for my_message's a_ field.
+		 * 		"hello", // value for my_message's b_ field.
+		 * 		15s // value for my_message's c_ field.
+		 * };
+		 * \endcode
+		 */
 		template< typename... Args >
 		message_holder_t(
 			std::piecewise_construct_t,
@@ -554,6 +681,23 @@ class message_holder_t
 			}
 
 		//! Create a new instance of message_holder with a new message inside.
+		/*!
+		 * Usage example:
+		 * \code
+		 * struct my_message {
+		 * 	int a_;
+		 * 	std::string b_;
+		 * 	std::chrono::millisecons c_;
+		 * };
+		 *
+		 * auto make_message() {
+		 * 	return so_5::message_holder_t<my_message>(
+		 * 		0, // value for my_message's a_ field.
+		 * 		"hello", // value for my_message's b_ field.
+		 * 		15s ); // value for my_message's c_ field.
+		 * }
+		 * \endcode
+		 */
 		template< typename... Args >
 		SO_5_NODISCARD
 		static message_holder_t
