@@ -38,6 +38,23 @@ const std::string expected_b{ "Hello!" };
 const std::chrono::milliseconds expected_c{ 12345 };
 
 template< typename Msg, so_5::message_ownership_t Ownership >
+decltype(auto)
+forward_to_send( so_5::message_holder_t<Msg, Ownership> & holder )
+{
+	using H = so_5::message_holder_t<Msg, Ownership>;
+
+	if constexpr( (so_5::message_ownership_t::unique == Ownership) ||
+			(so_5::message_ownership_t::autodetected == Ownership &&
+			 so_5::message_mutability_t::mutable_message ==
+					so_5::details::message_mutability_traits<Msg>::mutability) )
+	{
+		return H{ std::move(holder) };
+	}
+	else
+		return holder;
+}
+
+template< typename Msg, so_5::message_ownership_t Ownership >
 struct make_then_send_case_t
 {
 	static constexpr const int expected = 1;
@@ -51,6 +68,27 @@ struct make_then_send_case_t
 						expected_a,
 						expected_b,
 						expected_c ) );
+	}
+};
+
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct construct_then_send_case_t
+{
+	static constexpr const int expected = 1;
+
+	static void
+	run( const so_5::mbox_t & target )
+	{
+		so_5::message_holder_t< Msg, Ownership > msg{
+				std::piecewise_construct,
+				expected_a,
+				expected_b,
+				expected_c
+		};
+
+		so_5::send(
+				target,
+				forward_to_send(msg) );
 	}
 };
 
@@ -69,6 +107,28 @@ struct make_then_send_delayed_case_t
 						expected_a,
 						expected_b,
 						expected_c ) );
+	}
+};
+
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct construct_then_send_delayed_case_t
+{
+	static constexpr const int expected = 1;
+
+	static void
+	run( const so_5::mbox_t & target )
+	{
+		so_5::message_holder_t< Msg, Ownership > msg{
+				std::piecewise_construct,
+				expected_a,
+				expected_b,
+				expected_c
+		};
+
+		so_5::send_delayed(
+				target,
+				std::chrono::milliseconds(10),
+				forward_to_send(msg) );
 	}
 };
 
@@ -103,6 +163,41 @@ struct make_then_send_periodic_case_t< so_5::mutable_msg<Msg>, Ownership >
 	}
 };
 
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct construct_then_send_periodic_case_t
+{
+	static constexpr const int expected = 1;
+
+	static auto
+	run( const so_5::mbox_t & target )
+	{
+		so_5::message_holder_t< Msg, Ownership > msg{
+				std::piecewise_construct,
+				expected_a,
+				expected_b,
+				expected_c
+		};
+
+		return so_5::send_periodic(
+				target,
+				std::chrono::milliseconds(5),
+				std::chrono::hours(10),
+				forward_to_send(msg) );
+	}
+};
+
+template< typename Msg, so_5::message_ownership_t Ownership >
+struct construct_then_send_periodic_case_t< so_5::mutable_msg<Msg>, Ownership >
+{
+	static constexpr const int expected = 0;
+
+	static auto
+	run( const so_5::mbox_t & /*target*/ )
+	{
+		return so_5::timer_id_t{};
+	}
+};
+
 template<
 	typename Msg,
 	so_5::message_ownership_t Ownership >
@@ -113,8 +208,11 @@ public :
 		:	so_5::agent_t{ std::move(ctx) }
 		,	m_values_to_receive{
 				make_then_send_case_t<Msg, Ownership>::expected +
+				construct_then_send_case_t<Msg, Ownership>::expected +
 				make_then_send_delayed_case_t<Msg, Ownership>::expected +
+				construct_then_send_delayed_case_t<Msg, Ownership>::expected +
 				make_then_send_periodic_case_t<Msg, Ownership>::expected +
+				construct_then_send_periodic_case_t<Msg, Ownership>::expected +
 				0 // just for simplification of adding new cases.
 			}
 	{
@@ -125,8 +223,11 @@ public :
 	so_evt_start() override
 	{
 		make_then_send_case_t<Msg, Ownership>::run( so_direct_mbox() );
+		construct_then_send_case_t<Msg, Ownership>::run( so_direct_mbox() );
 		make_then_send_delayed_case_t<Msg, Ownership>::run( so_direct_mbox() );
+		construct_then_send_delayed_case_t<Msg, Ownership>::run( so_direct_mbox() );
 		m_timer_1 = make_then_send_periodic_case_t<Msg, Ownership>::run( so_direct_mbox() );
+		m_timer_2 = construct_then_send_periodic_case_t<Msg, Ownership>::run( so_direct_mbox() );
 	}
 
 private :
@@ -134,6 +235,7 @@ private :
 	int m_values_received{};
 
 	so_5::timer_id_t m_timer_1;
+	so_5::timer_id_t m_timer_2;
 
 	void
 	on_message( mhood_t<Msg> cmd )
@@ -185,6 +287,13 @@ main()
 	do_test< so5_message, so_5::message_ownership_t::unique >(
 			"so5_message: immutable, unique" );
 
+	do_test< so_5::immutable_msg<so5_message>, so_5::message_ownership_t::autodetected >(
+			"so5_message: immutable, autodetected" );
+	do_test< so_5::immutable_msg<so5_message>, so_5::message_ownership_t::shared >(
+			"so5_message: immutable, shared" );
+	do_test< so_5::immutable_msg<so5_message>, so_5::message_ownership_t::unique >(
+			"so5_message: immutable, unique" );
+
 	do_test< so_5::mutable_msg<so5_message>, so_5::message_ownership_t::autodetected >(
 			"so5_message: mutable, autodetected" );
 	do_test< so_5::mutable_msg<so5_message>, so_5::message_ownership_t::shared >(
@@ -197,6 +306,13 @@ main()
 	do_test< user_message, so_5::message_ownership_t::shared >(
 			"user_message: immutable, shared" );
 	do_test< user_message, so_5::message_ownership_t::unique >(
+			"user_message: immutable, unique" );
+
+	do_test< so_5::immutable_msg<user_message>, so_5::message_ownership_t::autodetected >(
+			"user_message: immutable, autodetected" );
+	do_test< so_5::immutable_msg<user_message>, so_5::message_ownership_t::shared >(
+			"user_message: immutable, shared" );
+	do_test< so_5::immutable_msg<user_message>, so_5::message_ownership_t::unique >(
 			"user_message: immutable, unique" );
 
 	do_test< so_5::mutable_msg<user_message>, so_5::message_ownership_t::autodetected >(

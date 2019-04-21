@@ -20,8 +20,7 @@ public :
 	first_sender_t( context_t ctx, so_5::mbox_t second )
 		:	so_5::agent_t{ std::move(ctx) }
 		,	m_second{ std::move(second) }
-		,	m_message{ so_5::message_holder_t< so_5::mutable_msg<message> >::make(
-				"hello!" ) }
+		,	m_message{ std::piecewise_construct, "hello!" }
 	{}
 
 	void

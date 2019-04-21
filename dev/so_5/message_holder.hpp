@@ -278,10 +278,19 @@ class message_holder_t
 				details::message_holder_impl_selector_t<Msg, Ownership> >;
 
 	public :
-		using base_type::base_type;
-
 		using payload_type = typename base_type::payload_type;
 		using envelope_type = typename base_type::envelope_type;
+
+		using base_type::base_type;
+
+		//! Special constructor for constructing message_holder with
+		//! a new message instance inside.
+		template< typename... Args >
+		message_holder_t(
+			std::piecewise_construct_t,
+			Args && ...args )
+			:	base_type{ make_msg_instance( std::forward<Args>(args)... ) }
+			{}
 
 		friend void
 		swap( message_holder_t & a, message_holder_t & b ) noexcept
@@ -290,11 +299,21 @@ class message_holder_t
 				swap( a.message_reference(), b.message_reference() );
 			}
 
-		//! Create a new instance of message.
+		//! Create a new instance of message_holder with a new message inside.
 		template< typename... Args >
 		SO_5_NODISCARD
 		static message_holder_t
 		make( Args && ...args )
+			{
+				return { make_msg_instance( std::forward<Args>(args)... ) };
+			}
+
+	private :
+		//! Create a new instance of message.
+		template< typename... Args >
+		SO_5_NODISCARD
+		static intrusive_ptr_t< envelope_type >
+		make_msg_instance( Args && ...args )
 			{
 				using namespace details;
 
@@ -303,7 +322,7 @@ class message_holder_t
 				};
 				mark_as_mutable_if_necessary< Msg >( *msg );
 
-				return { std::move(msg) };
+				return msg;
 			}
 	};
 
