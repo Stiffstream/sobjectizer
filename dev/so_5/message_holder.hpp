@@ -49,27 +49,8 @@ namespace message_holder_details
 
 //! A helper function to get a const raw pointer from smart pointer.
 template< typename M >
-const M *
-get_const_ptr( const intrusive_ptr_t<M> & msg ) noexcept
-	{
-		return msg.get();
-	}
-
-//! A helper function to get a const raw pointer from smart pointer.
-/*!
- * This overload is for case when M is a user type message.
- */
-template< typename M >
-const M *
-get_const_ptr( const intrusive_ptr_t< user_type_message_t<M> > & msg ) noexcept
-	{
-		return std::addressof(msg->m_payload);
-	}
-
-//! A helper function to get a non-const raw pointer from smart pointer.
-template< typename M >
 M *
-get_non_const_ptr( intrusive_ptr_t<M> & msg ) noexcept
+get_ptr( const intrusive_ptr_t<M> & msg ) noexcept
 	{
 		return msg.get();
 	}
@@ -80,7 +61,7 @@ get_non_const_ptr( intrusive_ptr_t<M> & msg ) noexcept
  */
 template< typename M >
 M *
-get_non_const_ptr( intrusive_ptr_t< user_type_message_t<M> > & msg ) noexcept
+get_ptr( const intrusive_ptr_t< user_type_message_t<M> > & msg ) noexcept
 	{
 		return std::addressof(msg->m_payload);
 	}
@@ -255,6 +236,9 @@ template<
 	message_ownership_t Ownership >
 struct impl_selector
 	{
+		static_assert( !is_signal<Msg>::value,
+				"Signals can't be used with message_holder" );
+
 		using P = typename message_payload_type< Msg >::payload_type;
 		using E = typename message_payload_type< Msg >::envelope_type;
 
@@ -284,8 +268,8 @@ template<
 using impl_selector_t = typename impl_selector<Msg, Ownership>::type;
 
 /*!
- * \brief An implementation of mixin for the case when only const-getters
- * are necessary for message_holder.
+ * \brief An implementation of mixin for the case when getters
+ * for immutable messages are necessary for message_holder.
  *
  * It is assumed that shared_message_holder_impl_t or
  * unique_message_holder_impl_t will be used as Base template parameter.
@@ -294,7 +278,7 @@ using impl_selector_t = typename impl_selector<Msg, Ownership>::type;
  * v.5.6.0
  */
 template< typename Base >
-class const_only_accessors_t : public Base
+class immutable_msg_accessors_t : public Base
 	{
 	public :
 		using Base::Base;
@@ -308,7 +292,7 @@ class const_only_accessors_t : public Base
 		const auto *
 		get() const noexcept
 			{
-				return get_const_ptr( this->message_reference() );
+				return get_ptr( this->message_reference() );
 			}
 
 		//! Get a reference to the message inside message_holder.
@@ -331,8 +315,8 @@ class const_only_accessors_t : public Base
 	};
 
 /*!
- * \brief An implementation of mixin for the case when const-
- * and non-const getters are necessary for message_holder.
+ * \brief An implementation of mixin for the case getters for mutable
+ * message are necessary for message_holder.
  *
  * It is assumed that shared_message_holder_impl_t or
  * unique_message_holder_impl_t will be used as Base template parameter.
@@ -341,16 +325,10 @@ class const_only_accessors_t : public Base
  * v.5.6.0
  */
 template< typename Base >
-class non_const_accessors_t : public const_only_accessors_t<Base>
+class mutable_msg_accessors_t : public Base
 	{
-		using direct_base_type = const_only_accessors_t<Base>;
-
-	public:
-		using direct_base_type::direct_base_type;
-
-		using direct_base_type::get;
-		using direct_base_type::operator*;
-		using direct_base_type::operator->;
+	public :
+		using Base::Base;
 
 		//! Get a pointer to the message inside message_holder.
 		/*!
@@ -359,9 +337,9 @@ class non_const_accessors_t : public const_only_accessors_t<Base>
 		 */
 		SO_5_NODISCARD
 		auto *
-		get() noexcept
+		get() const noexcept
 			{
-				return get_non_const_ptr( this->message_reference() );
+				return get_ptr( this->message_reference() );
 			}
 
 		//! Get a reference to the message inside message_holder.
@@ -371,7 +349,7 @@ class non_const_accessors_t : public const_only_accessors_t<Base>
 		 */
 		SO_5_NODISCARD
 		auto &
-		operator * () noexcept { return *get(); }
+		operator * () const noexcept { return *get(); }
 
 		//! Get a pointer to the message inside message_holder.
 		/*!
@@ -380,7 +358,7 @@ class non_const_accessors_t : public const_only_accessors_t<Base>
 		 */
 		SO_5_NODISCARD
 		auto *
-		operator->() noexcept { return get(); }
+		operator->() const noexcept { return get(); }
 	};
 
 /*!
@@ -400,8 +378,8 @@ struct accessor_selector
 	{
 		using type = std::conditional_t<
 				message_mutability_t::immutable_message == Mutability,
-				const_only_accessors_t<Base>,
-				non_const_accessors_t<Base> >;
+				immutable_msg_accessors_t<Base>,
+				mutable_msg_accessors_t<Base> >;
 	};
 
 /*!
@@ -421,6 +399,126 @@ using accessor_selector_t =
 } /* namespace details */
 
 //FIXME: document this!
+/*!
+ * \brief A class for holding an instance of a message.
+ *
+ * This class is intended for simplification of holding message instances
+ * for some time and resending them later. For example:
+ * \code
+ * class my_actor final : public so_5::agent_t {
+ * 	// A stored message.
+ * 	so_5::message_holder_t<my_message> stored_;
+ * 	...
+ * 	void on_message(mhood_t<my_message> cmd) {
+ * 		// Store message inside the agent.
+ * 		stored_ = cmd.make_holder();
+ * 		...
+ * 		// Initiate a delayed message to resend the stored message later.
+ * 		so_5::send_delayed<resend_message>(*this, 10s);
+ * 	}
+ * 	...
+ * 	void on_resend_message(mhood_t<resend_message>) {
+ * 		// Resend the stored message.
+ * 		so_5::send(some_target, stored_);
+ * 		// The stored message is no more needed.
+ * 		stored_.reset();
+ *
+ * 		// Or we can write:
+ * 		// so_5::send(some_target, std::move(stored_));
+ * 	}
+ * };
+ * \endcode
+ * This class is also intended to be used with preallocated messages:
+ * \code
+ * class prealloc_msg_demo final : public so_5::agent_t {
+ * 	so_5::message_holder_t<request> request_;
+ * 	...
+ * 	prealloc_msg_demo(
+ * 		context_t ctx,
+ * 		... // Some other params.
+ * 		) : request_{std::piecewise_construct, ...} // Preallocation of message.
+ * 		{}
+ *
+ * 	void on_some_event(...) {
+ * 		...
+ * 		// It is time to send preallocated message.
+ * 		so_5::send(some_target, request_);
+ * 		...
+ * 	}
+ * };
+ * \endcode
+ *
+ * The main benefit of that class is the ability to correctly handle
+ * messages of arbitrary user types (e.g. messages not derived from
+ * so_5::message_t class) and mutability flags. For example, the following
+ * cases are correctly handled by message_holder_t:
+ * \code
+ * struct status_data { // This is message that is not derived from so_5::message_t.
+ * 	... // Some fields.
+ * };
+ *
+ * so_5::message_holder_t<status_data> msg1;
+ * so_5::message_holder_t<so_5::immutable_msg<status_data>> msg2;
+ * so_5::message_holder_t<so_5::mutable_msg<status_data>> msg3;
+ * \endcode
+ *
+ * \par Methods of message_holder_t class
+ *
+ * Class message_holder_t provides the following methods:
+ * \code
+ * // Default constructor. Creates an empty holder.
+ * message_holder_t();
+ *
+ * // Constructs holder for holding the specified message instance.
+ * message_holder_t(so_5::intrusive_ptr<envelope_type> msg);
+ *
+ * // Creates a new instance of message from 'args' and constructs holder for it.
+ * template<typename... Args>
+ * message_holder_t(std::piecewise_construct_t, Args && ...args);
+ *
+ * // Creates a new instance of message from 'args' and constructs holder for it.
+ * template<typename... Args>
+ * static message_holder_t make(Args && ...args);
+ *
+ * // Returns true if message_holder is empty.
+ * bool empty() const noexcept;
+ * bool operator!() const noexcept;
+ *
+ * // Returns true if message_holder is not empty.
+ * operator bool() const noexcept;
+ *
+ * // Drops the content of message_holder.
+ * void reset() noexcept;
+ * \endcode
+ *
+ * There are also some more methods which are depend on mutability of
+ * message and the type of ownership. They are described below.
+ *
+ * \par Getters are depend on mutability of message
+ *
+ * Every message_holder has a bunch of const-getters:
+ * \code
+ * const payload_type * get() const noexcept;
+ * const payload_type & operator*() const noexcept;
+ * const payload_type * operator->() const noexcept;
+ * \endcode
+ * But if message_holder holds a mutable message then there are also
+ * non-const-getters:
+ * \code
+ * payload_type * get() noexcept;
+ * payload_type & operator*() noexcept;
+ * payload_type * operator->() noexcept;
+ * \endcode
+ *
+ * \par Shared and unique ownership
+ *
+ * \attention
+ * This class should be used with messages only. Signals are not supported
+ * by that class.
+ *
+ * \since
+ * v.5.6.0
+ */
 template<
 	typename Msg,
 	message_ownership_t Ownership = message_ownership_t::autodetected >
