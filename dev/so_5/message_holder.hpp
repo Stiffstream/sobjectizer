@@ -120,6 +120,7 @@ class basic_message_holder_impl_t
 			}
 
 		//! Check for the emptiness of message_holder.
+		SO_5_NODISCARD
 		bool
 		empty() const noexcept
 			{
@@ -127,12 +128,14 @@ class basic_message_holder_impl_t
 			}
 
 		//! Check for the non-emptiness of message_holder.
+		SO_5_NODISCARD
 		operator bool() const noexcept
 			{
 				return !this->empty();
 			}
 
 		//! Check for the emptiness of message_holder.
+		SO_5_NODISCARD
 		bool operator!() const noexcept
 			{
 				return this->empty();
