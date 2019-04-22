@@ -274,8 +274,7 @@ template<
 using impl_selector_t = typename impl_selector<Msg, Ownership>::type;
 
 /*!
- * \brief An implementation of mixin for the case when getters
- * for immutable messages are necessary for message_holder.
+ * \brief An of mixin with getters for message_holder.
  *
  * It is assumed that shared_message_holder_impl_t or
  * unique_message_holder_impl_t will be used as Base template parameter.
@@ -283,8 +282,8 @@ using impl_selector_t = typename impl_selector<Msg, Ownership>::type;
  * \since
  * v.5.6.0
  */
-template< typename Base >
-class immutable_msg_accessors_t : public Base
+template< typename Base, typename Return_Type >
+class msg_accessors_t : public Base
 	{
 	public :
 		using Base::Base;
@@ -295,7 +294,7 @@ class immutable_msg_accessors_t : public Base
 		 * Returns nullptr is message_holder is empty.
 		 */
 		SO_5_NODISCARD
-		const auto *
+		Return_Type *
 		get() const noexcept
 			{
 				return get_ptr( this->message_reference() );
@@ -307,7 +306,7 @@ class immutable_msg_accessors_t : public Base
 		 * An attempt to use this method on empty message_holder is UB.
 		 */
 		SO_5_NODISCARD
-		const auto &
+		Return_Type &
 		operator * () const noexcept { return *get(); }
 
 		//! Get a pointer to the message inside message_holder.
@@ -316,63 +315,12 @@ class immutable_msg_accessors_t : public Base
 		 * An attempt to use this method on empty message_holder is UB.
 		 */
 		SO_5_NODISCARD
-		const auto *
-		operator->() const noexcept { return get(); }
-	};
-
-/*!
- * \brief An implementation of mixin for the case getters for mutable
- * message are necessary for message_holder.
- *
- * It is assumed that shared_message_holder_impl_t or
- * unique_message_holder_impl_t will be used as Base template parameter.
- *
- * \since
- * v.5.6.0
- */
-template< typename Base >
-class mutable_msg_accessors_t : public Base
-	{
-	public :
-		using Base::Base;
-
-		//! Get a pointer to the message inside message_holder.
-		/*!
-		 * \attention
-		 * Returns nullptr is message_holder is empty.
-		 */
-		SO_5_NODISCARD
-		auto *
-		get() const noexcept
-			{
-				return get_ptr( this->message_reference() );
-			}
-
-		//! Get a reference to the message inside message_holder.
-		/*!
-		 * \attention
-		 * An attempt to use this method on empty message_holder is UB.
-		 */
-		SO_5_NODISCARD
-		auto &
-		operator * () const noexcept { return *get(); }
-
-		//! Get a pointer to the message inside message_holder.
-		/*!
-		 * \attention
-		 * An attempt to use this method on empty message_holder is UB.
-		 */
-		SO_5_NODISCARD
-		auto *
+		Return_Type *
 		operator->() const noexcept { return get(); }
 	};
 
 /*!
  * \brief A meta-function for selection of type of accessors mixin.
- *
- * The mutability of message is examined. const_only_accessors_t type
- * is selected if message is immutable. non_const_accessors_t type is
- * selected otherwise.
  *
  * \since
  * v.5.6.0
@@ -384,8 +332,8 @@ struct accessor_selector
 	{
 		using type = std::conditional_t<
 				message_mutability_t::immutable_message == Mutability,
-				immutable_msg_accessors_t<Base>,
-				mutable_msg_accessors_t<Base> >;
+				msg_accessors_t<Base, typename Base::payload_type const>,
+				msg_accessors_t<Base, typename Base::payload_type> >;
 	};
 
 /*!
