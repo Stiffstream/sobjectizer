@@ -274,8 +274,7 @@ template<
 using impl_selector_t = typename impl_selector<Msg, Ownership>::type;
 
 /*!
- * \brief An implementation of mixin for the case when getters
- * for immutable messages are necessary for message_holder.
+ * \brief An of mixin with getters for message_holder.
  *
  * It is assumed that shared_message_holder_impl_t or
  * unique_message_holder_impl_t will be used as Base template parameter.
@@ -322,10 +321,6 @@ class msg_accessors_t : public Base
 
 /*!
  * \brief A meta-function for selection of type of accessors mixin.
- *
- * The mutability of message is examined. const_only_accessors_t type
- * is selected if message is immutable. non_const_accessors_t type is
- * selected otherwise.
  *
  * \since
  * v.5.6.0
