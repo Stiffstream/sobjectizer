@@ -10,6 +10,7 @@
 #pragma once
 
 #include <so_5/message.hpp>
+#include <so_5/message_holder.hpp>
 
 #include <so_5/compiler_features.hpp>
 
@@ -81,10 +82,25 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() const noexcept
 		{
 			return intrusive_ptr_t< envelope_type >{m_msg};
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
+	SO_5_NODISCARD
+	message_holder_t< M, Ownership >
+	make_holder() const noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.
@@ -160,12 +176,27 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
 			intrusive_ptr_t< envelope_type > result{m_msg};
 			m_msg = nullptr;
 			return result;
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
+	SO_5_NODISCARD
+	message_holder_t< M, Ownership >
+	make_holder() noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.
@@ -256,6 +287,20 @@ public :
 			return intrusive_ptr_t< envelope_type >{m_envelope};
 		}
 
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
+	SO_5_NODISCARD
+	message_holder_t< M, Ownership >
+	make_holder() const noexcept
+		{
+			return { make_reference() };
+		}
+
 	//! Access to the message.
 	const payload_type &
 	operator*() const noexcept { return *get(); }
@@ -330,6 +375,7 @@ public :
 	get() noexcept { return m_payload; }
 
 	//! Create a smart pointer for the message envelope.
+	SO_5_NODISCARD
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
@@ -339,6 +385,20 @@ public :
 			m_envelope = nullptr;
 
 			return result;
+		}
+
+	//! Create a holder for this message.
+	/*!
+	 * \since
+	 * v.5.6.0
+	 */
+	template<
+		message_ownership_t Ownership = message_ownership_t::autodetected >
+	SO_5_NODISCARD
+	message_holder_t< M, Ownership >
+	make_holder() noexcept
+		{
+			return { make_reference() };
 		}
 
 	//! Access to the message.
@@ -415,6 +475,7 @@ using actual_mhood_base_type = mhood_base_t<
 	const M * operator->() const;
 	const M & operator*() const;
 	so_5::intrusive_ptr_t< M > make_reference() const;
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>() const;
  * \endcode
  * If M is a type derived from so_5::signal_t, then there will no be methods
  * at all. It is because there is no actual message object for a signal.
@@ -425,6 +486,7 @@ using actual_mhood_base_type = mhood_base_t<
 	const M * operator->() const;
 	const M & operator*() const;
 	so_5::intrusive_ptr_t< so_5::user_type_message_t<M> > make_reference() const;
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>() const;
  * \endcode
  * For mutable message M there will be the following methods is M is
  * derived from so_5::message_t:
@@ -433,6 +495,7 @@ using actual_mhood_base_type = mhood_base_t<
 	M * operator->();
 	M & operator*();
 	so_5::intrusive_ptr_t< M > make_reference();
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>();
  * \endcode
  * If mutable message M is not derived from so_5::message_t then there
  * will be the following methods:
@@ -441,12 +504,39 @@ using actual_mhood_base_type = mhood_base_t<
 	M * operator->();
 	M & operator*();
 	so_5::intrusive_ptr_t< so_5::user_type_message_t<M> > make_reference();
+	so_5::message_holder_t< M, Ownership > make_holder<Ownership>();
  * \endcode
  *
+ * \note
+ * Method make_holder() uses so_5::message_ownership_t::autodetected by
+ * default.
+ *
  * \attention
- * Method make_reference for mhood_t<mutable_msg<M>> will leave mhood object
+ * Methods make_reference() for mhood_t<mutable_msg<M>> will leave mhood object
  * in nullptr state. It means that mhood must not be used after calling
  * make_reference().
+ *
+ * \attention
+ * Methods make_holder() for mhood_t<mutable_msg<M>> will leave
+ * the mhood object empty always. Regardless of Ownership parameter.
+ * Methods make_holder() for mhood_t<M> and mhood_t<immutable_msg<M>> will
+ * leave value for mhood object regardless of Ownership parameter.
+ * For example:
+ * \code
+ * class demo : public agent_t {
+ * 	void on_immutable_msg(mhood_t<some_msg> cmd) {
+ * 		auto unique_holder = cmd.make_holder<so_5::message_ownership_t::unique>();
+ * 		auto v = cmd->some_value(); // cmd still has its value.
+ * 		...
+ * 	}
+ *		...
+ *		void on_mutable_msg(mhood_t< mutable_msg<another_msg> > cmd) {
+ * 		auto shared_holder = cmd.make_holder<so_5::message_ownership_t::shared>();
+ * 		// Now cmd is empty!
+ * 		auto v = cmd->some_value(); // THIS IS UB!	
+ *		}
+ * };
+ * \endcode
  *
  * \note Class mhood_t can be used for redirection of messages of user types.
  * For example (since v.5.5.19):
@@ -536,102 +626,6 @@ class mhood_t< user_type_message_t< M > >;
  */
 template< typename M >
 using mutable_mhood_t = mhood_t< mutable_msg<M> >;
-
-/*!
- * \brief Helper function for simplifying resending of preallocated message.
- *
- * Since v.5.6.0 there is no public method \a deliver_message in
- * \a abstract_message_box_t class. Ordinary \a send() function should
- * be used for sending/resending of preallocated messages. But there is
- * no send() function that accepts intrusive_ptr_t. Because of that
- * this helper function should be used with send() function. For example:
- * \code
- * class some_agent final : public so_5::agent_t
- * {
- * 	// A message to be send by this agent.
- * 	class do_something { ... };
- *
- * 	// A single preallocated instance of that message.
- * 	so_5::intrusive_ptr_t<do_something> msg_;
- * 	...
- * 	void on_some_cmd(mhood_t<some_command> cmd) {
- * 		...
- * 		// The preallocated message should be sent to someone.
- * 		so_5::send(cmd->target_, so_5::to_be_redirected(msg_));
- * 		...
- * 	}
- * 	...
- * };
- * \endcode
- *
- * \note
- * This function allows to send/resend immutable message only.
- *
- * \attention
- * This function returns a temprary object with raw references and pointers
- * inside. Do not store it for a long time because this references/pointer
- * can become invalid.
- *
- * \since
- * v.5.6.0
- */
-template< typename M >
-SO_5_NODISCARD
-mhood_t< typename message_payload_type<M>::payload_type >
-to_be_redirected( const intrusive_ptr_t<M> & what )
-	{
-		message_ref_t m{ what };
-		return { m };
-	}
-
-/*!
- * \brief Helper function for simplifying resending of
- * preallocated mutable message.
- *
- * Since v.5.6.0 there is no public method \a deliver_message in
- * \a abstract_message_box_t class. Ordinary \a send() function should
- * be used for sending/resending of preallocated messages. But there is
- * no send() function that accepts intrusive_ptr_t. Because of that
- * this helper function should be used with send() function. For example:
- * \code
- * class some_agent final : public so_5::agent_t
- * {
- * 	// A message to be send by this agent.
- * 	class do_something { ... };
- *
- * 	// A single preallocated instance of that message.
- * 	so_5::intrusive_ptr_t<do_something> msg_;
- * 	...
- * 	void on_some_cmd(mhood_t<some_command> cmd) {
- * 		...
- * 		// The preallocated message should be sent to someone as mutable message.
- * 		so_5::send(cmd->target_,
- * 				so_5::to_be_redirected_as_mutable(std::move(msg_)));
- * 		...
- * 	}
- * 	...
- * };
- * \endcode
- *
- * \note
- * This function allows to send/resend mutable message only.
- *
- * \attention
- * This function returns a temprary object with raw references and pointers
- * inside. Do not store it for a long time because this references/pointer
- * can become invalid.
- *
- * \since
- * v.5.6.0
- */
-template< typename M >
-SO_5_NODISCARD
-mhood_t< mutable_msg< typename message_payload_type<M>::payload_type > >
-to_be_redirected_as_mutable( intrusive_ptr_t<M> what )
-	{
-		message_ref_t m{ std::move(what) };
-		return { m };
-	}
 
 } /* namespace so_5 */
 

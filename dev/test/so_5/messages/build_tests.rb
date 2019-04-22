@@ -6,6 +6,7 @@ MxxRu::Cpp::composite_target {
 	path = 'test/so_5/messages'
 
 	required_prj( "#{path}/three_messages/prj.ut.rb" )
+	required_prj( "#{path}/message_holder/prj.ut.rb" )
 	required_prj( "#{path}/resend_message/prj.ut.rb" )
 	required_prj( "#{path}/resend_message_2/prj.ut.rb" )
 	required_prj( "#{path}/resend_message_as_mutable/prj.ut.rb" )

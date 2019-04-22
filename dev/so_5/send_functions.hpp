@@ -299,6 +299,53 @@ send( Target && to, mhood_t< Message > /*what*/ )
 	}
 
 /*!
+ * \brief A version of %send function for redirection of a message
+ * from exising message_holder instance.
+ *
+ * Usage example:
+ * \code
+	class preallocated_messages_owner final : public so_5::agent_t {
+		so_5::message_holder_t<some_message> first_;
+		so_5::message_holder_t<so_5::mutable_msg<another_message>> second_;
+		...
+		void on_some_event(mhood_t<some_event>) {
+			// It is time to send preallocated messages.
+
+			// This message will be sent as immutable message.
+			so_5::send(dest, first_);
+
+			// This message will be sent as mutable message.
+			so_5::send(dest, std::move(second_));
+		}
+	};
+ * \endcode
+ *
+ * \attention
+ * An attempt to call this function for empty message_holder object is UB.
+ *
+ * \since
+ * v.5.6.0
+ */
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership>
+void
+send(
+	//! Destination for the message.
+	Target && to,
+	//! Message to be sent.
+	message_holder_t<Message, Ownership> what )
+	{
+		using namespace so_5::low_level_api;
+
+		deliver_message(
+				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
+				message_payload_type<Message>::subscription_type_index(),
+				what.make_reference() );
+	}
+
+/*!
  * \brief A utility function for creating and delivering a delayed message
  * to the specified destination.
  *
@@ -466,6 +513,56 @@ send_delayed(
 		so_5::low_level_api::single_timer(
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
+				arg_to_mbox( to ),
+				pause );
+	}
+
+/*!
+ * \brief A version of %send_delayed function for redirection of a message
+ * from exising message_holder instance.
+ *
+ * Usage example:
+ * \code
+	class preallocated_messages_owner final : public so_5::agent_t {
+		so_5::message_holder_t<some_message> first_;
+		so_5::message_holder_t<so_5::mutable_msg<another_message>> second_;
+		...
+		void on_some_event(mhood_t<some_event>) {
+			// It is time to send preallocated messages.
+
+			// This message will be sent as immutable message.
+			so_5::send_delayed(dest, 15s, first_);
+
+			// This message will be sent as mutable message.
+			so_5::send_delayed(dest, 15s, std::move(second_));
+		}
+	};
+ * \endcode
+ *
+ * \attention
+ * An attempt to call this function for empty message_holder object is UB.
+ *
+ * \since
+ * v.5.6.0
+ */
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership >
+void
+send_delayed(
+	//! Destination for the message.
+	Target && to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message to be sent
+	message_holder_t<Message, Ownership> msg )
+	{
+		using namespace send_functions_details;
+
+		so_5::low_level_api::single_timer(
+				message_payload_type< Message >::subscription_type_index(),
+				msg.make_reference(),
 				arg_to_mbox( to ),
 				pause );
 	}
@@ -674,6 +771,60 @@ send_periodic(
 		return so_5::low_level_api::schedule_timer( 
 				message_payload_type< Message >::subscription_type_index(),
 				message_ref_t{},
+				arg_to_mbox( target ),
+				pause,
+				period );
+	}
+
+/*!
+ * \brief A version of %send_periodic function for redirection of a message
+ * from exising message_holder instance.
+ *
+ * \note
+ * Note that an attempt to call with function with non-zero \a period
+ * argument for a mutable messages will lead to an exception.
+ * It is because mutable message can't be sent as periodic message.
+ *
+ * Usage example:
+ * \code
+	class preallocated_messages_owner final : public so_5::agent_t {
+		so_5::message_holder_t<some_message> msg_;
+		so_5::timer_id_t msg_timer_;
+		...
+		void on_some_event(mhood_t<some_event>) {
+			// It is time to send preallocated message.
+			// This message will be sent as immutable message.
+			msg_timer_ = so_5::send_periodic(dest, 15s, 20s, msg_);
+		}
+	};
+ * \endcode
+ *
+ * \attention
+ * An attempt to call this function for empty message_holder object is UB.
+ *
+ * \since
+ * v.5.6.0
+ */
+template<
+	typename Target,
+	typename Message,
+	message_ownership_t Ownership >
+SO_5_NODISCARD timer_id_t
+send_periodic(
+	//! A destination for the periodic message.
+	Target && target,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message to be sent.
+	message_holder_t<Message, Ownership> what )
+	{
+		using namespace send_functions_details;
+
+		return so_5::low_level_api::schedule_timer( 
+				message_payload_type< Message >::subscription_type_index(),
+				what.make_reference(),
 				arg_to_mbox( target ),
 				pause,
 				period );

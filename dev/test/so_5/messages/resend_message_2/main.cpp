@@ -20,16 +20,18 @@ public :
 	first_sender_t( context_t ctx, so_5::mbox_t second )
 		:	so_5::agent_t{ std::move(ctx) }
 		,	m_second{ std::move(second) }
+		,	m_message{ so_5::message_holder_t<message>::make( "hello!" ) }
 	{}
 
 	void
 	so_evt_start() override
 	{
-		so_5::send< message >( m_second, "hello!" );
+		so_5::send( m_second, m_message );
 	}
 
 private :
 	const so_5::mbox_t m_second;
+	so_5::message_holder_t<message> m_message;
 };
 
 class second_sender_t final : public so_5::agent_t
@@ -68,12 +70,12 @@ public :
 
 private :
 	const so_5::mbox_t m_fourth;
-	so_5::intrusive_ptr_t< so_5::user_type_message_t<message> > m_message;
+	so_5::message_holder_t< message > m_message;
 
 	void
 	on_message( so_5::mhood_t<message> cmd )
 	{
-		m_message = cmd.make_reference();
+		m_message = cmd.make_holder();
 
 		so_5::send<resend>( *this );
 	}
@@ -81,8 +83,7 @@ private :
 	void
 	on_resend( so_5::mhood_t<resend> )
 	{
-		so_5::send( m_fourth,
-				so_5::to_be_redirected(std::move(m_message)) );
+		so_5::send( m_fourth, std::move(m_message) );
 	}
 };
 
@@ -131,7 +132,5 @@ main()
 		10 );
 
 	return 0;
-
-	return 2;
 }
 

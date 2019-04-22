@@ -35,7 +35,7 @@ struct msg_request final : public so_5::message_t
 };
 
 // Just a useful alias.
-using msg_request_smart_ptr_t = so_5::intrusive_ptr_t< msg_request >;
+using msg_request_holder_t = so_5::message_holder_t< msg_request >;
 
 // A successful reply to request.
 struct msg_positive_reply final : public so_5::message_t
@@ -190,8 +190,8 @@ private :
 	struct request_comparator_t
 	{
 		bool operator()(
-			const msg_request_smart_ptr_t & a,
-			const msg_request_smart_ptr_t & b ) const
+			const msg_request_holder_t & a,
+			const msg_request_holder_t & b ) const
 		{
 			// Request with earlier deadline has greater priority.
 			return a->m_deadline > b->m_deadline;
@@ -205,8 +205,8 @@ private :
 
 	// Queue of pending requests.
 	std::priority_queue<
-				msg_request_smart_ptr_t,
-				std::vector< msg_request_smart_ptr_t >,
+				msg_request_holder_t,
+				std::vector< msg_request_holder_t >,
 				request_comparator_t >
 			m_pending_requests;
 
@@ -227,7 +227,7 @@ private :
 		const std::time_t now = std::time(nullptr);
 		if( now < evt->m_deadline )
 		{
-			m_pending_requests.push( evt.make_reference() );
+			m_pending_requests.push( evt.make_holder() );
 
 			// Just use delayed signal for every pending request.
 			so_5::send_delayed< msg_check_deadline >(
@@ -255,7 +255,7 @@ private :
 			// next job must be sent to the performer.
 
 			auto & request = m_pending_requests.top();
-			so_5::send( m_performer_mbox, to_be_redirected( request ) );
+			so_5::send( m_performer_mbox, request );
 			m_pending_requests.pop();
 		}
 	}
