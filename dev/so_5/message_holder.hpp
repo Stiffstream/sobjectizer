@@ -95,7 +95,7 @@ class basic_message_holder_impl_t
 		basic_message_holder_impl_t() noexcept = default;
 
 		basic_message_holder_impl_t(
-			intrusive_ptr_t< Envelope > msg )
+			intrusive_ptr_t< Envelope > msg ) noexcept
 			:	m_msg{ std::move(msg) }
 			{}
 
