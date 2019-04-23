@@ -80,23 +80,13 @@ get_ptr( const intrusive_ptr_t< user_type_message_t<M> > & msg ) noexcept
 template< typename Payload, typename Envelope >
 class basic_message_holder_impl_t
 	{
+	protected :
 		//! Message instance.
 		/*!
 		 * Can be empty if the message_holder doens't hold anything
 		 * (in that case empty message_holder is an analogue of nullptr).
 		 */
 		intrusive_ptr_t< Envelope > m_msg;
-
-	protected :
-		//! Get reference to the underlying smart pointer to message instance.
-		SO_5_NODISCARD
-		const auto &
-		message_reference() const noexcept { return m_msg; }
-
-		//! Get reference to the underlying smart pointer to message instance.
-		SO_5_NODISCARD
-		auto &
-		message_reference() noexcept { return m_msg; }
 
 	public :
 		using payload_type = Payload;
@@ -171,7 +161,7 @@ class shared_message_holder_impl_t
 		intrusive_ptr_t< Envelope >
 		make_reference() const noexcept
 			{
-				return this->message_reference();
+				return this->m_msg;
 			}
 	};
 
@@ -221,7 +211,7 @@ class unique_message_holder_impl_t
 		intrusive_ptr_t< Envelope >
 		make_reference() noexcept
 			{
-				return { std::move(this->message_reference()) }; 
+				return { std::move(this->m_msg) }; 
 			}
 	};
 
@@ -297,7 +287,7 @@ class msg_accessors_t : public Base
 		Return_Type *
 		get() const noexcept
 			{
-				return get_ptr( this->message_reference() );
+				return get_ptr( this->m_msg );
 			}
 
 		//! Get a reference to the message inside message_holder.
@@ -631,7 +621,7 @@ class message_holder_t
 		swap( message_holder_t & a, message_holder_t & b ) noexcept
 			{
 				using std::swap;
-				swap( a.message_reference(), b.message_reference() );
+				swap( a.m_msg, b.m_msg );
 			}
 
 		//! Create a new instance of message_holder with a new message inside.
