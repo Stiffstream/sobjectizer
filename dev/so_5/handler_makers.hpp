@@ -16,6 +16,7 @@
 #include <so_5/ret_code.hpp>
 
 #include <so_5/details/lambda_traits.hpp>
+#include <so_5/details/always_false.hpp>
 
 #include <so_5/execution_demand.hpp>
 #include <so_5/message_handler_format_detector.hpp>
@@ -160,18 +161,6 @@ struct event_handler_arg_maker< mhood_t< mutable_msg<Msg> > >
 	{
 		return { mf };
 	}
-};
-
-/*!
- * \brief A helper template type to trigger static_assert.
- *
- * \since
- * v.5.5.19
- */
-template<typename T>
-struct always_false
-{
-	static constexpr const bool value = false;
 };
 
 /*
