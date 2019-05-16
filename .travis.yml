@@ -1,0 +1,42 @@
+dist: xenial
+sudo: false
+language: cpp
+branches:
+  only:
+    - master
+git:
+  depth: 1
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=g++-7 C_COMPILER=gcc-7"
+
+before_install:
+   - eval "${MATRIX_EVAL}"
+
+install:
+  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]];
+    then
+      cmake --version || brew install cmake;
+    fi
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=target -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/
+  - make -j4
+  - ctest --output-on-failure
+
+notifications:
+  email:
+    recipients:
+      - eao197@gmail.com
+#    on_success: always
+#    on_failure: always
