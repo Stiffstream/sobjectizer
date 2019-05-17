@@ -9,6 +9,7 @@ git:
 
 matrix:
   include:
+    # GCC on Linux.
     - os: linux
       compiler: gcc
       addons:
@@ -17,15 +18,55 @@ matrix:
           packages: ['g++-7']
       env:
         - MATRIX_EVAL="CXX_COMPILER=g++-7 C_COMPILER=gcc-7"
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-8']
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=g++-8 C_COMPILER=gcc-8"
+
+    # clang on Linux
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test']
+          packages: ['clang-6.0', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-6.0 C_COMPILER=clang-6.0"
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-7', 'ubuntu-toolchain-r-test']
+          packages: ['clang-7', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-7 C_COMPILER=clang-7"
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-8', 'ubuntu-toolchain-r-test']
+          packages: ['clang-8', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-8 C_COMPILER=clang-8"
+        
+    # clang on macOS
+    - os: osx
+      osx_image: xcode10.1
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++ C_COMPILER=clang"
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++ C_COMPILER=clang"
 
 before_install:
    - eval "${MATRIX_EVAL}"
-
-install:
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]];
-    then
-      cmake --version || brew install cmake;
-    fi
 
 script:
   - mkdir build
