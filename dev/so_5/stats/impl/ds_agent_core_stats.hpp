@@ -31,12 +31,10 @@ namespace impl {
  *
  * \brief A data source for distributing information about agent_core.
  */
-class ds_agent_core_stats_t final : public auto_registered_source_t
+class ds_agent_core_stats_t final : public source_t
 	{
 	public :
 		ds_agent_core_stats_t(
-			//! Repository for data source.
-			outliving_reference_t< repository_t > repo,
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.

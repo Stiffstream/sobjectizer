@@ -31,12 +31,10 @@ namespace impl {
  *
  * \brief A data source for distributing information about timer_thread.
  */
-class ds_timer_thread_stats_t : public auto_registered_source_t
+class ds_timer_thread_stats_t : public source_t
 	{
 	public :
 		ds_timer_thread_stats_t(
-			//! Repository for data source.
-			outliving_reference_t< repository_t > repo,
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.

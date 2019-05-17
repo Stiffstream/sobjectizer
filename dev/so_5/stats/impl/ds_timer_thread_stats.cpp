@@ -27,10 +27,8 @@ namespace impl {
 // ds_timer_thread_stats_t
 //
 ds_timer_thread_stats_t::ds_timer_thread_stats_t(
-	outliving_reference_t< repository_t > repo,
 	so_5::environment_infrastructure_t & what )
-	:	auto_registered_source_t( std::move(repo) )
-	,	m_what( what )
+	:	m_what( what )
 	{}
 
 void

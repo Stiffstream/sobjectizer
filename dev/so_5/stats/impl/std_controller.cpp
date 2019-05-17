@@ -100,7 +100,7 @@ std_controller_t::add( source_t & what )
 	}
 
 void
-std_controller_t::remove( source_t & what )
+std_controller_t::remove( source_t & what ) noexcept
 	{
 		std::lock_guard< std::mutex > lock{ m_data_lock };
 
