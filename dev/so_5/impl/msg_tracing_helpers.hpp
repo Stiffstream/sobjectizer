@@ -508,35 +508,29 @@ make_trace(
 	so_5::msg_tracing::holder_t & msg_tracing_stuff,
 	Args &&... args ) noexcept
 	{
-#if !defined( SO_5_HAVE_NOEXCEPT )
-		so_5::details::invoke_noexcept_code( [&] {
-#endif
-				const auto tid = query_current_thread_id();
+		const auto tid = query_current_thread_id();
 
-				// Since v.5.5.22 we should check the presence of filter.
-				// If filter is present then we should pass a trace via filter.
-				auto filter = msg_tracing_stuff.take_filter();
-				bool need_trace = true;
-				if( filter )
-					{
-						actual_trace_data_t data;
-						fill_trace_data( data, tid, std::forward<Args>(args)... );
+		// Since v.5.5.22 we should check the presence of filter.
+		// If filter is present then we should pass a trace via filter.
+		auto filter = msg_tracing_stuff.take_filter();
+		bool need_trace = true;
+		if( filter )
+			{
+				actual_trace_data_t data;
+				fill_trace_data( data, tid, std::forward<Args>(args)... );
 
-						need_trace = filter->filter( data );
-					}
+				need_trace = filter->filter( data );
+			}
 
-				if( need_trace )
-					{
-						// Trace message should go to the tracer.
-						std::ostringstream s;
+		if( need_trace )
+			{
+				// Trace message should go to the tracer.
+				std::ostringstream s;
 
-						make_trace_to( s, tid, std::forward< Args >(args)... );
+				make_trace_to( s, tid, std::forward< Args >(args)... );
 
-						msg_tracing_stuff.tracer().trace( s.str() );
-					}
-#if !defined( SO_5_HAVE_NOEXCEPT )
-			} );
-#endif
+				msg_tracing_stuff.tracer().trace( s.str() );
+			}
 	}
 
 } /* namespace details */
