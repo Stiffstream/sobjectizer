@@ -1,0 +1,83 @@
+dist: xenial
+sudo: false
+language: cpp
+branches:
+  only:
+    - master
+git:
+  depth: 1
+
+matrix:
+  include:
+    # GCC on Linux.
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=g++-7 C_COMPILER=gcc-7"
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-8']
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=g++-8 C_COMPILER=gcc-8"
+
+    # clang on Linux
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test']
+          packages: ['clang-6.0', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-6.0 C_COMPILER=clang-6.0"
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-7', 'ubuntu-toolchain-r-test']
+          packages: ['clang-7', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-7 C_COMPILER=clang-7"
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-8', 'ubuntu-toolchain-r-test']
+          packages: ['clang-8', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-8 C_COMPILER=clang-8"
+        
+    # clang on macOS
+    - os: osx
+      osx_image: xcode10.1
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++ C_COMPILER=clang"
+    - os: osx
+      osx_image: xcode10.2
+      compiler: clang
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++ C_COMPILER=clang"
+
+before_install:
+   - eval "${MATRIX_EVAL}"
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=target -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/
+  - make -j4
+  - ctest --output-on-failure
+
+notifications:
+  email:
+    recipients:
+      - eao197@gmail.com
+#    on_success: always
+#    on_failure: always
