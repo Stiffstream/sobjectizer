@@ -53,7 +53,7 @@ class SO_5_TYPE source_t
 		virtual void
 		distribute(
 			//! Target mbox for the appropriate message.
-			const mbox_t & /*distribution_mbox*/ ) { /* Doesn't do anything! */ }
+			const mbox_t & /*distribution_mbox*/ ) = 0;
 
 	private :
 		//! Previous item in the data sources list.
