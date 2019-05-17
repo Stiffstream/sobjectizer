@@ -151,18 +151,26 @@ class core_data_sources_t
 			outliving_reference_t< stats::repository_t > ds_repository,
 			impl::mbox_core_t & mbox_repository,
 			so_5::environment_infrastructure_t & infrastructure )
-			:	m_mbox_repository( std::move(ds_repository), mbox_repository )
-			,	m_coop_repository( std::move(ds_repository), infrastructure )
-			,	m_timer_thread( std::move(ds_repository), infrastructure )
+			:	m_mbox_repository( ds_repository, mbox_repository )
+			,	m_coop_repository( ds_repository, infrastructure )
+			,	m_timer_thread( ds_repository, infrastructure )
 			{}
 
 	private :
 		//! Data source for mboxes repository.
-		stats::impl::ds_mbox_core_stats_t m_mbox_repository;
+		stats::auto_registered_source_holder_t<
+						stats::impl::ds_mbox_core_stats_t >
+				m_mbox_repository;
+
 		//! Data source for cooperations repository.
-		stats::impl::ds_agent_core_stats_t m_coop_repository;
+		stats::auto_registered_source_holder_t<
+						stats::impl::ds_agent_core_stats_t >
+				m_coop_repository;
+
 		//! Data source for timer thread.
-		stats::impl::ds_timer_thread_stats_t m_timer_thread;
+		stats::auto_registered_source_holder_t<
+						stats::impl::ds_timer_thread_stats_t >
+				m_timer_thread;
 	};
 
 /*!

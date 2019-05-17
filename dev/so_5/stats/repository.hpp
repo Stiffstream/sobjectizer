@@ -91,7 +91,7 @@ class SO_5_TYPE repository_t
 
 		//! Deregistration of previously registered data source.
 		virtual void
-		remove( source_t & what ) = 0;
+		remove( source_t & what ) noexcept = 0;
 
 	protected :
 		//! Helper method for adding data source to existing list.
@@ -104,7 +104,7 @@ class SO_5_TYPE repository_t
 			source_t *& head,
 			//! Marker of the list tail.
 			//! Will be modified.
-			source_t *& tail );
+			source_t *& tail ) noexcept;
 
 		//! Helper method for removing data source from existing list.
 		static void
@@ -116,15 +116,58 @@ class SO_5_TYPE repository_t
 			source_t *& head,
 			//! Marker of the list tail.
 			//! Will be modified if the item at the end of the list.
-			source_t *& tail );
+			source_t *& tail ) noexcept;
 
 		//! Helper method for accessing next data source in the list.
 		static source_t *
 		source_list_next(
 			//! The current item.
-			const source_t & what );
+			const source_t & what ) noexcept;
 	};
 
+//FIXME: document this!
+template< typename Data_Source >
+class auto_registered_source_holder_t
+	{
+	public :
+		// This class isn't Copyable nor Moveable.
+		auto_registered_source_holder_t(
+			const auto_registered_source_holder_t & ) = delete;
+		auto_registered_source_holder_t(
+			auto_registered_source_holder_t && ) = delete;
+
+		//! Initializing constructor.
+		template< typename... Args >
+		auto_registered_source_holder_t(
+			outliving_reference_t< repository_t > repo,
+			Args && ...args )
+			:	m_repo{ repo }
+			,	m_ds{ std::forward<Args>(args)... }
+			{
+				m_repo.get().add( m_ds );
+			}
+
+		~auto_registered_source_holder_t() noexcept
+			{
+				m_repo.get().remove( m_ds );
+			}
+
+		Data_Source &
+		get() noexcept { return m_ds; }
+
+		const Data_Source &
+		get() const noexcept { return m_ds; }
+
+	private :
+		//! Repository for data source.
+		outliving_reference_t< repository_t > m_repo;
+
+		//! Data source itself.
+		Data_Source m_ds;
+	};
+
+//FIXME: remove after refactoring.
+#if 0
 //
 // auto_registered_source_t
 //
@@ -144,7 +187,62 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 	private :
 		outliving_reference_t< repository_t > m_repo;
 	};
+#endif
 
+//FIXME: document this!
+template< typename Data_Source >
+class manually_registered_source_holder_t
+	{
+	public :
+		// This class isn't Copyable nor Moveable.
+		manually_registered_source_holder_t(
+			const manually_registered_source_holder_t & ) = delete;
+		manually_registered_source_holder_t(
+			manually_registered_source_holder_t && ) = delete;
+
+		//! Initializing constructor.
+		template< typename... Args >
+		manually_registered_source_holder_t(
+			Args && ...args )
+			:	m_ds{ std::forward<Args>(args)... }
+			{}
+
+		~manually_registered_source_holder_t() noexcept
+			{
+				if( m_repo )
+					stop();
+			}
+
+		void
+		start( outliving_reference_t< repository_t > repo )
+			{
+				repo.get().add( m_ds );
+				m_repo = &(repo.get());
+			}
+
+		void
+		stop() noexcept
+			{
+				m_repo->remove( m_ds );
+				m_repo = nullptr;
+			}
+
+		Data_Source &
+		get() noexcept { return m_ds; }
+
+		const Data_Source &
+		get() const noexcept { return m_ds; }
+
+	private :
+		//! Repository for data source.
+		repository_t * m_repo{ nullptr };
+
+		//! Data source itself.
+		Data_Source m_ds;
+	};
+
+//FIXME: remove after refactoring.
+#if 0
 //
 // manually_registered_source_t
 //
@@ -175,6 +273,7 @@ class SO_5_TYPE manually_registered_source_t : public source_t
 		//! Receives actual value only after successful start.
 		repository_t * m_repo;
 	};
+#endif
 
 } /* namespace stats */
 

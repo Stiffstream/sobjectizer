@@ -25,7 +25,7 @@ void
 repository_t::source_list_add(
 	source_t & what,
 	source_t *& head,
-	source_t *& tail )
+	source_t *& tail ) noexcept
 	{
 		if( !tail )
 			{
@@ -47,7 +47,7 @@ void
 repository_t::source_list_remove(
 	source_t & what,
 	source_t *& head,
-	source_t *& tail )
+	source_t *& tail ) noexcept
 	{
 		if( what.m_prev )
 			what.m_prev->m_next = what.m_next;
@@ -62,11 +62,13 @@ repository_t::source_list_remove(
 
 source_t *
 repository_t::source_list_next(
-	const source_t & what )
+	const source_t & what ) noexcept
 	{
 		return what.m_next;
 	}
 
+//FIXME: remove after refactoring
+#if 0
 //
 // auto_registered_source_t
 //
@@ -109,6 +111,7 @@ manually_registered_source_t::stop()
 		m_repo->remove( *this );
 		m_repo = nullptr;
 	}
+#endif
 
 } /* namespace stats */
 

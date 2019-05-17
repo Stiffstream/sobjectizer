@@ -210,7 +210,7 @@ class stats_supplier_t
  *
  * \brief Type of data source for thread-pool-like dispatchers.
  */
-class data_source_t : public stats::manually_registered_source_t
+class data_source_t : public stats::source_t
 	{
 	public :
 		//! Initializing constructor.

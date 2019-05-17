@@ -335,7 +335,10 @@ class default_dispatcher_t
 			outliving_reference_t< Activity_Tracker > activity_tracker )
 			:	default_dispatcher_basis_t< Event_Queue_Type >{
 					std::move(event_queue) }
-			,	m_data_source{ env, outliving_mutable( *this ) }
+			,	m_data_source{
+						outliving_mutable(env.get().stats_repository()),
+						outliving_mutable( *this )
+				}
 			,	m_activity_tracker{ std::move(activity_tracker) }
 			{}
 
@@ -353,11 +356,8 @@ class default_dispatcher_t
 		 * \since
 		 * v.5.5.19
 		 */
-		class disp_data_source_t final : public stats::manually_registered_source_t
+		class disp_data_source_t final : public stats::source_t
 			{
-				//! SObjectizer Environment to work in.
-				outliving_reference_t< environment_t > m_env;
-
 				//! Dispatcher to work with.
 				outliving_reference_t< default_dispatcher_t > m_dispatcher;
 
@@ -366,10 +366,8 @@ class default_dispatcher_t
 
 			public :
 				disp_data_source_t(
-					outliving_reference_t< environment_t > env,
 					outliving_reference_t< default_dispatcher_t > disp )
-					:	m_env{ env }
-					,	m_dispatcher{ disp }
+					:	m_dispatcher{ disp }
 					{
 						// Name of data source should be constructed.
 						using namespace so_5::disp::reuse;
@@ -378,15 +376,6 @@ class default_dispatcher_t
 								Data_Source_Name_Parts::disp_type_part(),
 								"DEFAULT",
 								&m_dispatcher.get() );
-
-						// Data source can be added to stats controller.
-						m_env.get().stats_repository().add( *this );
-					}
-
-				~disp_data_source_t() noexcept override
-					{
-						// Environment should forget about this data source.
-						m_env.get().stats_repository().remove( *this );
 					}
 
 				void
@@ -413,6 +402,8 @@ class default_dispatcher_t
 								m_dispatcher.get().activity_tracker() );
 					}
 
+//FIXME: remove after refactoring.
+#if 0
 				void
 				set_data_sources_name_base(
 					const std::string & name_base )
@@ -424,10 +415,12 @@ class default_dispatcher_t
 								name_base,
 								&m_dispatcher.get() );
 					}
+#endif
 			};
 
 		//! Data source for speading run-time stats.
-		disp_data_source_t m_data_source;
+		stats::auto_registered_source_holder_t< disp_data_source_t >
+				m_data_source;
 
 		//! Activity tracker.
 		outliving_reference_t< Activity_Tracker > m_activity_tracker;
@@ -634,7 +627,7 @@ class stats_controller_t final
 			}
 
 		virtual void
-		remove( stats::source_t & what ) override
+		remove( stats::source_t & what ) noexcept override
 			{
 				this->lock_and_perform( [&] {
 					source_list_remove( what, m_head, m_tail );

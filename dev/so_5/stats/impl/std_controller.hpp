@@ -67,7 +67,7 @@ class std_controller_t final
 		add( source_t & what ) override;
 
 		virtual void
-		remove( source_t & what ) override;
+		remove( source_t & what ) noexcept override;
 
 	private :
 		//! Mbox for sending monitoring data.

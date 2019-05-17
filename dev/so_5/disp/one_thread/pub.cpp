@@ -88,22 +88,18 @@ track_activity(
  */
 template< typename Work_Thread >
 class data_source_t final
-	:	public stats::auto_registered_source_t
+	:	public stats::source_t
 	,	protected data_source_details::common_data_t< Work_Thread >
 	{
 	public :
 		using actual_work_thread_type_t = Work_Thread;
 
 		data_source_t(
-			outliving_reference_t< environment_t > env,
 			actual_work_thread_type_t & work_thread,
 			std::atomic< std::size_t > & agents_bound,
 			const std::string_view name_base,
 			const void * pointer_to_disp )
-			:	stats::auto_registered_source_t{
-					outliving_mutable( env.get().stats_repository() )
-				}
-			,	data_source_details::common_data_t< Work_Thread >{
+			:	data_source_details::common_data_t< Work_Thread >{
 					work_thread, agents_bound }
 			{
 				// Names of data sources must be formed.
@@ -163,7 +159,7 @@ class actual_dispatcher_t final : public disp_binder_t
 			disp_params_t params )
 			:	m_work_thread{ params.queue_params().lock_factory() }
 			,	m_data_source{
-					env,
+					outliving_mutable(env.get().stats_repository()),
 					m_work_thread,
 					m_agents_bound,
 					name_base,
@@ -221,12 +217,13 @@ class actual_dispatcher_t final : public disp_binder_t
 		std::atomic< std::size_t > m_agents_bound = { 0 };
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Data source for run-time monitoring.
+		 *
+		 * \since
+		 * v.5.5.4, v.5.6.0
 		 */
-		data_source_t< Work_Thread > m_data_source;
+		stats::auto_registered_source_holder_t< data_source_t< Work_Thread > >
+				m_data_source;
 	};
 
 //

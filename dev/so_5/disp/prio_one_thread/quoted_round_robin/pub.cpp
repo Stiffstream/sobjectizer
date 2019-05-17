@@ -92,7 +92,7 @@ class dispatcher_template_t final : public disp_binder_t
 					quotes }
 			,	m_work_thread{ m_demand_queue }
 			,	m_data_source{
-					env,
+					outliving_mutable(env.get().stats_repository()),
 					name_base,
 					outliving_mutable(*this)
 				}
@@ -148,7 +148,7 @@ class dispatcher_template_t final : public disp_binder_t
 		 * \since
 		 * v.5.5.8
 		 */
-		class disp_data_source_t : public stats::auto_registered_source_t
+		class disp_data_source_t : public stats::source_t
 			{
 				//! Dispatcher to work with.
 				outliving_reference_t< dispatcher_template_t > m_dispatcher;
@@ -158,13 +158,9 @@ class dispatcher_template_t final : public disp_binder_t
 
 			public :
 				disp_data_source_t(
-					outliving_reference_t< environment_t > env,
 					const std::string_view name_base,
 					outliving_reference_t< dispatcher_template_t > disp )
-					:	stats::auto_registered_source_t{
-							outliving_mutable(env.get().stats_repository())
-						}
-					,	m_dispatcher{ disp }
+					:	m_dispatcher{ disp }
 					,	m_base_prefix{ so_5::disp::reuse::make_disp_prefix(
 								"pot-qrr",
 								name_base,
@@ -244,7 +240,8 @@ class dispatcher_template_t final : public disp_binder_t
 		Work_Thread m_work_thread;
 
 		//! Data source for run-time monitoring.
-		disp_data_source_t m_data_source;
+		stats::auto_registered_source_holder_t< disp_data_source_t >
+				m_data_source;
 	};
 
 //
