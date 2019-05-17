@@ -108,10 +108,10 @@ main()
 								so_5::env_infrastructures::simple_mtsafe::factory() );
 					} );
 
-				UT_CHECK_EQ( 3, result.m_first_run_starts );
-				UT_CHECK_EQ( 3, result.m_first_run_stops );
-				UT_CHECK_EQ( 4, result.m_second_run_starts );
-				UT_CHECK_EQ( 4, result.m_second_run_stops );
+				UT_CHECK_GT( result.m_first_run_starts, 1 );
+				UT_CHECK_GT( result.m_first_run_stops, 1 );
+				UT_CHECK_GT( result.m_second_run_starts, 1 );
+				UT_CHECK_GT( result.m_second_run_stops, 1 );
 			},
 			5,
 			"start/stop stats_controller" );
