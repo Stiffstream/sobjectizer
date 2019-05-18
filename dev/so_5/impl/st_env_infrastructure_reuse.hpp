@@ -401,21 +401,6 @@ class default_dispatcher_t
 								m_dispatcher.get().thread_id(),
 								m_dispatcher.get().activity_tracker() );
 					}
-
-//FIXME: remove after refactoring.
-#if 0
-				void
-				set_data_sources_name_base(
-					const std::string & name_base )
-					{
-						using namespace so_5::disp::reuse;
-
-						m_base_prefix = make_disp_prefix(
-								Data_Source_Name_Parts::disp_type_part(),
-								name_base,
-								&m_dispatcher.get() );
-					}
-#endif
 			};
 
 		//! Data source for speading run-time stats.

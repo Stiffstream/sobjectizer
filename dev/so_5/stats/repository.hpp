@@ -125,7 +125,24 @@ class SO_5_TYPE repository_t
 			const source_t & what ) noexcept;
 	};
 
-//FIXME: document this!
+/*!
+ * \brief A holder for data-souce that should be automatically
+ * registered and deregistered in registry.
+ *
+ * This class is necessary because data-source can't
+ * register and deregister itself in the constructor/destructor.
+ * It can lead to errors when `distribute()` method is called
+ * during object's destruction.
+ *
+ * To avoid that problem data-source is created inside that
+ * holder. It means that data-source is still live and fully
+ * constructed when the destructor of holder starts its work.
+ * It allows to deregister data-source before the destructor
+ * of data source will be called.
+ *
+ * \since
+ * v.5.6.0
+ */
 template< typename Data_Source >
 class auto_registered_source_holder_t
 	{
@@ -166,30 +183,14 @@ class auto_registered_source_holder_t
 		Data_Source m_ds;
 	};
 
-//FIXME: remove after refactoring.
-#if 0
-//
-// auto_registered_source_t
-//
 /*!
- * \since
- * v.5.5.4
+ * \brief An addition to auto_registered_source_holder for the
+ * cases where manual registration of data_source should be used
+ * instead of automatic one.
  *
- * \brief Version of data source with ability of automatic registration
- * and deregistration of data source in the repository.
+ * \since
+ * v.5.6.0
  */
-class SO_5_TYPE auto_registered_source_t : public source_t
-	{
-	protected :
-		auto_registered_source_t( outliving_reference_t< repository_t > repo );
-		~auto_registered_source_t() noexcept override;
-
-	private :
-		outliving_reference_t< repository_t > m_repo;
-	};
-#endif
-
-//FIXME: document this!
 template< typename Data_Source >
 class manually_registered_source_holder_t
 	{
@@ -240,40 +241,6 @@ class manually_registered_source_holder_t
 		//! Data source itself.
 		Data_Source m_ds;
 	};
-
-//FIXME: remove after refactoring.
-#if 0
-//
-// manually_registered_source_t
-//
-/*!
- * \since
- * v.5.5.4
- *
- * \brief Version of data source for the case when the registration
- * and deregistration of data source in the repository must be performed
- * manually.
- *
- * \note Destructor automatically calls stop() if start() was called.
- */
-class SO_5_TYPE manually_registered_source_t : public source_t
-	{
-	protected :
-		manually_registered_source_t();
-		~manually_registered_source_t() noexcept override;
-
-	public :
-		void
-		start( outliving_reference_t< repository_t > repo );
-
-		void
-		stop();
-
-	private :
-		//! Receives actual value only after successful start.
-		repository_t * m_repo;
-	};
-#endif
 
 } /* namespace stats */
 
