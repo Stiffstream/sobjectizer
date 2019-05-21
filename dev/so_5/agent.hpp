@@ -3093,7 +3093,22 @@ subscription_bind_t::transfer_to_state(
 					op_state->m_mbox_id,
 					typeid( Msg ),
 					msg,
-//FIXME: other types of invocation should be handled here!
+//FIXME: there can't be enveloped_msg so we can safely use
+//get_demand_handler_on_message_ptr().
+//
+//It is because `transfer_to_state` is handled as a normal event handler.
+//It means that during delivery of an enveloped_msg the payload will be
+//extracted and passed to `transfer_to_state` handler. And in the target
+//state a handler for the payload will be looked. Not for the initial
+//enveloped_msg.
+//
+//It is not good because in the target state hander can be missed and in
+//that case envelope will think that payload is delivered and that is not
+//true.
+//
+//This issue has been found too late and it is present in SO-5.6.0.
+//We hope it will be (somehow) fixed in the updates for SO-5.6.0.
+//
 					agent_t::get_demand_handler_on_message_ptr()
 			};
 

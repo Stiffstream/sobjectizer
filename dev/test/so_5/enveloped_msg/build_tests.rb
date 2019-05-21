@@ -15,4 +15,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/mchain_handled_count/prj.ut.rb"
 
 	required_prj "#{path}/message_limits/build_tests.rb"
+
+	required_prj "#{path}/transfer_to_state/prj.ut.rb"
 }
+
