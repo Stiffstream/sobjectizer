@@ -889,6 +889,32 @@ class mchain_tracing_enabled_base
 	private :
 		so_5::msg_tracing::holder_t & m_tracer;
 
+		static const char *
+		message_kind_to_string( const message_ref_t & what )
+			{
+				const char * result = "<unknown>";
+				switch( message_kind(what) )
+					{
+					case message_kind_t::signal :
+						result = "signal";
+					break;
+
+					case message_kind_t::classical_message :
+						result = "classical_message";
+					break;
+
+					case message_kind_t::user_type_message :
+						result = "user_type_message";
+					break;
+
+					case message_kind_t::enveloped_msg :
+						result = "enveloped_msg";
+					break;
+					};
+
+				return result;
+			}
+
 	public :
 		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
 			:	m_tracer( tracer )
@@ -909,8 +935,7 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-//FIXME: kind of message (signal, classical, user_type) should be handled!
-								"message",
+								message_kind_to_string( d.m_message_ref ),
 								"extracted" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -925,8 +950,7 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-//FIXME: kind of message (signal, classical, user_type) should be handled!
-								"message",
+								message_kind_to_string( d.m_message_ref ),
 								"dropped_on_close" },
 						details::original_msg_type{ d.m_msg_type },
 						d.m_message_ref );
@@ -965,8 +989,7 @@ class mchain_tracing_enabled_base
 					const message_ref_t & message )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_chain( chain )
-//FIXME: kind of message (signal, classical, user_type) should be handled!
-					,	m_op_name( "message" )
+					,	m_op_name( message_kind_to_string( message ) )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
 					{}

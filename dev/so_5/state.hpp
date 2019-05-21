@@ -1827,7 +1827,6 @@ class SO_5_TYPE state_t final
 		void
 		handle_time_limit_on_exit() const;
 
-//FIXME: maybe this method should be marked as noexcept?
 		/*!
 		 * \since
 		 * v.5.5.15
@@ -1835,13 +1834,12 @@ class SO_5_TYPE state_t final
 		 * \brief Call for on enter handler if defined.
 		 */
 		void
-		call_on_enter() const
+		call_on_enter() const noexcept
 			{
 				if( m_on_enter ) m_on_enter();
 				if( m_time_limit ) handle_time_limit_on_enter();
 			}
 
-//FIXME: maybe this method should be marked as noexcept?
 		/*!
 		 * \since
 		 * v.5.5.15
@@ -1849,7 +1847,7 @@ class SO_5_TYPE state_t final
 		 * \brief Call for on exit handler if defined.
 		 */
 		void
-		call_on_exit() const
+		call_on_exit() const noexcept 
 			{
 				if( m_time_limit ) handle_time_limit_on_exit();
 				if( m_on_exit ) m_on_exit();

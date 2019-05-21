@@ -406,7 +406,6 @@ class SO_5_TYPE environment_params_t
 		 */
 		environment_params_t &
 		infrastructure_factory(
-//FIXME: it is better to use something like gsl::not_null<environment_infrastructure_factory_t>!
 			environment_infrastructure_factory_t factory )
 			{
 				m_infrastructure_factory = std::move(factory);

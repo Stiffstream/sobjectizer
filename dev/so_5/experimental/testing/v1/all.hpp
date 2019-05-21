@@ -845,10 +845,6 @@ class step_definition_proxy_t
 				return *this;
 			}
 
-//FIXME: there should be check that Lambda is a callable object.
-//NOTE: resolution of this FIXME is postponed until support of
-//MSVS2013 will be cancelled.
-
 		/*!
 		 * \brief Add preactivation action in form of lambda-object.
 		 *
