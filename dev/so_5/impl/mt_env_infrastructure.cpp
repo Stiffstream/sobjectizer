@@ -197,7 +197,7 @@ mt_env_infrastructure_t::register_coop(
 
 void
 mt_env_infrastructure_t::ready_to_deregister_notify(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		m_coop_repo.ready_to_deregister_notify( std::move(coop) );
 	}

@@ -172,7 +172,7 @@ class SO_5_TYPE environment_infrastructure_t
 		virtual void
 		ready_to_deregister_notify(
 			//! A cooperation which can be finaly deregistered.
-			coop_shptr_t coop ) = 0;
+			coop_shptr_t coop ) noexcept = 0;
 
 		//! Do final actions of the cooperation deregistration.
 		/*!

@@ -292,7 +292,7 @@ class env_infrastructure_t
 
 		virtual void
 		ready_to_deregister_notify(
-			coop_shptr_t coop ) override;
+			coop_shptr_t coop ) noexcept override;
 
 		virtual bool
 		final_deregister_coop(
@@ -457,7 +457,7 @@ env_infrastructure_t< Activity_Tracker >::register_coop(
 template< typename Activity_Tracker >
 void
 env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 		m_final_dereg_coops.emplace_back( std::move(coop) );

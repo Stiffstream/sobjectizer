@@ -182,7 +182,7 @@ class mt_env_infrastructure_t
 
 		virtual void
 		ready_to_deregister_notify(
-			coop_shptr_t coop ) override;
+			coop_shptr_t coop ) noexcept override;
 
 		virtual bool
 		final_deregister_coop(

@@ -2,6 +2,15 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_6_0 5.6.0 "Volcan San Jose"
+
+	A list of changes in v.5.6.0 can be found <a href="https://bitbucket.org/sobjectizerteam/sobjectizer/wiki/so-5.6-docs/history/v.5.6.0.md">here</a>.
+
+	\attention This version is not compatible with SObjectizer-5.5.
+
+	\note Since v.5.6.0 some descriptions made for previous versions of
+	SObjectizer can contain obsolete information.
+
 \section so_5__5_24_1 5.5.24.1 "El Misti"
 
 	Flags -fvisibitity=hidden and -fvisibility-inlines-hidden are now

@@ -825,7 +825,7 @@ internal_env_iface_t::create_mpsc_mbox(
 
 void
 internal_env_iface_t::ready_to_deregister_notify(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 {
 	m_env.m_impl->m_infrastructure->ready_to_deregister_notify( std::move(coop) );
 }
