@@ -1204,27 +1204,21 @@ class SO_5_TYPE environment_t
 		 * \brief Helper method for simplification of cooperation creation
 		 * and registration.
 		 *
+		 * \return The value returned from lambda-function. Or void if
+		 * the lambda-function returns void.
+		 *
 		 * \since
 		 * v.5.5.5
 		 *
 		 * \par Usage samples:
 			\code
-			// For the case when name for new coop will be generated automatically.
-			// And default dispatcher will be used for binding.
+			// The default dispatcher will be used for binding.
 			env.introduce_coop( []( so_5::coop_t & coop ) {
 				coop.make_agent< first_agent >(...);
 				coop.make_agent< second_agent >(...);
 			});
 
-			// For the case when name is specified.
-			// Default dispatcher will be used for binding.
-			env.introduce_coop( "main-coop", []( so_5::coop_t & coop ) {
-				coop.make_agent< first_agent >(...);
-				coop.make_agent< second_agent >(...);
-			});
-
-			// For the case when name is automatically generated and
-			// dispatcher binder is specified.
+			// For the case when dispatcher binder is specified.
 			env.introduce_coop(
 				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[]( so_5::coop_t & coop ) {
@@ -1232,15 +1226,13 @@ class SO_5_TYPE environment_t
 					coop.make_agent< second_agent >(...);
 				} );
 
-			// For the case when name is explicitly defined and
-			// dispatcher binder is specified.
-			env.introduce_coop(
-				"main-coop",
-				so_5::disp::active_obj::make_dispatcher( env ).binder(),
-				[]( so_5::coop_t & coop ) {
-					coop.make_agent< first_agent >(...);
+			// Usage of return value from the lambda function.
+			so_5::mbox_t mbox = env.introduce_coop( [](so_5::coop_t & coop) {
+					auto * a = coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
-				} );
+
+					return a->so_direct_mbox();
+				});
 			\endcode
 		 */
 		template< typename... Args >
