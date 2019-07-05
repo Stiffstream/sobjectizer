@@ -71,6 +71,14 @@ struct make_then_send_case_t
 	}
 };
 
+template< typename Holder >
+void ensure_not_empty_holder( const Holder & holder )
+{
+	ensure_or_die( holder, "msg shouldn't be empty!" );
+	ensure_or_die( !holder.empty(), "msg shouldn't be empty!" );
+	ensure_or_die( !!holder, "msg shouldn't be empty!" );
+}
+
 template< typename Msg, so_5::message_ownership_t Ownership >
 struct construct_then_send_case_t
 {
@@ -85,6 +93,7 @@ struct construct_then_send_case_t
 				expected_b,
 				expected_c
 		};
+		ensure_not_empty_holder( msg );
 
 		so_5::send(
 				target,
@@ -124,6 +133,7 @@ struct construct_then_send_delayed_case_t
 				expected_b,
 				expected_c
 		};
+		ensure_not_empty_holder( msg );
 
 		so_5::send_delayed(
 				target,
@@ -177,6 +187,7 @@ struct construct_then_send_periodic_case_t
 				expected_b,
 				expected_c
 		};
+		ensure_not_empty_holder( msg );
 
 		return so_5::send_periodic(
 				target,

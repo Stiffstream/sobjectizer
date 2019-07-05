@@ -114,7 +114,7 @@ class basic_message_holder_impl_t
 		bool
 		empty() const noexcept
 			{
-				return static_cast<bool>( m_msg );
+				return !static_cast<bool>( m_msg );
 			}
 
 		//! Check for the non-emptiness of message_holder.
