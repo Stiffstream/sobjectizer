@@ -241,16 +241,6 @@ private :
 };
 
 //
-// Special type which will be used as indicator of the beginning of a pipeline.
-//
-struct source_t {};
-
-//
-// Special constant to be used as indicator of the beginning of a pipeline.
-//
-static constexpr const source_t src = source_t{};
-
-//
 // An alias for functional object to build necessary agent for a
 // pipeline stage.
 //
@@ -334,21 +324,24 @@ template<
 	typename Callable,
 	typename In = typename callable_traits_t< Callable >::arg_type,
 	typename Out = typename callable_traits_t< Callable >::result_type >
-stage_handler_t< In, Out >
+stage_t< In, Out >
 stage( Callable handler )
 {
-	return stage_handler_t< In, Out >{ move(handler) };
+	stage_builder_t builder{
+			[h = std::move(handler)](
+				coop_t & coop,
+				mbox_t next_stage) -> mbox_t
+			{
+				return coop.make_agent< a_stage_point_t<In, Out> >(
+						std::move(h),
+						std::move(next_stage) )
+					->so_direct_mbox();
+			}
+	};
+
+	return { std::move(builder) };
 }
 	
-//
-// Description for `broadcast` stage.
-//
-template< typename In >
-struct broadcast_sinks_t
-{
-	vector< stage_builder_t > m_builders;
-};
-
 //
 // Serie of helper functions for building description for
 // `broadcast` stage.
@@ -356,54 +349,28 @@ struct broadcast_sinks_t
 // Those functions are used for collecting
 // `builders` functions for every child pipeline.
 //
-template< typename In, typename Out >
+template< typename In, typename Out, typename... Rest >
 void
 move_sink_builder_to(
-	stage_t< In, Out > && first,
-	vector< stage_builder_t > & receiver )
-{
-	receiver.emplace_back( move( first.m_builder ) );
-}
-
-template< typename In, typename Out1, typename Out2, typename... Rest >
-void
-move_sink_builder_to(
-	stage_t< In, Out1 > && first,
 	vector< stage_builder_t > & receiver,
-	stage_t< In, Out2 > && second,
+	stage_t< In, Out > && first,
 	Rest &&... rest )
 {
 	receiver.emplace_back( move( first.m_builder ) );
-	move_sink_builder_to( move(second), receiver, forward< Rest >(rest)... );
+	if constexpr( 0u != sizeof...(rest) )
+		move_sink_builder_to<In>( receiver, forward< Rest >(rest)... );
 }
 
-//
-// Those functions are used for creating vector of `builder` functions
-// for every child pipeline.
-//
-// Please note that this functions checks that each child pipeline has the
-// same In type.
-//
-template< typename In, typename Out >
+template< typename In, typename Out, typename... Rest >
 vector< stage_builder_t >
-collect_sink_builders( stage_t< In, Out > && first )
+collect_sink_builders( stage_t< In, Out > && first, Rest &&... stages )
 {
 	vector< stage_builder_t > receiver;
-	move_sink_builder_to( move(first), receiver );
-	return receiver;
-}
-
-template< typename In, typename Out1, typename Out2, typename... Rest >
-vector< stage_builder_t >
-collect_sink_builders(
-	stage_t< In, Out1 > && first,
-	stage_t< In, Out2 > && second,
-	Rest &&... stages )
-{
-	vector< stage_builder_t > receiver;
-	receiver.reserve( 2 + sizeof...(stages) );
-
-	move_sink_builder_to( move(first), receiver, move(second), forward< Rest >(stages)... );
+	receiver.reserve( 1 + sizeof...(stages) );
+	move_sink_builder_to<In>(
+			receiver,
+			move(first),
+			std::forward<Rest>(stages)... );
 
 	return receiver;
 }
@@ -412,33 +379,26 @@ collect_sink_builders(
 // Main helper function for building `broadcast` stage.
 //
 template< typename In, typename Out, typename... Rest >
-broadcast_sinks_t< In >
+stage_t< In, void >
 broadcast( stage_t< In, Out > && first, Rest &&... stages )
 {
-	return broadcast_sinks_t< In >{
-		collect_sink_builders( move(first), forward< Rest >(stages)... )
-	};
-}
+	stage_builder_t builder{
+		[broadcasts = collect_sink_builders(
+				move(first), forward< Rest >(stages)...)]
+		( coop_t & coop, mbox_t ) -> mbox_t
+		{
+			vector< mbox_t > mboxes;
+			mboxes.reserve( broadcasts.size() );
 
-//
-// Helper `operator|` for initiation of a pipeline definition.
-//
-template< typename In, typename Out >
-stage_t< In, Out >
-operator|(
-	const source_t & /* dummy source arg */,
-	stage_handler_t< In, Out > && handler )
-{
-	return stage_t< In, Out >{
-		stage_builder_t{
-			[handler]( coop_t & coop, mbox_t next_stage ) -> mbox_t
-			{
-				auto stage_agent = coop.make_agent< a_stage_point_t< In, Out > >(
-						move(handler), move(next_stage) );
-				return stage_agent->so_direct_mbox();
-			}
+			for( const auto & b : broadcasts )
+				mboxes.emplace_back( b( coop, mbox_t{} ) );
+
+			return coop.make_agent< a_broadcaster_t<In> >( std::move(mboxes) )
+					->so_direct_mbox();
 		}
 	};
+
+	return { std::move(builder) };
 }
 
 //
@@ -448,43 +408,14 @@ template< typename In, typename Out1, typename Out2 >
 stage_t< In, Out2 >
 operator|(
 	stage_t< In, Out1 > && prev,
-	stage_handler_t< Out1, Out2 > && next )
+	stage_t< Out1, Out2 > && next )
 {
-	return stage_t< In, Out2 >{
+	return {
 		stage_builder_t{
 			[prev, next]( coop_t & coop, mbox_t next_stage ) -> mbox_t
 			{
-				auto stage_agent = coop.make_agent< a_stage_point_t< Out1, Out2 > >(
-						move(next), move(next_stage) );
-				return prev.m_builder( coop, stage_agent->so_direct_mbox() );
-			}
-		}
-	};
-}
-
-//
-// Helper `operator|` for termination of a pipeline definition by
-// adding a `broadcast` stage as terminator.
-//
-template< typename In, typename Broadcast_In >
-stage_t< In, void >
-operator|(
-	stage_t< In, Broadcast_In > && prev,
-	broadcast_sinks_t< Broadcast_In > && broadcasts )
-{
-	return stage_t< In, void >{
-		stage_builder_t{
-			[prev, broadcasts]( coop_t & coop, mbox_t ) -> mbox_t
-			{
-				vector< mbox_t > mboxes;
-				mboxes.reserve( broadcasts.m_builders.size() );
-
-				for( const auto & b : broadcasts.m_builders )
-					mboxes.emplace_back( b( coop, mbox_t{} ) );
-
-				auto broadcaster = coop.make_agent< a_broadcaster_t< Broadcast_In > >(
-						move(mboxes) );
-				return prev.m_builder( coop, broadcaster->so_direct_mbox() );
+				auto m = next.m_builder( coop, std::move(next_stage) );
+				return prev.m_builder( coop, std::move(m) );
 			}
 		}
 	};
@@ -519,9 +450,7 @@ make_pipeline(
  * the message processing code.
  */
 
-//
 // Raw data from a sensor.
-//
 struct raw_measure
 {
 	int m_meter_id;
@@ -530,33 +459,19 @@ struct raw_measure
 	uint8_t m_low_bits;
 };
 
-//
-// Type of SObjectizer message with raw data from a sensor.
-//
-struct raw_value : public message_t
+// Type of input for validation stage with raw data from a sensor.
+struct raw_value
 {
 	raw_measure m_data;
-
-	raw_value( raw_measure data )
-		:	m_data( data )
-	{}
 };
 
-//
-// Type of SObjectizer message with checked raw data from a sensor.
-//
-struct valid_raw_value : public message_t
+// Type of input for conversion stage with valid raw data from a sensor.
+struct valid_raw_value
 {
 	raw_measure m_data;
-
-	valid_raw_value( raw_measure data )
-		:	m_data( data )
-	{}
 };
 
-//
 // Data from a sensor after conversion to Celsius degrees.
-//
 struct calculated_measure
 {
 	int m_meter_id;
@@ -564,41 +479,22 @@ struct calculated_measure
 	float m_measure;
 };
 
-//
-// Type of SObjectizer message with converted data from a sensor.
-//
-struct sensor_value : public message_t
+// The type for result of conversion stage with converted data from a sensor.
+struct sensor_value
 {
 	calculated_measure m_data;
-
-	sensor_value( calculated_measure data )
-		:	m_data( data )
-	{}
 };
 
-//
-// Type of SObjectizer message with value which could mean a dangerous
-// level of temperature.
-//
-struct suspicion_value : public message_t
+// Type with value which could mean a dangerous level of temperature.
+struct suspicional_value
 {
 	calculated_measure m_data;
-
-	suspicion_value( calculated_measure data )
-		:	m_data( data )
-	{}
 };
 
-//
-// Type of SObjectizer message about detected dangerous situation.
-//
-struct alarm_detected : public message_t
+// Type with information about detected dangerous situation.
+struct alarm_detected
 {
 	int m_meter_id;
-
-	alarm_detected( int meter_id )
-		:	m_meter_id( meter_id )
-	{}
 };
 
 //
@@ -629,7 +525,7 @@ conversion( const valid_raw_value & v )
 }
 
 //
-// One of stages at third level. Imitation of data archivation.
+// Simulation of the data archivation.
 //
 void
 archivation( const sensor_value & v )
@@ -639,7 +535,7 @@ archivation( const sensor_value & v )
 }
 
 //
-// One of stages at third level. Imitation of data distribution.
+// Simulation of the data distribution.
 //
 void
 distribution( const sensor_value & v )
@@ -653,21 +549,21 @@ distribution( const sensor_value & v )
 //
 // Checking for to high value of the temperature.
 //
-// Returns suspicion_value message or nothing.
+// Returns suspicional_value message or nothing.
 //
-stage_result_t< suspicion_value >
+stage_result_t< suspicional_value >
 range_checking( const sensor_value & v )
 {
 	if( v.m_data.m_measure >= 45.0f )
-		return make_result< suspicion_value >( v.m_data );
+		return make_result< suspicional_value >( v.m_data );
 	else
-		return make_empty< suspicion_value >();
+		return make_empty< suspicional_value >();
 }
 
 //
 // The next stage of a child pipeline.
 //
-// Checks for two suspicion_value-es in 25ms time window.
+// Checks for two suspicional_value-es in 25ms time window.
 //
 class alarm_detector
 {
@@ -675,23 +571,21 @@ class alarm_detector
 
 public :
 	stage_result_t< alarm_detected >
-	operator()( const suspicion_value & v )
+	operator()( const suspicional_value & v )
 	{
-		if( m_has_value )
-			if( m_previous + chrono::milliseconds(25) > clock::now() )
+		if( m_previous )
+			if( *m_previous + chrono::milliseconds(25) > clock::now() )
 			{
-				m_has_value = false;
+				m_previous = std::nullopt;
 				return make_result< alarm_detected >( v.m_data.m_meter_id );
 			}
 
 		m_previous = clock::now();
-		m_has_value = true;
 		return make_empty< alarm_detected >();
 	}
 
 private :
-	clock::time_point m_previous;
-	bool m_has_value = false;
+	optional< clock::time_point > m_previous;
 };
 
 //
@@ -713,6 +607,7 @@ alarm_distribution( ostream & to, const alarm_detected & v )
 {
 	to << "alarm_distribution (" << v.m_meter_id << ")" << endl;
 }
+
 
 /*
  * The third part.
@@ -741,12 +636,12 @@ public :
 	{
 		// Construction of a pipeline.
 		auto pipeline = make_pipeline( *this,
-				src | stage(validation) | stage(conversion) | broadcast(
-					src | stage(archivation),
-					src | stage(distribution),
-					src | stage(range_checking) | stage(alarm_detector{}) | broadcast(
-						src | stage(alarm_initiator),
-						src | stage( []( const alarm_detected & v ) {
+				stage(validation) | stage(conversion) | broadcast(
+					stage(archivation),
+					stage(distribution),
+					stage(range_checking) | stage(alarm_detector{}) | broadcast(
+						stage(alarm_initiator),
+						stage( []( const alarm_detected & v ) {
 								alarm_distribution( cerr, v );
 							} )
 						)
