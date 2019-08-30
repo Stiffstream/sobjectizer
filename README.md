@@ -386,7 +386,7 @@ int main() {
 ## Want to know more?
 
 More information about SObjectizer can be found in the corresponding section of
-the [project's Wiki](https://bitbucket.org/sobjectizerteam/sobjectizer/wiki/).
+the [project's Wiki](https://github.com/Stiffstream/sobjectizer/wiki).
 
 # Limitations
 
@@ -397,8 +397,8 @@ https://bitbucket.org/sobjectizerteam/mosquitto_transport-0.6
 
 # Obtaining and building
 
-SObjectizer can be checked out from [BitBucket](https://bitbucket.org/sobjectizerteam/sobjectizer). Archives with SObjectizer's source code can be downloaded
-from [BitBucket](https://bitbucket.org/sobjectizerteam/sobjectizer/downloads/) or from [SourceForge](https://sourceforge.net/projects/sobjectizer/files/sobjectizer).
+SObjectizer can be checked out from [GitHub](https://github.com/stiffstream/sobjectizer). Archives with SObjectizer's source code can be downloaded
+from [GitHub](https://github.com/Stiffstream/sobjectizer/releases) or from [SourceForge](https://sourceforge.net/projects/sobjectizer/files/sobjectizer).
 
 There are two ways for building SObjectizer.
 The first one by using [Mxx_ru](https://sourceforge.net/projects/mxxru/)
@@ -437,10 +437,10 @@ If you already have Mxx_ru installed please update to at least version 1.6.14.6:
 gem update Mxx_ru
 ```
 
-SObjectizer can be obtained from Mercurial repository on BitBucket:
+SObjectizer can be obtained from Git repository on GitHub:
 
 ```sh
-hg clone https://bitbucket.org/sobjectizerteam/sobjectizer
+git clone https://github.com/stiffstream/sobjectizer
 ```
 
 To build SObjectizer:
@@ -516,7 +516,7 @@ dev/cmake/CmakeQuickHowto.txt
 To get and build SObjectizer under Linux/FreeBSD in command line run:
 
 ```sh
-hg clone https://bitbucket.org/sobjectizerteam/sobjectizer
+git clone https://github.com/stiffstream/sobjectizer
 cd sobjectizer
 mkdir cmake_build
 cd cmake_build
@@ -552,7 +552,7 @@ turned ON. It means that if `SOBJECTIZER_BUILD_STATIC` or
 To build SObjectizer under Windows by MS Visual Studio 2013 from command line:
 
 ```sh
-hg clone https://bitbucket.org/sobjectizerteam/sobjectizer
+git clone https://github.com/stiffstream/sobjectizer
 cd sobjectizer
 mkdir cmake_build
 cd cmake_build
@@ -584,7 +584,7 @@ variables `ANDROID_HOME`, `ANDROID_NDK`. Then you can issue the following
 commands:
 
 ```sh
-hg clone https://bitbucket.org/sobjectizerteam/sobjectizer
+git clone https://github.com/stiffstream/sobjectizer
 cd sobjectizer
 mkdir cmake_build
 cd cmake_build
@@ -606,7 +606,7 @@ You need CrystaX NDK v.10.4.0 or higher already installed in your system. CMake
 is used for building SObjectizer:
 
 ```sh
-hg clone https://bitbucket.org/sobjectizerteam/sobjectizer
+git clone https://github.com/stiffstream/sobjectizer
 cd sobjectizer
 mkdir cmake_build
 cd cmake_build
@@ -686,4 +686,3 @@ target_link_libraries(your_target sobjectizer::SharedLib) # Or sobjectizer::Stat
 
 SObjectizer is distributed under 3-clause BSD license. For license information
 please see LICENSE file.
-
