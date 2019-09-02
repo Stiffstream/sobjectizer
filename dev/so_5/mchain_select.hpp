@@ -443,21 +443,13 @@ fill_select_cases_holder(
 	}
 
 //FIXME: document this!
-enum class extensible_select_status_t
-	{
-		passive,
-		active
-	};
-
-//FIXME: document this!
 class extensible_select_data_t
 	{
 		//! The object's lock.
 		std::mutex m_lock;
 
-		//! The current status of extensible-select object.
-		extensible_select_status_t m_status{
-				extensible_select_status_t::passive };
+		//! The current count of active calls to select().
+		std::size_t m_active_selects{};
 
 		//! Parameters for select.
 		mchain_select_params_t<
@@ -500,8 +492,7 @@ class extensible_select_data_t
 					:	m_data{ data }
 					,	m_lock{ m_data.get().m_lock }
 					{
-						if( extensible_select_status_t::active ==
-								m_data.get().m_status )
+						if( 0u != m_data.get().m_active_selects )
 							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
 									"an attempt to modify extensible-select "
 									"that is already active" );
@@ -534,13 +525,7 @@ class extensible_select_data_t
 						// Lock the data object only for changing the status.
 						std::lock_guard lock{ m_data.get().m_lock };
 
-						if( extensible_select_status_t::active ==
-								m_data.get().m_status )
-							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
-									"an activate extensible-select "
-									"that is already active" );
-
-						m_data.get().m_status = extensible_select_status_t::active;
+						m_data.get().m_active_selects += 1u;
 					}
 
 				~activation_locker_t() noexcept
@@ -548,7 +533,7 @@ class extensible_select_data_t
 						// Lock the data object only for changing the status.
 						std::lock_guard lock{ m_data.get().m_lock };
 
-						m_data.get().m_status = extensible_select_status_t::passive;
+						m_data.get().m_active_selects -= 1u;
 					}
 
 				const auto &
