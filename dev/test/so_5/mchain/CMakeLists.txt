@@ -28,3 +28,7 @@ add_subdirectory(master_handle)
 
 add_subdirectory(receive_closed_handler)
 add_subdirectory(select_closed_handler)
+
+add_subdirectory(extensible_select_simple)
+add_subdirectory(adv_extensible_select)
+

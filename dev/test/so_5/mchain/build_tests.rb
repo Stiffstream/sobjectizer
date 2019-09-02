@@ -35,4 +35,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "#{path}/receive_closed_handler/prj.ut.rb" )
 	required_prj( "#{path}/select_closed_handler/prj.ut.rb" )
+
+	required_prj( "#{path}/extensible_select_simple/prj.ut.rb" )
+	required_prj( "#{path}/adv_extensible_select/prj.ut.rb" )
 }

@@ -481,35 +481,73 @@ class extensible_select_data_t
 			,	m_cases{ std::move(cases) }
 			{}
 
-		friend class locker_t;
+		friend class modification_locker_t;
 
 		//FIXME: document!
-		class locker_t
+		class modification_locker_t
 			{
 				outliving_reference_t< extensible_select_data_t > m_data;
 				std::lock_guard< std::mutex > m_lock;
 
 			public :
-				locker_t( const locker_t & ) = delete;
-				locker_t( locker_t && ) = delete;
+				modification_locker_t(
+					const modification_locker_t & ) = delete;
+				modification_locker_t(
+					modification_locker_t && ) = delete;
 
-				locker_t(
-					outliving_reference_t< extensible_select_data_t > data,
-					extensible_select_status_t status_to_set )
+				modification_locker_t(
+					outliving_reference_t< extensible_select_data_t > data )
 					:	m_data{ data }
 					,	m_lock{ m_data.get().m_lock }
 					{
 						if( extensible_select_status_t::active ==
 								m_data.get().m_status )
 							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
-									"an attempt to modify or activate extensible-select "
+									"an attempt to modify extensible-select "
 									"that is already active" );
-
-						m_data.get().m_status = status_to_set;
 					}
 
-				~locker_t() noexcept
+				auto &
+				cases() const noexcept
 					{
+						return m_data.get().m_cases;
+					}
+			};
+
+		friend class activation_locker_t;
+
+		//FIXME: document!
+		class activation_locker_t
+			{
+				outliving_reference_t< extensible_select_data_t > m_data;
+
+			public :
+				activation_locker_t(
+					const activation_locker_t & ) = delete;
+				activation_locker_t(
+					activation_locker_t && ) = delete;
+
+				activation_locker_t(
+					outliving_reference_t< extensible_select_data_t > data )
+					:	m_data{ data }
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						if( extensible_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
+									"an activate extensible-select "
+									"that is already active" );
+
+						m_data.get().m_status = extensible_select_status_t::active;
+					}
+
+				~activation_locker_t() noexcept
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
 						m_data.get().m_status = extensible_select_status_t::passive;
 					}
 
@@ -519,7 +557,7 @@ class extensible_select_data_t
 						return m_data.get().m_params;
 					}
 
-				auto &
+				const auto &
 				cases() const noexcept
 					{
 						return m_data.get().m_cases;
@@ -1301,6 +1339,7 @@ make_extensible_select(
 		return { std::move(data) };
 	}
 
+//FIXME: document this!
 template< typename... Cases >
 void
 add_select_cases(
@@ -1311,9 +1350,9 @@ add_select_cases(
 	{
 		using namespace mchain_props::details;
 
-		extensible_select_data_t::locker_t locker{
-				outliving_mutable(extensible_select.data()),
-				extensible_select_status_t::passive };
+		extensible_select_data_t::modification_locker_t locker{
+				outliving_mutable(extensible_select.data())
+		};
 
 		fill_select_cases_holder(
 				locker.cases(),
@@ -1327,9 +1366,9 @@ select(
 	{
 		using namespace mchain_props::details;
 
-		extensible_select_data_t::locker_t locker{
-				outliving_mutable(extensible_select.data()),
-				extensible_select_status_t::active };
+		extensible_select_data_t::activation_locker_t locker{
+				outliving_mutable(extensible_select.data())
+		};
 
 		return mchain_props::details::perform_select(
 				locker.params(),
