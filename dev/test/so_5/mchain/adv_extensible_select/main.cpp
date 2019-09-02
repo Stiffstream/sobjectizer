@@ -286,6 +286,63 @@ UT_UNIT_TEST( test_stop_pred )
 	}
 }
 
+void
+do_check_nested_select(
+	const so_5::mchain_t & ch )
+{
+	struct try_nested_select {};
+
+	std::optional<int> error;
+
+	std::thread child{ [&] {
+		auto sel = make_extensible_select(
+				so_5::from_all().handle_all() );
+
+		add_select_cases(
+				sel,
+				case_( ch,
+					[&]( const try_nested_select & ) {
+						try {
+							select( sel ); // Nested select is prohibited.
+						}
+						catch( const so_5::exception_t & x ) {
+							error = x.error_code();
+						}
+					} ) );
+
+		auto r = select( sel );
+
+		UT_CHECK_CONDITION( 1 == r.extracted() );
+		UT_CHECK_CONDITION( 1 == r.handled() );
+		UT_CHECK_CONDITION( error &&
+				so_5::rc_extensible_select_is_active_now == *error );
+	} };
+
+	so_5::send< try_nested_select >( ch );
+	so_5::close_retain_content( ch );
+
+	child.join();
+}
+
+UT_UNIT_TEST( test_nested_select )
+{
+	auto params = build_mchain_params();
+	for( const auto & p : params )
+	{
+		cout << "=== " << p.first << " ===" << endl;
+
+		run_with_time_limit(
+			[&p]()
+			{
+				so_5::wrapped_env_t env;
+
+				do_check_nested_select(
+						env.environment().create_mchain( p.second ) );
+			},
+			20,
+			"test_nested_select: " + p.first );
+	}
+}
 int
 main()
 {
@@ -294,6 +351,7 @@ main()
 	UT_RUN_UNIT_TEST( test_handle_n )
 	UT_RUN_UNIT_TEST( test_extract_n )
 	UT_RUN_UNIT_TEST( test_stop_pred )
+	UT_RUN_UNIT_TEST( test_nested_select )
 
 	return 0;
 }
