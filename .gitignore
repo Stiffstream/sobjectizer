@@ -1,0 +1,5 @@
+.*.swp
+/dev/local-build.rb
+/dev/target
+/dev/__*.vim
+
