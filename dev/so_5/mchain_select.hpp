@@ -1318,8 +1318,16 @@ select(
  * \brief Special container for holding select parameters and select cases.
  *
  * This type is a *handle* for extensible-select instance. It's like
- * unique-ptr. Just one instance of extensible_select_t owns the instance
+ * unique_ptr. Just one instance of extensible_select_t owns the instance
  * of extensible-select.
+ *
+ * \attention
+ * Because extensible_select_t is like to unique_ptr it can be in an empty
+ * state (it means that there is no actual extensible-select instance behind
+ * the handle). Usage of empty extensible_select_t object in call to
+ * select() is an error. SObjectizer doesn't check the emptiness of
+ * extensible_select_t object. An attempt to pass an empty extensible_select_t
+ * to select() will lead to null-pointer dereference.
  *
  * \note
  * This is Moveable type but not Copyable.
@@ -1351,6 +1359,32 @@ class extensible_select_t
 		extensible_select_t &
 		operator=( const extensible_select_t & ) = delete;
 
+		//! Default constructor.
+		/*!
+		 * \attention
+		 * This constructor is intended for the cases like that:
+		 * \code
+		 * class some_my_data {
+		 * 	so_5::extensible_select_t m_select_handle;
+		 * 	...
+		 * 	void on_some_stage() {
+		 * 		m_select_handle = so_5::make_extensible_select(...);
+		 * 		...
+		 * 	}
+		 * 	void on_another_stage() {
+		 * 		so_5::add_select_cases(m_select_handle, ...);
+		 * 		...
+		 * 	}
+		 * 	void on_yet_another_stage() {
+		 * 		auto r = so_5::select(m_select_handle);
+		 * 		...
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 */
+		extensible_select_t() = default;
+
 		//! Move constructor.
 		extensible_select_t(
 			extensible_select_t && other ) noexcept
@@ -1374,6 +1408,10 @@ class extensible_select_t
 				swap( a.m_data, b.m_data );
 			}
 
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_data; }
+
 		/*!
 		 * \name Getters
 		 * \{ 
@@ -1385,7 +1423,34 @@ class extensible_select_t
 		 */
 	};
 
-//FIXME: document this!
+/*!
+ * \brief Creation of extensible-select instance.
+ *
+ * This function creates an instance of extensible-select object that
+ * can be used for subsequent calls to add_select_cases() and
+ * select().
+ *
+ * Usage examples:
+ * \code
+ * // Creation of extensible-select instance with initial set of cases.
+ * auto sel = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(10),
+ * 	case_(ch1, ...),
+ * 	case_(ch2, ...));
+ *
+ * // Creation of extensible-select instance without initial set of cases.
+ * auto sel2 = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(20));
+ * // Cases should be added later.
+ * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2,
+ * 	case_(ch2, ...),
+ * 	case_(ch3, ...));
+ * \endcode
+ *
+ * \since
+ * v.5.6.1
+ */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >
@@ -1416,7 +1481,31 @@ make_extensible_select(
 		return { std::move(data) };
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Add a portion of cases to extensible-select instance.
+ *
+ * Usage examples:
+ * \code
+ * // Creation of extensible-select instance without initial set of cases.
+ * auto sel2 = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(20));
+ * // Cases should be added later.
+ * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2,
+ * 	case_(ch2, ...),
+ * 	case_(ch3, ...));
+ * \endcode
+ *
+ * \note
+ * An attempt to call this function for extensible-select object that is
+ * used in some select() call will lead to an exception.
+ *
+ * \attention
+ * The \a extensible_select object must not be empty!
+ *
+ * \since
+ * v.5.6.1
+ */
 template< typename... Cases >
 void
 add_select_cases(
@@ -1436,7 +1525,33 @@ add_select_cases(
 				std::forward<Cases>(cases)... );
 	}
 
-//FIXME: document this!
+/*!
+ * \brief A select operation to be done on previously prepared
+ * extensible-select object.
+ *
+ * Usage example:
+ * \code
+ * void handle_messages_from(const std::vector<so_5::mchain_t> & chains) {
+ * 	auto sel = so_5::make_extensible_select(so_5::from_all().handle_all());
+ *
+ * 	for(auto & ch : chains)
+ * 		so_5::add_select_cases(case_(ch, ...));
+ *
+ * 	auto r = so_5::select(sel);
+ * 	... // Handing of the select() result.
+ * }
+ * \endcode
+ *
+ * \note
+ * An attempt to call this function for extensible-select object that is
+ * used in some select() call will lead to an exception.
+ *
+ * \attention
+ * The \a extensible_select object must not be empty!
+ *
+ * \since
+ * v.5.6.1
+ */
 inline mchain_receive_result_t
 select(
 	const extensible_select_t & extensible_select )
