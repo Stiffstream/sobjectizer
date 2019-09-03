@@ -7,6 +7,10 @@
 	Extensible-select added. See functions so_5::make_extensible_select()
 	and so_5::add_select_cases() for more details.
 
+	Implementation of prepared-select changed. The parallel/nested calls
+	to select() with prepared-select are now checked and an exception is
+	thrown if such call is detected.
+
 \section so_5__5_6_0 5.6.0 "Volcan San Jose"
 
 	A list of changes in v.5.6.0 can be found <a href="https://github.com/Stiffstream/sobjectizer/wiki/v.5.6.0">here</a>.

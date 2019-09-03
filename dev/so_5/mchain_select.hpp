@@ -1260,7 +1260,6 @@ select(
 		return perform_select( params, cases_holder );
 	}
 
-//FIXME: update the comment with comparison with unique_ptr.
 //
 // prepared_select_t
 //
@@ -1278,7 +1277,13 @@ select(
 	auto r = so_5::select( prepared );
  * \endcode
  *
- * \note This is a moveable type, not copyable.
+ * \note
+ * This is a moveable type, not copyable. It is very like to unique_ptr.
+ * Because of that an instance of prepared_select_t can empty. It means
+ * that the actual content (e.g. prepared-select object) was moved to
+ * another prepared_select_t instance. Usage of empty prepared_select_t
+ * is an error and can lead to null-pointer dereference. SObjectizer doesn't
+ * check the emptiness of prepared_select_t object.
  * 
  * \since
  * v.5.5.17
@@ -1294,12 +1299,24 @@ class prepared_select_t
 			mchain_select_params_t< Msg_Count_Status > params,
 			Cases &&... cases );
 
-		//FIXME: document this!
+		//! The actual prepared-select object.
+		/*!
+		 * \note
+		 * Can be null if the actual content was moved to another
+		 * prepared_select_t instance.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
 		std::unique_ptr<
 						mchain_props::details::prepared_select_data_t<Cases_Count> >
 				m_data;
 
 		//! Initializing constructor.
+		/*!
+		 * \note
+		 * This constructor is private since v.5.6.1
+		 */
 		template< typename... Cases >
 		prepared_select_t(
 			mchain_select_params_t<
@@ -1340,7 +1357,11 @@ class prepared_select_t
 				swap( a.m_data, b.m_data );
 			}
 
-//FIXME: document this!
+		//! Is this handle empty?
+		/*!
+		 * \since
+		 * v.5.6.1
+		 */
 		bool
 		empty() const noexcept { return !m_data; }
 
@@ -1421,7 +1442,6 @@ prepare_select(
 				std::forward<Cases>(cases)... );
 	}
 
-//FIXME: add info about parallel/nested calls to select.
 /*!
  * \brief A select operation to be done on previously prepared select params.
  *
@@ -1446,6 +1466,11 @@ prepare_select(
 		...
 	}
  * \endcode
+ *
+ * \attention
+ * Since v.5.6.1 there is a check for usage of prepared-select object
+ * in parallel/nested calls to select(). If such call detected then
+ * an exception is thrown.
  *
  * \since
  * v.5.5.17
