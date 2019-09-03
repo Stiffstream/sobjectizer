@@ -15,6 +15,43 @@ using namespace chrono;
 using namespace chrono_literals;
 
 void
+do_check_on_empty_cases_list( const so_5::mchain_t & chain )
+{
+	so_5::send<std::string>(chain, "Hello!");
+
+	auto sel = make_extensible_select(
+			so_5::from_all().handle_all().empty_timeout( 20ms ),
+			case_( chain ) );
+
+	auto r = select( sel );
+
+	UT_CHECK_CONDITION( 1 == r.extracted() );
+	UT_CHECK_CONDITION( 0 == r.handled() );
+	UT_CHECK_CONDITION(
+			so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
+}
+
+UT_UNIT_TEST( test_empty_cases_list )
+{
+	auto params = build_mchain_params();
+	for( const auto & p : params )
+	{
+		cout << "=== " << p.first << " ===" << endl;
+
+		run_with_time_limit(
+			[&p]()
+			{
+				so_5::wrapped_env_t env;
+
+				do_check_on_empty_cases_list(
+						env.environment().create_mchain( p.second ) );
+			},
+			20,
+			"test_timeout_on_empty_queue: " + p.first );
+	}
+}
+
+void
 do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 {
 	std::thread child{ [&] {
@@ -407,6 +444,7 @@ UT_UNIT_TEST( test_modify_from_select )
 int
 main()
 {
+	UT_RUN_UNIT_TEST( test_empty_cases_list )
 	UT_RUN_UNIT_TEST( test_timeout_on_empty_queue )
 	UT_RUN_UNIT_TEST( test_total_time )
 	UT_RUN_UNIT_TEST( test_handle_n )
