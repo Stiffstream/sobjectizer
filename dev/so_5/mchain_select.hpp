@@ -301,6 +301,150 @@ fill_select_cases_holder(
 				holder, index + 1, std::forward< Cases >(other_cases)... );
 	}
 
+/*!
+ * \brief The current status of prepared-select instance.
+ *
+ * If prepared-select instance is activated (is used in select() call)
+ * then this instance can't be activated yet more time.
+ *
+ * \since
+ * v.5.6.1
+ */
+enum class prepared_select_status_t
+	{
+		//! Prepared-select instance is not used in select() call.
+		passive,
+		//! Prepared-select instance is used in select() call now.
+		active
+	};
+
+/*!
+ * \brief A data for prepared-select instance.
+ *
+ * \note
+ * This data is protected by mutex. To get access to data it is
+ * necessary to use instances activation_locker_t class.
+ *
+ * \attention
+ * This class is not Moveable nor Copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
+template< std::size_t Cases_Count >
+class prepared_select_data_t
+	{
+		//! The object's lock.
+		std::mutex m_lock;
+
+		//! The current status of extensible-select object.
+		prepared_select_status_t m_status{
+				prepared_select_status_t::passive };
+
+		//! Parameters for select.
+		const mchain_select_params_t<
+				mchain_props::msg_count_status_t::defined > m_params;
+
+		//! A list of cases for extensible-select operation.
+		select_cases_holder_t< Cases_Count > m_cases;
+
+	public :
+		prepared_select_data_t(
+			const prepared_select_data_t & ) = delete;
+		prepared_select_data_t(
+			prepared_select_data_t && ) = delete;
+
+		//! Initializing constructor.
+		template< typename... Cases >
+		prepared_select_data_t(
+			mchain_select_params_t<
+					msg_count_status_t::defined > && params,
+			Cases && ...cases ) noexcept
+			:	m_params{ std::move(params) }
+			{
+				static_assert( sizeof...(Cases) == Cases_Count,
+						"Cases_Count and sizeof...(Cases) mismatch" );
+
+				fill_select_cases_holder(
+						m_cases, 0u, std::forward<Cases>(cases)... );
+			}
+
+		friend class activation_locker_t;
+
+		/*!
+		 * \brief Special class for locking prepared-select instance
+		 * for activation inside select() call.
+		 *
+		 * This class acquires prepared-select instance's mutex for a
+		 * short time twice:
+		 * 
+		 * - the first time in the constructor to check the status of
+		 *   prepared-select instance and switch status to `active`;
+		 * - the second time in the destructor to return status to
+		 *   `passive`.
+		 *
+		 * This logic allow an instance of activation_locker_t live for
+		 * long time but not to block other instances of
+		 * activation_locker_t.
+		 *
+		 * \attention
+		 * The constructor of activation_locker_t throws if prepared-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
+		class activation_locker_t
+			{
+				outliving_reference_t< prepared_select_data_t > m_data;
+
+			public :
+				activation_locker_t(
+					const activation_locker_t & ) = delete;
+				activation_locker_t(
+					activation_locker_t && ) = delete;
+
+				activation_locker_t(
+					outliving_reference_t< prepared_select_data_t > data )
+					:	m_data{ data }
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						if( prepared_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_prepared_select_is_active_now,
+									"an activate prepared-select "
+									"that is already active" );
+
+						m_data.get().m_status = prepared_select_status_t::active;
+					}
+
+				~activation_locker_t() noexcept
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						m_data.get().m_status = prepared_select_status_t::passive;
+					}
+
+				const auto &
+				params() const noexcept
+					{
+						return m_data.get().m_params;
+					}
+
+				const auto &
+				cases() const noexcept
+					{
+						return m_data.get().m_cases;
+					}
+			};
+	};
+
 //
 // extensible_select_cases_holder_t
 //
@@ -1116,6 +1260,7 @@ select(
 		return perform_select( params, cases_holder );
 	}
 
+//FIXME: update the comment with comparison with unique_ptr.
 //
 // prepared_select_t
 //
@@ -1141,17 +1286,18 @@ select(
 template< std::size_t Cases_Count >
 class prepared_select_t
 	{
-		//! Parameters for select.
-		mchain_select_params_t<
-				mchain_props::msg_count_status_t::defined > m_params;
+		template<
+			mchain_props::msg_count_status_t Msg_Count_Status,
+			typename... Cases >
+		friend prepared_select_t< sizeof...(Cases) >
+		prepare_select(
+			mchain_select_params_t< Msg_Count_Status > params,
+			Cases &&... cases );
 
-		//! Cases for select.
-		mchain_props::details::select_cases_holder_t< Cases_Count > m_cases_holder;
-
-	public :
-		prepared_select_t( const prepared_select_t & ) = delete;
-		prepared_select_t &
-		operator=( const prepared_select_t & ) = delete;
+		//FIXME: document this!
+		std::unique_ptr<
+						mchain_props::details::prepared_select_data_t<Cases_Count> >
+				m_data;
 
 		//! Initializing constructor.
 		template< typename... Cases >
@@ -1159,20 +1305,22 @@ class prepared_select_t
 			mchain_select_params_t<
 					mchain_props::msg_count_status_t::defined > params,
 			Cases &&... cases )
-			:	m_params( std::move(params) )
-			{
-				static_assert( sizeof...(Cases) == Cases_Count,
-						"Cases_Count and sizeof...(Cases) mismatch" );
+			:	m_data{
+					std::make_unique<
+							mchain_props::details::prepared_select_data_t<Cases_Count> >(
+						std::move(params),
+						std::forward<Cases>(cases)... ) }
+			{}
 
-				mchain_props::details::fill_select_cases_holder(
-						m_cases_holder, 0u, std::forward<Cases>(cases)... );
-			}
+	public :
+		prepared_select_t( const prepared_select_t & ) = delete;
+		prepared_select_t &
+		operator=( const prepared_select_t & ) = delete;
 
 		//! Move constructor.
 		prepared_select_t(
 			prepared_select_t && other ) noexcept
-			:	m_params( std::move(other.m_params) )
-			,	m_cases_holder( std::move(other.m_cases_holder) )
+			:	m_data( std::move(other.m_data) )
 			{}
 
 		//! Move operator.
@@ -1189,19 +1337,19 @@ class prepared_select_t
 		swap( prepared_select_t & a, prepared_select_t & b ) noexcept
 			{
 				using std::swap;
-				swap( a.m_params, b.m_params );
-				swap( a.m_cases_holder, b.m_cases_holder );
+				swap( a.m_data, b.m_data );
 			}
+
+//FIXME: document this!
+		bool
+		empty() const noexcept { return !m_data; }
 
 		/*!
 		 * \name Getters
 		 * \{ 
 		 */
-		const auto &
-		params() const noexcept { return m_params; }
-
-		const auto &
-		cases() const noexcept { return m_cases_holder; }
+		auto &
+		data() const noexcept { return *m_data; }
 		/*!
 		 * \}
 		 */
@@ -1259,7 +1407,7 @@ template<
 prepared_select_t< sizeof...(Cases) >
 prepare_select(
 	//! Parameters for advanced select.
-	const mchain_select_params_t< Msg_Count_Status > & params,
+	mchain_select_params_t< Msg_Count_Status > params,
 	//! Select cases.
 	Cases &&... cases )
 	{
@@ -1269,10 +1417,11 @@ prepare_select(
 				"by using handle_all()/handle_n()/extract_n() methods" );
 
 		return prepared_select_t< sizeof...(Cases) >(
-				params,
+				std::move(params),
 				std::forward<Cases>(cases)... );
 	}
 
+//FIXME: add info about parallel/nested calls to select.
 /*!
  * \brief A select operation to be done on previously prepared select params.
  *
@@ -1306,9 +1455,15 @@ mchain_receive_result_t
 select(
 	const prepared_select_t< Cases_Count > & prepared )
 	{
+		using namespace mchain_props::details;
+
+		typename prepared_select_data_t<Cases_Count>::activation_locker_t locker{
+				outliving_mutable(prepared.data())
+		};
+
 		return mchain_props::details::perform_select(
-				prepared.params(),
-				prepared.cases() );
+				locker.params(),
+				locker.cases() );
 	}
 
 //

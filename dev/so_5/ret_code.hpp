@@ -583,6 +583,15 @@ const int rc_unable_to_join_thread_by_itself = 186;
  */
 const int rc_extensible_select_is_active_now = 187;
 
+/*!
+ * \brief An attempt to activate prepared-select when an operation
+ * on that prepared-select object is already active.
+ *
+ * \since
+ * v.5.6.1
+ */
+const int rc_prepared_select_is_active_now = 187;
+
 //! \name Common error codes.
 //! \{
 

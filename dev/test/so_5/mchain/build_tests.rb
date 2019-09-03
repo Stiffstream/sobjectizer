@@ -21,6 +21,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "#{path}/select_simple/prj.ut.rb" )
 	required_prj( "#{path}/prepared_select_simple/prj.ut.rb" )
+	required_prj( "#{path}/adv_prepared_select/prj.ut.rb" )
 	required_prj( "#{path}/select_simple_close/prj.ut.rb" )
 	required_prj( "#{path}/select_count_messages/prj.ut.rb" )
 	required_prj( "#{path}/select_mthread_close/prj.ut.rb" )
