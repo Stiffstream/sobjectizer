@@ -288,12 +288,10 @@ UT_UNIT_TEST( test_stop_pred )
 
 void
 do_check_parallel_select(
-	const so_5::mchain_t & ch )
+	const so_5::mchain_t & ch,
+	const so_5::mchain_t & failure_ch )
 {
 	struct nothing {};
-
-	std::optional<int> error1;
-	std::optional<int> error2;
 
 	auto sel = prepare_select(
 			so_5::from_all().handle_all(),
@@ -304,7 +302,7 @@ do_check_parallel_select(
 			select( sel );
 		}
 		catch( const so_5::exception_t & x ) {
-			error1 = x.error_code();
+			so_5::send<int>( failure_ch, x.error_code() );
 		}
 	} };
 
@@ -313,17 +311,21 @@ do_check_parallel_select(
 			select( sel );
 		}
 		catch( const so_5::exception_t & x ) {
-			error2 = x.error_code();
+			so_5::send<int>( failure_ch, x.error_code() );
 		}
 	} };
 
-	std::this_thread::sleep_for( 500ms );
+	std::optional<int> error;
+	so_5::receive(
+			so_5::from( failure_ch ).handle_n(1).empty_timeout(500ms),
+			[&error](int error_code) { error = error_code; } );
+
 	so_5::close_retain_content( ch );
 
 	child1.join();
 	child2.join();
 
-	UT_CHECK_CONDITION( (error1 && !error2) || (!error1 && error2) );
+	UT_CHECK_CONDITION( error && so_5::rc_prepared_select_is_active_now == *error );
 }
 
 UT_UNIT_TEST( test_parallel_select )
@@ -339,6 +341,7 @@ UT_UNIT_TEST( test_parallel_select )
 				so_5::wrapped_env_t env;
 
 				do_check_parallel_select(
+						env.environment().create_mchain( p.second ),
 						env.environment().create_mchain( p.second ) );
 			},
 			20,

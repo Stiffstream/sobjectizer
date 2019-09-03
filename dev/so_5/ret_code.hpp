@@ -590,7 +590,7 @@ const int rc_extensible_select_is_active_now = 187;
  * \since
  * v.5.6.1
  */
-const int rc_prepared_select_is_active_now = 187;
+const int rc_prepared_select_is_active_now = 188;
 
 //! \name Common error codes.
 //! \{
