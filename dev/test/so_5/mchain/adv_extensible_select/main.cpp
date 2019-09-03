@@ -303,7 +303,7 @@ do_check_nested_select(
 				case_( ch,
 					[&]( const try_nested_select & ) {
 						try {
-							select( sel ); // Nested isn't a problem.
+							select( sel ); // Nested is prohibited.
 						}
 						catch( const so_5::exception_t & x ) {
 							error = x.error_code();
@@ -314,7 +314,8 @@ do_check_nested_select(
 
 		UT_CHECK_CONDITION( 1 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
-		UT_CHECK_CONDITION( !error );
+		UT_CHECK_CONDITION( error &&
+				so_5::rc_extensible_select_is_active_now == *error );
 	} };
 
 	so_5::send< try_nested_select >( ch );

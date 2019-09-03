@@ -575,8 +575,8 @@ const int rc_coop_is_not_in_registered_state = 185;
 const int rc_unable_to_join_thread_by_itself = 186;
 
 /*!
- * \brief An attempt to modify extensible-select when an operation
- * on that select is active.
+ * \brief An attempt to modify or activate extensible-select when an operation
+ * on that extensible-select object is already active.
  *
  * \since
  * v.5.6.1

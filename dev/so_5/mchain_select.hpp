@@ -442,17 +442,48 @@ fill_select_cases_holder(
 					std::forward<Cases>(other_cases)... );
 	}
 
-//FIXME: document this!
+/*!
+ * \brief The current status of extensible-select instance.
+ *
+ * If extensible-select instance is activated (is used in select() call)
+ * then this instance can't be modified or activated yet more time.
+ *
+ * \since
+ * v.5.6.1
+ */
+enum class extensible_select_status_t
+	{
+		//! Extensible-select instance is not used in select() call.
+		passive,
+		//! Extensible-select instance is used in select() call now.
+		active
+	};
+
+/*!
+ * \brief A data for extensible-select instance.
+ *
+ * \note
+ * This data is protected by mutex. To get access to data it is
+ * necessary to use instances of modification_locker_t and
+ * activation_locker_t classes.
+ *
+ * \attention
+ * This class is not Moveable nor Copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
 class extensible_select_data_t
 	{
 		//! The object's lock.
 		std::mutex m_lock;
 
-		//! The current count of active calls to select().
-		std::size_t m_active_selects{};
+		//! The current status of extensible-select object.
+		extensible_select_status_t m_status{
+				extensible_select_status_t::passive };
 
 		//! Parameters for select.
-		mchain_select_params_t<
+		const mchain_select_params_t<
 				mchain_props::msg_count_status_t::defined > m_params;
 
 		//! A list of cases for extensible-select operation.
@@ -475,7 +506,28 @@ class extensible_select_data_t
 
 		friend class modification_locker_t;
 
-		//FIXME: document!
+		/*!
+		 * \brief Special class for locking extensible-select instance
+		 * for modification.
+		 *
+		 * Acquires extensible-select instance's in the constructor and
+		 * releases in the destructor.
+		 *
+		 * It is possible to have several modification_locker_t instances
+		 * for one extensible-select instance in different threads at
+		 * the same time. All of them except one will be blocked on
+		 * extensible-select instance's mutex.
+		 *
+		 * \attention
+		 * The constructor of modification_locker_t throws if extensible-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
 		class modification_locker_t
 			{
 				outliving_reference_t< extensible_select_data_t > m_data;
@@ -492,12 +544,14 @@ class extensible_select_data_t
 					:	m_data{ data }
 					,	m_lock{ m_data.get().m_lock }
 					{
-						if( 0u != m_data.get().m_active_selects )
+						if( extensible_select_status_t::active ==
+								m_data.get().m_status )
 							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
 									"an attempt to modify extensible-select "
 									"that is already active" );
 					}
 
+				//! Get access to cases-holder for modification.
 				auto &
 				cases() const noexcept
 					{
@@ -507,7 +561,32 @@ class extensible_select_data_t
 
 		friend class activation_locker_t;
 
-		//FIXME: document!
+		/*!
+		 * \brief Special class for locking extensible-select instance
+		 * for activation inside select() call.
+		 *
+		 * This class acquires extensible-select instance's mutex for a
+		 * short time twice:
+		 * 
+		 * - the first time in the constructor to check the status of
+		 *   extensible-select instance and switch status to `active`;
+		 * - the second time in the destructor to return status to
+		 *   `passive`.
+		 *
+		 * This logic allow an instance of activation_locker_t live for
+		 * long time but not to block other instances of
+		 * modification_locker_t or activation_locker_t.
+		 *
+		 * \attention
+		 * The constructor of activation_locker_t throws if extensible-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
 		class activation_locker_t
 			{
 				outliving_reference_t< extensible_select_data_t > m_data;
@@ -525,7 +604,13 @@ class extensible_select_data_t
 						// Lock the data object only for changing the status.
 						std::lock_guard lock{ m_data.get().m_lock };
 
-						m_data.get().m_active_selects += 1u;
+						if( extensible_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
+									"an activate extensible-select "
+									"that is already active" );
+
+						m_data.get().m_status = extensible_select_status_t::active;
 					}
 
 				~activation_locker_t() noexcept
@@ -533,7 +618,7 @@ class extensible_select_data_t
 						// Lock the data object only for changing the status.
 						std::lock_guard lock{ m_data.get().m_lock };
 
-						m_data.get().m_active_selects -= 1u;
+						m_data.get().m_status = extensible_select_status_t::passive;
 					}
 
 				const auto &
@@ -1226,12 +1311,18 @@ select(
 				prepared.cases() );
 	}
 
-//FIXME: document this!
 //
 // extensible_select_t
 //
 /*!
  * \brief Special container for holding select parameters and select cases.
+ *
+ * This type is a *handle* for extensible-select instance. It's like
+ * unique-ptr. Just one instance of extensible_select_t owns the instance
+ * of extensible-select.
+ *
+ * \note
+ * This is Moveable type but not Copyable.
  *
  * \since
  * v.5.6.1
@@ -1294,6 +1385,7 @@ class extensible_select_t
 		 */
 	};
 
+//FIXME: document this!
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >
