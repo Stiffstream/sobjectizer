@@ -192,7 +192,7 @@ class select_cases_holder_t
 		select_cases_holder_t()
 			{}
 		//! Move constructor.
-		select_cases_holder_t( select_cases_holder_t && o )
+		select_cases_holder_t( select_cases_holder_t && o ) noexcept
 			{
 				swap( o );
 			}
@@ -220,7 +220,7 @@ class select_cases_holder_t
 		 * This method will be used during creation of select_cases_holder.
 		 */
 		void
-		set_case( std::size_t index, select_case_unique_ptr_t c )
+		set_case( std::size_t index, select_case_unique_ptr_t c ) noexcept
 			{
 				m_cases[ index ] = std::move(c);
 			}
@@ -300,6 +300,484 @@ fill_select_cases_holder(
 		fill_select_cases_holder(
 				holder, index + 1, std::forward< Cases >(other_cases)... );
 	}
+
+/*!
+ * \brief The current status of prepared-select instance.
+ *
+ * If prepared-select instance is activated (is used in select() call)
+ * then this instance can't be activated yet more time.
+ *
+ * \since
+ * v.5.6.1
+ */
+enum class prepared_select_status_t
+	{
+		//! Prepared-select instance is not used in select() call.
+		passive,
+		//! Prepared-select instance is used in select() call now.
+		active
+	};
+
+/*!
+ * \brief A data for prepared-select instance.
+ *
+ * \note
+ * This data is protected by mutex. To get access to data it is
+ * necessary to use instances activation_locker_t class.
+ *
+ * \attention
+ * This class is not Moveable nor Copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
+template< std::size_t Cases_Count >
+class prepared_select_data_t
+	{
+		//! The object's lock.
+		std::mutex m_lock;
+
+		//! The current status of extensible-select object.
+		prepared_select_status_t m_status{
+				prepared_select_status_t::passive };
+
+		//! Parameters for select.
+		const mchain_select_params_t<
+				mchain_props::msg_count_status_t::defined > m_params;
+
+		//! A list of cases for extensible-select operation.
+		select_cases_holder_t< Cases_Count > m_cases;
+
+	public :
+		prepared_select_data_t(
+			const prepared_select_data_t & ) = delete;
+		prepared_select_data_t(
+			prepared_select_data_t && ) = delete;
+
+		//! Initializing constructor.
+		template< typename... Cases >
+		prepared_select_data_t(
+			mchain_select_params_t<
+					msg_count_status_t::defined > && params,
+			Cases && ...cases ) noexcept
+			:	m_params{ std::move(params) }
+			{
+				static_assert( sizeof...(Cases) == Cases_Count,
+						"Cases_Count and sizeof...(Cases) mismatch" );
+
+				fill_select_cases_holder(
+						m_cases, 0u, std::forward<Cases>(cases)... );
+			}
+
+		friend class activation_locker_t;
+
+		/*!
+		 * \brief Special class for locking prepared-select instance
+		 * for activation inside select() call.
+		 *
+		 * This class acquires prepared-select instance's mutex for a
+		 * short time twice:
+		 * 
+		 * - the first time in the constructor to check the status of
+		 *   prepared-select instance and switch status to `active`;
+		 * - the second time in the destructor to return status to
+		 *   `passive`.
+		 *
+		 * This logic allow an instance of activation_locker_t live for
+		 * long time but not to block other instances of
+		 * activation_locker_t.
+		 *
+		 * \attention
+		 * The constructor of activation_locker_t throws if prepared-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
+		class activation_locker_t
+			{
+				outliving_reference_t< prepared_select_data_t > m_data;
+
+			public :
+				activation_locker_t(
+					const activation_locker_t & ) = delete;
+				activation_locker_t(
+					activation_locker_t && ) = delete;
+
+				activation_locker_t(
+					outliving_reference_t< prepared_select_data_t > data )
+					:	m_data{ data }
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						if( prepared_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_prepared_select_is_active_now,
+									"an activate prepared-select "
+									"that is already active" );
+
+						m_data.get().m_status = prepared_select_status_t::active;
+					}
+
+				~activation_locker_t() noexcept
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						m_data.get().m_status = prepared_select_status_t::passive;
+					}
+
+				const auto &
+				params() const noexcept
+					{
+						return m_data.get().m_params;
+					}
+
+				const auto &
+				cases() const noexcept
+					{
+						return m_data.get().m_cases;
+					}
+			};
+	};
+
+//
+// extensible_select_cases_holder_t
+//
+/*!
+ * \brief A holder for serie of select_cases for the case of extensible select.
+ *
+ * Provides access to select_cases via iterator and begin() and end() methods.
+ *
+ * \note This is moveable class, but not copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
+class extensible_select_cases_holder_t
+	{
+		//! Type of array for holding select_cases.
+		using array_type_t = std::vector< select_case_unique_ptr_t >;
+		//! Storage for select_cases.
+		array_type_t m_cases;
+
+	public :
+		extensible_select_cases_holder_t(
+			const extensible_select_cases_holder_t & ) = delete;
+		extensible_select_cases_holder_t &
+		operator=(
+			const extensible_select_cases_holder_t & ) = delete;
+
+		//! Swap operation.
+		friend void
+		swap(
+			extensible_select_cases_holder_t & a,
+			extensible_select_cases_holder_t & b ) noexcept
+			{
+				using std::swap;
+				swap( a.m_cases, b.m_cases );
+			}
+
+		//! Default constructor.
+		extensible_select_cases_holder_t()
+			{}
+		//! Constructor with initial capacity.
+		extensible_select_cases_holder_t(
+			std::size_t initial_capacity )
+			{
+				if( 0u != initial_capacity )
+					m_cases.reserve( initial_capacity );
+			}
+		//! Move constructor.
+		extensible_select_cases_holder_t(
+			extensible_select_cases_holder_t && o ) noexcept
+			:	m_cases{ std::move(o.m_cases) }
+			{}
+
+		//! Move operator.
+		extensible_select_cases_holder_t &
+		operator=( extensible_select_cases_holder_t && o ) noexcept
+			{
+				extensible_select_cases_holder_t tmp( std::move( o ) );
+				swap( *this, tmp );
+
+				return *this;
+			}
+
+		//! Helper method for setting up specific select_case.
+		/*!
+		 * This method will be used during creation of select_cases_holder.
+		 */
+		void
+		add_case( select_case_unique_ptr_t c )
+			{
+				m_cases.push_back( std::move(c) );
+			}
+
+		//! Get count of select_cases in holder.
+		std::size_t
+		size() const noexcept { return m_cases.size(); }
+
+		//! Iterator class for accessing select_cases.
+		/*!
+		 * Implements ForwardIterator concept.
+		 */
+		class const_iterator
+			{
+				using actual_it_t = typename array_type_t::const_iterator;
+
+				actual_it_t m_it;
+
+			public :
+				using difference_type = std::ptrdiff_t;
+				using value_type = select_case_t;
+				using pointer = const value_type*;
+				using reference = const value_type&;
+				using iterator_category = std::forward_iterator_tag;
+
+				const_iterator() = default;
+				const_iterator( actual_it_t it ) noexcept : m_it( std::move(it) ) {}
+
+				const_iterator & operator++() noexcept
+					{ ++m_it; return *this; }
+				const_iterator operator++(int) noexcept
+					{ const_iterator o{ m_it }; ++m_it; return o; }
+
+				bool operator==( const const_iterator & o ) const noexcept
+					{ return m_it == o.m_it; }
+				bool operator!=( const const_iterator & o ) const noexcept
+					{ return m_it != o.m_it; }
+
+				select_case_t & operator*() const noexcept
+					{ return **m_it; }
+				select_case_t * operator->() const noexcept
+					{ return m_it->get(); }
+			};
+
+		//! Get iterator for the first item in select_cases_holder.
+		const_iterator
+		begin() const noexcept { return const_iterator{ m_cases.begin() }; }
+
+		//! Get iterator for the item just behind the last item in select_cases_holder.
+		const_iterator
+		end() const noexcept { return const_iterator{ m_cases.end() }; }
+	};
+
+inline void
+fill_select_cases_holder(
+	extensible_select_cases_holder_t & /*holder*/ )
+	{}
+
+template< typename... Cases >
+void
+fill_select_cases_holder(
+	extensible_select_cases_holder_t & holder,
+	select_case_unique_ptr_t c,
+	Cases &&... other_cases )
+	{
+		holder.add_case( std::move(c) );
+		if constexpr( 0u != sizeof...(other_cases) )
+			fill_select_cases_holder(
+					holder,
+					std::forward<Cases>(other_cases)... );
+	}
+
+/*!
+ * \brief The current status of extensible-select instance.
+ *
+ * If extensible-select instance is activated (is used in select() call)
+ * then this instance can't be modified or activated yet more time.
+ *
+ * \since
+ * v.5.6.1
+ */
+enum class extensible_select_status_t
+	{
+		//! Extensible-select instance is not used in select() call.
+		passive,
+		//! Extensible-select instance is used in select() call now.
+		active
+	};
+
+/*!
+ * \brief A data for extensible-select instance.
+ *
+ * \note
+ * This data is protected by mutex. To get access to data it is
+ * necessary to use instances of modification_locker_t and
+ * activation_locker_t classes.
+ *
+ * \attention
+ * This class is not Moveable nor Copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
+class extensible_select_data_t
+	{
+		//! The object's lock.
+		std::mutex m_lock;
+
+		//! The current status of extensible-select object.
+		extensible_select_status_t m_status{
+				extensible_select_status_t::passive };
+
+		//! Parameters for select.
+		const mchain_select_params_t<
+				mchain_props::msg_count_status_t::defined > m_params;
+
+		//! A list of cases for extensible-select operation.
+		extensible_select_cases_holder_t m_cases;
+
+	public :
+		extensible_select_data_t(
+			const extensible_select_data_t & ) = delete;
+		extensible_select_data_t(
+			extensible_select_data_t && ) = delete;
+
+		//! Initializing constructor.
+		extensible_select_data_t(
+			mchain_select_params_t<
+					msg_count_status_t::defined > && params,
+			extensible_select_cases_holder_t && cases ) noexcept
+			:	m_params{ std::move(params) }
+			,	m_cases{ std::move(cases) }
+			{}
+
+		friend class modification_locker_t;
+
+		/*!
+		 * \brief Special class for locking extensible-select instance
+		 * for modification.
+		 *
+		 * Acquires extensible-select instance's in the constructor and
+		 * releases in the destructor.
+		 *
+		 * It is possible to have several modification_locker_t instances
+		 * for one extensible-select instance in different threads at
+		 * the same time. All of them except one will be blocked on
+		 * extensible-select instance's mutex.
+		 *
+		 * \attention
+		 * The constructor of modification_locker_t throws if extensible-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
+		class modification_locker_t
+			{
+				outliving_reference_t< extensible_select_data_t > m_data;
+				std::lock_guard< std::mutex > m_lock;
+
+			public :
+				modification_locker_t(
+					const modification_locker_t & ) = delete;
+				modification_locker_t(
+					modification_locker_t && ) = delete;
+
+				modification_locker_t(
+					outliving_reference_t< extensible_select_data_t > data )
+					:	m_data{ data }
+					,	m_lock{ m_data.get().m_lock }
+					{
+						if( extensible_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
+									"an attempt to modify extensible-select "
+									"that is already active" );
+					}
+
+				//! Get access to cases-holder for modification.
+				auto &
+				cases() const noexcept
+					{
+						return m_data.get().m_cases;
+					}
+			};
+
+		friend class activation_locker_t;
+
+		/*!
+		 * \brief Special class for locking extensible-select instance
+		 * for activation inside select() call.
+		 *
+		 * This class acquires extensible-select instance's mutex for a
+		 * short time twice:
+		 * 
+		 * - the first time in the constructor to check the status of
+		 *   extensible-select instance and switch status to `active`;
+		 * - the second time in the destructor to return status to
+		 *   `passive`.
+		 *
+		 * This logic allow an instance of activation_locker_t live for
+		 * long time but not to block other instances of
+		 * modification_locker_t or activation_locker_t.
+		 *
+		 * \attention
+		 * The constructor of activation_locker_t throws if extensible-select
+		 * instance is used in select() call.
+		 *
+		 * \note
+		 * This class is not Moveable nor Copyable.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
+		class activation_locker_t
+			{
+				outliving_reference_t< extensible_select_data_t > m_data;
+
+			public :
+				activation_locker_t(
+					const activation_locker_t & ) = delete;
+				activation_locker_t(
+					activation_locker_t && ) = delete;
+
+				activation_locker_t(
+					outliving_reference_t< extensible_select_data_t > data )
+					:	m_data{ data }
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						if( extensible_select_status_t::active ==
+								m_data.get().m_status )
+							SO_5_THROW_EXCEPTION( rc_extensible_select_is_active_now,
+									"an activate extensible-select "
+									"that is already active" );
+
+						m_data.get().m_status = extensible_select_status_t::active;
+					}
+
+				~activation_locker_t() noexcept
+					{
+						// Lock the data object only for changing the status.
+						std::lock_guard lock{ m_data.get().m_lock };
+
+						m_data.get().m_status = extensible_select_status_t::passive;
+					}
+
+				const auto &
+				params() const noexcept
+					{
+						return m_data.get().m_params;
+					}
+
+				const auto &
+				cases() const noexcept
+					{
+						return m_data.get().m_cases;
+					}
+			};
+	};
 
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -799,7 +1277,13 @@ select(
 	auto r = so_5::select( prepared );
  * \endcode
  *
- * \note This is a moveable type, not copyable.
+ * \note
+ * This is a moveable type, not copyable. It is very like to unique_ptr.
+ * Because of that an instance of prepared_select_t can empty. It means
+ * that the actual content (e.g. prepared-select object) was moved to
+ * another prepared_select_t instance. Usage of empty prepared_select_t
+ * is an error and can lead to null-pointer dereference. SObjectizer doesn't
+ * check the emptiness of prepared_select_t object.
  * 
  * \since
  * v.5.5.17
@@ -807,38 +1291,53 @@ select(
 template< std::size_t Cases_Count >
 class prepared_select_t
 	{
-		//! Parameters for select.
-		mchain_select_params_t<
-				mchain_props::msg_count_status_t::defined > m_params;
+		template<
+			mchain_props::msg_count_status_t Msg_Count_Status,
+			typename... Cases >
+		friend prepared_select_t< sizeof...(Cases) >
+		prepare_select(
+			mchain_select_params_t< Msg_Count_Status > params,
+			Cases &&... cases );
 
-		//! Cases for select.
-		mchain_props::details::select_cases_holder_t< Cases_Count > m_cases_holder;
+		//! The actual prepared-select object.
+		/*!
+		 * \note
+		 * Can be null if the actual content was moved to another
+		 * prepared_select_t instance.
+		 *
+		 * \since
+		 * v.5.6.1
+		 */
+		std::unique_ptr<
+						mchain_props::details::prepared_select_data_t<Cases_Count> >
+				m_data;
+
+		//! Initializing constructor.
+		/*!
+		 * \note
+		 * This constructor is private since v.5.6.1
+		 */
+		template< typename... Cases >
+		prepared_select_t(
+			mchain_select_params_t<
+					mchain_props::msg_count_status_t::defined > params,
+			Cases &&... cases )
+			:	m_data{
+					std::make_unique<
+							mchain_props::details::prepared_select_data_t<Cases_Count> >(
+						std::move(params),
+						std::forward<Cases>(cases)... ) }
+			{}
 
 	public :
 		prepared_select_t( const prepared_select_t & ) = delete;
 		prepared_select_t &
 		operator=( const prepared_select_t & ) = delete;
 
-		//! Initializing constructor.
-		template< typename... Cases >
-		prepared_select_t(
-			mchain_select_params_t<
-					mchain_props::msg_count_status_t::defined > params,
-			Cases &&... cases )
-			:	m_params( std::move(params) )
-			{
-				static_assert( sizeof...(Cases) == Cases_Count,
-						"Cases_Count and sizeof...(Cases) mismatch" );
-
-				mchain_props::details::fill_select_cases_holder(
-						m_cases_holder, 0u, std::forward<Cases>(cases)... );
-			}
-
 		//! Move constructor.
 		prepared_select_t(
 			prepared_select_t && other ) noexcept
-			:	m_params( std::move(other.m_params) )
-			,	m_cases_holder( std::move(other.m_cases_holder) )
+			:	m_data( std::move(other.m_data) )
 			{}
 
 		//! Move operator.
@@ -855,19 +1354,23 @@ class prepared_select_t
 		swap( prepared_select_t & a, prepared_select_t & b ) noexcept
 			{
 				using std::swap;
-				swap( a.m_params, b.m_params );
-				swap( a.m_cases_holder, b.m_cases_holder );
+				swap( a.m_data, b.m_data );
 			}
+
+		//! Is this handle empty?
+		/*!
+		 * \since
+		 * v.5.6.1
+		 */
+		bool
+		empty() const noexcept { return !m_data; }
 
 		/*!
 		 * \name Getters
 		 * \{ 
 		 */
-		const auto &
-		params() const noexcept { return m_params; }
-
-		const auto &
-		cases() const noexcept { return m_cases_holder; }
+		auto &
+		data() const noexcept { return *m_data; }
 		/*!
 		 * \}
 		 */
@@ -925,7 +1428,7 @@ template<
 prepared_select_t< sizeof...(Cases) >
 prepare_select(
 	//! Parameters for advanced select.
-	const mchain_select_params_t< Msg_Count_Status > & params,
+	mchain_select_params_t< Msg_Count_Status > params,
 	//! Select cases.
 	Cases &&... cases )
 	{
@@ -935,7 +1438,7 @@ prepare_select(
 				"by using handle_all()/handle_n()/extract_n() methods" );
 
 		return prepared_select_t< sizeof...(Cases) >(
-				params,
+				std::move(params),
 				std::forward<Cases>(cases)... );
 	}
 
@@ -964,6 +1467,11 @@ prepare_select(
 	}
  * \endcode
  *
+ * \attention
+ * Since v.5.6.1 there is a check for usage of prepared-select object
+ * in parallel/nested calls to select(). If such call detected then
+ * an exception is thrown.
+ *
  * \since
  * v.5.5.17
  */
@@ -972,9 +1480,271 @@ mchain_receive_result_t
 select(
 	const prepared_select_t< Cases_Count > & prepared )
 	{
+		using namespace mchain_props::details;
+
+		typename prepared_select_data_t<Cases_Count>::activation_locker_t locker{
+				outliving_mutable(prepared.data())
+		};
+
 		return mchain_props::details::perform_select(
-				prepared.params(),
-				prepared.cases() );
+				locker.params(),
+				locker.cases() );
+	}
+
+//
+// extensible_select_t
+//
+/*!
+ * \brief Special container for holding select parameters and select cases.
+ *
+ * This type is a *handle* for extensible-select instance. It's like
+ * unique_ptr. Just one instance of extensible_select_t owns the instance
+ * of extensible-select.
+ *
+ * \attention
+ * Because extensible_select_t is like to unique_ptr it can be in an empty
+ * state (it means that there is no actual extensible-select instance behind
+ * the handle). Usage of empty extensible_select_t object in call to
+ * select() is an error. SObjectizer doesn't check the emptiness of
+ * extensible_select_t object. An attempt to pass an empty extensible_select_t
+ * to select() will lead to null-pointer dereference.
+ *
+ * \note
+ * This is Moveable type but not Copyable.
+ *
+ * \since
+ * v.5.6.1
+ */
+class extensible_select_t
+	{
+		template<
+			mchain_props::msg_count_status_t Msg_Count_Status,
+			typename... Cases >
+		friend extensible_select_t
+		make_extensible_select(
+			mchain_select_params_t< Msg_Count_Status > params,
+			Cases &&... cases );
+
+		//! Actual data for that extensible-select.
+		std::unique_ptr< mchain_props::details::extensible_select_data_t > m_data;
+
+		//! Actual initializing constructor.
+		extensible_select_t(
+			std::unique_ptr< mchain_props::details::extensible_select_data_t > data )
+			:	m_data{ std::move(data) }
+			{}
+
+	public :
+		extensible_select_t( const extensible_select_t & ) = delete;
+		extensible_select_t &
+		operator=( const extensible_select_t & ) = delete;
+
+		//! Default constructor.
+		/*!
+		 * \attention
+		 * This constructor is intended for the cases like that:
+		 * \code
+		 * class some_my_data {
+		 * 	so_5::extensible_select_t m_select_handle;
+		 * 	...
+		 * 	void on_some_stage() {
+		 * 		m_select_handle = so_5::make_extensible_select(...);
+		 * 		...
+		 * 	}
+		 * 	void on_another_stage() {
+		 * 		so_5::add_select_cases(m_select_handle, ...);
+		 * 		...
+		 * 	}
+		 * 	void on_yet_another_stage() {
+		 * 		auto r = so_5::select(m_select_handle);
+		 * 		...
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 */
+		extensible_select_t() = default;
+
+		//! Move constructor.
+		extensible_select_t(
+			extensible_select_t && other ) noexcept
+			:	m_data{ std::move(other.m_data) }
+			{}
+
+		//! Move operator.
+		extensible_select_t &
+		operator=( extensible_select_t && other ) noexcept
+			{
+				extensible_select_t tmp( std::move(other) );
+				swap( *this, tmp);
+				return *this;
+			}
+
+		//! Swap operation.
+		friend void
+		swap( extensible_select_t & a, extensible_select_t & b ) noexcept
+			{
+				using std::swap;
+				swap( a.m_data, b.m_data );
+			}
+
+		//! Is this handle empty?
+		bool
+		empty() const noexcept { return !m_data; }
+
+		/*!
+		 * \name Getters
+		 * \{ 
+		 */
+		auto &
+		data() const noexcept { return *m_data; }
+		/*!
+		 * \}
+		 */
+	};
+
+/*!
+ * \brief Creation of extensible-select instance.
+ *
+ * This function creates an instance of extensible-select object that
+ * can be used for subsequent calls to add_select_cases() and
+ * select().
+ *
+ * Usage examples:
+ * \code
+ * // Creation of extensible-select instance with initial set of cases.
+ * auto sel = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(10),
+ * 	case_(ch1, ...),
+ * 	case_(ch2, ...));
+ *
+ * // Creation of extensible-select instance without initial set of cases.
+ * auto sel2 = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(20));
+ * // Cases should be added later.
+ * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2,
+ * 	case_(ch2, ...),
+ * 	case_(ch3, ...));
+ * \endcode
+ *
+ * \since
+ * v.5.6.1
+ */
+template<
+	mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Cases >
+[[nodiscard]]
+extensible_select_t
+make_extensible_select(
+	//! Parameters for advanced select.
+	mchain_select_params_t< Msg_Count_Status > params,
+	//! Select cases.
+	Cases &&... cases )
+	{
+		static_assert(
+				Msg_Count_Status == mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
+		using namespace mchain_props::details;
+
+		extensible_select_cases_holder_t cases_holder{ sizeof...(cases) };
+		fill_select_cases_holder(
+				cases_holder,
+				std::forward<Cases>(cases)... );
+
+		auto data = std::make_unique< extensible_select_data_t >(
+				std::move(params),
+				std::move(cases_holder) );
+
+		return { std::move(data) };
+	}
+
+/*!
+ * \brief Add a portion of cases to extensible-select instance.
+ *
+ * Usage examples:
+ * \code
+ * // Creation of extensible-select instance without initial set of cases.
+ * auto sel2 = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(20));
+ * // Cases should be added later.
+ * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2,
+ * 	case_(ch2, ...),
+ * 	case_(ch3, ...));
+ * \endcode
+ *
+ * \note
+ * An attempt to call this function for extensible-select object that is
+ * used in some select() call will lead to an exception.
+ *
+ * \attention
+ * The \a extensible_select object must not be empty!
+ *
+ * \since
+ * v.5.6.1
+ */
+template< typename... Cases >
+void
+add_select_cases(
+	//! An instance of extensible-select to be extended.
+	extensible_select_t & extensible_select,
+	//! Select cases.
+	Cases &&... cases )
+	{
+		using namespace mchain_props::details;
+
+		extensible_select_data_t::modification_locker_t locker{
+				outliving_mutable(extensible_select.data())
+		};
+
+		fill_select_cases_holder(
+				locker.cases(),
+				std::forward<Cases>(cases)... );
+	}
+
+/*!
+ * \brief A select operation to be done on previously prepared
+ * extensible-select object.
+ *
+ * Usage example:
+ * \code
+ * void handle_messages_from(const std::vector<so_5::mchain_t> & chains) {
+ * 	auto sel = so_5::make_extensible_select(so_5::from_all().handle_all());
+ *
+ * 	for(auto & ch : chains)
+ * 		so_5::add_select_cases(case_(ch, ...));
+ *
+ * 	auto r = so_5::select(sel);
+ * 	... // Handing of the select() result.
+ * }
+ * \endcode
+ *
+ * \note
+ * An attempt to call this function for extensible-select object that is
+ * used in some select() call will lead to an exception.
+ *
+ * \attention
+ * The \a extensible_select object must not be empty!
+ *
+ * \since
+ * v.5.6.1
+ */
+inline mchain_receive_result_t
+select(
+	const extensible_select_t & extensible_select )
+	{
+		using namespace mchain_props::details;
+
+		extensible_select_data_t::activation_locker_t locker{
+				outliving_mutable(extensible_select.data())
+		};
+
+		return mchain_props::details::perform_select(
+				locker.params(),
+				locker.cases() );
 	}
 
 } /* namespace so_5 */

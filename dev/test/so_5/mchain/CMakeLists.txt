@@ -13,6 +13,7 @@ add_subdirectory(multithread_receive_close)
 
 add_subdirectory(select_simple)
 add_subdirectory(prepared_select_simple)
+add_subdirectory(adv_prepared_select)
 add_subdirectory(select_simple_close)
 add_subdirectory(select_count_messages)
 add_subdirectory(select_mthread_close)
@@ -28,3 +29,7 @@ add_subdirectory(master_handle)
 
 add_subdirectory(receive_closed_handler)
 add_subdirectory(select_closed_handler)
+
+add_subdirectory(extensible_select_simple)
+add_subdirectory(adv_extensible_select)
+

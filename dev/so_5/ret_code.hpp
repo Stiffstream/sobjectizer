@@ -574,6 +574,24 @@ const int rc_coop_is_not_in_registered_state = 185;
  */
 const int rc_unable_to_join_thread_by_itself = 186;
 
+/*!
+ * \brief An attempt to modify or activate extensible-select when an operation
+ * on that extensible-select object is already active.
+ *
+ * \since
+ * v.5.6.1
+ */
+const int rc_extensible_select_is_active_now = 187;
+
+/*!
+ * \brief An attempt to activate prepared-select when an operation
+ * on that prepared-select object is already active.
+ *
+ * \since
+ * v.5.6.1
+ */
+const int rc_prepared_select_is_active_now = 188;
+
 //! \name Common error codes.
 //! \{
 

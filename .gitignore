@@ -2,4 +2,6 @@
 /dev/local-build.rb
 /dev/target
 /dev/__*.vim
+/doxygen/doxygen.log
+/dev/doc/*
 
