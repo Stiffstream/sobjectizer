@@ -4,4 +4,4 @@
 /dev/__*.vim
 /doxygen/doxygen.log
 /dev/doc/*
-
+/dev/cmake_build*
