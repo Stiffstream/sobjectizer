@@ -7,10 +7,10 @@ endif()
 
 include(cmake/target.cmake)
 
+project(sobjectizer VERSION ${SO_5_VERSION} LANGUAGES CXX)
+
 set(PTHREDS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-project(sobjectizer)
 
 set(SO_5_DEFS "-DSO_5_PRJ")
 
