@@ -526,7 +526,7 @@ class mchain_template
 
 		void
 		remove_from_select(
-			select_case_t & select_case ) override
+			select_case_t & select_case ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 

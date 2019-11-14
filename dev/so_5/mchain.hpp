@@ -483,9 +483,8 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		/*!
 		 * \brief An extraction attempt as a part of multi chain select.
 		 *
-		 * \note In v.5.5.16 this method has an implementation. It is done to
-		 * keep compatibility with previous version. This implementation throws
-		 * an exception.
+		 * \attention
+		 * This method is a pure virtual since v.5.6.2.
 		 *
 		 * \note This method is intended to be used by select_case_t.
 		 *
@@ -497,19 +496,15 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 			//! Destination for extracted messages.
 			mchain_props::demand_t & dest,
 			//! Select case to be stored for notification if mchain is empty.
-			mchain_props::select_case_t & select_case );
+			mchain_props::select_case_t & select_case ) = 0;
 
 		/*!
 		 * \brief Removement of mchain from multi chain select.
 		 *
-		 * \note In v.5.5.16 this method has an implementation. It is done to
-		 * keep compatibility with previous version. This implementation throws
-		 * an exception.
+		 * \attention
+		 * This method is a pure virtual and noexcept since v.5.6.2.
 		 *
 		 * \note This method is intended to be used by select_case_t.
-		 *
-		 * \attention This method will be declared as pure virtual and noexcept
-		 * in v.5.6.0.
 		 *
 		 * \since
 		 * v.5.5.16
@@ -517,7 +512,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		virtual void
 		remove_from_select(
 			//! Select case to be removed from notification queue.
-			mchain_props::select_case_t & select_case );
+			mchain_props::select_case_t & select_case ) noexcept = 0;
 	};
 
 //
