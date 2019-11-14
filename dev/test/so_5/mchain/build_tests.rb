@@ -8,6 +8,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/params_clone/prj.ut.rb" )
 	required_prj( "#{path}/infinite_wait/prj.ut.rb" )
 	required_prj( "#{path}/simple/prj.ut.rb" )
+	required_prj( "#{path}/insert_after_close/prj.ut.rb" )
 	required_prj( "#{path}/func_as_handler/prj.ut.rb" )
 	required_prj( "#{path}/timers/prj.ut.rb" )
 	required_prj( "#{path}/close_chain/prj.ut.rb" )

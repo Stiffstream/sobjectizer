@@ -644,6 +644,14 @@ class mchain_template
 									return !queue_full ||
 											details::status::closed == m_status;
 								} );
+
+						// Message cannot be stored to closed chain.
+						//
+						// NOTE: this additional check is necessary after 
+						// wait for overflow_timeout because the chain can
+						// be closed during that wait.
+						if( details::status::closed == m_status )
+							return;
 					}
 
 				// If queue still full we must perform some reaction.
