@@ -118,7 +118,7 @@ coop_repo_t::start_deregistration()
 void
 coop_repo_t::wait_for_start_deregistration()
 {
-	std::unique_lock lck{ m_lock };
+	std::unique_lock< std::mutex > lck{ m_lock };
 
 	m_deregistration_started_cond.wait( lck,
 			[this] { return status_t::normal != m_status; } );
@@ -127,7 +127,7 @@ coop_repo_t::wait_for_start_deregistration()
 void
 coop_repo_t::wait_all_coop_to_deregister()
 {
-	std::unique_lock lck{ m_lock };
+	std::unique_lock< std::mutex > lck{ m_lock };
 
 	// Must wait for a signal is there are cooperations in
 	// the deregistration process.

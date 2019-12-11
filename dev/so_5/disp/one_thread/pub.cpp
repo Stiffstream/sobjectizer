@@ -264,7 +264,7 @@ make_dispatcher(
 						disp_binder_t,
 						dispatcher_no_activity_tracking_t,
 						dispatcher_with_activity_tracking_t >(
-				outliving_reference_t(env),
+				outliving_mutable(env),
 				data_sources_name_base,
 				std::move(params) );
 

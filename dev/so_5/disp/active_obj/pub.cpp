@@ -133,7 +133,7 @@ class dispatcher_template_t final : public disp_binder_t
 		preallocate_resources(
 			agent_t & agent ) override
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				if( m_agent_threads.end() != m_agent_threads.find( &agent ) )
 					SO_5_THROW_EXCEPTION(
@@ -155,7 +155,7 @@ class dispatcher_template_t final : public disp_binder_t
 			agent_t & agent ) noexcept override
 			{
 				const auto eject_thread = [&] {
-					std::lock_guard lock{ m_lock };
+					std::lock_guard< std::mutex > lock{ m_lock };
 
 					auto it = m_agent_threads.find( &agent );
 					auto thread = it->second;
@@ -172,7 +172,7 @@ class dispatcher_template_t final : public disp_binder_t
 			agent_t & agent ) noexcept override
 			{
 				const auto get_queue = [&] {
-					std::lock_guard lock{ m_lock };
+					std::lock_guard< std::mutex > lock{ m_lock };
 					return m_agent_threads.find( &agent )->second->get_agent_binding();
 				};
 
@@ -229,7 +229,7 @@ class dispatcher_template_t final : public disp_binder_t
 					{
 						auto & disp = m_dispatcher.get();
 
-						std::lock_guard lock{ disp.m_lock };
+						std::lock_guard< std::mutex > lock{ disp.m_lock };
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
@@ -322,7 +322,7 @@ make_dispatcher(
 						disp_binder_t,
 						dispatcher_no_activity_tracking_t,
 						dispatcher_with_activity_tracking_t >(
-				outliving_reference_t(env),
+				outliving_mutable(env),
 				data_sources_name_base,
 				std::move(params) );
 

@@ -232,7 +232,7 @@ class dispatcher_template_t final : public actual_dispatcher_iface_t
 		void
 		allocate_thread_for_group( const std::string & group_name ) override
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				auto it = m_groups.find( group_name );
 
@@ -257,7 +257,7 @@ class dispatcher_template_t final : public actual_dispatcher_iface_t
 		so_5::event_queue_t *
 		query_thread_for_group( const std::string & group_name ) noexcept override
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				return m_groups.find( group_name )->second.m_thread->
 						get_agent_binding();
@@ -322,7 +322,7 @@ class dispatcher_template_t final : public actual_dispatcher_iface_t
 					{
 						auto & disp = m_dispatcher.get();
 
-						std::lock_guard lock{ disp.m_lock };
+						std::lock_guard< std::mutex > lock{ disp.m_lock };
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
@@ -415,7 +415,7 @@ class dispatcher_template_t final : public actual_dispatcher_iface_t
 			{
 				work_thread_shptr_t result;
 
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				auto it = m_groups.find( group_name );
 
@@ -467,7 +467,7 @@ make_dispatcher(
 						impl::actual_dispatcher_iface_t,
 						dispatcher_no_activity_tracking_t,
 						dispatcher_with_activity_tracking_t >(
-				outliving_reference_t(env),
+				outliving_mutable(env),
 				data_sources_name_base,
 				std::move(params) );
 

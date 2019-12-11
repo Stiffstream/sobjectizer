@@ -159,7 +159,7 @@ do_check_handle_n(
 						[&ch1]( int i ) {
 							so_5::send< int >( ch1, i + 1 );
 						} ) )
-			);;
+			);
 
 	UT_CHECK_CONDITION( 2 == r.extracted() );
 	UT_CHECK_CONDITION( 2 == r.handled() );

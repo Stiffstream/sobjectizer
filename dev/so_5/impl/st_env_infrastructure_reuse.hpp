@@ -182,7 +182,7 @@ class coop_repo_t final
 				// A lock is necessary here because coop_repo can be used
 				// in thread-safe environment where access to environment from
 				// different thread is allowed.
-				std::lock_guard l{ m_lock };
+				std::lock_guard< std::mutex > l{ m_lock };
 				return 0u != m_registrations_in_progress ||
 						0u != m_total_coops;
 			}

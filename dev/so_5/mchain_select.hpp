@@ -412,7 +412,7 @@ class prepared_select_data_t
 					:	m_data{ data }
 					{
 						// Lock the data object only for changing the status.
-						std::lock_guard lock{ m_data.get().m_lock };
+						std::lock_guard< std::mutex > lock{ m_data.get().m_lock };
 
 						if( prepared_select_status_t::active ==
 								m_data.get().m_status )
@@ -426,7 +426,7 @@ class prepared_select_data_t
 				~activation_locker_t() noexcept
 					{
 						// Lock the data object only for changing the status.
-						std::lock_guard lock{ m_data.get().m_lock };
+						std::lock_guard< std::mutex > lock{ m_data.get().m_lock };
 
 						m_data.get().m_status = prepared_select_status_t::passive;
 					}
@@ -746,7 +746,7 @@ class extensible_select_data_t
 					:	m_data{ data }
 					{
 						// Lock the data object only for changing the status.
-						std::lock_guard lock{ m_data.get().m_lock };
+						std::lock_guard< std::mutex > lock{ m_data.get().m_lock };
 
 						if( extensible_select_status_t::active ==
 								m_data.get().m_status )
@@ -760,7 +760,7 @@ class extensible_select_data_t
 				~activation_locker_t() noexcept
 					{
 						// Lock the data object only for changing the status.
-						std::lock_guard lock{ m_data.get().m_lock };
+						std::lock_guard< std::mutex > lock{ m_data.get().m_lock };
 
 						m_data.get().m_status = extensible_select_status_t::passive;
 					}

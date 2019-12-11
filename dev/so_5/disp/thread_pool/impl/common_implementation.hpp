@@ -228,7 +228,7 @@ class dispatcher_t final
 			agent_t & agent,
 			const Params & params )
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				if( Adaptations::is_individual_fifo( params ) )
 					bind_agent_with_inidividual_fifo(
@@ -243,7 +243,7 @@ class dispatcher_t final
 		undo_preallocation_for_agent(
 			agent_t & agent ) noexcept
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				auto it = m_agents.find( &agent );
 				if( it != m_agents.end() )
@@ -277,7 +277,7 @@ class dispatcher_t final
 		event_queue_t *
 		query_resources_for_agent( agent_t & agent ) noexcept
 			{
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				auto it = m_agents.find( &agent );
 				if( it->second.cooperation_fifo() )
@@ -411,7 +411,7 @@ class dispatcher_t final
 		supply( tp_stats::stats_consumer_t & consumer ) override
 			{
 				// Statics must be collected on locked object.
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				consumer.set_thread_count( m_threads.size() );
 

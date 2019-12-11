@@ -59,7 +59,7 @@ class coop_repository_basis_t::root_coop_t final : public coop_t
 			{
 				// List of children coop should be processed when
 				// the object is locked.
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				// Every child should be deregistered with 'shutdown' reason.
 				for_each_child( []( coop_t & child ) {
@@ -103,7 +103,7 @@ coop_repository_basis_t::register_coop(
 		// Phase 1: check the posibility of registration of new coop.
 		// This check should be performed on locked object.
 		{
-			std::lock_guard lock{ m_lock };
+			std::lock_guard< std::mutex > lock{ m_lock };
 			if( status_t::normal != m_status )
 				SO_5_THROW_EXCEPTION(
 						rc_unable_to_register_coop_during_shutdown,
@@ -144,7 +144,7 @@ coop_repository_basis_t::register_coop(
 				// Phase 3: finishing of registration.
 				// Those actions should be performed on locked objects.
 				details::invoke_noexcept_code( [&] {
-					std::lock_guard lock{ m_lock };
+					std::lock_guard< std::mutex > lock{ m_lock };
 
 					// Statistics should be updated.
 					m_total_agents += coop_size;
@@ -158,7 +158,7 @@ coop_repository_basis_t::register_coop(
 				// Pending shutdown should be handled even in the presence
 				// of an exception.
 				details::invoke_noexcept_code( [&] {
-					std::lock_guard lock{ m_lock };
+					std::lock_guard< std::mutex > lock{ m_lock };
 
 					handle_registrations_in_progress();
 				} );
@@ -176,7 +176,7 @@ coop_repository_basis_t::final_deregister_coop(
 	{
 		// Count of live agent and coops should be decremented.
 		{
-			std::lock_guard lock{ m_lock };
+			std::lock_guard< std::mutex > lock{ m_lock };
 
 			m_total_agents -= coop->size();
 			--m_total_coops;
@@ -218,7 +218,7 @@ coop_repository_basis_t::final_deregister_coop(
 		// can be registered while final deregistration actions
 		// were in progress.
 		return [this] {
-				std::lock_guard lock{ m_lock };
+				std::lock_guard< std::mutex > lock{ m_lock };
 
 				return final_deregistration_result_t{
 						// Coops those are in registration phase should also
@@ -234,7 +234,7 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 	{
 		// Phase 1: check that shutdown is not in progress now.
 		{
-			std::unique_lock lock{ m_lock };
+			std::unique_lock< std::mutex > lock{ m_lock };
 
 			if( !m_registrations_in_progress )
 				{
@@ -261,7 +261,7 @@ SO_5_NODISCARD
 coop_repository_basis_t::try_switch_to_shutdown_result_t
 coop_repository_basis_t::try_switch_to_shutdown()
 	{
-		std::lock_guard lock{ m_lock };
+		std::lock_guard< std::mutex > lock{ m_lock };
 
 		if( status_t::normal == m_status )
 			{
@@ -281,7 +281,7 @@ coop_repository_basis_t::environment()
 environment_infrastructure_t::coop_repository_stats_t
 coop_repository_basis_t::query_stats()
 	{
-		std::lock_guard lock{ m_lock };
+		std::lock_guard< std::mutex > lock{ m_lock };
 
 		return {
 				m_total_coops,

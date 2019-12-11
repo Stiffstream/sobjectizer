@@ -910,7 +910,7 @@ class mchain_tracing_enabled_base
 					case message_kind_t::enveloped_msg :
 						result = "enveloped_msg";
 					break;
-					};
+					}
 
 				return result;
 			}

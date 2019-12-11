@@ -179,7 +179,7 @@ coop_impl_t::do_decrement_reference_count(
 				// If the coop should be deregistered finally its status should
 				// be changed to deregistration_in_final_stage.
 				const auto should_finalize = [&] {
-					std::lock_guard lock{ coop.m_lock };
+					std::lock_guard< std::mutex > lock{ coop.m_lock };
 
 					using status_t = coop_t::registration_status_t;
 					if( status_t::coop_registered == coop.m_registration_status ||
@@ -224,7 +224,7 @@ class coop_impl_t::registration_performer_t
 
 						// Coop's lock should be acquired before notification
 						// of the parent coop.
-						std::lock_guard lock{ m_coop.m_lock };
+						std::lock_guard< std::mutex > lock{ m_coop.m_lock };
 						make_relation_with_parent_coop();
 
 						// These actions shouldn't throw.
@@ -404,7 +404,7 @@ class coop_impl_t::deregistration_performer_t
 		perform_phase1() noexcept
 			{
 				// The first phase should be performed on locked object.
-				std::lock_guard lock{ m_coop.m_lock };
+				std::lock_guard< std::mutex > lock{ m_coop.m_lock };
 
 				if( coop_t::registration_status_t::coop_registered !=
 						m_coop.m_registration_status )
@@ -502,7 +502,7 @@ coop_impl_t::do_add_child(
 		so_5::details::do_with_rollback_on_exception( [&] {
 				// Modification of parent-child relationship must be performed
 				// on locked object.
-				std::lock_guard lock{ parent.m_lock };
+				std::lock_guard< std::mutex > lock{ parent.m_lock };
 
 				// A new coop can't be added as a child if coop is being
 				// deregistered.
@@ -536,7 +536,7 @@ coop_impl_t::do_remove_child(
 		{
 			// Modification of parent-child relationship must be performed
 			// on locked object.
-			std::lock_guard lock{ parent.m_lock };
+			std::lock_guard< std::mutex > lock{ parent.m_lock };
 
 			if( parent.m_first_child.get() == &child )
 			{
