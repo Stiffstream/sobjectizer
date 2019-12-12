@@ -76,6 +76,10 @@ redirect_reaction(
 	{
 		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
 			{
+				// NOTE: this fragment can throw but it isn't a problem
+				// because redirect_reaction() is called during message
+				// delivery process and exceptions are expected in that
+				// process.
 				SO_5_LOG_ERROR(
 						ctx.m_receiver.so_environment().error_logger(),
 						logger )
@@ -110,6 +114,10 @@ transform_reaction(
 	{
 		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
 			{
+				// NOTE: this fragment can throw but it isn't a problem
+				// because transform_reaction() is called during message
+				// delivery process and exceptions are expected in that
+				// process.
 				SO_5_LOG_ERROR(
 						ctx.m_receiver.so_environment().error_logger(),
 						logger )
