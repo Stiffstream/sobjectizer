@@ -42,7 +42,12 @@ class SO_5_TYPE error_logger_t
 
 		//! A method for logging message.
 		/*!
-		 * \attention This method will be marked as noexcept in v.5.6.0
+		 * \note
+		 * This method is not noexcept. It means that logger can throws,
+		 * but in most cases logger is called in cases when the application
+		 * is prepared to be aborted due to some fatal errors. In those cases
+		 * an exception from log() will just terminate the application a bit
+		 * earlier. In other cases exceptions thrown by log() will be ignored.
 		 */
 		virtual void
 		log(
@@ -51,7 +56,7 @@ class SO_5_TYPE error_logger_t
 			//! Line number inside source file.
 			unsigned int line,
 			//! Text to log.
-			const std::string & message ) /* noexcept */ = 0;
+			const std::string & message ) = 0;
 	};
 
 //

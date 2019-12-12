@@ -15,6 +15,7 @@
 #include <so_5/environment.hpp>
 
 #include <so_5/details/abort_on_fatal_error.hpp>
+#include <so_5/details/suppress_exceptions.hpp>
 
 namespace so_5 {
 
@@ -33,7 +34,7 @@ namespace {
 void
 switch_agent_to_special_state_and_deregister_coop(
 	//! Agent who is the producer of the exception.
-	so_5::agent_t & a_exception_producer )
+	so_5::agent_t & a_exception_producer ) noexcept
 	{
 		const coop_handle_t coop = a_exception_producer.so_coop();
 		try
@@ -69,7 +70,7 @@ switch_agent_to_special_state_and_deregister_coop(
 void
 switch_agent_to_special_state_and_shutdown_sobjectizer(
 	//! Agent who is the producer of the exception.
-	agent_t & a_exception_producer )
+	agent_t & a_exception_producer ) noexcept
 	{
 		try
 		{
@@ -119,7 +120,7 @@ void
 process_unhandled_exception(
 	current_thread_id_t working_thread_id,
 	const std::exception & ex,
-	agent_t & a_exception_producer )
+	agent_t & a_exception_producer ) noexcept
 	{
 		log_unhandled_exception( ex, a_exception_producer );
 
@@ -158,38 +159,47 @@ process_unhandled_exception(
 		}
 		else if( shutdown_sobjectizer_on_exception == reaction )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "SObjectizer will be shutted down due to "
-						"unhandled exception '" << ex.what()
-						<< "' from cooperation "
-						<< a_exception_producer.so_coop();
-			}
+			// Since v.5.6.2 all logging-related exceptions are suppressed here.
+			so_5::details::suppress_exceptions( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "SObjectizer will be shutted down due to "
+							"unhandled exception '" << ex.what()
+							<< "' from cooperation "
+							<< a_exception_producer.so_coop();
+				}
+			} );
 
 			switch_agent_to_special_state_and_shutdown_sobjectizer(
 					a_exception_producer );
 		}
 		else if( deregister_coop_on_exception == reaction )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "Cooperation "
-						<< a_exception_producer.so_coop()
-						<< " will be deregistered due to unhandled exception '"
-						<< ex.what() << "'";
-			}
+			// Since v.5.6.2 all logging-related exceptions are suppressed here.
+			so_5::details::suppress_exceptions( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "Cooperation "
+							<< a_exception_producer.so_coop()
+							<< " will be deregistered due to unhandled exception '"
+							<< ex.what() << "'";
+				}
+			} );
 
 			switch_agent_to_special_state_and_deregister_coop(
 					a_exception_producer );
 		}
 		else if( ignore_exception == reaction )
 		{
-			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
-			{
-				log_stream << "Ignore unhandled exception '"
-						<< ex.what() << "' from cooperation "
-						<< a_exception_producer.so_coop();
-			}
+			// Since v.5.6.2 all logging-related exceptions are suppressed here.
+			so_5::details::suppress_exceptions( [&] {
+				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+				{
+					log_stream << "Ignore unhandled exception '"
+							<< ex.what() << "' from cooperation "
+							<< a_exception_producer.so_coop();
+				}
+			} );
 		}
 		else
 		{

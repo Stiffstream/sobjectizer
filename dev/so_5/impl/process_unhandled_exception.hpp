@@ -23,6 +23,9 @@ namespace impl {
  * v.5.4.0
  *
  * \brief Processor of unhandled exception from agent's event handler.
+ *
+ * \note
+ * This function is noexcept since v.5.6.2.
  */
 void
 process_unhandled_exception(
@@ -34,7 +37,7 @@ process_unhandled_exception(
 	//! Raised and caught exception.
 	const std::exception & ex,
 	//! Agent who is the producer of the exception.
-	agent_t & a_exception_producer );
+	agent_t & a_exception_producer ) noexcept;
 
 /*!
  * \since
