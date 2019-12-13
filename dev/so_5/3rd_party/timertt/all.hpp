@@ -35,9 +35,11 @@
 
 	// VS++12 doesn't support noexcept keyword.
 	#define TIMERTT_NOEXCEPT
+	#define TIMERTT_HAS_NOEXCEPT 0
 #else
 	#define TIMERTT_ALIGNAS_WORKAROUND(T) alignas(T)
 	#define TIMERTT_NOEXCEPT noexcept
+	#define TIMERTT_HAS_NOEXCEPT 1
 #endif
 
 /*!
@@ -65,7 +67,7 @@
  * \since
  * v.1.2.1
  */
-#define TIMERTT_VERSION 1002002u
+#define TIMERTT_VERSION 1002003u
 
 /*!
  * \brief Top-level project's namespace.
@@ -502,6 +504,38 @@ struct timer_quantities
  */
 namespace details
 {
+
+// NOTE: invoke_noexcept_code_block was added because some compilers
+// do not have support for noexcept (for example VC++2013). So it's impossible
+// to write code like that:
+//
+// [&]() noexcept {
+// 	some_code();
+// }();
+//
+// Instead we have to write:
+//
+// invoke_noexcept_code_block([&] {
+// 	some_code();
+// });
+//
+#if TIMERTT_HAS_NOEXCEPT
+
+template< typename Lambda >
+void invoke_noexcept_code_block(Lambda && lambda) noexcept
+{
+	lambda();
+}
+
+#else
+
+template< typename Lambda >
+void invoke_noexcept_code_block(Lambda && lambda)
+{
+	try { lambda(); } catch(...) { std::abort(); }
+}
+
+#endif
 
 //
 // buffer_allocated_object
@@ -1462,7 +1496,7 @@ private :
 		Unique_Lock & lock,
 		//! Head of execution list.
 		//! Cannot be nullptr.
-		timer_type * head )
+		timer_type * head ) TIMERTT_NOEXCEPT
 	{
 		lock.unlock();
 
@@ -1478,14 +1512,22 @@ private :
 			}
 			catch( const std::exception & x )
 			{
-				this->m_exception_handler( x );
+				// Note this invoke_noexcept_code_block() is not needed
+				// if compiler supports noexcept.
+				invoke_noexcept_code_block( [this, &x] {
+						this->m_exception_handler( x );
+					} );
 			}
 			catch( ... )
 			{
-				std::ostringstream ss;
-				ss << __FILE__ << "(" << __LINE__ 
-					<< "): an unknown exception from timer action";
-				this->m_error_logger( ss.str() );
+				// Logging should not throw exceptions.
+				invoke_noexcept_code_block( [this] {
+						std::ostringstream ss;
+						ss << __FILE__ << "(" << __LINE__ 
+							<< "): an unknown exception from timer action";
+						this->m_error_logger( ss.str() );
+					} );
+
 				std::abort();
 			}
 
@@ -2080,7 +2122,7 @@ private :
 		Unique_Lock & lock,
 		//! Head of execution list.
 		//! Cannot be nullptr.
-		timer_type * head )
+		timer_type * head ) TIMERTT_NOEXCEPT
 	{
 		lock.unlock();
 
@@ -2096,14 +2138,22 @@ private :
 			}
 			catch( const std::exception & x )
 			{
-				this->m_exception_handler( x );
+				// Note this invoke_noexcept_code_block() is not needed
+				// if compiler supports noexcept.
+				invoke_noexcept_code_block( [this, &x] {
+						this->m_exception_handler( x );
+					} );
 			}
 			catch( ... )
 			{
-				std::ostringstream ss;
-				ss << __FILE__ << "(" << __LINE__ 
-					<< "): an unknown exception from timer action";
-				this->m_error_logger( ss.str() );
+				// Logging should not throw exceptions.
+				invoke_noexcept_code_block( [this] {
+						std::ostringstream ss;
+						ss << __FILE__ << "(" << __LINE__ 
+							<< "): an unknown exception from timer action";
+						this->m_error_logger( ss.str() );
+					} );
+
 				std::abort();
 			}
 
@@ -2527,7 +2577,7 @@ private :
 		 * This value is illegal index in heap-array because
 		 * position numbers in heap-array are started from 1, not from 0.
 		 */
-		static constexpr const std::size_t deactivation_indicator = 0;
+		static const std::size_t deactivation_indicator = 0;
 
 		//! Time of execution for this timer.
 		monotonic_clock::time_point m_when;
@@ -2611,7 +2661,7 @@ private :
 		//! Object lock.
 		//! This lock will be unlocked before execution of actions
 		//! and locked back after.
-		Unique_Lock & lock )
+		Unique_Lock & lock ) TIMERTT_NOEXCEPT
 	{
 		lock.unlock();
 
@@ -2621,14 +2671,21 @@ private :
 		}
 		catch( const std::exception & x )
 		{
-			this->m_exception_handler( x );
+			// Note this invoke_noexcept_code_block() is not needed
+			// if compiler supports noexcept.
+			invoke_noexcept_code_block( [this, &x] {
+					this->m_exception_handler( x );
+				} );
 		}
 		catch( ... )
 		{
-			std::ostringstream ss;
-			ss << __FILE__ << "(" << __LINE__ 
-				<< "): an unknown exception from timer action";
-			this->m_error_logger( ss.str() );
+			// Logging should not throw exceptions.
+			invoke_noexcept_code_block( [this] {
+					std::ostringstream ss;
+					ss << __FILE__ << "(" << __LINE__ 
+						<< "): an unknown exception from timer action";
+					this->m_error_logger( ss.str() );
+				} );
 			std::abort();
 		}
 
