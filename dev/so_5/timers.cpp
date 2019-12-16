@@ -368,6 +368,11 @@ using error_logger_for_timertt_t = std::function< void(const std::string &) >;
 error_logger_for_timertt_t
 create_error_logger_for_timertt( const error_logger_shptr_t & logger )
 	{
+		// NOTE: if this logger throws then timertt will catch the exception
+		// and terminate the application.
+		// It's normal because timertt calls this logger right before calling
+		// std::abort() in the cases when timertt can't recover from
+		// previous failures.
 		return [logger]( const std::string & msg ) {
 			SO_5_LOG_ERROR( *logger, stream ) {
 				stream << "error inside timer_thread: " << msg;
