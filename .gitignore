@@ -2,6 +2,8 @@
 /dev/local-build.rb
 /dev/target
 /dev/__*.vim
+/dev/__*.cpp
+/dev/__*.rb
 /doxygen/doxygen.log
 /dev/doc/*
 /dev/cmake_build*

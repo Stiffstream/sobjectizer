@@ -79,7 +79,7 @@ class select_case_t
 		 * - on_select_finish() where m_notificator receives nullptr value if
 		 * it wasn't null yet.
 		 *
-		 * It the previous versions of SObjectizer m_notificator received
+		 * In the previous versions of SObjectizer m_notificator received
 		 * nullptr value during notification of new messages arrival or
 		 * closing of mchain. But this lead to data races and the behaviour
 		 * was changed. Now m_notificator can hold an actual pointer even
