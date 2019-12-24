@@ -118,7 +118,7 @@ class select_case_t
 		 * \sa select_case_t::m_next
 		 */
 		select_case_t *
-		query_next() const
+		query_next() const noexcept
 			{
 				return m_next;
 			}
@@ -132,7 +132,7 @@ class select_case_t
 		 * \sa select_case_t::m_next.
 		 */
 		select_case_t *
-		giveout_next()
+		giveout_next() noexcept
 			{
 				auto n = m_next;
 				m_next = nullptr;
@@ -144,7 +144,7 @@ class select_case_t
 		 * \sa select_case_t::m_next.
 		 */
 		void
-		set_next( select_case_t * next )
+		set_next( select_case_t * next ) noexcept
 			{
 				m_next = next;
 			}
