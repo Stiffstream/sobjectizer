@@ -797,7 +797,7 @@ class mchain_receive_result_t
 
 	public :
 		//! Default constructor.
-		mchain_receive_result_t()
+		mchain_receive_result_t() noexcept
 			:	m_extracted{ 0 }
 			,	m_handled{ 0 }
 			,	m_status{ mchain_props::extraction_status_t::no_messages }
@@ -810,7 +810,7 @@ class mchain_receive_result_t
 			//! Count of handled messages.
 			std::size_t handled,
 			//! Status of extraction operation.
-			mchain_props::extraction_status_t status )
+			mchain_props::extraction_status_t status ) noexcept
 			:	m_extracted{ extracted }
 			,	m_handled{ handled }
 			,	m_status{ status }
@@ -818,15 +818,15 @@ class mchain_receive_result_t
 
 		//! Count of extracted messages.
 		std::size_t
-		extracted() const { return m_extracted; }
+		extracted() const noexcept { return m_extracted; }
 
 		//! Count of handled messages.
 		std::size_t
-		handled() const { return m_handled; }
+		handled() const noexcept { return m_handled; }
 
 		//! Extraction status (e.g. no messages, chain closed and so on).
 		mchain_props::extraction_status_t
-		status() const { return m_status; }
+		status() const noexcept { return m_status; }
 	};
 
 namespace mchain_props {
