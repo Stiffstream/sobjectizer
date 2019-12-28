@@ -114,7 +114,54 @@ namespace mchain_props {
 namespace details {
 
 //
-// actual_select_case_t
+// receive_select_case_t
+//
+//FIXME: document this!
+/*!
+ *
+ * \since
+ * v.5.7.0
+ */
+class receive_select_case_t : public select_case_t
+	{
+	public :
+		using select_case_t::select_case_t;
+
+		[[nodiscard]]
+		handling_result_t
+		try_handle( select_notificator_t & notificator ) override
+			{
+				// Please note that value of m_notificator will be
+				// returned to nullptr if a message extracted or
+				// channel is closed.
+				m_notificator = &notificator;
+
+				demand_t demand;
+				const auto status = extract( demand );
+				// Notificator pointer must retain its value only if
+				// there is no messages in mchain.
+				// In other cases this pointer must be dropped.
+				if( extraction_status_t::no_messages != status )
+					m_notificator = nullptr;
+
+				if( extraction_status_t::msg_extracted == status )
+					return try_handle_extracted_message( demand );
+
+				return mchain_receive_result_t{ 0u, 0u, status };
+			}
+
+	protected :
+		//! Attempt to handle extracted message.
+		/*!
+		 * This method will be overriden in derived classes.
+		 */
+		[[nodiscard]]
+		virtual mchain_receive_result_t
+		try_handle_extracted_message( demand_t & demand ) = 0;
+	};
+
+//
+// actual_receive_select_case_t
 //
 /*!
  * \brief Actual implementation of one multi chain select case.
@@ -123,7 +170,7 @@ namespace details {
  * v.5.5.16
  */
 template< std::size_t N >
-class actual_select_case_t : public select_case_t
+class actual_receive_select_case_t : public receive_select_case_t
 	{
 		so_5::details::handlers_bunch_t< N > m_handlers;
 
@@ -134,12 +181,12 @@ class actual_select_case_t : public select_case_t
 		 * from the mchain.
 		 */
 		template< typename... Handlers >
-		actual_select_case_t(
+		actual_receive_select_case_t(
 			//! Chain to be used for select.
 			mchain_t chain,
 			//! Message handlers.
 			Handlers &&... handlers )
-			:	select_case_t( std::move(chain) )
+			:	receive_select_case_t( std::move(chain) )
 			{
 				so_5::details::fill_handlers_bunch(
 						m_handlers,
@@ -148,6 +195,7 @@ class actual_select_case_t : public select_case_t
 			}
 
 	protected :
+		[[nodiscard]]
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
 			{
@@ -226,6 +274,7 @@ class select_cases_holder_t
 			}
 
 		//! Get count of select_cases in holder.
+		[[nodiscard]]
 		std::size_t
 		size() const noexcept { return Cases_Count; }
 
@@ -266,10 +315,12 @@ class select_cases_holder_t
 			};
 
 		//! Get iterator for the first item in select_cases_holder.
+		[[nodiscard]]
 		const_iterator
 		begin() const noexcept { return const_iterator{ m_cases.begin() }; }
 
 		//! Get iterator for the item just behind the last item in select_cases_holder.
+		[[nodiscard]]
 		const_iterator
 		end() const noexcept { return const_iterator{ m_cases.end() }; }
 	};
@@ -970,6 +1021,21 @@ class select_actions_performer_t
 			}
 
 	private :
+		friend struct select_result_handler_t;
+		struct select_result_handler_t final
+			{
+				select_actions_performer_t * m_performer;
+				select_case_t * m_current;
+
+				void operator()( const mchain_receive_result_t & result ) const {
+					m_performer->on_receive_result( m_current, result );
+				}
+
+				void operator()( const mchain_send_result_t & result ) const {
+					m_performer->on_send_result( m_current, result );
+				}
+			};
+
 		void
 		handle_ready_chain( select_case_t * ready_chain )
 			{
@@ -978,34 +1044,52 @@ class select_actions_performer_t
 						auto * current = ready_chain;
 						ready_chain = current->giveout_next();
 
-						const auto result = current->try_receive( m_notificator );
-						m_status = result.status();
-
-						if( extraction_status_t::msg_extracted == m_status )
-							{
-								m_extracted_messages += result.extracted();
-								m_handled_messages += result.handled();
-
-								// The mchain from 'current' can contain more
-								// messages. We should return this case to 'ready_chain'
-								// of the notificator.
-								m_notificator.return_to_ready_chain( *current );
-							}
-						else if( extraction_status_t::chain_closed == m_status )
-							{
-								++m_closed_chains;
-
-								// Since v.5.5.17 chain_closed handler must be
-								// used on chain_closed event.
-								if( const auto & handler = m_params.closed_handler() )
-									so_5::details::invoke_noexcept_code(
-										[&handler, current] {
-											handler( current->chain() );
-										} );
-							}
+						std::visit(
+								select_result_handler_t{ this, current },
+								current->try_handle( m_notificator ) );
 
 						update_can_continue_flag();
 					}
+			}
+
+		void
+		on_receive_result(
+			select_case_t * current,
+			const mchain_receive_result_t & result )
+			{
+				//FIXME: global status should be updated too.
+				m_status = result.status();
+
+				if( extraction_status_t::msg_extracted == result.status() )
+					{
+						m_extracted_messages += result.extracted();
+						m_handled_messages += result.handled();
+
+						// The mchain from 'current' can contain more
+						// messages. We should return this case to 'ready_chain'
+						// of the notificator.
+						m_notificator.return_to_ready_chain( *current );
+					}
+				else if( extraction_status_t::chain_closed == m_status )
+					{
+						++m_closed_chains;
+
+						// Since v.5.5.17 chain_closed handler must be
+						// used on chain_closed event.
+						if( const auto & handler = m_params.closed_handler() )
+							so_5::details::invoke_noexcept_code(
+								[&handler, current] {
+									handler( current->chain() );
+								} );
+					}
+			}
+
+		void
+		on_send_result(
+			select_case_t * /*current*/,
+			const mchain_send_result_t & /*result*/ )
+			{
+//FIXME: implement this!
 			}
 
 		void
@@ -1116,6 +1200,7 @@ perform_select(
 
 } /* namespace mchain_props */
 
+//FIXME: should be renamed into receive_case!
 //
 // case_
 //
@@ -1143,7 +1228,7 @@ case_(
 		using namespace mchain_props::details;
 
 		return select_case_unique_ptr_t{
-				new actual_select_case_t< sizeof...(handlers) >{
+				new actual_receive_select_case_t< sizeof...(handlers) >{
 						std::move(chain),
 						std::forward< Handlers >(handlers)... } };
 	}

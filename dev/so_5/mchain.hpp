@@ -390,6 +390,28 @@ enum class extraction_status_t
 	};
 
 //
+// store_status_t
+//
+/*!
+ * \brief Result of attempt of storing a message into a message chain.
+ *
+ * \since
+ * v.5.7.0
+ */
+enum class store_status_t
+	{
+		//! Message wasn't stored.
+		not_stored,
+		//! Message stored into a message chain.
+		stored,
+		//! Message is not stored but the store operation is registered
+		//! into a message chain.
+		deffered,
+		//! Message wasn't stored because chain is closed.
+		chain_closed
+	};
+
+//
 // close_mode_t
 //
 /*!
@@ -817,15 +839,67 @@ class mchain_receive_result_t
 			{}
 
 		//! Count of extracted messages.
+		[[nodiscard]]
 		std::size_t
 		extracted() const noexcept { return m_extracted; }
 
 		//! Count of handled messages.
+		[[nodiscard]]
 		std::size_t
 		handled() const noexcept { return m_handled; }
 
 		//! Extraction status (e.g. no messages, chain closed and so on).
+		[[nodiscard]]
 		mchain_props::extraction_status_t
+		status() const noexcept { return m_status; }
+	};
+
+//
+// mchain_send_result_t
+//
+/*!
+ * \brief A result of attempt of sending messages to a message chain.
+ *
+ * This type plays the same role as mchain_receive_result_t but is used
+ * for send operations.
+ *
+ * \since
+ * v.5.7.0
+ */
+class mchain_send_result_t
+	{
+		//! Count of messages sent.
+		std::size_t m_sent;
+
+		//! The status of send operation.
+		mchain_props::store_status_t m_status;
+
+	public:
+		//! Default constructor.
+		/*!
+		 * Sets store_status_t::not_stored status.
+		 */
+		mchain_send_result_t() noexcept
+			:	m_sent{ 0u }
+			,	m_status{ mchain_props::store_status_t::not_stored }
+			{}
+
+		//! Initializing constructor.
+		mchain_send_result_t(
+			std::size_t sent,
+			mchain_props::store_status_t status )
+			:	m_sent{ sent }
+			,	m_status{ status }
+			{}
+			
+		//! Count of messages sent.
+		[[nodiscard]]
+		std::size_t
+		sent() const noexcept { return m_sent; }
+
+		//! Status of send operation.
+		[[nodiscard]]
+		mchain_props::store_status_t
 		status() const noexcept { return m_status; }
 	};
 

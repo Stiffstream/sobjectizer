@@ -16,6 +16,7 @@
 #include <so_5/mchain.hpp>
 
 #include <memory>
+#include <variant>
 
 namespace so_5 {
 
@@ -62,10 +63,11 @@ public :
  */
 class select_case_t
 	{
-	private :
+	protected :
 		//! Message chain to receive message from.
 		mchain_t m_chain;
 
+		//FIXME: fix the content of this comment.
 		//! Notificator to be used for notify sleeping thread.
 		/*!
 		 * Can be null. It means that select_case is not used in
@@ -99,7 +101,20 @@ class select_case_t
 		 */
 		select_case_t * m_next = nullptr;
 
+		//FIXME: document this!
+		[[nodiscard]]
+		auto
+		extract( demand_t & demand )
+			{
+				return m_chain->extract( demand, *this );
+			}
+
 	public :
+		//! The result of attempt of handling this case.
+		using handling_result_t = std::variant<
+				so_5::mchain_receive_result_t,
+				so_5::mchain_send_result_t >;
+
 		//! Initialized constructor.
 		select_case_t(
 			//! Message chain for that this select_case is created.
@@ -117,6 +132,7 @@ class select_case_t
 		/*!
 		 * \sa select_case_t::m_next
 		 */
+		[[nodiscard]]
 		select_case_t *
 		query_next() const noexcept
 			{
@@ -131,6 +147,7 @@ class select_case_t
 		 *
 		 * \sa select_case_t::m_next.
 		 */
+		[[nodiscard]]
 		select_case_t *
 		giveout_next() noexcept
 			{
@@ -191,52 +208,22 @@ class select_case_t
 					}
 			}
 
-		//! An attempt to extract and handle a message from mchain.
-		/*!
-		 * \note This method returns immediately if mchain is empty.
-		 * In this case select_case object will stay in select_case queue
-		 * inside mchain.
-		 */
-		mchain_receive_result_t
-		try_receive( select_notificator_t & notificator )
-			{
-				// Please note that value of m_notificator will be
-				// returned to nullptr if a message extracted or
-				// channel is closed.
-				m_notificator = &notificator;
-
-				demand_t demand;
-				const auto status = m_chain->extract( demand, *this );
-				// Notificator pointer must retain its value only if
-				// there is no messages in mchain.
-				// In other cases this pointer must be dropped.
-				if( extraction_status_t::no_messages != status )
-					m_notificator = nullptr;
-
-				if( extraction_status_t::msg_extracted == status )
-					return try_handle_extracted_message( demand );
-
-				return mchain_receive_result_t{ 0u, 0u, status };
-			}
+		//! An attempt to handle this case.
+		[[nodiscard]]
+		virtual handling_result_t
+		try_handle( select_notificator_t & notificator ) = 0;
 
 		//! Get the underlying mchain.
 		/*!
 		 * \since
 		 * v.5.5.17
 		 */
+		[[nodiscard]]
 		const mchain_t &
 		chain() const noexcept
 			{
 				return m_chain;
 			}
-
-	protected :
-		//! Attempt to handle extracted message.
-		/*!
-		 * This method will be overriden in derived classes.
-		 */
-		virtual mchain_receive_result_t
-		try_handle_extracted_message( demand_t & demand ) = 0;
 	};
 
 //
