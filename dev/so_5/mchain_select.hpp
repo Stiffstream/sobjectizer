@@ -36,6 +36,111 @@ using adv_select_data_t = bulk_processing_basic_data_t;
 
 } /* namespace mchain_props */
 
+//
+// mchain_select_result_t
+//
+/*!
+ * \since
+ * v.5.7.0
+ *
+ * \brief A result of select from several mchains.
+ */
+class mchain_select_result_t
+	{
+		//! Count of extracted incoming messages.
+		std::size_t m_extracted;
+		//! Count of handled incoming messages.
+		std::size_t m_handled;
+		//! Count of messages sent.
+		std::size_t m_sent;
+		//! Count of closed chains.
+		std::size_t m_closed;
+
+	public :
+		//! Default constructor.
+		mchain_select_result_t() noexcept
+			:	m_extracted{ 0u }
+			,	m_handled{ 0u }
+			,	m_sent{ 0u }
+			,	m_closed{ 0u }
+			{}
+
+		//! Initializing constructor.
+		mchain_select_result_t(
+			//! Count of extracted incoming messages.
+			std::size_t extracted,
+			//! Count of handled incoming messages.
+			std::size_t handled,
+			//! Count of messages sent.
+			std::size_t sent,
+			//! Count of closed chains.
+			std::size_t closed ) noexcept
+			:	m_extracted{ extracted }
+			,	m_handled{ handled }
+			,	m_sent{ sent }
+			,	m_closed{ closed }
+			{}
+
+		//! Count of extracted incoming messages.
+		[[nodiscard]]
+		std::size_t
+		extracted() const noexcept { return m_extracted; }
+
+		//! Count of handled incoming messages.
+		[[nodiscard]]
+		std::size_t
+		handled() const noexcept { return m_handled; }
+
+		//! Count of messages sent.
+		[[nodiscard]]
+		std::size_t
+		sent() const noexcept { return m_sent; }
+
+		//! Count of closed chains.
+		[[nodiscard]]
+		std::size_t
+		closed() const noexcept { return m_closed; }
+
+		/*!
+		 * \return true if extracted() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_extracted() const noexcept { return 0u != m_extracted; }
+
+		/*!
+		 * \return true if handled() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_handled() const noexcept { return 0u != m_handled; }
+
+		/*!
+		 * \return true if sent() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_sent() const noexcept { return 0u != m_sent; }
+
+		/*!
+		 * \return true if closed() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_closed() const noexcept { return 0u != m_closed; }
+
+//FIXME: should this method take closed() into the account?
+		/*!
+		 * \return true if nothing happened (no extracted messages, no
+		 * handled messages, no sent messages).
+		 */
+		[[nodiscard]]
+		bool
+		is_nothing_happened() const noexcept
+			{
+				return !was_extracted() && !was_handled() && !was_sent();
+			}
+	};
 
 //
 // mchain_select_params_t
@@ -971,8 +1076,12 @@ class select_actions_performer_t
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
-		extraction_status_t m_status;
-		bool m_can_continue = { true };
+		std::size_t m_sent_messages = 0;
+
+		extraction_status_t m_last_extraction_status =
+				extraction_status_t::no_messages;
+
+		bool m_can_continue = true;
 
 	public :
 		select_actions_performer_t(
@@ -994,7 +1103,7 @@ class select_actions_performer_t
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
 				if( !ready_chain )
 					{
-						m_status = extraction_status_t::no_messages;
+						m_last_extraction_status = extraction_status_t::no_messages;
 						update_can_continue_flag();
 					}
 				else
@@ -1002,21 +1111,19 @@ class select_actions_performer_t
 			}
 
 		extraction_status_t
-		last_status() const noexcept { return m_status; }
+		last_extraction_status() const noexcept { return m_last_extraction_status; }
 
 		bool
 		can_continue() const noexcept { return m_can_continue; }
 
-		mchain_receive_result_t
+		mchain_select_result_t
 		make_result() const noexcept
 			{
-				return mchain_receive_result_t{
+				return {
 						m_extracted_messages,
 						m_handled_messages,
-						m_extracted_messages ? extraction_status_t::msg_extracted :
-								( m_closed_chains == m_select_cases.size() ?
-								  	extraction_status_t::chain_closed :
-									extraction_status_t::no_messages )
+						m_sent_messages,
+						m_closed_chains,
 					};
 			}
 
@@ -1057,8 +1164,7 @@ class select_actions_performer_t
 			select_case_t * current,
 			const mchain_receive_result_t & result )
 			{
-				//FIXME: global status should be updated too.
-				m_status = result.status();
+				m_last_extraction_status = result.status();
 
 				if( extraction_status_t::msg_extracted == result.status() )
 					{
@@ -1070,7 +1176,7 @@ class select_actions_performer_t
 						// of the notificator.
 						m_notificator.return_to_ready_chain( *current );
 					}
-				else if( extraction_status_t::chain_closed == m_status )
+				else if( extraction_status_t::chain_closed == result.status() )
 					{
 						++m_closed_chains;
 
@@ -1089,6 +1195,9 @@ class select_actions_performer_t
 			select_case_t * /*current*/,
 			const mchain_send_result_t & /*result*/ )
 			{
+				// No extracted messages for that case.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
 //FIXME: implement this!
 			}
 
@@ -1110,6 +1219,8 @@ class select_actions_performer_t
 					if( m_params.stop_on() && m_params.stop_on()() )
 						return false;
 
+//FIXME: check for the m_sent_messages value should be placed here.
+
 					return true;
 				};
 
@@ -1118,7 +1229,7 @@ class select_actions_performer_t
 	};
 
 template< typename Holder >
-mchain_receive_result_t
+mchain_select_result_t
 do_adv_select_with_total_time(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
@@ -1139,7 +1250,7 @@ do_adv_select_with_total_time(
 	}
 
 template< typename Holder >
-mchain_receive_result_t
+mchain_select_result_t
 do_adv_select_without_total_time(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
@@ -1152,7 +1263,8 @@ do_adv_select_without_total_time(
 		do
 			{
 				performer.handle_next( wait_time.remaining() );
-				if( extraction_status_t::msg_extracted == performer.last_status() )
+				if( extraction_status_t::msg_extracted ==
+						performer.last_extraction_status() )
 					// Becase some message extracted we must restart wait_time
 					// counting.
 					wait_time = remaining_time_counter_t{ params.empty_timeout() };
@@ -1183,7 +1295,7 @@ do_adv_select_without_total_time(
  * v.5.5.17
  */
 template< typename Cases_Holder >
-mchain_receive_result_t
+mchain_select_result_t
 perform_select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
@@ -1323,7 +1435,7 @@ case_(
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >
-mchain_receive_result_t
+mchain_select_result_t
 select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t< Msg_Count_Status > & params,
@@ -1561,7 +1673,7 @@ prepare_select(
  * v.5.5.17
  */
 template< std::size_t Cases_Count >
-mchain_receive_result_t
+mchain_select_result_t
 select(
 	const prepared_select_t< Cases_Count > & prepared )
 	{
@@ -1817,7 +1929,7 @@ add_select_cases(
  * \since
  * v.5.6.1
  */
-inline mchain_receive_result_t
+inline mchain_select_result_t
 select(
 	const extensible_select_t & extensible_select )
 	{

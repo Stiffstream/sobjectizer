@@ -100,8 +100,7 @@ main()
 								} )
 							);
 
-					if( so_5::mchain_props::extraction_status_t::chain_closed ==
-							r.status() )
+					if( !r.was_handled() )
 						break;
 				}
 

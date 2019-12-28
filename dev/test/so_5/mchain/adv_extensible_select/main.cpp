@@ -27,8 +27,6 @@ do_check_on_empty_cases_list( const so_5::mchain_t & chain )
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
 	UT_CHECK_CONDITION( 0 == r.handled() );
-	UT_CHECK_CONDITION(
-			so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
 }
 
 UT_UNIT_TEST( test_empty_cases_list )
@@ -62,8 +60,6 @@ do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 		auto r = select( sel );
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::no_messages == r.status() );
 	} };
 
 	child.join();
@@ -105,8 +101,6 @@ do_check_total_time( const so_5::mchain_t & chain )
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
 	} };
 
 	child.join();
