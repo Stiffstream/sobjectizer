@@ -478,10 +478,9 @@ class mchain_template
 							}
 					}
 
-				// If queue is empty now and there is any multi chain select
-				// than select_tail must be handled.
-				if( m_queue.is_empty() )
-					notify_multi_chain_select_ops();
+				// Since v.5.7.0 select operations must be notified
+				// always, even if the mchain is not empty.
+				notify_multi_chain_select_ops();
 
 				if( m_threads_to_wakeup )
 					// Someone is waiting on empty chain for new messages.

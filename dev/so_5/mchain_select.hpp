@@ -1591,7 +1591,7 @@ send_case(
 		return select_case_unique_ptr_t{
 				new select_case_type{
 						std::move(chain),
-						message_holder_t<Msg>::subscription_type_index(),
+						message_payload_type<Msg>::subscription_type_index(),
 						msg.make_reference(),
 						std::forward< On_Success_Handler >(handler)
 				}
