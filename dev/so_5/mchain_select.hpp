@@ -241,6 +241,7 @@ class receive_select_case_t : public select_case_t
 				// channel is closed.
 				m_notificator = &notificator;
 
+//FIXME: which value should have m_notificator if extract(demand) throws?
 				demand_t demand;
 				const auto status = extract( demand );
 				// Notificator pointer must retain its value only if
@@ -1031,6 +1032,7 @@ class actual_select_notificator_t : public select_notificator_t
 		 * \return nullptr if there is no notified select_cases after
 		 * waiting for \a wait_time.
 		 */
+		[[nodiscard]]
 		select_case_t *
 		wait(
 			//! Maximum waiting time for notified select_case.
