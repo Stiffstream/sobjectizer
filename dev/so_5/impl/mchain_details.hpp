@@ -394,6 +394,7 @@ class mchain_template
 			agent_t & /*subscriber*/ ) noexcept override
 			{}
 
+		[[nodiscard]]
 		extraction_status_t
 		extract(
 			demand_t & dest,
@@ -500,6 +501,7 @@ class mchain_template
 			}
 
 	protected :
+		[[nodiscard]]
 		extraction_status_t
 		extract(
 			demand_t & dest,
@@ -522,6 +524,45 @@ class mchain_template
 					}
 				else
 					return extract_demand_from_not_empty_queue( dest );
+			}
+
+		[[nodiscard]]
+		mchain_props::push_status_t
+		push(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			mchain_props::select_case_t & select_case ) override
+			{
+				typename Tracing_Base::deliver_op_tracer tracer{
+						*this, // as tracing base.
+						*this, // as chain.
+						msg_type,
+						message };
+
+				std::unique_lock< std::mutex > lock{ m_lock };
+
+				// Message cannot be stored to closed chain.
+				if( details::status::closed == m_status )
+					return mchain_props::push_status_t::chain_closed;
+
+				if( m_queue.is_full() )
+					{
+						// The select_case should be stored until there will
+						// be a free space in the chain (or chain will be closed).
+						select_case.set_next( m_select_tail );
+						m_select_tail = &select_case;
+
+						return mchain_props::push_status_t::deffered;
+					}
+				else
+					{
+						// Just store a new message to the queue.
+						complete_store_message_to_queue(
+								tracer,
+								msg_type,
+								message );
+						return mchain_props::push_status_t::stored;
+					}
 			}
 
 		void
@@ -798,7 +839,13 @@ class mchain_template
 				this->trace_extracted_demand( *this, dest );
 
 				if( queue_was_full )
-					m_overflow_cond.notify_all();
+					{
+						// Since v.5.7.0 waiting select_cases should be
+						// notified too because they are send_cases.
+						notify_multi_chain_select_ops();
+
+						m_overflow_cond.notify_all();
+					}
 
 				return extraction_status_t::msg_extracted;
 			}
@@ -823,7 +870,7 @@ class mchain_template
 		 * last part of storing a message into chain.
 		 *
 		 * \note
-		 * Intented to be called from try_to_store_message_to_queue()
+		 * Intended to be called from try_to_store_message_to_queue()
 		 * and try_to_store_message_from_timer_to_queue().
 		 *
 		 * \since

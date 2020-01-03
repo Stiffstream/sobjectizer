@@ -267,6 +267,69 @@ class receive_select_case_t : public select_case_t
 	};
 
 //
+// send_select_case_t
+//
+//FIXME: document this!
+/*!
+ *
+ * \since
+ * v.5.7.0
+ */
+class send_select_case_t : public select_case_t
+	{
+	private :
+		//! Type of message to be sent.
+		std::type_index m_msg_type;
+		//! Message to be sent.
+		message_ref_t m_message;
+
+	public :
+		//! Initializing constructor.
+		send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message )
+			:	select_case_t{ std::move(chain) }
+			,	m_msg_type{ std::move(msg_type) }
+			,	m_message{ std::move(message) }
+			{}
+
+		[[nodiscard]]
+		handling_result_t
+		try_handle( select_notificator_t & notificator ) override
+			{
+				// Please note that value of m_notificator will be
+				// returned to nullptr if a message stored into the mchain
+				// or channel is closed.
+				m_notificator = &notificator;
+
+//FIXME: which value should have m_notificator if push() throws?
+				const auto status = push( m_msg_type, m_message );
+				// Notificator pointer must retain its value only if
+				// message is deffered.
+				// In other cases this pointer must be dropped.
+				if( push_status_t::deffered != status )
+					m_notificator = nullptr;
+
+				if( push_status_t::stored == status )
+					on_successful_push();
+
+				return mchain_send_result_t{
+						push_status_t::stored == status ? 1u : 0u,
+						status
+					};
+			}
+
+	protected :
+		//! Hook for handling successful push attempt.
+		/*!
+		 * This method will be overriden in derived classes.
+		 */
+		virtual void
+		on_successful_push() = 0;
+	};
+
+//
 // actual_receive_select_case_t
 //
 /*!
@@ -313,6 +376,53 @@ class actual_receive_select_case_t : public receive_select_case_t
 						1u,
 						handled ? 1u : 0u,
 						extraction_status_t::msg_extracted };
+			}
+	};
+
+//
+// actual_send_select_case_t
+//
+//FIXME: document this!
+/*!
+ *
+ * \since
+ * v.5.7.0
+ */
+template< typename On_Success_Handler >
+class actual_send_select_case_t : public send_select_case_t
+	{
+	private :
+		//! Actual handler of successful send attempt.
+		On_Success_Handler m_success_handler;
+
+	public :
+		//! Initializing constructor for the case when success_handler is a const lvalue
+		actual_send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message,
+			const On_Success_Handler & success_handler )
+			:	send_select_case_t{
+					std::move(chain), std::move(msg_type), std::move(message) }
+			,	m_success_handler{ success_handler }
+			{}
+
+		//! Initializing constructor for the case when success_handler is a rvalue.
+		actual_send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message,
+			On_Success_Handler && success_handler )
+			:	send_select_case_t{
+					std::move(chain), std::move(msg_type), std::move(message) }
+			,	m_success_handler{ std::move(success_handler) }
+			{}
+
+	protected :
+		void
+		on_successful_push() override
+			{
+				m_success_handler();
 			}
 	};
 
@@ -1052,6 +1162,71 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 	};
 
+//
+// successful_send_attempt_info_t
+//
+//FIXME: document this!
+struct successful_send_attempt_info_t
+	{
+		std::size_t m_sent_messages;
+	};
+
+//
+// failed_send_attempt_info_t
+//
+//FIXME: document this!
+struct failed_send_attempt_info_t
+	{
+		push_status_t m_status;
+	};
+
+//
+// unknown_send_attempt_info_t
+//
+//FIXME: document this!
+struct unknown_send_attempt_info_t {};
+
+//
+// send_attempt_result_t
+//
+//FIXME: document this!
+using send_attempt_result_t = std::variant<
+		unknown_send_attempt_info_t,
+		successful_send_attempt_info_t,
+		failed_send_attempt_info_t >;
+
+//
+// can_select_be_continued
+//
+//FIXME: document this!
+[[nodiscard]]
+inline bool
+can_select_be_continued( const send_attempt_result_t & result ) noexcept
+	{
+		struct visitor_t
+			{
+				[[nodiscard]] bool
+				operator()( const unknown_send_attempt_info_t & ) const noexcept
+					{
+						return true;
+					}
+
+				[[nodiscard]] bool
+				operator()( const successful_send_attempt_info_t & ) const noexcept
+					{
+						return false;
+					}
+
+				[[nodiscard]] bool
+				operator()( const failed_send_attempt_info_t & ) const noexcept
+					{
+						return false;
+					}
+			};
+
+		return std::visit( visitor_t{}, result );
+	}
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
@@ -1078,7 +1253,8 @@ class select_actions_performer_t
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
-		std::size_t m_sent_messages = 0;
+
+		send_attempt_result_t m_send_result{ unknown_send_attempt_info_t{} };
 
 		extraction_status_t m_last_extraction_status =
 				extraction_status_t::no_messages;
@@ -1124,7 +1300,7 @@ class select_actions_performer_t
 				return {
 						m_extracted_messages,
 						m_handled_messages,
-						m_sent_messages,
+						detect_sent_messages_count(),
 						m_closed_chains,
 					};
 			}
@@ -1180,27 +1356,51 @@ class select_actions_performer_t
 					}
 				else if( extraction_status_t::chain_closed == result.status() )
 					{
-						++m_closed_chains;
-
-						// Since v.5.5.17 chain_closed handler must be
-						// used on chain_closed event.
-						if( const auto & handler = m_params.closed_handler() )
-							so_5::details::invoke_noexcept_code(
-								[&handler, current] {
-									handler( current->chain() );
-								} );
+						react_on_closed_chain( current );
 					}
 			}
 
 		void
 		on_send_result(
-			select_case_t * /*current*/,
-			const mchain_send_result_t & /*result*/ )
+			select_case_t * current,
+			const mchain_send_result_t & result )
 			{
 				// No extracted messages for that case.
 				m_last_extraction_status = extraction_status_t::no_messages;
 
-//FIXME: implement this!
+				switch( result.status() )
+					{
+					case push_status_t::stored :
+						m_send_result = successful_send_attempt_info_t{ result.sent() };
+					break;
+
+					case push_status_t::deffered :
+						// Nothing to do. Another attempt could be performed later.
+					break;
+
+					case push_status_t::not_stored :
+						m_send_result = failed_send_attempt_info_t{ result.status() };
+					break;
+
+					case push_status_t::chain_closed :
+						m_send_result = failed_send_attempt_info_t{ result.status() };
+						react_on_closed_chain( current );
+					break;
+					}
+			}
+
+		void
+		react_on_closed_chain( select_case_t * current )
+			{
+				++m_closed_chains;
+
+				// Since v.5.5.17 chain_closed handler must be
+				// used on chain_closed event.
+				if( const auto & handler = m_params.closed_handler() )
+					so_5::details::invoke_noexcept_code(
+						[&handler, current] {
+							handler( current->chain() );
+						} );
 			}
 
 		void
@@ -1221,12 +1421,21 @@ class select_actions_performer_t
 					if( m_params.stop_on() && m_params.stop_on()() )
 						return false;
 
-//FIXME: check for the m_sent_messages value should be placed here.
-
-					return true;
+					return can_select_be_continued( m_send_result );
 				};
 
 				m_can_continue = fn();
+			}
+
+		[[nodiscard]]
+		std::size_t
+		detect_sent_messages_count() const noexcept
+			{
+				if( const auto * p = std::get_if< successful_send_attempt_info_t >(
+						&m_send_result ) )
+					return p->m_sent_messages;
+				else
+					return 0u;
 			}
 	};
 
@@ -1331,6 +1540,7 @@ perform_select(
  * v.5.5.16
  */
 template< typename... Handlers >
+[[nodiscard]]
 mchain_props::select_case_unique_ptr_t
 case_(
 	//! Message chain to be used in select.
@@ -1345,6 +1555,47 @@ case_(
 				new actual_receive_select_case_t< sizeof...(handlers) >{
 						std::move(chain),
 						std::forward< Handlers >(handlers)... } };
+	}
+
+//
+// send_case
+//
+/*!
+ * \brief A helper for creation of select_case object for one send-case
+ * of a multi chain select.
+ *
+ * \sa so_5::select()
+ *
+ * \since
+ * v.5.7.0
+ */
+template<
+	typename Msg,
+	message_ownership_t Ownership,
+	typename On_Success_Handler >
+[[nodiscard]]
+mchain_props::select_case_unique_ptr_t
+send_case(
+	//! Message chain to be used in select.
+	mchain_t chain,
+	//! Message instance to be sent.
+	message_holder_t< Msg, Ownership > msg,
+	On_Success_Handler && handler )
+	{
+		using namespace mchain_props;
+		using namespace mchain_props::details;
+
+		using actual_handler_type = std::decay_t<On_Success_Handler>;
+		using select_case_type = actual_send_select_case_t<actual_handler_type>;
+
+		return select_case_unique_ptr_t{
+				new select_case_type{
+						std::move(chain),
+						message_holder_t<Msg>::subscription_type_index(),
+						msg.make_reference(),
+						std::forward< On_Success_Handler >(handler)
+				}
+			};
 	}
 
 /*!

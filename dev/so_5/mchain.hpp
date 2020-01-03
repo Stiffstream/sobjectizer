@@ -390,15 +390,15 @@ enum class extraction_status_t
 	};
 
 //
-// store_status_t
+// push_status_t
 //
 /*!
- * \brief Result of attempt of storing a message into a message chain.
+ * \brief Result of attempt of pushing a message into a message chain.
  *
  * \since
  * v.5.7.0
  */
-enum class store_status_t
+enum class push_status_t
 	{
 		//! Message wasn't stored.
 		not_stored,
@@ -476,6 +476,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		using abstract_message_box_t::id;
 		using abstract_message_box_t::environment;
 
+		[[nodiscard]]
 		virtual mchain_props::extraction_status_t
 		extract(
 			//! Destination for extracted messages.
@@ -513,11 +514,23 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 * \since
 		 * v.5.5.16
 		 */
+		[[nodiscard]]
 		virtual mchain_props::extraction_status_t
 		extract(
 			//! Destination for extracted messages.
 			mchain_props::demand_t & dest,
 			//! Select case to be stored for notification if mchain is empty.
+			mchain_props::select_case_t & select_case ) = 0;
+
+		//FIXME: document this!
+		[[nodiscard]]
+		virtual mchain_props::push_status_t
+		push(
+			//! Type of message/signal to be pushed.
+			const std::type_index & msg_type,
+			//! Message/signal to be pushed.
+			const message_ref_t & message,
+			//! Select case to be stored for notification if mchain is full.
 			mchain_props::select_case_t & select_case ) = 0;
 
 		/*!
@@ -872,22 +885,22 @@ class mchain_send_result_t
 		std::size_t m_sent;
 
 		//! The status of send operation.
-		mchain_props::store_status_t m_status;
+		mchain_props::push_status_t m_status;
 
 	public:
 		//! Default constructor.
 		/*!
-		 * Sets store_status_t::not_stored status.
+		 * Sets push_status_t::not_stored status.
 		 */
 		mchain_send_result_t() noexcept
 			:	m_sent{ 0u }
-			,	m_status{ mchain_props::store_status_t::not_stored }
+			,	m_status{ mchain_props::push_status_t::not_stored }
 			{}
 
 		//! Initializing constructor.
 		mchain_send_result_t(
 			std::size_t sent,
-			mchain_props::store_status_t status )
+			mchain_props::push_status_t status )
 			:	m_sent{ sent }
 			,	m_status{ status }
 			{}
@@ -899,7 +912,7 @@ class mchain_send_result_t
 
 		//! Status of send operation.
 		[[nodiscard]]
-		mchain_props::store_status_t
+		mchain_props::push_status_t
 		status() const noexcept { return m_status; }
 	};
 

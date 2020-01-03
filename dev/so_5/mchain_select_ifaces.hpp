@@ -109,6 +109,18 @@ class select_case_t
 				return m_chain->extract( demand, *this );
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		auto
+		push(
+			//! Type of message/signal to be pushed.
+			const std::type_index & msg_type,
+			//! Message/signal to be pushed.
+			const message_ref_t & message )
+			{
+				return m_chain->push( msg_type, message, *this );
+			}
+
 	public :
 		//! The result of attempt of handling this case.
 		using handling_result_t = std::variant<
