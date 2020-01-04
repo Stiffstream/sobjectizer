@@ -25,7 +25,7 @@ void fibonacci( mchain_t values_ch, mchain_t quit_ch )
 						auto old_x = x;
 						x = y; y = old_x + y;
 					} ),
-			case_( quit_ch, [](quit){} ) );
+			receive_case( quit_ch, [](quit){} ) );
 	}
 	while( r.was_sent() && !r.was_handled() );
 }

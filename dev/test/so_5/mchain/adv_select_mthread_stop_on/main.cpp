@@ -33,7 +33,7 @@ worker_thread(
 			so_5::from_all()
 					.handle_all()
 					.stop_on( [&odd_found]{ return odd_found; } ),
-			case_( test_ch,
+			receive_case( test_ch,
 					[&r, &odd_found]( unsigned int v ) {
 						++r.m_values;
 						odd_found = 0 != (v & 1);

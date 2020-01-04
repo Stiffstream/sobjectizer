@@ -1523,9 +1523,8 @@ perform_select(
 
 } /* namespace mchain_props */
 
-//FIXME: should be renamed into receive_case!
 //
-// case_
+// receive_case
 //
 /*!
  * \brief A helper for creation of select_case object for one multi chain
@@ -1542,7 +1541,7 @@ perform_select(
 template< typename... Handlers >
 [[nodiscard]]
 mchain_props::select_case_unique_ptr_t
-case_(
+receive_case(
 	//! Message chain to be used in select.
 	mchain_t chain,
 	//! Message handlers for messages extracted from that chain.
@@ -1623,10 +1622,10 @@ send_case(
 	// A return from select will be after handling of 3 messages or
 	// if all mchains are closed explicitely.
 	select( from_all().handle_n( 3 ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1638,10 +1637,10 @@ send_case(
 	// if all mchains are closed explicitely, or if there is no messages
 	// for more than 200ms.
 	select( from_all().handle_n( 3 ).empty_timeout( milliseconds(200) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1651,10 +1650,10 @@ send_case(
 	// A return from select will be after explicit close of all mchains
 	// or if there is no messages for more than 500ms.
 	select( from_all().handle_all().empty_timeout( milliseconds(500) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1662,10 +1661,10 @@ send_case(
 	// Receve any number of messages from mchains but do waiting and
 	// handling for no more than 2s.
 	select( from_all().handle_all().total_time( seconds(2) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1673,10 +1672,10 @@ send_case(
 	// Receve 1000 messages from chains but do waiting and
 	// handling for no more than 2s.
 	select( from_all().extract_n( 1000 ).total_time( seconds(2) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1721,8 +1720,8 @@ select(
  * \code
 	auto prepared = so_5::prepare_select(
 		so_5::from_all().handle_n(10).empty_timeout(10s),
-		case_( ch1, some_handlers... ),
-		case_( ch2, more_handlers... ), ... );
+		receive_case( ch1, some_handlers... ),
+		receive_case( ch2, more_handlers... ), ... );
 	...
 	auto r = so_5::select( prepared );
  * \endcode
@@ -1846,10 +1845,10 @@ class prepared_select_t
 	// for more than 200ms.
 	auto prepared1 = prepare_select(
 		so_5::from_all().handle_n( 3 ).empty_timeout( milliseconds(200) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1860,10 +1859,10 @@ class prepared_select_t
 	// or if there is no messages for more than 500ms.
 	auto prepared2 = prepare_select(
 		so_5::from_all().handle_all().empty_timeout( milliseconds(500) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1906,9 +1905,9 @@ prepare_select(
  * \code
 	auto prepared = so_5::prepare_select(
 		so_5::from_all().extract_n(10).empty_timeout(200ms),
-		case_( ch1, some_handlers... ),
-		case_( ch2, more_handlers... ),
-		case_( ch3, yet_more_handlers... ) );
+		receive_case( ch1, some_handlers... ),
+		receive_case( ch2, more_handlers... ),
+		receive_case( ch3, yet_more_handlers... ) );
 	...
 	while( !some_condition )
 	{
@@ -2065,17 +2064,17 @@ class extensible_select_t
  * // Creation of extensible-select instance with initial set of cases.
  * auto sel = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(10),
- * 	case_(ch1, ...),
- * 	case_(ch2, ...));
+ * 	receive_case(ch1, ...),
+ * 	receive_case(ch2, ...));
  *
  * // Creation of extensible-select instance without initial set of cases.
  * auto sel2 = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(20));
  * // Cases should be added later.
- * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2, receive_case(ch1, ...));
  * so_5::add_select_cases(sel2,
- * 	case_(ch2, ...),
- * 	case_(ch3, ...));
+ * 	receive_case(ch2, ...),
+ * 	receive_case(ch3, ...));
  * \endcode
  *
  * \since
@@ -2120,10 +2119,10 @@ make_extensible_select(
  * auto sel2 = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(20));
  * // Cases should be added later.
- * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2, receive_case(ch1, ...));
  * so_5::add_select_cases(sel2,
- * 	case_(ch2, ...),
- * 	case_(ch3, ...));
+ * 	receive_case(ch2, ...),
+ * 	receive_case(ch3, ...));
  * \endcode
  *
  * \note
@@ -2165,7 +2164,7 @@ add_select_cases(
  * 	auto sel = so_5::make_extensible_select(so_5::from_all().handle_all());
  *
  * 	for(auto & ch : chains)
- * 		so_5::add_select_cases(case_(ch, ...));
+ * 		so_5::add_select_cases(receive_case(ch, ...));
  *
  * 	auto r = so_5::select(sel);
  * 	... // Handing of the select() result.

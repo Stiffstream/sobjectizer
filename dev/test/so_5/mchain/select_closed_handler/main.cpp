@@ -31,10 +31,10 @@ check_op(
 							if( 2 == chains_closed )
 								must_continue = false;
 						} ),
-					case_( ch1, [&ch1]( int v ) {
+					receive_case( ch1, [&ch1]( int v ) {
 							cout << "[" << ch1->id() << "]: received " << v << endl;
 						} ),
-					case_( ch2, [&ch2]( int v ) {
+					receive_case( ch2, [&ch2]( int v ) {
 							cout << "[" << ch2->id() << "]: received " << v << endl;
 						} ) );
 			}

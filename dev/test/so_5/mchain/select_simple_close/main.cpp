@@ -40,9 +40,9 @@ main()
 					std::thread second{ [ch1, ch2, ch3, ready]{
 						so_5::send< second_started >( ready );
 						so_5::select( so_5::from_all().handle_n(1),
-							case_( ch1, [](int) {} ),
-							case_( ch2, [](int) {} ),
-							case_( ch3, [](int) {} ) );
+							receive_case( ch1, [](int) {} ),
+							receive_case( ch2, [](int) {} ),
+							receive_case( ch3, [](int) {} ) );
 					} };
 
 					receive( from(ready).handle_n(1),

@@ -1289,8 +1289,8 @@ class mchain_bulk_processing_params_t
 		 * 				some_ch_closed = true;
 		 * 			})
 		 * 		.stop_on([&some_ch_closed]{ return some_ch_closed; }),
-		 * 	case_(ch1, ...)
-		 * 	case_(ch2, ...)
+		 * 	receive_case(ch1, ...)
+		 * 	receive_case(ch2, ...)
 		 * 	...);
 		 * \endcode
 		 *

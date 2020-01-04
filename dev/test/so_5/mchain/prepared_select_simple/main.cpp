@@ -40,13 +40,13 @@ main()
 
 					auto r = select( so_5::prepare_select(
 							so_5::from_all().extract_n( 1 ).no_wait_on_empty(),
-							case_( ch1, []( hello ) {
+							receive_case( ch1, []( hello ) {
 									throw std::runtime_error( "hello from ch1!" );
 								} ),
-							case_( ch2, [&hello_received]( hello ) {
+							receive_case( ch2, [&hello_received]( hello ) {
 									hello_received = true;
 								} ),
-							case_( ch3, []( hello ) {
+							receive_case( ch3, []( hello ) {
 									throw std::runtime_error( "hello from ch3!" );
 								} )
 							) );

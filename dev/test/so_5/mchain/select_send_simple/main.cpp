@@ -102,7 +102,7 @@ UT_UNIT_TEST( send_with_receive )
 							[&send_successed] {
 								send_successed = true;
 							} ),
-					case_( ch2, [&ch1](hello) {
+					receive_case( ch2, [&ch1](hello) {
 								// Make free space in ch1.
 								so_5::receive(
 										so_5::from(ch1).handle_n(1).no_wait_on_empty(),
@@ -146,7 +146,7 @@ UT_UNIT_TEST( send_when_closed_drop_content )
 							[&send_successed] {
 								send_successed = true;
 							} ),
-					case_( ch2, [&ch1](hello) {
+					receive_case( ch2, [&ch1](hello) {
 								so_5::close_drop_content( ch1 );
 							} )
 				);
@@ -186,7 +186,7 @@ UT_UNIT_TEST( send_when_closed_retain_content )
 							[&send_successed] {
 								send_successed = true;
 							} ),
-					case_( ch2, [&ch1](hello) {
+					receive_case( ch2, [&ch1](hello) {
 								so_5::close_retain_content( ch1 );
 							} )
 				);
