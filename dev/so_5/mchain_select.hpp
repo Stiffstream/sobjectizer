@@ -1162,71 +1162,6 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 	};
 
-//
-// successful_send_attempt_info_t
-//
-//FIXME: document this!
-struct successful_send_attempt_info_t
-	{
-		std::size_t m_sent_messages;
-	};
-
-//
-// failed_send_attempt_info_t
-//
-//FIXME: document this!
-struct failed_send_attempt_info_t
-	{
-		push_status_t m_status;
-	};
-
-//
-// unknown_send_attempt_info_t
-//
-//FIXME: document this!
-struct unknown_send_attempt_info_t {};
-
-//
-// send_attempt_result_t
-//
-//FIXME: document this!
-using send_attempt_result_t = std::variant<
-		unknown_send_attempt_info_t,
-		successful_send_attempt_info_t,
-		failed_send_attempt_info_t >;
-
-//
-// can_select_be_continued
-//
-//FIXME: document this!
-[[nodiscard]]
-inline bool
-can_select_be_continued( const send_attempt_result_t & result ) noexcept
-	{
-		struct visitor_t
-			{
-				[[nodiscard]] bool
-				operator()( const unknown_send_attempt_info_t & ) const noexcept
-					{
-						return true;
-					}
-
-				[[nodiscard]] bool
-				operator()( const successful_send_attempt_info_t & ) const noexcept
-					{
-						return false;
-					}
-
-				[[nodiscard]] bool
-				operator()( const failed_send_attempt_info_t & ) const noexcept
-					{
-						return false;
-					}
-			};
-
-		return std::visit( visitor_t{}, result );
-	}
-
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
@@ -1253,8 +1188,10 @@ class select_actions_performer_t
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
+		std::size_t m_sent_messages = 0;
 
-		send_attempt_result_t m_send_result{ unknown_send_attempt_info_t{} };
+		//FIXME: document this.
+		std::size_t m_completed_send_cases = 0;
 
 		extraction_status_t m_last_extraction_status =
 				extraction_status_t::no_messages;
@@ -1300,7 +1237,7 @@ class select_actions_performer_t
 				return {
 						m_extracted_messages,
 						m_handled_messages,
-						detect_sent_messages_count(),
+						m_sent_messages,
 						m_closed_chains,
 					};
 			}
@@ -1371,7 +1308,8 @@ class select_actions_performer_t
 				switch( result.status() )
 					{
 					case push_status_t::stored :
-						m_send_result = successful_send_attempt_info_t{ result.sent() };
+						++m_completed_send_cases;
+						m_sent_messages += result.sent();
 					break;
 
 					case push_status_t::deffered :
@@ -1379,11 +1317,13 @@ class select_actions_performer_t
 					break;
 
 					case push_status_t::not_stored :
-						m_send_result = failed_send_attempt_info_t{ result.status() };
+						// Message wasn't sent but the send_case completed.
+						++m_completed_send_cases;
 					break;
 
 					case push_status_t::chain_closed :
-						m_send_result = failed_send_attempt_info_t{ result.status() };
+						// Message wasn't sent but the send_case completed.
+						++m_completed_send_cases;
 						react_on_closed_chain( current );
 					break;
 					}
@@ -1410,8 +1350,12 @@ class select_actions_performer_t
 					if( m_closed_chains == m_select_cases.size() )
 						return false;
 
+					if( m_completed_send_cases >= m_select_cases.size() )
+						return false;
+
 					if( m_params.to_handle() &&
-							m_handled_messages >= m_params.to_handle() )
+							(m_handled_messages + m_completed_send_cases >=
+							 		m_params.to_handle()) )
 						return false;
 
 					if( m_params.to_extract() &&
@@ -1421,21 +1365,10 @@ class select_actions_performer_t
 					if( m_params.stop_on() && m_params.stop_on()() )
 						return false;
 
-					return can_select_be_continued( m_send_result );
+					return true;
 				};
 
 				m_can_continue = fn();
-			}
-
-		[[nodiscard]]
-		std::size_t
-		detect_sent_messages_count() const noexcept
-			{
-				if( const auto * p = std::get_if< successful_send_attempt_info_t >(
-						&m_send_result ) )
-					return p->m_sent_messages;
-				else
-					return 0u;
 			}
 	};
 
