@@ -51,6 +51,7 @@ add_subdirectory(state_deep_history)
 add_subdirectory(adv_thread_pool_fifo)
 
 add_subdirectory(mchain_select)
+add_subdirectory(mchain_fibonacci)
 
 add_subdirectory(wrapped_env_demo_3)
 

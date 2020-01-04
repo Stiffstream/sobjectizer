@@ -57,6 +57,7 @@ MxxRu::Cpp::composite_target {
 	example[ 'adv_thread_pool_fifo' ]
 
 	example[ 'mchain_select' ]
+	example[ 'mchain_fibonacci' ]
 
 	example[ 'wrapped_env_demo_3' ]
 
