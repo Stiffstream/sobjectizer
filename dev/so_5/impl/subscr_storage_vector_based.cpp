@@ -61,7 +61,8 @@ class storage_t : public subscription_storage_t
 			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) override;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) override;
 
 		virtual void
 		drop_subscription(
@@ -164,7 +165,8 @@ storage_t::create_event_subscription(
 	const message_limit::control_block_t * limit,
 	const state_t & target_state,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety )
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind )
 	{
 		using namespace std;
 		using namespace subscription_storage_common;
@@ -183,7 +185,7 @@ storage_t::create_event_subscription(
 
 		// Just add subscription to the end.
 		m_events.emplace_back(
-				mbox, msg_type, target_state, method, thread_safety );
+				mbox, msg_type, target_state, method, thread_safety, handler_kind );
 
 		// Note: since v.5.5.9 mbox subscription is initiated even if
 		// it is MPSC mboxes. It is important for the case of message

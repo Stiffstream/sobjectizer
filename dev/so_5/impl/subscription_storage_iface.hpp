@@ -44,12 +44,20 @@ struct event_handler_data_t
 		event_handler_method_t m_method;
 		//! Is event handler thread safe or not.
 		thread_safety_t m_thread_safety;
+		//! Kind of this event handler.
+		/*!
+		 * \since
+		 * v.5.7.0
+		 */
+		event_handler_kind_t m_kind;
 
 		event_handler_data_t(
 			event_handler_method_t method,
-			thread_safety_t thread_safety )
+			thread_safety_t thread_safety,
+			event_handler_kind_t kind )
 			:	m_method( std::move( method ) )
 			,	m_thread_safety( thread_safety )
+			,	m_kind( kind )
 			{}
 	};
 
@@ -86,11 +94,12 @@ struct subscr_info_t
 			std::type_index msg_type,
 			const state_t & state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety )
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind )
 			:	m_mbox( std::move( mbox ) )
 			,	m_msg_type( std::move( msg_type ) )
 			,	m_state( &state )
-			,	m_handler( method, thread_safety )
+			,	m_handler( method, thread_safety, handler_kind )
 			{}
 	};
 
@@ -154,7 +163,8 @@ class subscription_storage_t
 			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) = 0;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) = 0;
 
 		virtual void
 		drop_subscription(

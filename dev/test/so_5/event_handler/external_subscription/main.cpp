@@ -82,7 +82,8 @@ class one_shot_subscription_t
 							sd.m_subscription_type,
 							*(sd.m_state),
 							sd.m_handler,
-							so_5::thread_safety_t::unsafe );
+							so_5::thread_safety_t::unsafe,
+							so_5::event_handler_kind_t::final_handler );
 			}
 
 	private :

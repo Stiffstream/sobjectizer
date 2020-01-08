@@ -48,16 +48,17 @@ class storage_t : public subscription_storage_t
 		storage_t( agent_t * owner );
 		~storage_t() override;
 
-		virtual void
+		void
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
 			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) override;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) override;
 
-		virtual void
+		void
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
@@ -213,7 +214,8 @@ storage_t::create_event_subscription(
 	const message_limit::control_block_t * limit,
 	const state_t & target_state,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety )
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind )
 	{
 		using namespace std;
 		using namespace subscription_storage_common;
@@ -236,7 +238,11 @@ storage_t::create_event_subscription(
 						key_t { mbox_id, msg_type, &target_state },
 						value_t {
 								mbox,
-								event_handler_data_t { method, thread_safety }
+								event_handler_data_t {
+										method,
+										thread_safety,
+										handler_kind
+								}
 						}
 				} );
 
@@ -397,7 +403,8 @@ storage_t::query_content() const
 									e.first.m_msg_type,
 									*(e.first.m_state),
 									e.second.m_handler.m_method,
-									e.second.m_handler.m_thread_safety );
+									e.second.m_handler.m_thread_safety,
+									e.second.m_handler.m_kind );
 						} );
 			}
 

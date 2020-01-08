@@ -130,5 +130,27 @@ enum class message_kind_t
  */
 using coop_id_t = std::uint_fast64_t;
 
+//
+// event_handler_kind_t
+//
+//FIXME: document this!
+/*!
+ *
+ * \since
+ * v.5.7.0
+ */
+enum class event_handler_kind_t : char
+	{
+		//! Ordinary, final event handler.
+		//! That event handler should take the payload from an eveloped message.
+		final_handler,
+		//! Intermediate event handler. 
+		//! Doesn't handle a message itself but delegates actual processing
+		//! to some other event handler. Or just skips the processing of
+		//! the message.
+		//! That event handler should take the whole envelope.
+		intermediate_handler
+	};
+
 } /* namespace so_5 */
 
