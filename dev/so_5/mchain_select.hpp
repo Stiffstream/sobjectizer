@@ -242,9 +242,21 @@ class receive_select_case_t : public select_case_t
 				// Please note that value of m_notificator will be
 				// returned to nullptr if a message extracted or
 				// channel is closed.
+				//
+				// NOTE: if extract() throws we don't know is the pointer
+				// to this select_case stored inside mchain or not.
+				// But is doesn't matter because in the case of an exception
+				// select operation will be aborted and on_select_finish()
+				// will be called for each select_case.
+				//
+				// But we don't reset m_notificator to nullptr in the case
+				// of an exception from extract(). It is for the case if
+				// mchain stores pointer to select_case and calls
+				// select_case's notify() method just before select operation
+				// is aborted (and on_select_finish() is called).
+				//
 				m_notificator = &notificator;
 
-//FIXME: which value should have m_notificator if extract(demand) throws?
 				demand_t demand;
 				const auto status = extract( demand );
 				// Notificator pointer must retain its value only if
@@ -309,9 +321,21 @@ class send_select_case_t : public select_case_t
 				// Please note that value of m_notificator will be
 				// returned to nullptr if a message stored into the mchain
 				// or channel is closed.
+				//
+				// NOTE: if push() throws we don't know is the pointer
+				// to this select_case stored inside mchain or not.
+				// But is doesn't matter because in the case of an exception
+				// select operation will be aborted and on_select_finish()
+				// will be called for each select_case.
+				//
+				// But we don't reset m_notificator to nullptr in the case
+				// of an exception from push(). It is for the case if
+				// mchain stores pointer to select_case and calls
+				// select_case's notify() method just before select operation
+				// is aborted (and on_select_finish() is called).
+				//
 				m_notificator = &notificator;
 
-//FIXME: which value should have m_notificator if push() throws?
 				const auto status = push( m_msg_type, m_message );
 				// Notificator pointer must retain its value only if
 				// message is deffered.
