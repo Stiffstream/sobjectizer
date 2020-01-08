@@ -110,7 +110,7 @@ class basic_message_holder_impl_t
 			}
 
 		//! Check for the emptiness of message_holder.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		empty() const noexcept
 			{
@@ -118,14 +118,14 @@ class basic_message_holder_impl_t
 			}
 
 		//! Check for the non-emptiness of message_holder.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		operator bool() const noexcept
 			{
 				return !this->empty();
 			}
 
 		//! Check for the emptiness of message_holder.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool operator!() const noexcept
 			{
 				return this->empty();
@@ -157,7 +157,7 @@ class shared_message_holder_impl_t
 		/*!
 		 * Returns empty smart pointer if message_holder is empty.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		intrusive_ptr_t< Envelope >
 		make_reference() const noexcept
 			{
@@ -207,7 +207,7 @@ class unique_message_holder_impl_t
 		 *
 		 * Leaves the message_holder instance empty.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		intrusive_ptr_t< Envelope >
 		make_reference() noexcept
 			{
@@ -283,7 +283,7 @@ class msg_accessors_t : public Base
 		 * \attention
 		 * Returns nullptr is message_holder is empty.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		Return_Type *
 		get() const noexcept
 			{
@@ -295,7 +295,7 @@ class msg_accessors_t : public Base
 		 * \attention
 		 * An attempt to use this method on empty message_holder is UB.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		Return_Type &
 		operator * () const noexcept { return *get(); }
 
@@ -304,7 +304,7 @@ class msg_accessors_t : public Base
 		 * \attention
 		 * An attempt to use this method on empty message_holder is UB.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		Return_Type *
 		operator->() const noexcept { return get(); }
 	};
@@ -643,7 +643,7 @@ class message_holder_t
 		 * \endcode
 		 */
 		template< typename... Args >
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static message_holder_t
 		make( Args && ...args )
 			{
@@ -653,7 +653,7 @@ class message_holder_t
 	private :
 		//! Create a new instance of message.
 		template< typename... Args >
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static intrusive_ptr_t< envelope_type >
 		make_msg_instance( Args && ...args )
 			{

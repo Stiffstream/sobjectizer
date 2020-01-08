@@ -656,14 +656,14 @@ using work_thread_with_activity_tracking_t =
  */
 struct adaptation_t
 	{
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static constexpr std::string_view
 		dispatcher_type_name() noexcept
 			{
 				return { "atp" }; // adv_thread_pool.
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static bool
 		is_individual_fifo( const bind_params_t & params ) noexcept
 			{

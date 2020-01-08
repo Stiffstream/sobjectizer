@@ -2124,7 +2124,7 @@ class SO_5_TYPE agent_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_handle_t
 		so_coop() const;
 

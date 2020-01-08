@@ -110,7 +110,7 @@ class SO_5_TYPE internal_env_iface_t
 		 * \since
 		 * v.5.5.24
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		event_queue_t *
 		event_queue_on_bind(
 			agent_t * agent,

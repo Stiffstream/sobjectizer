@@ -130,7 +130,7 @@ class dispatcher_handle_maker_t;
  *
  * \brief A handle for %prio_one_thread::strictly_ordered dispatcher.
  */
-class SO_5_NODISCARD dispatcher_handle_t
+class [[nodiscard]] dispatcher_handle_t
 	{
 		friend class impl::dispatcher_handle_maker_t;
 
@@ -149,7 +149,7 @@ class SO_5_NODISCARD dispatcher_handle_t
 		dispatcher_handle_t() noexcept = default;
 
 		//! Get a binder for that dispatcher.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		disp_binder_shptr_t
 		binder() const noexcept
 			{

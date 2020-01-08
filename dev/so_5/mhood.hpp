@@ -82,7 +82,7 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
-	SO_5_NODISCARD
+	[[nodiscard]]
 	intrusive_ptr_t< envelope_type >
 	make_reference() const noexcept
 		{
@@ -96,7 +96,7 @@ public :
 	 */
 	template<
 		message_ownership_t Ownership = message_ownership_t::autodetected >
-	SO_5_NODISCARD
+	[[nodiscard]]
 	message_holder_t< M, Ownership >
 	make_holder() const noexcept
 		{
@@ -176,7 +176,7 @@ public :
 	get() const noexcept { return m_msg; }
 
 	//! Create a smart pointer for the message envelope.
-	SO_5_NODISCARD
+	[[nodiscard]]
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
@@ -192,7 +192,7 @@ public :
 	 */
 	template<
 		message_ownership_t Ownership = message_ownership_t::autodetected >
-	SO_5_NODISCARD
+	[[nodiscard]]
 	message_holder_t< M, Ownership >
 	make_holder() noexcept
 		{
@@ -294,7 +294,7 @@ public :
 	 */
 	template<
 		message_ownership_t Ownership = message_ownership_t::autodetected >
-	SO_5_NODISCARD
+	[[nodiscard]]
 	message_holder_t< M, Ownership >
 	make_holder() const noexcept
 		{
@@ -375,7 +375,7 @@ public :
 	get() noexcept { return m_payload; }
 
 	//! Create a smart pointer for the message envelope.
-	SO_5_NODISCARD
+	[[nodiscard]]
 	intrusive_ptr_t< envelope_type >
 	make_reference() noexcept
 		{
@@ -394,7 +394,7 @@ public :
 	 */
 	template<
 		message_ownership_t Ownership = message_ownership_t::autodetected >
-	SO_5_NODISCARD
+	[[nodiscard]]
 	message_holder_t< M, Ownership >
 	make_holder() noexcept
 		{

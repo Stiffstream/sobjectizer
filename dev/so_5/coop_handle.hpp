@@ -161,7 +161,7 @@ namespace low_level_api
  * \since
  * v.5.6.0
  */
-SO_5_NODISCARD
+[[nodiscard]]
 inline coop_shptr_t
 to_shptr( const coop_handle_t & handle )
 	{
@@ -188,7 +188,7 @@ to_shptr( const coop_handle_t & handle )
  * \since
  * v.5.6.0
  */
-SO_5_NODISCARD
+[[nodiscard]]
 inline coop_shptr_t
 to_shptr_noexcept( const coop_handle_t & handle ) noexcept
 	{

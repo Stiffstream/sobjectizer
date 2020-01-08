@@ -76,7 +76,7 @@ namespace impl
 				}
 
 			template< typename... Args >
-			SO_5_NODISCARD static timer_id_t
+			[[nodiscard]] static timer_id_t
 			send_periodic(
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
@@ -117,7 +117,7 @@ namespace impl
 							pause );
 				}
 
-			SO_5_NODISCARD static timer_id_t
+			[[nodiscard]] static timer_id_t
 			send_periodic(
 				const so_5::mbox_t & to,
 				std::chrono::steady_clock::duration pause,
@@ -588,7 +588,7 @@ send_delayed(
  * v.5.5.19
  */
 template< typename Message, typename Target, typename... Args >
-SO_5_NODISCARD timer_id_t
+[[nodiscard]] timer_id_t
 send_periodic(
 	//! A destination for the periodic message.
 	Target && target,
@@ -677,7 +677,7 @@ send_periodic(
  * v.5.5.19
  */
 template< typename Target, typename Message >
-SO_5_NODISCARD typename std::enable_if< !is_signal< Message >::value, timer_id_t >::type
+[[nodiscard]] typename std::enable_if< !is_signal< Message >::value, timer_id_t >::type
 send_periodic(
 	//! A destination for the periodic message.
 	Target && target,
@@ -755,7 +755,7 @@ send_periodic(
  * v.5.5.19
  */
 template< typename Target, typename Message >
-SO_5_NODISCARD typename std::enable_if< is_signal< Message >::value, timer_id_t >::type
+[[nodiscard]] typename std::enable_if< is_signal< Message >::value, timer_id_t >::type
 send_periodic(
 	//! A destination for the periodic message.
 	Target && target,
@@ -809,7 +809,7 @@ template<
 	typename Target,
 	typename Message,
 	message_ownership_t Ownership >
-SO_5_NODISCARD timer_id_t
+[[nodiscard]] timer_id_t
 send_periodic(
 	//! A destination for the periodic message.
 	Target && target,

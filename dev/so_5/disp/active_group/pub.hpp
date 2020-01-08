@@ -129,7 +129,7 @@ class basic_dispatcher_iface_t
 	public :
 		virtual ~basic_dispatcher_iface_t() noexcept = default;
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual disp_binder_shptr_t
 		binder( nonempty_name_t group_name ) = 0;
 	};
@@ -151,7 +151,7 @@ class dispatcher_handle_maker_t;
  *
  * \brief A handle for %active_group dispatcher.
  */
-class SO_5_NODISCARD dispatcher_handle_t
+class [[nodiscard]] dispatcher_handle_t
 	{
 		friend class impl::dispatcher_handle_maker_t;
 
@@ -175,7 +175,7 @@ class SO_5_NODISCARD dispatcher_handle_t
 		 * \attention
 		 * An attempt to call this method on empty handle is UB.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		disp_binder_shptr_t
 		binder(
 			//! Name of group for a new agent.

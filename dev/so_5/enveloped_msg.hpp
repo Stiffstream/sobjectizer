@@ -57,7 +57,7 @@ class payload_info_t
 		 * \name Getters
 		 * \{
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		message_ref_t &
 		message() const noexcept { return m_message; }
 		/*!
@@ -224,7 +224,7 @@ class SO_5_TYPE envelope_t : public message_t
  * \since
  * v.5.5.23
  */
-SO_5_NODISCARD
+[[nodiscard]]
 SO_5_FUNC
 optional< payload_info_t >
 extract_payload_for_message_transformation(
@@ -249,7 +249,7 @@ extract_payload_for_message_transformation(
  * \since
  * v.5.5.23
  */
-SO_5_NODISCARD
+[[nodiscard]]
 SO_5_FUNC
 optional< message_ref_t >
 message_to_be_inspected(

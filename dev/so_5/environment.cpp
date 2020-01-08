@@ -207,7 +207,7 @@ ensure_locks_defaults_manager_exists(
 class default_event_queue_hook_t final : public event_queue_hook_t
 	{
 	public :
-		SO_5_NODISCARD
+		[[nodiscard]]
 		event_queue_t *
 		on_bind(
 			agent_t * /*agent*/,
@@ -231,7 +231,7 @@ class default_event_queue_hook_t final : public event_queue_hook_t
  * \since
  * v.5.5.24
  */
-SO_5_NODISCARD
+[[nodiscard]]
 event_queue_hook_unique_ptr_t
 ensure_event_queue_hook_exists(
 	//! The current value. Note: can be nullptr.
@@ -483,7 +483,7 @@ environment_t::install_exception_logger(
 	}
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 environment_t::make_coop()
 {
@@ -492,7 +492,7 @@ environment_t::make_coop()
 			so_make_default_disp_binder() );
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 environment_t::make_coop(
 	disp_binder_shptr_t disp_binder )
@@ -502,7 +502,7 @@ environment_t::make_coop(
 			std::move(disp_binder) );
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 environment_t::make_coop(
 	coop_handle_t parent )
@@ -512,7 +512,7 @@ environment_t::make_coop(
 			so_make_default_disp_binder() );
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 environment_t::make_coop(
 	coop_handle_t parent,
@@ -872,7 +872,7 @@ internal_env_iface_t::default_mpmc_queue_lock_factory() const
 			mpmc_queue_lock_factory();
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 event_queue_t *
 internal_env_iface_t::event_queue_on_bind(
 	agent_t * agent,

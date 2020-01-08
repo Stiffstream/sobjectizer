@@ -179,7 +179,7 @@ mt_env_infrastructure_t::stop()
 		m_coop_repo.start_deregistration();
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 mt_env_infrastructure_t::make_coop(
 	coop_handle_t parent,

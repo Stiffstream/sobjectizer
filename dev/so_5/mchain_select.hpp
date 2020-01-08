@@ -167,7 +167,7 @@ class mchain_select_params_t final
 		//! Make of clone with different Msg_Count_Status or return
 		//! a reference to the same object.
 		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		SO_5_NODISCARD
+		[[nodiscard]]
 		decltype(auto)
 		so5_clone_if_necessary() noexcept
 			{

@@ -82,7 +82,7 @@ public :
 		,	m_destroyed( 0u )
 	{}
 
-	SO_5_NODISCARD
+	[[nodiscard]]
 	so_5::event_queue_t *
 	on_bind(
 		so_5::agent_t * /*agent*/,
@@ -103,11 +103,11 @@ public :
 		delete queue;
 	}
 
-	SO_5_NODISCARD
+	[[nodiscard]]
 	std::size_t
 	created() const noexcept { return m_created.load(); }
 
-	SO_5_NODISCARD
+	[[nodiscard]]
 	std::size_t
 	destroyed() const noexcept { return m_destroyed.load(); }
 };

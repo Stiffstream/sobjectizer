@@ -690,7 +690,7 @@ agent_t::so_environment() const
 	return m_env;
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_handle_t
 agent_t::so_coop() const
 {

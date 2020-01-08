@@ -279,13 +279,13 @@ class env_infrastructure_t
 		virtual void
 		stop() override;
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder ) override;
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual coop_handle_t
 		register_coop(
 			coop_unique_holder_t coop ) override;

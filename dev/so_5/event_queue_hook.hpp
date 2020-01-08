@@ -76,7 +76,7 @@ class SO_5_TYPE event_queue_hook_t
 		 * This method can return \a original_queue or a pointer to
 		 * a different queue. The agent must use the value returned.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual event_queue_t *
 		on_bind(
 			//! An agent that is being bound to some event_queue.
@@ -213,7 +213,7 @@ make_event_queue_hook(
  * \since
  * v.5.5.24
  */
-SO_5_NODISCARD
+[[nodiscard]]
 inline event_queue_hook_unique_ptr_t
 make_empty_event_queue_hook_unique_ptr()
 	{

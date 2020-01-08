@@ -152,7 +152,7 @@ class SO_5_TYPE environment_infrastructure_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual coop_unique_holder_t
 		make_coop(
 			//! Optinal parent coop.
@@ -161,7 +161,7 @@ class SO_5_TYPE environment_infrastructure_t
 			disp_binder_shptr_t default_binder ) = 0;
 
 		//! Register new cooperation.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual coop_handle_t
 		register_coop(
 			//! Cooperation to be registered.

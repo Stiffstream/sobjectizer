@@ -67,7 +67,7 @@ public:
 	 * \since
 	 * v.5.6.0
 	 */
-	SO_5_NODISCARD
+	[[nodiscard]]
 	coop_unique_holder_t
 	make_coop(
 		//! Parent coop.
@@ -77,7 +77,7 @@ public:
 		disp_binder_shptr_t default_binder );
 
 	//! Register cooperation.
-	SO_5_NODISCARD
+	[[nodiscard]]
 	coop_handle_t
 	register_coop(
 		//! Cooperation to be registered.
@@ -94,7 +94,7 @@ public:
 	 * \since
 	 * v.5.5.19
 	 */
-	struct SO_5_NODISCARD final_deregistration_result_t
+	struct [[nodiscard]] final_deregistration_result_t
 		{
 			bool m_has_live_coop;
 			bool m_total_deregistration_completed;
@@ -132,7 +132,7 @@ public:
 	 * \since
 	 * v.5.6.0
 	 */
-	enum class SO_5_NODISCARD try_switch_to_shutdown_result_t
+	enum class [[nodiscard]] try_switch_to_shutdown_result_t
 		{
 			switched,
 			already_in_shutdown_state
@@ -161,7 +161,7 @@ public:
 	 * \note This access is necessary to use error_logger for
 	 * logging error messages.
 	 */
-	SO_5_NODISCARD
+	[[nodiscard]]
 	environment_t &
 	environment();
 
@@ -171,7 +171,7 @@ public:
 	 *
 	 * \brief Get the current statistic for run-time monitoring.
 	 */
-	SO_5_NODISCARD
+	[[nodiscard]]
 	environment_infrastructure_t::coop_repository_stats_t
 	query_stats();
 
@@ -222,7 +222,7 @@ protected:
 	std::shared_ptr< root_coop_t > m_root_coop;
 
 	//! An actual implementation of registration of a coop.
-	SO_5_NODISCARD
+	[[nodiscard]]
 	coop_handle_t
 	do_registration_specific_actions( coop_unique_holder_t coop_ptr );
 };

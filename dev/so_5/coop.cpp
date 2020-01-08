@@ -139,7 +139,7 @@ coop_impl_t::add_dereg_notificator(
 				std::move(notificator) );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 exception_reaction_t
 coop_impl_t::exception_reaction(
 	const coop_t & coop ) noexcept
