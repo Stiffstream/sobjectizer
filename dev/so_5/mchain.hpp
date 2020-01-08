@@ -522,7 +522,19 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 			//! Select case to be stored for notification if mchain is empty.
 			mchain_props::select_case_t & select_case ) = 0;
 
-		//FIXME: document this!
+		/*!
+		 * \brief An attempt to push a new message into the mchain.
+		 *
+		 * Unlike do_deliver_message() method the push() doesn't apply
+		 * the overload reaction if the mchain if full. The \a select_case
+		 * is stored to select_cases list instead.
+		 *
+		 * \note
+		 * This method is intended to be used by select_case_t.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
 		[[nodiscard]]
 		virtual mchain_props::push_status_t
 		push(

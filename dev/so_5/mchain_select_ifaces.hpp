@@ -67,7 +67,6 @@ class select_case_t
 		//! Message chain to receive message from.
 		mchain_t m_chain;
 
-		//FIXME: fix the content of this comment.
 		//! Notificator to be used for notify sleeping thread.
 		/*!
 		 * Can be null. It means that select_case is not used in
@@ -75,8 +74,8 @@ class select_case_t
 		 *
 		 * There are just two methods where m_notificator changes its value:
 		 *
-		 * - try_receive() where m_notificator receives an actual pointer
-		 * (m_notificator can become nullptr again in try_receive() if
+		 * - try_handle() where m_notificator receives an actual pointer
+		 * (m_notificator can become nullptr again in try_handle() if
 		 * mchain has messages or was closed);
 		 * - on_select_finish() where m_notificator receives nullptr value if
 		 * it wasn't null yet.
@@ -101,7 +100,19 @@ class select_case_t
 		 */
 		select_case_t * m_next = nullptr;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Helper method for calling extract method of the target mchain.
+		 *
+		 * This method is intended to be called by a derived class. This helper
+		 * is necessary because only select_case_t class is declared as
+		 * friend for abstract_message_chain_t class. Classes that are
+		 * derived from select_case_t are not friends for abstract_message_chain_t
+		 * class and can't call protected/private methods of
+		 * abstract_message_chain_t.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
 		[[nodiscard]]
 		auto
 		extract( demand_t & demand )
@@ -109,7 +120,19 @@ class select_case_t
 				return m_chain->extract( demand, *this );
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Helper method for calling push method of the target mchain.
+		 *
+		 * This method is intended to be called by a derived class. This helper
+		 * is necessary because only select_case_t class is declared as
+		 * friend for abstract_message_chain_t class. Classes that are
+		 * derived from select_case_t are not friends for abstract_message_chain_t
+		 * class and can't call protected/private methods of
+		 * abstract_message_chain_t.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
 		[[nodiscard]]
 		auto
 		push(

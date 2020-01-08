@@ -25,7 +25,7 @@ do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 		auto r = select( sel );
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
-		UT_CHECK_CONDITION( r.is_nothing_happened() );
+		UT_CHECK_CONDITION( !r.was_sent_or_received() );
 	} };
 
 	child.join();

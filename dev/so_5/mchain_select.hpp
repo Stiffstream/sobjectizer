@@ -129,16 +129,14 @@ class mchain_select_result_t
 		bool
 		was_closed() const noexcept { return 0u != m_closed; }
 
-//FIXME: should this method take closed() into the account?
 		/*!
-		 * \return true if nothing happened (no extracted messages, no
-		 * handled messages, no sent messages).
+		 * \return true if something was sent or received/handled.
 		 */
 		[[nodiscard]]
 		bool
-		is_nothing_happened() const noexcept
+		was_sent_or_received() const noexcept
 			{
-				return !was_extracted() && !was_handled() && !was_sent();
+				return was_extracted() || was_handled() || was_sent();
 			}
 	};
 
@@ -221,8 +219,13 @@ namespace details {
 //
 // receive_select_case_t
 //
-//FIXME: document this!
 /*!
+ * \brief A base class for implementations of select_case for the
+ * case of receiving messages.
+ *
+ * This class implements pure virtual try_handle() methods but introduces
+ * a new pure virtual method try_handle_extracted_message() that should
+ * be implemented in a derived class.
  *
  * \since
  * v.5.7.0
@@ -269,8 +272,13 @@ class receive_select_case_t : public select_case_t
 //
 // send_select_case_t
 //
-//FIXME: document this!
 /*!
+ * \brief A base class for implementations of select_case for the
+ * case of sending messages.
+ *
+ * This class implements pure virtual try_handle() methods but introduces
+ * a new pure virtual method on_successful_push() that should
+ * be implemented in a derived class.
  *
  * \since
  * v.5.7.0
@@ -382,8 +390,15 @@ class actual_receive_select_case_t : public receive_select_case_t
 //
 // actual_send_select_case_t
 //
-//FIXME: document this!
 /*!
+ * \brief The actual implementation of select_case for the case
+ * of sending a message.
+ *
+ * This implementation calls an instance of On_Success_Handler handler
+ * in on_successful_push() method.
+ *
+ * \tparam On_Success_Handler the type of handler to be called when
+ * the message is sent.
  *
  * \since
  * v.5.7.0
@@ -1190,7 +1205,15 @@ class select_actions_performer_t
 		std::size_t m_handled_messages = 0;
 		std::size_t m_sent_messages = 0;
 
-		//FIXME: document this.
+		/*!
+		 * \brief The counter of completed send_cases.
+		 *
+		 * A send_case is completed if the corresponding message is sent
+		 * of if the target mchain is closed.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
 		std::size_t m_completed_send_cases = 0;
 
 		extraction_status_t m_last_extraction_status =
