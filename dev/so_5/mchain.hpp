@@ -390,6 +390,28 @@ enum class extraction_status_t
 	};
 
 //
+// push_status_t
+//
+/*!
+ * \brief Result of attempt of pushing a message into a message chain.
+ *
+ * \since
+ * v.5.7.0
+ */
+enum class push_status_t
+	{
+		//! Message wasn't stored.
+		not_stored,
+		//! Message stored into a message chain.
+		stored,
+		//! Message is not stored but the store operation is registered
+		//! into a message chain.
+		deffered,
+		//! Message wasn't stored because chain is closed.
+		chain_closed
+	};
+
+//
 // close_mode_t
 //
 /*!
@@ -454,6 +476,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		using abstract_message_box_t::id;
 		using abstract_message_box_t::environment;
 
+		[[nodiscard]]
 		virtual mchain_props::extraction_status_t
 		extract(
 			//! Destination for extracted messages.
@@ -491,11 +514,35 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 * \since
 		 * v.5.5.16
 		 */
+		[[nodiscard]]
 		virtual mchain_props::extraction_status_t
 		extract(
 			//! Destination for extracted messages.
 			mchain_props::demand_t & dest,
 			//! Select case to be stored for notification if mchain is empty.
+			mchain_props::select_case_t & select_case ) = 0;
+
+		/*!
+		 * \brief An attempt to push a new message into the mchain.
+		 *
+		 * Unlike do_deliver_message() method the push() doesn't apply
+		 * the overload reaction if the mchain if full. The \a select_case
+		 * is stored to select_cases list instead.
+		 *
+		 * \note
+		 * This method is intended to be used by select_case_t.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
+		[[nodiscard]]
+		virtual mchain_props::push_status_t
+		push(
+			//! Type of message/signal to be pushed.
+			const std::type_index & msg_type,
+			//! Message/signal to be pushed.
+			const message_ref_t & message,
+			//! Select case to be stored for notification if mchain is full.
 			mchain_props::select_case_t & select_case ) = 0;
 
 		/*!
@@ -797,7 +844,7 @@ class mchain_receive_result_t
 
 	public :
 		//! Default constructor.
-		mchain_receive_result_t()
+		mchain_receive_result_t() noexcept
 			:	m_extracted{ 0 }
 			,	m_handled{ 0 }
 			,	m_status{ mchain_props::extraction_status_t::no_messages }
@@ -810,23 +857,75 @@ class mchain_receive_result_t
 			//! Count of handled messages.
 			std::size_t handled,
 			//! Status of extraction operation.
-			mchain_props::extraction_status_t status )
+			mchain_props::extraction_status_t status ) noexcept
 			:	m_extracted{ extracted }
 			,	m_handled{ handled }
 			,	m_status{ status }
 			{}
 
 		//! Count of extracted messages.
+		[[nodiscard]]
 		std::size_t
-		extracted() const { return m_extracted; }
+		extracted() const noexcept { return m_extracted; }
 
 		//! Count of handled messages.
+		[[nodiscard]]
 		std::size_t
-		handled() const { return m_handled; }
+		handled() const noexcept { return m_handled; }
 
 		//! Extraction status (e.g. no messages, chain closed and so on).
+		[[nodiscard]]
 		mchain_props::extraction_status_t
-		status() const { return m_status; }
+		status() const noexcept { return m_status; }
+	};
+
+//
+// mchain_send_result_t
+//
+/*!
+ * \brief A result of attempt of sending messages to a message chain.
+ *
+ * This type plays the same role as mchain_receive_result_t but is used
+ * for send operations.
+ *
+ * \since
+ * v.5.7.0
+ */
+class mchain_send_result_t
+	{
+		//! Count of messages sent.
+		std::size_t m_sent;
+
+		//! The status of send operation.
+		mchain_props::push_status_t m_status;
+
+	public:
+		//! Default constructor.
+		/*!
+		 * Sets push_status_t::not_stored status.
+		 */
+		mchain_send_result_t() noexcept
+			:	m_sent{ 0u }
+			,	m_status{ mchain_props::push_status_t::not_stored }
+			{}
+
+		//! Initializing constructor.
+		mchain_send_result_t(
+			std::size_t sent,
+			mchain_props::push_status_t status )
+			:	m_sent{ sent }
+			,	m_status{ status }
+			{}
+			
+		//! Count of messages sent.
+		[[nodiscard]]
+		std::size_t
+		sent() const noexcept { return m_sent; }
+
+		//! Status of send operation.
+		[[nodiscard]]
+		mchain_props::push_status_t
+		status() const noexcept { return m_status; }
 	};
 
 namespace mchain_props {
@@ -1202,8 +1301,8 @@ class mchain_bulk_processing_params_t
 		 * 				some_ch_closed = true;
 		 * 			})
 		 * 		.stop_on([&some_ch_closed]{ return some_ch_closed; }),
-		 * 	case_(ch1, ...)
-		 * 	case_(ch2, ...)
+		 * 	receive_case(ch1, ...)
+		 * 	receive_case(ch2, ...)
 		 * 	...);
 		 * \endcode
 		 *
@@ -1279,7 +1378,7 @@ class mchain_receive_params_t final
 		//! Make of clone with different Msg_Count_Status or return
 		//! a reference to the same object.
 		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		SO_5_NODISCARD
+		[[nodiscard]]
 		decltype(auto)
 		so5_clone_if_necessary() noexcept
 			{

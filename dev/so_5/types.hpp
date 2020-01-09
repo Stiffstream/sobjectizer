@@ -130,5 +130,38 @@ enum class message_kind_t
  */
 using coop_id_t = std::uint_fast64_t;
 
+//
+// event_handler_kind_t
+//
+/*!
+ * \brief Kind of an event handler.
+ *
+ * Since v.5.7.0 event handlers of an agent are devided into the following
+ * categories:
+ *
+ * - final handler. That is an ordinary handler that takes a message and
+ *   handles it. In the case of an enveloped message a final handler should
+ *   take the payload of a message;
+ * - intermediate handler. That is a special handler that doesn't handle
+ *   a message by itself but delegates the handling to some other event
+ *   handler or just suppresses the message. In the case of enveloped message
+ *   an intermediate handler should take the whole envelope.
+ *
+ * \since
+ * v.5.7.0
+ */
+enum class event_handler_kind_t : char
+	{
+		//! Ordinary, final event handler.
+		//! That event handler should take the payload from an eveloped message.
+		final_handler,
+		//! Intermediate event handler. 
+		//! Doesn't handle a message itself but delegates actual processing
+		//! to some other event handler. Or just skips the processing of
+		//! the message.
+		//! That event handler should take the whole envelope.
+		intermediate_handler
+	};
+
 } /* namespace so_5 */
 

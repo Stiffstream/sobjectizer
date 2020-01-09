@@ -139,7 +139,7 @@ coop_impl_t::add_dereg_notificator(
 				std::move(notificator) );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 exception_reaction_t
 coop_impl_t::exception_reaction(
 	const coop_t & coop ) noexcept
@@ -195,9 +195,6 @@ coop_impl_t::do_decrement_reference_count(
 
 				if( should_finalize() )
 					{
-//FIXME: this call should be noexcept.
-//It is required a refactoring of final deregistration procedure
-//in various env_infrastructure implementations.
 						impl::internal_env_iface_t{ coop.m_env.get() }
 								.ready_to_deregister_notify( coop.shared_from_this() );
 					}

@@ -308,7 +308,7 @@ class SO_5_TYPE coop_impl_t
 			coop_dereg_notificator_t notificator );
 
 		//! Get exception reaction for coop.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static exception_reaction_t
 		exception_reaction(
 			//! Target coop.
@@ -432,7 +432,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_handle_t
 		handle() noexcept
 			{
@@ -445,7 +445,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_id_t
 		id() const noexcept { return m_id; }
 
@@ -455,7 +455,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \brief Access to SO Environment for which cooperation is bound.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		environment_t &
 		environment() const noexcept
 			{
@@ -636,7 +636,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *   exception_reaction value returned;
 		 * - otherwise SO Environment's exception_reaction is returned.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		exception_reaction_t
 		exception_reaction() const noexcept
 			{

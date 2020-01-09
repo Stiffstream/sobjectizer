@@ -161,7 +161,7 @@ class actual_dispatcher_implementation_t final
 				m_impl.shutdown_then_wait();
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		disp_binder_shptr_t
 		binder( bind_params_t params ) override
 			{

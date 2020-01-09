@@ -79,7 +79,7 @@ coop_repository_basis_t::coop_repository_basis_t(
 				m_env );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 coop_repository_basis_t::make_coop(
 	coop_handle_t parent,
@@ -95,7 +95,7 @@ coop_repository_basis_t::make_coop(
 				m_env );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_handle_t
 coop_repository_basis_t::register_coop(
 	coop_unique_holder_t coop_ptr )
@@ -257,7 +257,7 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 		m_root_coop->deregister_children_on_shutdown();
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_repository_basis_t::try_switch_to_shutdown_result_t
 coop_repository_basis_t::try_switch_to_shutdown()
 	{

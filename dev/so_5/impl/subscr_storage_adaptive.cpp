@@ -59,7 +59,8 @@ class storage_t : public subscription_storage_t
 			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) override;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) override;
 
 		virtual void
 		drop_subscription(
@@ -126,7 +127,8 @@ storage_t::create_event_subscription(
 	const message_limit::control_block_t * limit,
 	const state_t & target_state,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety )
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind )
 	{
 		if( m_current_storage == m_small_storage.get() &&
 				m_threshold <= m_current_storage->query_subscriptions_count() )
@@ -149,7 +151,8 @@ storage_t::create_event_subscription(
 				limit,
 				target_state,
 				method,
-				thread_safety );
+				thread_safety,
+				handler_kind );
 	}
 
 void

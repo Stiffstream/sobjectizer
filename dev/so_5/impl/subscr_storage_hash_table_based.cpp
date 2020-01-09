@@ -211,7 +211,8 @@ class storage_t : public subscription_storage_t
 			const message_limit::control_block_t * limit,
 			const state_t & target_state,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) override;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) override;
 
 		virtual void
 		drop_subscription(
@@ -288,7 +289,8 @@ storage_t::create_event_subscription(
 	const message_limit::control_block_t * limit,
 	const state_t & target_state,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety )
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind )
 	{
 		using namespace subscription_storage_common;
 
@@ -305,7 +307,7 @@ storage_t::create_event_subscription(
 		so_5::details::do_with_rollback_on_exception(
 			[&] {
 				m_hash_table.emplace( &(insertion_result.first->first),
-						event_handler_data_t( method, thread_safety ) );
+						event_handler_data_t( method, thread_safety, handler_kind ) );
 			},
 			[&] { m_map.erase( insertion_result.first ); } );
 
@@ -456,7 +458,8 @@ storage_t::query_content() const
 									map_item->first.m_msg_type,
 									*(map_item->first.m_state),
 									i.second.m_method,
-									i.second.m_thread_safety
+									i.second.m_thread_safety,
+									i.second.m_kind
 								};
 						} );
 			}

@@ -42,7 +42,7 @@ namespace impl {
  * \since
  * v.5.5.23
  */
-SO_5_NODISCARD
+[[nodiscard]]
 inline envelope_t &
 message_to_envelope(
 	//! Message for casting.

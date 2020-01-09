@@ -11,3 +11,6 @@ add_subdirectory(mchain_handled_count)
 add_subdirectory(message_limits)
 
 add_subdirectory(transfer_to_state)
+add_subdirectory(transfer_to_state_2)
+add_subdirectory(suppress_event)
+add_subdirectory(suppress_event_mutable)

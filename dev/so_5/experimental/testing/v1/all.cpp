@@ -37,7 +37,7 @@ trigger_t::trigger_t(
 trigger_t::~trigger_t()
 	{}
 
-SO_5_NODISCARD
+[[nodiscard]]
 const agent_t &
 trigger_t::target_agent() const noexcept
 	{
@@ -50,7 +50,7 @@ trigger_t::set_completion( completion_function_t fn )
 		m_completion = std::move(fn);
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 bool
 trigger_t::check(
 	const incident_status_t incident_status,
@@ -62,7 +62,7 @@ trigger_t::check(
 				&& info.m_src_mbox_id == m_src_mbox_id;
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 bool
 trigger_t::requires_completion() const noexcept
 	{
@@ -144,7 +144,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 			:	m_name( std::move(name) )
 			{}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		const std::string &
 		name() const noexcept override
 			{
@@ -157,7 +157,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 				change_status( status_t::preactivated );
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		token_t
 		pre_handler_hook(
 			const incident_info_t & info ) noexcept override
@@ -204,7 +204,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 					(void)try_activate( incident_status_t::ignored, info );
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		status_t
 		status() const noexcept override
 			{
@@ -284,7 +284,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		/*!
 		 * \retval true if all constraints fullfilled.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		try_pass_constraints(
 			const incident_status_t incident_status,
@@ -298,7 +298,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 			}
 
 		//! An attempt to activate the step when a new incident arrives.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		token_t
 		try_activate(
 			const incident_status_t incident_status,
@@ -459,7 +459,7 @@ class real_scenario_t final : public abstract_scenario_t
 				m_unfreezer = &unfreezer;
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		step_definition_proxy_t
 		define_step( nonempty_name_t step_name ) override
 			{
@@ -477,7 +477,7 @@ class real_scenario_t final : public abstract_scenario_t
 				return { m_steps.back().get() };
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		scenario_result_t
 		result() const noexcept override
 			{
@@ -517,7 +517,7 @@ class real_scenario_t final : public abstract_scenario_t
 					}
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		token_t
 		pre_handler_hook(
 			const incident_info_t & info ) noexcept override
@@ -591,7 +591,7 @@ class real_scenario_t final : public abstract_scenario_t
 				m_stored_states[ std::make_pair(step.name(), tag) ] = state_name;
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		std::string
 		stored_state_name(
 			const std::string & step_name,
@@ -623,7 +623,7 @@ class real_scenario_t final : public abstract_scenario_t
 				m_steps[ m_waiting_step_index ]->preactivate();
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		token_t
 		react_on_pre_handler_hook(
 			const incident_info_t & info ) noexcept
@@ -716,7 +716,7 @@ class real_scenario_t final : public abstract_scenario_t
 					}
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		std::string
 		describe_current_state() const
 			{
@@ -1100,7 +1100,7 @@ class special_event_queue_hook_t final
 			:	m_scenario{ scenario }
 			{}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		event_queue_t *
 		on_bind(
 			agent_t * /*agent*/,
@@ -1191,7 +1191,7 @@ struct testing_env_t::internals_t
 				m_scenario.setup_unfreezer( m_special_hook );
 			}
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		static std::unique_ptr< internals_t >
 		make() { return std::make_unique<internals_t>(); }
 	};
@@ -1208,7 +1208,7 @@ setup_special_queue_hook(
 				event_queue_hook_t::noop_deleter } );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 environment_params_t
 make_tuned_params(
 	so_5::generic_simple_so_env_params_tuner_t env_params_tuner )
@@ -1219,7 +1219,7 @@ make_tuned_params(
 		return result;
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 environment_params_t
 make_special_params(
 	testing_env_t::internals_t & internals,
@@ -1240,7 +1240,7 @@ scenario_proxy_t::scenario_proxy_t(
 	:	m_scenario{ scenario }
 	{}
 
-SO_5_NODISCARD
+[[nodiscard]]
 step_definition_proxy_t
 scenario_proxy_t::define_step(
 	nonempty_name_t step_name )
@@ -1248,7 +1248,7 @@ scenario_proxy_t::define_step(
 		return m_scenario.get().define_step( std::move(step_name) );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 scenario_result_t
 scenario_proxy_t::result() const
 	{
@@ -1262,7 +1262,7 @@ scenario_proxy_t::run_for(
 		return m_scenario.get().run_for( run_time );
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 std::string
 scenario_proxy_t::stored_state_name(
 	const std::string & step_name,
@@ -1323,7 +1323,7 @@ testing_env_t::stop_then_join()
 		m_sobjectizer.stop_then_join();
 	}
 
-SO_5_NODISCARD
+[[nodiscard]]
 scenario_proxy_t
 testing_env_t::scenario() noexcept
 	{

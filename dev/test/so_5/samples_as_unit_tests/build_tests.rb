@@ -60,6 +60,9 @@ MxxRu::Cpp::composite_target {
   required_prj "#{path}/mchain_select.ut.rb"
   required_prj "#{path}/mchain_select-static.ut.rb"
 
+  required_prj "#{path}/mchain_fibonacci.ut.rb"
+  required_prj "#{path}/mchain_fibonacci-static.ut.rb"
+
   required_prj "#{path}/ping_pong_minimal.ut.rb"
   required_prj "#{path}/ping_pong_minimal-static.ut.rb"
 

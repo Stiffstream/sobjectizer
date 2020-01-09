@@ -40,7 +40,7 @@ worker_thread(
 					.handle_n( 5 )
 					.total_time( total_time )
 					.stop_on( [&finish]{ return finish; } ),
-			case_( test_ch,
+			receive_case( test_ch,
 					[&r]( unsigned int v ) {
 						++r.m_values;
 						r.m_sum += v;

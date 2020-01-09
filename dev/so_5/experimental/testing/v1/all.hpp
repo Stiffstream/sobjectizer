@@ -174,7 +174,7 @@ class SO_5_TYPE trigger_t final
 		 * This method should be used with care because if target agent
 		 * is deregistered then a dangling reference will be returned.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		const agent_t &
 		target_agent() const noexcept;
 
@@ -188,7 +188,7 @@ class SO_5_TYPE trigger_t final
 		 * \retval false Trigger is not activated and information about
 		 * the event can be used for checking for other triggers.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		check(
 			//! What happened with message/signal?
@@ -197,7 +197,7 @@ class SO_5_TYPE trigger_t final
 			const incident_info_t & info ) const noexcept;
 
 		//! Does this trigger require separate completion action?
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		requires_completion() const noexcept;
 
@@ -307,7 +307,7 @@ class constraint_t
 		 * \retval false If constraint is not fulfilled and an incident
 		 * should be ignored.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual bool
 		check(
 			//! What happened with message/signal?
@@ -365,7 +365,7 @@ class not_before_constraint_t final
 		void
 		finish() noexcept override { /* nothing to do */ }
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		check(
 			const incident_status_t /*incident_status*/,
@@ -409,7 +409,7 @@ class not_after_constraint_t final
 		void
 		finish() noexcept override { /* nothing to do */ }
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		check(
 			const incident_status_t /*incident_status*/,
@@ -498,7 +498,7 @@ class SO_5_TYPE abstract_scenario_step_t
 					:	m_trigger( trigger )
 					{}
 
-				SO_5_NODISCARD
+				[[nodiscard]]
 				bool
 				valid() const noexcept { return m_trigger != nullptr; }
 
@@ -507,7 +507,7 @@ class SO_5_TYPE abstract_scenario_step_t
 				 * This method should be called only if token is in valid
 				 * state.
 				 */
-				SO_5_NODISCARD
+				[[nodiscard]]
 				trigger_t &
 				trigger() const noexcept { return *m_trigger; }
 			};
@@ -522,7 +522,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		virtual ~abstract_scenario_step_t() = default;
 
 		//! Get the name of the step.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual const std::string &
 		name() const noexcept = 0;
 
@@ -549,7 +549,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		 * If a valid token is returned then this token should be passed
 		 * to subsequent call to post_handler_hook() method.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual token_t
 		pre_handler_hook(
 			const incident_info_t & info ) noexcept = 0;
@@ -575,7 +575,7 @@ class SO_5_TYPE abstract_scenario_step_t
 			const incident_info_t & info ) noexcept = 0;
 
 		//! Get the current status of the step.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual status_t
 		status() const noexcept = 0;
 
@@ -1128,7 +1128,7 @@ class scenario_result_t
 		 * \note
 		 * Only status is compared.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		operator==( const scenario_result_t & o ) const noexcept
 			{
@@ -1140,7 +1140,7 @@ class scenario_result_t
 		 * \note
 		 * Only status is compared.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		operator!=( const scenario_result_t & o ) const noexcept
 			{
@@ -1200,7 +1200,7 @@ class scenario_result_t
  * \since
  * v.5.5.24
  */
-SO_5_NODISCARD
+[[nodiscard]]
 inline scenario_result_t
 completed() { return { scenario_status_t::completed }; }
 
@@ -1462,7 +1462,7 @@ class abstract_scenario_t
 	{
 	protected :
 		//! Helper method for creation of scenario_in_progress_accessor instance.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		scenario_in_progress_accessor_t
 		make_accessor() noexcept
 			{
@@ -1501,21 +1501,21 @@ class abstract_scenario_t
 					,	m_step_token( step_token )
 					{}
 
-				SO_5_NODISCARD
+				[[nodiscard]]
 				bool
 				valid() const noexcept
 					{
 						return nullptr != m_activated_step;
 					}
 
-				SO_5_NODISCARD
+				[[nodiscard]]
 				abstract_scenario_step_t &
 				activated_step() const noexcept
 					{
 						return *m_activated_step;
 					}
 
-				SO_5_NODISCARD
+				[[nodiscard]]
 				abstract_scenario_step_t::token_t
 				step_token() const noexcept
 					{
@@ -1535,12 +1535,12 @@ class abstract_scenario_t
 		virtual ~abstract_scenario_t() = default;
 
 		//! Create a new step and return proxy for it.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual step_definition_proxy_t
 		define_step( nonempty_name_t step_name ) = 0;
 
 		//! Get the result of scenario execution.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual scenario_result_t
 		result() const noexcept = 0;
 
@@ -1555,7 +1555,7 @@ class abstract_scenario_t
 		 *
 		 * The token returned should then be passed to post_handler_hook().
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual token_t
 		pre_handler_hook(
 			const incident_info_t & info ) noexcept = 0;
@@ -1594,7 +1594,7 @@ class abstract_scenario_t
 		 * Will throw an exception if there is no stored state for
 		 * a pair of (\a step_name,\a tag).
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual std::string
 		stored_state_name(
 			const std::string & step_name,
@@ -1745,7 +1745,7 @@ class SO_5_TYPE scenario_proxy_t final
 		 * The value of \a step_name has to be unique, but the current
 		 * version of SObjectizer doesn't controll that.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		step_definition_proxy_t
 		define_step( nonempty_name_t step_name );
 
@@ -1755,7 +1755,7 @@ class SO_5_TYPE scenario_proxy_t final
 		 * This method is intended to be called only after the completion of
 		 * run_for() method.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		scenario_result_t
 		result() const;
 
@@ -1827,7 +1827,7 @@ class SO_5_TYPE scenario_proxy_t final
 		 * a pair of (\a step_name, \a tag) then an instance of
 		 * so_5::exception_t will be thrown.
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		std::string
 		stored_state_name(
 			const std::string & step_name,
@@ -1999,7 +1999,7 @@ class SO_5_TYPE testing_env_t
 		stop_then_join();
 
 		//! Access to the associated scenario.
-		SO_5_NODISCARD
+		[[nodiscard]]
 		scenario_proxy_t
 		scenario() noexcept;
 

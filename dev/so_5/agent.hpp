@@ -438,7 +438,8 @@ class subscription_bind_t
 		create_subscription_for_states(
 			const std::type_index & msg_type,
 			const event_handler_method_t & method,
-			thread_safety_t thread_safety ) const;
+			thread_safety_t thread_safety,
+			event_handler_kind_t handler_kind ) const;
 
 		/*!
 		 * \brief Additional check for subscription to a mutable message
@@ -1210,6 +1211,9 @@ class SO_5_TYPE agent_t
 		 * it is a public method with a standard so_-prefix.
 		 * It was made public to allow creation of subscriptions
 		 * to agent from outside of agent.
+		 *
+		 * \note
+		 * Parameter \a handler_kind was introduced in v.5.7.0.
 		 */
 		void
 		so_create_event_subscription(
@@ -1222,7 +1226,9 @@ class SO_5_TYPE agent_t
 			//! Event handler caller.
 			const event_handler_method_t & method,
 			//! Thread safety of the event handler.
-			thread_safety_t thread_safety );
+			thread_safety_t thread_safety,
+			//! Kind of that event handler.
+			event_handler_kind_t handler_kind );
 
 		/*!
 		 * \brief Destroy event subscription.
@@ -2124,7 +2130,7 @@ class SO_5_TYPE agent_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_handle_t
 		so_coop() const;
 
@@ -2952,7 +2958,8 @@ subscription_bind_t::event(
 	create_subscription_for_states( 
 			ev.m_msg_type,
 			ev.m_handler,
-			thread_safety );
+			thread_safety,
+			event_handler_kind_t::final_handler );
 
 	return *this;
 }
@@ -2975,7 +2982,8 @@ subscription_bind_t::event(
 	create_subscription_for_states(
 			ev.m_msg_type,
 			ev.m_handler,
-			thread_safety );
+			thread_safety,
+			event_handler_kind_t::final_handler );
 
 	return *this;
 }
@@ -3093,23 +3101,12 @@ subscription_bind_t::transfer_to_state(
 					op_state->m_mbox_id,
 					typeid( Msg ),
 					msg,
-//FIXME: there can't be enveloped_msg so we can safely use
-//get_demand_handler_on_message_ptr().
-//
-//It is because `transfer_to_state` is handled as a normal event handler.
-//It means that during delivery of an enveloped_msg the payload will be
-//extracted and passed to `transfer_to_state` handler. And in the target
-//state a handler for the payload will be looked. Not for the initial
-//enveloped_msg.
-//
-//It is not good because in the target state hander can be missed and in
-//that case envelope will think that payload is delivered and that is not
-//true.
-//
-//This issue has been found too late and it is present in SO-5.6.0.
-//We hope it will be (somehow) fixed in the updates for SO-5.6.0.
-//
-					agent_t::get_demand_handler_on_message_ptr()
+					// We have very simple choice here: message is an enveloped
+					// message or just classical message/signal.
+					// So we should select an appropriate demand handler.
+					message_kind_t::enveloped_msg == message_kind( msg ) ?
+							agent_t::get_demand_handler_on_enveloped_msg_ptr() :
+							agent_t::get_demand_handler_on_message_ptr()
 			};
 
 			demand.call_handler( query_current_thread_id() );
@@ -3118,7 +3115,8 @@ subscription_bind_t::transfer_to_state(
 	create_subscription_for_states(
 			typeid( Msg ),
 			method,
-			thread_safety_t::unsafe );
+			thread_safety_t::unsafe,
+			event_handler_kind_t::intermediate_handler );
 
 	return *this;
 }
@@ -3133,7 +3131,16 @@ subscription_bind_t::suppress()
 	create_subscription_for_states(
 			typeid( Msg ),
 			method,
-			thread_safety_t::safe );
+			thread_safety_t::safe,
+			// Suppression of a message is a kind of ignoring of the message.
+			// In the case of enveloped message intermediate_handler receives
+			// the whole envelope (not the payload) and the whole envelope
+			// should be ignored. We can't specify final_handler here because
+			// in that case the payload of an enveloped message will be
+			// extracted from the envelope and envelope will be informed about
+			// the handling of message. But message won't be handled, it will
+			// be ignored.
+			event_handler_kind_t::intermediate_handler );
 
 	return *this;
 }
@@ -3153,7 +3160,11 @@ subscription_bind_t::just_switch_to(
 	create_subscription_for_states(
 			typeid( Msg ),
 			method,
-			thread_safety_t::unsafe );
+			thread_safety_t::unsafe,
+			// Switching to some state is a kind of message processing.
+			// So if there is an enveloped message then the envelope will be
+			// informed about the processing of the payload.
+			event_handler_kind_t::final_handler );
 
 	return *this;
 }
@@ -3162,7 +3173,8 @@ inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety ) const
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind ) const
 {
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
@@ -3171,7 +3183,8 @@ subscription_bind_t::create_subscription_for_states(
 			msg_type,
 			m_agent->so_default_state(),
 			method,
-			thread_safety );
+			thread_safety,
+			handler_kind );
 	else
 		for( auto s : m_states )
 			m_agent->so_create_event_subscription(
@@ -3179,7 +3192,8 @@ subscription_bind_t::create_subscription_for_states(
 					msg_type,
 					*s,
 					method,
-					thread_safety );
+					thread_safety,
+					handler_kind );
 }
 
 inline void

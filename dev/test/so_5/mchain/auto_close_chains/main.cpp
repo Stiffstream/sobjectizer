@@ -33,11 +33,10 @@ check_drop_content1(
 
 	auto r = so_5::select(
 			so_5::from_all().handle_n(1).no_wait_on_empty(),
-			case_( ch1, []( int i ) { handle_unexpected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_unexpected(i); } ) );
 
-	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
-		throw runtime_error( "unexpected value of so_5::select "
-				"return code: " + to_string( static_cast<int>(r.status()) ) );
+	if( !r.was_closed() )
+		throw runtime_error( "r.was_closed() is not true" );
 }
 
 void
@@ -56,13 +55,12 @@ check_drop_content3(
 
 	auto r = so_5::select(
 			so_5::from_all().handle_n(1).no_wait_on_empty(),
-			case_( ch1, []( int i ) { handle_unexpected(i); } ),
-			case_( ch2, []( int i ) { handle_unexpected(i); } ),
-			case_( ch3, []( int i ) { handle_unexpected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_unexpected(i); } ),
+			receive_case( ch2, []( int i ) { handle_unexpected(i); } ),
+			receive_case( ch3, []( int i ) { handle_unexpected(i); } ) );
 
-	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
-		throw runtime_error( "unexpected value of so_5::select "
-				"return code: " + to_string( static_cast<int>(r.status()) ) );
+	if( !r.was_closed() )
+		throw runtime_error( "r.was_closed() is not true" );
 }
 
 void
@@ -78,7 +76,7 @@ check_retain_content1(
 
 	auto r = so_5::select(
 			so_5::from_all().handle_n(2),
-			case_( ch1, []( int i ) { handle_expected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_expected(i); } ) );
 
 	if( 2 != r.handled() )
 		throw runtime_error( "unexpected count of handled messages: " +
@@ -86,11 +84,10 @@ check_retain_content1(
 
 	r = so_5::select(
 			so_5::from_all().handle_n(1).no_wait_on_empty(),
-			case_( ch1, []( int i ) { handle_unexpected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_unexpected(i); } ) );
 
-	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
-		throw runtime_error( "unexpected value of so_5::select "
-				"return code: " + to_string( static_cast<int>(r.status()) ) );
+	if( !r.was_closed() )
+		throw runtime_error( "r.was_closed() is not true" );
 }
 
 void
@@ -114,9 +111,9 @@ check_retain_content3(
 
 	auto r = so_5::select(
 			so_5::from_all().handle_n(6),
-			case_( ch1, []( int i ) { handle_expected(i); } ),
-			case_( ch2, []( int i ) { handle_expected(i); } ),
-			case_( ch3, []( int i ) { handle_expected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_expected(i); } ),
+			receive_case( ch2, []( int i ) { handle_expected(i); } ),
+			receive_case( ch3, []( int i ) { handle_expected(i); } ) );
 
 	if( 6 != r.handled() )
 		throw runtime_error( "unexpected count of handled messages: " +
@@ -124,13 +121,12 @@ check_retain_content3(
 
 	r = so_5::select(
 			so_5::from_all().handle_n(1).no_wait_on_empty(),
-			case_( ch1, []( int i ) { handle_unexpected(i); } ),
-			case_( ch2, []( int i ) { handle_unexpected(i); } ),
-			case_( ch3, []( int i ) { handle_unexpected(i); } ) );
+			receive_case( ch1, []( int i ) { handle_unexpected(i); } ),
+			receive_case( ch2, []( int i ) { handle_unexpected(i); } ),
+			receive_case( ch3, []( int i ) { handle_unexpected(i); } ) );
 
-	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
-		throw runtime_error( "unexpected value of so_5::select "
-				"return code: " + to_string( static_cast<int>(r.status()) ) );
+	if( !r.was_closed() )
+		throw runtime_error( "r.was_closed() is not true" );
 }
 
 void

@@ -35,7 +35,7 @@ worker_thread(
 	bool finish = false;
 	while( !finish )
 		so_5::select( so_5::from_all().handle_n(1),
-				case_( test_ch,
+				receive_case( test_ch,
 						[&r]( unsigned int v ) {
 							++r.m_values;
 							r.m_sum += v;

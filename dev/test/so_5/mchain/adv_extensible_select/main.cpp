@@ -21,14 +21,12 @@ do_check_on_empty_cases_list( const so_5::mchain_t & chain )
 
 	auto sel = make_extensible_select(
 			so_5::from_all().handle_all().empty_timeout( 20ms ),
-			case_( chain ) );
+			receive_case( chain ) );
 
 	auto r = select( sel );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
 	UT_CHECK_CONDITION( 0 == r.handled() );
-	UT_CHECK_CONDITION(
-			so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
 }
 
 UT_UNIT_TEST( test_empty_cases_list )
@@ -57,13 +55,11 @@ do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 	std::thread child{ [&] {
 		auto sel = make_extensible_select(
 				so_5::from_all().handle_all().empty_timeout( 500ms ),
-				case_( chain ) );
+				receive_case( chain ) );
 
 		auto r = select( sel );
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::no_messages == r.status() );
 	} };
 
 	child.join();
@@ -100,13 +96,11 @@ do_check_total_time( const so_5::mchain_t & chain )
 		auto r = select(
 				make_extensible_select(
 						so_5::from_all().handle_all().total_time( 500ms ),
-						case_( chain, []( const std::string & ) {} ) )
+						receive_case( chain, []( const std::string & ) {} ) )
 				);
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
 	} };
 
 	child.join();
@@ -141,7 +135,7 @@ do_check_handle_n(
 		auto r = select(
 				make_extensible_select( 
 						so_5::from_all().handle_n( 3 ),
-						case_( ch1,
+						receive_case( ch1,
 							[&ch2]( int i ) {
 								so_5::send< int >( ch2, i );
 							} ) )
@@ -155,7 +149,7 @@ do_check_handle_n(
 	auto r = select(
 			make_extensible_select(
 					so_5::from_all().handle_n( 2 ),
-					case_( ch2,
+					receive_case( ch2,
 						[&ch1]( int i ) {
 							so_5::send< int >( ch1, i + 1 );
 						} ) )
@@ -197,7 +191,7 @@ do_check_extract_n(
 		auto r = select(
 				make_extensible_select( 
 						so_5::from_all().handle_n( 3 ).extract_n( 3 ),
-						case_( ch1,
+						receive_case( ch1,
 							[&ch2]( int i ) {
 								so_5::send< int >( ch2, i );
 							} ) )
@@ -213,7 +207,7 @@ do_check_extract_n(
 	auto r = select(
 			make_extensible_select(
 					so_5::from_all().handle_n( 1 ),
-					case_( ch2,
+					receive_case( ch2,
 						[&ch1]( int i ) {
 							so_5::send< string >( ch1, to_string( i + 1 ) );
 							so_5::send< int >( ch1, i + 1 );
@@ -257,7 +251,7 @@ do_check_stop_pred(
 		auto r = select( make_extensible_select(
 				so_5::from_all().handle_all().stop_on(
 						[&last_received] { return last_received > 10; } ),
-				case_( ch1,
+				receive_case( ch1,
 					[&ch2, &last_received]( int i ) {
 						last_received = i;
 						so_5::send< int >( ch2, i );
@@ -272,7 +266,7 @@ do_check_stop_pred(
 	so_5::send< int >( ch1, i );
 	auto r = select( make_extensible_select(
 			so_5::from_all().handle_all().stop_on( [&i] { return i > 10; } ),
-			case_( ch2,
+			receive_case( ch2,
 				[&ch1, &i]( int ) {
 					++i;
 					so_5::send< int >( ch1, i );
@@ -337,7 +331,7 @@ do_check_nested_select(
 
 		add_select_cases(
 				sel,
-				case_( ch,
+				receive_case( ch,
 					[&]( const try_nested_select & ) {
 						try {
 							select( sel ); // Nested is prohibited.
@@ -396,11 +390,11 @@ do_check_modify_from_select(
 
 		add_select_cases(
 				sel,
-				case_( ch,
+				receive_case( ch,
 					[&]( const try_modify & ) {
 						try {
 							add_select_cases( sel,
-									case_( ch, []( const empty & ) {} ) );
+									receive_case( ch, []( const empty & ) {} ) );
 						}
 						catch( const so_5::exception_t & x ) {
 							error = x.error_code();

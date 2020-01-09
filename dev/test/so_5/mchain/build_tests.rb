@@ -27,6 +27,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/select_count_messages/prj.ut.rb" )
 	required_prj( "#{path}/select_mthread_close/prj.ut.rb" )
 	required_prj( "#{path}/select_mthread_read/prj.ut.rb" )
+	required_prj( "#{path}/select_send_simple/prj.ut.rb" )
 	required_prj( "#{path}/adv_select_mthread_close/prj.ut.rb" )
 	required_prj( "#{path}/adv_select_mthread_read/prj.ut.rb" )
 	required_prj( "#{path}/adv_select_mthread_empty_timeout/prj.ut.rb" )

@@ -36,6 +36,109 @@ using adv_select_data_t = bulk_processing_basic_data_t;
 
 } /* namespace mchain_props */
 
+//
+// mchain_select_result_t
+//
+/*!
+ * \since
+ * v.5.7.0
+ *
+ * \brief A result of select from several mchains.
+ */
+class mchain_select_result_t
+	{
+		//! Count of extracted incoming messages.
+		std::size_t m_extracted;
+		//! Count of handled incoming messages.
+		std::size_t m_handled;
+		//! Count of messages sent.
+		std::size_t m_sent;
+		//! Count of closed chains.
+		std::size_t m_closed;
+
+	public :
+		//! Default constructor.
+		mchain_select_result_t() noexcept
+			:	m_extracted{ 0u }
+			,	m_handled{ 0u }
+			,	m_sent{ 0u }
+			,	m_closed{ 0u }
+			{}
+
+		//! Initializing constructor.
+		mchain_select_result_t(
+			//! Count of extracted incoming messages.
+			std::size_t extracted,
+			//! Count of handled incoming messages.
+			std::size_t handled,
+			//! Count of messages sent.
+			std::size_t sent,
+			//! Count of closed chains.
+			std::size_t closed ) noexcept
+			:	m_extracted{ extracted }
+			,	m_handled{ handled }
+			,	m_sent{ sent }
+			,	m_closed{ closed }
+			{}
+
+		//! Count of extracted incoming messages.
+		[[nodiscard]]
+		std::size_t
+		extracted() const noexcept { return m_extracted; }
+
+		//! Count of handled incoming messages.
+		[[nodiscard]]
+		std::size_t
+		handled() const noexcept { return m_handled; }
+
+		//! Count of messages sent.
+		[[nodiscard]]
+		std::size_t
+		sent() const noexcept { return m_sent; }
+
+		//! Count of closed chains.
+		[[nodiscard]]
+		std::size_t
+		closed() const noexcept { return m_closed; }
+
+		/*!
+		 * \return true if extracted() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_extracted() const noexcept { return 0u != m_extracted; }
+
+		/*!
+		 * \return true if handled() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_handled() const noexcept { return 0u != m_handled; }
+
+		/*!
+		 * \return true if sent() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_sent() const noexcept { return 0u != m_sent; }
+
+		/*!
+		 * \return true if closed() is not 0.
+		 */
+		[[nodiscard]]
+		bool
+		was_closed() const noexcept { return 0u != m_closed; }
+
+		/*!
+		 * \return true if something was sent or received/handled.
+		 */
+		[[nodiscard]]
+		bool
+		was_sent_or_received() const noexcept
+			{
+				return was_extracted() || was_handled() || was_sent();
+			}
+	};
 
 //
 // mchain_select_params_t
@@ -64,7 +167,7 @@ class mchain_select_params_t final
 		//! Make of clone with different Msg_Count_Status or return
 		//! a reference to the same object.
 		template< mchain_props::msg_count_status_t New_Msg_Count_Status >
-		SO_5_NODISCARD
+		[[nodiscard]]
 		decltype(auto)
 		so5_clone_if_necessary() noexcept
 			{
@@ -114,7 +217,152 @@ namespace mchain_props {
 namespace details {
 
 //
-// actual_select_case_t
+// receive_select_case_t
+//
+/*!
+ * \brief A base class for implementations of select_case for the
+ * case of receiving messages.
+ *
+ * This class implements pure virtual try_handle() methods but introduces
+ * a new pure virtual method try_handle_extracted_message() that should
+ * be implemented in a derived class.
+ *
+ * \since
+ * v.5.7.0
+ */
+class receive_select_case_t : public select_case_t
+	{
+	public :
+		using select_case_t::select_case_t;
+
+		[[nodiscard]]
+		handling_result_t
+		try_handle( select_notificator_t & notificator ) override
+			{
+				// Please note that value of m_notificator will be
+				// returned to nullptr if a message extracted or
+				// channel is closed.
+				//
+				// NOTE: if extract() throws we don't know is the pointer
+				// to this select_case stored inside mchain or not.
+				// But is doesn't matter because in the case of an exception
+				// select operation will be aborted and on_select_finish()
+				// will be called for each select_case.
+				//
+				// But we don't reset m_notificator to nullptr in the case
+				// of an exception from extract(). It is for the case if
+				// mchain stores pointer to select_case and calls
+				// select_case's notify() method just before select operation
+				// is aborted (and on_select_finish() is called).
+				//
+				m_notificator = &notificator;
+
+				demand_t demand;
+				const auto status = extract( demand );
+				// Notificator pointer must retain its value only if
+				// there is no messages in mchain.
+				// In other cases this pointer must be dropped.
+				if( extraction_status_t::no_messages != status )
+					m_notificator = nullptr;
+
+				if( extraction_status_t::msg_extracted == status )
+					return try_handle_extracted_message( demand );
+
+				return mchain_receive_result_t{ 0u, 0u, status };
+			}
+
+	protected :
+		//! Attempt to handle extracted message.
+		/*!
+		 * This method will be overriden in derived classes.
+		 */
+		[[nodiscard]]
+		virtual mchain_receive_result_t
+		try_handle_extracted_message( demand_t & demand ) = 0;
+	};
+
+//
+// send_select_case_t
+//
+/*!
+ * \brief A base class for implementations of select_case for the
+ * case of sending messages.
+ *
+ * This class implements pure virtual try_handle() methods but introduces
+ * a new pure virtual method on_successful_push() that should
+ * be implemented in a derived class.
+ *
+ * \since
+ * v.5.7.0
+ */
+class send_select_case_t : public select_case_t
+	{
+	private :
+		//! Type of message to be sent.
+		std::type_index m_msg_type;
+		//! Message to be sent.
+		message_ref_t m_message;
+
+	public :
+		//! Initializing constructor.
+		send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message )
+			:	select_case_t{ std::move(chain) }
+			,	m_msg_type{ std::move(msg_type) }
+			,	m_message{ std::move(message) }
+			{}
+
+		[[nodiscard]]
+		handling_result_t
+		try_handle( select_notificator_t & notificator ) override
+			{
+				// Please note that value of m_notificator will be
+				// returned to nullptr if a message stored into the mchain
+				// or channel is closed.
+				//
+				// NOTE: if push() throws we don't know is the pointer
+				// to this select_case stored inside mchain or not.
+				// But is doesn't matter because in the case of an exception
+				// select operation will be aborted and on_select_finish()
+				// will be called for each select_case.
+				//
+				// But we don't reset m_notificator to nullptr in the case
+				// of an exception from push(). It is for the case if
+				// mchain stores pointer to select_case and calls
+				// select_case's notify() method just before select operation
+				// is aborted (and on_select_finish() is called).
+				//
+				m_notificator = &notificator;
+
+				const auto status = push( m_msg_type, m_message );
+				// Notificator pointer must retain its value only if
+				// message is deffered.
+				// In other cases this pointer must be dropped.
+				if( push_status_t::deffered != status )
+					m_notificator = nullptr;
+
+				if( push_status_t::stored == status )
+					on_successful_push();
+
+				return mchain_send_result_t{
+						push_status_t::stored == status ? 1u : 0u,
+						status
+					};
+			}
+
+	protected :
+		//! Hook for handling successful push attempt.
+		/*!
+		 * This method will be overriden in derived classes.
+		 */
+		virtual void
+		on_successful_push() = 0;
+	};
+
+//
+// actual_receive_select_case_t
 //
 /*!
  * \brief Actual implementation of one multi chain select case.
@@ -123,7 +371,7 @@ namespace details {
  * v.5.5.16
  */
 template< std::size_t N >
-class actual_select_case_t : public select_case_t
+class actual_receive_select_case_t : public receive_select_case_t
 	{
 		so_5::details::handlers_bunch_t< N > m_handlers;
 
@@ -134,12 +382,12 @@ class actual_select_case_t : public select_case_t
 		 * from the mchain.
 		 */
 		template< typename... Handlers >
-		actual_select_case_t(
+		actual_receive_select_case_t(
 			//! Chain to be used for select.
 			mchain_t chain,
 			//! Message handlers.
 			Handlers &&... handlers )
-			:	select_case_t( std::move(chain) )
+			:	receive_select_case_t( std::move(chain) )
 			{
 				so_5::details::fill_handlers_bunch(
 						m_handlers,
@@ -148,6 +396,7 @@ class actual_select_case_t : public select_case_t
 			}
 
 	protected :
+		[[nodiscard]]
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
 			{
@@ -159,6 +408,60 @@ class actual_select_case_t : public select_case_t
 						1u,
 						handled ? 1u : 0u,
 						extraction_status_t::msg_extracted };
+			}
+	};
+
+//
+// actual_send_select_case_t
+//
+/*!
+ * \brief The actual implementation of select_case for the case
+ * of sending a message.
+ *
+ * This implementation calls an instance of On_Success_Handler handler
+ * in on_successful_push() method.
+ *
+ * \tparam On_Success_Handler the type of handler to be called when
+ * the message is sent.
+ *
+ * \since
+ * v.5.7.0
+ */
+template< typename On_Success_Handler >
+class actual_send_select_case_t : public send_select_case_t
+	{
+	private :
+		//! Actual handler of successful send attempt.
+		On_Success_Handler m_success_handler;
+
+	public :
+		//! Initializing constructor for the case when success_handler is a const lvalue
+		actual_send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message,
+			const On_Success_Handler & success_handler )
+			:	send_select_case_t{
+					std::move(chain), std::move(msg_type), std::move(message) }
+			,	m_success_handler{ success_handler }
+			{}
+
+		//! Initializing constructor for the case when success_handler is a rvalue.
+		actual_send_select_case_t(
+			mchain_t chain,
+			std::type_index msg_type,
+			message_ref_t message,
+			On_Success_Handler && success_handler )
+			:	send_select_case_t{
+					std::move(chain), std::move(msg_type), std::move(message) }
+			,	m_success_handler{ std::move(success_handler) }
+			{}
+
+	protected :
+		void
+		on_successful_push() override
+			{
+				m_success_handler();
 			}
 	};
 
@@ -226,6 +529,7 @@ class select_cases_holder_t
 			}
 
 		//! Get count of select_cases in holder.
+		[[nodiscard]]
 		std::size_t
 		size() const noexcept { return Cases_Count; }
 
@@ -266,10 +570,12 @@ class select_cases_holder_t
 			};
 
 		//! Get iterator for the first item in select_cases_holder.
+		[[nodiscard]]
 		const_iterator
 		begin() const noexcept { return const_iterator{ m_cases.begin() }; }
 
 		//! Get iterator for the item just behind the last item in select_cases_holder.
+		[[nodiscard]]
 		const_iterator
 		end() const noexcept { return const_iterator{ m_cases.end() }; }
 	};
@@ -875,6 +1181,7 @@ class actual_select_notificator_t : public select_notificator_t
 		 * \return nullptr if there is no notified select_cases after
 		 * waiting for \a wait_time.
 		 */
+		[[nodiscard]]
 		select_case_t *
 		wait(
 			//! Maximum waiting time for notified select_case.
@@ -920,8 +1227,23 @@ class select_actions_performer_t
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
-		extraction_status_t m_status;
-		bool m_can_continue = { true };
+		std::size_t m_sent_messages = 0;
+
+		/*!
+		 * \brief The counter of completed send_cases.
+		 *
+		 * A send_case is completed if the corresponding message is sent
+		 * of if the target mchain is closed.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
+		std::size_t m_completed_send_cases = 0;
+
+		extraction_status_t m_last_extraction_status =
+				extraction_status_t::no_messages;
+
+		bool m_can_continue = true;
 
 	public :
 		select_actions_performer_t(
@@ -943,7 +1265,7 @@ class select_actions_performer_t
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
 				if( !ready_chain )
 					{
-						m_status = extraction_status_t::no_messages;
+						m_last_extraction_status = extraction_status_t::no_messages;
 						update_can_continue_flag();
 					}
 				else
@@ -951,25 +1273,38 @@ class select_actions_performer_t
 			}
 
 		extraction_status_t
-		last_status() const noexcept { return m_status; }
+		last_extraction_status() const noexcept { return m_last_extraction_status; }
 
 		bool
 		can_continue() const noexcept { return m_can_continue; }
 
-		mchain_receive_result_t
+		mchain_select_result_t
 		make_result() const noexcept
 			{
-				return mchain_receive_result_t{
+				return {
 						m_extracted_messages,
 						m_handled_messages,
-						m_extracted_messages ? extraction_status_t::msg_extracted :
-								( m_closed_chains == m_select_cases.size() ?
-								  	extraction_status_t::chain_closed :
-									extraction_status_t::no_messages )
+						m_sent_messages,
+						m_closed_chains,
 					};
 			}
 
 	private :
+		friend struct select_result_handler_t;
+		struct select_result_handler_t final
+			{
+				select_actions_performer_t * m_performer;
+				select_case_t * m_current;
+
+				void operator()( const mchain_receive_result_t & result ) const {
+					m_performer->on_receive_result( m_current, result );
+				}
+
+				void operator()( const mchain_send_result_t & result ) const {
+					m_performer->on_send_result( m_current, result );
+				}
+			};
+
 		void
 		handle_ready_chain( select_case_t * ready_chain )
 			{
@@ -978,34 +1313,81 @@ class select_actions_performer_t
 						auto * current = ready_chain;
 						ready_chain = current->giveout_next();
 
-						const auto result = current->try_receive( m_notificator );
-						m_status = result.status();
-
-						if( extraction_status_t::msg_extracted == m_status )
-							{
-								m_extracted_messages += result.extracted();
-								m_handled_messages += result.handled();
-
-								// The mchain from 'current' can contain more
-								// messages. We should return this case to 'ready_chain'
-								// of the notificator.
-								m_notificator.return_to_ready_chain( *current );
-							}
-						else if( extraction_status_t::chain_closed == m_status )
-							{
-								++m_closed_chains;
-
-								// Since v.5.5.17 chain_closed handler must be
-								// used on chain_closed event.
-								if( const auto & handler = m_params.closed_handler() )
-									so_5::details::invoke_noexcept_code(
-										[&handler, current] {
-											handler( current->chain() );
-										} );
-							}
+						std::visit(
+								select_result_handler_t{ this, current },
+								current->try_handle( m_notificator ) );
 
 						update_can_continue_flag();
 					}
+			}
+
+		void
+		on_receive_result(
+			select_case_t * current,
+			const mchain_receive_result_t & result )
+			{
+				m_last_extraction_status = result.status();
+
+				if( extraction_status_t::msg_extracted == result.status() )
+					{
+						m_extracted_messages += result.extracted();
+						m_handled_messages += result.handled();
+
+						// The mchain from 'current' can contain more
+						// messages. We should return this case to 'ready_chain'
+						// of the notificator.
+						m_notificator.return_to_ready_chain( *current );
+					}
+				else if( extraction_status_t::chain_closed == result.status() )
+					{
+						react_on_closed_chain( current );
+					}
+			}
+
+		void
+		on_send_result(
+			select_case_t * current,
+			const mchain_send_result_t & result )
+			{
+				// No extracted messages for that case.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
+				switch( result.status() )
+					{
+					case push_status_t::stored :
+						++m_completed_send_cases;
+						m_sent_messages += result.sent();
+					break;
+
+					case push_status_t::deffered :
+						// Nothing to do. Another attempt could be performed later.
+					break;
+
+					case push_status_t::not_stored :
+						// Message wasn't sent but the send_case completed.
+						++m_completed_send_cases;
+					break;
+
+					case push_status_t::chain_closed :
+						// Message wasn't sent but the send_case completed.
+						++m_completed_send_cases;
+						react_on_closed_chain( current );
+					break;
+					}
+			}
+
+		void
+		react_on_closed_chain( select_case_t * current )
+			{
+				++m_closed_chains;
+
+				// Since v.5.5.17 chain_closed handler must be
+				// used on chain_closed event.
+				if( const auto & handler = m_params.closed_handler() )
+					so_5::details::invoke_noexcept_code(
+						[&handler, current] {
+							handler( current->chain() );
+						} );
 			}
 
 		void
@@ -1015,8 +1397,12 @@ class select_actions_performer_t
 					if( m_closed_chains == m_select_cases.size() )
 						return false;
 
+					if( m_completed_send_cases >= m_select_cases.size() )
+						return false;
+
 					if( m_params.to_handle() &&
-							m_handled_messages >= m_params.to_handle() )
+							(m_handled_messages + m_completed_send_cases >=
+							 		m_params.to_handle()) )
 						return false;
 
 					if( m_params.to_extract() &&
@@ -1034,7 +1420,7 @@ class select_actions_performer_t
 	};
 
 template< typename Holder >
-mchain_receive_result_t
+mchain_select_result_t
 do_adv_select_with_total_time(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
@@ -1055,7 +1441,7 @@ do_adv_select_with_total_time(
 	}
 
 template< typename Holder >
-mchain_receive_result_t
+mchain_select_result_t
 do_adv_select_without_total_time(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
@@ -1068,7 +1454,8 @@ do_adv_select_without_total_time(
 		do
 			{
 				performer.handle_next( wait_time.remaining() );
-				if( extraction_status_t::msg_extracted == performer.last_status() )
+				if( extraction_status_t::msg_extracted ==
+						performer.last_extraction_status() )
 					// Becase some message extracted we must restart wait_time
 					// counting.
 					wait_time = remaining_time_counter_t{ params.empty_timeout() };
@@ -1099,7 +1486,7 @@ do_adv_select_without_total_time(
  * v.5.5.17
  */
 template< typename Cases_Holder >
-mchain_receive_result_t
+mchain_select_result_t
 perform_select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
@@ -1117,7 +1504,7 @@ perform_select(
 } /* namespace mchain_props */
 
 //
-// case_
+// receive_case
 //
 /*!
  * \brief A helper for creation of select_case object for one multi chain
@@ -1132,8 +1519,9 @@ perform_select(
  * v.5.5.16
  */
 template< typename... Handlers >
+[[nodiscard]]
 mchain_props::select_case_unique_ptr_t
-case_(
+receive_case(
 	//! Message chain to be used in select.
 	mchain_t chain,
 	//! Message handlers for messages extracted from that chain.
@@ -1143,9 +1531,50 @@ case_(
 		using namespace mchain_props::details;
 
 		return select_case_unique_ptr_t{
-				new actual_select_case_t< sizeof...(handlers) >{
+				new actual_receive_select_case_t< sizeof...(handlers) >{
 						std::move(chain),
 						std::forward< Handlers >(handlers)... } };
+	}
+
+//
+// send_case
+//
+/*!
+ * \brief A helper for creation of select_case object for one send-case
+ * of a multi chain select.
+ *
+ * \sa so_5::select()
+ *
+ * \since
+ * v.5.7.0
+ */
+template<
+	typename Msg,
+	message_ownership_t Ownership,
+	typename On_Success_Handler >
+[[nodiscard]]
+mchain_props::select_case_unique_ptr_t
+send_case(
+	//! Message chain to be used in select.
+	mchain_t chain,
+	//! Message instance to be sent.
+	message_holder_t< Msg, Ownership > msg,
+	On_Success_Handler && handler )
+	{
+		using namespace mchain_props;
+		using namespace mchain_props::details;
+
+		using actual_handler_type = std::decay_t<On_Success_Handler>;
+		using select_case_type = actual_send_select_case_t<actual_handler_type>;
+
+		return select_case_unique_ptr_t{
+				new select_case_type{
+						std::move(chain),
+						message_payload_type<Msg>::subscription_type_index(),
+						msg.make_reference(),
+						std::forward< On_Success_Handler >(handler)
+				}
+			};
 	}
 
 /*!
@@ -1173,10 +1602,10 @@ case_(
 	// A return from select will be after handling of 3 messages or
 	// if all mchains are closed explicitely.
 	select( from_all().handle_n( 3 ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1188,10 +1617,10 @@ case_(
 	// if all mchains are closed explicitely, or if there is no messages
 	// for more than 200ms.
 	select( from_all().handle_n( 3 ).empty_timeout( milliseconds(200) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1201,10 +1630,10 @@ case_(
 	// A return from select will be after explicit close of all mchains
 	// or if there is no messages for more than 500ms.
 	select( from_all().handle_all().empty_timeout( milliseconds(500) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1212,10 +1641,10 @@ case_(
 	// Receve any number of messages from mchains but do waiting and
 	// handling for no more than 2s.
 	select( from_all().handle_all().total_time( seconds(2) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1223,10 +1652,10 @@ case_(
 	// Receve 1000 messages from chains but do waiting and
 	// handling for no more than 2s.
 	select( from_all().extract_n( 1000 ).total_time( seconds(2) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1238,7 +1667,7 @@ case_(
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >
-mchain_receive_result_t
+mchain_select_result_t
 select(
 	//! Parameters for advanced select.
 	const mchain_select_params_t< Msg_Count_Status > & params,
@@ -1271,8 +1700,8 @@ select(
  * \code
 	auto prepared = so_5::prepare_select(
 		so_5::from_all().handle_n(10).empty_timeout(10s),
-		case_( ch1, some_handlers... ),
-		case_( ch2, more_handlers... ), ... );
+		receive_case( ch1, some_handlers... ),
+		receive_case( ch2, more_handlers... ), ... );
 	...
 	auto r = so_5::select( prepared );
  * \endcode
@@ -1396,10 +1825,10 @@ class prepared_select_t
 	// for more than 200ms.
 	auto prepared1 = prepare_select(
 		so_5::from_all().handle_n( 3 ).empty_timeout( milliseconds(200) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1410,10 +1839,10 @@ class prepared_select_t
 	// or if there is no messages for more than 500ms.
 	auto prepared2 = prepare_select(
 		so_5::from_all().handle_all().empty_timeout( milliseconds(500) ),
-		case_( ch1,
+		receive_case( ch1,
 				[]( const first_message_type & msg ) { ... },
 				[]( const second_message_type & msg ) { ... } ),
-		case_( ch2,
+		receive_case( ch2,
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
@@ -1456,9 +1885,9 @@ prepare_select(
  * \code
 	auto prepared = so_5::prepare_select(
 		so_5::from_all().extract_n(10).empty_timeout(200ms),
-		case_( ch1, some_handlers... ),
-		case_( ch2, more_handlers... ),
-		case_( ch3, yet_more_handlers... ) );
+		receive_case( ch1, some_handlers... ),
+		receive_case( ch2, more_handlers... ),
+		receive_case( ch3, yet_more_handlers... ) );
 	...
 	while( !some_condition )
 	{
@@ -1476,7 +1905,7 @@ prepare_select(
  * v.5.5.17
  */
 template< std::size_t Cases_Count >
-mchain_receive_result_t
+mchain_select_result_t
 select(
 	const prepared_select_t< Cases_Count > & prepared )
 	{
@@ -1615,17 +2044,17 @@ class extensible_select_t
  * // Creation of extensible-select instance with initial set of cases.
  * auto sel = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(10),
- * 	case_(ch1, ...),
- * 	case_(ch2, ...));
+ * 	receive_case(ch1, ...),
+ * 	receive_case(ch2, ...));
  *
  * // Creation of extensible-select instance without initial set of cases.
  * auto sel2 = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(20));
  * // Cases should be added later.
- * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2, receive_case(ch1, ...));
  * so_5::add_select_cases(sel2,
- * 	case_(ch2, ...),
- * 	case_(ch3, ...));
+ * 	receive_case(ch2, ...),
+ * 	receive_case(ch3, ...));
  * \endcode
  *
  * \since
@@ -1670,10 +2099,10 @@ make_extensible_select(
  * auto sel2 = so_5::make_extensible_select(
  * 	so_5::from_all().handle_n(20));
  * // Cases should be added later.
- * so_5::add_select_cases(sel2, case_(ch1, ...));
+ * so_5::add_select_cases(sel2, receive_case(ch1, ...));
  * so_5::add_select_cases(sel2,
- * 	case_(ch2, ...),
- * 	case_(ch3, ...));
+ * 	receive_case(ch2, ...),
+ * 	receive_case(ch3, ...));
  * \endcode
  *
  * \note
@@ -1715,7 +2144,7 @@ add_select_cases(
  * 	auto sel = so_5::make_extensible_select(so_5::from_all().handle_all());
  *
  * 	for(auto & ch : chains)
- * 		so_5::add_select_cases(case_(ch, ...));
+ * 		so_5::add_select_cases(receive_case(ch, ...));
  *
  * 	auto r = so_5::select(sel);
  * 	... // Handing of the select() result.
@@ -1732,7 +2161,7 @@ add_select_cases(
  * \since
  * v.5.6.1
  */
-inline mchain_receive_result_t
+inline mchain_select_result_t
 select(
 	const extensible_select_t & extensible_select )
 	{

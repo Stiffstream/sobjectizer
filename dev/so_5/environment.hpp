@@ -235,7 +235,7 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \see disable_autoshutdown()
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		bool
 		autoshutdown_disabled() const
 		{
@@ -840,7 +840,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_unique_holder_t
 		make_coop();
 
@@ -865,7 +865,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_unique_holder_t
 		make_coop(
 			//! A default binder for this cooperation.
@@ -893,7 +893,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_unique_holder_t
 		make_coop(
 			//! Parent coop.
@@ -924,7 +924,7 @@ class SO_5_TYPE environment_t
 		 * \since
 		 * v.5.6.0
 		 */
-		SO_5_NODISCARD
+		[[nodiscard]]
 		coop_unique_holder_t
 		make_coop(
 			//! Parent coop.
@@ -1692,7 +1692,7 @@ environment_t::introduce_coop( Args &&... args )
 	\endcode
  */
 template< typename... Args >
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 create_child_coop(
 	//! Owner of the cooperation.
@@ -1732,7 +1732,7 @@ create_child_coop(
 	\endcode
  */
 template< typename... Args >
-SO_5_NODISCARD
+[[nodiscard]]
 coop_unique_holder_t
 create_child_coop(
 	//! Parent cooperation.
@@ -1876,7 +1876,7 @@ namespace low_level_api
  * \since
  * v.5.6.0
  */
-SO_5_NODISCARD inline so_5::timer_id_t
+[[nodiscard]] inline so_5::timer_id_t
 schedule_timer(
 	//! Message type for searching subscribers.
 	const std::type_index & subscription_type,

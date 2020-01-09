@@ -82,7 +82,7 @@ void demo()
 
 	// Handle results and initiate new tasks.
 	select( so_5::from_all().handle_all(),
-		case_( reverse_reply_ch, [&]( const string & v ) {
+		receive_case( reverse_reply_ch, [&]( const string & v ) {
 				cout << "reverse_result: " << v << endl;
 				if( reverse_it != strings.end() )
 					so_5::send< string >( reverse_cmd_ch, *(reverse_it++) );
@@ -91,7 +91,7 @@ void demo()
 					// worker will finish its work.
 					close_drop_content( reverse_cmd_ch );
 			} ),
-		case_( doubler_reply_ch, [&]( const string & v ) {
+		receive_case( doubler_reply_ch, [&]( const string & v ) {
 				cout << "doubler_result: " << v << endl;
 				if( doubler_it != strings.end() )
 					so_5::send< string >( doubler_cmd_ch, *(doubler_it++) );

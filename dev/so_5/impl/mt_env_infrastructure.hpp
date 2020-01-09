@@ -170,7 +170,7 @@ class mt_env_infrastructure_t
 		virtual void
 		stop() override;
 
-		SO_5_NODISCARD
+		[[nodiscard]]
 		virtual coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,

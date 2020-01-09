@@ -20,13 +20,12 @@ do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 	std::thread child{ [&] {
 		auto sel = prepare_select(
 				so_5::from_all().handle_all().empty_timeout( 500ms ),
-				case_( chain ) );
+				receive_case( chain ) );
 
 		auto r = select( sel );
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::no_messages == r.status() );
+		UT_CHECK_CONDITION( !r.was_sent_or_received() );
 	} };
 
 	child.join();
@@ -63,13 +62,12 @@ do_check_total_time( const so_5::mchain_t & chain )
 		auto r = select(
 				prepare_select(
 						so_5::from_all().handle_all().total_time( 500ms ),
-						case_( chain, []( const std::string & ) {} ) )
+						receive_case( chain, []( const std::string & ) {} ) )
 				);
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
-		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
+		UT_CHECK_CONDITION( r.was_handled() );
 	} };
 
 	child.join();
@@ -104,7 +102,7 @@ do_check_handle_n(
 		auto r = select(
 				prepare_select( 
 						so_5::from_all().handle_n( 3 ),
-						case_( ch1,
+						receive_case( ch1,
 							[&ch2]( int i ) {
 								so_5::send< int >( ch2, i );
 							} ) )
@@ -118,7 +116,7 @@ do_check_handle_n(
 	auto r = select(
 			prepare_select(
 					so_5::from_all().handle_n( 2 ),
-					case_( ch2,
+					receive_case( ch2,
 						[&ch1]( int i ) {
 							so_5::send< int >( ch1, i + 1 );
 						} ) )
@@ -160,7 +158,7 @@ do_check_extract_n(
 		auto r = select(
 				prepare_select( 
 						so_5::from_all().handle_n( 3 ).extract_n( 3 ),
-						case_( ch1,
+						receive_case( ch1,
 							[&ch2]( int i ) {
 								so_5::send< int >( ch2, i );
 							} ) )
@@ -176,7 +174,7 @@ do_check_extract_n(
 	auto r = select(
 			prepare_select(
 					so_5::from_all().handle_n( 1 ),
-					case_( ch2,
+					receive_case( ch2,
 						[&ch1]( int i ) {
 							so_5::send< string >( ch1, to_string( i + 1 ) );
 							so_5::send< int >( ch1, i + 1 );
@@ -220,7 +218,7 @@ do_check_stop_pred(
 		auto r = select( prepare_select(
 				so_5::from_all().handle_all().stop_on(
 						[&last_received] { return last_received > 10; } ),
-				case_( ch1,
+				receive_case( ch1,
 					[&ch2, &last_received]( int i ) {
 						last_received = i;
 						so_5::send< int >( ch2, i );
@@ -235,7 +233,7 @@ do_check_stop_pred(
 	so_5::send< int >( ch1, i );
 	auto r = select( prepare_select(
 			so_5::from_all().handle_all().stop_on( [&i] { return i > 10; } ),
-			case_( ch2,
+			receive_case( ch2,
 				[&ch1, &i]( int ) {
 					++i;
 					so_5::send< int >( ch1, i );
@@ -295,7 +293,7 @@ do_check_parallel_select(
 
 	auto sel = prepare_select(
 			so_5::from_all().handle_all(),
-			case_( ch, [](const nothing&) {} ) );
+			receive_case( ch, [](const nothing&) {} ) );
 
 	std::thread child1{ [&] {
 		try {

@@ -200,6 +200,7 @@
  * \example so_5/selective_msg_tracing/main.cpp
  * \example so_5/nohandler_msg_tracing/main.cpp
  * \example so_5/make_new_direct_mbox/main.cpp
+ * \example so_5/mchain_fibonacci/main.cpp
  */
 
 // vim:ft=cpp.doxygen

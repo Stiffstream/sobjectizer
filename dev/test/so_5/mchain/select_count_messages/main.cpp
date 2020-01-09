@@ -74,7 +74,7 @@ main()
 				while( true )
 				{
 					auto r = so_5::select( so_5::from_all().handle_n(1),
-							case_( ch1, [&]( unsigned int v ) {
+							receive_case( ch1, [&]( unsigned int v ) {
 									try_accept_value(
 											"ch1",
 											v,
@@ -82,7 +82,7 @@ main()
 											expected_values[ 0 ] );
 									++total_values;
 								} ),
-							case_( ch2, [&]( unsigned int v ) {
+							receive_case( ch2, [&]( unsigned int v ) {
 									try_accept_value(
 											"ch2",
 											v,
@@ -90,7 +90,7 @@ main()
 											expected_values[ 1 ] );
 									++total_values;
 								} ),
-							case_( ch3, [&]( unsigned int v ) {
+							receive_case( ch3, [&]( unsigned int v ) {
 									try_accept_value(
 											"ch3",
 											v,
@@ -100,8 +100,7 @@ main()
 								} )
 							);
 
-					if( so_5::mchain_props::extraction_status_t::chain_closed ==
-							r.status() )
+					if( !r.was_handled() )
 						break;
 				}
 

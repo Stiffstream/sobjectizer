@@ -690,7 +690,7 @@ agent_t::so_environment() const
 	return m_env;
 }
 
-SO_5_NODISCARD
+[[nodiscard]]
 coop_handle_t
 agent_t::so_coop() const
 {
@@ -891,7 +891,8 @@ agent_t::so_create_event_subscription(
 	std::type_index msg_type,
 	const state_t & target_state,
 	const event_handler_method_t & method,
-	thread_safety_t thread_safety )
+	thread_safety_t thread_safety,
+	event_handler_kind_t handler_kind )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -905,7 +906,8 @@ agent_t::so_create_event_subscription(
 			detect_limit_for_message_type( msg_type ),
 			target_state,
 			method,
-			thread_safety );
+			thread_safety,
+			handler_kind );
 }
 
 void
@@ -923,7 +925,8 @@ agent_t::so_create_deadletter_subscription(
 			detect_limit_for_message_type( msg_type ),
 			deadletter_state,
 			method,
-			thread_safety );
+			thread_safety,
+			event_handler_kind_t::final_handler );
 }
 
 void
@@ -1233,22 +1236,32 @@ agent_t::process_enveloped_msg(
 {
 	using namespace enveloped_msg::impl;
 
-	// We don't expect exceptions here and can't restore after them.
-	so_5::details::invoke_noexcept_code( [&] {
-		auto & envelope = message_to_envelope( d.m_message_ref );
-
-		if( handler_data )
-		{
-			agent_demand_handler_invoker_t invoker{
-					working_thread_id,
-					d,
-					*handler_data
-			};
-			envelope.access_hook(
-					so_5::enveloped_msg::access_context_t::handler_found,
-					invoker );
-		}
-	} );
+	if( handler_data )
+	{
+		// If this is intermediate_handler then we should pass the
+		// whole envelope to it.
+		if( event_handler_kind_t::intermediate_handler == handler_data->m_kind )
+			// Just call process_message() in that case because
+			// process_message() already does what we need (including
+			// setting working_thread_id and handling of exceptions).
+			process_message( working_thread_id, d, handler_data->m_method );
+		else
+			// For a final_handler the payload should be extracted
+			// from the envelope and the extracted payload should go
+			// to the handler.
+			// We don't expect exceptions here and can't restore after them.
+			so_5::details::invoke_noexcept_code( [&] {
+				auto & envelope = message_to_envelope( d.m_message_ref );
+					agent_demand_handler_invoker_t invoker{
+							working_thread_id,
+							d,
+							*handler_data
+					};
+					envelope.access_hook(
+							so_5::enveloped_msg::access_context_t::handler_found,
+							invoker );
+			} );
+	}
 }
 
 void

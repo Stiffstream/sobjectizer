@@ -17,5 +17,8 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/message_limits/build_tests.rb"
 
 	required_prj "#{path}/transfer_to_state/prj.ut.rb"
+	required_prj "#{path}/transfer_to_state_2/prj.ut.rb"
+	required_prj "#{path}/suppress_event/prj.ut.rb"
+	required_prj "#{path}/suppress_event_mutable/prj.ut.rb"
 }
 

@@ -33,7 +33,7 @@ worker_thread(
 			so_5::from_all()
 					.handle_n( 5 )
 					.empty_timeout( empty_timeout ),
-			case_( test_ch, [&r]( unsigned int ) { ++r.m_values; } ) );
+			receive_case( test_ch, [&r]( unsigned int ) { ++r.m_values; } ) );
 
 	so_5::send< worker_result >( control_ch, r );
 }

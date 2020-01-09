@@ -39,9 +39,9 @@ raw_select_case( so_5::environment_t & env )
 	while( iterations < max_iterations )
 	{
 		so_5::select( so_5::from_all().handle_n( 1 ).no_wait_on_empty(),
-				case_( ch1, [&ch2]( int v ) { so_5::send< int >(ch2, v+1); } ),
-				case_( ch2, [&ch3]( int v ) { so_5::send< int >(ch3, v+1); } ),
-				case_( ch3, [&ch1]( int v ) { so_5::send< int >(ch1, v+1); } ) );
+				receive_case( ch1, [&ch2]( int v ) { so_5::send< int >(ch2, v+1); } ),
+				receive_case( ch2, [&ch3]( int v ) { so_5::send< int >(ch3, v+1); } ),
+				receive_case( ch3, [&ch1]( int v ) { so_5::send< int >(ch1, v+1); } ) );
 		++iterations;
 	}
 
@@ -60,9 +60,9 @@ prepared_select_case( so_5::environment_t & env )
 
 	auto prepared = so_5::prepare_select(
 			so_5::from_all().handle_n( 1 ).no_wait_on_empty(),
-			case_( ch1, [&ch2]( int v ) { so_5::send< int >(ch2, v+1); } ),
-			case_( ch2, [&ch3]( int v ) { so_5::send< int >(ch3, v+1); } ),
-			case_( ch3, [&ch1]( int v ) { so_5::send< int >(ch1, v+1); } ) );
+			receive_case( ch1, [&ch2]( int v ) { so_5::send< int >(ch2, v+1); } ),
+			receive_case( ch2, [&ch3]( int v ) { so_5::send< int >(ch3, v+1); } ),
+			receive_case( ch3, [&ch1]( int v ) { so_5::send< int >(ch1, v+1); } ) );
 
 	so_5::send< int >( ch1, 0 );
 

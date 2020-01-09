@@ -60,10 +60,10 @@ do_test_case(
 	}
 
 	so_5::select( so_5::from_all().handle_all().empty_timeout( chrono::milliseconds(500) ),
-		case_( first_reply_ch, []( string s ) {
+		receive_case( first_reply_ch, []( string s ) {
 				cout << "first: " << s << endl;
 			} ),
-		case_( second_reply_ch, []( string s ) {
+		receive_case( second_reply_ch, []( string s ) {
 				cout << "second: " << s << endl;
 			} ) );
 

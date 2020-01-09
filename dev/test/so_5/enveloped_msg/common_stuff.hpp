@@ -88,11 +88,11 @@ class special_mbox_t : public so_5::abstract_message_box_t
 
 	const std::string m_id;
 
-	mutable std::mutex m_counter_lock;
-	mutable int m_counter{};
+	std::mutex m_counter_lock;
+	int m_counter{};
 
 	std::string
-	allocate_counter() const
+	allocate_counter()
 	{
 		std::lock_guard< std::mutex > lock{ m_counter_lock };
 		return m_id + "[" + std::to_string(++m_counter) + "]";
