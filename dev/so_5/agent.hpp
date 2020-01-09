@@ -3130,6 +3130,7 @@ subscription_bind_t::suppress()
 			typeid( Msg ),
 			method,
 			thread_safety_t::safe,
+//FIXME: document this!
 			event_handler_kind_t::intermediate_handler );
 
 	return *this;
@@ -3151,6 +3152,7 @@ subscription_bind_t::just_switch_to(
 			typeid( Msg ),
 			method,
 			thread_safety_t::unsafe,
+//FIXME: document this!
 			event_handler_kind_t::final_handler );
 
 	return *this;
