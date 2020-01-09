@@ -133,8 +133,19 @@ using coop_id_t = std::uint_fast64_t;
 //
 // event_handler_kind_t
 //
-//FIXME: document this!
 /*!
+ * \brief Kind of an event handler.
+ *
+ * Since v.5.7.0 event handlers of an agent are devided into the following
+ * categories:
+ *
+ * - final handler. That is an ordinary handler that takes a message and
+ *   handles it. In the case of an enveloped message a final handler should
+ *   take the payload of a message;
+ * - intermediate handler. That is a special handler that doesn't handle
+ *   a message by itself but delegates the handling to some other event
+ *   handler or just suppresses the message. In the case of enveloped message
+ *   an intermediate handler should take the whole envelope.
  *
  * \since
  * v.5.7.0

@@ -3101,7 +3101,9 @@ subscription_bind_t::transfer_to_state(
 					op_state->m_mbox_id,
 					typeid( Msg ),
 					msg,
-//FIXME: document this!
+					// We have very simple choice here: message is an enveloped
+					// message or just classical message/signal.
+					// So we should select an appropriate demand handler.
 					message_kind_t::enveloped_msg == message_kind( msg ) ?
 							agent_t::get_demand_handler_on_enveloped_msg_ptr() :
 							agent_t::get_demand_handler_on_message_ptr()
@@ -3130,7 +3132,14 @@ subscription_bind_t::suppress()
 			typeid( Msg ),
 			method,
 			thread_safety_t::safe,
-//FIXME: document this!
+			// Suppression of a message is a kind of ignoring of the message.
+			// In the case of enveloped message intermediate_handler receives
+			// the whole envelope (not the payload) and the whole envelope
+			// should be ignored. We can't specify final_handler here because
+			// in that case the payload of an enveloped message will be
+			// extracted from the envelope and envelope will be informed about
+			// the handling of message. But message won't be handled, it will
+			// be ignored.
 			event_handler_kind_t::intermediate_handler );
 
 	return *this;
@@ -3152,7 +3161,9 @@ subscription_bind_t::just_switch_to(
 			typeid( Msg ),
 			method,
 			thread_safety_t::unsafe,
-//FIXME: document this!
+			// Switching to some state is a kind of message processing.
+			// So if there is an enveloped message then the envelope will be
+			// informed about the processing of the payload.
 			event_handler_kind_t::final_handler );
 
 	return *this;
