@@ -43,23 +43,23 @@ agents:
 
 class hello_actor final : public so_5::agent_t {
 public:
-	using so_5::agent_t::agent_t;
+   using so_5::agent_t::agent_t;
 
-	void so_evt_start() override {
-		std::cout << "Hello, World!" << std::endl;
-		// Finish work of example.
-		so_deregister_agent_coop_normally();
-	}
+   void so_evt_start() override {
+      std::cout << "Hello, World!" << std::endl;
+      // Finish work of example.
+      so_deregister_agent_coop_normally();
+   }
 };
 
 int main() {
-	// Launch SObjectizer.
-	so_5::launch([](so_5::environment_t & env) {
-			// Add a hello_actor instance in a new cooperation.
-			env.register_agent_as_coop( env.make_agent<hello_actor>() );
-		});
+   // Launch SObjectizer.
+   so_5::launch([](so_5::environment_t & env) {
+         // Add a hello_actor instance in a new cooperation.
+         env.register_agent_as_coop( env.make_agent<hello_actor>() );
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -72,72 +72,72 @@ between them. It is another famous example for actor frameworks, "Ping-Pong":
 #include <so_5/all.hpp>
 
 struct ping {
-	int counter_;
+   int counter_;
 };
 
 struct pong {
-	int counter_;
+   int counter_;
 };
 
 class pinger final : public so_5::agent_t {
-	so_5::mbox_t ponger_;
+   so_5::mbox_t ponger_;
 
-	void on_pong(mhood_t<pong> cmd) {
-		if(cmd->counter_ > 0)
-			so_5::send<ping>(ponger_, cmd->counter_ - 1);
-		else
-			so_deregister_agent_coop_normally();
-	}
+   void on_pong(mhood_t<pong> cmd) {
+      if(cmd->counter_ > 0)
+         so_5::send<ping>(ponger_, cmd->counter_ - 1);
+      else
+         so_deregister_agent_coop_normally();
+   }
 
 public:
-	pinger(context_t ctx) : so_5::agent_t{std::move(ctx)} {}
+   pinger(context_t ctx) : so_5::agent_t{std::move(ctx)} {}
 
-	void set_ponger(const so_5::mbox_t mbox) { ponger_ = mbox; }
+   void set_ponger(const so_5::mbox_t mbox) { ponger_ = mbox; }
 
-	void so_define_agent() override {
-		so_subscribe_self().event( &pinger::on_pong );
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event( &pinger::on_pong );
+   }
 
-	void so_evt_start() override {
-		so_5::send<ping>(ponger_, 1000);
-	}
+   void so_evt_start() override {
+      so_5::send<ping>(ponger_, 1000);
+   }
 };
 
 class ponger final : public so_5::agent_t {
-	const so_5::mbox_t pinger_;
-	int pings_received_{};
+   const so_5::mbox_t pinger_;
+   int pings_received_{};
 
 public:
-	ponger(context_t ctx, so_5::mbox_t pinger)
-		:	so_5::agent_t{std::move(ctx)}
-		,	pinger_{std::move(pinger)}
-	{}
+   ponger(context_t ctx, so_5::mbox_t pinger)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  pinger_{std::move(pinger)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe_self().event(
-			[this](mhood_t<ping> cmd) {
-				++pings_received_;
-				so_5::send<pong>(pinger_, cmd->counter_);
-			});
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event(
+         [this](mhood_t<ping> cmd) {
+            ++pings_received_;
+            so_5::send<pong>(pinger_, cmd->counter_);
+         });
+   }
 
-	void so_evt_finish() override {
-		std::cout << "pings received: " << pings_received_ << std::endl;
-	}
+   void so_evt_finish() override {
+      std::cout << "pings received: " << pings_received_ << std::endl;
+   }
 };
 
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			env.introduce_coop([](so_5::coop_t & coop) {
-					auto pinger_actor = coop.make_agent<pinger>();
-					auto ponger_actor = coop.make_agent<ponger>(
-							pinger_actor->so_direct_mbox());
+   so_5::launch([](so_5::environment_t & env) {
+         env.introduce_coop([](so_5::coop_t & coop) {
+               auto pinger_actor = coop.make_agent<pinger>();
+               auto ponger_actor = coop.make_agent<ponger>(
+                     pinger_actor->so_direct_mbox());
 
-					pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
-				});
-		});
+               pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+            });
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -148,19 +148,19 @@ It is very simple. Just use an appropriate dispatcher:
 
 ```cpp
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			env.introduce_coop(
-				so_5::disp::active_obj::make_dispatcher(env).binder(),
-				[](so_5::coop_t & coop) {
-					auto pinger_actor = coop.make_agent<pinger>();
-					auto ponger_actor = coop.make_agent<ponger>(
-							pinger_actor->so_direct_mbox());
+   so_5::launch([](so_5::environment_t & env) {
+         env.introduce_coop(
+            so_5::disp::active_obj::make_dispatcher(env).binder(),
+            [](so_5::coop_t & coop) {
+               auto pinger_actor = coop.make_agent<pinger>();
+               auto ponger_actor = coop.make_agent<ponger>(
+                     pinger_actor->so_direct_mbox());
 
-					pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
-				});
-		});
+               pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+            });
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -176,74 +176,74 @@ of that message type:
 using namespace std::literals;
 
 struct acquired_value {
-	std::chrono::steady_clock::time_point acquired_at_;
-	int value_;
+   std::chrono::steady_clock::time_point acquired_at_;
+   int value_;
 };
 
 class producer final : public so_5::agent_t {
-	const so_5::mbox_t board_;
-	so_5::timer_id_t timer_;
-	int counter_{};
+   const so_5::mbox_t board_;
+   so_5::timer_id_t timer_;
+   int counter_{};
 
-	struct acquisition_time final : public so_5::signal_t {};
+   struct acquisition_time final : public so_5::signal_t {};
 
-	void on_timer(mhood_t<acquisition_time>) {
-		// Publish the next value for all consumers.
-		so_5::send<acquired_value>(
-				board_, std::chrono::steady_clock::now(), ++counter_);
-	}
+   void on_timer(mhood_t<acquisition_time>) {
+      // Publish the next value for all consumers.
+      so_5::send<acquired_value>(
+            board_, std::chrono::steady_clock::now(), ++counter_);
+   }
 
 public:
-	producer(context_t ctx, so_5::mbox_t board)
-		:	so_5::agent_t{std::move(ctx)}
-		,	board_{std::move(board)}
-	{}
+   producer(context_t ctx, so_5::mbox_t board)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  board_{std::move(board)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe_self().event(&producer::on_timer);
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event(&producer::on_timer);
+   }
 
-	void so_evt_start() override {
-		// Agent will periodically recive acquisition_time signal
-		// without initial delay and with period of 750ms.
-		timer_ = so_5::send_periodic<acquisition_time>(*this, 0ms, 750ms);
-	}
+   void so_evt_start() override {
+      // Agent will periodically recive acquisition_time signal
+      // without initial delay and with period of 750ms.
+      timer_ = so_5::send_periodic<acquisition_time>(*this, 0ms, 750ms);
+   }
 };
 
 class consumer final : public so_5::agent_t {
-	const so_5::mbox_t board_;
-	const std::string name_;
+   const so_5::mbox_t board_;
+   const std::string name_;
 
-	void on_value(mhood_t<acquired_value> cmd) {
-		std::cout << name_ << ": " << cmd->value_ << std::endl;
-	}
+   void on_value(mhood_t<acquired_value> cmd) {
+      std::cout << name_ << ": " << cmd->value_ << std::endl;
+   }
 
 public:
-	consumer(context_t ctx, so_5::mbox_t board, std::string name)
-		:	so_5::agent_t{std::move(ctx)}
-		,	board_{std::move(board)}
-		,	name_{std::move(name)}
-	{}
+   consumer(context_t ctx, so_5::mbox_t board, std::string name)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  board_{std::move(board)}
+      ,  name_{std::move(name)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe(board_).event(&consumer::on_value);
-	}
+   void so_define_agent() override {
+      so_subscribe(board_).event(&consumer::on_value);
+   }
 };
 
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			auto board = env.create_mbox();
-			env.introduce_coop([board](so_5::coop_t & coop) {
-					coop.make_agent<producer>(board);
-					coop.make_agent<consumer>(board, "first"s);
-					coop.make_agent<consumer>(board, "second"s);
-				});
+   so_5::launch([](so_5::environment_t & env) {
+         auto board = env.create_mbox();
+         env.introduce_coop([board](so_5::coop_t & coop) {
+               coop.make_agent<producer>(board);
+               coop.make_agent<consumer>(board, "first"s);
+               coop.make_agent<consumer>(board, "second"s);
+            });
 
-			std::this_thread::sleep_for(std::chrono::seconds(4));
-			env.stop();
-		});
+         std::this_thread::sleep_for(std::chrono::seconds(4));
+         env.stop();
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -262,60 +262,60 @@ This is a very simple example that demonstrates an agent that is HSM:
 using namespace std::literals;
 
 class blinking_led final : public so_5::agent_t {
-	state_t off{ this }, blinking{ this },
-		blink_on{ initial_substate_of{ blinking } },
-		blink_off{ substate_of{ blinking } };
+   state_t off{ this }, blinking{ this },
+      blink_on{ initial_substate_of{ blinking } },
+      blink_off{ substate_of{ blinking } };
 
 public :
-	struct turn_on_off : public so_5::signal_t {};
+   struct turn_on_off : public so_5::signal_t {};
 
-	blinking_led(context_t ctx) : so_5::agent_t{std::move(ctx)} {
-		this >>= off;
+   blinking_led(context_t ctx) : so_5::agent_t{std::move(ctx)} {
+      this >>= off;
 
-		off.just_switch_to<turn_on_off>(blinking);
+      off.just_switch_to<turn_on_off>(blinking);
 
-		blinking.just_switch_to<turn_on_off>(off);
+      blinking.just_switch_to<turn_on_off>(off);
 
-		blink_on
-			.on_enter([]{ std::cout << "ON" << std::endl; })
-			.on_exit([]{ std::cout << "off" << std::endl; })
-			.time_limit(1250ms, blink_off);
+      blink_on
+         .on_enter([]{ std::cout << "ON" << std::endl; })
+         .on_exit([]{ std::cout << "off" << std::endl; })
+         .time_limit(1250ms, blink_off);
 
-		blink_off
-			.time_limit(750ms, blink_on);
-	}
+      blink_off
+         .time_limit(750ms, blink_on);
+   }
 };
 
 int main()
 {
-	so_5::launch([](so_5::environment_t & env) {
-		so_5::mbox_t m;
-		env.introduce_coop([&](so_5::coop_t & coop) {
-				auto led = coop.make_agent< blinking_led >();
-				m = led->so_direct_mbox();
-			});
+   so_5::launch([](so_5::environment_t & env) {
+      so_5::mbox_t m;
+      env.introduce_coop([&](so_5::coop_t & coop) {
+            auto led = coop.make_agent< blinking_led >();
+            m = led->so_direct_mbox();
+         });
 
-		const auto pause = [](auto duration) {
-			std::this_thread::sleep_for(duration);
-		};
+      const auto pause = [](auto duration) {
+         std::this_thread::sleep_for(duration);
+      };
 
-		std::cout << "Turn blinking on for 10s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(10s);
+      std::cout << "Turn blinking on for 10s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(10s);
 
-		std::cout << "Turn blinking off for 5s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(5s);
+      std::cout << "Turn blinking off for 5s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(5s);
 
-		std::cout << "Turn blinking on for 5s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(5s);
+      std::cout << "Turn blinking on for 5s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(5s);
 
-		std::cout << "Stopping..." << std::endl;
-		env.stop();
-	} );
+      std::cout << "Stopping..." << std::endl;
+      env.stop();
+   } );
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -331,55 +331,55 @@ main() is not exception-safe):
 #include <so_5/all.hpp>
 
 struct ping {
-	int counter_;
+   int counter_;
 };
 
 struct pong {
-	int counter_;
+   int counter_;
 };
 
 void pinger_proc(so_5::mchain_t self_ch, so_5::mchain_t ping_ch) {
-	so_5::send<ping>(ping_ch, 1000);
+   so_5::send<ping>(ping_ch, 1000);
 
-	// Read all message until channel will be closed.
-	so_5::receive( so_5::from(self_ch).handle_all(),
-		[&](so_5::mhood_t<pong> cmd) {
-			if(cmd->counter_ > 0)
-				so_5::send<ping>(ping_ch, cmd->counter_ - 1);
-			else {
-				// Channels have to be closed to break `receive` calls.
-				so_5::close_drop_content(self_ch);
-				so_5::close_drop_content(ping_ch);
-			}
-		});
+   // Read all message until channel will be closed.
+   so_5::receive( so_5::from(self_ch).handle_all(),
+      [&](so_5::mhood_t<pong> cmd) {
+         if(cmd->counter_ > 0)
+            so_5::send<ping>(ping_ch, cmd->counter_ - 1);
+         else {
+            // Channels have to be closed to break `receive` calls.
+            so_5::close_drop_content(self_ch);
+            so_5::close_drop_content(ping_ch);
+         }
+      });
 }
 
 void ponger_proc(so_5::mchain_t self_ch, so_5::mchain_t pong_ch) {
-	int pings_received{};
+   int pings_received{};
 
-	// Read all message until channel will be closed.
-	so_5::receive( so_5::from(self_ch).handle_all(),
-		[&](so_5::mhood_t<ping> cmd) {
-			++pings_received;
-			so_5::send<pong>(pong_ch, cmd->counter_);
-		});
+   // Read all message until channel will be closed.
+   so_5::receive( so_5::from(self_ch).handle_all(),
+      [&](so_5::mhood_t<ping> cmd) {
+         ++pings_received;
+         so_5::send<pong>(pong_ch, cmd->counter_);
+      });
 
-	std::cout << "pings received: " << pings_received << std::endl;
+   std::cout << "pings received: " << pings_received << std::endl;
 }
 
 int main() {
-	so_5::wrapped_env_t sobj;
+   so_5::wrapped_env_t sobj;
 
-	auto pinger_ch = so_5::create_mchain(sobj);
-	auto ponger_ch = so_5::create_mchain(sobj);
+   auto pinger_ch = so_5::create_mchain(sobj);
+   auto ponger_ch = so_5::create_mchain(sobj);
 
-	std::thread pinger{pinger_proc, pinger_ch, ponger_ch};
-	std::thread ponger{ponger_proc, ponger_ch, pinger_ch};
+   std::thread pinger{pinger_proc, pinger_ch, ponger_ch};
+   std::thread ponger{ponger_proc, ponger_ch, pinger_ch};
 
-	ponger.join();
-	pinger.join();
+   ponger.join();
+   pinger.join();
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -410,49 +410,49 @@ struct quit {};
 
 void fibonacci( mchain_t values_ch, mchain_t quit_ch )
 {
-	int x = 0, y = 1;
-	mchain_select_result_t r;
-	do
-	{
-		r = select(
-			from_all().handle_n(1),
-			// Sends a new message of type 'int' with value 'x' inside
-			// when values_ch is ready for a new outgoing message.
-			send_case( values_ch, message_holder_t<int>::make(x),
-					[&x, &y] { // This block of code will be called after the send().
-						auto old_x = x;
-						x = y; y = old_x + y;
-					} ),
-			// Receive a 'quit' message from quit_ch if it is here.
-			receive_case( quit_ch, [](quit){} ) );
-	}
-	// Continue the loop while we send something and receive nothing.
-	while( r.was_sent() && !r.was_handled() );
+   int x = 0, y = 1;
+   mchain_select_result_t r;
+   do
+   {
+      r = select(
+         from_all().handle_n(1),
+         // Sends a new message of type 'int' with value 'x' inside
+         // when values_ch is ready for a new outgoing message.
+         send_case( values_ch, message_holder_t<int>::make(x),
+               [&x, &y] { // This block of code will be called after the send().
+                  auto old_x = x;
+                  x = y; y = old_x + y;
+               } ),
+         // Receive a 'quit' message from quit_ch if it is here.
+         receive_case( quit_ch, [](quit){} ) );
+   }
+   // Continue the loop while we send something and receive nothing.
+   while( r.was_sent() && !r.was_handled() );
 }
 
 int main()
 {
-	wrapped_env_t sobj;
+   wrapped_env_t sobj;
 
-	thread fibonacci_thr;
-	auto thr_joiner = auto_join( fibonacci_thr );
+   thread fibonacci_thr;
+   auto thr_joiner = auto_join( fibonacci_thr );
 
-	// The chain for Fibonacci number will have limited capacity.
-	auto values_ch = create_mchain( sobj, 1s, 1,
-			mchain_props::memory_usage_t::preallocated,
-			mchain_props::overflow_reaction_t::abort_app );
+   // The chain for Fibonacci number will have limited capacity.
+   auto values_ch = create_mchain( sobj, 1s, 1,
+         mchain_props::memory_usage_t::preallocated,
+         mchain_props::overflow_reaction_t::abort_app );
 
-	auto quit_ch = create_mchain( sobj );
-	auto ch_closer = auto_close_drop_content( values_ch, quit_ch );
+   auto quit_ch = create_mchain( sobj );
+   auto ch_closer = auto_close_drop_content( values_ch, quit_ch );
 
-	fibonacci_thr = thread{ fibonacci, values_ch, quit_ch };
+   fibonacci_thr = thread{ fibonacci, values_ch, quit_ch };
 
-	// Read the first 10 numbers from values_ch.
-	receive( from( values_ch ).handle_n( 10 ),
-			// And show every number to the standard output.
-			[]( int v ) { cout << v << endl; } );
+   // Read the first 10 numbers from values_ch.
+   receive( from( values_ch ).handle_n( 10 ),
+         // And show every number to the standard output.
+         []( int v ) { cout << v << endl; } );
 
-	send< quit >( quit_ch );
+   send< quit >( quit_ch );
 }
 ```
 
@@ -662,13 +662,13 @@ cd sobjectizer
 mkdir cmake_build
 cd cmake_build
 cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release \
-	  -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
-	  -G Ninja \
-	  -DANDROID_ABI=arm64-v8a \
-	  -DANDROID_NDK=${ANDROID_NDK} \
-	  -DANDROID_NATIVE_API_LEVEL=23 \
-	  -DANDROID_TOOLCHAIN=clang \
-	  ../dev
+     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+     -G Ninja \
+     -DANDROID_ABI=arm64-v8a \
+     -DANDROID_NDK=${ANDROID_NDK} \
+     -DANDROID_NATIVE_API_LEVEL=23 \
+     -DANDROID_TOOLCHAIN=clang \
+     ../dev
 cmake --build . --config=Release
 cmake --build . --config=Release --target install
 ```
