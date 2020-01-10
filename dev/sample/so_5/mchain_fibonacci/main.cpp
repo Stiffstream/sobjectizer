@@ -20,13 +20,17 @@ void fibonacci( mchain_t values_ch, mchain_t quit_ch )
 	{
 		r = select(
 			from_all().handle_n(1),
+			// Sends a new message of type 'int' with value 'x' inside
+			// when values_ch is ready for a new outgoing message.
 			send_case( values_ch, message_holder_t<int>::make(x),
-					[&x, &y] { 
+					[&x, &y] { // This block of code will be called after the send().
 						auto old_x = x;
 						x = y; y = old_x + y;
 					} ),
+			// Receive a 'quit' message from quit_ch if it is here.
 			receive_case( quit_ch, [](quit){} ) );
 	}
+	// Continue the loop while we send something and receive nothing.
 	while( r.was_sent() && !r.was_handled() );
 }
 
@@ -37,6 +41,7 @@ int main()
 	thread fibonacci_thr;
 	auto thr_joiner = auto_join( fibonacci_thr );
 
+	// The chain for Fibonacci number will have limited capacity.
 	auto values_ch = create_mchain( sobj, 1s, 1,
 			mchain_props::memory_usage_t::preallocated,
 			mchain_props::overflow_reaction_t::abort_app );
@@ -46,7 +51,10 @@ int main()
 
 	fibonacci_thr = thread{ fibonacci, values_ch, quit_ch };
 
-	receive( from( values_ch ).handle_n( 10 ), []( int v ) { cout << v << endl; } );
+	// Read the first 10 numbers from values_ch.
+	receive( from( values_ch ).handle_n( 10 ),
+			// And show every number to the standard output.
+			[]( int v ) { cout << v << endl; } );
 
 	send< quit >( quit_ch );
 }

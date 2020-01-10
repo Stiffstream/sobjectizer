@@ -383,6 +383,79 @@ int main() {
 }
 ```
 
+## Another CSP-example with Golang's like select() statement
+
+SObjectizer provides a select() function that is similar to Golang's select
+statement. This function allows waiting for incoming messages from several
+message chains. It also allows to wait for the readiness of message chains for
+accepting a new outgoing message. So select() allows to do non-blocking send()
+calls with the handling of incoming messages while the target message chain is
+full.
+
+There is a Fibonacci calculation example that uses select() as the
+back-pressure mechanism (number producer thread will wait if number reader
+thread doesn't read the previous number yet). Note also that main() function in
+this example is exception-safe.
+
+```cpp
+#include <so_5/all.hpp>
+
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono_literals;
+using namespace so_5;
+
+struct quit {};
+
+void fibonacci( mchain_t values_ch, mchain_t quit_ch )
+{
+	int x = 0, y = 1;
+	mchain_select_result_t r;
+	do
+	{
+		r = select(
+			from_all().handle_n(1),
+			// Sends a new message of type 'int' with value 'x' inside
+			// when values_ch is ready for a new outgoing message.
+			send_case( values_ch, message_holder_t<int>::make(x),
+					[&x, &y] { // This block of code will be called after the send().
+						auto old_x = x;
+						x = y; y = old_x + y;
+					} ),
+			// Receive a 'quit' message from quit_ch if it is here.
+			receive_case( quit_ch, [](quit){} ) );
+	}
+	// Continue the loop while we send something and receive nothing.
+	while( r.was_sent() && !r.was_handled() );
+}
+
+int main()
+{
+	wrapped_env_t sobj;
+
+	thread fibonacci_thr;
+	auto thr_joiner = auto_join( fibonacci_thr );
+
+	// The chain for Fibonacci number will have limited capacity.
+	auto values_ch = create_mchain( sobj, 1s, 1,
+			mchain_props::memory_usage_t::preallocated,
+			mchain_props::overflow_reaction_t::abort_app );
+
+	auto quit_ch = create_mchain( sobj );
+	auto ch_closer = auto_close_drop_content( values_ch, quit_ch );
+
+	fibonacci_thr = thread{ fibonacci, values_ch, quit_ch };
+
+	// Read the first 10 numbers from values_ch.
+	receive( from( values_ch ).handle_n( 10 ),
+			// And show every number to the standard output.
+			[]( int v ) { cout << v << endl; } );
+
+	send< quit >( quit_ch );
+}
+```
+
 ## Want to know more?
 
 More information about SObjectizer can be found in the corresponding section of
@@ -393,7 +466,7 @@ the [project's Wiki](https://github.com/Stiffstream/sobjectizer/wiki).
 SObjectizer is an in-process message dispatching framework. It doesn't support
 distributed applications just out of box. But external tools and libraries can
 be used in that case. Please take a look at our mosquitto_transport experiment:
-https://bitbucket.org/sobjectizerteam/mosquitto_transport-0.6
+https://github.com/Stiffstream/mosquitto_transport
 
 # Obtaining and building
 
@@ -410,14 +483,14 @@ Android is possible by CMake only. See the corresponding section below.
 SObjectizer can also be installed and used via **vcpkg** and **Conan**
 dependency managers. See the appropriate sections below.
 
-## SObjectizer-5.6 requires C++17!
+## SObjectizer-5.7 requires C++17!
 
-The 5.6-branch of SObjectizer requires C++17.
+The 5.7-branch of SObjectizer requires C++17.
 
 If you need support for C++14 or C++11 try to look to older versions of
 SObjectizer on [SourceForge](https://sourceforge.net/projects/sobjectizer).  Or
 contact [stiffstream](https://stiffstream.com/en/services.html) to discuss
-porting of SObjectizer-5.6 to older C++ standards.
+porting of SObjectizer-5.7 to older C++ standards.
 
 ## Building via Mxx_ru
 
@@ -652,7 +725,7 @@ Add SObjectizer to `conanfile.txt` of your project:
 
 ```
 [requires]
-sobjectizer/5.6.0@stiffstream/testing
+sobjectizer/5.7.0@stiffstream/stable
 ```
 
 It also may be necessary to specify `shared` option for SObjectizer. For example, for build SObjectizer as a static library:
@@ -686,3 +759,4 @@ target_link_libraries(your_target sobjectizer::SharedLib) # Or sobjectizer::Stat
 
 SObjectizer is distributed under 3-clause BSD license. For license information
 please see LICENSE file.
+
