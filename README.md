@@ -1,3 +1,30 @@
+* [What is SObjectizer?](#what-is-sobjectizer)
+* [What distinguishes SObjectizer?](#what-distinguishes-sobjectizer)
+* [Show me the code\!](#show-me-the-code)
+  * [HelloWorld example](#helloworld-example)
+  * [Ping\-Pong example](#ping-pong-example)
+  * [Pub/Sub example](#pubsub-example)
+  * [BlinkingLed example](#blinkingled-example)
+  * [CSP\-like Ping\-Pong example](#csp-like-ping-pong-example)
+  * [Another CSP\-example with Golang's like select() statement](#another-csp-example-with-golangs-like-select-statement)
+  * [Want to know more?](#want-to-know-more)
+* [Limitations](#limitations)
+* [Obtaining and building](#obtaining-and-building)
+  * [SObjectizer\-5\.7 requires C\+\+17\!](#sobjectizer-57-requires-c17)
+  * [Building via Mxx\_ru](#building-via-mxx_ru)
+  * [Building via CMake](#building-via-cmake)
+  * [Building for Android](#building-for-android)
+    * [Building with Android NDK](#building-with-android-ndk)
+    * [Building with CrystaX NDK](#building-with-crystax-ndk)
+  * [Using C\+\+ Dependency Managers](#using-c-dependency-managers)
+    * [Using via vcpkg](#using-via-vcpkg)
+    * [Using via Conan](#using-via-conan)
+      * [Installing SObjectizer And Adding It To conanfile\.txt](#installing-sobjectizer-and-adding-it-to-conanfiletxt)
+      * [Adding SObjectizer To Your CMakeLists\.txt](#adding-sobjectizer-to-your-cmakeliststxt)
+* [License](#license)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+
 # What is SObjectizer?
 
 SObjectizer is one of a few cross-platform and OpenSource "actor frameworks"
