@@ -889,6 +889,12 @@ internal_env_iface_t::event_queue_on_unbind(
 	m_env.m_impl->m_event_queue_hook->on_unbind( agent, queue );
 }
 
+[[nodiscard]] mbox_id_t
+internal_env_iface_t::allocate_mbox_id() noexcept
+{
+	return m_env.m_impl->m_mbox_core->allocate_mbox_id();
+}
+
 } /* namespace impl */
 
 } /* namespace so_5 */

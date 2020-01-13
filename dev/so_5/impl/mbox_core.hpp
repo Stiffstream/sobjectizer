@@ -155,6 +155,15 @@ class mbox_core_t
 		mbox_core_stats_t
 		query_stats();
 
+		/*!
+		 * \brief Allocate an ID for a new custom mbox or mchain.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
+		[[nodiscard]] mbox_id_t
+		allocate_mbox_id() noexcept;
+
 	private:
 		/*!
 		 * \brief Data related to message delivery tracing.

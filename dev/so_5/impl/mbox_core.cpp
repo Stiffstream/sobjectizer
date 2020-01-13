@@ -10,6 +10,7 @@
 #include <so_5/impl/named_local_mbox.hpp>
 #include <so_5/impl/mpsc_mbox.hpp>
 #include <so_5/impl/mchain_details.hpp>
+#include <so_5/impl/make_mchain.hpp>
 
 #include <algorithm>
 
@@ -137,35 +138,6 @@ mbox_core_t::create_custom_mbox(
 			} );
 }
 
-namespace {
-
-template< typename Q, typename... A >
-mchain_t
-make_mchain(
-	outliving_reference_t< so_5::msg_tracing::holder_t > tracer,
-	const mchain_params_t & params,
-	A &&... args )
-	{
-		using namespace so_5::mchain_props;
-		using namespace so_5::impl::msg_tracing_helpers;
-		using D = mchain_tracing_disabled_base;
-		using E = mchain_tracing_enabled_base;
-
-		if( tracer.get().is_msg_tracing_enabled()
-				&& !params.msg_tracing_disabled() )
-			return mchain_t{
-					new mchain_template< Q, E >{
-						std::forward<A>(args)...,
-						params,
-						tracer } };
-		else
-			return mchain_t{
-					new mchain_template< Q, D >{
-						std::forward<A>(args)..., params } };
-	}
-
-} /* namespace anonymous */
-
 mchain_t
 mbox_core_t::create_mchain(
 	environment_t & env,
@@ -193,6 +165,12 @@ mbox_core_t::query_stats()
 	std::lock_guard< std::mutex > lock{ m_dictionary_lock };
 
 	return mbox_core_stats_t{ m_named_mboxes_dictionary.size() };
+}
+
+[[nodiscard]] mbox_id_t
+mbox_core_t::allocate_mbox_id() noexcept
+{
+	return ++m_mbox_id_counter;
 }
 
 mbox_t

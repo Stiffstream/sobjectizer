@@ -137,6 +137,15 @@ class SO_5_TYPE internal_env_iface_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \brief Allocate a new ID for a new custom mbox or mchain.
+		 *
+		 * \since
+		 * v.5.7.0
+		 */
+		[[nodiscard]] mbox_id_t
+		allocate_mbox_id() noexcept;
 	};
 
 /*!
