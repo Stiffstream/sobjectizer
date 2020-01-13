@@ -281,7 +281,11 @@ of hierarchical finite-states machines (HSM) are supported: child states and
 handlers inheritance, on_enter/on_exit handlers, state timeouts, deep- and
 shallow state history, except orthogonal states.
 
-This is a very simple example that demonstrates an agent that is HSM: 
+Let's see how an agent that implements the following statechart can look like:
+
+![Blinking Led Statechart](dev/sample/so_5/blinking_led/statechart_horizontal.png)
+
+This is a very simple example that demonstrates an agent for the statechart shown above:
 
 ```cpp
 #include <so_5/all.hpp>
