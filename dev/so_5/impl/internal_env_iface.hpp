@@ -74,8 +74,20 @@ class SO_5_TYPE internal_env_iface_t
 		/*!
 		 * \throw exception_t if message delivery tracing is disabled.
 		 */
-		so_5::msg_tracing::holder_t &
+		[[nodiscard]] so_5::msg_tracing::holder_t &
 		msg_tracing_stuff() const;
+
+		//! Get access to message delivery tracer stuff holder.
+		/*!
+		 * This method doesn't throw if delivery tracing is disabled.
+		 * It was introduced in v.5.7.0 to allow the creation of
+		 * custom mboxes and mchains in separate libraries (like so5extra).
+		 * 
+		 * \since
+		 * v.5.7.0
+		 */
+		[[nodiscard]] so_5::msg_tracing::holder_t &
+		msg_tracing_stuff_nonchecked() const noexcept;
 
 		//! Get default lock_factory for MPSC queues.
 		/*!

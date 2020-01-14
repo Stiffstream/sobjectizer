@@ -848,13 +848,19 @@ internal_env_iface_t::is_msg_tracing_enabled() const
 	return m_env.m_impl->m_msg_tracing_stuff.is_msg_tracing_enabled();
 }
 
-so_5::msg_tracing::holder_t &
+[[nodiscard]] so_5::msg_tracing::holder_t &
 internal_env_iface_t::msg_tracing_stuff() const
 {
 	if( !is_msg_tracing_enabled() )
 		SO_5_THROW_EXCEPTION( rc_msg_tracing_disabled,
 				"msg_tracer cannot be accessed because msg_tracing is disabled" );
 
+	return m_env.m_impl->m_msg_tracing_stuff;
+}
+
+[[nodiscard]] so_5::msg_tracing::holder_t &
+internal_env_iface_t::msg_tracing_stuff_nonchecked() const noexcept
+{
 	return m_env.m_impl->m_msg_tracing_stuff;
 }
 
