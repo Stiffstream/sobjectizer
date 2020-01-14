@@ -13,6 +13,7 @@
 #pragma once
 
 #include <so_5/impl/mchain_details.hpp>
+#include <so_5/impl/msg_tracing_helpers.hpp>
 
 namespace so_5
 {
