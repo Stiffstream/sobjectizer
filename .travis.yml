@@ -13,6 +13,7 @@ matrix:
   include:
     # GCC on Linux.
     - os: linux
+      arch: amd64
       compiler: gcc
       addons:
         apt:
@@ -21,6 +22,18 @@ matrix:
       env:
         - MATRIX_EVAL="CXX_COMPILER=g++-7 C_COMPILER=gcc-7"
     - os: linux
+      arch: arm64
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=g++-7 C_COMPILER=gcc-7"
+        - MXXRU_TOOLSET=gcc_linux
+
+    - os: linux
+      arch: amd64
       compiler: gcc
       addons:
         apt:
@@ -28,7 +41,9 @@ matrix:
           packages: ['g++-8']
       env:
         - MATRIX_EVAL="CXX_COMPILER=g++-8 C_COMPILER=gcc-8"
+
     - os: linux
+      arch: amd64
       compiler: gcc
       addons:
         apt:
@@ -39,6 +54,7 @@ matrix:
 
     # clang on Linux
     - os: linux
+      arch: amd64
       compiler: clang
       addons:
         apt:
@@ -47,6 +63,18 @@ matrix:
       env:
         - MATRIX_EVAL="CXX_COMPILER=clang++-6.0 C_COMPILER=clang-6.0"
     - os: linux
+      arch: arm64
+      compiler: clang
+      addons:
+        apt:
+          sources: ['llvm-toolchain-xenial-6.0', 'ubuntu-toolchain-r-test']
+          packages: ['clang-6.0', "g++-7"]
+      env:
+        - MATRIX_EVAL="CXX_COMPILER=clang++-6.0 C_COMPILER=clang-6.0"
+        - MXXRU_TOOLSET=clang_linux
+
+    - os: linux
+      arch: amd64
       compiler: clang
       addons:
         apt:
@@ -54,7 +82,9 @@ matrix:
           packages: ['clang-7', "g++-7"]
       env:
         - MATRIX_EVAL="CXX_COMPILER=clang++-7 C_COMPILER=clang-7"
+
     - os: linux
+      arch: amd64
       compiler: clang
       addons:
         apt:
@@ -62,7 +92,9 @@ matrix:
           packages: ['clang-8', "g++-7"]
       env:
         - MATRIX_EVAL="CXX_COMPILER=clang++-8 C_COMPILER=clang-8"
+
     - os: linux
+      arch: amd64
       compiler: clang
       addons:
         apt:
@@ -105,11 +137,20 @@ before_install:
    - eval "${MATRIX_EVAL}"
 
 script:
-  - mkdir build
-  - cd build
-  - cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=target -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/
-  - make -j4
-  - ctest --output-on-failure
+   - |
+     if [ -z "$MXXRU_TOOLSET" ]; then
+         mkdir build;
+         cd build;
+         cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=target -DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CXX_COMPILER -DCMAKE_BUILD_TYPE=Release ../dev/;
+         make -j4;
+         ctest --output-on-failure;
+     else
+         gem install Mxx_ru;
+         cd dev;
+         cp local-build.rb.example local-build.rb
+         export MXX_RU_CPP_TOOLSET="${MXXRU_TOOLSET} cpp_compiler_name=${CXX_COMPILER} c_compiler_name=${C_COMPILER} linker_name=${CXX_COMPILER_NAME}"
+         ruby test/so_5/samples_as_unit_tests/build_tests.rb;
+     fi
 
 notifications:
   email:
