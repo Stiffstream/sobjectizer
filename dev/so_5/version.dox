@@ -2,6 +2,24 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7_0 5.7.0 "Volcan Ollague"
+
+	Support of so_5::send_case() in so_5::select().
+
+	There is no more so_5::case_() function, so_5::receive_case() should be
+	used instead.
+
+	so_5::select() returns so_5::mchain_select_result_t instead of
+	so_5::mchain_receive_result_t.
+
+	The behavior of enveloped messages with `transfer_to_state()` and
+	`suppress()` helpers. Since v.5.7.0 an envelope doesn't receive a
+	notification if the payload is ignoread as the result of
+	`transfer_to_state()`/`suppress()` actions.
+
+	New enum so_5::event_handler_kind_t is introduced and the format
+	of so_5::agent_t::so_create_event_subscription() changed.
+
 \section so_5__5_6_1 5.6.1 "Cerro Mururata"
 
 	Extensible-select added. See functions so_5::make_extensible_select()
