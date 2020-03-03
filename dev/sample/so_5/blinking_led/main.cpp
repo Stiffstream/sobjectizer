@@ -6,6 +6,8 @@
 
 #include <so_5/all.hpp>
 
+using namespace std::chrono_literals;
+
 class blinking_led final : public so_5::agent_t
 {
 	state_t off{ this }, blinking{ this },
@@ -39,25 +41,20 @@ int main()
 	{
 		so_5::launch( []( so_5::environment_t & env ) {
 			auto m = env.introduce_coop( []( so_5::coop_t & coop ) {
-					auto led = coop.make_agent< blinking_led >();
-					return led->so_direct_mbox();
+					return coop.make_agent< blinking_led >()->so_direct_mbox();
 				} );
-
-			auto pause = []( unsigned int v ) {
-				std::this_thread::sleep_for( std::chrono::seconds{v} );
-			};
 
 			std::cout << "Turn blinking on for 10s" << std::endl;
 			so_5::send< blinking_led::turn_on_off >( m );
-			pause( 10 );
+			std::this_thread::sleep_for( 10s );
 
 			std::cout << "Turn blinking off for 5s" << std::endl;
 			so_5::send< blinking_led::turn_on_off >( m );
-			pause( 5 );
+			std::this_thread::sleep_for( 5s );
 
 			std::cout << "Turn blinking on for 5s" << std::endl;
 			so_5::send< blinking_led::turn_on_off >( m );
-			pause( 5 );
+			std::this_thread::sleep_for( 5s );
 
 			std::cout << "Stopping..." << std::endl;
 			env.stop();
