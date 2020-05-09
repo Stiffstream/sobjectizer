@@ -19,8 +19,9 @@
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
-#include <utility>
+#include <string_view>
 #include <thread>
+#include <utility>
 
 namespace so_5
 {

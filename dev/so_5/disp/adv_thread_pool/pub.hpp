@@ -20,6 +20,7 @@
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 
+#include <string_view>
 #include <utility>
 #include <thread>
 

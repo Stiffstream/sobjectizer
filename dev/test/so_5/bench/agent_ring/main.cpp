@@ -293,12 +293,13 @@ show_result(
 		const unsigned long long total_msg_count =
 			static_cast< unsigned long long >( cfg.m_ring_size ) * cfg.m_rounds;
 
-		double price = static_cast< double >( total_msec ) / total_msg_count / 1000.0;
+		double price = static_cast< double >( total_msec ) /
+				double(total_msg_count) / 1000.0;
 		double throughtput = 1 / price;
 
 		benchmarks_details::precision_settings_t precision{ std::cout, 10 };
 		std::cout <<
-			"total time: " << total_msec / 1000.0 << 
+			"total time: " << double(total_msec) / 1000.0 << 
 			", messages sent: " << total_msg_count <<
 			", price: " << price <<
 			", throughtput: " << throughtput << std::endl;

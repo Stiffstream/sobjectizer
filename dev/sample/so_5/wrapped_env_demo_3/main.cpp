@@ -28,7 +28,8 @@ public :
 		if( pause_ > std::chrono::milliseconds(5) )
 		{
 			pause_ = std::chrono::milliseconds(
-					static_cast< decltype(pause_.count()) >(pause_.count() / 1.5) );
+					static_cast< decltype(pause_.count()) >(
+							double(pause_.count()) / 1.5) );
 			so_5::send_delayed< Reply >( to, pause_ );
 		}
 		else

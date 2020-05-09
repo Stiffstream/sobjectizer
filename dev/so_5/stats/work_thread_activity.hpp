@@ -74,8 +74,8 @@ inline std::ostream &
 operator<<( std::ostream & to, const activity_stats_t & what )
 {
 	auto to_ms = []( const duration_t & d ) {
-		return std::chrono::duration_cast< std::chrono::nanoseconds >( d )
-				.count() / 1000000.0;
+		return double(std::chrono::duration_cast< std::chrono::nanoseconds >( d )
+				.count()) / 1000000.0;
 	};
 
 	to << "[count=" << what.m_count

@@ -81,9 +81,10 @@ class a_manager_t final : public so_5::agent_t
 			{
 				auto finish_time = std::chrono::steady_clock::now();
 
-				auto duration =
+				auto duration = double(
 						std::chrono::duration_cast< std::chrono::milliseconds >(
-								finish_time - m_start_time ).count() / 1000.0;
+								finish_time - m_start_time ).count()
+						) / 1000.0;
 
 				std::cout << "Working time: " << duration << "s" << std::endl;
 

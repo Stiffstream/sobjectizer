@@ -71,8 +71,10 @@ private :
 		auto now = std::chrono::steady_clock::now();
 
 		std::ostringstream ss;
-		ss << std::chrono::duration_cast< std::chrono::milliseconds >(
-				now - m_started_at ).count() / 1000.0 << "ms";
+		ss << double(
+				std::chrono::duration_cast< std::chrono::milliseconds >(
+						now - m_started_at ).count()
+				) / 1000.0 << "ms";
 
 		return ss.str();
 	}
@@ -244,7 +246,7 @@ private :
 	{
 		// Processing time is depend on speed of the performer.
 		auto processing_time = static_cast< int >(
-				m_slowdown * evt.m_payload );
+				m_slowdown * float(evt.m_payload) );
 
 		so_5::send< log_message >( m_logger,
 				m_name + ": processing request(" +

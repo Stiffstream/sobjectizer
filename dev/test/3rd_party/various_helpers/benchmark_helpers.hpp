@@ -58,10 +58,11 @@ class benchmarker_t
 					throw std::invalid_argument( "events cannot be 0" );
 
 				auto finish_time = std::chrono::high_resolution_clock::now();
-				const double duration =
+				const double duration = double(
 						std::chrono::duration_cast< std::chrono::milliseconds >(
-								finish_time - m_start ).count() / 1000.0;
-				const double price = duration / events;
+								finish_time - m_start ).count()
+						) / 1000.0;
+				const double price = duration / double(events);
 				const double throughtput = 1 / price;
 
 				benchmarks_details::precision_settings_t precision{ std::cout, 10 };
@@ -100,8 +101,10 @@ class duration_meter_t
 
 				benchmarks_details::precision_settings_t precision{ std::cout, 10 };
 				std::cout << m_name << ": "
-					<< std::chrono::duration_cast< std::chrono::milliseconds >(
-							finish - m_start ).count() / 1000.0 << "s"
+					<< double(
+							std::chrono::duration_cast< std::chrono::milliseconds >(
+							finish - m_start ).count()
+						) / 1000.0 << "s"
 					<< std::endl;
 			}
 

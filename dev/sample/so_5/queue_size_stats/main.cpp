@@ -54,8 +54,10 @@ private :
 		auto now = std::chrono::steady_clock::now();
 
 		std::ostringstream ss;
-		ss << std::chrono::duration_cast< std::chrono::milliseconds >(
-				now - m_started_at ).count() / 1000.0 << "ms";
+		ss << double(
+				std::chrono::duration_cast< std::chrono::milliseconds >(
+						now - m_started_at ).count()
+				) / 1000.0 << "ms";
 
 		return ss.str();
 	}
