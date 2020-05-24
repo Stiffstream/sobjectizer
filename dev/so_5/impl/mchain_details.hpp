@@ -338,7 +338,7 @@ class mchain_template
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_subscriptions,
-						"mchain doesn't suppor subscription" );
+						"mchain doesn't support subscription" );
 			}
 
 		void
