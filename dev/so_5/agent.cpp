@@ -1252,14 +1252,14 @@ agent_t::process_enveloped_msg(
 			// We don't expect exceptions here and can't restore after them.
 			so_5::details::invoke_noexcept_code( [&] {
 				auto & envelope = message_to_envelope( d.m_message_ref );
-					agent_demand_handler_invoker_t invoker{
-							working_thread_id,
-							d,
-							*handler_data
-					};
-					envelope.access_hook(
-							so_5::enveloped_msg::access_context_t::handler_found,
-							invoker );
+				agent_demand_handler_invoker_t invoker{
+						working_thread_id,
+						d,
+						*handler_data
+				};
+				envelope.access_hook(
+						so_5::enveloped_msg::access_context_t::handler_found,
+						invoker );
 			} );
 	}
 }
