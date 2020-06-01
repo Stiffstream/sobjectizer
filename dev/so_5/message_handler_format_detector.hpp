@@ -116,16 +116,37 @@ struct is_agent_method_pointer
 
 namespace agent_method_pointer_details
 {
-	template<typename Result, typename Agent>
+	enum class method_noexceptness_t
+	{
+		noexcept_method,
+		not_noexcept_method
+	};
+
+	inline constexpr method_noexceptness_t noexcept_method =
+			method_noexceptness_t::noexcept_method;
+
+	inline constexpr method_noexceptness_t not_noexcept_method =
+			method_noexceptness_t::not_noexcept_method;
+
+	template<
+		typename Result,
+		typename Agent,
+		method_noexceptness_t NoExcept>
 	struct no_arg
 		{
 			using result_type = Result;
 			using agent_type = Agent;
 			static constexpr const bool value = true;
 			static constexpr const method_arity arity = method_arity::nullary;
+			static constexpr const bool is_noexcept =
+					(noexcept_method == NoExcept);
 		};
 
-	template<typename Result, typename Agent, typename Handler_Argument>
+	template<
+		typename Result,
+		typename Agent,
+		typename Handler_Argument,
+		method_noexceptness_t NoExcept>
 	struct with_arg
 		{
 			using result_type = Result;
@@ -133,28 +154,69 @@ namespace agent_method_pointer_details
 			using argument_type = Handler_Argument;
 			static constexpr const bool value = true;
 			static constexpr const method_arity arity = method_arity::nullary;
+			static constexpr const bool is_noexcept =
+					(noexcept_method == NoExcept);
 		};
 
 } /* namespace agent_method_pointer_details */
 
 template<typename Result, typename Agent>
 struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() >
-	: public agent_method_pointer_details::no_arg<Result, Agent>
+	: public agent_method_pointer_details::no_arg<
+			Result, Agent,
+			agent_method_pointer_details::not_noexcept_method>
 	{};
 
 template<typename Result, typename Agent>
 struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() const >
-	: public agent_method_pointer_details::no_arg<Result, Agent>
+	: public agent_method_pointer_details::no_arg<
+			Result,
+			Agent,
+			agent_method_pointer_details::not_noexcept_method>
+	{};
+
+template<typename Result, typename Agent>
+struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() noexcept >
+	: public agent_method_pointer_details::no_arg<
+			Result,
+			Agent,
+			agent_method_pointer_details::noexcept_method>
+	{};
+
+template<typename Result, typename Agent>
+struct is_agent_method_pointer< method_arity::nullary, Result (Agent::*)() const noexcept >
+	: public agent_method_pointer_details::no_arg<
+			Result,
+			Agent,
+			agent_method_pointer_details::noexcept_method>
 	{};
 
 template<typename Result, typename Agent, typename Handler_Argument>
 struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument)>
-	: public agent_method_pointer_details::with_arg<Result, Agent, Handler_Argument>
+	: public agent_method_pointer_details::with_arg<
+			Result, Agent, Handler_Argument,
+			agent_method_pointer_details::not_noexcept_method>
 	{};
 
 template<typename Result, typename Agent, typename Handler_Argument>
 struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument) const>
-	: public agent_method_pointer_details::with_arg<Result, Agent, Handler_Argument>
+	: public agent_method_pointer_details::with_arg<
+			Result, Agent, Handler_Argument, 
+			agent_method_pointer_details::not_noexcept_method>
+	{};
+
+template<typename Result, typename Agent, typename Handler_Argument>
+struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument) noexcept>
+	: public agent_method_pointer_details::with_arg<
+			Result, Agent, Handler_Argument,
+			agent_method_pointer_details::noexcept_method>
+	{};
+
+template<typename Result, typename Agent, typename Handler_Argument>
+struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Argument) const noexcept>
+	: public agent_method_pointer_details::with_arg<
+			Result, Agent, Handler_Argument, 
+			agent_method_pointer_details::noexcept_method>
 	{};
 
 } /* namespace details */
