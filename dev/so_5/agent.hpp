@@ -626,7 +626,6 @@ class SO_5_TYPE agent_t
 	,	public message_limit::message_limit_methods_mixin_t
 {
 		friend class subscription_bind_t;
-		friend class intrusive_ptr_t< agent_t >;
 		friend class state_t;
 
 		friend class so_5::impl::mpsc_mbox_t;
@@ -634,6 +633,9 @@ class SO_5_TYPE agent_t
 		friend class so_5::impl::internal_agent_iface_t;
 
 		friend class so_5::enveloped_msg::impl::agent_demand_handler_invoker_t;
+
+		template< typename T >
+		friend class intrusive_ptr_t;
 
 	public:
 		/*!
@@ -2852,6 +2854,44 @@ class SO_5_TYPE agent_t
 		void
 		return_to_default_state_if_possible() noexcept;
 };
+
+/*!
+ * \brief Helper function template for the creation of smart pointer
+ * to an agent.
+ *
+ * This function can be useful if a pointer to an agent should be passed
+ * somewhere with the guarantee that this pointer will remain valid even
+ * if the agent will be deregistered.
+ *
+ * This could be necessary, for example, if a pointer to an agent is
+ * passed to some callback (like it is done in Asio):
+ * \code
+ * void my_agent::on_some_event(mhood_t<some_msg> cmd) {
+ * 	connection_.async_read_some(input_buffer_,
+ * 		[self = so_5::make_agent_ref(this)](
+ * 			const asio::error_code & ec,
+ * 			std::size_t bytes_transferred )
+ * 		{
+ * 			if(!ec)
+ * 				self->handle_incoming_data(bytes_transferred);
+ * 		}
+ * 	);
+ * }
+ * \endcode
+ *
+ * \since
+ * v.5.7.1
+ */
+template< typename Derived >
+[[nodiscard]]
+intrusive_ptr_t< Derived >
+make_agent_ref( Derived * agent )
+	{
+		static_assert( std::is_base_of_v< agent_t, Derived >,
+				"type should be derived from so_5::agent_t" );
+
+		return { agent };
+	}
 
 /*!
  * \since
