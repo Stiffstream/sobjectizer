@@ -70,4 +70,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'deadletter_handler' ]
 
 	example[ 'make_new_direct_mbox' ]
+
+	example[ 'make_agent_ref' ]
 }
