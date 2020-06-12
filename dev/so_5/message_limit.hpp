@@ -613,6 +613,9 @@ accept_indicators(
  */
 struct message_limit_methods_mixin_t
 	{
+		using any_unspecified_message =
+				::so_5::message_limit::any_unspecified_message;
+
 		/*!
 		 * \since
 		 * v.5.5.4
@@ -723,6 +726,8 @@ struct message_limit_methods_mixin_t
 			Lambda transformator )
 			{
 				ensure_not_signal< Arg >();
+				static_assert( !std::is_same_v< Arg, any_unspecified_message >,
+						"limit_then_transform can't be used for any_unspecified_message" );
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
 						const auto actual_transform =

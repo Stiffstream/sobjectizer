@@ -2507,6 +2507,9 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Detect limit for that message type.
 		 *
+		 * \note
+		 * Since v.5.7.1 it isn't a const method.
+		 *
 		 * \return nullptr if message limits are not used.
 		 *
 		 * \throw exception_t if message limits are used but the limit
@@ -2514,7 +2517,7 @@ class SO_5_TYPE agent_t
 		 */
 		const message_limit::control_block_t *
 		detect_limit_for_message_type(
-			const std::type_index & msg_type ) const;
+			const std::type_index & msg_type );
 
 		/*!
 		 * \since

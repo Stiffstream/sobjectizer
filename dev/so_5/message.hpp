@@ -907,6 +907,21 @@ namespace message_limit
 
 struct control_block_t;
 
+/*!
+ * \brief A special mark to be used for default limits.
+ *
+ * \since
+ * v.5.7.1
+ */
+class any_unspecified_message final
+	{
+		// Instances of that type can't be created.
+		~any_unspecified_message();
+
+	public:
+		any_unspecified_message() = delete;
+	};
+
 namespace impl
 {
 

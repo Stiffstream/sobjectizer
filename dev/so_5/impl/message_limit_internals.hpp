@@ -13,10 +13,11 @@
 
 #include <so_5/message_limit.hpp>
 
-#include <vector>
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include <memory>
+#include <vector>
 
 namespace so_5
 {
@@ -74,9 +75,13 @@ using info_block_container_t = std::vector< info_block_t >;
 //
 /*!
  * \since
- * v.5.5.4
+ * v.5.5.4, v.5.7.1
  *
- * \brief A storage for message limits for one agent.
+ * \brief An interface for storage of messages limits for one agent.
+ *
+ * \note
+ * It's an interface since v.5.7.1. In previous versions of SObjectizer
+ * it was a class.
  */
 class info_storage_t
 	{
@@ -84,16 +89,43 @@ class info_storage_t
 		info_storage_t & operator=( const info_storage_t & ) = delete;
 
 	public :
+		info_storage_t() = default;
+		virtual ~info_storage_t() = default;
+
+		[[nodiscard]]
+		virtual const control_block_t *
+		find( const std::type_index & msg_type ) const = 0;
+
+		[[nodiscard]]
+		virtual const control_block_t *
+		find_or_create( const std::type_index & msg_type ) = 0;
+	};
+
+//
+// fixed_info_storage_t
+//
+/*!
+ * \since
+ * v.5.5.4, v.5.7.1
+ *
+ * \brief A fixed-capacity storage for message limits for one agent.
+ */
+class fixed_info_storage_t final : public info_storage_t
+	{
+	public :
 		//! Initializing constructor.
-		info_storage_t(
+		fixed_info_storage_t(
 			//! Source description of limits.
+			//! Since v.5.7.1 this container is expected to be
+			//! sorted and checked for duplicates.
 			description_container_t && descriptions )
 			:	m_blocks( build_blocks( std::move( descriptions ) ) )
 			,	m_small_container( m_blocks.size() <= 8 )
 			{}
 
-		inline const control_block_t *
-		find( const std::type_index & msg_type ) const
+		[[nodiscard]]
+		const control_block_t *
+		find( const std::type_index & msg_type ) const override
 			{
 				auto r = find_block( msg_type );
 
@@ -103,18 +135,11 @@ class info_storage_t
 				return nullptr;
 			}
 
-		//! Create info_storage object if there are some message limits.
-		inline static std::unique_ptr< info_storage_t >
-		create_if_necessary(
-			description_container_t && descriptions )
+		[[nodiscard]]
+		const control_block_t *
+		find_or_create( const std::type_index & msg_type ) override
 			{
-				std::unique_ptr< info_storage_t > result;
-
-				if( !descriptions.empty() )
-					result.reset(
-							new info_storage_t( std::move( descriptions ) ) );
-
-				return result;
+				return find( msg_type );
 			}
 
 	private :
@@ -142,22 +167,6 @@ class info_storage_t
 									std::move( d.m_action )
 								};
 						} );
-
-				// Result must be sorted.
-				sort( begin( result ), end( result ),
-						[]( const info_block_t & a, const info_block_t & b ) {
-							return a.m_msg_type < b.m_msg_type;
-						} );
-
-				// There must not be duplicates.
-				auto duplicate = adjacent_find( begin( result ), end( result ),
-						[]( const info_block_t & a, const info_block_t & b ) {
-							return a.m_msg_type == b.m_msg_type;
-						} );
-				if( duplicate != end( result ) )
-					SO_5_THROW_EXCEPTION( rc_several_limits_for_one_message_type,
-							std::string( "several limits are defined for message; "
-									"msg_type: " ) + duplicate->m_msg_type.name() );
 
 				return result;
 			}
@@ -221,6 +230,169 @@ class info_storage_t
 				return nullptr;
 			}
 	};
+
+//
+// growable_info_storage_t
+//
+/*!
+ * \since
+ * v.5.7.1
+ *
+ * \brief A storage of growable capacity for message limits for one agent.
+ */
+class growable_info_storage_t final : public info_storage_t
+	{
+	public :
+		//! Initializing constructor.
+		growable_info_storage_t(
+			//! Description of the default limit.
+			description_t && default_limit_description,
+			//! Source description of limits.
+			description_container_t && descriptions )
+			:	m_default_limit_description{ std::move(default_limit_description) }
+			,	m_blocks{ build_blocks( std::move(descriptions) ) }
+			{}
+
+		[[nodiscard]]
+		const control_block_t *
+		find( const std::type_index & msg_type ) const override
+			{
+				auto it = m_blocks.find( msg_type );
+				if( it == m_blocks.end() )
+					return nullptr;
+
+				return std::addressof( it->second );
+			}
+
+		[[nodiscard]]
+		const control_block_t *
+		find_or_create( const std::type_index & msg_type ) override
+			{
+				auto it = m_blocks.find( msg_type );
+				if( it == m_blocks.end() )
+					{
+						// A new control block for unknown message type
+						// should be created.
+						it = m_blocks.emplace( msg_type,
+								control_block_t{
+										m_default_limit_description.m_limit,
+										m_default_limit_description.m_action
+								} ).first;
+					}
+
+				return std::addressof( it->second );
+			}
+
+	private :
+		//! Type of storage for control_blocks.
+		using blocks_storage_t = std::map< std::type_index, control_block_t >;
+
+		//! Description of the default limit.
+		const description_t m_default_limit_description;
+
+		//! Storage of control_blocks.
+		blocks_storage_t m_blocks;
+
+		//! Run-time limit information builder.
+		[[nodiscard]]
+		static blocks_storage_t
+		build_blocks( description_container_t && descriptions )
+			{
+				blocks_storage_t result;
+
+				for( auto & d : descriptions )
+					result.emplace( d.m_msg_type,
+							control_block_t{ d.m_limit, std::move(d.m_action) } );
+
+				return result;
+			}
+	};
+
+namespace description_preparation_details
+{
+
+/*!
+ *
+ * Returns sorted array as the first item of the result tuple.
+ *
+ * If there is a description for any_unspecified_message type then
+ * this description is removed from \a original_descriptions and
+ * it is returned as the second item of the result tuple.
+ *
+ * Throws if there is a duplicate in the \a original_descriptions.
+ *
+ * \since
+ * v.5.7.1
+ */
+[[nodiscard]]
+inline std::tuple< description_container_t, std::optional<description_t> >
+prepare(
+	description_container_t original_descriptions )
+{
+	using namespace std;
+
+	optional<description_t> default_limit;
+
+	// Descriptions must be sorted.
+	sort( begin( original_descriptions ), end( original_descriptions ),
+			[]( auto & a, auto & b ) {
+				return a.m_msg_type < b.m_msg_type;
+			} );
+
+	// There must not be duplicates.
+	auto duplicate = adjacent_find(
+			begin( original_descriptions ), end( original_descriptions ),
+			[]( auto & a, auto & b ) {
+				return a.m_msg_type == b.m_msg_type;
+			} );
+	if( duplicate != end( original_descriptions ) )
+		SO_5_THROW_EXCEPTION( rc_several_limits_for_one_message_type,
+				std::string( "several limits are defined for message; "
+						"msg_type: " ) + duplicate->m_msg_type.name() );
+
+	// Try to find a description for special `any_unspecified_message` mark.
+	const std::type_index mark_type{ typeid(any_unspecified_message) };
+	auto mark_it = find_if(
+			begin( original_descriptions ), end( original_descriptions ),
+			[mark_type]( const auto & d ) { return d.m_msg_type == mark_type; } );
+	if( mark_it != end( original_descriptions ) )
+		{
+			default_limit = std::move(*mark_it);
+			original_descriptions.erase( mark_it );
+		}
+
+	return { std::move(original_descriptions), std::move(default_limit) };
+}
+
+} /* namespace description_preparation_details */
+
+//! Create info_storage object if there are some message limits.
+[[nodiscard]]
+inline static std::unique_ptr< info_storage_t >
+create_info_storage_if_necessary(
+	description_container_t && descriptions )
+	{
+		std::unique_ptr< info_storage_t > result;
+
+		if( !descriptions.empty() )
+			{
+				auto [sorted_descs, default_limit] =
+						description_preparation_details::prepare(
+								std::move(descriptions) );
+
+				if( !default_limit )
+					// There is no default limit, so fixed_info_storage_t
+					// should be used.
+					result = std::make_unique< fixed_info_storage_t >(
+							std::move(sorted_descs) );
+				else
+					result = std::make_unique< growable_info_storage_t >(
+							std::move(*default_limit),
+							std::move(sorted_descs) );
+			}
+
+		return result;
+	}
 
 namespace
 {

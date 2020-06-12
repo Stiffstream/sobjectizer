@@ -496,7 +496,7 @@ agent_t::agent_t(
 	,	m_subscriptions(
 			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
 	,	m_message_limits(
-			message_limit::impl::info_storage_t::create_if_necessary(
+			message_limit::impl::create_info_storage_if_necessary(
 				ctx.options().giveout_message_limits() ) )
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
@@ -945,13 +945,13 @@ agent_t::so_destroy_deadletter_subscription(
 
 const message_limit::control_block_t *
 agent_t::detect_limit_for_message_type(
-	const std::type_index & msg_type ) const
+	const std::type_index & msg_type )
 {
 	const message_limit::control_block_t * result = nullptr;
 
 	if( m_message_limits )
 	{
-		result = m_message_limits->find( msg_type );
+		result = m_message_limits->find_or_create( msg_type );
 		if( !result )
 			SO_5_THROW_EXCEPTION(
 					so_5::rc_message_has_no_limit_defined,
