@@ -19,10 +19,6 @@
 namespace so_5
 {
 
-/*
- * NOTE: copy and move constructors and copy operator is implemented
- * because Visual C++ 12.0 (MSVS2013) doesn't generate it by itself.
- */
 //
 // agent_tuning_options_t
 //
@@ -35,21 +31,7 @@ namespace so_5
 class agent_tuning_options_t
 	{
 	public :
-		agent_tuning_options_t()
-			{}
-		agent_tuning_options_t(
-			const agent_tuning_options_t & o )
-			:	m_subscription_storage_factory( o.m_subscription_storage_factory )
-			,	m_message_limits( o.m_message_limits )
-			,	m_priority( o.m_priority )
-			{}
-		agent_tuning_options_t(
-			agent_tuning_options_t && o )
-			:	m_subscription_storage_factory(
-					std::move( o.m_subscription_storage_factory ) )
-			,	m_message_limits( std::move( o.m_message_limits ) )
-			,	m_priority( std::move( o.m_priority ) )
-			{}
+		agent_tuning_options_t() = default;
 
 		friend inline void
 		swap(
@@ -61,13 +43,6 @@ class agent_tuning_options_t
 						b.m_subscription_storage_factory );
 				swap( a.m_message_limits, b.m_message_limits );
 				swap( a.m_priority, b.m_priority );
-			}
-
-		agent_tuning_options_t &
-		operator=( agent_tuning_options_t o )
-			{
-				swap( *this, o );
-				return *this;
 			}
 
 		//! Set factory for subscription storage creation.
