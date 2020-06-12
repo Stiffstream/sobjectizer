@@ -19,10 +19,6 @@
 namespace so_5
 {
 
-/*
- * NOTE: copy and move constructors and copy operator is implemented
- * because Visual C++ 12.0 (MSVS2013) doesn't generate it by itself.
- */
 //
 // agent_context_t
 //
@@ -53,20 +49,6 @@ class agent_context_t
 			,	m_options( std::move( options ) )
 			{}
 
-		//! Copy constructor.
-		agent_context_t(
-			const agent_context_t & ctx )
-			:	m_env( ctx.m_env )
-			,	m_options( ctx.m_options )
-			{}
-
-		//! Move constructor.
-		agent_context_t(
-			agent_context_t && ctx )
-			:	m_env( ctx.m_env )
-			,	m_options( std::move( ctx.m_options ) )
-			{}
-
 		//! Swap operation.
 		friend inline void
 		swap(
@@ -76,14 +58,6 @@ class agent_context_t
 				using std::swap;
 				swap( a.m_env, b.m_env );
 				swap( a.m_options, b.m_options );
-			}
-
-		//! Copy/move operator.
-		agent_context_t &
-		operator=( agent_context_t ctx )
-			{
-				swap( *this, ctx );
-				return *this;
 			}
 
 		//! Access to SObjectizer Environment.
