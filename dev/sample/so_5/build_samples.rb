@@ -72,4 +72,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'make_new_direct_mbox' ]
 
 	example[ 'make_agent_ref' ]
+
+	example[ 'default_message_limits' ]
 }

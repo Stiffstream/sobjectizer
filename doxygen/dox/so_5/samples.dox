@@ -202,6 +202,7 @@
  * \example so_5/make_new_direct_mbox/main.cpp
  * \example so_5/mchain_fibonacci/main.cpp
  * \example so_5/make_agent_ref/main.cpp
+ * \example so_5/default_message_limits/main.cpp
  */
 
 // vim:ft=cpp.doxygen
