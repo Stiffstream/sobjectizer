@@ -20,6 +20,8 @@ struct request_base
 {
 	// Request ID.
 	int m_id;
+
+	request_base( int id ) : m_id{ id } {}
 };
 
 // Messages for different request types.
