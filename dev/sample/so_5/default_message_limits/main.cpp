@@ -81,6 +81,20 @@ private :
 // An agent that plays a role of "trash can" for rejected requests.
 class a_trash_can_t final : public so_5::agent_t
 {
+	const so_5::mbox_t m_logger;
+
+	template< typename Request >
+	[[nodiscard]]
+	auto
+	make_event_handler( std::string name )
+	{
+		return [this, req_name=std::move(name)]( mhood_t<Request> cmd ) {
+			so_5::send< log_message >( m_logger,
+					req_name + ": redirected to trash can, id=" +
+					std::to_string(cmd->m_id) );
+		};
+	}
+
 public :
 	a_trash_can_t(
 		context_t ctx,
@@ -106,64 +120,11 @@ public :
 			;
 	}
 
-private :
-	const so_5::mbox_t m_logger;
-
-	template< typename Request >
-	[[nodiscard]]
-	auto
-	make_event_handler( std::string name )
-	{
-		return [this, req_name=std::move(name)]( mhood_t<Request> cmd ) {
-			so_5::send< log_message >( m_logger,
-					req_name + ": redirected to trash can, id=" +
-					std::to_string(cmd->m_id) );
-		};
-	}
 };
 
 // An agent that does "normal" processing of incoming messages.
 class a_processor_t final : public so_5::agent_t
 {
-public :
-	struct shutdown final : public so_5::signal_t {};
-
-	a_processor_t(
-		context_t ctx,
-		so_5::mbox_t logger,
-		so_5::mbox_t trash_can )
-		:	so_5::agent_t{ ctx
-				// Set the personal limits for several of messages.
-				+ limit_then_redirect< req_A >(
-						10u, [trash_can]() { return trash_can; } )
-				+ limit_then_redirect< req_C >(
-						8u, [trash_can]() { return trash_can; } )
-				+ limit_then_abort< shutdown >( 1u )
-				// All other messages will have the same limit and reaction.
-				+ limit_then_redirect< any_unspecified_message >(
-						4u, [trash_can]() { return trash_can; } )
-			}
-		,	m_logger( std::move( logger ) )
-	{}
-
-	void so_define_agent() override
-	{
-		so_default_state()
-			.event( make_request_handler< req_A >( "req_A", 1ms ) )
-			.event( make_request_handler< req_B >( "req_B", 15ms ) )
-			.event( make_request_handler< req_C >( "req_C", 2ms ) )
-			.event( make_request_handler< req_D >( "req_D", 18ms ) )
-			.event( make_request_handler< req_E >( "req_E", 22ms ) )
-			.event( make_request_handler< req_F >( "req_F", 19ms ) )
-			.event( make_request_handler< req_G >( "req_G", 24ms ) )
-			.event( make_request_handler< req_I >( "req_I", 23ms ) )
-			.event( [this]( mhood_t< shutdown > ) {
-					so_deregister_agent_coop_normally();
-				} )
-			;
-	}
-
-private :
 	const so_5::mbox_t m_logger;
 
 	template< typename Request >
@@ -184,6 +145,41 @@ private :
 				std::this_thread::sleep_for(
 						std::chrono::milliseconds( duration ) );
 			};
+	}
+
+public :
+	struct shutdown final : public so_5::signal_t {};
+
+	a_processor_t(
+		context_t ctx,
+		so_5::mbox_t logger,
+		so_5::mbox_t trash_can )
+		:	so_5::agent_t{ ctx
+				// Set the personal limits for several of messages.
+				+ limit_then_redirect< req_A >( 10u, trash_can )
+				+ limit_then_redirect< req_C >( 8u, trash_can )
+				+ limit_then_abort< shutdown >( 1u )
+				// All other messages will have the same limit and reaction.
+				+ limit_then_redirect< any_unspecified_message >( 4u, trash_can )
+			}
+		,	m_logger( std::move( logger ) )
+	{}
+
+	void so_define_agent() override
+	{
+		so_default_state()
+			.event( make_request_handler< req_A >( "req_A", 1ms ) )
+			.event( make_request_handler< req_B >( "req_B", 15ms ) )
+			.event( make_request_handler< req_C >( "req_C", 2ms ) )
+			.event( make_request_handler< req_D >( "req_D", 18ms ) )
+			.event( make_request_handler< req_E >( "req_E", 22ms ) )
+			.event( make_request_handler< req_F >( "req_F", 19ms ) )
+			.event( make_request_handler< req_G >( "req_G", 24ms ) )
+			.event( make_request_handler< req_I >( "req_I", 23ms ) )
+			.event( [this]( mhood_t< shutdown > ) {
+					so_deregister_agent_coop_normally();
+				} )
+			;
 	}
 };
 

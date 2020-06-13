@@ -623,6 +623,7 @@ struct message_limit_methods_mixin_t
 		 * \brief A helper function for creating drop_indicator.
 		 */
 		template< typename Msg >
+		[[nodiscard]]
 		static drop_indicator_t< Msg >
 		limit_then_drop( unsigned int limit )
 			{
@@ -636,6 +637,7 @@ struct message_limit_methods_mixin_t
 		 * \brief A helper function for creating abort_app_indicator.
 		 */
 		template< typename Msg >
+		[[nodiscard]]
 		static abort_app_indicator_t< Msg >
 		limit_then_abort( unsigned int limit )
 			{
@@ -662,6 +664,7 @@ struct message_limit_methods_mixin_t
 		 * \endcode
 		 */
 		template< typename M, typename L >
+		[[nodiscard]]
 		static log_then_abort_app_indicator_t< M, L >
 		limit_then_abort( unsigned int limit, L lambda )
 			{
@@ -676,6 +679,7 @@ struct message_limit_methods_mixin_t
 		 * \brief A helper function for creating redirect_indicator.
 		 */
 		template< typename Msg, typename Lambda >
+		[[nodiscard]]
 		static redirect_indicator_t< Msg, Lambda >
 		limit_then_redirect(
 			unsigned int limit,
@@ -684,6 +688,42 @@ struct message_limit_methods_mixin_t
 				return redirect_indicator_t< Msg, Lambda >(
 						limit,
 						std::move( dest_getter ) );
+			}
+
+		/*!
+		 * \brief A helper function for creating redirect_indicator.
+		 *
+		 * This helper can be used if the target mbox is already known:
+		 * \code
+		 * class processor final : public so_5::agent_t
+		 * {
+		 * public:
+		 * 	processor(context_t ctx, so_5::mbox_t overload_handler)
+		 * 		:	so_5::agent_t{ ctx
+		 * 				+ limit_then_redirect< some_message >( 10u, overload_handler )
+		 * 				+ limit_then_redirect< another_message >( 20u, overload_handler )
+		 * 			}
+		 * 	{...}
+		 * 
+		 * ...
+		 * };
+		 * \endcode
+		 *
+		 * \since
+		 * v.5.7.1
+		 */
+		template< typename Msg >
+		[[nodiscard]]
+		static auto
+		limit_then_redirect(
+			unsigned int limit,
+			mbox_t destination )
+			{
+				return limit_then_redirect< Msg >(
+						limit,
+						[dest = std::move(destination)]() -> const so_5::mbox_t & {
+							return dest;
+						} );
 			}
 
 		/*!
@@ -720,6 +760,7 @@ struct message_limit_methods_mixin_t
 				typename Lambda,
 				typename Arg = typename so_5::details::lambda_traits::
 						argument_type_if_lambda< Lambda >::type >
+		[[nodiscard]]
 		static transform_indicator_t< Arg >
 		limit_then_transform(
 			unsigned int limit,
@@ -775,6 +816,7 @@ struct message_limit_methods_mixin_t
 		 * explicitely specified.
 		 */
 		template< typename Source, typename Lambda >
+		[[nodiscard]]
 		static transform_indicator_t< Source >
 		limit_then_transform(
 			unsigned int limit,
@@ -847,6 +889,7 @@ struct message_limit_methods_mixin_t
 			\endcode
 		 */
 		template< typename Msg, typename... Args >
+		[[nodiscard]]
 		static transformed_message_t< Msg >
 		make_transformed( mbox_t mbox, Args &&... args )
 			{
