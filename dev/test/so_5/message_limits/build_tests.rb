@@ -21,6 +21,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/redirect_msg/sc_mbox/prj.ut.rb"
 	required_prj "#{path}/default_redirect_msg/mc_mbox/prj.ut.rb"
 	required_prj "#{path}/default_redirect_msg/sc_mbox/prj.ut.rb"
+	required_prj "#{path}/direct_mbox_delayed_subscription/prj.ut.rb"
 	required_prj "#{path}/redirect_msg_too_deep/mc_mbox/prj.ut.rb"
 	required_prj "#{path}/redirect_msg_too_deep/sc_mbox/prj.ut.rb"
 	required_prj "#{path}/transform_msg/mc_mbox/prj.ut.rb"
