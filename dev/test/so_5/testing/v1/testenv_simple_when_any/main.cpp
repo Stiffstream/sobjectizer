@@ -17,12 +17,16 @@ struct dummy final : public so_5::signal_t {};
 
 class test_agent_t final : public so_5::agent_t
 {
+	state_t st_dummy{ this };
+
 public :
 	test_agent_t( context_t ctx )
 		:	so_5::agent_t( std::move(ctx) )
 	{
 		so_subscribe_self().event( &test_agent_t::on_hello_1 );
 		so_subscribe_self().event( &test_agent_t::on_hello_2 );
+
+		st_dummy.event( &test_agent_t::on_dummy );
 	}
 
 private :
@@ -36,6 +40,12 @@ private :
 	on_hello_2( mhood_t<hello_2> )
 	{
 		std::cout << "Hello(2)!" << std::endl;
+	}
+
+	void
+	on_dummy( mhood_t<dummy> )
+	{
+		std::cout << "Dummy!" << std::endl;
 	}
 };
 

@@ -81,28 +81,14 @@ mbox_core_t::create_mpsc_mbox(
 {
 	const auto id = ++m_mbox_id_counter;
 
-	std::unique_ptr< abstract_message_box_t > actual_mbox;
-	if( limits_storage )
-	{
-		actual_mbox =
-				make_actual_mbox<
-						limitful_mpsc_mbox_without_tracing,
-						limitful_mpsc_mbox_with_tracing >(
-					m_msg_tracing_stuff,
-					id,
-					single_consumer,
-					*limits_storage );
-	}
-	else
-	{
-		actual_mbox =
-				make_actual_mbox<
-						limitless_mpsc_mbox_without_tracing,
-						limitless_mpsc_mbox_with_tracing >(
-					m_msg_tracing_stuff,
-					id,
-					single_consumer );
-	}
+	std::unique_ptr< abstract_message_box_t > actual_mbox{
+			make_actual_mbox<
+					mpsc_mbox_without_tracing_t,
+					mpsc_mbox_with_tracing_t >(
+				m_msg_tracing_stuff,
+				id,
+				single_consumer )
+		};
 
 	return mbox_t{ actual_mbox.release() };
 }

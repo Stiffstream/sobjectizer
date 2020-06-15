@@ -39,7 +39,7 @@ public :
 				} );
 			} )
 			.event( [&](mhood_t< shutdown >) {
-				if( 2u != m_received )
+				if( 0u != m_received )
 					throw std::runtime_error( "unexpected count of "
 							"received 'check' instances: " +
 							std::to_string( m_received ) );
@@ -54,6 +54,7 @@ public :
 		so_5::send< subscribe >( *this );
 
 		// At this moment there is no subscription for check message.
+		// All those messages should be ignored.
 		so_5::send< check >( *this );
 		so_5::send< check >( *this );
 		so_5::send< check >( *this );

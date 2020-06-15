@@ -14,11 +14,14 @@ struct hello final : public so_5::signal_t {};
 
 class test_agent_t final : public so_5::agent_t
 {
+	state_t st_dummy{ this };
+
 public :
 	test_agent_t( context_t ctx )
 		:	so_5::agent_t( std::move(ctx) )
 	{
 		so_subscribe_self().event( &test_agent_t::on_hello );
+		st_dummy.event( &test_agent_t::on_dummy );
 	}
 
 private :
@@ -26,6 +29,12 @@ private :
 	on_hello( mhood_t<hello> )
 	{
 		std::cout << "Hello!" << std::endl;
+	}
+
+	void
+	on_dummy( mhood_t<dummy> )
+	{
+		std::cout << "Dummy!" << std::endl;
 	}
 };
 
