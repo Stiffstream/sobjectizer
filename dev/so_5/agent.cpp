@@ -114,9 +114,7 @@ struct state_t::time_limit_t
 					// A new MPSC mbox will be used for that.
 					.create_mpsc_mbox(
 							// New MPSC mbox will be directly connected to target agent.
-							&agent,
-							// Message limits will not be used.
-							nullptr );
+							&agent );
 
 			// A subscription must be created for timeout signal.
 			agent.so_subscribe( m_unique_mbox )
@@ -502,8 +500,7 @@ agent_t::agent_t(
 	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
 			impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
-				self_ptr(),
-				m_message_limits.get() ) )
+				self_ptr() ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
 	,	m_working_thread_id( so_5::query_current_thread_id() )
@@ -588,8 +585,7 @@ mbox_t
 agent_t::so_make_new_direct_mbox()
 {
 	return impl::internal_env_iface_t{ so_environment() }.create_mpsc_mbox(
-			self_ptr(),
-			m_message_limits.get() );
+			self_ptr() );
 }
 
 const state_t &
