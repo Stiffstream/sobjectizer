@@ -74,4 +74,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'make_agent_ref' ]
 
 	example[ 'default_message_limits' ]
+
+	example[ 'named_dispatchers_layer' ]
 }

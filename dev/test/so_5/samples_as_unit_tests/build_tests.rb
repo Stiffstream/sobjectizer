@@ -86,4 +86,10 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/make_new_direct_mbox.ut.rb"
   required_prj "#{path}/make_new_direct_mbox-static.ut.rb"
+
+  required_prj "#{path}/make_agent_ref.ut.rb"
+  required_prj "#{path}/make_agent_ref-static.ut.rb"
+
+  required_prj "#{path}/named_dispatchers_layer.ut.rb"
+  required_prj "#{path}/named_dispatchers_layer-static.ut.rb"
 }

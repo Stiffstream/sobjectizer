@@ -68,3 +68,6 @@ add_subdirectory(make_new_direct_mbox)
 add_subdirectory(make_agent_ref)
 
 add_subdirectory(default_message_limits)
+
+add_subdirectory(named_dispatchers_layer)
+
