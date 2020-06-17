@@ -354,7 +354,9 @@ prepare(
 	const std::type_index mark_type{ typeid(any_unspecified_message) };
 	auto mark_it = find_if(
 			begin( original_descriptions ), end( original_descriptions ),
-			[mark_type]( const auto & d ) { return d.m_msg_type == mark_type; } );
+			[mark_type]( const auto & d ) {
+				return d.m_msg_type == mark_type;
+			} );
 	if( mark_it != end( original_descriptions ) )
 		{
 			default_limit = std::move(*mark_it);

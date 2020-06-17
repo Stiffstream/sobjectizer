@@ -42,5 +42,17 @@ message_t::operator=( message_t && other )
 	return *this;
 }
 
+namespace message_limit
+{
+
+//
+// any_unspecified_message
+//
+
+any_unspecified_message::~any_unspecified_message() {}
+any_unspecified_message::any_unspecified_message() {}
+
+} /* namespace message_limit */
+
 } /* namespace so_5 */
 
