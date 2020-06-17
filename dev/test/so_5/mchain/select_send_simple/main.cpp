@@ -75,8 +75,12 @@ UT_UNIT_TEST( simple_failed_send_attempt_2 )
 
 			UT_CHECK_CONDITION( !r.was_sent() );
 			UT_CHECK_CONDITION( !send_successed );
-			UT_CHECK_CONDITION( timeout + 10ms /* some delta */ >
-					finished_at - started_at );
+
+			std::cout << "time spent: " << std::chrono::duration_cast<
+					std::chrono::milliseconds >( finished_at - started_at )
+					.count() << std::endl;
+
+			UT_CHECK_CONDITION( timeout <= finished_at - started_at );
 		},
 		5 );
 }
