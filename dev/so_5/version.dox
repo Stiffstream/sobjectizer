@@ -2,6 +2,37 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7_1 5.7.1 "Nevados Jotabeche"
+
+	New function template so_5::make_agent_ref().
+
+	A possibility to define default (generic) message limits. For example:
+\code
+class demo final : public so_5::agent_t
+{
+public:
+   demo(context_t ctx)
+      : so_5::agent_t{ctx
+         + limit_then_drop<msg_A>(100u)
+         + limit_then_abort<msg_B>(10u)
+         // That limit will be used for all other messages.
+         + limit_then_drop<any_unspecified_message>(50u)
+         }
+   {}
+\endcode
+
+	Fix for supported formats of on_enter/on_exit handlers for
+	agent states. Now `noexcept` methods/lambdas can be used as
+	those handlers.
+
+	Changes in the procedure of message delivery to MPSC mboxes.
+	Now the presence of a subscription to the message type is performed
+	during `send` operation. If there is no such subscriptions the
+	message isn't stored into the receiver's queue.
+
+	New examples: default_message_limits, make_agent_ref,
+	named_dispatchers_layer.
+
 \section so_5__5_7_0 5.7.0 "Volcan Ollague"
 
 	Support of so_5::send_case() in so_5::select().
