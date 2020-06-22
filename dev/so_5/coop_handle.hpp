@@ -137,12 +137,48 @@ class coop_handle_t
 		//! A tool for dumping coop_handle to ostream.
 		friend inline std::ostream &
 		operator<<( std::ostream & to, const coop_handle_t & what )
-		{
-			if( what )
-				return (to << "{coop:id=" << what.m_id << "}");
-			else
-				return (to << "{empty-coop-handle}");
-		}
+			{
+				if( what )
+					return (to << "{coop:id=" << what.m_id << "}");
+				else
+					return (to << "{empty-coop-handle}");
+			}
+
+		friend inline bool
+		operator==( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id == b.m_id;
+			}
+
+		friend inline bool
+		operator!=( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id != b.m_id;
+			}
+
+		friend inline bool
+		operator<( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id < b.m_id;
+			}
+
+		friend inline bool
+		operator<=( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id <= b.m_id;
+			}
+
+		friend inline bool
+		operator>( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id > b.m_id;
+			}
+
+		friend inline bool
+		operator>=( const coop_handle_t & a, const coop_handle_t & b ) noexcept
+			{
+				return a.m_id >= b.m_id;
+			}
 	};
 
 namespace low_level_api
