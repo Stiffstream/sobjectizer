@@ -102,7 +102,12 @@ class mbox_core_t
 		mbox_t
 		create_mpsc_mbox(
 			//! The only consumer for messages.
-			agent_t * single_consumer );
+			agent_t * single_consumer,
+			//! Pointer to the optional message limits storage.
+			//! If this pointer is null then the limitless MPSC-mbox will be
+			//! created. If this pointer is not null the the MPSC-mbox with limit
+			//! control will be created.
+			const so_5::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Remove a reference to the named mbox.
 		/*!

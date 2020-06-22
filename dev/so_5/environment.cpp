@@ -815,9 +815,12 @@ namespace impl
 
 mbox_t
 internal_env_iface_t::create_mpsc_mbox(
-	agent_t * single_consumer )
+	agent_t * single_consumer,
+	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
-	return m_env.m_impl->m_mbox_core->create_mpsc_mbox( single_consumer );
+	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
+			single_consumer,
+			limits_storage );
 }
 
 void

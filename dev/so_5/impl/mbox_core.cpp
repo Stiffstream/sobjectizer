@@ -76,18 +76,32 @@ make_actual_mbox(
 
 mbox_t
 mbox_core_t::create_mpsc_mbox(
-	agent_t * single_consumer )
+	agent_t * single_consumer,
+	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
 	const auto id = ++m_mbox_id_counter;
 
-	std::unique_ptr< abstract_message_box_t > actual_mbox{
-			make_actual_mbox<
-					mpsc_mbox_without_tracing_t,
-					mpsc_mbox_with_tracing_t >(
-				m_msg_tracing_stuff,
-				id,
-				single_consumer )
-		};
+	std::unique_ptr< abstract_message_box_t > actual_mbox;
+	if( limits_storage )
+	{
+		actual_mbox =
+				make_actual_mbox<
+						limitful_mpsc_mbox_without_tracing_t,
+						limitful_mpsc_mbox_with_tracing_t >(
+					m_msg_tracing_stuff,
+					id,
+					single_consumer );
+	}
+	else
+	{
+		actual_mbox =
+				make_actual_mbox<
+						limitless_mpsc_mbox_without_tracing_t,
+						limitless_mpsc_mbox_with_tracing_t >(
+					m_msg_tracing_stuff,
+					id,
+					single_consumer );
+	}
 
 	return mbox_t{ actual_mbox.release() };
 }
