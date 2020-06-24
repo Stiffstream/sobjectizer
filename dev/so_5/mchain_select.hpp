@@ -16,6 +16,7 @@
 #include <so_5/details/at_scope_exit.hpp>
 #include <so_5/details/invoke_noexcept_code.hpp>
 #include <so_5/details/remaining_time_counter.hpp>
+#include <so_5/details/safe_cv_wait_for.hpp>
 
 #include <iterator>
 #include <array>
@@ -1189,8 +1190,9 @@ class actual_select_notificator_t : public select_notificator_t
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 				if( !m_tail )
-					m_condition.wait_for(
+					::so_5::details::wait_for_big_interval(
 							lock,
+							m_condition,
 							wait_time,
 							[this]{ return m_tail != nullptr; } );
 

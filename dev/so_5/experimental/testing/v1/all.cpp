@@ -12,6 +12,8 @@
 
 #include <so_5/experimental/testing/v1/all.hpp>
 
+#include <so_5/details/safe_cv_wait_for.hpp>
+
 namespace so_5 {
 	
 namespace experimental {
@@ -507,8 +509,9 @@ class real_scenario_t final : public abstract_scenario_t
 								m_status = scenario_status_t::in_progress;
 								preactivate_current_step();
 
-								m_completion_cv.wait_for(
+								::so_5::details::wait_for_big_interval(
 										lock,
+										m_completion_cv,
 										run_time,
 										[this]{ return scenario_status_t::completed == m_status; });
 								if( scenario_status_t::completed != m_status )

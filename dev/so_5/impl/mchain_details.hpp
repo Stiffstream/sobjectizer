@@ -21,6 +21,7 @@
 #include <so_5/error_logger.hpp>
 
 #include <so_5/details/at_scope_exit.hpp>
+#include <so_5/details/safe_cv_wait_for.hpp>
 
 #include <deque>
 #include <vector>
@@ -423,13 +424,12 @@ class mchain_template
 						auto decrement_threads = so_5::details::at_scope_exit(
 								[this] { --m_threads_to_wakeup; } );
 
-						if( !details::is_infinite_wait_timevalue( empty_queue_timeout ) )
-							// A wait with finite timeout must be performed.
-							m_underflow_cond.wait_for(
-									lock, empty_queue_timeout, predicate );
-						else
-							// Wait until arrival of any message or closing of chain.
-							m_underflow_cond.wait( lock, predicate );
+						// Wait until arrival of any message or closing of chain.
+						::so_5::details::wait_for_big_interval(
+								lock,
+								m_underflow_cond,
+								empty_queue_timeout,
+								predicate );
 					}
 
 				// If queue is still empty nothing can be extracted and
@@ -676,8 +676,9 @@ class mchain_template
 				bool queue_full = m_queue.is_full();
 				if( queue_full && m_capacity.is_overflow_timeout_defined() )
 					{
-						m_overflow_cond.wait_for(
+						::so_5::details::wait_for_big_interval(
 								lock,
+								m_overflow_cond,
 								m_capacity.overflow_timeout(),
 								[this, &queue_full] {
 									queue_full = m_queue.is_full();
