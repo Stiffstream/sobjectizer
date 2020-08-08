@@ -672,7 +672,7 @@ cmake -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=ON -G
 ```
 
 Since v.5.5.24 SObjectizer provides sobjectizer-config.cmake files.
-These files are automatically installed into <target>/lib/cmake/sobjectizer
+These files are automatically installed into `<target>/lib/cmake/sobjectizer`
 subfolder. It allows to use SObjectizer via CMake's find_package command.
 
 ## Building for Android
