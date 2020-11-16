@@ -737,7 +737,7 @@ agent_t::so_create_execution_hint(
 	execution_demand_t & d )
 {
 	enum class demand_type_t {
-			message, service_request, enveloped_msg, other
+			message, enveloped_msg, other
 	};
 
 	// We can't use message_kind_t here because there are special
