@@ -73,7 +73,7 @@ struct execution_demand_t
 	demand_handler_pfn_t m_demand_handler;
 
 	//! Default constructor.
-	execution_demand_t()
+	execution_demand_t() noexcept
 		:	m_receiver( nullptr )
 		,	m_limit( nullptr )
 		,	m_mbox_id( 0 )
@@ -87,7 +87,7 @@ struct execution_demand_t
 		mbox_id_t mbox_id,
 		std::type_index msg_type,
 		message_ref_t message_ref,
-		demand_handler_pfn_t demand_handler )
+		demand_handler_pfn_t demand_handler ) noexcept
 		:	m_receiver( receiver )
 		,	m_limit( limit )
 		,	m_mbox_id( mbox_id )
