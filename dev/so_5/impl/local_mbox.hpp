@@ -27,6 +27,8 @@
 #include <so_5/impl/message_limit_internals.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
 
+#include <so_5/details/invoke_noexcept_code.hpp>
+
 namespace so_5
 {
 
@@ -506,9 +508,12 @@ private :
 
 					// Stage 4. Swapping.
 					// No exceptions expected here.
-					m_vector.swap( new_storage );
-					m_map.swap( empty_map );
-					m_storage = storage_type::vector;
+					so_5::details::invoke_noexcept_code(
+						[&]() {
+							m_vector.swap( new_storage );
+							m_map.swap( empty_map );
+							m_storage = storage_type::vector;
+						} );
 				}
 			catch(...)
 				{}

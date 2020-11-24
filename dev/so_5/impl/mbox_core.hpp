@@ -184,11 +184,10 @@ class mbox_core_t
 					m_external_ref_count( 0 )
 			{}
 
-			named_mbox_info_t(
-				const mbox_t mbox )
+			named_mbox_info_t( mbox_t mbox )
 				:
 					m_external_ref_count( 1 ),
-					m_mbox( mbox )
+					m_mbox( std::move(mbox) )
 			{}
 
 			//! Reference count by external mbox_refs.
