@@ -167,7 +167,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const std::type_index & type_index,
 			//! Optional message limit for that message type.
 			const message_limit::control_block_t * limit,
-			//! Agent-subcriber.
+			//! Agent-subscriber.
 			agent_t & subscriber ) = 0;
 
 		//! Remove all message handlers.
@@ -175,7 +175,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		unsubscribe_event_handlers(
 			//! Message type.
 			const std::type_index & type_index,
-			//! Agent-subcriber.
+			//! Agent-subscriber.
 			agent_t & subscriber ) = 0;
 
 		//! Get the mbox name.

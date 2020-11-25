@@ -115,7 +115,7 @@ coop_repository_basis_t::register_coop(
 			++m_registrations_in_progress;
 		}
 
-		// Note: thid code should be called only on locked object.
+		// Note: this code should be called only on locked object.
 		const auto handle_registrations_in_progress = [this]() noexcept {
 				// Decrement count of registration in progress to enable
 				// pending shutdown (if it is).
