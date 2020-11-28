@@ -36,8 +36,8 @@ class a_test_t : public so_5::agent_t
 		{
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_change_state( st_safe );
 
@@ -50,7 +50,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_5::send< msg_safe_signal >( *this );
 

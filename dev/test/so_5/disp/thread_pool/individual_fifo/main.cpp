@@ -115,8 +115,8 @@ class a_shutdowner_t : public so_5::agent_t
 			,	m_working_agents( working_agents )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self().event( [=](mhood_t< msg_shutdown >) {
 					--m_working_agents;

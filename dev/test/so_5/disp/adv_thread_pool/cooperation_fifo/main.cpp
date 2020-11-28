@@ -34,7 +34,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			auto w = ++m_workers;
 			if( w > 1 )
@@ -71,8 +71,8 @@ class a_shutdowner_t : public so_5::agent_t
 			,	m_working_agents( working_agents )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( [=](mhood_t< msg_shutdown >) {

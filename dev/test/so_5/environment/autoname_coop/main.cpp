@@ -9,8 +9,8 @@ class a_test_t : public so_5::agent_t
 			:	so_5::agent_t( env )
 		{}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			so_deregister_agent_coop_normally();
 		}

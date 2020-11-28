@@ -26,7 +26,7 @@ class a_test_t
 		{}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_self_mbox ).event( [](mhood_t< msg_test_signal >) {
 					throw std::runtime_error( "Exception from a_test_t!" );
@@ -46,8 +46,8 @@ class a_parent_t
 			:	so_5::agent_t( env )
 		{}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			auto child = so_environment().make_coop( so_coop() );
 

@@ -35,8 +35,8 @@ class a_test_t
 				m_it_current_state = m_states.begin();
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				for( auto s : m_states )
 					so_subscribe( m_self_mbox )
@@ -44,8 +44,8 @@ class a_test_t
 							.event( &a_test_t::evt_tick );
 			}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 			{
 				m_benchmarker.start();
 

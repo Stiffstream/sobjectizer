@@ -152,14 +152,14 @@ class a_pinger_t final : public so_5::agent_t
 				m_ponger_mbox = mbox;
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe( m_self_mbox ).event( &a_pinger_t::evt_pong );
 			}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 			{
 				m_measure_result.m_start_time = steady_clock::now();
 
@@ -228,8 +228,8 @@ class a_ponger_t final : public so_5::agent_t
 				m_pinger_mbox = mbox;
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe( m_self_mbox ).event( &a_ponger_t::evt_ping );
 			}

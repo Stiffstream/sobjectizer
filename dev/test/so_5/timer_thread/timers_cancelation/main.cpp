@@ -16,7 +16,7 @@ struct msg_test : public so_5::message_t
 		int & m_counter;
 
 		msg_test( int & counter ) : m_counter( counter ) {}
-		~msg_test() { ++m_counter; }
+		~msg_test() override { ++m_counter; }
 	};
 
 void
@@ -39,7 +39,7 @@ class a_test_t : public so_5::agent_t
 			}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 			{
 				using namespace std::chrono_literals;
 

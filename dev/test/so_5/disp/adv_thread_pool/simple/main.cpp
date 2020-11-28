@@ -28,14 +28,14 @@ class a_test_t : public so_5::agent_t
 			:	so_5::agent_t( env )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			so_5::send< msg_hello >( *this );
 		}

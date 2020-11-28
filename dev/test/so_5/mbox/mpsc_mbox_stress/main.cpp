@@ -29,13 +29,13 @@ class a_child_t
 			:	so_5::agent_t( env )
 			,	m_parent_mbox( parent_mbox )
 			{}
-		~a_child_t()
+		~a_child_t() override
 			{
 				so_5::send< msg_child_agent_destroyed >( m_parent_mbox );
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe_self().event( [=](mhood_t< msg_ping >) {
 						so_5::send< msg_ack >( m_parent_mbox );
@@ -64,8 +64,8 @@ class a_parent_t
 			,	m_destroy_received( 0 )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self().event( &a_parent_t::evt_child_created );
 
@@ -81,7 +81,7 @@ class a_parent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			try_start_new_iteration();
 		}

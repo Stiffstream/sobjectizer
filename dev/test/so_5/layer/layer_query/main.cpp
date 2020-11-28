@@ -25,19 +25,16 @@ class test_layer_t
 			last_created_objects[ N ] = this;
 		}
 
-		virtual ~test_layer_t()
+		void
+		start() override
 		{}
 
-		virtual void
-		start()
+		void
+		shutdown() override
 		{}
 
-		virtual void
-		shutdown()
-		{}
-
-		virtual void
-		wait()
+		void
+		wait() override
 		{}
 };
 
@@ -64,10 +61,8 @@ class test_environment_t
 							.disable_autoshutdown() ) )
 		{}
 
-		virtual ~test_environment_t(){}
-
-		virtual void
-		init()
+		void
+		init() override
 		{
 			stop();
 			init_finished();

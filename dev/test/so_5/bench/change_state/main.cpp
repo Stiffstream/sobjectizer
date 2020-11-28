@@ -36,8 +36,8 @@ class a_test_t
 				m_states.push_back( &st_9 );
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe( so_direct_mbox() )
 						.in( st_0 )
@@ -52,8 +52,8 @@ class a_test_t
 						.in( st_9 ).event( &a_test_t::evt_dummy );
 			}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 			{
 				benchmarker_t bench;
 				bench.start();

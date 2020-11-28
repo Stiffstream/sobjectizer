@@ -33,13 +33,13 @@ class a_ordinary_t
 			++g_agents_count;
 		}
 
-		virtual ~a_ordinary_t()
+		~a_ordinary_t() override
 		{
 			--g_agents_count;
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.in( so_default_state() )
@@ -48,8 +48,8 @@ class a_ordinary_t
 			so_5::send< some_message >( so_direct_mbox() );
 		}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		void
 		some_handler( mhood_t< some_message > );
@@ -94,7 +94,7 @@ class throwing_disp_binder_t
 		bind(
 			so_5::agent_t & /*agent*/ ) noexcept override {}
 
-		virtual void
+		void
 		unbind(
 			so_5::agent_t & /*agent*/ ) noexcept override {}
 };

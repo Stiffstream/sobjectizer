@@ -29,15 +29,15 @@ class test_agent_t
 		{
 		}
 
-		virtual ~test_agent_t()
+		~test_agent_t() override
 		{
 		}
 
-		virtual void
-		so_define_agent();
+		void
+		so_define_agent() override;
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			// Send a delayed for 1 second message.
 			m_timer_ref = so_5::send_periodic< test_message >(

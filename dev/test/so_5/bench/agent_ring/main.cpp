@@ -190,8 +190,8 @@ class a_ring_member_t : public so_5::agent_t
 				m_next_mbox = mbox;
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_default_state()
 					.event( m_self_mbox, &a_ring_member_t::evt_start )

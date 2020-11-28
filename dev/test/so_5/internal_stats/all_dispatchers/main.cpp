@@ -33,8 +33,8 @@ class a_worker_t : public so_5::agent_t
 				std::copy( targets, targets + targets_count, m_targets );
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_default_state().event( &a_worker_t::evt_hello );
 			}

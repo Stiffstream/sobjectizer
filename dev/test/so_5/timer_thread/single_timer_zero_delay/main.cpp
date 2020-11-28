@@ -32,7 +32,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_mbox )
 				.event( &a_test_t::evt_delayed_message );
@@ -45,7 +45,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_5::send_delayed< msg_stop >( m_mbox,
 					std::chrono::milliseconds(1000) );

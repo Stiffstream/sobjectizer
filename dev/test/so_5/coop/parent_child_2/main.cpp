@@ -46,14 +46,14 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_self_mbox )
 				.event( &a_test_t::evt_child_started );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			if( m_level != m_max_deep )
 			{

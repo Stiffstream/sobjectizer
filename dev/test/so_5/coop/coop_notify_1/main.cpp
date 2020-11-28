@@ -23,7 +23,7 @@ class a_child_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_deregister_agent_coop_normally();
 		}
@@ -45,13 +45,13 @@ class a_test_t : public so_5::agent_t
 		{}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_mbox ).event( &a_test_t::evt_child_deregistered );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			auto child_coop = so_environment().make_coop( so_coop() );
 			child_coop->add_reg_notificator(

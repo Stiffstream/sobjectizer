@@ -38,13 +38,13 @@ class test_agent_t
 			++m_agent_count;
 		}
 
-		virtual ~test_agent_t()
+		~test_agent_t() override
 		{
 			--m_agent_count;
 		}
 
-		virtual void
-		so_define_agent();
+		void
+		so_define_agent() override;
 
 		void
 		evt_test(

@@ -105,15 +105,15 @@ class a_contoller_t : public so_5::agent_t
 			,	m_remaining( m_cfg.m_pause )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() )
 				.event( &a_contoller_t::evt_shutdown );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			m_timer = so_5::send_periodic< msg_shutdown >(
 					*this,

@@ -23,7 +23,7 @@ struct test_message
 		public so_5::message_t
 {
 	test_message( bool is_last = false ): m_is_last(is_last) {}
-	virtual ~test_message() {}
+	~test_message() override {}
 
 	bool m_is_last;
 };
@@ -51,14 +51,14 @@ class test_agent_sender_t
 				m_notification_mbox( so_environment().create_mbox() )
 		{}
 
-		virtual ~test_agent_sender_t()
+		~test_agent_sender_t() override
 		{}
 
-		virtual void
-		so_define_agent();
+		void
+		so_define_agent() override;
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		void
 		evt_send_messages(
@@ -125,14 +125,14 @@ class test_agent_receiver_t
 				m_source_mbox( mbox )
 		{}
 
-		virtual ~test_agent_receiver_t()
+		~test_agent_receiver_t() override
 		{}
 
-		virtual void
-		so_define_agent();
+		void
+		so_define_agent() override;
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{}
 
 		void

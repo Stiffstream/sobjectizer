@@ -31,14 +31,11 @@ class test_agent_t
 				m_mbox( so_environment().create_mbox() )
 		{}
 
-		virtual ~test_agent_t()
-		{}
+		void
+		so_define_agent() override;
 
-		virtual void
-		so_define_agent();
-
-		virtual void
-		so_evt_finish();
+		void
+		so_evt_finish() override;
 
 #define ABORT_HANDLER( handler, msg ) \
 	void\

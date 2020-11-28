@@ -23,19 +23,16 @@ class test_layer_t
 		test_layer_t()
 		{}
 
-		virtual ~test_layer_t()
+		void
+		start() override
 		{}
 
-		virtual void
-		start()
+		void
+		shutdown() override
 		{}
 
-		virtual void
-		shutdown()
-		{}
-
-		virtual void
-		wait()
+		void
+		wait() override
 		{}
 };
 
@@ -47,21 +44,18 @@ class test_layer_bad_start_t
 		test_layer_bad_start_t()
 		{}
 
-		virtual ~test_layer_bad_start_t()
-		{}
-
-		virtual void
-		start()
+		void
+		start() override
 		{
 			throw std::runtime_error( "failure" );
 		}
 
-		virtual void
-		shutdown()
+		void
+		shutdown() override
 		{}
 
-		virtual void
-		wait()
+		void
+		wait() override
 		{}
 };
 
@@ -80,10 +74,8 @@ class so_environment_error_checker_t
 							.disable_autoshutdown() ) )
 		{}
 
-		virtual ~so_environment_error_checker_t(){}
-
-		virtual void
-		init()
+		void
+		init() override
 		{
 			init_finished();
 		}

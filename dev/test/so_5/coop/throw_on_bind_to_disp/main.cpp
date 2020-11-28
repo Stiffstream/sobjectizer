@@ -36,13 +36,13 @@ class a_ordinary_t
 			++g_agents_count;
 		}
 
-		virtual ~a_ordinary_t()
+		~a_ordinary_t() override
 		{
 			--g_agents_count;
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_5::mbox_t mbox = so_environment()
 				.create_mbox( g_test_mbox_name );
@@ -55,8 +55,8 @@ class a_ordinary_t
 			std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 		}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		void
 		some_handler( mhood_t< some_message > );
@@ -90,13 +90,13 @@ class a_throwing_t
 			++g_agents_count;
 		}
 
-		virtual ~a_throwing_t()
+		~a_throwing_t() override
 		{
 			--g_agents_count;
 		}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 };
 
 class throwing_disp_binder_t

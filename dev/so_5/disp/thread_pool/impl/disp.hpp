@@ -84,15 +84,15 @@ class agent_queue_t final
 			,	m_tail( &m_head )
 			{}
 
-		~agent_queue_t()
+		~agent_queue_t() override
 			{
 				while( m_head.m_next )
 					remove_head();
 			}
 
 		//! Push next demand to queue.
-		virtual void
-		push( execution_demand_t demand )
+		void
+		push( execution_demand_t demand ) override
 			{
 				std::unique_ptr< demand_t > tail_demand{
 						new demand_t( std::move( demand ) ) };

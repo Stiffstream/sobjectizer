@@ -116,7 +116,7 @@ class a_test_starter_t : public so_5::agent_t
 		{}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			create_and_register_agent( so_coop(), so_environment(), 0, 5 );
 		}

@@ -379,8 +379,8 @@ class filter_from_lambda_t : public filter_t
 	public:
 		filter_from_lambda_t( L lambda ) : m_lambda( std::move(lambda) ) {}
 
-		virtual bool
-		filter( const trace_data_t & data ) noexcept
+		bool
+		filter( const trace_data_t & data ) noexcept override
 			{
 				return m_lambda( data );
 			}

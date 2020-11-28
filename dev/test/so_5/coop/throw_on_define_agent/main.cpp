@@ -29,11 +29,8 @@ class a_ordinary_t
 				base_type_t( env )
 		{}
 
-		virtual ~a_ordinary_t()
-		{}
-
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_5::mbox_t mbox = so_environment()
 				.create_mbox( g_test_mbox_name );
@@ -46,8 +43,8 @@ class a_ordinary_t
 			std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 		}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		void
 		some_handler( mhood_t< some_message > );
@@ -60,8 +57,6 @@ a_ordinary_t::so_evt_start()
 	std::cerr << "error: a_ordinary_t::so_evt_start called.";
 	std::abort();
 }
-
-
 
 void
 a_ordinary_t::some_handler( mhood_t< some_message > )
@@ -83,18 +78,15 @@ class a_throwing_t
 				base_type_t( env )
 		{}
 
-		virtual ~a_throwing_t()
-		{}
-
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			throw std::runtime_error(
 				"test throwing while defining agent" );
 		}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 };
 
 void

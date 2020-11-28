@@ -24,13 +24,13 @@ class a_test_t
 		{}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_self_mbox ).event( &a_test_t::evt_signal );
 		}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			so_5::send< msg_test_signal >( m_self_mbox );
 		}
@@ -49,8 +49,8 @@ class a_test_t
 				so_environment().stop();
 		}
 
-		virtual so_5::exception_reaction_t
-		so_exception_reaction() const
+		so_5::exception_reaction_t
+		so_exception_reaction() const override
 		{
 			return so_5::ignore_exception;
 		}

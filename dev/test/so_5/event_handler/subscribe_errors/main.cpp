@@ -44,14 +44,14 @@ class test_agent_t
 				m_mbox( so_environment().create_mbox() )
 		{}
 
-		virtual ~test_agent_t()
+		~test_agent_t() override
 		{}
 
-		virtual void
-		so_define_agent();
+		void
+		so_define_agent() override;
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		void
 		evt_handler1( mhood_t< msg_test > )

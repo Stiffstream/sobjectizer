@@ -20,13 +20,13 @@ class a_first_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( so_direct_mbox() ).event( &a_first_t::evt_one );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_environment().stop();
 		}
@@ -48,7 +48,7 @@ class a_second_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			try
 			{

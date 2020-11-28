@@ -16,8 +16,8 @@ class test_environment_t
 					so_5::environment_params_t() )
 			{}
 
-		virtual void
-		init()
+		void
+		init() override
 		{}
 	};
 

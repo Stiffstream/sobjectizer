@@ -470,7 +470,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 
 	protected :
 		abstract_message_chain_t() = default;
-		virtual ~abstract_message_chain_t() noexcept = default;
+		~abstract_message_chain_t() noexcept override = default;
 
 	public :
 		using abstract_message_box_t::id;

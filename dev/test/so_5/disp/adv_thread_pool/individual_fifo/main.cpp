@@ -72,14 +72,14 @@ class a_test_t : public so_5::agent_t
 		{
 		}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self().event( &a_test_t::evt_hello );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			m_collector.add_current_thread();
 
@@ -115,8 +115,8 @@ class a_shutdowner_t : public so_5::agent_t
 			,	m_working_agents( working_agents )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe_self().event( [=](mhood_t< msg_shutdown >) {
 					--m_working_agents;

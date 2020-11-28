@@ -31,8 +31,8 @@ class a_sender_t
 			,	m_send_count( send_count )
 			{}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 			{
 				for( unsigned int i = 0; i != m_send_count; ++i )
 					so_5::send< msg_send >( m_mbox );

@@ -28,7 +28,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_mbox )
 				.event( &a_test_t::evt_one );
@@ -41,7 +41,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_5::send< msg_one >( m_mbox );
 			so_5::send< msg_two >( m_mbox );

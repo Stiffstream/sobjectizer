@@ -45,13 +45,13 @@ class a_test_t : public so_5::agent_t
 			,	m_resource( resource )
 		{
 		}
-		~a_test_t()
+		~a_test_t() override
 		{
 			m_resource.m_holder.m_sequence.push_back( ID_AGENT );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_deregister_agent_coop_normally();
 		}
@@ -79,7 +79,7 @@ class test_agent_coop_t
 			,	m_sequence( sequence )
 		{}
 
-		~test_agent_coop_t()
+		~test_agent_coop_t() override
 		{
 			m_sequence.m_sequence.push_back( ID_COOP );
 		}
@@ -102,14 +102,14 @@ class a_test_starter_t : public so_5::agent_t
 		{}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_self_mbox ).event(
 					&a_test_starter_t::evt_child_destroyed );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_5::coop_unique_holder_t coop(
 					so_5::coop_shptr_t{

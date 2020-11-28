@@ -23,11 +23,11 @@ class test_agent_t
 				base_type_t( env )
 		{}
 
-		virtual ~test_agent_t()
+		~test_agent_t() override
 		{}
 
-		virtual void
-		so_evt_start();
+		void
+		so_evt_start() override;
 
 		static std::size_t agents_cout()
 		{
@@ -76,11 +76,11 @@ class test_agent_finisher_t
 			:
 				base_type_t( env )
 		{}
-		virtual ~test_agent_finisher_t()
+		~test_agent_finisher_t() override
 		{}
 
-		virtual void
-		so_evt_start()
+		void
+		so_evt_start() override
 		{
 			std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
 			so_environment().stop();

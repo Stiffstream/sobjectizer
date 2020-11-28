@@ -36,23 +36,20 @@ class test_layer_t
 				m_op_seq_counter( 0 )
 		{}
 
-		virtual ~test_layer_t()
-		{}
-
-		virtual void
-		start()
+		void
+		start() override
 		{
 			op_calls[ OP_START ] = m_op_seq_counter++;
 		}
 
-		virtual void
-		shutdown()
+		void
+		shutdown() override
 		{
 			op_calls[ OP_SHUTDOWN ] = m_op_seq_counter++;
 		}
 
-		virtual void
-		wait()
+		void
+		wait() override
 		{
 			op_calls[ OP_WAIT ] = m_op_seq_counter++;
 		}

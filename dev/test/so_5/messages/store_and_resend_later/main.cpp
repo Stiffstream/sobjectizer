@@ -147,7 +147,7 @@ struct msg_test : public so_5::message_t
 		m_controller.msg_created( this );
 	}
 
-	virtual ~msg_test()
+	~msg_test() override
 	{
 		m_controller.msg_destroyed( this );
 	}
@@ -176,7 +176,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_mbox )
 				.event( &a_test_t::evt_msg_1 );
@@ -192,7 +192,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			auto msg = so_5::message_holder_t<msg_test>::make( m_controller );
 

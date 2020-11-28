@@ -217,15 +217,15 @@ class a_contoller_t : public so_5::agent_t
 			,	m_self_mbox( env.create_mbox() )
 		{}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 		{
 			so_subscribe( m_self_mbox )
 				.event( &a_contoller_t::evt_shutdown );
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			create_cooperations();
 

@@ -27,8 +27,6 @@ class test_agent_t
 			:
 				base_type_t( env )
 		{}
-
-		virtual ~test_agent_t() {}
 };
 
 so_5::coop_handle_t

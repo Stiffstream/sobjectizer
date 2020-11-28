@@ -36,7 +36,7 @@ class a_test_t : public so_5::agent_t
 		{}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe( m_mbox ).in( st_wait_registration )
 					.event( &a_test_t::evt_coop_registered );
@@ -45,7 +45,7 @@ class a_test_t : public so_5::agent_t
 		}
 
 		void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_change_state( st_wait_registration );
 

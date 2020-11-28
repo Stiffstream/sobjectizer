@@ -115,7 +115,7 @@ class agent_queue_t final
 			,	m_workers( 0 )
 			{}
 
-		~agent_queue_t()
+		~agent_queue_t() override
 			{
 				while( m_head.m_next )
 					delete_head();
@@ -129,8 +129,8 @@ class agent_queue_t final
 			}
 
 		//! Push next demand to queue.
-		virtual void
-		push( execution_demand_t demand )
+		void
+		push( execution_demand_t demand ) override
 			{
 				bool need_schedule = false;
 				{

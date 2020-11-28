@@ -209,8 +209,8 @@ class a_sender_t
 						a->make_subscription< Signal >( m );
 			}
 
-		virtual void
-		so_define_agent()
+		void
+		so_define_agent() override
 			{
 				so_subscribe( m_common_mbox ).event( &a_sender_t::evt_start );
 
