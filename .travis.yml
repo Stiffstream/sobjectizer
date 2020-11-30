@@ -51,16 +51,6 @@ matrix:
       env:
         - MATRIX_EVAL="CXX_COMPILER=g++-9 C_COMPILER=gcc-9"
 
-    - os: linux
-      arch: amd64
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-10']
-      env:
-        - MATRIX_EVAL="CXX_COMPILER=g++-10 C_COMPILER=gcc-10"
-
     # clang on Linux
     - os: linux
       arch: amd64
