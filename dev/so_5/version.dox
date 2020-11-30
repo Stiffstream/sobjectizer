@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7_2 5.7.2 "Putana"
+
+	`operator==` and `operator!=` added to so_5::coop_handle_t.
+
+	Fixes for several issues reported by users.
+
 \section so_5__5_7_1 5.7.1 "Nevados Jotabeche"
 
 	New function template so_5::make_agent_ref().
