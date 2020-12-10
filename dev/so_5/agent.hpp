@@ -561,14 +561,14 @@ class subscription_bind_t
 	Deadletter handler can be implemented by an agent method or by lambda
 	function. Deadletter handler can have one of the following formats:
 	\code
-		return_type evt_handler( mhood_t< Message > msg );
-		return_type evt_handler( mhood_t< Message > msg ) const;
-		return_type evt_handler( const mhood_t< Message > & msg );
-		return_type evt_handler( const mhood_t< Message > & msg ) const;
-		return_type evt_handler( const Message & msg );
-		return_type evt_handler( const Message & msg ) const;
-		return_type evt_handler( Message msg );
-		return_type evt_handler( Message msg ) const;
+		void evt_handler( mhood_t< Message > msg );
+		void return_type evt_handler( mhood_t< Message > msg ) const;
+		void return_type evt_handler( const mhood_t< Message > & msg );
+		void return_type evt_handler( const mhood_t< Message > & msg ) const;
+		void return_type evt_handler( const Message & msg );
+		void return_type evt_handler( const Message & msg ) const;
+		void return_type evt_handler( Message msg );
+		void return_type evt_handler( Message msg ) const;
 	\endcode
 
 	Subscription for a deadletter handler can be created by
@@ -1840,9 +1840,9 @@ class SO_5_TYPE agent_t
 		 * lambda-function. The handler should have one of the following
 		 * format:
 		 * \code
-		 * ret_type deadletter_handler(message_type);
-		 * ret_type deadletter_handler(const message_type &);
-		 * ret_type deadletter_handler(mhood_t<message_type>);
+		 * void deadletter_handler(message_type);
+		 * void deadletter_handler(const message_type &);
+		 * void deadletter_handler(mhood_t<message_type>);
 		 * \endcode
 		 *
 		 * Usage example:
@@ -1860,8 +1860,8 @@ class SO_5_TYPE agent_t
 		 * 		// Create deadletter handler via lambda-function.
 		 * 		so_subscribe_deadletter_handler(
 		 * 			status_mbox(), // Any mbox can be used, not only agent's direct mbox.
-		 * 			[](mhood_t<status_request>) -> std::string {
-		 * 				return "working";
+		 * 			[](mhood_t<status_request> cmd) {
+		 * 				so_5::send<current_status>(cmd->reply_mbox, "workind");
 		 * 			},
 		 *				// This handler will be thread-safe one.
 		 *				so_5::thread_safe );
