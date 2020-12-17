@@ -3,5 +3,6 @@ add_subdirectory(simple_coop_count)
 add_subdirectory(simple_named_mbox_count)
 add_subdirectory(simple_timer_thread)
 add_subdirectory(simple_work_thread_activity)
+add_subdirectory(simple_work_thread_activity_wrapped_env)
 
 add_subdirectory(all_dispatchers)
