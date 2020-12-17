@@ -12,6 +12,7 @@
 
 #include <so_5/all.hpp>
 
+#include <test/3rd_party/various_helpers/ensure.hpp>
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
 class a_test_t : public so_5::agent_t
@@ -79,6 +80,11 @@ class a_test_t : public so_5::agent_t
 void
 init( so_5::environment_t & env )
 	{
+		ensure_or_die(
+				so_5::work_thread_activity_tracking_t::on ==
+						env.work_thread_activity_tracking(),
+				"work_thread_activity_tracking should be 'on' at this point" );
+
 		env.introduce_coop( []( so_5::coop_t & coop ) {
 			coop.make_agent< a_test_t >();
 

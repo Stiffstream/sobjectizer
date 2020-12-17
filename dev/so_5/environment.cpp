@@ -57,7 +57,7 @@ environment_params_t::environment_params_t(
 	,	m_message_delivery_tracer_filter(
 			std::move( other.m_message_delivery_tracer_filter ) )
 	,	m_work_thread_activity_tracking(
-			work_thread_activity_tracking_t::unspecified )
+			other.m_work_thread_activity_tracking )
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
 	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
 	,	m_event_queue_hook( std::move(other.m_event_queue_hook) )
