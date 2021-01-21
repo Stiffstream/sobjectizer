@@ -1,5 +1,6 @@
 * [What is SObjectizer?](#what-is-sobjectizer)
 * [What distinguishes SObjectizer?](#what-distinguishes-sobjectizer)
+   * [SObjectizer is not like TBB, taskflow or HPX](#sobjectizer-is-not-like-tbb-taskflow-or-hpx)
 * [Show me the code\!](#show-me-the-code)
   * [HelloWorld example](#helloworld-example)
   * [Ping\-Pong example](#ping-pong-example)
@@ -57,6 +58,18 @@ information in the project's Wiki.
 
 **Free**. SObjectizer is distributed under BSD-3-CLAUSE license, so it can be
 used in development of proprietary commercial software for free.
+
+## SObjectizer is not like TBB, taskflow or HPX
+
+SObjectizer is often compared with tools like Intel Threading Building Blocks, taskflow, HPX, and similar to them. Such comparison is just useless.
+
+All those tools are intended to be used for solving tasks from Parallel Computing area: they allow to reduce the computational time by utilizing several CPU cores. For example, you can reencode your video file from one format to another within one hour on one CPU core, by it takes only 15 minutes on four cores. That is the main goal of Parallel Computing.
+
+SObjectizer is intended for a slightly different area: Concurrent Computing. The main goal of SObjectizer is the simplification of doing many different tasks at once. Sometimes there is no need to use more than just one CPU core for that. But if there are several CPU cores, then SObjectizer makes the handling of those tasks and the interaction between them much easier.
+
+The tricky part is the fact that Parallel- and Concurrent Computing use the same concurrency mechanisms and primitives (like threads, mutexes, atomics, and so on) under the hood. But from the high-level point of view Parallel- and Concurrent Computing are used for very different tasks.
+
+As examples of applications that were or could be implemented on top of SObjectizer, we can list multithreaded proxy-server, automatic control system, MQ-broker, database server, and so on.
 
 # Show me the code!
 
