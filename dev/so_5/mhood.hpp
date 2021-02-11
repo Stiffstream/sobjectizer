@@ -597,6 +597,8 @@ typename std::enable_if< !is_signal<M>::value, mhood_t< immutable_msg< M > > >::
 to_immutable( mhood_t< mutable_msg<M> > msg )
 	{
 		message_ref_t ref{ msg.make_reference() }; 
+		change_message_mutability( ref, message_mutability_t::immutable_message );
+
 		return { ref };
 	}
 

@@ -38,6 +38,11 @@ private :
 
 	void on_hello_mut( mhood_t< so_5::mutable_msg< hello > > cmd )
 	{
+		ensure(
+				so_5::message_mutability_t::mutable_message ==
+						message_mutability( *cmd ),
+				"mutable message is expected" );
+
 		std::cout << "sobj: " << cmd->m_content << std::endl;
 
 		m_received_ptr = cmd.get();
@@ -47,6 +52,11 @@ private :
 
 	void on_hello_imm( mhood_t< hello > cmd )
 	{
+		ensure(
+				so_5::message_mutability_t::immutable_message ==
+						message_mutability( *cmd ),
+				"immutable message is expected" );
+
 		std::cout << "sobj: " << cmd->m_content << std::endl;
 
 		ensure( m_received_ptr == cmd.get(), "expect the same message" );
