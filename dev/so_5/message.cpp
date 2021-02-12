@@ -42,6 +42,12 @@ message_t::operator=( message_t && other )
 	return *this;
 }
 
+std::optional<message_upcaster_t>
+message_t::so_message_upcaster() const noexcept
+{
+	return std::nullopt;
+}
+
 namespace message_limit
 {
 

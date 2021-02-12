@@ -1383,10 +1383,32 @@ agent_t::find_event_handler_for_current_state(
 	const state_t * s = &d.m_receiver->so_current_state();
 
 	do {
-		search_result = d.m_receiver->m_subscriptions->find_handler(
-				d.m_mbox_id,
-				d.m_msg_type, 
-				*s );
+		auto msg_type_to_check = d.m_msg_type;
+		std::optional<message_upcaster_t> opt_msg_upcaster;
+		do {
+std::cout << "trying to find handler for: " << msg_type_to_check.name() << std::endl;
+			search_result = d.m_receiver->m_subscriptions->find_handler(
+					d.m_mbox_id,
+					msg_type_to_check, 
+					*s );
+
+			if( !search_result )
+			{
+				if( !opt_msg_upcaster )
+				{
+					if( d.m_message_ref )
+						opt_msg_upcaster = d.m_message_ref->so_message_upcaster();
+				}
+				else
+				{
+					opt_msg_upcaster = opt_msg_upcaster->next_upcaster( d.m_message_ref );
+				}
+
+				if( opt_msg_upcaster )
+					msg_type_to_check = opt_msg_upcaster->base_type();
+			}
+		}
+		while( !search_result && opt_msg_upcaster );
 
 		if( !search_result )
 			s = s->parent_state();

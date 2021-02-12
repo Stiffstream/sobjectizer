@@ -18,6 +18,7 @@
 
 #include <so_5/stats/work_thread_activity.hpp>
 
+#include <mutex>
 #include <string_view>
 
 namespace so_5

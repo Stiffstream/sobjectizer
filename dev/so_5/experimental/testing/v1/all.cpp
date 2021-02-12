@@ -14,6 +14,8 @@
 
 #include <so_5/details/safe_cv_wait_for.hpp>
 
+#include <future>
+
 namespace so_5 {
 	
 namespace experimental {

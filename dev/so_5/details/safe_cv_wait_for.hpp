@@ -13,9 +13,10 @@
 
 #pragma once
 
-#include <chrono>
-
 #include <so_5/details/remaining_time_counter.hpp>
+
+#include <chrono>
+#include <condition_variable>
 
 namespace so_5 {
 

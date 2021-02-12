@@ -19,11 +19,73 @@
 #include <type_traits>
 #include <typeindex>
 #include <functional>
-#include <future>
 #include <atomic>
+#include <optional>
 
 namespace so_5
 {
+
+// This forward declaration is needed for message_upcaster_t.
+class message_t;
+
+//
+// message_ref_t
+//
+//! A smart reference to the message.
+/*!
+ * \note Defined as typedef since v.5.2.0
+ */
+using message_ref_t = intrusive_ptr_t< message_t >;
+
+//
+// message_upcaster_t
+//
+//FIXME: document this!
+class message_upcaster_t
+{
+public:
+	using base_type_getter_t =
+			std::type_index (*)() noexcept;
+	using actual_type_getter_t =
+			std::type_index (*)() noexcept;
+	using next_upcaster_getter_t =
+			std::optional<message_upcaster_t> (*)(const message_ref_t &) noexcept;
+
+	message_upcaster_t(
+		base_type_getter_t base_type_getter,
+		actual_type_getter_t actual_type_getter,
+		next_upcaster_getter_t next_upcaster_getter )
+		:	m_base_type_getter{ base_type_getter }
+		,	m_actual_type_getter{ actual_type_getter }
+		,	m_next_upcaster_getter{ next_upcaster_getter }
+	{}
+
+	[[nodiscard]]
+	std::type_index
+	base_type() const noexcept
+	{
+		return (*m_base_type_getter)();
+	}
+
+	[[nodiscard]]
+	std::type_index
+	actual_type() const noexcept
+	{
+		return (*m_actual_type_getter)();
+	}
+
+	[[nodiscard]]
+	std::optional<message_upcaster_t>
+	next_upcaster( const message_ref_t & msg ) const noexcept
+	{
+		return (*m_next_upcaster_getter)( msg );
+	}
+
+private:
+	base_type_getter_t m_base_type_getter;
+	actual_type_getter_t m_actual_type_getter;
+	next_upcaster_getter_t m_next_upcaster_getter;
+};
 
 //
 // message_t
@@ -180,6 +242,11 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 				return what.so5_message_kind();
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		virtual std::optional<message_upcaster_t>
+		so_message_upcaster() const noexcept;
+
 	private :
 		/*!
 		 * \brief Is message mutable or immutable?
@@ -264,15 +331,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 				return kind_t::classical_message;
 			}
 	};
-
-//
-// message_ref_t
-//
-//! A smart reference to the message.
-/*!
- * \note Defined as typedef since v.5.2.0
- */
-using message_ref_t = intrusive_ptr_t< message_t >;
 
 //
 // signal_t
@@ -1073,6 +1131,77 @@ struct control_block_t
 	};
 
 } /* namespace message_limit */
+
+//
+// upcastable_message_root_t
+//
+//FIXME: document this!
+template< typename Derived >
+class upcastable_message_root_t : public message_t
+{
+public:
+	[[nodiscard]]
+	std::optional<message_upcaster_t>
+	so_direct_message_upcaster() const noexcept
+	{
+		return std::nullopt;
+	}
+
+	[[nodiscard]]
+	std::optional<message_upcaster_t>
+	so_message_upcaster() const noexcept = 0;
+};
+
+//
+// upcastable_message_t
+//
+//FIXME: document this!
+template< typename Derived, typename Base >
+class upcastable_message_t : public message_t
+{
+	static_assert(
+			std::is_base_of_v< upcastable_message_root_t<Base>, Base >,
+			"Base should be derived from upcastable_message_root_t<Base>" );
+
+private:
+	static std::type_index
+	so_base_type() noexcept
+	{
+		return typeid(Base);
+	}
+
+	static std::type_index
+	so_actual_type() noexcept
+	{
+		return typeid(Derived);
+	}
+
+	static std::optional<message_upcaster_t>
+	so_next_message_upcaster( const message_ref_t & ref ) noexcept
+	{
+		const auto * b = static_cast<const Base *>( ref.get() );
+		return b->so_direct_message_upcaster();
+	}
+
+public:
+	[[nodiscard]]
+	std::optional<message_upcaster_t>
+	so_direct_message_upcaster() const noexcept
+	{
+		return message_upcaster_t{
+				&upcastable_message_t::so_base_type,
+				&upcastable_message_t::so_actual_type,
+				&upcastable_message_t::so_next_message_upcaster
+		};
+	}
+
+	[[nodiscard]]
+	std::optional<message_upcaster_t>
+	so_message_upcaster() const noexcept override
+	{
+		return so_direct_message_upcaster();
+	}
+};
 
 } /* namespace so_5 */
 
