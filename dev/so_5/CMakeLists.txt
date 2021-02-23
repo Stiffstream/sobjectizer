@@ -188,10 +188,10 @@ if(SOBJECTIZER_INSTALL)
 	file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 
 	foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
-		if(NOT HEADER_FILE MATCHES "[\\/]impl[\\/]")
-			get_filename_component( DIR ${HEADER_FILE} PATH )
-			install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
-		endif()
+		# Since v.5.7.2.3 install even files from impl subfolders
+		# because it could be necessary for projects like so5extra.
+		get_filename_component( DIR ${HEADER_FILE} PATH )
+		install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
 	endforeach()
 
 	set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config-version.cmake")
