@@ -755,21 +755,16 @@ target_link_libraries(your_target sobjectizer::SharedLib) # or sobjectizer::Stat
 
 ### Using via Conan
 
+**NOTE.** Since Feb 2021 new versions of SObjectizer are available via [conan-center](https://conan.io/center/) only.
+
 #### Installing SObjectizer And Adding It To conanfile.txt
 
-To use SObjectizer via Conan it is necessary to do the following steps:
-
-Add the corresponding remote to your conan:
-
-```sh
-conan remote add stiffstream https://api.bintray.com/conan/stiffstream/public
-```
-
-Add SObjectizer to `conanfile.txt` of your project:
+To use SObjectizer via Conan it is necessary to add SObjectizer to
+`conanfile.txt` of your project:
 
 ```
 [requires]
-sobjectizer/5.7.0@stiffstream/stable
+sobjectizer/5.7.2.3
 ```
 
 It also may be necessary to specify `shared` option for SObjectizer. For example, for build SObjectizer as a static library:
@@ -787,16 +782,13 @@ conan install SOME_PATH --build=missing
 
 #### Adding SObjectizer To Your CMakeLists.txt
 
-Please note that SObjectizer should be added to your `CMakeLists.txt` via `find_package` command:
-
 ```cmake
 ...
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-find_package(sobjectizer CONFIG REQUIRED)
 ...
-target_link_libraries(your_target sobjectizer::SharedLib) # Or sobjectizer::StaticLib
+target_link_libraries(your_target ${CONAN_LIBS})
 ```
 
 # License

@@ -1,0 +1,81 @@
+name: GitHub Actions CI for 5.7-dev
+
+on:
+  push:
+    branches: [5.7-dev]
+
+jobs:
+  build_and_check:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            cc: "cl",
+            cxx: "cl",
+            generator: "NMake Makefiles"
+          }
+        - {
+            name: "Ubuntu Latest GCC",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            generator: "Unix Makefiles"
+          }
+        - {
+            name: "macOS Latest clang",
+            os: macos-latest,
+            cc: "clang",
+            cxx: "clang++",
+            generator: "Unix Makefiles"
+          }
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ilammy/msvc-dev-cmd@v1.5.0
+        if: startsWith(matrix.config.os, 'windows')
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir cmake_build
+          cd cmake_build
+          cmake \
+            -DBUILD_TESTS=ON \
+            -DBUILD_EXAMPLES=OFF \
+            -DCMAKE_INSTALL_PREFIX=target \
+            -DCMAKE_BUILD_TYPE=Release \
+            -G "${{ matrix.config.generator }}" \
+            ../dev/
+
+      - name: Build
+        shell: bash
+        run: |
+          cd cmake_build
+          cmake --build . --config Release
+
+      - name: Install
+        shell: bash
+        run: |
+          cd cmake_build
+          cmake --build . --config Release --target install
+
+      - name: Test-On-Windows
+        if: startsWith(matrix.config.os, 'windows')
+        shell: bash
+        run: |
+          cd cmake_build
+          ./run_tests.bat target Release
+
+      - name: Test-On-Unixes
+        if: ${{ !startsWith(matrix.config.os, 'windows') }}
+        shell: bash
+        run: |
+          cd cmake_build
+          ctest -C Release --output-on-failure
+

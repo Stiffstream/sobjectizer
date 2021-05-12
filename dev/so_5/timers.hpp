@@ -332,9 +332,11 @@ timer_wheel_factory(
 						std::chrono::steady_clock::duration ) =
 				create_timer_wheel_thread;
 
-		using namespace std::placeholders;
-
-		return std::bind( f, _1, wheel_size, granularity );
+		return std::bind(
+				f,
+				std::placeholders::_1,
+				wheel_size,
+				granularity );
 	}
 
 /*!
@@ -367,9 +369,10 @@ timer_heap_factory(
 		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t, std::size_t ) =
 				create_timer_heap_thread;
 
-		using namespace std::placeholders;
-
-		return std::bind( f, _1, initial_heap_capacity );
+		return std::bind(
+				f,
+				std::placeholders::_1,
+				initial_heap_capacity );
 	}
 
 /*!
@@ -672,9 +675,12 @@ timer_wheel_manager_factory(
 						std::chrono::steady_clock::duration ) =
 				create_timer_wheel_manager;
 
-		using namespace std::placeholders;
-
-		return std::bind( f, _1, _2, wheel_size, granularity );
+		return std::bind(
+				f,
+				std::placeholders::_1,
+				std::placeholders::_2,
+				wheel_size,
+				granularity );
 	}
 
 /*!
@@ -714,9 +720,11 @@ timer_heap_manager_factory(
 						std::size_t ) =
 				create_timer_heap_manager;
 
-		using namespace std::placeholders;
-
-		return std::bind( f, _1, _2, initial_heap_capacity );
+		return std::bind(
+				f,
+				std::placeholders::_1,
+				std::placeholders::_2,
+				initial_heap_capacity );
 	}
 
 /*!
