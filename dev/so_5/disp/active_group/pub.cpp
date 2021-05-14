@@ -252,6 +252,11 @@ class dispatcher_template_t final : public actual_dispatcher_iface_t
 								},
 								[&thread] { shutdown_and_wait( *thread ); } );
 					}
+				else
+					{
+						// Number of agents bound has to be incremented now.
+						it->second.m_user_agent += 1u;
+					}
 			}
 
 		so_5::event_queue_t *
