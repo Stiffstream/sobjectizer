@@ -516,6 +516,59 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \brief Add notificator about cooperation registration event.
 		 *
+		 * Notificator should be a function or functional object with the
+		 * following signature:
+		 * \code
+		 * void(so_5::environment_t & env, const so_5::coop_handle_t & handle) noexcept;
+		 * \endcode
+		 *
+		 * An example:
+		 * \code
+		 * class parent_agent final : public so_5::agent_t
+		 * {
+		 * 	// Map of registered cooperations.
+		 * 	std::map<std::string, so_5::coop_handle_t> live_coops_;
+		 * 	...
+		 * 	struct coop_is_alive final : public so_5::message_t
+		 * 	{
+		 * 		const std::string name_;
+		 * 		const so_5::coop_handle_t handle_;
+		 *
+		 * 		coop_is_alive(std::string name, so_5::coop_handle_t handle)
+		 * 			:	m_name{std::move(name)}
+		 * 			,	m_handle{std::move(handle)}
+		 * 		{}
+		 * 	};
+		 *
+		 * 	void evt_coop_is_alive(mhood_t<coop_is_alive> cmd) {
+		 * 		m_live_coops_[cmd->name_] = cmd->handle_;
+		 * 	}
+		 *
+		 * 	void evt_make_new_coop(mhood_t<new_coop_info> cmd) {
+		 * 		so_5::introduce_child_coop(*this, [&](so_5::coop_t & coop) {
+		 * 			... // Fill the coop.
+		 * 			// Add reg-notificator.
+		 * 			coop.add_reg_notificator(
+		 * 				[this, name=cmd->source_name](
+		 * 					so_5::environment_t &,
+		 * 					const so_5::coop_handle_t & handle) noexcept
+		 * 				{
+		 * 					// Inform the parent about the registration.
+		 * 					so_5::send<coop_is_alive>(*this, name, handle);
+		 * 				}
+		 * 		} );
+		 * 	}
+		 *
+		 * 	...
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * reg_notificator can (and most likely will) be called from some
+		 * different thread, not the thread where reg_notificator was added. So
+		 * please take an additional care if your notificator changes some shared
+		 * data -- it can break thread safety easily.
+		 *
 		 * \attention
 		 * Since v.5.6.0 reg_notificator should be a noexcept function or
 		 * functor. Because of that a check in performed during compile time.  An
@@ -546,6 +599,65 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * v.5.2.3
 		 *
 		 * \brief Add notificator about cooperation deregistration event.
+		 *
+		 * Notificator should be a function or functional object with the
+		 * following signature:
+		 * \code
+		 * void(
+		 * 	so_5::environment_t & env,
+		 * 	const so_5::coop_handle_t & handle,
+		 * 	const so_5::coop_dereg_reason_t & reason) noexcept;
+		 * \endcode
+		 *
+		 * An example:
+		 * \code
+		 * class parent_agent final : public so_5::agent_t
+		 * {
+		 * 	// Map of registered cooperations.
+		 * 	std::map<std::string, so_5::coop_handle_t> live_coops_;
+		 * 	...
+		 * 	struct coop_is_dead final : public so_5::message_t
+		 * 	{
+		 * 		const std::string name_;
+		 *
+		 * 		explicit coop_is_dead(std::string name)
+		 * 			:	m_name{std::move(name)}
+		 * 		{}
+		 * 	};
+		 *
+		 * 	void evt_coop_is_dead(mhood_t<coop_is_dead> cmd) {
+		 * 		m_live_coops_.erase(cmd->name_);
+		 * 	}
+		 *
+		 * 	void evt_make_new_coop(mhood_t<new_coop_info> cmd) {
+		 * 		so_5::introduce_child_coop(*this, [&](so_5::coop_t & coop) {
+		 * 			... // Fill the coop.
+		 *
+		 * 			// Add reg-notificator.
+		 * 			coop.add_reg_notificator(...);
+		 *
+		 * 			// Add deref-notificator.
+		 * 			coop.add_dereg_notificator(
+		 * 				[this, name=cmd->source_name](
+		 * 					so_5::environment_t &,
+		 * 					const so_5::coop_handle_t & handle,
+		 * 					const so_5::coop_dereg_reason_t &) noexcept
+		 * 				{
+		 * 					// Inform the parent about the deregistration.
+		 * 					so_5::send<coop_is_dead>(*this, name);
+		 * 				}
+		 * 		} );
+		 * 	}
+		 *
+		 * 	...
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * dereg_notificator can (and most likely will) be called from some
+		 * different thread, not the thread where dereg_notificator was added. So
+		 * please take an additional care if your notificator changes some shared
+		 * data -- it can break thread safety easily.
 		 *
 		 * \attention
 		 * Since v.5.6.0 dereg_notificator should be a noexcept function or
