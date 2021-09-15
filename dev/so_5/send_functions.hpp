@@ -293,9 +293,8 @@ template< typename Target, typename Message >
 typename std::enable_if< is_signal< Message >::value >::type
 send( Target && to, mhood_t< Message > /*what*/ )
 	{
-		send_functions_details::arg_to_mbox( std::forward<Target>(to) )->
-				template deliver_signal<
-						typename message_payload_type<Message>::subscription_type >();
+		so_5::impl::instantiator_and_sender< Message >::send(
+				send_functions_details::arg_to_mbox( std::forward<Target>(to) ) );
 	}
 
 /*!
