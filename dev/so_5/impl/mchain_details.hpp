@@ -94,14 +94,17 @@ class unlimited_demand_queue
 		 * \note Unlimited queue can't be null. Because of that this
 		 * method always returns \a false.
 		 */
+		[[nodiscard]]
 		bool
-		is_full() const { return false; }
+		is_full() const noexcept { return false; }
 
 		//! Is queue empty?
+		[[nodiscard]]
 		bool
-		is_empty() const { return m_queue.empty(); }
+		is_empty() const noexcept { return m_queue.empty(); }
 
 		//! Access to front item from queue.
+		[[nodiscard]]
 		demand_t &
 		front()
 			{
@@ -125,8 +128,9 @@ class unlimited_demand_queue
 			}
 
 		//! Size of the queue.
+		[[nodiscard]]
 		std::size_t
-		size() const { return m_queue.size(); }
+		size() const noexcept { return m_queue.size(); }
 
 	private :
 		//! Queue's storage.
@@ -153,14 +157,17 @@ class limited_dynamic_demand_queue
 			{}
 
 		//! Is queue full?
+		[[nodiscard]]
 		bool
-		is_full() const { return m_max_size == m_queue.size(); }
+		is_full() const noexcept { return m_max_size == m_queue.size(); }
 
 		//! Is queue empty?
+		[[nodiscard]]
 		bool
-		is_empty() const { return m_queue.empty(); }
+		is_empty() const noexcept { return m_queue.empty(); }
 
 		//! Access to front item from queue.
+		[[nodiscard]]
 		demand_t &
 		front()
 			{
@@ -185,8 +192,9 @@ class limited_dynamic_demand_queue
 			}
 
 		//! Size of the queue.
+		[[nodiscard]]
 		std::size_t
-		size() const { return m_queue.size(); }
+		size() const noexcept { return m_queue.size(); }
 
 	private :
 		//! Queue's storage.
@@ -218,14 +226,17 @@ class limited_preallocated_demand_queue
 			{}
 
 		//! Is queue full?
+		[[nodiscard]]
 		bool
-		is_full() const { return m_max_size == m_size; }
+		is_full() const noexcept { return m_max_size == m_size; }
 
 		//! Is queue empty?
+		[[nodiscard]]
 		bool
-		is_empty() const { return 0 == m_size; }
+		is_empty() const noexcept { return 0 == m_size; }
 
 		//! Access to front item from queue.
+		[[nodiscard]]
 		demand_t &
 		front()
 			{
@@ -254,8 +265,9 @@ class limited_preallocated_demand_queue
 			}
 
 		//! Size of the queue.
+		[[nodiscard]]
 		std::size_t
-		size() const { return m_size; }
+		size() const noexcept { return m_size; }
 
 	private :
 		//! Queue's storage.

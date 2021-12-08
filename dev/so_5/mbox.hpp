@@ -73,6 +73,7 @@ class SO_5_TYPE delivery_filter_t
 		 * \retval true message must be delivered to a receiver.
 		 * \retval false message must be descarded.
 		 */
+		[[nodiscard]]
 		virtual bool
 		check(
 			//! Receiver of the message.
@@ -157,6 +158,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 *
 		 * \brief Unique ID of this mbox.
 		 */
+		[[nodiscard]]
 		virtual mbox_id_t
 		id() const = 0;
 
@@ -179,6 +181,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			agent_t & subscriber ) = 0;
 
 		//! Get the mbox name.
+		[[nodiscard]]
 		virtual std::string
 		query_name() const = 0;
 
@@ -192,6 +195,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * It is useful sometimes in subscription-related operations
 		 * because there is no need to do some actions for MPSC mboxes.
 		 */
+		[[nodiscard]]
 		virtual mbox_type_t
 		type() const = 0;
 
@@ -199,11 +203,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \name Comparision.
 		 * \{
 		 */
+		[[nodiscard]]
 		bool operator==( const abstract_message_box_t & o ) const noexcept
 		{
 			return id() == o.id();
 		}
 
+		[[nodiscard]]
 		bool operator<( const abstract_message_box_t & o ) const noexcept
 		{
 			return id() < o.id();
@@ -275,6 +281,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \since
 		 * v.5.6.0
 		 */
+		[[nodiscard]]
 		virtual so_5::environment_t &
 		environment() const noexcept = 0;
 

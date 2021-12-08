@@ -485,14 +485,17 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 			mchain_props::duration_t empty_queue_timeout ) = 0;
 
 		//! Cast message chain to message box.
+		[[nodiscard]]
 		so_5::mbox_t
 		as_mbox();
 
 		//! Is message chain empty?
+		[[nodiscard]]
 		virtual bool
 		empty() const = 0;
 
 		//! Count of messages in the chain.
+		[[nodiscard]]
 		virtual std::size_t
 		size() const = 0;
 
