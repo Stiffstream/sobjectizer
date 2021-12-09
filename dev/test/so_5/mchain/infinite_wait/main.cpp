@@ -43,7 +43,7 @@ do_check( const so_5::mchain_t & chain )
 	std::this_thread::sleep_for( std::chrono::seconds(1) );
 
 	std::cout << "closing." << std::flush;
-	close_drop_content( chain );
+	close_drop_content( chain, so_5::exceptions_enabled );
 
 	std::cout << "joining." << std::flush;
 	child.join();

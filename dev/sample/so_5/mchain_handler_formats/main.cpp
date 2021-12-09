@@ -90,7 +90,7 @@ void demo()
 	// Close channel with dropping all its content.
 	// It has sence because timer thread can send periodic signals to
 	// mchain while we wait on worker.join().
-	close_drop_content( ch );
+	close_drop_content( ch, so_5::exceptions_enabled );
 
 	worker.join();
 

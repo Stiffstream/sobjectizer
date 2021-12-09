@@ -89,7 +89,7 @@ void demo()
 				else
 					// No more work for reverse worker. Close command chain and
 					// worker will finish its work.
-					close_drop_content( reverse_cmd_ch );
+					close_drop_content( reverse_cmd_ch, so_5::exceptions_enabled );
 			} ),
 		receive_case( doubler_reply_ch, [&]( const string & v ) {
 				cout << "doubler_result: " << v << endl;
@@ -98,7 +98,7 @@ void demo()
 				else
 					// No more work for doubler worker. Close command chain and
 					// worker will finish its work.
-					close_drop_content( doubler_cmd_ch );
+					close_drop_content( doubler_cmd_ch, so_5::exceptions_enabled );
 			} ) );
 
 	// There is no need to call join() for reverse_worker and doubler_worker

@@ -16,7 +16,7 @@ check_drop_content( const so_5::mchain_t & chain )
 	so_5::send< int >( chain, 0 );
 	so_5::send< int >( chain, 1 );
 
-	close_drop_content( chain );
+	close_drop_content( chain, so_5::exceptions_enabled );
 
 	auto r = receive(
 			from(chain).handle_all().no_wait_on_empty(),

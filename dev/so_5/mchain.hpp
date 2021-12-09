@@ -13,6 +13,7 @@
 
 #include <so_5/mbox.hpp>
 #include <so_5/handler_makers.hpp>
+#include <so_5/exception_control_flags.hpp>
 
 #include <so_5/fwd.hpp>
 
@@ -499,11 +500,54 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		virtual std::size_t
 		size() const = 0;
 
+		//FIXME: a note should be added that this method
+		//will be removed in v.5.8.0.
 		//! Close the chain.
 		virtual void
 		close(
 			//! What to do with chain's content.
 			mchain_props::close_mode_t mode ) = 0;
+
+		//FIXME: usage example has to be provided.
+		//! Close the chain.
+		/*!
+		 * This overload explicitely states that exceptions are expected.
+		 *
+		 * \since
+		 * v.5.7.3
+		 */
+		void
+		close(
+			//! What to do with chain's content.
+			mchain_props::close_mode_t mode,
+			exceptions_enabled_t /*exceptions_are_expected*/ )
+		{
+			//NOTE: call close() from previous versions until v.5.8.0
+			//will be released.
+			this->close( mode );
+		}
+
+
+		//FIXME: usage example has to be provided.
+		//! Close the chain.
+		/*!
+		 * This overload explicitely states that an exception during
+		 * the close will lead to the termination of the whole application.
+		 *
+		 * \since
+		 * v.5.7.3
+		 */
+		void
+		close(
+			//! What to do with chain's content.
+			mchain_props::close_mode_t mode,
+			terminate_if_throws_t /*termination_enabled*/ ) noexcept
+		{
+			// Just call an ordinary close() method. If it throws
+			// then the application will be termitated because
+			// we're in noexcept method.
+			this->close( mode, exceptions_enabled );
+		}
 
 	protected :
 		/*!
@@ -580,23 +624,90 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 // close_drop_content
 //
 /*!
+ * \brief Helper function for closing a message chain with dropping
+ * all its content.
+ *
+ * Usage example.
+	\code
+	so_5::mchain_t & ch = ...;
+	... // Some work with chain.
+	close_drop_content( ch, so_5::exceptions_enabled );
+	// Or:
+	ch->close(
+		so_5::mchain_props::close_mode_t::drop_content,
+		so_5::exceptions_enabled );
+	\endcode
+ *
+ * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \attention
+ * This function can throw exceptions.
+ *
+ * \since
+ * v.5.7.3
+ */
+inline void
+close_drop_content(
+	//! Chain to be closed.
+	const mchain_t & ch,
+	//! Flag that allows to throw exceptions related to 'close' operation.
+	exceptions_enabled_t exceptions_enabled )
+	{
+		ch->close(
+				mchain_props::close_mode_t::drop_content,
+				exceptions_enabled );
+	}
+
+/*!
+ * \brief Helper function for closing a message chain with dropping
+ * all its content.
+ *
+ * Usage example.
+	\code
+	so_5::mchain_t & ch = ...;
+	... // Some work with chain.
+	close_drop_content( ch, so_5::terminate_if_throws );
+	// Or:
+	ch->close(
+		so_5::mchain_props::close_mode_t::drop_content,
+		so_5::terminate_if_throws );
+	\endcode
+ *
+ * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \attention
+ * This function will terminate the application if 'close' operation throws.
+ *
+ * \since
+ * v.5.7.3
+ */
+inline void
+close_drop_content(
+	//! Chain to be closed.
+	const mchain_t & ch,
+	//! Flag that allows terminate the application if 'close' operation throws.
+	terminate_if_throws_t terminate_if_throws )
+	{
+		ch->close(
+				mchain_props::close_mode_t::drop_content,
+				terminate_if_throws );
+	}
+
+/*!
  * \since
  * v.5.5.13
  *
  * \brief Helper function for closing a message chain with dropping
  * all its content.
  *
- * \note Because of ADL it can be used without specifying namespaces.
+ * \attention
+ * This function can throw exceptions.
  *
- * \par Usage example.
-	\code
-	so_5::mchain_t & ch = ...;
-	... // Some work with chain.
-	close_drop_content( ch );
-	// Or:
-	ch->close( so_5::mchain_props::close_mode_t::drop_content );
-	\endcode
+ * \deprecated
+ * Since v.5.7.3. Use close_drop_content(ch, so_5::exceptions_enabled) or
+ * close_drop_content(ch, so_5::terminate_if_throws) instead.
  */
+[[deprecated("Use close_drop_content(ch, so_5::exceptions_enabled) instead")]]
 inline void
 close_drop_content( const mchain_t & ch )
 	{

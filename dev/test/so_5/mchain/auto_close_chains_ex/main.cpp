@@ -67,8 +67,8 @@ do_test_case(
 				cout << "second: " << s << endl;
 			} ) );
 
-	close_drop_content( first_cmd_ch );
-	close_drop_content( second_cmd_ch );
+	close_drop_content( first_cmd_ch, so_5::exceptions_enabled );
+	close_drop_content( second_cmd_ch, so_5::exceptions_enabled );
 }
 
 void
