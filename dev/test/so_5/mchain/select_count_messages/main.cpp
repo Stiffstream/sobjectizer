@@ -21,7 +21,7 @@ worker_thread( so_5::mchain_t ch, unsigned int values )
 		so_5::send< unsigned int >( ch, i );
 	}
 
-	close_retain_content( ch );
+	close_retain_content( so_5::exceptions_enabled, ch );
 }
 
 void

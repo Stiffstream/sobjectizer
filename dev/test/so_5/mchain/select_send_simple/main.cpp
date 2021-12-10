@@ -375,8 +375,8 @@ UT_UNIT_TEST( send_when_closed_drop_content )
 								send_successed = true;
 							} ),
 					receive_case( ch2, [&ch1, &ch2](hello) {
-								so_5::close_drop_content( ch1, so_5::exceptions_enabled );
-								so_5::close_drop_content( ch2, so_5::exceptions_enabled );
+								so_5::close_drop_content( so_5::exceptions_enabled, ch1 );
+								so_5::close_drop_content( so_5::exceptions_enabled, ch2 );
 							} )
 				);
 
@@ -416,8 +416,8 @@ UT_UNIT_TEST( send_when_closed_retain_content )
 								send_successed = true;
 							} ),
 					receive_case( ch2, [&ch1, &ch2](hello) {
-								so_5::close_retain_content( ch1/*, so_5::exceptions_enabled*/ );
-								so_5::close_retain_content( ch2/*, so_5::exceptions_enabled*/ );
+								so_5::close_retain_content( so_5::exceptions_enabled, ch1 );
+								so_5::close_retain_content( so_5::exceptions_enabled, ch2 );
 							} )
 				);
 

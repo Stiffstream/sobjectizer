@@ -80,7 +80,8 @@ coop_repo_t::finish()
 	wait_all_coop_to_deregister();
 
 	// Notify a dedicated thread and wait while it will be stopped.
-	close_retain_content( m_final_dereg_chain );
+	//FIXME: maybe so_5::terminate_if_throws has to be used here?
+	close_retain_content( so_5::exceptions_enabled, m_final_dereg_chain );
 	m_final_dereg_thread.join();
 }
 

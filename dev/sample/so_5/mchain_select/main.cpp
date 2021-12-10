@@ -19,7 +19,7 @@ void reverse_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 			so_5::send< string >( reply_ch, str );
 		} );
 
-	close_retain_content( reply_ch );
+	close_retain_content( so_5::exceptions_enabled, reply_ch );
 }
 
 void doubler_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
@@ -29,7 +29,7 @@ void doubler_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 			so_5::send< string >( reply_ch, str + str );
 		} );
 
-	close_retain_content( reply_ch );
+	close_retain_content( so_5::exceptions_enabled, reply_ch );
 }
 
 void demo()
@@ -89,7 +89,7 @@ void demo()
 				else
 					// No more work for reverse worker. Close command chain and
 					// worker will finish its work.
-					close_drop_content( reverse_cmd_ch, so_5::exceptions_enabled );
+					close_drop_content( so_5::exceptions_enabled, reverse_cmd_ch );
 			} ),
 		receive_case( doubler_reply_ch, [&]( const string & v ) {
 				cout << "doubler_result: " << v << endl;
@@ -98,7 +98,7 @@ void demo()
 				else
 					// No more work for doubler worker. Close command chain and
 					// worker will finish its work.
-					close_drop_content( doubler_cmd_ch, so_5::exceptions_enabled );
+					close_drop_content( so_5::exceptions_enabled, doubler_cmd_ch );
 			} ) );
 
 	// There is no need to call join() for reverse_worker and doubler_worker

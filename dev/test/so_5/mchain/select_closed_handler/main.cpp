@@ -47,8 +47,8 @@ check_op(
 	so_5::send< int >( ch1, 1 );
 	so_5::send< int >( ch2, 2 );
 
-	close_retain_content( ch1 );
-	close_retain_content( ch2 );
+	close_retain_content( so_5::exceptions_enabled, ch1 );
+	close_retain_content( so_5::exceptions_enabled, ch2 );
 
 	receive( from(ch3).handle_n(1), []( size_t chains_closed ) {
 			cout << "total chains closed: " << chains_closed << endl;

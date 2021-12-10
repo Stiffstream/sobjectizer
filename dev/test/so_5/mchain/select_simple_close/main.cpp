@@ -50,9 +50,9 @@ main()
 							std::cout << "second thread started, closing chains..."
 									<< std::endl;
 							std::this_thread::sleep_for( std::chrono::milliseconds(200) );
-							close_retain_content( ch1 );
-							close_retain_content( ch2 );
-							close_retain_content( ch3 );
+							close_retain_content( so_5::exceptions_enabled, ch1 );
+							close_retain_content( so_5::exceptions_enabled, ch2 );
+							close_retain_content( so_5::exceptions_enabled, ch3 );
 						} );
 
 					second.join();

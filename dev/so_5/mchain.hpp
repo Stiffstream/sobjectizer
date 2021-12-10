@@ -501,52 +501,34 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		size() const = 0;
 
 		//FIXME: a note should be added that this method
-		//will be removed in v.5.8.0.
+		//will be made protected in v.5.8.0.
 		//! Close the chain.
 		virtual void
 		close(
 			//! What to do with chain's content.
 			mchain_props::close_mode_t mode ) = 0;
 
+		//FIXME: document this!
 		//FIXME: usage example has to be provided.
 		//! Close the chain.
 		/*!
-		 * This overload explicitely states that exceptions are expected.
-		 *
 		 * \since
 		 * v.5.7.3
 		 */
+		template< typename Exceptions_Control >
 		void
 		close(
+			//! Are exceptions enabled or should the application be
+			//! terminated if 'close' throws.
+			Exceptions_Control /*exceptions_control*/,
 			//! What to do with chain's content.
-			mchain_props::close_mode_t mode,
-			exceptions_enabled_t /*exceptions_are_expected*/ )
+			mchain_props::close_mode_t mode )
+			noexcept(noexcept(
+					details::should_terminate_if_throws_t<Exceptions_Control>::value))
 		{
 			//NOTE: call close() from previous versions until v.5.8.0
 			//will be released.
 			this->close( mode );
-		}
-
-
-		//FIXME: usage example has to be provided.
-		//! Close the chain.
-		/*!
-		 * This overload explicitely states that an exception during
-		 * the close will lead to the termination of the whole application.
-		 *
-		 * \since
-		 * v.5.7.3
-		 */
-		void
-		close(
-			//! What to do with chain's content.
-			mchain_props::close_mode_t mode,
-			terminate_if_throws_t /*termination_enabled*/ ) noexcept
-		{
-			// Just call an ordinary close() method. If it throws
-			// then the application will be termitated because
-			// we're in noexcept method.
-			this->close( mode, exceptions_enabled );
 		}
 
 	protected :
@@ -623,6 +605,7 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 //
 // close_drop_content
 //
+//FIXME: document Exceptions_Control.
 /*!
  * \brief Helper function for closing a message chain with dropping
  * all its content.
@@ -631,7 +614,7 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 	\code
 	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
-	close_drop_content( ch, so_5::exceptions_enabled );
+	close_drop_content( so_5::exceptions_enabled, ch );
 	// Or:
 	ch->close(
 		so_5::mchain_props::close_mode_t::drop_content,
@@ -640,57 +623,22 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
  *
  * \note Because of ADL it can be used without specifying namespaces.
  *
- * \attention
- * This function can throw exceptions.
- *
  * \since
  * v.5.7.3
  */
+template< typename Exceptions_Control >
 inline void
 close_drop_content(
+	//! What to do with exceptions.
+	Exceptions_Control exceptions_control,
 	//! Chain to be closed.
-	const mchain_t & ch,
-	//! Flag that allows to throw exceptions related to 'close' operation.
-	exceptions_enabled_t exceptions_enabled )
+	const mchain_t & ch )
+	noexcept(noexcept(
+			details::should_terminate_if_throws_t<Exceptions_Control>::value))
 	{
 		ch->close(
-				mchain_props::close_mode_t::drop_content,
-				exceptions_enabled );
-	}
-
-/*!
- * \brief Helper function for closing a message chain with dropping
- * all its content.
- *
- * Usage example.
-	\code
-	so_5::mchain_t & ch = ...;
-	... // Some work with chain.
-	close_drop_content( ch, so_5::terminate_if_throws );
-	// Or:
-	ch->close(
-		so_5::mchain_props::close_mode_t::drop_content,
-		so_5::terminate_if_throws );
-	\endcode
- *
- * \note Because of ADL it can be used without specifying namespaces.
- *
- * \attention
- * This function will terminate the application if 'close' operation throws.
- *
- * \since
- * v.5.7.3
- */
-inline void
-close_drop_content(
-	//! Chain to be closed.
-	const mchain_t & ch,
-	//! Flag that allows terminate the application if 'close' operation throws.
-	terminate_if_throws_t terminate_if_throws )
-	{
-		ch->close(
-				mchain_props::close_mode_t::drop_content,
-				terminate_if_throws );
+				exceptions_control,
+				mchain_props::close_mode_t::drop_content );
 	}
 
 /*!
@@ -704,10 +652,10 @@ close_drop_content(
  * This function can throw exceptions.
  *
  * \deprecated
- * Since v.5.7.3. Use close_drop_content(ch, so_5::exceptions_enabled) or
- * close_drop_content(ch, so_5::terminate_if_throws) instead.
+ * Since v.5.7.3. Use close_drop_content(so_5::exceptions_enabled, ch) or
+ * close_drop_content(so_5::terminate_if_throws, ch) instead.
  */
-[[deprecated("Use close_drop_content(ch, so_5::exceptions_enabled) instead")]]
+[[deprecated("Use close_drop_content(so_5::exceptions_enabled, ch) instead")]]
 inline void
 close_drop_content( const mchain_t & ch )
 	{
@@ -717,10 +665,8 @@ close_drop_content( const mchain_t & ch )
 //
 // close_retain_content
 //
+//FIXME: document Exceptions_Control.
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function for closing a message chain with retaining
  * all its content.
  *
@@ -730,11 +676,43 @@ close_drop_content( const mchain_t & ch )
 	\code
 	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
-	close_retain_content( ch );
+	close_retain_content( so_5::exceptions_enabled, ch );
 	// Or:
-	ch->close( so_5::mchain_props::close_mode_t::retain_content );
+	ch->close(
+		so_5::exceptions_enabled,
+		so_5::mchain_props::close_mode_t::retain_content );
 	\endcode
+ *
+ * \since
+ * v.5.7.3
  */
+template< typename Exceptions_Control >
+inline void
+close_retain_content(
+	//! What to do with exceptions.
+	Exceptions_Control exceptions_control,
+	//! Chain to be closed.
+	const mchain_t & ch )
+	noexcept(noexcept(
+			details::should_terminate_if_throws_t<Exceptions_Control>::value))
+	{
+		ch->close( exceptions_control, mchain_props::close_mode_t::retain_content );
+	}
+
+/*!
+ * \since
+ * v.5.5.13
+ *
+ * \brief Helper function for closing a message chain with retaining
+ * all its content.
+ *
+ * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \deprecated
+ * Since v.5.7.3. Use close_retain_content(so_5::exceptions_enabled, ch) or
+ * close_retain_content(so_5::terminate_if_throws, ch) instead.
+ */
+[[deprecated("Use close_retain_content(exceptions_control, ch) instead")]]
 inline void
 close_retain_content( const mchain_t & ch )
 	{

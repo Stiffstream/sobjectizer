@@ -46,5 +46,31 @@ struct terminate_if_throws_t {};
  */
 inline constexpr terminate_if_throws_t terminate_if_throws;
 
+namespace details
+{
+
+/*!
+ * \brief Metafunction that tells is exceptions enabled or not.
+ *
+ * \since
+ * v.5.7.3
+ */
+template< typename Flag >
+struct should_terminate_if_throws_t;
+
+template<>
+struct should_terminate_if_throws_t< exceptions_enabled_t >
+	{
+		static constexpr bool value = false;
+	};
+
+template<>
+struct should_terminate_if_throws_t< terminate_if_throws_t >
+	{
+		static constexpr bool value = true;
+	};
+
+} /* namespace details */
+
 } /* namespace so_5 */
 

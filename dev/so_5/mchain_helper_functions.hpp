@@ -254,6 +254,7 @@ create_mchain(
 
 namespace mchain_auto_close_details {
 
+//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Main class for auto close operation.
  *
@@ -287,7 +288,9 @@ class auto_closer_t
 			{
 				for( auto & ch : m_chains )
 					if( ch )
-						ch->close( m_close_mode );
+						// NOTE: use terminate_if_throws because we're in the
+						// destructor.
+						ch->close( terminate_if_throws, m_close_mode );
 			}
 
 		friend inline void
@@ -345,6 +348,7 @@ add_to_closer(
 
 } /* namespace mchain_auto_close_details */
 
+//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for creation of automatic closer of mchains.
  *
@@ -391,6 +395,7 @@ auto_close_mchains(
 		return closer;
 	}
 
+//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for automatic closing of mchains with
  * retaining their content.
@@ -424,6 +429,7 @@ auto_close_retain_content( Tail &&... tail )
 				std::forward< Tail >(tail)... );
 	}
 
+//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for automatic closing of mchains with
  * dropping their content.
@@ -460,6 +466,7 @@ auto_close_drop_content( Tail &&... tail )
 //
 // mchain_master_handle_t
 //
+//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper class for automatic close of a mchain at
  * the destruction of master handle instance.
@@ -519,7 +526,7 @@ class mchain_master_handle_t
 		~mchain_master_handle_t()
 			{
 				if( m_chain )
-					m_chain->close( m_close_mode );
+					m_chain->close( terminate_if_throws, m_close_mode );
 			}
 
 		//! Move operator.

@@ -47,7 +47,7 @@ main()
 				receive( from( ready_ch ).handle_n( 3 ), []( ready ) {} );
 				this_thread::sleep_for( chrono::milliseconds(500) );
 
-				close_drop_content( test_ch, so_5::exceptions_enabled );
+				close_drop_content( so_5::exceptions_enabled, test_ch );
 
 				w1.join();
 				w2.join();

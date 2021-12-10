@@ -318,7 +318,7 @@ do_check_parallel_select(
 			so_5::from( failure_ch ).handle_n(1).empty_timeout(500ms),
 			[&error](int error_code) { error = error_code; } );
 
-	so_5::close_retain_content( ch );
+	so_5::close_retain_content( so_5::exceptions_enabled, ch );
 
 	child1.join();
 	child2.join();

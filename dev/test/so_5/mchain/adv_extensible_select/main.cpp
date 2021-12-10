@@ -350,7 +350,7 @@ do_check_nested_select(
 	} };
 
 	so_5::send< try_nested_select >( ch );
-	so_5::close_retain_content( ch );
+	so_5::close_retain_content( so_5::exceptions_enabled, ch );
 
 	child.join();
 }
@@ -410,7 +410,7 @@ do_check_modify_from_select(
 	} };
 
 	so_5::send< try_modify >( ch );
-	so_5::close_retain_content( ch );
+	so_5::close_retain_content( so_5::exceptions_enabled, ch );
 
 	child.join();
 }

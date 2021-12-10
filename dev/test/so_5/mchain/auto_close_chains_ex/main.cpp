@@ -20,7 +20,7 @@ worker_thread( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 	receive( from( command_ch ).handle_all(),
 		[reply_ch]( int i ) { so_5::send< string >( reply_ch, to_string(i) ); } );
 
-	close_retain_content( reply_ch );
+	close_retain_content( so_5::exceptions_enabled, reply_ch );
 }
 
 void
@@ -67,8 +67,8 @@ do_test_case(
 				cout << "second: " << s << endl;
 			} ) );
 
-	close_drop_content( first_cmd_ch, so_5::exceptions_enabled );
-	close_drop_content( second_cmd_ch, so_5::exceptions_enabled );
+	close_drop_content( so_5::exceptions_enabled, first_cmd_ch );
+	close_drop_content( so_5::exceptions_enabled, second_cmd_ch );
 }
 
 void

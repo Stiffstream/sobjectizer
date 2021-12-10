@@ -81,7 +81,7 @@ void demo()
 		so_5::send< unsigned int >( values_ch, i );
 
 	// No more values will be sent.
-	close_retain_content( values_ch );
+	close_retain_content( so_5::exceptions_enabled, values_ch );
 
 	// Receive responses from consumers.
 	receive(

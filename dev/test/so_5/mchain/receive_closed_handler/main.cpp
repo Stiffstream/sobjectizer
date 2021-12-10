@@ -39,7 +39,7 @@ check_op(
 			so_5::send< int >( ch1, v+1 );
 		} );
 
-	close_retain_content( ch1 );
+	close_retain_content( so_5::exceptions_enabled, ch1 );
 }
 
 void

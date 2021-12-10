@@ -37,7 +37,7 @@ do_test_case_1( so_5::mchain_t ch )
 	for( size_t i = 0; i != THREADS_COUNT / 2; ++i )
 		so_5::send< hello >( ch );
 
-	close_retain_content( ch );
+	close_retain_content( so_5::exceptions_enabled, ch );
 
 	for( size_t i = 0; i != THREADS_COUNT; ++i )
 		threads[ i ].join();
@@ -64,7 +64,7 @@ do_test_case_2( so_5::mchain_t ch )
 	while( THREADS_COUNT != started_threads )
 		this_thread::yield();
 
-	close_retain_content( ch );
+	close_retain_content( so_5::exceptions_enabled, ch );
 
 	for( size_t i = 0; i != THREADS_COUNT; ++i )
 		threads[ i ].join();

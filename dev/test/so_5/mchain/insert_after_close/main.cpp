@@ -36,7 +36,7 @@ main()
 			while( 2u != ch->size() )
 				std::this_thread::sleep_for( std::chrono::milliseconds{25} );
 
-			close_drop_content( ch, so_5::exceptions_enabled );
+			close_drop_content( so_5::exceptions_enabled, ch );
 
 			worker.join();
 
