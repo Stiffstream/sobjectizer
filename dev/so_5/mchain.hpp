@@ -500,13 +500,20 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		virtual std::size_t
 		size() const = 0;
 
-		//FIXME: a note should be added that this method
-		//will be made protected in v.5.8.0.
 		//! Close the chain.
+		/*!
+		 * \note
+		 * This version just calls protected actual_close() method.
+		 *
+		 * \deprecated
+		 * This method will be removed in v.5.8.0.
+		 * The `close(exceptions_control, close_mode)` has to be used instead.
+		 */
+		[[deprecated]]
 		virtual void
 		close(
 			//! What to do with chain's content.
-			mchain_props::close_mode_t mode ) = 0;
+			mchain_props::close_mode_t mode );
 
 		//FIXME: document this!
 		//FIXME: usage example has to be provided.
@@ -528,7 +535,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		{
 			//NOTE: call close() from previous versions until v.5.8.0
 			//will be released.
-			this->close( mode );
+			this->actual_close( mode );
 		}
 
 	protected :
@@ -589,6 +596,19 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		remove_from_select(
 			//! Select case to be removed from notification queue.
 			mchain_props::select_case_t & select_case ) noexcept = 0;
+
+		//! Close the chain.
+		/*!
+		 * \attention
+		 * This method can throw exception.
+		 *
+		 * \since
+		 * v.5.7.3
+		 */
+		virtual void
+		actual_close(
+			//! What to do with chain's content.
+			mchain_props::close_mode_t mode ) = 0;
 	};
 
 //
@@ -659,7 +679,9 @@ close_drop_content(
 inline void
 close_drop_content( const mchain_t & ch )
 	{
-		ch->close( mchain_props::close_mode_t::drop_content );
+		ch->close(
+				so_5::exceptions_enabled,
+				mchain_props::close_mode_t::drop_content );
 	}
 
 //
@@ -716,7 +738,9 @@ close_retain_content(
 inline void
 close_retain_content( const mchain_t & ch )
 	{
-		ch->close( mchain_props::close_mode_t::retain_content );
+		ch->close(
+				terminate_if_throws,
+				mchain_props::close_mode_t::retain_content );
 	}
 
 //

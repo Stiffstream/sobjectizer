@@ -468,43 +468,6 @@ class mchain_template
 				return m_queue.size();
 			}
 
-		void
-		close( close_mode_t mode ) override
-			{
-				std::lock_guard< std::mutex > lock{ m_lock };
-
-				if( details::status::closed == m_status )
-					return;
-
-				m_status = details::status::closed;
-
-				const bool was_full = m_queue.is_full();
-
-				if( close_mode_t::drop_content == mode )
-					{
-						while( !m_queue.is_empty() )
-							{
-								this->trace_demand_drop_on_close(
-										*this, m_queue.front() );
-								m_queue.pop_front();
-							}
-					}
-
-				// Since v.5.7.0 select operations must be notified
-				// always, even if the mchain is not empty.
-				notify_multi_chain_select_ops();
-
-				if( m_threads_to_wakeup )
-					// Someone is waiting on empty chain for new messages.
-					// It must be informed that no new messages will be here.
-					m_underflow_cond.notify_all();
-
-				if( was_full )
-					// Someone can wait on full chain for free place for new message.
-					// It must be informed that the chain is closed.
-					m_overflow_cond.notify_all();
-			}
-
 		environment_t &
 		environment() const noexcept override
 			{
@@ -610,6 +573,43 @@ class mchain_template
 				try_to_store_message_from_timer_to_queue(
 						msg_type,
 						message );
+			}
+
+		void
+		actual_close( close_mode_t mode ) override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				if( details::status::closed == m_status )
+					return;
+
+				m_status = details::status::closed;
+
+				const bool was_full = m_queue.is_full();
+
+				if( close_mode_t::drop_content == mode )
+					{
+						while( !m_queue.is_empty() )
+							{
+								this->trace_demand_drop_on_close(
+										*this, m_queue.front() );
+								m_queue.pop_front();
+							}
+					}
+
+				// Since v.5.7.0 select operations must be notified
+				// always, even if the mchain is not empty.
+				notify_multi_chain_select_ops();
+
+				if( m_threads_to_wakeup )
+					// Someone is waiting on empty chain for new messages.
+					// It must be informed that no new messages will be here.
+					m_underflow_cond.notify_all();
+
+				if( was_full )
+					// Someone can wait on full chain for free place for new message.
+					// It must be informed that the chain is closed.
+					m_overflow_cond.notify_all();
 			}
 
 	private :
