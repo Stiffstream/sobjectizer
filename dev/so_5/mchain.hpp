@@ -515,10 +515,61 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 			//! What to do with chain's content.
 			mchain_props::close_mode_t mode );
 
-		//FIXME: document this!
-		//FIXME: usage example has to be provided.
 		//! Close the chain.
 		/*!
+		 * Since v.5.7.3 this is the recommended way of closing a mchain.
+		 * This method allows to specify how exceptions have to be treated:
+		 * \code
+		 * auto ch1 = so_5::create_mchain(env);
+		 * auto ch2 = so_5::create_mchain(env);
+		 * ...
+		 * // Enable exceptions during 'close' operation.
+		 * ch1->close(
+		 * 		so_5::exceptions_enabled,
+		 * 		so_5::mchain_props::close_mode_t::drop_content );
+		 *
+		 * // Terminate the application if 'close' operation throws.
+		 * ch2->close(
+		 * 		so_5::terminate_if_throws,
+		 * 		so_5::mchain_props::close_mode_t::drop_content );
+		 * \endcode
+		 *
+		 * This method was introduced because 'close' operation can throw but
+		 * it's not obvious enough. Because 'close' can throw additional care has
+		 * to be taken when 'close' is initiated in noexcept-contexts (like
+		 * destructor and, often, in catch-blocks). This new method allows
+		 * expressing intentions more clearly. For example:
+		 * \code
+		 * class some_class {
+		 * 	so_5::mchain_t ch_;
+		 * 	...
+		 * public:
+		 * 	some_class(so_5::environment_t & env)
+		 * 		: ch_{so_5::create_mchain(env)}
+		 * 	{}
+		 * 	~some_class() noexcept
+		 * 	{
+		 * 		// There is no sense to allow exceptions during close operation.
+		 * 		ch_->close(
+		 * 				so_5::terminate_if_throws,
+		 * 				so_5::mchain_props::close_mode_t::drop_content );
+		 * 	}
+		 * 	...
+		 * };
+		 * ...
+		 * void some_function(so_5::environment_t & env)
+		 * {
+		 * 	auto ch = so_5::create_mchain(env);
+		 * 	...
+		 * 	// Have to close ch.
+		 * 	// This is not noexcept-context, so we can allow exceptions.
+		 * 	ch_->close(
+		 * 			so_5::exceptions_enabled,
+		 * 			so_5::mchain_props::close_mode_t::retain_content );
+		 * 	...
+		 * }
+		 * \endcode
+		 *
 		 * \since
 		 * v.5.7.3
 		 */
@@ -625,7 +676,6 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 //
 // close_drop_content
 //
-//FIXME: document Exceptions_Control.
 /*!
  * \brief Helper function for closing a message chain with dropping
  * all its content.
@@ -637,11 +687,15 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 	close_drop_content( so_5::exceptions_enabled, ch );
 	// Or:
 	ch->close(
-		so_5::mchain_props::close_mode_t::drop_content,
-		so_5::exceptions_enabled );
+		so_5::exceptions_enabled,
+		so_5::mchain_props::close_mode_t::drop_content );
 	\endcode
  *
  * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \tparam Exceptions_Control it is expected to be so_5::exceptions_enabled_t or
+ * so_5::terminate_if_throws_t. So the first parameter to close_drop_content
+ * has to be so_5::exceptions_enabled or so_5::terminate_if_throws.
  *
  * \since
  * v.5.7.3
@@ -650,6 +704,7 @@ template< typename Exceptions_Control >
 inline void
 close_drop_content(
 	//! What to do with exceptions.
+	//! It's expected to be so_5::exceptions_enabled or so_5::terminate_if_throws.
 	Exceptions_Control exceptions_control,
 	//! Chain to be closed.
 	const mchain_t & ch )
@@ -687,7 +742,6 @@ close_drop_content( const mchain_t & ch )
 //
 // close_retain_content
 //
-//FIXME: document Exceptions_Control.
 /*!
  * \brief Helper function for closing a message chain with retaining
  * all its content.
@@ -705,6 +759,10 @@ close_drop_content( const mchain_t & ch )
 		so_5::mchain_props::close_mode_t::retain_content );
 	\endcode
  *
+ * \tparam Exceptions_Control it is expected to be so_5::exceptions_enabled_t or
+ * so_5::terminate_if_throws_t. So the first parameter to close_drop_content
+ * has to be so_5::exceptions_enabled or so_5::terminate_if_throws.
+ *
  * \since
  * v.5.7.3
  */
@@ -712,6 +770,7 @@ template< typename Exceptions_Control >
 inline void
 close_retain_content(
 	//! What to do with exceptions.
+	//! It's expected to be so_5::exceptions_enabled or so_5::terminate_if_throws.
 	Exceptions_Control exceptions_control,
 	//! Chain to be closed.
 	const mchain_t & ch )
