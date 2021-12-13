@@ -254,11 +254,15 @@ create_mchain(
 
 namespace mchain_auto_close_details {
 
-//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Main class for auto close operation.
  *
- * \attention This is Moveable class, not Copyable.
+ * \attention
+ * Since v.5.7.3 it uses so_5::terminate_if_throws calling 'close' for
+ * mchains.
+ *
+ * \attention
+ * This is Moveable class, not Copyable.
  *
  * \since
  * v.5.5.16
@@ -348,7 +352,6 @@ add_to_closer(
 
 } /* namespace mchain_auto_close_details */
 
-//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for creation of automatic closer of mchains.
  *
@@ -375,6 +378,9 @@ add_to_closer(
 	worker.join();
  * \endcode
  *
+ * \attention
+ * Since v.5.7.3 it uses so_5::terminate_if_throws calling 'close' for mchains.
+ *
  * \since
  * v.5.5.16
  */
@@ -395,7 +401,6 @@ auto_close_mchains(
 		return closer;
 	}
 
-//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for automatic closing of mchains with
  * retaining their content.
@@ -415,6 +420,9 @@ auto_close_mchains(
 		so_5::mchain_props::close_mode_t::retain_content, chains... );
  * \endcode
  *
+ * \attention
+ * Since v.5.7.3 it uses so_5::terminate_if_throws calling 'close' for mchains.
+ *
  * \tparam Tail List of mchains.
  *
  * \since
@@ -429,7 +437,6 @@ auto_close_retain_content( Tail &&... tail )
 				std::forward< Tail >(tail)... );
 	}
 
-//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper function for automatic closing of mchains with
  * dropping their content.
@@ -449,6 +456,9 @@ auto_close_retain_content( Tail &&... tail )
 		so_5::mchain_props::close_mode_t::drop_content, chains... );
  * \endcode
  *
+ * \attention
+ * Since v.5.7.3 it uses so_5::terminate_if_throws calling 'close' for mchains.
+ *
  * \tparam Tail List of mchains.
  *
  * \since
@@ -466,7 +476,6 @@ auto_close_drop_content( Tail &&... tail )
 //
 // mchain_master_handle_t
 //
-//FIXME: specify the use of so_5::terminate_if_throws in the docs.
 /*!
  * \brief Helper class for automatic close of a mchain at
  * the destruction of master handle instance.
@@ -492,6 +501,9 @@ auto_close_drop_content( Tail &&... tail )
 	auto ch_handle = so_5::mchain_master_handle_t::with_drop_content(
 		so_5::create_mchain( env ) );
  * \endcode
+ *
+ * \attention
+ * Since v.5.7.3 it uses so_5::terminate_if_throws calling 'close' for mchains.
  *
  * \note This class is moveable but not copyable.
  *

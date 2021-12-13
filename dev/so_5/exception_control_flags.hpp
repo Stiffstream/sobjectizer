@@ -20,9 +20,15 @@ namespace so_5
  */
 struct exceptions_enabled_t {};
 
-//FIXME: usage example has to be provided.
 /*!
  * \brief Value that indicates that exceptions are enabled.
+ *
+ * Usage example:
+ * \code
+ * auto ch = so_5::create_mchain(env);
+ * ...
+ * so_5::close_drop_content( so_5::exceptions_enabled, ch );
+ * \endcode
  *
  * \since
  * v.5.7.3
@@ -30,16 +36,37 @@ struct exceptions_enabled_t {};
 inline constexpr exceptions_enabled_t exceptions_enabled{};
 
 /*!
- * \brief Type that indicates that an exception leads to the termination.
+ * \brief Type that indicates that an exception leads to the termination of
+ * the whole application.
  *
  * \since
  * v.5.7.3
  */
 struct terminate_if_throws_t {};
 
-//FIXME: usage example has to be provided.
 /*!
- * \brief Value that indicates that an exception leads to the termination.
+ * \brief Value that indicates that an exception leads to the termination of
+ * the whole application.
+ *
+ * Usage example:
+ * \code
+ * class some_class {
+ * 	so_5::mchain_t ch_;
+ * 	...
+ * public:
+ * 	some_class(so_5::environment_t & env)
+ * 		: ch_{so_5::create_mchain(env)}
+ * 	{}
+ * 	~some_class() noexcept
+ * 	{
+ * 		// There is no sense to allow exceptions during close operation.
+ * 		ch_->close(
+ * 				so_5::terminate_if_throws,
+ * 				so_5::mchain_props::close_mode_t::drop_content );
+ * 	}
+ * 	...
+ * };
+ * \endcode
  *
  * \since
  * v.5.7.3
