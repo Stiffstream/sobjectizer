@@ -105,6 +105,8 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		}
 
 		sources_root( 'disp' ) {
+			cpp_source 'abstract_work_thread.cpp'
+
 			sources_root( 'mpsc_queue_traits' ) {
 				cpp_source 'pub.cpp'
 			}
