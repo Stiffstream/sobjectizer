@@ -11,7 +11,7 @@
 #pragma once
 
 #include <so_5/declspec.hpp>
-#include <so_5/compiler_features.hpp>
+#include <so_5/fwd.hpp>
 
 #include <functional>
 #include <memory>
@@ -28,6 +28,16 @@ class SO_5_TYPE abstract_work_thread_t
 	public:
 		//FIXME: document this!
 		using body_func_t = std::function< void() >;
+
+		abstract_work_thread_t();
+
+		abstract_work_thread_t( const abstract_work_thread_t & ) = delete;
+		abstract_work_thread_t &
+		operator=( const abstract_work_thread_t & ) = delete;
+
+		abstract_work_thread_t( abstract_work_thread_t && ) = delete;
+		abstract_work_thread_t &
+		operator=( abstract_work_thread_t && ) = delete;
 
 		virtual ~abstract_work_thread_t();
 
@@ -48,12 +58,24 @@ class SO_5_TYPE abstract_work_thread_t
 class SO_5_TYPE abstract_work_thread_factory_t
 	{
 	public:
+		abstract_work_thread_factory_t();
+
+		abstract_work_thread_factory_t(
+				const abstract_work_thread_factory_t & ) = delete;
+		abstract_work_thread_factory_t &
+		operator=( const abstract_work_thread_factory_t & ) = delete;
+
+		abstract_work_thread_factory_t(
+				abstract_work_thread_factory_t && ) = delete;
+		abstract_work_thread_factory_t &
+		operator=( abstract_work_thread_factory_t && ) = delete;
+
 		virtual ~abstract_work_thread_factory_t();
 
 		//FIXME: document this!
 		[[nodiscard]]
 		virtual abstract_work_thread_t &
-		acquire() = 0;
+		acquire( so_5::environment_t & env ) = 0;
 
 		//FIXME: document this!
 		virtual void
@@ -151,6 +173,14 @@ class [[nodiscard]] work_thread_holder_t
 			return m_thread;
 		}
 	};
+
+//
+// make_std_work_thread_factory
+//
+[[nodiscard]]
+SO_5_FUNC
+abstract_work_thread_factory_shptr_t
+make_std_work_thread_factory();
 
 } /* namespace so_5::disp */
 

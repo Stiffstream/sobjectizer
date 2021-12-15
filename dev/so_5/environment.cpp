@@ -61,6 +61,7 @@ environment_params_t::environment_params_t(
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
 	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
 	,	m_event_queue_hook( std::move(other.m_event_queue_hook) )
+	,	m_work_thread_factory( std::move(other.m_work_thread_factory) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -100,6 +101,8 @@ swap( environment_params_t & a, environment_params_t & b )
 	swap( a.m_infrastructure_factory, b.m_infrastructure_factory );
 
 	swap( a.m_event_queue_hook, b.m_event_queue_hook );
+
+	swap( a.m_work_thread_factory, b.m_work_thread_factory );
 }
 
 environment_params_t &
@@ -246,6 +249,32 @@ ensure_event_queue_hook_exists(
 		return result;
 	}
 
+/*!
+ * \brief Helper function for creation of the default global work
+ * thread factory.
+ *
+ * If \a user_provided_factory is nullptr then standard work thread
+ * factory will be created. Otherwise \a user_provided_factory is
+ * returned.
+ *
+ * \since v.5.7.3
+ */
+[[nodiscard]]
+so_5::disp::abstract_work_thread_factory_shptr_t
+ensure_work_thread_factory_exists(
+	//! The current value provided by a user. Note: it can be nullptr.
+	so_5::disp::abstract_work_thread_factory_shptr_t user_provided_factory )
+	{
+		so_5::disp::abstract_work_thread_factory_shptr_t result{
+				std::move(user_provided_factory)
+			};
+
+		if( !result )
+			result = so_5::disp::make_std_work_thread_factory();
+
+		return result;
+	}
+
 } /* namespace anonymous */
 
 //
@@ -367,6 +396,18 @@ struct environment_t::internals_t
 	event_queue_hook_unique_ptr_t m_event_queue_hook;
 
 	/*!
+	 * \brief Actual global work thread factory.
+	 *
+	 * \note
+	 * If there is no work_thread_factory in environment_params_t then
+	 * an instance of the standard work thread factory will be created
+	 * and used.
+	 *
+	 * \since v.5.7.3
+	 */
+	so_5::disp::abstract_work_thread_factory_shptr_t m_work_thread_factory;
+
+	/*!
 	 * \brief Lock object for protection of exception logger object.
 	 *
 	 * \note
@@ -421,6 +462,9 @@ struct environment_t::internals_t
 		,	m_event_queue_hook(
 				ensure_event_queue_hook_exists(
 					params.so5__giveout_event_queue_hook() ) )
+		,	m_work_thread_factory(
+				ensure_work_thread_factory_exists(
+					params.so5__giveout_work_thread_factory() ) )
 		,	m_event_exception_logger{
 				params.so5__giveout_event_exception_logger() }
 	{}
@@ -674,6 +718,12 @@ stats::repository_t &
 environment_t::stats_repository()
 {
 	return m_impl->m_infrastructure->stats_repository();
+}
+
+so_5::disp::abstract_work_thread_factory_t &
+environment_t::work_thread_factory() const noexcept
+{
+	return *(m_impl->m_work_thread_factory);
 }
 
 work_thread_activity_tracking_t

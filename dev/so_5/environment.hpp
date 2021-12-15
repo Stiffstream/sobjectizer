@@ -46,6 +46,7 @@
 #include <so_5/environment_infrastructure.hpp>
 
 #include <so_5/disp/one_thread/params.hpp>
+#include <so_5/disp/abstract_work_thread.hpp>
 
 
 #if defined( SO_5_MSVC )
@@ -450,6 +451,15 @@ class SO_5_TYPE environment_params_t
 				m_event_queue_hook = std::move(hook);
 			}
 
+		//FIXME: document this!
+		environment_params_t &
+		work_thread_factory(
+			so_5::disp::abstract_work_thread_factory_shptr_t factory )
+			{
+				m_work_thread_factory = std::move(factory);
+				return *this;
+			}
+
 		/*!
 		 * \name Methods for internal use only.
 		 * \{
@@ -533,6 +543,16 @@ class SO_5_TYPE environment_params_t
 		so5__giveout_event_queue_hook()
 			{
 				return std::move( m_event_queue_hook );
+			}
+
+		//! Take out work_thread_factory object.
+		/*!
+		 * \since v.5.7.3
+		 */
+		so_5::disp::abstract_work_thread_factory_shptr_t
+		so5__giveout_work_thread_factory()
+			{
+				return std::move( m_work_thread_factory );
 			}
 		/*!
 		 * \}
@@ -644,6 +664,17 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t m_event_queue_hook;
+
+		/*!
+		 * \brief Global factory for work threads.
+		 *
+		 * \note
+		 * It can be a nullptr. It means that standard work thread factory
+		 * has to be used as the global factory.
+		 *
+		 * \since v.5.7.3
+		 */
+		so_5::disp::abstract_work_thread_factory_shptr_t m_work_thread_factory;
 };
 
 //
@@ -1199,6 +1230,15 @@ class SO_5_TYPE environment_t
 		 */
 		stats::repository_t &
 		stats_repository();
+
+		/*!
+		 * \brief Access to the global work thread factory.
+		 *
+		 * \since v.5.7.3
+		 */
+		[[nodiscard]]
+		so_5::disp::abstract_work_thread_factory_t &
+		work_thread_factory() const noexcept;
 
 		/*!
 		 * \brief Helper method for simplification of cooperation creation
