@@ -48,7 +48,6 @@
 #include <so_5/disp/one_thread/params.hpp>
 #include <so_5/disp/abstract_work_thread.hpp>
 
-
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
 	#pragma warning(disable: 4251)
@@ -1237,7 +1236,7 @@ class SO_5_TYPE environment_t
 		 * \since v.5.7.3
 		 */
 		[[nodiscard]]
-		so_5::disp::abstract_work_thread_factory_t &
+		so_5::disp::abstract_work_thread_factory_shptr_t
 		work_thread_factory() const noexcept;
 
 		/*!

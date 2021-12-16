@@ -37,14 +37,14 @@ class work_thread_activity_tracking_flag_mixin_t
 	public :
 		//! Getter for work thread activity tracking.
 		work_thread_activity_tracking_t
-		work_thread_activity_tracking() const
+		work_thread_activity_tracking() const noexcept
 			{
 				return m_flag;
 			}
 
 		friend inline void swap(
 				work_thread_activity_tracking_flag_mixin_t & a,
-				work_thread_activity_tracking_flag_mixin_t & b )
+				work_thread_activity_tracking_flag_mixin_t & b ) noexcept
 			{
 				std::swap( a.m_flag, b.m_flag );
 			}
@@ -52,7 +52,7 @@ class work_thread_activity_tracking_flag_mixin_t
 		//! Setter for work thread activity tracking.
 		Params &
 		work_thread_activity_tracking(
-			work_thread_activity_tracking_t v )
+			work_thread_activity_tracking_t v ) noexcept
 			{
 				m_flag = v;
 				return static_cast< Params & >(*this);
@@ -64,7 +64,7 @@ class work_thread_activity_tracking_flag_mixin_t
 		 * v.5.5.18
 		 */
 		Params &
-		turn_work_thread_activity_tracking_on()
+		turn_work_thread_activity_tracking_on() noexcept
 			{
 				return work_thread_activity_tracking(
 						work_thread_activity_tracking_t::on );
@@ -76,7 +76,7 @@ class work_thread_activity_tracking_flag_mixin_t
 		 * v.5.5.18
 		 */
 		Params &
-		turn_work_thread_activity_tracking_off()
+		turn_work_thread_activity_tracking_off() noexcept
 			{
 				return work_thread_activity_tracking(
 						work_thread_activity_tracking_t::off );

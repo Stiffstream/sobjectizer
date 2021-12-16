@@ -720,10 +720,10 @@ environment_t::stats_repository()
 	return m_impl->m_infrastructure->stats_repository();
 }
 
-so_5::disp::abstract_work_thread_factory_t &
+so_5::disp::abstract_work_thread_factory_shptr_t
 environment_t::work_thread_factory() const noexcept
 {
-	return *(m_impl->m_work_thread_factory);
+	return m_impl->m_work_thread_factory;
 }
 
 work_thread_activity_tracking_t
