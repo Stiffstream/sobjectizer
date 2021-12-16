@@ -18,6 +18,7 @@
 #include <so_5/disp/mpmc_queue_traits/pub.hpp>
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
+#include <so_5/disp/reuse/work_thread_factory_params.hpp>
 
 #include <string_view>
 #include <thread>
@@ -49,9 +50,12 @@ namespace queue_traits = so_5::disp::mpmc_queue_traits;
  */
 class disp_params_t
 	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
+	,	public so_5::disp::reuse::work_thread_factory_mixin_t< disp_params_t >
 	{
 		using activity_tracking_mixin_t = so_5::disp::reuse::
 				work_thread_activity_tracking_flag_mixin_t< disp_params_t >;
+		using thread_factory_mixin_t = so_5::disp::reuse::
+				work_thread_factory_mixin_t< disp_params_t >;
 
 	public :
 		//! Default constructor.
@@ -66,6 +70,10 @@ class disp_params_t
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),
 						static_cast< activity_tracking_mixin_t & >(b) );
+
+				swap(
+						static_cast< work_thread_factory_mixin_t & >(a),
+						static_cast< work_thread_factory_mixin_t & >(b) );
 
 				swap( a.m_thread_count, b.m_thread_count );
 				swap( a.m_queue_params, b.m_queue_params );

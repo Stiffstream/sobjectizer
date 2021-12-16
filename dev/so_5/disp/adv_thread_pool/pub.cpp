@@ -150,7 +150,13 @@ class actual_dispatcher_implementation_t final
 			const std::string_view name_base,
 			//! Dispatcher's parameters.
 			disp_params_t params )
-			:	m_impl{ name_base, params.thread_count(), params.queue_params() }
+			:	m_impl{
+					env.get(),
+					params,
+					name_base,
+					params.thread_count(),
+					params.queue_params()
+				}
 			{
 				m_impl.start( env.get() );
 			}

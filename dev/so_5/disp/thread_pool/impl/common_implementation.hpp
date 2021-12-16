@@ -14,6 +14,7 @@
 
 #include <so_5/event_queue.hpp>
 
+#include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
 #include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 #include <so_5/disp/reuse/thread_pool_stats.hpp>
 
@@ -181,7 +182,11 @@ class dispatcher_t final
 		dispatcher_t & operator=( const dispatcher_t & ) = delete;
 
 		//! Constructor.
+		template< typename Dispatcher_Params >
 		dispatcher_t(
+			environment_t & env,
+			const so_5::disp::reuse::work_thread_factory_mixin_t< Dispatcher_Params >
+				& disp_params,
 			const std::string_view name_base,
 			std::size_t thread_count,
 			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params )
@@ -192,8 +197,18 @@ class dispatcher_t final
 				m_threads.reserve( thread_count );
 
 				for( std::size_t i = 0; i != m_thread_count; ++i )
+				{
+					// Since v.5.7.3 an instance of the actual work thread
+					// has to be acquired via factory.
+					auto work_thread_holder = acquire_work_thread(
+							disp_params, env );
+
 					m_threads.emplace_back( std::unique_ptr< Work_Thread >(
-								new Work_Thread( m_queue ) ) );
+								new Work_Thread{
+										m_queue,
+										std::move(work_thread_holder)
+								} ) );
+				}
 
 				m_data_source.get().set_data_sources_name_base(
 						Adaptations::dispatcher_type_name(),

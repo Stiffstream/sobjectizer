@@ -15,6 +15,8 @@
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
+#include <so_5/disp/abstract_work_thread.hpp>
+
 #include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 
 #include <so_5/disp/thread_pool/impl/common_implementation.hpp>
@@ -311,13 +313,16 @@ struct common_data_t
 		so_5::current_thread_id_t m_thread_id;
 
 		//! Actual thread.
-		std::thread m_thread;
+		work_thread_holder_t m_thread_holder;
 
 		//! Waiting object for long wait.
 		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
-		common_data_t( dispatcher_queue_t & queue )
+		common_data_t(
+			dispatcher_queue_t & queue,
+			work_thread_holder_t thread_holder )
 			:	m_disp_queue( &queue )
+			,	m_thread_holder{ std::move(thread_holder) }
 			,	m_condition{ queue.allocate_condition() }
 			{}
 	};
@@ -332,8 +337,9 @@ class no_activity_tracking_impl_t : protected common_data_t
 	public :
 		//! Initializing constructor.
 		no_activity_tracking_impl_t(
-			dispatcher_queue_t & queue )
-			:	common_data_t( queue )
+			dispatcher_queue_t & queue,
+			work_thread_holder_t thread_holder )
+			:	common_data_t( queue, std::move(thread_holder) )
 			{}
 
 		template< typename L >
@@ -366,8 +372,9 @@ class with_activity_tracking_impl_t : protected common_data_t
 	public :
 		//! Initializing constructor.
 		with_activity_tracking_impl_t(
-			dispatcher_queue_t & queue )
-			:	common_data_t( queue )
+			dispatcher_queue_t & queue,
+			work_thread_holder_t thread_holder )
+			:	common_data_t( queue, std::move(thread_holder) )
 			{}
 
 		template< typename L >
@@ -434,22 +441,24 @@ class work_thread_template_t final : public Impl
 	{
 	public :
 		//! Initializing constructor.
-		work_thread_template_t( dispatcher_queue_t & queue )
-			:	Impl( queue )
+		work_thread_template_t(
+			dispatcher_queue_t & queue,
+			work_thread_holder_t thread_holder )
+			:	Impl( queue, std::move(thread_holder) )
 			{}
 
 		void
 		join()
 			{
 				so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
-				this->m_thread.join();
+				this->m_thread_holder.unchecked_get().join();
 			}
 
 		//! Launch work thread.
 		void
 		start()
 			{
-				this->m_thread = std::thread( [this]() { body(); } );
+				this->m_thread_holder.unchecked_get().start( [this]() { body(); } );
 			}
 
 		/*!
