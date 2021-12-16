@@ -15,6 +15,7 @@
 
 #include <so_5/disp/reuse/work_thread/work_thread.hpp>
 
+#include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -157,7 +158,9 @@ class actual_dispatcher_t final : public disp_binder_t
 			outliving_reference_t< environment_t > env,
 			const std::string_view name_base,
 			disp_params_t params )
-			:	m_work_thread{ params.queue_params().lock_factory() }
+			:	m_work_thread{
+					acquire_work_thread( params, env.get() ),
+					params.queue_params().lock_factory() }
 			,	m_data_source{
 					outliving_mutable(env.get().stats_repository()),
 					m_work_thread,

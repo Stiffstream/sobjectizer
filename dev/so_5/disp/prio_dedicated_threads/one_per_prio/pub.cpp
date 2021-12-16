@@ -15,6 +15,7 @@
 
 #include <so_5/disp/reuse/work_thread/work_thread.hpp>
 
+#include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -91,7 +92,7 @@ class dispatcher_template_t final : public disp_binder_t
 					outliving_mutable(*this)
 				}
 			{
-				allocate_work_threads( params );
+				allocate_work_threads( env.get(), params );
 				launch_work_threads();
 			}
 
@@ -236,13 +237,16 @@ class dispatcher_template_t final : public disp_binder_t
 
 		//! Allocate work threads for dispatcher.
 		void
-		allocate_work_threads( const disp_params_t & params )
+		allocate_work_threads(
+			environment_t & env,
+			const disp_params_t & params )
 			{
 				m_threads.reserve( so_5::prio::total_priorities_count );
 				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
 						auto lock_factory = params.queue_params().lock_factory();
 
 						auto t = std::make_unique< Work_Thread >(
+								acquire_work_thread( params, env ),
 								std::move(lock_factory) );
 
 						m_threads.push_back( std::move(t) );

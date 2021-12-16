@@ -9,6 +9,7 @@
 
 #include <so_5/details/rollback_on_exception.hpp>
 
+#include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -110,9 +111,10 @@ class dispatcher_template_t final : public disp_binder_t
 			const std::string_view name_base,
 			//! Dispatcher's parameters.
 			disp_params_t params )
-			:	m_params{ std::move(params) }
+			:	m_env{ env }
+			,	m_params{ std::move(params) }
 			,	m_data_source{
-					outliving_mutable(env.get().stats_repository()),
+					outliving_mutable(m_env.get().stats_repository()),
 					name_base,
 					outliving_mutable( *this )
 				}
@@ -142,6 +144,7 @@ class dispatcher_template_t final : public disp_binder_t
 
 				auto lock_factory = m_params.queue_params().lock_factory();
 				auto thread = std::make_shared< Work_Thread >(
+						acquire_work_thread( m_params, m_env.get() ),
 						std::move(lock_factory) );
 
 				thread->start();
@@ -258,6 +261,15 @@ class dispatcher_template_t final : public disp_binder_t
 						send_thread_activity_stats( mbox, wt_prefix, wt );
 					}
 			};
+
+		/*!
+		 * \brief SObjectizer Environment to work in.
+		 *
+		 * It is necessary for calling work_thread_factory.
+		 *
+		 * \since v.5.7.3
+		 */
+		outliving_reference_t< environment_t > m_env;
 
 		/*!
 		 * \brief Parameters for the dispatcher.

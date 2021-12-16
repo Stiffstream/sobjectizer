@@ -50,6 +50,27 @@ actual_work_thread_factory_to_use(
 		return result;
 	}
 
+//
+// acquire_work_thread
+//
+//FIXME: document this!
+template< typename Params >
+[[nodiscard]]
+work_thread_holder_t
+acquire_work_thread(
+	const work_thread_factory_mixin_t< Params > & params,
+	environment_t & env )
+	{
+		auto factory = actual_work_thread_factory_to_use( params, env );
+		auto & thread = factory->acquire( env );
+
+		// This block of code shouldn't throw.
+		return so_5::details::invoke_noexcept_code(
+				[&]() -> work_thread_holder_t {
+					return { thread, std::move(factory) };
+				} );
+	}
+
 } /* namespace reuse */
 
 } /* namespace disp */

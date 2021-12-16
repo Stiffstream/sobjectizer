@@ -167,10 +167,10 @@ class [[nodiscard]] work_thread_holder_t
 
 		//FIXME: document this!
 		[[nodiscard]]
-		abstract_work_thread_t *
+		abstract_work_thread_t &
 		unchecked_get() const noexcept
 		{
-			return m_thread;
+			return *m_thread;
 		}
 	};
 

@@ -360,7 +360,7 @@ template< typename Demand_Queue >
 struct common_data_t
 {
 	//! Working thread.
-	std::thread m_thread;
+	work_thread_holder_t m_thread_holder;
 
 	//! Thread status flag.
 	std::atomic< status_t > m_status{ status_t::stopped };
@@ -384,8 +384,10 @@ struct common_data_t
 	demands_counter_t m_demands_count = { 0 };
 
 	common_data_t(
+		work_thread_holder_t thread_holder,
 		queue_traits::lock_factory_t queue_lock_factory )
-		:	m_queue( queue_lock_factory() )
+		:	m_thread_holder{ std::move(thread_holder) }
+		,	m_queue( queue_lock_factory() )
 	{}
 };
 
@@ -400,8 +402,12 @@ class no_activity_tracking_impl_t
 {
 public :
 	no_activity_tracking_impl_t(
+		work_thread_holder_t thread_holder,
 		queue_traits::lock_factory_t queue_lock_factory )
-		:	common_data_t( std::move(queue_lock_factory) )
+		:	common_data_t{
+				std::move(thread_holder),
+				std::move(queue_lock_factory)
+			}
 	{}
 
 protected :
@@ -436,8 +442,12 @@ class activity_tracking_impl_t
 
 public :
 	activity_tracking_impl_t(
+		work_thread_holder_t thread_holder,
 		queue_traits::lock_factory_t queue_lock_factory )
-		:	common_data_t( std::move(queue_lock_factory) )
+		:	common_data_t{
+				std::move(thread_holder),
+				std::move(queue_lock_factory)
+			}
 	{}
 
 	/*!
@@ -550,19 +560,24 @@ class work_thread_template_t final : public Impl
 {
 public :
 	work_thread_template_t(
+		//! Holder of the work thread.
+		work_thread_holder_t thread_holder,
 		//! Factory for creation of lock object for demand queue.
 		queue_traits::lock_factory_t queue_lock_factory )
-		:	Impl( std::move(queue_lock_factory) )
+		:	Impl( std::move(thread_holder), std::move(queue_lock_factory) )
 	{}
 
 	//! Start the working thread.
 	void
 	start()
 	{
+		//FIXME: should those actions be reverted if launching
+		//of the new thread throws?
 		this->m_queue.start_service();
 		this->m_status = status_t::working;
 
-		this->m_thread = std::thread( [this]() { this->body(); } );
+		this->m_thread_holder.unchecked_get().start(
+				[this]() { this->body(); } );
 	}
 
 	//! Send the shutdown signal to the working thread.
@@ -582,7 +597,7 @@ public :
 	wait()
 	{
 		so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
-		this->m_thread.join();
+		this->m_thread_holder.unchecked_get().join();
 		this->m_queue.clear();
 	}
 
