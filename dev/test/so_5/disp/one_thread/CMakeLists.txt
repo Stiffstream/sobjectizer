@@ -1,0 +1,3 @@
+add_subdirectory(custom_work_thread)
+add_subdirectory(custom_work_thread_2)
+

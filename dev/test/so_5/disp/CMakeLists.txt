@@ -1,5 +1,7 @@
 add_subdirectory(binder)
 
+add_subdirectory(one_thread)
+
 add_subdirectory(thread_pool)
 
 add_subdirectory(adv_thread_pool)

@@ -6,6 +6,8 @@ MxxRu::Cpp::composite_target {
 
 	add_test[ 'binder/build_tests.rb' ]
 
+	add_test[ 'one_thread/build_tests.rb' ]
+
 	add_test[ 'thread_pool/build_tests.rb' ]
 
 	add_test[ 'adv_thread_pool/build_tests.rb' ]
