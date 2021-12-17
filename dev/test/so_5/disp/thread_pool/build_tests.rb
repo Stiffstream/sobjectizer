@@ -9,4 +9,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/cooperation_fifo/prj.ut.rb" )
 	required_prj( "#{path}/individual_fifo/prj.ut.rb" )
 	required_prj( "#{path}/threshold/prj.ut.rb" )
+	required_prj( "#{path}/custom_work_thread/prj.ut.rb" )
 }
