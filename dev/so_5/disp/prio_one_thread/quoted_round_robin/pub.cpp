@@ -16,6 +16,7 @@
 #include <so_5/disp/prio_one_thread/quoted_round_robin/impl/demand_queue.hpp>
 #include <so_5/disp/prio_one_thread/reuse/work_thread.hpp>
 
+#include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -90,7 +91,9 @@ class dispatcher_template_t final : public disp_binder_t
 			:	m_demand_queue{
 					params.queue_params().lock_factory()(),
 					quotes }
-			,	m_work_thread{ m_demand_queue }
+			,	m_work_thread{
+					so_5::disp::reuse::acquire_work_thread( params, env.get() ),
+					m_demand_queue }
 			,	m_data_source{
 					outliving_mutable(env.get().stats_repository()),
 					name_base,

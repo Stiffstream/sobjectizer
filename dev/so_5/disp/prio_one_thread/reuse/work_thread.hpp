@@ -15,6 +15,8 @@
 
 #include <so_5/current_thread_id.hpp>
 
+#include <so_5/disp/abstract_work_thread.hpp>
+
 #include <so_5/stats/work_thread_activity.hpp>
 #include <so_5/stats/impl/activity_tracking.hpp>
 
@@ -50,7 +52,7 @@ struct common_data_t
 		Demand_Queue & m_queue;
 
 		//! Thread object.
-		std::thread m_thread;
+		work_thread_holder_t m_thread_holder;
 
 		//! ID of the work thread.
 		/*!
@@ -59,7 +61,12 @@ struct common_data_t
 		 */
 		so_5::current_thread_id_t m_thread_id;
 
-		common_data_t( Demand_Queue & queue ) : m_queue( queue ) {}
+		common_data_t(
+			work_thread_holder_t thread_holder,
+			Demand_Queue & queue )
+			:	m_queue( queue )
+			,	m_thread_holder{ std::move(thread_holder) }
+			{}
 	};
 
 //
@@ -77,8 +84,10 @@ class no_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
 		using base_type_t = common_data_t< Demand_Queue >;
 
 	public :
-		no_activity_tracking_impl_t( Demand_Queue & queue )
-			:	base_type_t( queue )
+		no_activity_tracking_impl_t(
+			work_thread_holder_t thread_holder,
+			Demand_Queue & queue )
+			:	base_type_t( std::move(thread_holder), queue )
 			{}
 
 	protected :
@@ -110,8 +119,10 @@ class with_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
 		using base_type_t = common_data_t< Demand_Queue >;
 
 	public :
-		with_activity_tracking_impl_t( Demand_Queue & queue )
-			:	base_type_t( queue )
+		with_activity_tracking_impl_t(
+			work_thread_holder_t thread_holder,
+			Demand_Queue & queue )
+			:	base_type_t( std::move(thread_holder), queue )
 			{}
 
 		so_5::stats::work_thread_activity_stats_t
@@ -170,21 +181,23 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 
 	public :
 		//! Initializing constructor.
-		work_thread_template_t( Demand_Queue & queue )
-			:	base_type_t( queue )
+		work_thread_template_t(
+			work_thread_holder_t thread_holder,
+			Demand_Queue & queue )
+			:	base_type_t( std::move(thread_holder), queue )
 			{}
 
 		void
 		start()
 			{
-				this->m_thread = std::thread( [this]() { body(); } );
+				this->m_thread_holder.unchecked_get().start( [this]() { body(); } );
 			}
 
 		void
 		join()
 			{
 				so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
-				this->m_thread.join();
+				this->m_thread_holder.unchecked_get().join();
 			}
 
 		so_5::current_thread_id_t
