@@ -14,6 +14,7 @@
 
 #include <string_view>
 #include <ostream>
+#include <cstdint>
 
 namespace so_5 {
 
@@ -73,10 +74,8 @@ struct pointer
 inline std::ostream &
 operator<<( std::ostream & to, const pointer & v )
 	{
-		auto oldf = to.setf( std::ios_base::hex, std::ios_base::basefield );
-		to << "0x" << std::ptrdiff_t{
-				reinterpret_cast< const char * >(v.m_what) -
-				static_cast< const char * >(nullptr)};
+		const auto oldf = to.setf( std::ios_base::hex, std::ios_base::basefield );
+		to << "0x" << reinterpret_cast<std::uintptr_t>(v.m_what);
 		to.setf( oldf, std::ios_base::basefield );
 
 		return to;

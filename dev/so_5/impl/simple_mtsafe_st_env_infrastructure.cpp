@@ -812,15 +812,15 @@ factory( params_t && infrastructure_params )
 				obj = new env_infrastructure_t< reusable::real_activity_tracker_t >(
 					env,
 					std::move(timer_manager_factory),
-					env_params.so5__error_logger(),
-					env_params.so5__giveout_coop_listener(),
+					env_params.so5_error_logger(),
+					env_params.so5_giveout_coop_listener(),
 					std::move(stats_distribution_mbox) );
 			else
 				obj = new env_infrastructure_t< reusable::fake_activity_tracker_t >(
 					env,
 					std::move(timer_manager_factory),
-					env_params.so5__error_logger(),
-					env_params.so5__giveout_coop_listener(),
+					env_params.so5_error_logger(),
+					env_params.so5_giveout_coop_listener(),
 					std::move(stats_distribution_mbox) );
 
 			return environment_infrastructure_unique_ptr_t(

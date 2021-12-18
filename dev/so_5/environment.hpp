@@ -465,35 +465,35 @@ class SO_5_TYPE environment_params_t
 		 */
 		//! Get map of default SObjectizer's layers.
 		const layer_map_t &
-		so5__layers_map() const
+		so5_layers_map() const
 		{
 			return m_so_layers;
 		}
 
 		//! Get cooperation listener.
 		coop_listener_unique_ptr_t
-		so5__giveout_coop_listener()
+		so5_giveout_coop_listener()
 		{
 			return std::move( m_coop_listener );
 		}
 
 		//! Get exception logger.
 		event_exception_logger_unique_ptr_t
-		so5__giveout_event_exception_logger()
+		so5_giveout_event_exception_logger()
 		{
 			return std::move( m_event_exception_logger );
 		}
 
 		//! Get the timer_thread factory.
 		so_5::timer_thread_factory_t
-		so5__giveout_timer_thread_factory()
+		so5_giveout_timer_thread_factory()
 		{
 			return std::move( m_timer_thread_factory );
 		}
 
 		//! Get error logger for the environment.
 		const error_logger_shptr_t &
-		so5__error_logger() const
+		so5_error_logger() const
 		{
 			return m_error_logger;
 		}
@@ -505,7 +505,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t
-		so5__giveout_message_delivery_tracer()
+		so5_giveout_message_delivery_tracer()
 		{
 			return std::move( m_message_delivery_tracer );
 		}
@@ -517,7 +517,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.22
 		 */
 		so_5::msg_tracing::filter_shptr_t
-		so5__giveout_message_delivery_tracer_filter()
+		so5_giveout_message_delivery_tracer_filter()
 		{
 			return std::move( m_message_delivery_tracer_filter );
 		}
@@ -528,7 +528,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t
-		so5__giveout_queue_locks_defaults_manager()
+		so5_giveout_queue_locks_defaults_manager()
 			{
 				return std::move( m_queue_locks_defaults_manager );
 			}
@@ -539,7 +539,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t
-		so5__giveout_event_queue_hook()
+		so5_giveout_event_queue_hook()
 			{
 				return std::move( m_event_queue_hook );
 			}
@@ -549,7 +549,7 @@ class SO_5_TYPE environment_params_t
 		 * \since v.5.7.3
 		 */
 		so_5::disp::abstract_work_thread_factory_shptr_t
-		so5__giveout_work_thread_factory()
+		so5_giveout_work_thread_factory()
 			{
 				return std::move( m_work_thread_factory );
 			}
@@ -1581,13 +1581,13 @@ class SO_5_TYPE environment_t
 		 * v.5.5.4
 		 */
 		void
-		impl__run_stats_controller_and_go_further();
+		imp_run_stats_controller_and_go_further();
 
 		/*!
 		 * \brief Run layers and call next run stage.
 		 */
 		void
-		impl__run_layers_and_go_further();
+		imp_run_layers_and_go_further();
 
 		/*!
 		 * \brief Launch environment infrastructure and wait for finish.
@@ -1596,7 +1596,7 @@ class SO_5_TYPE environment_t
 		 * v.5.5.19
 		 */
 		void
-		impl__run_infrastructure();
+		imp_run_infrastructure();
 		/*!
 		 * \}
 		 */

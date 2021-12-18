@@ -29,12 +29,12 @@ do \
 { \
 	std::ostringstream err_stream; \
 	err_stream << file << "(" << line << "): "; \
-	bool exception_thrown__ = false; \
+	bool exception_thrown_impl_detail_ = false; \
 	try { \
 		body; \
 	} \
 	catch( const exception_class & ) { \
-		exception_thrown__ = true; \
+		exception_thrown_impl_detail_ = true; \
 	} \
 	catch( const std::exception & x ) { \
 		err_stream << "unit test error: check throw failed: expected " \
@@ -44,7 +44,7 @@ do \
 		err_stream << "unit test error: check throw failed: expected " \
 			<< #exception_class << " but caught unknown exception\n"; \
 	} \
-	if( !exception_thrown__ ) \
+	if( !exception_thrown_impl_detail_ ) \
 	{ \
 		throw ::utest_helper_1::check_ex_t( err_stream.str() ); \
 	} \
@@ -293,13 +293,13 @@ class context_streamer_t
 
 //! A macro for simplification of unit-test definition.
 #define UT_UNIT_TEST( test_name ) \
-	struct test_name ## __class__ { \
-		::utest_helper_1::context_stack_t test_context__; \
+	struct test_name ## _internal_unique_name_class_ { \
+		::utest_helper_1::context_stack_t test_context_impl_detail_; \
 		void run_test(); \
 	}; \
 	int test_name() \
 	{ \
-		test_name ## __class__ instance; \
+		test_name ## _internal_unique_name_class_ instance; \
 		bool has_exceptions = false; \
 		try{ \
 			instance.run_test(); \
@@ -318,36 +318,36 @@ class context_streamer_t
 			has_exceptions = true; \
 		} \
 		\
-		if( has_exceptions && !instance.test_context__.empty() ) \
+		if( has_exceptions && !instance.test_context_impl_detail_.empty() ) \
 		{ \
 			std::cerr << "\nContext:\n"; \
-			while( !instance.test_context__.empty() ) \
+			while( !instance.test_context_impl_detail_.empty() ) \
 			{ \
-				std::cerr << instance.test_context__.top();\
-				instance.test_context__.pop(); \
+				std::cerr << instance.test_context_impl_detail_.top();\
+				instance.test_context_impl_detail_.pop(); \
 			} \
 		} \
 		return has_exceptions ? -1 : 0; \
 	} \
-	void test_name ## __class__::run_test()
+	void test_name ## _internal_unique_name_class_::run_test()
 
 //! Добавить еденицу описания контекста.
 #define UT_PUSH_CONTEXT( name ) \
 	::utest_helper_1::context_streamer_t( \
-		test_context__, \
+		test_context_impl_detail_, \
 		name, \
 		__FILE__, \
 		__LINE__ ).query_stream()
 
 //! Извлечь еденицу описания из контекста.
 #define UT_POP_CONTEXT() \
-		test_context__.pop()
+		test_context_impl_detail_.pop()
 
 //! Для передачи контекста в другие функции.
-#define UT_CONTEXT_DECL ::utest_helper_1::context_stack_t & test_context__
+#define UT_CONTEXT_DECL ::utest_helper_1::context_stack_t & test_context_impl_detail_
 
 //! Передать вызываемой функции контекст
-#define UT_CONTEXT test_context__
+#define UT_CONTEXT test_context_impl_detail_
 
 //! Вспомогательный макрос для вызова юнит теста из функции main.
 #define UT_RUN_UNIT_TEST( test_name ) \
@@ -357,6 +357,5 @@ class context_streamer_t
 	}
 
 } /* namespace utest_helper_1 */
-
 
 #endif

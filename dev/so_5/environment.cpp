@@ -431,10 +431,10 @@ struct environment_t::internals_t
 	internals_t(
 		environment_t & env,
 		environment_params_t && params )
-		:	m_error_logger( params.so5__error_logger() )
+		:	m_error_logger( params.so5_error_logger() )
 		,	m_msg_tracing_stuff{
-				params.so5__giveout_message_delivery_tracer_filter(),
-				params.so5__giveout_message_delivery_tracer() }
+				params.so5_giveout_message_delivery_tracer_filter(),
+				params.so5_giveout_message_delivery_tracer() }
 		,	m_mbox_core(
 				new impl::mbox_core_t{
 						outliving_mutable( m_msg_tracing_stuff ) } )
@@ -447,7 +447,7 @@ struct environment_t::internals_t
 					m_mbox_core->create_mbox(env) ) )
 		,	m_layer_core(
 				env,
-				params.so5__layers_map() )
+				params.so5_layers_map() )
 		,	m_exception_reaction( params.exception_reaction() )
 		,	m_autoshutdown_disabled( params.autoshutdown_disabled() )
 		,	m_core_data_sources(
@@ -458,15 +458,15 @@ struct environment_t::internals_t
 				params.work_thread_activity_tracking() )
 		,	m_queue_locks_defaults_manager(
 				ensure_locks_defaults_manager_exists(
-					params.so5__giveout_queue_locks_defaults_manager() ) )
+					params.so5_giveout_queue_locks_defaults_manager() ) )
 		,	m_event_queue_hook(
 				ensure_event_queue_hook_exists(
-					params.so5__giveout_event_queue_hook() ) )
+					params.so5_giveout_event_queue_hook() ) )
 		,	m_work_thread_factory(
 				ensure_work_thread_factory_exists(
-					params.so5__giveout_work_thread_factory() ) )
+					params.so5_giveout_work_thread_factory() ) )
 		,	m_event_exception_logger{
-				params.so5__giveout_event_exception_logger() }
+				params.so5_giveout_event_exception_logger() }
 	{}
 };
 
@@ -661,7 +661,7 @@ environment_t::run()
 {
 	try
 	{
-		impl__run_stats_controller_and_go_further();
+		imp_run_stats_controller_and_go_further();
 	}
 	catch( const so_5::exception_t & )
 	{
@@ -793,7 +793,7 @@ environment_t::change_message_delivery_tracer_filter(
 }
 
 void
-environment_t::impl__run_stats_controller_and_go_further()
+environment_t::imp_run_stats_controller_and_go_further()
 {
 	impl::run_stage(
 			"run_stats_controller",
@@ -801,17 +801,17 @@ environment_t::impl__run_stats_controller_and_go_further()
 				/* there is no need to turn_on controller automatically */
 			},
 			[this] { m_impl->m_infrastructure->stats_controller().turn_off(); },
-			[this] { impl__run_layers_and_go_further(); } );
+			[this] { imp_run_layers_and_go_further(); } );
 }
 
 void
-environment_t::impl__run_layers_and_go_further()
+environment_t::imp_run_layers_and_go_further()
 {
 	impl::run_stage(
 			"run_layers",
 			[this] { m_impl->m_layer_core.start(); },
 			[this] { m_impl->m_layer_core.finish(); },
-			[this] { impl__run_infrastructure(); } );
+			[this] { imp_run_infrastructure(); } );
 }
 
 namespace
@@ -845,7 +845,7 @@ namespace
 } /* namespace anonymous */
 
 void
-environment_t::impl__run_infrastructure()
+environment_t::imp_run_infrastructure()
 {
 	m_impl->m_infrastructure->launch( 
 		[this]()

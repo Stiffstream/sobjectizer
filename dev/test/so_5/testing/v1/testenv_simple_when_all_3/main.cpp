@@ -43,10 +43,11 @@ main()
 				so_5::disp::active_obj::make_dispatcher(
 						env.environment() ).binder(),
 				[](so_5::coop_t & coop) {
-					auto first = coop.make_agent< first_t >();
+					auto first_agent = coop.make_agent< first_t >();
 					return std::make_tuple(
-							first,
-							coop.make_agent< second_t >( first->so_direct_mbox() ) );
+							first_agent,
+							coop.make_agent< second_t >(
+									first_agent->so_direct_mbox() ) );
 				} );
 
 			env.scenario().define_step( "test" )

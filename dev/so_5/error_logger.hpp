@@ -143,10 +143,10 @@ class conductor_t
  * \brief An implementation for SO_5_LOG_ERROR macro.
  */
 #define SO_5_LOG_ERROR_IMPL(logger, file, line, var_name) \
-	for( so_5::log_msg_details::conductor_t conductor__( logger, file, line ); \
-			!conductor__.completed(); ) \
-		for( std::ostringstream & var_name = conductor__.stream(); \
-				!conductor__.completed(); conductor__.log_message() )
+	for( so_5::log_msg_details::conductor_t conductor_( logger, file, line ); \
+			!conductor_.completed(); ) \
+		for( std::ostringstream & var_name = conductor_.stream(); \
+				!conductor_.completed(); conductor_.log_message() )
 
 //
 // SO_5_LOG_ERROR

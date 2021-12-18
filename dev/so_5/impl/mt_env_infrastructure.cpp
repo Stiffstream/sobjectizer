@@ -353,15 +353,15 @@ factory()
 			// Timer thread is necessary for that environment.
 			auto timer =
 					so_5::internal_timer_helpers::create_appropriate_timer_thread(
-							params.so5__error_logger(),
-							params.so5__giveout_timer_thread_factory() );
+							params.so5_error_logger(),
+							params.so5_giveout_timer_thread_factory() );
 
 			// Now the environment object can be created.
 			auto obj = new impl::mt_env_infrastructure_t(
 					env,
 					params.default_disp_params(),
 					std::move(timer),
-					params.so5__giveout_coop_listener(),
+					params.so5_giveout_coop_listener(),
 					std::move(stats_distribution_mbox) );
 
 			return environment_infrastructure_unique_ptr_t(
