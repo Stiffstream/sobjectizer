@@ -116,6 +116,15 @@ private:
 
 		std::unique_lock< std::mutex > lock{ m_lock };
 
+		// If it's a repeated call then thread_body_accepted status
+		// has to be changed to wait_thread_body.
+		if( status_t::thread_body_accepted == m_status )
+		{
+			m_status = status_t::wait_thread_body;
+			// Wakeup 'join()' call if it is here.
+			m_status_cv.notify_one();
+		}
+
 		// Do status checking loop until we receive a new body to execute
 		// or shutdown notification.
 		for(;;)
@@ -396,7 +405,7 @@ void run_example()
 					env.make_agent< pool_manager >() );
 
 			// Allow to work for some time...
-			std::this_thread::sleep_for( 20s );
+			std::this_thread::sleep_for( 5s /*20s*/ );
 			// ...and finish the example.
 			so_5::send< shutdown >( shutdown::mbox( env ) );
 		} );
