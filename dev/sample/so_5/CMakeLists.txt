@@ -71,3 +71,5 @@ add_subdirectory(default_message_limits)
 
 add_subdirectory(named_dispatchers_layer)
 
+add_subdirectory(custom_work_thread_factory)
+

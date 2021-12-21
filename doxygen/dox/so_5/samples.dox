@@ -204,6 +204,7 @@
  * \example so_5/make_agent_ref/main.cpp
  * \example so_5/default_message_limits/main.cpp
  * \example so_5/named_dispatchers_layer/main.cpp
+ * \example so_5/custom_work_thread_factory/main.cpp
  */
 
 // vim:ft=cpp.doxygen

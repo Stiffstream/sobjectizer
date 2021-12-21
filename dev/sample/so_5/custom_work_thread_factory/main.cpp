@@ -27,6 +27,9 @@ class worker_thread final : public so_5::disp::abstract_work_thread_t
 		shutdown_initiated
 	};
 
+	// ID of worker thread.
+	std::thread::id m_id;
+
 	// Actual thread body to be executed.
 	// It has non-empty value only when the status is thread_body_received.
 	body_func_t m_thread_body;
@@ -46,7 +49,19 @@ class worker_thread final : public so_5::disp::abstract_work_thread_t
 public:
 	worker_thread()
 	{
-		m_thread = std::thread{ [this] { body(); } };
+		std::promise< std::thread::id > id_promise;
+		auto id_future = id_promise.get_future();
+		m_thread = std::thread{
+				[this, id_p = std::move(id_promise)]() mutable {
+					// The first step: has to specify ID of this thread.
+					id_p.set_value( std::this_thread::get_id() );
+
+					// The second step: run the main loop.
+					body();
+				}
+			};
+
+		m_id = id_future.get();
 	}
 
 	~worker_thread() noexcept override
@@ -62,8 +77,13 @@ public:
 		m_thread.join();
 	}
 
-	void
-	start( body_func_t thread_body ) override
+	[[nodiscard]]
+	std::thread::id id() const noexcept
+	{
+		return m_id;
+	}
+
+	void start( body_func_t thread_body ) override
 	{
 		std::lock_guard< std::mutex > lock{ m_lock };
 		if( status_t::wait_thread_body == m_status )
@@ -83,8 +103,7 @@ public:
 		}
 	}
 
-	void
-	join() override
+	void join() override
 	{
 		std::unique_lock< std::mutex > lock{ m_lock };
 
@@ -181,8 +200,9 @@ public:
 		thread_unique_ptr thread_holder{ std::move(m_free_threads.back()) };
 		m_free_threads.pop_back();
 
-		std::cout << "*** " << m_name << ": thread acquired: "
-				<< thread_holder.get() << std::endl;
+		std::cout << "*** " << m_name << ": thread acquired, "
+				<< "id=" << thread_holder->id()
+				<< ", ptr=" << thread_holder.get() << std::endl;
 
 		return *(thread_holder.release());
 	}
@@ -193,8 +213,9 @@ public:
 		// dynamic_cast will throw and that terminates the application.
 		auto & worker = dynamic_cast<worker_thread &>(thread);
 
-		std::cout << "*** " << m_name << ": thread released: "
-				<< &worker << std::endl;
+		std::cout << "*** " << m_name << ": thread released, "
+				<< "id=" << worker.id()
+				<< ", ptr=" << &worker << std::endl;
 
 		// Released thread has to be returned to the pool.
 		m_free_threads.push_back( thread_unique_ptr{ &worker } );
@@ -396,18 +417,144 @@ private:
 	}
 };
 
+// Worker agent to be used on an active_obj dispatcher.
+class separate_worker final : public so_5::agent_t
+{
+	// Signal for finishing the work.
+	struct quit final : public so_5::signal_t {};
+
+	const std::string m_name;
+
+public:
+	separate_worker( context_t ctx, std::string name )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_name{ std::move(name) }
+	{}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self()
+			.event( [this]( mhood_t<quit> ) {
+					so_deregister_agent_coop_normally();
+				} );
+
+		so_subscribe( shutdown::mbox( so_environment() ) )
+			.event( [this]( mhood_t<shutdown> ) {
+					so_deregister_agent_coop_normally();
+				} );
+	}
+
+	void so_evt_start() override
+	{
+		trace( *this, m_name + ": started" );
+
+		so_5::send_delayed< quit >( *this, 5s );
+	}
+
+	void so_evt_finish() override
+	{
+		trace( *this, m_name + ": finished" );
+	}
+};
+
+// Manager agent that periodically creates new separate workers and runs them
+// on an active_obj dispatcher.
+class separate_worker_manager final : public so_5::agent_t
+{
+	// Signal for the creation of a new worker.
+	struct create_new_worker final : public so_5::signal_t {};
+
+	// Counter of workers.
+	int m_workers_counter{};
+
+	// Instance of active_obj dispatcher to be used.
+	so_5::disp::active_obj::dispatcher_handle_t m_active_obj_disp;
+
+public:
+	separate_worker_manager( context_t ctx )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_active_obj_disp{
+				// Do not specify work thread factory, the default one will be used.
+				so_5::disp::active_obj::make_dispatcher( so_environment() )
+			}
+	{}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self()
+			.event( &separate_worker_manager::evt_create_new_worker )
+			;
+
+		so_subscribe( shutdown::mbox( so_environment() ) )
+			.event( &separate_worker_manager::evt_shutdown )
+			;
+	}
+
+	void so_evt_start() override
+	{
+		trace( *this, "separate_worker_manager: started" );
+
+		so_5::send< create_new_worker >( *this );
+	}
+
+	void so_evt_finish() override
+	{
+		trace( *this, "separate_worker_manager: finished" );
+	}
+
+private:
+	void evt_create_new_worker( mhood_t<create_new_worker> )
+	{
+		// We expect exceptions here because global work thread factory
+		// uses a size-limited thread pool.
+		try
+		{
+			so_environment().introduce_coop(
+					m_active_obj_disp.binder(),
+					[this]( so_5::coop_t & coop ) {
+						coop.make_agent< separate_worker >(
+								"separate_worker_"
+								+ std::to_string( ++m_workers_counter ) );
+					} );
+		}
+		catch( const std::exception & x )
+		{
+			trace( *this,
+					std::string{ "separate_worker_manager: exception=" } + x.what() );
+		}
+
+		so_5::send_delayed< create_new_worker >( *this, 2s );
+	}
+
+	void evt_shutdown( mhood_t<shutdown> )
+	{
+		so_deregister_agent_coop_normally();
+	}
+};
+
 void run_example()
 {
 	so_5::launch( []( so_5::environment_t & env ) {
+			// We need logger.
 			create_logger( env );
 
+			// Managers.
 			env.register_agent_as_coop(
 					env.make_agent< pool_manager >() );
+			env.register_agent_as_coop(
+					env.make_agent< separate_worker_manager >() );
 
 			// Allow to work for some time...
-			std::this_thread::sleep_for( 5s /*20s*/ );
+			std::this_thread::sleep_for( 20s );
 			// ...and finish the example.
 			so_5::send< shutdown >( shutdown::mbox( env ) );
+		},
+		[]( so_5::environment_params_t & params ) {
+			// Specify global work thread factory for the whole environment.
+			params.work_thread_factory(
+					std::make_shared< thread_factory >(
+						"global factory",
+						3u ) );
 		} );
 }
 

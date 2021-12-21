@@ -76,4 +76,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'default_message_limits' ]
 
 	example[ 'named_dispatchers_layer' ]
+
+	example[ 'custom_work_thread_factory' ]
 }
