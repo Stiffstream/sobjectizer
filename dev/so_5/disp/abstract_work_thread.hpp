@@ -114,7 +114,33 @@ class SO_5_TYPE abstract_work_thread_t
 //
 // abstract_work_thread_factory_t
 //
-//FIXME: document this!
+/*!
+ * \brief An interface of factory for management of worker threads.
+ *
+ * A worker thread factory can implement different schemes of thread
+ * management, for example:
+ *
+ * - a new instance of worker thread can be allocated dynamically in acquire()
+ *   method and destroyed in release() method;
+ * - a pool of preallocated worker thread can be used, method acquire() will
+ *   take a thread from that pool and return the thread back to the pool in
+ *   release() method.
+ *
+ * SObjectizer doesn't care about the allocation scheme of worker threads. It
+ * demands that a reference returned from acquire() method remains valid until
+ * it is passed to release() method.
+ *
+ * SObjectizer guarantees that a thread is taken from acquire() method will be
+ * returned back via release() method.
+ *
+ * \attention
+ * An implementation of thread factory should be thread safe. Calls to
+ * acquire() and release() can be performed from different threads.
+ * For example, a call to acquire() can be made from thread A, but
+ * the corresponding call to release() can be made from thread B.
+ *
+ * \since v.5.7.3
+ */
 class SO_5_TYPE abstract_work_thread_factory_t
 	{
 	public:
@@ -132,14 +158,39 @@ class SO_5_TYPE abstract_work_thread_factory_t
 
 		virtual ~abstract_work_thread_factory_t();
 
-		//FIXME: document this!
+		/*!
+		 * \brief Get a new worker thread from factory.
+		 *
+		 * This method should throw an instance of std::exception (or any derived
+		 * from std::exception class) in the case when new worker thread can't
+		 * be obtained.
+		 *
+		 * The reference returned should remains valid until it will be
+		 * passed to release() method.
+		 */
 		[[nodiscard]]
 		virtual abstract_work_thread_t &
-		acquire( so_5::environment_t & env ) = 0;
+		acquire(
+			//! A reference to SObjectizer Environment in that acquire() is called.
+			//! That parameter can be useful in case when a single factory
+			//! used for several instances of SObjectizer Environment at the
+			//! same time.
+			so_5::environment_t & env ) = 0;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Return a worker thread back to the factory.
+		 *
+		 * SObjectizer guarantees that \a thread is a reference obtained
+		 * by a previous successful call to acquire().
+		 *
+		 * SObjectizer guarantees that every successful call to acquire()
+		 * is paired with a call to release().
+		 */
 		virtual void
-		release( abstract_work_thread_t & thread ) noexcept = 0;
+		release(
+			//! A reference to worker thread to be returned.
+			//! This reference is obtained by a previous call to acquire().
+			abstract_work_thread_t & thread ) noexcept = 0;
 	};
 
 //
@@ -237,6 +288,7 @@ class [[nodiscard]] work_thread_holder_t
 //
 // make_std_work_thread_factory
 //
+//FIXME: document this!
 [[nodiscard]]
 SO_5_FUNC
 abstract_work_thread_factory_shptr_t
