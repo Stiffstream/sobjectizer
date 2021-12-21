@@ -22,11 +22,39 @@ namespace so_5::disp
 //
 // abstract_work_thread_t
 //
-//FIXME: document this!
+/*!
+ * \brief An interface for one worker thread.
+ *
+ * All worker threads used by SObjectizer's dispatchers have to implement
+ * that interface.
+ *
+ * A worker thread is used by SObjectizer that way:
+ *
+ * - an instance of worker thread is obtained from an appropriate work thread
+ *   factory by calling abstract_work_thread_factory_t::acquire();
+ * - method abstract_work_thread_t::start() is called for the obtained instance;
+ * - some time later method abstract_work_thread_t::join() is called for the
+ *   obtained instance;
+ * - after the call to join() the obtained instance is returned to the work
+ *   thread factory by calling abstract_work_thread_factory_t::release().
+ *
+ * \since v.5.7.3
+ */
 class SO_5_TYPE abstract_work_thread_t
 	{
 	public:
-		//FIXME: document this!
+		/*!
+		 * \brief Type of functor to be passed to start method.
+		 *
+		 * abstract_work_thread_t::start() receives a function that
+		 * will be executed on the context of a new thread. Type of that
+		 * functor is described by this typedef.
+		 *
+		 * \note
+		 * A functor passed to abstract_work_thread_t::start() is not
+		 * noexcept. It can throw. However, see the description of
+		 * abstract_work_thread_t::start() for more details.
+		 */
 		using body_func_t = std::function< void() >;
 
 		abstract_work_thread_t();
@@ -41,12 +69,44 @@ class SO_5_TYPE abstract_work_thread_t
 
 		virtual ~abstract_work_thread_t();
 
-		//FIXME: document this!
+		/*!
+		 * \brief Start a new thread and execute specified functor on it.
+		 *
+		 * It is not specified should a new thread be launched or some existing
+		 * thread that is reused. The only demand is that this thread should not
+		 * execute some other task except the passed \a thread_body functor.
+		 *
+		 * The implementation should throw if a new thread can't be started.
+		 *
+		 * \note
+		 * It is allowed that \a thread_body can throw. All exceptions should
+		 * be intercepted and skipped. An implementation can use some form
+		 * of logging for intercepted exceptions, but it isn't required
+		 * (the standard impelementation doesn't log anything).
+		 */
 		virtual void
 		start( body_func_t thread_body ) = 0;
 
-		//FIXME: document this!
-		//FIXME: this method isn't noexcept, that should be mentioned in docs.
+		/*!
+		 * \brief Stops the current thread until worker thread completes
+		 * execution of thread_body passed to previous call to start.
+		 *
+		 * SObjectizer guarantees that join() is called only once, and if and
+		 * only if the previous call to start() is completed successfully
+		 * (without exceptions). The join() method won't be called if there
+		 * wasn't a previous call to start() method or if the previous call to
+		 * start() method threw.
+		 *
+		 * \attention
+		 * This method is not noexcept in the current version of SObjectizer. So
+		 * it can throw. However, SObjectizer has no defense from exceptions
+		 * thrown from join(). Moveover, most of the calls to join() are done in
+		 * noexcept destructors. It means that if join() throws then it will,
+		 * probably, lead to the termination of the whole application. It also
+		 * means that noexcept may be added to the requirements of join()
+		 * implementation in future versions of SObjectizer.
+		 *
+		 */
 		virtual void
 		join() = 0;
 	};

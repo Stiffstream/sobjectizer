@@ -10,6 +10,8 @@
 
 #include <so_5/disp/abstract_work_thread.hpp>
 
+#include <so_5/details/suppress_exceptions.hpp>
+
 #include <thread>
 
 namespace so_5::disp
@@ -38,7 +40,20 @@ namespace std_work_thread_impl
 //
 // std_work_thread_t
 //
-//FIXME: document this!
+/*!
+ * \brief The standard implementation of abstract_work_thread interface.
+ *
+ * It uses std::thread without any additiona tuning.
+ * An actual instance of thread is created in start() and then joined only
+ * in join().
+ *
+ * \note
+ * This implementation assumes that start() will be called before join(), and if
+ * start() was called then someone must call join() before the destruction
+ * of the object.
+ *
+ * \since v.5.7.3
+ */
 class std_work_thread_t : public abstract_work_thread_t
 	{
 		//! Actual thread.
@@ -50,7 +65,12 @@ class std_work_thread_t : public abstract_work_thread_t
 		void
 		start( body_func_t thread_body ) override
 			{
-				m_thread = std::thread{ std::move(thread_body) };
+				m_thread = std::thread{
+						[tb = std::move(thread_body)] {
+							// All exceptions have to be intercepted and suppressed.
+							so_5::details::suppress_exceptions( [&tb]() { tb(); } );
+						}
+					};
 			}
 
 		void
@@ -66,7 +86,16 @@ class std_work_thread_t : public abstract_work_thread_t
 //
 // std_work_thread_factory_t
 //
-//FIXME: document this!
+/*!
+ * \brief The standard implementation of abstract_work_thread_factory interface.
+ *
+ * This implementation creates a new instance of std_work_thread_t dynamically
+ * in every call to acquire(). An instance of std_work_thread_t is expected
+ * in release() (but it's not checked) and the instance passed to
+ * release() is just deleted by using ordinary `delete`.
+ *
+ * \since v.5.7.3
+ */
 class std_work_thread_factory_t : public abstract_work_thread_factory_t
 	{
 	public:
