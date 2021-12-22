@@ -450,7 +450,68 @@ class SO_5_TYPE environment_params_t
 				m_event_queue_hook = std::move(hook);
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Set work thread factory to be used by default.
+		 *
+		 * Since v.5.7.3 it's possible to use custom worker threads instead of
+		 * standard ones provided by SObjectizer. To do so it's required to
+		 * provide an appropriate worker thread factory. It can be done by
+		 * specifying a factory in parameters for a dispatcher. Or it can be done
+		 * globally for the whole SObjectizer's Environment by this method.
+		 *
+		 * This method sets a global factory that will be used by default. It
+		 * means that:
+		 *
+		 * - the global factory won't be used if there is a factory in
+		 *   dispatcher's parameters (in that case dispatcher's factory has
+		 *   higher priority and the default factory is ignored);
+		 * - the global factory will be used if there is no factory specified in
+		 *   dispatcher's parameters;
+		 * - the global factory will be used for the default one_thread dispatcher
+		 *   created by default multi-thread environment infrastructure.
+		 *
+		 * Usage example:
+		 * \code
+		 * class my_thread_factory final : public so_5::disp::abstract_work_thread_factory_t
+		 * {
+		 * 	...
+		 * };
+		 * ...
+		 * so_5::launch( [](so_5::environment_t & env) {
+		 * 		env.introduce_coop( [](so_5::coop_t & coop) {
+		 * 			// This agent will be bound to the default dispatcher.
+		 * 			// Worker thread for the default dispatcher will be provided
+		 * 			// by default factory.
+		 * 			coop.make_agent<my_agent>(...);
+		 *
+		 * 			// This agent will be bound to an instance of new one_thread
+		 * 			// dispatcher. A worker thread for that new dispatcher will
+		 * 			// be provided by the default factory.
+		 * 			coop.make_agent_with_binder<my_agent>(
+		 * 				so_5::disp::one_thread::make_dispatcher(coop.environment()).binder(),
+		 * 				...);
+		 *
+		 * 			// This dispatcher will use another own instance of
+		 * 			// thread factory.
+		 * 			auto tp_disp = so_5::disp::thread_pool::make_dispatcher(
+		 * 				coop.environment(),
+		 * 				"my_pool_disp",
+		 * 				so_5::disp::thread_pool::disp_params_t{}
+		 * 					.thread_count(10)
+		 * 					.work_thread_factory(std::make_shared<my_thread_factory>(...)) );
+		 * 			// This agent will be bound to the new thread_pool dispatcher
+		 * 			// and will work on a thread provided by a separate thread factory.
+		 * 			coop.make_agent_with_binder<my_agent>(tp_disp.binder());
+		 * 		} );
+		 * 		...
+		 * 	},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		params.work_thread_factory( std::make_shared<my_thread_factory>(...) );
+		 * 	} );
+		 * \endcode
+		 *
+		 * \since v.5.7.3
+		 */
 		environment_params_t &
 		work_thread_factory(
 			so_5::disp::abstract_work_thread_factory_shptr_t factory )

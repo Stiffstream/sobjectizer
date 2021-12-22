@@ -53,7 +53,16 @@ actual_work_thread_factory_to_use(
 //
 // acquire_work_thread
 //
-//FIXME: document this!
+/*!
+ * \brief Helper function for acquiring a new worker thread from
+ * an appropriate work thread factory.
+ *
+ * If \a params defines a factory then the factory from \a params
+ * is used for acquiring new work thread. Otherwise the factory
+ * from \a env is used.
+ *
+ * \since v.5.7.3
+ */
 template< typename Params >
 [[nodiscard]]
 work_thread_holder_t
