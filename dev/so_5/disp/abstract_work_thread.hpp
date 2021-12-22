@@ -196,14 +196,41 @@ class SO_5_TYPE abstract_work_thread_factory_t
 //
 // abstract_work_thread_factory_shptr_t
 //
-//FIXME: document this!
+/*!
+ * \brief An alias for shared_ptr to abstract_work_thread_factory.
+ *
+ * \since v.5.7.3
+ */
 using abstract_work_thread_factory_shptr_t = std::shared_ptr<
 		abstract_work_thread_factory_t >;
 
 //
 // work_thread_holder_t
 //
-//FIXME: document this!
+/*!
+ * \brief An analog of unique_ptr for abstract_work_thread.
+ *
+ * When an instance of abstract_work_thread is no more needed it has
+ * to be returned to an appropriate abstract_work_thread_factory.
+ * Helper class work_thread_holder_t simplifies that task, in that
+ * sense it's an analog of std::unique_ptr.
+ *
+ * A fully initialized work_thread_holder_t holds a reference to
+ * abstract_work_thread_t instance and shared_ptr to the corresponding
+ * abstract_work_thread_factory_t. The instance of abstract_work_thread_t
+ * will be returned to abstract_work_thread_factory_t in the destructor
+ * of work_thread_holder_t.
+ *
+ * \note
+ * This class doesn't call abstract_work_thread_t::start() nor
+ * abstract_work_thread_t::join(). It only calls
+ * abstract_work_thread_factory_t::release().
+ *
+ * \attention
+ * It is not thread safe.
+ *
+ * \since v.5.7.3
+ */
 class [[nodiscard]] work_thread_holder_t
 	{
 		abstract_work_thread_t * m_thread{};
@@ -254,7 +281,10 @@ class [[nodiscard]] work_thread_holder_t
 					m_factory->release( *m_thread );
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \retval true if it doesn't hold an actual reference to
+		 * abstract_work_thread_t.
+		 */
 		[[nodiscard]]
 		bool
 		empty() const noexcept
@@ -262,21 +292,35 @@ class [[nodiscard]] work_thread_holder_t
 			return nullptr == m_thread;
 		}
 
-		//FIXME: document this!
+		/*!
+		 * \retval true if it holds an actual reference to
+		 * abstract_work_thread_t (e.g. holder is not empty).
+		 */
 		[[nodiscard]]
 		explicit operator bool() const noexcept
 		{
 			return !empty();
 		}
 
-		//FIXME: document this!
+		/*!
+		 * \retval true if it doesn't hold an actual reference to
+		 * abstract_work_thread_t.
+		 */
 		[[nodiscard]]
 		bool operator!() const noexcept
 		{
 			return empty();
 		}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Unsafe method for getting a reference to holding
+		 * abstract_work_thread instance.
+		 *
+		 * No checks are performed inside that method. Use it at your own risk.
+		 *
+		 * \attention
+		 * Calling of that method for an empty holder is UB.
+		 */
 		[[nodiscard]]
 		abstract_work_thread_t &
 		unchecked_get() const noexcept
@@ -288,7 +332,22 @@ class [[nodiscard]] work_thread_holder_t
 //
 // make_std_work_thread_factory
 //
-//FIXME: document this!
+/*!
+ * \brief Get a standard SObjectizer's work thread factory that is used by default.
+ *
+ * Usage example:
+ * \code
+ * so_5::launch( [](so_5::environment_t & env) {
+ * 		...
+ * 	},
+ * 	[&]( so_5::environment_params_t & params ) {
+ * 		params.work_thread_factory( some_condition ?
+ * 				my_work_thread_factory() : so_5::disp::make_std_work_thread_factory() );
+ * 	} );
+ * \endcode
+ *
+ * \since v.5.7.3
+ */
 [[nodiscard]]
 SO_5_FUNC
 abstract_work_thread_factory_shptr_t

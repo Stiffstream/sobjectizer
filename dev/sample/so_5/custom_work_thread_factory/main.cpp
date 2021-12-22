@@ -211,14 +211,14 @@ public:
 	{
 		// If we receive a reference to some different type then
 		// dynamic_cast will throw and that terminates the application.
-		auto & worker = dynamic_cast<worker_thread &>(thread);
+		thread_unique_ptr worker{ &( dynamic_cast<worker_thread &>(thread) ) };
 
 		std::cout << "*** " << m_name << ": thread released, "
-				<< "id=" << worker.id()
-				<< ", ptr=" << &worker << std::endl;
+				<< "id=" << worker->id()
+				<< ", ptr=" << worker.get() << std::endl;
 
 		// Released thread has to be returned to the pool.
-		m_free_threads.push_back( thread_unique_ptr{ &worker } );
+		m_free_threads.push_back( std::move(worker) );
 	}
 };
 
