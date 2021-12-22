@@ -5,3 +5,5 @@ add_subdirectory(simple)
 add_subdirectory(subscr_in_safe)
 add_subdirectory(unsafe_after_safe)
 add_subdirectory(custom_work_thread)
+add_subdirectory(exception_from_safe_handler)
+

@@ -10,4 +10,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/adv_thread_pool/individual_fifo/prj.ut.rb" )
 	required_prj( "test/so_5/disp/adv_thread_pool/unsafe_after_safe/prj.ut.rb" )
 	required_prj( "test/so_5/disp/adv_thread_pool/custom_work_thread/prj.ut.rb" )
+	required_prj( "test/so_5/disp/adv_thread_pool/exception_from_safe_handler/prj.ut.rb" )
 }
