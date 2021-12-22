@@ -592,6 +592,20 @@ const int rc_extensible_select_is_active_now = 187;
  */
 const int rc_prepared_select_is_active_now = 188;
 
+/*!
+ * \brief Agent can't change state because the agent is already deactivated.
+ *
+ * There is a special state for an agent in that agent can't handle events and
+ * only waits for the deregistration. An agent is switched to that state
+ * due to unhandled exception (with exception reaction set to
+ * so_5::deregister_coop_on_exception) or after by a call to
+ * agent_t::so_deactivate_agent(). It is impossible to change the state of
+ * the agent if the agent is in that state already.
+ *
+ * \since v.5.7.3
+ */
+const int rc_agent_deactivated = 189;
+
 //! \name Common error codes.
 //! \{
 

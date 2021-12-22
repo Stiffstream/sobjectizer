@@ -975,6 +975,8 @@ class SO_5_TYPE agent_t
 		virtual exception_reaction_t
 		so_exception_reaction() const;
 
+		//FIXME: there should be note that since v.5.7.3 this method is
+		//implemented via so_deactivate_agent().
 		/*!
 		 * \since 5.2.3
 		 * \brief Switching agent to special state in case of unhandled
@@ -1065,17 +1067,24 @@ class SO_5_TYPE agent_t
 
 	protected:
 		/*!
-		 * \name Methods for working with the agent state.
+		 * \name Accessing the default state.
 		 * \{
 		 */
 
 		//! Access to the agent's default state.
 		const state_t &
 		so_default_state() const;
+		/*!
+		 * \}
+		 */
 
 	public : /* Note: since v.5.5.1 method so_change_state() is public */
 
-		//! Method changes state.
+		/*!
+		 * \name Changing agent's state.
+		 * \{
+		 */
+		//! Change the current state of the agent.
 		/*!
 			Usage sample:
 			\code
@@ -1092,6 +1101,11 @@ class SO_5_TYPE agent_t
 		so_change_state(
 			//! New agent state.
 			const state_t & new_state );
+
+		//FIXME: document this!
+		//FIXME: this method can throws and that should be described in the doc!
+		void
+		so_deactivate_agent();
 		/*!
 		 * \}
 		 */
@@ -2459,6 +2473,21 @@ class SO_5_TYPE agent_t
 		 */
 		const priority_t m_priority;
 
+		//! Destroy all agent's subscriptions.
+		/*!
+		 * \note
+		 * This method is intended to be used in the destructor and
+		 * methods like so_deactivate_agent().
+		 *
+		 * \attention
+		 * It's noexcept method because there is no way to recover in case
+		 * when deletion of subscriptions throws.
+		 *
+		 * \since v.5.7.3
+		 */
+		void
+		destroy_all_subscriptions_and_filters() noexcept;
+
 		//! Make an agent reference.
 		/*!
 		 * This is an internal SObjectizer method. It is called when
@@ -2827,6 +2856,23 @@ class SO_5_TYPE agent_t
 		static const impl::event_handler_data_t *
 		find_deadletter_handler(
 			execution_demand_t & demand );
+
+		/*!
+		 * \brief Perform actual operations related to state switch.
+		 *
+		 * It throws if the agent in awaiting_deregistration_state and
+		 * \a state_to_be_set isn't awaiting_deregistration_state.
+		 *
+		 * \note
+		 * This method doesn't check the working context. It's assumed
+		 * that this check has already been performed by caller.
+		 *
+		 * \since v.5.7.3
+		 */
+		void
+		do_change_agent_state(
+			//! New state to be set as the current state.
+			const state_t & state_to_be_set );
 
 		/*!
 		 * \since

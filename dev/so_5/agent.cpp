@@ -516,8 +516,7 @@ agent_t::~agent_t()
 {
 	// Sometimes it is possible that agent is destroyed without
 	// correct deregistration from SO Environment.
-	drop_all_delivery_filters();
-	m_subscriptions.reset();
+	destroy_all_subscriptions_and_filters();
 }
 
 void
@@ -575,7 +574,7 @@ agent_t::so_exception_reaction() const
 void
 agent_t::so_switch_to_awaiting_deregistration_state()
 {
-	so_change_state( awaiting_deregistration_state );
+	so_deactivate_agent();
 }
 
 const mbox_t &
@@ -634,30 +633,15 @@ agent_t::so_change_state(
 {
 	ensure_operation_is_on_working_thread( "so_change_state" );
 
-	if( new_state.is_target( this ) )
-	{
-		// Since v.5.5.18 we must check nested state switch operations.
-		// This object will drop pointer to the current state.
-		impl::state_switch_guard_t switch_op_guard( *this );
+	do_change_agent_state( new_state );
+}
 
-		auto actual_new_state = new_state.actual_state_to_enter();
-		if( !( *actual_new_state == *m_current_state_ptr ) )
-		{
-			// New state differs from the current one.
-			// Actual state switch must be performed.
-			do_state_switch( *actual_new_state );
+void
+agent_t::so_deactivate_agent()
+{
+	ensure_operation_is_on_working_thread( "so_deactivate_agent" );
 
-			// State listener should be informed.
-			m_state_listener_controller.changed(
-				*this,
-				*m_current_state_ptr );
-		}
-	}
-	else
-		SO_5_THROW_EXCEPTION(
-			rc_agent_unknown_state,
-			"unable to switch agent to alien state "
-			"(the state that doesn't belong to this agent)" );
+	do_change_agent_state( awaiting_deregistration_state );
 }
 
 void
@@ -816,6 +800,13 @@ void
 agent_t::so_deregister_agent_coop_normally()
 {
 	so_deregister_agent_coop( dereg_reason::normal );
+}
+
+void
+agent_t::destroy_all_subscriptions_and_filters() noexcept
+{
+	drop_all_delivery_filters();
+	m_subscriptions.reset();
 }
 
 agent_ref_t
@@ -1404,6 +1395,47 @@ agent_t::find_deadletter_handler(
 			demand.m_mbox_id,
 			demand.m_msg_type,
 			deadletter_state );
+}
+
+void
+agent_t::do_change_agent_state(
+	const state_t & state_to_be_set )
+{
+	// The agent can't leave awaiting_deregistration_state if it's
+	// in that state already.
+	if( m_current_state_ptr == &awaiting_deregistration_state &&
+			&state_to_be_set != &awaiting_deregistration_state )
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_agent_deactivated,
+			"unable to switch agent to another state because the "
+			"agent is already deactivated" );
+	}
+
+	if( state_to_be_set.is_target( this ) )
+	{
+		// Since v.5.5.18 we must check nested state switch operations.
+		// This object will drop pointer to the current state.
+		impl::state_switch_guard_t switch_op_guard( *this );
+
+		auto actual_new_state = state_to_be_set.actual_state_to_enter();
+		if( !( *actual_new_state == *m_current_state_ptr ) )
+		{
+			// New state differs from the current one.
+			// Actual state switch must be performed.
+			do_state_switch( *actual_new_state );
+
+			// State listener should be informed.
+			m_state_listener_controller.changed(
+				*this,
+				*m_current_state_ptr );
+		}
+	}
+	else
+		SO_5_THROW_EXCEPTION(
+			rc_agent_unknown_state,
+			"unable to switch agent to alien state "
+			"(the state that doesn't belong to this agent)" );
 }
 
 void
