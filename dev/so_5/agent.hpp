@@ -764,7 +764,7 @@ class SO_5_TYPE agent_t
 		 auto b = coop->make_agent< my_more_specific_agent >();
 		 * \endcode
 		 */
-		agent_t( context_t ctx );
+		explicit agent_t( context_t ctx );
 
 		virtual ~agent_t();
 
@@ -2401,7 +2401,7 @@ class SO_5_TYPE agent_t
 		 * get access to m_event_queue until there is working
 		 * push_event()/push_service_request().
 		 */
-		default_rw_spinlock_t	m_event_queue_lock;
+		default_rw_spinlock_t m_event_queue_lock;
 
 		/*!
 		 * \since
@@ -2850,7 +2850,7 @@ class SO_5_TYPE agent_t
 		 * This return will initiate invocation of on_exit handlers
 		 * for all active states of the agent.
 		 *
-		 * \attention State switch is not performed is agent is already
+		 * \attention State switch is not performed if agent is already
 		 * in default state or if it waits deregistration after unhandled
 		 * exception.
 		 */
