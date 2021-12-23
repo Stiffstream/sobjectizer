@@ -28,6 +28,13 @@ class a_test_t final : public so_5::agent_t
 {
 	struct first final : public so_5::signal_t {};
 
+	struct dummy_msg final : public so_5::message_t
+	{
+		int m_key;
+
+		dummy_msg( int key ) : m_key{key} {}
+	};
+
 public:
 	using so_5::agent_t::agent_t;
 
@@ -69,6 +76,16 @@ private:
 						so_direct_mbox(), &a_test_t::evt_first );
 			},
 			"deadletter setup completed successfully" );
+
+		ensure_throws(
+			[this]() {
+				so_set_delivery_filter(
+						so_environment().create_mbox( "dummy" ),
+						[]( const dummy_msg & msg ) {
+							return msg.m_key > 0;
+						} );
+			},
+			"delivery_filter setup completed successfully" );
 	}
 
 	template< typename Lambda >
