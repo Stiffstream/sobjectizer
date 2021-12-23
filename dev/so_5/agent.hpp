@@ -2902,6 +2902,23 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		return_to_default_state_if_possible() noexcept;
+
+		/*!
+		 * \brief Is agent already deactivated.
+		 *
+		 * Deactivated agent is in awaiting_deregistration_state.
+		 * This method checks that the current state of the agent
+		 * is awaiting_deregistration_state.
+		 *
+		 * \attention
+		 * This method isn't thread safe and should be used with care.
+		 * A caller should guarantee that it's called from the right
+		 * working thread.
+		 *
+		 * \since v.5.7.3
+		 */
+		bool
+		is_agent_deactivated() const noexcept;
 };
 
 /*!

@@ -1,5 +1,5 @@
 /*
- * A simple test for so_deactivate_agent().
+ * A test for subscription after so_deactivate_agent().
  */
 
 #include <so_5/all.hpp>
@@ -27,7 +27,6 @@ public:
 class a_test_t final : public so_5::agent_t
 {
 	struct first final : public so_5::signal_t {};
-	struct second final : public so_5::signal_t {};
 
 public:
 	using so_5::agent_t::agent_t;
@@ -36,21 +35,60 @@ public:
 	so_define_agent() override
 	{
 		so_subscribe_self()
-			.event( [this]( mhood_t<first> ) {
-					so_5::send< a_terminator_t::kill >(
-							so_environment().create_mbox( "terminator" ) );
-					so_deactivate_agent();
-				} )
-			.event( []( mhood_t<second> ) {
-					throw std::runtime_error{ "second message received" };
-				} );
+			.event( &a_test_t::evt_first )
+			;
 	}
 
 	void
 	so_evt_start() override
 	{
 		so_5::send< first >( *this );
-		so_5::send< second >( *this );
+	}
+
+private:
+	void
+	evt_first( mhood_t<first> )
+	{
+		so_5::send< a_terminator_t::kill >(
+				so_environment().create_mbox( "terminator" ) );
+
+		so_deactivate_agent();
+
+		if( so_has_subscription<first>(so_direct_mbox()) )
+			throw std::runtime_error{ "subscription isn't dropped" };
+
+		ensure_throws(
+			[this]() {
+				so_subscribe_self().event( &a_test_t::evt_first );
+			},
+			"resubscription completed successfully" );
+
+		ensure_throws(
+			[this]() {
+				so_subscribe_deadletter_handler(
+						so_direct_mbox(), &a_test_t::evt_first );
+			},
+			"deadletter setup completed successfully" );
+	}
+
+	template< typename Lambda >
+	void
+	ensure_throws(
+		Lambda && lambda,
+		const char * failure_description )
+	{
+		bool exception_thrown = false;
+		try
+		{
+			lambda();
+		}
+		catch( const so_5::exception_t & )
+		{
+			exception_thrown = true;
+		}
+
+		if( !exception_thrown )
+			throw std::runtime_error{ failure_description };
 	}
 };
 

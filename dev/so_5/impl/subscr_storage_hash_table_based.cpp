@@ -225,6 +225,9 @@ class storage_t : public subscription_storage_t
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index ) override;
 
+		void
+		drop_all_subscriptions() override;
+
 		const event_handler_data_t *
 		find_handler(
 			mbox_id_t mbox_id,
@@ -376,6 +379,12 @@ storage_t::drop_subscription_for_all_states(
 
 			mbox_ref->unsubscribe_event_handlers( type_index, *owner() );
 		}
+	}
+
+void
+storage_t::drop_all_subscriptions()
+	{
+		destroy_all_subscriptions();
 	}
 
 const event_handler_data_t *

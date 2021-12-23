@@ -177,6 +177,21 @@ class subscription_storage_t
 			const mbox_t & mbox,
 			const std::type_index & msg_type ) = 0;
 
+		/*!
+		 * \brief Drop all subscriptions.
+		 *
+		 * All subscribed event-handlers have to be unsubscribed.
+		 * The object should remain in the valid state and creation
+		 * of new subscriptions have to be allowed.
+		 *
+		 * This method is intended to be used when an agents what
+		 * to erase all subscriptions at once.
+		 *
+		 * \since v.5.7.3
+		 */
+		virtual void
+		drop_all_subscriptions() = 0;
+
 		virtual const event_handler_data_t *
 		find_handler(
 			mbox_id_t mbox_id,
@@ -196,6 +211,7 @@ class subscription_storage_t
 		 */
 		virtual void
 		drop_content() = 0;
+
 
 		//! Get content for copying subscription information
 		//! to another storage object.

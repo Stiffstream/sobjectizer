@@ -642,6 +642,7 @@ agent_t::so_deactivate_agent()
 	ensure_operation_is_on_working_thread( "so_deactivate_agent" );
 
 	do_change_agent_state( awaiting_deregistration_state );
+	destroy_all_subscriptions_and_filters();
 }
 
 void
@@ -806,7 +807,7 @@ void
 agent_t::destroy_all_subscriptions_and_filters() noexcept
 {
 	drop_all_delivery_filters();
-	m_subscriptions.reset();
+	m_subscriptions->drop_all_subscriptions();
 }
 
 agent_ref_t
@@ -891,6 +892,12 @@ agent_t::so_create_event_subscription(
 
 	ensure_operation_is_on_working_thread( "so_create_event_subscription" );
 
+	// A new subscription can't be made if agent is already deactivated.
+	if( is_agent_deactivated() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_agent_deactivated,
+				"new subscription can't made for deactivated agent" );
+
 	m_subscriptions->create_event_subscription(
 			mbox_ref,
 			msg_type,
@@ -909,6 +916,12 @@ agent_t::so_create_deadletter_subscription(
 	thread_safety_t thread_safety )
 {
 	ensure_operation_is_on_working_thread( "so_create_deadletter_subscription" );
+
+	// A new deadletter handler can't be made if agent is already deactivated.
+	if( is_agent_deactivated() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_agent_deactivated,
+				"new deadletter handler can't be set for deactivated agent" );
 
 	m_subscriptions->create_event_subscription(
 			mbox,
@@ -1298,6 +1311,12 @@ agent_t::do_set_delivery_filter(
 {
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 
+	// A new delivery filter can't be set if agent is already deactivated.
+	if( is_agent_deactivated() )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_agent_deactivated,
+				"new delivery filter can't be set for deactivated agent" );
+
 	if( !m_delivery_filters )
 		m_delivery_filters.reset( new impl::delivery_filter_storage_t() );
 
@@ -1403,8 +1422,8 @@ agent_t::do_change_agent_state(
 {
 	// The agent can't leave awaiting_deregistration_state if it's
 	// in that state already.
-	if( m_current_state_ptr == &awaiting_deregistration_state &&
-			&state_to_be_set != &awaiting_deregistration_state )
+	if( is_agent_deactivated() &&
+			state_to_be_set != awaiting_deregistration_state )
 	{
 		SO_5_THROW_EXCEPTION(
 			rc_agent_deactivated,
@@ -1505,12 +1524,18 @@ void
 agent_t::return_to_default_state_if_possible() noexcept
 {
 	if( !( st_default == so_current_state() ||
-			awaiting_deregistration_state == so_current_state() ) )
+			is_agent_deactivated() ) )
 	{
 		// The agent must be returned to the default state.
 		// All on_exit handlers must be called at this point.
 		so_change_state( st_default );
 	}
+}
+
+bool
+agent_t::is_agent_deactivated() const noexcept
+{
+	return awaiting_deregistration_state == so_current_state();
 }
 
 } /* namespace so_5 */
