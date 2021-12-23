@@ -20,3 +20,5 @@ add_subdirectory(deadletter_handler_unsubscribe)
 add_subdirectory(deadletter_handler_unsubscribe_all_states)
 add_subdirectory(deadletter_handler_has_handler)
 add_subdirectory(deadletter_handler_formats)
+
+add_subdirectory(deactivate_agent_simple)
