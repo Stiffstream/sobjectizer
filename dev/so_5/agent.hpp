@@ -975,12 +975,14 @@ class SO_5_TYPE agent_t
 		virtual exception_reaction_t
 		so_exception_reaction() const;
 
-		//FIXME: there should be note that since v.5.7.3 this method is
-		//implemented via so_deactivate_agent().
 		/*!
-		 * \since 5.2.3
 		 * \brief Switching agent to special state in case of unhandled
 		 * exception.
+		 *
+		 * \note
+		 * Since v.5.7.3 it's implemented via so_deactivate_agent().
+		 *
+		 * \since 5.2.3
 		 */
 		void
 		so_switch_to_awaiting_deregistration_state();
@@ -1096,14 +1098,142 @@ class SO_5_TYPE agent_t
 					so_change_state( m_error_state );
 			}
 			\endcode
+
+			\attention
+			This method has to be called from a worker thread assigned
+			to the agent by the dispatcher. This method can't be called from
+			thread_safe event-handlers because so_change_state() modifies
+			the state of the agent.
 		*/
 		void
 		so_change_state(
 			//! New agent state.
 			const state_t & new_state );
 
-		//FIXME: document this!
-		//FIXME: this method can throws and that should be described in the doc!
+		/*!
+		 * \brief Deactivate the agent.
+		 *
+		 * This method deactivates the agent:
+		 *
+		 * - drops all agent's subscriptions (including deadletter handlers) and
+		 *   delivery filters;
+		 * - switches the agent to a special state in that the agent does nothing
+		 *   and just waits the deregistration.
+		 *
+		 * Sometimes it is necessary to mark an agent as 'failed'. Such an agent
+		 * shouldn't process anything and the only thing that is allowed
+		 * is waiting for the deregistration. For example:
+		 *
+		 * \code
+		 * class some_agent final : public so_5::agent_t
+		 * {
+		 * 	state_t st_working{ this, "working" };
+		 * 	state_t st_failed{ this, "failed" };
+		 * 	...
+		 * 	void on_enter_st_failed()
+		 * 	{
+		 * 		// Notify some supervisor about the failure.
+		 * 		// It will deregister the whole cooperation with failed agent.
+		 * 		so_5::send<msg_failure>( supervisor_mbox(), ... );
+		 * 	}
+		 * 	...
+		 * 	void so_define_agent() override
+		 * 	{
+		 * 		this >>= st_working;
+		 *
+		 * 		st_failed.on_enter( &some_agent::on_enter_st_failed );
+		 *
+		 * 		...
+		 * 	}
+		 *
+		 * 	void evt_some_event(mhood_t<some_msg> cmd)
+		 * 	{
+		 * 		try
+		 * 		{
+		 * 			do_some_processing_of(*cmd);
+		 * 		}
+		 * 		catch(...)
+		 * 		{
+		 * 			// Processing failed, agent can't continue work normally.
+		 * 			// Have to switch it to the failed state and wait for
+		 * 			// the deregistration.
+		 * 			this >>= st_failed;
+		 * 		}
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * This approach works but has a couple of drawbacks:
+		 *
+		 * - it's necessary to define a separate state for an agent (like
+		 *   st_failed shown above);
+		 * - agent still has all its subscriptions. It means that messages will
+		 *   be delivered to the agent's event queue and dispatched by the
+		 *   agent's dispatcher. They won't be handled because there are no
+		 *   subscriptions in a state like st_failed, but message dispatching
+		 *   will consume some resources, although the agent is a special
+		 *   'failed' state.
+		 *
+		 * To cope with those drawbacks so_deactivate_agent was introduced in
+		 * v.5.7.3. That method drops all agent's subscriptions (including
+		 * deadletter handlers and delivery filters) and switches the agent to a
+		 * special hidden state in that the agent doesn't handle anything.
+		 *
+		 * The example above now can be rewritten that way:
+		 * \code
+		 * class some_agent final : public so_5::agent_t
+		 * {
+		 * 	state_t st_working{ this, "working" };
+		 * 	...
+		 * 	void switch_to_failed_state()
+		 * 	{
+		 * 		// Notify some supervisor about the failure.
+		 * 		// It will deregister the whole cooperation with failed agent.
+		 * 		so_5::send<msg_failure>( supervisor_mbox(), ... );
+		 * 		// Deactivate the agent.
+		 * 		so_deactivate_agent();
+		 * 	}
+		 * 	...
+		 * 	void so_define_agent() override
+		 * 	{
+		 * 		this >>= st_working;
+		 * 		...
+		 * 	}
+		 *
+		 * 	void evt_some_event(mhood_t<some_msg> cmd)
+		 * 	{
+		 * 		try
+		 * 		{
+		 * 			do_some_processing_of(*cmd);
+		 * 		}
+		 * 		catch(...)
+		 * 		{
+		 * 			// Processing failed, agent can't continue work normally.
+		 * 			// Have to switch it to the failed state and wait for
+		 * 			// the deregistration.
+		 * 			switch_to_failed_state();
+		 * 		}
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * The method uses so_change_state(), so it has all requirements of
+		 * so_change_state(). Because the agent state will be changed,
+		 * so_deactivate_state() has to be called on the working thread
+		 * assigned to the agent by the dispatcher, and
+		 * so_deactivate_state() can't be invoked from a thread_safe event
+		 * handler.
+		 *
+		 * \attention
+		 * The method is not noexcept, it can throw an exception. So additional
+		 * care has to be taken when it's called in catch-block and/or in
+		 * noexcept contexts.
+		 *
+		 * \since v.5.7.3
+		 */
 		void
 		so_deactivate_agent();
 		/*!
