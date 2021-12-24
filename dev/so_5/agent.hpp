@@ -2873,11 +2873,19 @@ class SO_5_TYPE agent_t
 				... // Some other actions.
 			} );
 		 * \endcode
+		 *
+		 * \attention
+		 * Implementation notes: it's important that \a method is passed
+		 * by value. It's because subscription can be deleted during
+		 * the work of process_message (due to unsubscription inside the
+		 * event handler) and if pass \a method by a reference then
+		 * that reference can become invalid.
 		 */
 		static void
 		process_message(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
+			thread_safety_t thread_safety,
 			event_handler_method_t method );
 
 		/*!

@@ -750,6 +750,7 @@ agent_t::so_create_execution_hint(
 									process_message(
 											thread_id,
 											demand,
+											handler->m_thread_safety,
 											handler->m_method );
 								},
 								handler->m_thread_safety );
@@ -1179,7 +1180,11 @@ agent_t::demand_handler_on_message(
 	auto handler = d.m_receiver->m_handler_finder(
 			d, "demand_handler_on_message" );
 	if( handler )
-		process_message( working_thread_id, d, handler->m_method );
+		process_message(
+				working_thread_id,
+				d,
+				handler->m_thread_safety,
+				handler->m_method );
 }
 
 demand_handler_pfn_t
@@ -1210,11 +1215,18 @@ void
 agent_t::process_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d,
+	thread_safety_t thread_safety,
 	event_handler_method_t method )
 {
-	working_thread_id_sentinel_t sentinel(
+	working_thread_id_sentinel_t sentinel{
 			d.m_receiver->m_working_thread_id,
-			working_thread_id );
+			// v.5.7.3
+			// If event_handler is thread_safe-handler then null_thread_id
+			// has to be used instead of the actual working_thread_id.
+			so_5::thread_safe == thread_safety
+				? null_current_thread_id()
+				: working_thread_id
+		};
 
 	try
 	{
@@ -1248,7 +1260,11 @@ agent_t::process_enveloped_msg(
 			// Just call process_message() in that case because
 			// process_message() already does what we need (including
 			// setting working_thread_id and handling of exceptions).
-			process_message( working_thread_id, d, handler_data->m_method );
+			process_message(
+					working_thread_id,
+					d,
+					handler_data->m_thread_safety,
+					handler_data->m_method );
 		else
 			// For a final_handler the payload should be extracted
 			// from the envelope and the extracted payload should go

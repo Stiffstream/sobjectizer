@@ -118,6 +118,7 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
 						agent_t::process_message(
 								m_work_thread_id,
 								fresh_demand,
+								m_handler_data.m_thread_safety,
 								m_handler_data.m_method );
 					break;
 
