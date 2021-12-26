@@ -77,6 +77,7 @@ set(SO_5_SRC exception.cpp
 	stats/impl/ds_mbox_core_stats.cpp
 	stats/impl/ds_timer_thread_stats.cpp
 	
+	disp/abstract_work_thread.cpp
 	disp/mpsc_queue_traits/pub.cpp
 	disp/mpmc_queue_traits/pub.cpp
 	disp/one_thread/pub.cpp
