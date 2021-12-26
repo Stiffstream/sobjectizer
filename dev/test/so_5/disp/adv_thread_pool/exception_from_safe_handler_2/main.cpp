@@ -11,6 +11,7 @@
 class a_test_t final : public so_5::agent_t
 {
 	struct check_it final : public so_5::signal_t {};
+	struct quit final : public so_5::signal_t {};
 
 public:
 	using so_5::agent_t::agent_t;
@@ -18,19 +19,23 @@ public:
 	void
 	so_define_agent() override
 	{
-		so_subscribe_self().event( &a_test_t::evt_check_it, so_5::thread_safe );
+		so_subscribe_self()
+			.event( &a_test_t::evt_check_it, so_5::thread_safe )
+			.event( &a_test_t::evt_quit, so_5::not_thread_safe )
+			;
 	}
 
 	void
 	so_evt_start() override
 	{
 		so_5::send< check_it >( *this );
+		so_5::send< quit >( *this );
 	}
 
 	so_5::exception_reaction_t
 	so_exception_reaction() const override
 	{
-		return so_5::deregister_coop_on_exception;
+		return so_5::ignore_exception;
 	}
 
 private:
@@ -38,6 +43,12 @@ private:
 	evt_check_it( mhood_t<check_it> )
 	{
 		throw std::runtime_error{ "Oops!" };
+	}
+
+	void
+	evt_quit( mhood_t<quit> )
+	{
+		so_deregister_agent_coop_normally();
 	}
 };
 
