@@ -23,6 +23,12 @@ waits for the deregistration.
 Being in a deactivated state an agent can't make new subscriptions and change
 its state.
 
+Since v.5.7.3 actions performed in a thread-safe event-handler are checked
+regardless of the dispatcher type. It means that the state of an agent can't be
+changed in thread-safe handler even if the agent is bound to one_thread
+dispatcher. Changes to agent's subscriptions can't be made in a thread-safe
+event-handler too.
+
 
 \section so_5__5_7_2 5.7.2 "Putana"
 
