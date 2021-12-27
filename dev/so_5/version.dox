@@ -2,6 +2,28 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7_3 5.7.3 "Cotopaxi"
+
+Old forms of so_5::abstract_message_chain_t::close(),
+so_5::close_drop_content() and so_5::close_retain_content() are deprecated. New
+forms that accept so_5::exceptions_enabled/so_5::terminate_if_throws have to be
+used now.
+
+A user can now introduce own worker threads to SObjectizer dispatchers via
+implementing new interfaces so_5::disp::abstract_work_thread_t and
+so_5::disp::abstract_work_thread_factory_t.
+
+New method so_5::agent_t::so_deactivate_agent deactivates the agent:
+
+- drops all agent's subscriptions (including deadletter handlers) and delivery
+filters;
+- switches the agent to a special state in that the agent does nothing and just
+waits for the deregistration.
+
+Being in a deactivated state an agent can't make new subscriptions and change
+its state.
+
+
 \section so_5__5_7_2 5.7.2 "Putana"
 
 	`operator==` and `operator!=` added to so_5::coop_handle_t.
