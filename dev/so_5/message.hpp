@@ -200,10 +200,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * It can be changed or even removed in any future versions
 		 * of SObjectizer.
 		 *
-		 * \note
-		 * This is a virual method because its behavious must be changed in
-		 * msg_service_request_t.
-		 *
 		 * \since
 		 * v.5.5.19
 		 */
@@ -224,10 +220,6 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * guaranteed that this method is part of stable SObjectizer API.
 		 * It can be changed or even removed in any future versions
 		 * of SObjectizer.
-		 *
-		 * \note
-		 * This is a virual method because its behavious must be changed in
-		 * msg_service_request_t.
 		 *
 		 * \attention
 		 * This function can throw.
@@ -946,7 +938,7 @@ struct overlimit_context_t
 		 */
 		const mbox_id_t m_mbox_id;
 
-		//! Receiver of the message or service request.
+		//! Receiver of the message (or enveloped message).
 		const agent_t & m_receiver;
 
 		//! Control block for message limit.
@@ -958,7 +950,7 @@ struct overlimit_context_t
 		//! Type of message to be delivered.
 		const std::type_index & m_msg_type;
 
-		//! A message or service request to be delivered.
+		//! A message (or enveloped message) to be delivered.
 		const message_ref_t & m_message;
 
 		/*!
