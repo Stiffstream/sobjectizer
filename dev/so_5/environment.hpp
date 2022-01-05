@@ -401,6 +401,18 @@ class SO_5_TYPE environment_params_t
 
 		//! Set new environment infrastructure factory.
 		/*!
+		 * Usage example:
+		 * \code
+		 * so_5::launch( []( so_5::environment_t & env ) {
+		 * 		... // Some initial actions.
+		 * 	},
+		 * 	[]( so_5::environment_params_t & params ) {
+		 * 		// Set infrastructure factory to make simple not-thread-safe
+		 * 		// single-threaded infrastructure.
+		 * 		params.infrastructure_factory(
+		 * 			so_5::env_infrastructures::simple_not_mtsafe::factory() );
+		 * 	} );
+		 * \endcode
 		 * \since
 		 * v.5.5.19
 		 */
