@@ -29,6 +29,8 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/deadletter_handler_formats/prj.ut.rb" )
 	required_prj( "#{path}/deactivate_agent_simple/prj.ut.rb" )
 	required_prj( "#{path}/deactivate_try_resubscribe/prj.ut.rb" )
+	required_prj( "#{path}/deactivate_agent_evt_finish/prj.ut.rb" )
+
 	required_prj( "#{path}/thread_safety_check/prj.ut.rb" )
 }
 
