@@ -1,27 +1,28 @@
 * [What is SObjectizer?](#what-is-sobjectizer)
 * [What distinguishes SObjectizer?](#what-distinguishes-sobjectizer)
-   * [SObjectizer is not like TBB, taskflow or HPX](#sobjectizer-is-not-like-tbb-taskflow-or-hpx)
-* [Show me the code\!](#show-me-the-code)
-  * [HelloWorld example](#helloworld-example)
-  * [Ping\-Pong example](#ping-pong-example)
-  * [Pub/Sub example](#pubsub-example)
-  * [BlinkingLed example](#blinkingled-example)
-  * [CSP\-like Ping\-Pong example](#csp-like-ping-pong-example)
-  * [Another CSP\-example with Golang's like select() statement](#another-csp-example-with-golangs-like-select-statement)
-  * [Want to know more?](#want-to-know-more)
+	* [SObjectizer is not like TBB, taskflow or HPX](#sobjectizer-is-not-like-tbb-taskflow-or-hpx)
+* [Show me the code!](#show-me-the-code)
+	* [HelloWorld example](#helloworld-example)
+	* [Ping-Pong example](#ping-pong-example)
+	* [Pub/Sub example](#pubsub-example)
+	* [BlinkingLed example](#blinkingled-example)
+	* [CSP-like Ping-Pong example](#csp-like-ping-pong-example)
+	* [Another CSP-example with Golang's like select() statement](#another-csp-example-with-golangs-like-select-statement)
+	* [Want to know more?](#want-to-know-more)
+* [There are more useful stuff in a companion project so5extra](#there-are-more-useful-stuff-in-a-companion-project-so5extra)
 * [Limitations](#limitations)
 * [Obtaining and building](#obtaining-and-building)
-  * [SObjectizer\-5\.7 requires C\+\+17\!](#sobjectizer-57-requires-c17)
-  * [Building via Mxx\_ru](#building-via-mxx_ru)
-  * [Building via CMake](#building-via-cmake)
-  * [Building for Android](#building-for-android)
-    * [Building with Android NDK](#building-with-android-ndk)
-    * [Building with CrystaX NDK](#building-with-crystax-ndk)
-  * [Using C\+\+ Dependency Managers](#using-c-dependency-managers)
-    * [Using via vcpkg](#using-via-vcpkg)
-    * [Using via Conan](#using-via-conan)
-      * [Installing SObjectizer And Adding It To conanfile\.txt](#installing-sobjectizer-and-adding-it-to-conanfiletxt)
-      * [Adding SObjectizer To Your CMakeLists\.txt](#adding-sobjectizer-to-your-cmakeliststxt)
+	* [SObjectizer-5.7 requires C  17!](#sobjectizer-57-requires-c17)
+	* [Building via Mxx_ru](#building-via-mxx_ru)
+	* [Building via CMake](#building-via-cmake)
+	* [Building for Android](#building-for-android)
+		* [Building with Android NDK](#building-with-android-ndk)
+		* [Building with CrystaX NDK](#building-with-crystax-ndk)
+	* [Using C   Dependency Managers](#using-c-dependency-managers)
+		* [Using via vcpkg](#using-via-vcpkg)
+		* [Using via Conan](#using-via-conan)
+			* [Installing SObjectizer And Adding It To conanfile.txt](#installing-sobjectizer-and-adding-it-to-conanfiletxt)
+			* [Adding SObjectizer To Your CMakeLists.txt](#adding-sobjectizer-to-your-cmakeliststxt)
 * [License](#license)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
@@ -392,8 +393,8 @@ void pinger_proc(so_5::mchain_t self_ch, so_5::mchain_t ping_ch) {
             so_5::send<ping>(ping_ch, cmd->counter_ - 1);
          else {
             // Channels have to be closed to break `receive` calls.
-            so_5::close_drop_content(self_ch);
-            so_5::close_drop_content(ping_ch);
+            so_5::close_drop_content(so_5::exceptions_enabled, self_ch);
+            so_5::close_drop_content(so_5::exceptions_enabled, ping_ch);
          }
       });
 }
@@ -504,6 +505,89 @@ int main()
 
 More information about SObjectizer can be found in the corresponding section of
 the [project's Wiki](https://github.com/Stiffstream/sobjectizer/wiki).
+
+# There are more useful stuff in a companion project so5extra
+
+There is a separate companion project [so5extra](https://github.com/Stiffstream/so5extra) that contains a lot of various useful things like Asio's based dispatchers, additional types of mboxes, revocable timer, synchronous requests, and more.
+
+For example, there is how synchronous interaction looks like (by using `so_5::extra::sync` stuff):
+
+```cpp
+#include <so_5_extra/sync/pub.hpp>
+
+#include <so_5/all.hpp>
+
+// Short alias for convenience.
+namespace sync_ns = so_5::extra::sync;
+
+using namespace std::chrono_literals;
+
+// The type of service provider.
+class service_provider_t final : public so_5::agent_t
+{
+public :
+   using so_5::agent_t::agent_t;
+
+   void so_define_agent() override
+   {
+      so_subscribe_self().event(
+            []( sync_ns::request_mhood_t<int, std::string> cmd ) {
+               // Transform the incoming value, convert the result
+               // to string and send the resulting string back.
+               cmd->make_reply( std::to_string(cmd->request() * 2) );
+            } );
+   }
+};
+
+// The type of service consumer.
+class consumer_t final : public so_5::agent_t
+{
+   // Message box of the service provider.
+   const so_5::mbox_t m_service;
+
+public :
+   consumer_t( context_t ctx, so_5::mbox_t service )
+      :  so_5::agent_t{ std::move(ctx) }
+      ,  m_service{ std::move(service) }
+   {}
+
+   void so_evt_start() override
+   {
+      // Issue a request and wait for the result no more than 500ms.
+      auto result = sync_ns::request_reply<int, std::string>(
+            // The destination for the request.
+            m_service,
+            // Max waiting time.
+            500ms,
+            // Request's value.
+            4 );
+
+      std::cout << "The result: " << result << std::endl;
+
+      so_deregister_agent_coop_normally();
+   }
+};
+
+int main()
+{
+   so_5::launch( [](so_5::environment_t & env) {
+      env.introduce_coop(
+         // Every agent should work on its own thread.
+         so_5::disp::active_obj::make_dispatcher( env ).binder(),
+         [](so_5::coop_t & coop) {
+            auto service_mbox = coop.make_agent< service_provider_t >()
+                  ->so_direct_mbox();
+            coop.make_agent< consumer_t >( service_mbox );
+         } );
+   } );
+}
+```
+
+SObjectizer itself is intended to be a relatively small project without external dependencies. so5extra has no this constraint. That is why Asio's based dispatchers and environment infrastructures are implemented in so5extra, not in the SObjectizer.
+
+Another significant property of SObjectizer is stability. We're trying to keep SObjectizer as stable as possible, but there is a need to try some new features, even if we don't know yet how successful and demanded they will be. so5extra is a good place to experiment with new features, some of them could be moved to the SObjectizer with time.
+
+So if you don't find a helpful feature in the SObjectizer, let's try to look at [so5extra](https://github.com/Stiffstream/so5extra). Maybe it is already there.
 
 # Limitations
 
