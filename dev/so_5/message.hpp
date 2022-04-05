@@ -659,6 +659,7 @@ struct message_payload_type_impl
 		static constexpr const bool is_signal = ::so_5::is_signal<T>::value;
 
 		//! Type ID for subscription.
+		[[nodiscard]]
 		inline static std::type_index subscription_type_index()
 			{
 				// T must not be a mutable_msg<T>.
@@ -672,6 +673,7 @@ struct message_payload_type_impl
 		 * \note This method return non-const pointer because it is
 		 * necessary for so_5::mhood_t.
 		 */
+		[[nodiscard]]
 		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )
 			{
@@ -682,6 +684,7 @@ struct message_payload_type_impl
 		/*!
 		 * The same implementation as for extract_envelope_ptr().
 		 */
+		[[nodiscard]]
 		inline static envelope_type *
 		extract_envelope_ptr( message_ref_t & msg )
 			{
@@ -689,6 +692,7 @@ struct message_payload_type_impl
 			}
 
 		//! Helper for getting a const reference to payload part.
+		[[nodiscard]]
 		inline static payload_type &
 		payload_reference( message_t & msg )
 			{
@@ -696,6 +700,7 @@ struct message_payload_type_impl
 			}
 
 		//! Helper for getting message mutability flag.
+		[[nodiscard]]
 		inline static message_mutability_t
 		mutability()
 			{
@@ -733,6 +738,7 @@ struct message_payload_type_impl< T, false >
 		static constexpr const bool is_signal = false;
 
 		//! Type ID for subscription.
+		[[nodiscard]]
 		inline static std::type_index subscription_type_index()
 			{
 				return typeid(subscription_type);
@@ -743,6 +749,7 @@ struct message_payload_type_impl< T, false >
 		 * \note This method return const pointer because payload is
 		 * a const object inside user_type_message_t<T> instance.
 		 */
+		[[nodiscard]]
 		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )
 			{
@@ -755,6 +762,7 @@ struct message_payload_type_impl< T, false >
 			}
 
 		//! Helper for extraction of pointer to envelope part.
+		[[nodiscard]]
 		inline static envelope_type *
 		extract_envelope_ptr( message_ref_t & msg )
 			{
@@ -762,6 +770,7 @@ struct message_payload_type_impl< T, false >
 			}
 
 		//! Helper for getting a const reference to payload part.
+		[[nodiscard]]
 		inline static payload_type &
 		payload_reference( message_t & msg )
 			{
@@ -770,6 +779,7 @@ struct message_payload_type_impl< T, false >
 			}
 
 		//! Helper for getting message mutability flag.
+		[[nodiscard]]
 		inline static message_mutability_t
 		mutability()
 			{
@@ -855,6 +865,7 @@ struct make_message_instance_impl
 		using E = typename message_payload_type< Msg >::envelope_type;
 
 		template< typename... Args >
+		[[nodiscard]]
 		static std::unique_ptr< E >
 		make( Args &&... args )
 			{
@@ -867,6 +878,7 @@ struct make_message_instance_impl
 template< typename Msg >
 struct make_message_instance_impl< true, Msg >
 	{
+		[[nodiscard]]
 		static std::unique_ptr< Msg >
 		make()
 			{
@@ -883,6 +895,7 @@ struct make_message_instance_impl< true, Msg >
  * \brief A helper for allocate instance of a message.
  */
 template< typename Msg, typename... Args >
+[[nodiscard]]
 auto
 make_message_instance( Args &&... args )
 	-> std::unique_ptr< typename message_payload_type< Msg >::envelope_type >
@@ -1051,6 +1064,7 @@ struct control_block_t
 			}
 
 		//! A special indicator about absence of control_block.
+		[[nodiscard]]
 		inline static const control_block_t *
 		none() { return nullptr; }
 
