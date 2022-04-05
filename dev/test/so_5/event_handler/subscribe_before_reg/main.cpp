@@ -31,11 +31,11 @@ public :
 		this >>= st_1;
 
 		st_1.event( [this](mhood_t< msg_1 >) {
-				this >>= st_2;
+				st_2.activate();
 				so_5::send< msg_2 >( *this );
 			} );
 		st_2.event( [this](mhood_t< msg_2 >) {
-				this >>= st_3;
+				st_3.activate();
 				so_5::send< msg_3 >( *this );
 			} );
 		st_3.event( [this](mhood_t< msg_3 >) {

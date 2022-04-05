@@ -28,7 +28,7 @@ public :
 	first_t( context_t ctx ) : so_5::agent_t{ std::move(ctx) }
 	{
 		so_subscribe_self().event( [this](mhood_t<msg_take> cmd) {
-			this >>= st_taken;
+			st_taken.activate();
 			so_5::send<msg_taken>( cmd->m_reply_to );
 		} );
 	}

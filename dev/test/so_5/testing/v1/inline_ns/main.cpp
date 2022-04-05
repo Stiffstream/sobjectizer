@@ -21,10 +21,10 @@ public :
 	{
 		st_free.event(
 				control_mbox,
-				[this](mhood_t<acquire>) { this >>= st_busy; } );
+				[this](mhood_t<acquire>) { st_busy.activate(); } );
 		st_busy.event(
 				control_mbox,
-				[this](mhood_t<release>) { this >>= st_free; } );
+				[this](mhood_t<release>) { st_free.activate(); } );
 
 		this >>= st_free;
 	}

@@ -24,7 +24,7 @@ public :
 		st_one.on_enter( [this] {
 				bool exception_thrown = false;
 				try {
-					this >>= so_default_state();
+					so_default_state().activate();
 				}
 				catch( const so_5::exception_t & x ) {
 					if( so_5::rc_another_state_switch_in_progress == x.error_code() )
@@ -39,7 +39,7 @@ public :
 			.event( [this](mhood_t< finish >) { so_deregister_agent_coop_normally(); } );
 
 		so_default_state().event( [this](mhood_t< sig_1 >) {
-				this >>= st_one;
+				st_one.activate();
 			} );
 	}
 

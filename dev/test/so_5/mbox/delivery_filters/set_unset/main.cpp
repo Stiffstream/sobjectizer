@@ -48,7 +48,7 @@ public :
 			.event( &a_test_t::evt_data );
 
 		st_1.event( [this](mhood_t< next >) {
-				this >>= st_2;
+				st_2.activate();
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
 
@@ -56,7 +56,7 @@ public :
 			} );
 
 		st_2.event( [this](mhood_t< next >) {
-				this >>= st_3;
+				st_3.activate();
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
 					return 2 == msg.m_key;
@@ -66,7 +66,7 @@ public :
 			} );
 
 		st_3.event( [this](mhood_t< next >) {
-				this >>= st_4;
+				st_4.activate();
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
 
@@ -74,7 +74,7 @@ public :
 			} );
 
 		st_4.event( [this](mhood_t< next >) {
-				this >>= st_5;
+				st_5.activate();
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
 					return 3 == msg.m_key;
@@ -84,7 +84,7 @@ public :
 			} );
 
 		st_5.event( [this](mhood_t< next >) {
-				this >>= st_6;
+				st_6.activate();
 				m_accumulator += '|';
 				so_drop_delivery_filter< data >( m_data_mbox );
 
@@ -92,7 +92,7 @@ public :
 			} );
 
 		st_6.event( [this](mhood_t< next >) {
-				this >>= st_7;
+				st_7.activate();
 				m_accumulator += '|';
 				so_set_delivery_filter( m_data_mbox, []( const data & msg ) {
 					return 4 == msg.m_key;

@@ -31,7 +31,7 @@ public :
 
 		second
 			.event( [this](mhood_t< change_state >) {
-				this >>= first;
+				first.activate();
 				so_5::send< change_state >( *this );
 			} );
 

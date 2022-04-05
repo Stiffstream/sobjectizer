@@ -71,7 +71,7 @@ private:
 
 		ensure_throws(
 				[this]() {
-					this >>= st_dummy;
+					st_dummy.activate();
 				},
 				"change agent state should fail" );
 
@@ -83,7 +83,7 @@ private:
 
 		ensure_throws(
 				[this]() {
-					this >>= so_default_state();
+					so_default_state().activate();
 				},
 				"change agent state should fail" );
 	}

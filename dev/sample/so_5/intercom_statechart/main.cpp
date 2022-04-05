@@ -197,7 +197,7 @@ public :
 			.on_enter( [this]{ m_timer.release(); } )
 			.event( m_intercom_mbox, [this]( const dial_to & msg ) {
 					m_number = msg.m_number;
-					this >>= on;
+					on.activate();
 				} );
 
 		on

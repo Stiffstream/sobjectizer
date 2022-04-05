@@ -76,7 +76,7 @@ public :
 									clock::now() - m_started_at ).count() );
 
 					// Reflect the end of ping-pong by changing state of supervisor.
-					this >>= st_finished;
+					st_finished.activate();
 					// Send the result of ping-pong to the main thread.
 					so_5::send< status_finished >( m_chain, m_last_duration_ms );
 				} );

@@ -39,7 +39,7 @@ public :
 			.on_exit( [this] { m_log += "-3"; } )
 			.event( [this]( const message & msg ) {
 					m_log += "{m:" + std::to_string( msg.m_value ) + "}";
-					this >>= so_default_state();
+					so_default_state().activate();
 					so_5::send< finish >( *this );
 				} );
 	}
@@ -96,7 +96,7 @@ public :
 			.on_exit( [this] { m_log += "-3"; } )
 			.event( [this](mhood_t< signal >) {
 					m_log += "{s}";
-					this >>= so_default_state();
+					so_default_state().activate();
 					so_5::send< finish >( *this );
 				} );
 	}
