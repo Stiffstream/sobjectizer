@@ -682,7 +682,7 @@ struct message_payload_type_impl
 
 		//! Helper for extraction of pointer to envelope part.
 		/*!
-		 * The same implementation as for extract_envelope_ptr().
+		 * The same implementation as for extract_payload_ptr().
 		 */
 		[[nodiscard]]
 		inline static envelope_type *

@@ -201,33 +201,6 @@ struct event_handler_arg_maker< immutable_msg<Msg> >
 	make_arg( message_ref_t & ) { return {}; }
 };
 
-
-/*!
- * \brief A helper for setting a result to a promise.
- * \since
- * v.5.5.14
- */
-template< typename R, typename L >
-void
-set_promise( std::promise< R > & to, L result_provider )
-{
-	to.set_value( result_provider() );
-}
-
-/*!
- * \since
- * v.5.5.14
- *
- * \brief A helper for setting a result to a promise<void>.
- */
-template< typename L >
-void
-set_promise( std::promise< void > & to, L result_provider )
-{
-	result_provider();
-	to.set_value();
-}
-
 /*!
  * \brief Helper template for creation of event handler with actual
  * argument.
