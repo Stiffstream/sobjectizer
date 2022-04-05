@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/mbox/delivery_filters/filter_on_mpsc_mbox'
+path = 'test/so_5/mbox/delivery_filters/simple_mpsc_mutable'
 
 MxxRu::setup_target(
 	MxxRu::BinaryUnittestTarget.new(

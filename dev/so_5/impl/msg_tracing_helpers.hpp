@@ -677,10 +677,23 @@ class tracing_enabled_base
 					const agent_t * subscriber,
 					const delivery_possibility_t status ) const
 					{
-						if( delivery_possibility_t::disabled_by_delivery_filter
-								== status )
+						switch( status )
 							{
+							case delivery_possibility_t::must_be_delivered:
+								// NOTE: we don't expected this value here!
+							break;
+
+							case delivery_possibility_t::no_subscription:
+								no_subscribers();
+							break;
+
+							case delivery_possibility_t::disabled_by_delivery_filter:
 								make_trace( "message_rejected", subscriber );
+							break;
+
+							case delivery_possibility_t::hidden_by_envelope:
+								make_trace( "hidden_by_envelope" );
+							break;
 							}
 					}
 

@@ -2349,6 +2349,10 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Set a delivery filter.
 		 *
+		 * \note
+		 * Since v.5.7.4 it can be used for mutable messages too (if mbox is MPSC mbox).
+		 * In that case \a Message should be in form `so_5::mutable_msg<Message>`.
+		 *
 		 * \tparam Message type of message to be filtered.
 		 */
 		template< typename Message >
@@ -2391,6 +2395,38 @@ class SO_5_TYPE agent_t
 		template< typename Lambda >
 		void
 		so_set_delivery_filter(
+			//! Message box from which message is expected.
+			//! This must be MPMC-mbox.
+			const mbox_t & mbox,
+			//! Delivery filter as lambda-function or functional object.
+			Lambda && lambda );
+
+		/*!
+		 * \since v.5.7.4
+		 *
+		 * \brief Set a delivery filter for a mutable message.
+		 *
+		 * \tparam Lambda type of lambda-function or functional object which
+		 * must be used as message filter.
+		 *
+		 * \note
+		 * The content of the message will be passed to delivery-filter
+		 * lambda-function by a const reference.
+		 *
+		 * \par Usage sample:
+		 \code
+		 void my_agent::so_define_agent() {
+		 	so_set_delivery_filter_for_mutable_msg( temp_sensor,
+				[]( const current_temperature & msg ) {
+					return !is_normal_temperature( msg );
+				} );
+			...
+		 }
+		 \endcode
+		 */
+		template< typename Lambda >
+		void
+		so_set_delivery_filter_for_mutable_msg(
 			//! Message box from which message is expected.
 			//! This must be MPMC-mbox.
 			const mbox_t & mbox,
@@ -3152,6 +3188,30 @@ agent_t::so_set_delivery_filter(
 		do_set_delivery_filter(
 				mbox,
 				message_payload_type< argument_type >::subscription_type_index(),
+				delivery_filter_unique_ptr_t{ 
+					new lambda_as_filter_t< Lambda, argument_type >(
+							std::move( lambda ) )
+				} );
+	}
+
+template< typename Lambda >
+void
+agent_t::so_set_delivery_filter_for_mutable_msg(
+	const mbox_t & mbox,
+	Lambda && lambda )
+	{
+		using namespace so_5::details::lambda_traits;
+		using namespace delivery_filter_templates;
+
+		using argument_type = typename argument_type_if_lambda< Lambda >::type;
+
+		ensure_not_signal< argument_type >();
+
+		using subscription_type = so_5::mutable_msg< argument_type >;
+
+		do_set_delivery_filter(
+				mbox,
+				message_payload_type< subscription_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{ 
 					new lambda_as_filter_t< Lambda, argument_type >(
 							std::move( lambda ) )

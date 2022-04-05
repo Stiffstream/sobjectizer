@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_7_4 5.7.4 "Cerro Miniques"
+
+The standard MPSC mboxes now support delivery filters.
+Delivery filters for mutable messages should be set via a new method
+so_5::agent_t::so_set_delivery_filter_for_mutable_msg().
+
 \section so_5__5_7_3 5.7.3 "Cotopaxi"
 
 Old forms of so_5::abstract_message_chain_t::close(),
