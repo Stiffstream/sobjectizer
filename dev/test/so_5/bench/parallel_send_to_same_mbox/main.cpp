@@ -58,7 +58,7 @@ class a_shutdowner_t
 			,	m_sender_count( sender_count )
 			{
 				so_subscribe( mbox ).event(
-					[=](mhood_t< msg_complete >) {
+					[this](mhood_t< msg_complete >) {
 						m_sender_count -= 1;
 						if( !m_sender_count )
 							so_environment().stop();

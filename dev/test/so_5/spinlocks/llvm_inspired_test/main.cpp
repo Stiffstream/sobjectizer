@@ -44,7 +44,7 @@ class TestData
 		void Backoff() {
 			volatile T data[kSize] = {};
 			for (int i = 0; i < kSize; i++) {
-				data[i]++;
+				data[i] = data[i]+1;
 				UT_CHECK_EQ(data[i], 1);
 			}
 		}

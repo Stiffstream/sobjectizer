@@ -37,7 +37,7 @@ class a_child_t
 		void
 		so_define_agent() override
 			{
-				so_subscribe_self().event( [=](mhood_t< msg_ping >) {
+				so_subscribe_self().event( [this](mhood_t< msg_ping >) {
 						so_5::send< msg_ack >( m_parent_mbox );
 					} );
 			}

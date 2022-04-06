@@ -33,8 +33,8 @@ try_parse_cmdline(
 {
 	cfg_t tmp_cfg;
 
-	for( char ** current = &argv[ 1 ], **last = argv + argc;
-			current != last;
+	for( char ** current = &argv[ 1 ], **last_arg = argv + argc;
+			current != last_arg;
 			++current )
 		{
 			if( is_arg( *current, "-h", "--help" ) )
@@ -52,17 +52,17 @@ try_parse_cmdline(
 				}
 			else if( is_arg( *current, "-c", "--coop-count" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_coop_count, ++current, last,
+						tmp_cfg.m_coop_count, ++current, last_arg,
 						"-c", "count of coops to be created" );
 			else if( is_arg( *current, "-a", "--coop-size" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_coop_size, ++current, last,
+						tmp_cfg.m_coop_size, ++current, last_arg,
 						"-a", "count of agents in every coop" );
 			else if( is_arg( *current, "-D", "--dispatcher" ) )
 				{
 					std::string name;
 					mandatory_arg_to_value(
-							name, ++current, last,
+							name, ++current, last_arg,
 							"-D", "dispatcher type" );
 					if( "one_thread" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;

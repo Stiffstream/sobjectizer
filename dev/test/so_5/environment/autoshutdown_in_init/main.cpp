@@ -44,7 +44,7 @@ class a_second_t : public so_5::agent_t
 		virtual void
 		so_define_agent() override
 		{
-			so_subscribe_self().event( [=](mhood_t< msg_timer >) {
+			so_subscribe_self().event( [this](mhood_t< msg_timer >) {
 					m_receiver = 42;
 					so_deregister_agent_coop_normally();
 				} );

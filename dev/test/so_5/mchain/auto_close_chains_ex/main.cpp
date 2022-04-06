@@ -75,7 +75,7 @@ void
 do_check( bool throw_exception )
 {
 	run_with_time_limit(
-		[=]()
+		[throw_exception]()
 		{
 			so_5::wrapped_env_t sobj;
 

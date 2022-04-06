@@ -26,8 +26,8 @@ try_parse_cmdline(
 {
 	cfg_t tmp_cfg;
 
-	for( char ** current = &argv[ 1 ], **last = argv + argc;
-			current != last;
+	for( char ** current = &argv[ 1 ], **last_arg = argv + argc;
+			current != last_arg;
 			++current )
 		{
 			if( is_arg( *current, "-h", "--help" ) )
@@ -44,15 +44,15 @@ try_parse_cmdline(
 				}
 			else if( is_arg( *current, "-r", "--root-count" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_root_count, ++current, last,
+						tmp_cfg.m_root_count, ++current, last_arg,
 						"-r", "count of roots (parallel parents)" );
 			else if( is_arg( *current, "-l", "--levels" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_levels, ++current, last,
+						tmp_cfg.m_levels, ++current, last_arg,
 						"-l", "count of levels" );
 			else if( is_arg( *current, "-s", "--level-size" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_level_size, ++current, last,
+						tmp_cfg.m_level_size, ++current, last_arg,
 						"-s", "level size" );
 			else
 				throw std::runtime_error(

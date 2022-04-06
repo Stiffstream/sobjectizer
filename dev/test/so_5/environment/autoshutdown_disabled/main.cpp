@@ -38,7 +38,7 @@ class a_test_t : public so_5::agent_t
 		void
 		so_define_agent() override
 		{
-			so_subscribe_self().event( [=](mhood_t< msg_tick >) {
+			so_subscribe_self().event( [this](mhood_t< msg_tick >) {
 					m_ticks += 1;
 					if( m_ticks < 15 )
 						so_5::send< msg_tick >( *this );

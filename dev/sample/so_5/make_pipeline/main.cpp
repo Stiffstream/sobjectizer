@@ -157,7 +157,7 @@ public :
 		if( m_next )
 			// Because there is the next stage the appropriate
 			// message handler will be used.
-			so_subscribe_self().event( [=]( const In & evt ) {
+			so_subscribe_self().event( [this]( const In & evt ) {
 					auto r = m_handler( evt );
 					if( r )
 						so_5::send( m_next, r );
@@ -165,7 +165,7 @@ public :
 		else
 			// There is no next stage. A very simple message handler
 			// will be used for that case.
-			so_subscribe_self().event( [=]( const In & evt ) {
+			so_subscribe_self().event( [this]( const In & evt ) {
 					m_handler( evt );
 				} );
 	}
@@ -197,7 +197,7 @@ public :
 
 	void so_define_agent() override
 	{
-		so_subscribe_self().event( [=]( const In & evt ) {
+		so_subscribe_self().event( [this]( const In & evt ) {
 				m_handler( evt );
 			} );
 	}

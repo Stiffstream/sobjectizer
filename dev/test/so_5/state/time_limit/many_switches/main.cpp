@@ -115,8 +115,8 @@ main( int argc, char ** argv )
 		run_with_time_limit(
 			[switch_count]()
 			{
-				so_5::launch( [=]( so_5::environment_t & env ) {
-						env.introduce_coop( [=]( so_5::coop_t & coop ) {
+				so_5::launch( [switch_count]( so_5::environment_t & env ) {
+						env.introduce_coop( [switch_count]( so_5::coop_t & coop ) {
 								coop.make_agent< a_test_t >( switch_count );
 							} );
 					},

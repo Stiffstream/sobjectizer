@@ -55,8 +55,8 @@ try_parse_cmdline(
 {
 	cfg_t tmp_cfg;
 
-	for( char ** current = &argv[ 1 ], **last = argv + argc;
-			current != last;
+	for( char ** current = &argv[ 1 ], **last_arg = argv + argc;
+			current != last_arg;
 			++current )
 		{
 			if( is_arg( *current, "-h", "--help" ) )
@@ -88,17 +88,17 @@ try_parse_cmdline(
 				tmp_cfg.m_direct_mboxes = true;
 			else if( is_arg( *current, "-s", "--ring-size" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_ring_size, ++current, last,
+						tmp_cfg.m_ring_size, ++current, last_arg,
 						"-s", "size of agent's ring" );
 			else if( is_arg( *current, "-r", "--rounds" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_rounds, ++current, last,
+						tmp_cfg.m_rounds, ++current, last_arg,
 						"-r", "count of full rounds around the ring" );
 			else if( is_arg( *current, "-D", "--dispatcher" ) )
 				{
 					std::string name;
 					mandatory_arg_to_value(
-							name, ++current, last,
+							name, ++current, last_arg,
 							"-D", "dispatcher type" );
 					if( "one_thread" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;
@@ -115,7 +115,7 @@ try_parse_cmdline(
 				{
 					std::string name;
 					mandatory_arg_to_value(
-							name, ++current, last,
+							name, ++current, last_arg,
 							"-L", "queue lock type" );
 					if( "combined" == name )
 						tmp_cfg.m_queue_lock_type = queue_lock_type_t::combined;
@@ -128,7 +128,7 @@ try_parse_cmdline(
 				{
 					std::string name;
 					mandatory_arg_to_value(
-							name, ++current, last,
+							name, ++current, last_arg,
 							"-f", "FIFO type" );
 					if( "cooperation" == name )
 						tmp_cfg.m_fifo = pool_fifo_t::cooperation;
@@ -139,7 +139,7 @@ try_parse_cmdline(
 				}
 			else if( is_arg( *current, "-T", "--threshold" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_next_thread_wakeup_threshold, ++current, last,
+						tmp_cfg.m_next_thread_wakeup_threshold, ++current, last_arg,
 						"-T", "value of next_thread_wakeup_threshold param" );
 			else
 				throw std::runtime_error(

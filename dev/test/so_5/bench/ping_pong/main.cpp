@@ -44,8 +44,8 @@ try_parse_cmdline(
 {
 	cfg_t tmp_cfg;
 
-	for( char ** current = &argv[ 1 ], **last = argv + argc;
-			current != last;
+	for( char ** current = &argv[ 1 ], **last_arg = argv + argc;
+			current != last_arg;
 			++current )
 		{
 			if( is_arg( *current, "-h", "--help" ) )
@@ -79,7 +79,7 @@ try_parse_cmdline(
 				tmp_cfg.m_simple_lock = true;
 			else if( is_arg( *current, "-r", "--requests" ) )
 				mandatory_arg_to_value(
-						tmp_cfg.m_request_count, ++current, last,
+						tmp_cfg.m_request_count, ++current, last_arg,
 						"-r", "count of requests to send" );
 			else if( is_arg( *current, "-T", "--track-activity" ) )
 				tmp_cfg.m_simple_lock = true;
@@ -88,7 +88,7 @@ try_parse_cmdline(
 					std::string env_type_literal;
 					mandatory_arg_to_value(
 							env_type_literal,
-							++current, last,
+							++current, last_arg,
 							"-e", "type of environment infrastructure" );
 					if( "default_mt" == env_type_literal )
 						tmp_cfg.m_env = env_type_t::default_mt;
