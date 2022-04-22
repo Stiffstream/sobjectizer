@@ -606,6 +606,17 @@ const int rc_prepared_select_is_active_now = 188;
  */
 const int rc_agent_deactivated = 189;
 
+/*!
+ * \brief An instance of MPSC mbox is expected as custom direct mbox.
+ *
+ * Version 5.7.4 allows to set a custom mbox as the direct mbox for
+ * an agent. That mbox has to be MPSC mbox. An attempt to set MPMC
+ * mbox as the direct mbox will lead to this error.
+ *
+ * \since v.5.7.4
+ */
+const int rc_mpsc_mbox_expected = 190;
+
 //! \name Common error codes.
 //! \{
 

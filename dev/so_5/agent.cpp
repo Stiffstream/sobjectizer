@@ -467,6 +467,46 @@ state_t::handle_time_limit_on_exit() const
 	m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
 }
 
+namespace
+{
+
+/*!
+ * \brief Helper for creation of the direct mbox for an agent.
+ *
+ * If there is a custom direct mbox factory in \a tuning_options
+ * then the return value of that factory is used. Otherwise the
+ * \a standard_mbox is returned.
+ */
+[[nodiscard]]
+mbox_t
+make_direct_mbox_with_respect_to_custom_factory(
+	partially_constructed_agent_ptr_t agent_ptr,
+	const agent_tuning_options_t & tuning_options,
+	mbox_t standard_mbox )
+	{
+		mbox_t result{ std::move(standard_mbox) };
+
+		const auto & factory =
+				tuning_options.query_custom_direct_mbox_factory();
+		if( factory )
+			{
+				result = factory( agent_ptr, std::move(result) );
+
+				if( mbox_type_t::multi_producer_single_consumer
+						!= result->type() )
+					{
+						SO_5_THROW_EXCEPTION(
+								rc_mpsc_mbox_expected,
+								"MPSC mbox is expected as the direct mbox "
+								"for an agent" );
+					}
+			}
+
+		return result;
+	}
+
+} /* namespace anonymous */
+
 //
 // agent_t
 //
@@ -501,9 +541,13 @@ agent_t::agent_t(
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
-			impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
-				self_ptr(),
-				m_message_limits.get() ) )
+			make_direct_mbox_with_respect_to_custom_factory(
+				partially_constructed_agent_ptr_t( self_ptr() ),
+				ctx.options(),
+				impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
+					self_ptr(),
+					m_message_limits.get() ) )
+		)
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
 	,	m_working_thread_id( so_5::query_current_thread_id() )

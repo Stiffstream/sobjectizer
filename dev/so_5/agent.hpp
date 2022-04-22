@@ -1067,6 +1067,38 @@ class SO_5_TYPE agent_t
 			return agent_tuning_options_t();
 		}
 
+		/*!
+		 * \brief Helper for creation a custom direct mbox factory.
+		 *
+		 * Usage example:
+		 * \code
+		 * class my_agent : public so_5::agent_t {
+		 * 	...
+		 * public:
+		 * 	my_agent( context_t ctx )
+		 * 		:	so_5::agent_t{ ctx + custom_direct_mbox_factory(
+		 * 				[]( so_5::partially_constructed_agent_ptr_t agent_ptr,
+		 * 				    so_5::mbox_t actual_mbox )
+		 * 				{
+		 * 					return so_5::mbox_t{ new my_custom_mbox{ agent_ptr.ptr(), std::move(actual_mbox) } };
+		 * 				} )
+		 * 			}
+		 * 	{...}
+		 *
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * \since v.5.7.4
+		 */
+		template< typename Lambda >
+		[[nodiscard]]
+		custom_direct_mbox_factory_t
+		custom_direct_mbox_factory( Lambda && lambda )
+		{
+			return { std::forward<Lambda>(lambda) };
+		}
+
 	protected:
 		/*!
 		 * \name Accessing the default state.

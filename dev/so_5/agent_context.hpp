@@ -186,6 +186,15 @@ operator+(
 		ctx.options().priority( agent_priority );
 		return ctx;
 	}
+
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	custom_direct_mbox_factory_t factory )
+	{
+		ctx.options().custom_direct_mbox_factory( std::move(factory) );
+		return ctx;
+	}
 /*!
  * \}
  */

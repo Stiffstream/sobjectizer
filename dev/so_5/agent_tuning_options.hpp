@@ -19,6 +19,42 @@
 namespace so_5
 {
 
+/*!
+ * \brief Wrapper around a pointer to partially constructed agent.
+ *
+ * This type is used as indicator that a pointer to agent can be
+ * transferred or stored somewhere, but shouldn't be used because
+ * the agent isn't fully constructed yet.
+ *
+ * \since v.5.7.4
+ */
+class partially_constructed_agent_ptr_t
+	{
+		agent_t * m_ptr;
+
+	public:
+		explicit partially_constructed_agent_ptr_t( agent_t * ptr )
+			:	m_ptr{ ptr }
+			{}
+
+		[[nodiscard]]
+		agent_t *
+		ptr() const noexcept { return m_ptr; }
+	};
+
+/*!
+ * \brief Type of functor to be used as a factory for custom direct mbox.
+ *
+ * \attention
+ * The factory should return a valid mbox or should throw an exception.
+ * The behavior isn't defined if the factory return empty so_5::mbox_t
+ * object (the application may crash in the better case).
+ *
+ * \since v.5.7.4
+ */
+using custom_direct_mbox_factory_t = std::function<
+		so_5::mbox_t(partially_constructed_agent_ptr_t, so_5::mbox_t) >;
+
 //
 // agent_tuning_options_t
 //
@@ -87,8 +123,8 @@ class agent_tuning_options_t
 
 		//! Set priority for agent.
 		/*! \since
-		 * v.5.5.8 */
-
+		 * v.5.5.8
+		 */
 		agent_tuning_options_t &
 		priority( so_5::priority_t v )
 			{
@@ -96,11 +132,43 @@ class agent_tuning_options_t
 				return *this;
 			}
 
+		//FIXME: this method should be marked as [[nodiscard]] and
+		//noexcept in SO-5.8.
 		//! Get priority value.
 		so_5::priority_t
 		query_priority() const
 			{
 				return m_priority;
+			}
+
+		/*!
+		 * \brief Set custom direct mbox factory.
+		 *
+		 * \since v.5.7.4
+		 */
+		agent_tuning_options_t &
+		custom_direct_mbox_factory(
+			custom_direct_mbox_factory_t factory )
+			{
+				m_custom_direct_mbox_factory = factory;
+
+				return *this;
+			}
+
+		/*!
+		 * \brief Get a reference to custom direct mbox factory.
+		 *
+		 * \note
+		 * If the factory isn't set then a reference to empty
+		 * std::function object is returned.
+		 *
+		 * \since v.5.7.4
+		 */
+		[[nodiscard]]
+		const custom_direct_mbox_factory_t &
+		query_custom_direct_mbox_factory() const noexcept
+			{
+				return m_custom_direct_mbox_factory;
 			}
 
 	private :
@@ -110,10 +178,19 @@ class agent_tuning_options_t
 		message_limit::description_container_t m_message_limits;
 
 		//! Priority for agent.
-		/*! \since
-		 * v.5.5.8 */
-
+		/*!
+		 * \since v.5.5.8
+		 */
 		so_5::priority_t m_priority = so_5::prio::default_priority;
+
+		/*!
+		 * \brief Optional factory for custom direct mboxes.
+		 *
+		 * It can be an empty std::function object.
+		 *
+		 * \since v.5.7.4
+		 */
+		custom_direct_mbox_factory_t m_custom_direct_mbox_factory;
 	};
 
 } /* namespace so_5 */
