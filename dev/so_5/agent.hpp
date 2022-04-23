@@ -1093,7 +1093,7 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename Lambda >
 		[[nodiscard]]
-		custom_direct_mbox_factory_t
+		static custom_direct_mbox_factory_t
 		custom_direct_mbox_factory( Lambda && lambda )
 		{
 			return { std::forward<Lambda>(lambda) };

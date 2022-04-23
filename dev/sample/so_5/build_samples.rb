@@ -78,4 +78,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'named_dispatchers_layer' ]
 
 	example[ 'custom_work_thread_factory' ]
+
+	example[ 'custom_direct_mbox' ]
 }

@@ -73,3 +73,5 @@ add_subdirectory(named_dispatchers_layer)
 
 add_subdirectory(custom_work_thread_factory)
 
+add_subdirectory(custom_direct_mbox)
+

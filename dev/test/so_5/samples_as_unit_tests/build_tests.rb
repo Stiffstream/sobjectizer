@@ -92,4 +92,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/named_dispatchers_layer.ut.rb"
   required_prj "#{path}/named_dispatchers_layer-static.ut.rb"
+
+  required_prj "#{path}/custom_direct_mbox.ut.rb"
+  required_prj "#{path}/custom_direct_mbox-static.ut.rb"
 }
+
