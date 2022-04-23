@@ -79,6 +79,8 @@ class agent_tuning_options_t
 						b.m_subscription_storage_factory );
 				swap( a.m_message_limits, b.m_message_limits );
 				swap( a.m_priority, b.m_priority );
+				swap( a.m_custom_direct_mbox_factory,
+						b.m_custom_direct_mbox_factory );
 			}
 
 		//! Set factory for subscription storage creation.
@@ -91,6 +93,8 @@ class agent_tuning_options_t
 				return *this;
 			}
 
+		//FIXME: this method should be marked as [[nodiscard]] and
+		//noexcept in SO-5.8.
 		const subscription_storage_factory_t &
 		query_subscription_storage_factory() const
 			{
@@ -104,6 +108,7 @@ class agent_tuning_options_t
 				return so_5::default_subscription_storage_factory();
 			}
 
+		[[nodiscard]]
 		message_limit::description_container_t
 		giveout_message_limits()
 			{
