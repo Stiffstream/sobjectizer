@@ -97,6 +97,8 @@ private:
 	}
 };
 
+// Runs SObjectizer and creates a coop with just two agents (producer and
+// original consumer).
 void run_normal_scenario()
 {
 	std::cout << "*** Start of normal scenario ***" << std::endl;
@@ -164,8 +166,7 @@ public:
 		return m_source->id();
 	}
 
-	void
-	subscribe_event_handler(
+	void subscribe_event_handler(
 		const std::type_index & msg_type,
 		const so_5::message_limit::control_block_t * limit,
 		so_5::agent_t & subscriber ) override
@@ -177,8 +178,7 @@ public:
 					subscriber );
 	}
 
-	void
-	unsubscribe_event_handlers(
+	void unsubscribe_event_handlers(
 		const std::type_index & msg_type,
 		so_5::agent_t & subscriber ) override
 	{
@@ -188,22 +188,19 @@ public:
 					subscriber );
 	}
 
-	std::string
-	query_name() const override
+	std::string query_name() const override
 	{
 		// This mbox has no own name.
 		return m_source->query_name();
 	}
 
-	so_5::mbox_type_t
-	type() const override
+	so_5::mbox_type_t type() const override
 	{
 		// This mbox has no own type.
 		return m_target->type();
 	}
 
-	void
-	do_deliver_message(
+	void do_deliver_message(
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) override
@@ -221,8 +218,7 @@ public:
 				overlimit_reaction_deep );
 	}
 
-	void
-	set_delivery_filter(
+	void set_delivery_filter(
 		const std::type_index & msg_type,
 		const so_5::delivery_filter_t & filter,
 		so_5::agent_t & subscriber ) override
@@ -234,8 +230,7 @@ public:
 					subscriber );
 	}
 
-	void
-	drop_delivery_filter(
+	void drop_delivery_filter(
 		const std::type_index & msg_type,
 		::so_5::agent_t & subscriber ) noexcept override
 	{
@@ -245,13 +240,16 @@ public:
 					subscriber );
 	}
 
-	so_5::environment_t &
-	environment() const noexcept override
+	so_5::environment_t & environment() const noexcept override
 	{
 		return m_source->environment();
 	}
 };
 
+// Runs SObjectizer and creates a coop with three agents: producer,
+// original consumer, and actual consumer for msg_second.
+// An intercepting mbox is used to stole msg_second message from
+// the original consumer and redirect it to the actual consumer.
 void run_intercepting_scenario()
 {
 	std::cout << "*** Start of interception scenario ***" << std::endl;
