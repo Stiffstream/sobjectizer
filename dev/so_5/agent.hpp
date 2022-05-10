@@ -2601,17 +2601,15 @@ class SO_5_TYPE agent_t
 		 * in so_bind_to_dispatcher() method. And reset to nullptr again
 		 * in shutdown_agent().
 		 *
-		 * nullptr in m_event_queue means that methods push_event() and
-		 * push_service_request() will throw away any new demand.
+		 * nullptr in m_event_queue means that methods push_event() will throw
+		 * away any new demand.
 		 *
-		 * It is necessary to provide guarantee that m_event_queue will
-		 * be reset to nullptr in shutdown_agent() only if there is no
-		 * working push_event()/push_service_request() methods. To do than
-		 * default_rw_spinlock_t is used. Methods push_event() and
-		 * push_service_request() acquire it in read-mode and shutdown_agent()
-		 * acquires it in write-mode. It means that shutdown_agent() cannot
-		 * get access to m_event_queue until there is working
-		 * push_event()/push_service_request().
+		 * It is necessary to provide guarantee that m_event_queue will be reset
+		 * to nullptr in shutdown_agent() only if there is no working
+		 * push_event() methods. To do that default_rw_spinlock_t is used. Method
+		 * push_event() acquire it in read-mode and shutdown_agent() acquires it
+		 * in write-mode. It means that shutdown_agent() cannot get access to
+		 * m_event_queue until there is working push_event().
 		 */
 		default_rw_spinlock_t m_event_queue_lock;
 
