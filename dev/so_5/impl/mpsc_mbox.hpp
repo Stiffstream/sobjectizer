@@ -36,7 +36,14 @@ namespace impl
 //
 // mpsc_mbox_with_message_limits_t
 //
-//FIXME: document this!
+/*!
+ * \brief Helper class to be used in limitful-MPSC mbox.
+ *
+ * Method message_limits_pointer() just returns an actual value of the argument.
+ * It makes MPSC mbox limitful.
+ *
+ * \since v.5.7.4
+ */
 struct mpsc_mbox_with_message_limits_t
 	{
 		[[nodiscard]]
@@ -51,7 +58,14 @@ struct mpsc_mbox_with_message_limits_t
 //
 // mpsc_mbox_without_message_limits_t
 //
-//FIXME: document this!
+/*!
+ * \brief Helper class to be used in limitless-MPSC mbox.
+ *
+ * Method message_limits_pointer() always returns nullptr.
+ * It makes MPSC mbox limitless.
+ *
+ * \since v.5.7.4
+ */
 struct mpsc_mbox_without_message_limits_t
 	{
 		[[nodiscard]]
@@ -66,6 +80,11 @@ struct mpsc_mbox_without_message_limits_t
 //
 // mpsc_mbox_message_limits_usage_t
 //
+/*!
+ * \brief Indicator for using message limits by MPSC mbox.
+ *
+ * \since v.5.7.4
+ */
 enum class mpsc_mbox_message_limits_usage_t
 	{
 		use,
