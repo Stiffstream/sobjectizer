@@ -71,6 +71,8 @@ public :
 	//! Constructor for the case when info is being
 	//! created during event subscription.
 	basic_subscription_info_t(
+		//! Optional limit info. Can be nullptr if limits have not to be used at all
+		//! (for example, for limitless MPSC mboxes).
 		const so_5::message_limit::control_block_t * limit )
 		:	m_limit( limit )
 		,	m_filter( nullptr )

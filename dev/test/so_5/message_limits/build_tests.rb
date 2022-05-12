@@ -29,5 +29,8 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/transform_msg_too_deep/mc_mbox/prj.ut.rb"
 	required_prj "#{path}/transform_msg_too_deep/sc_mbox/prj.ut.rb"
 
+	required_prj "#{path}/another_direct_mbox/prj.ut.rb"
+
 	required_prj "#{path}/wont_compile_runner/prj.ut.rb"
 }
+

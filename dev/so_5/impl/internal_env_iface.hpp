@@ -47,7 +47,10 @@ class SO_5_TYPE internal_env_iface_t
 		mbox_t
 		create_mpsc_mbox(
 			//! The only consumer for the messages.
-			agent_t * single_consumer );
+			agent_t * single_consumer,
+			//! Pointer to limits for a new mbox.
+			//! It can be nullptr, that means that limits shouldn't be used.
+			const so_5::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Notification about readiness to the deregistration.
 		void
