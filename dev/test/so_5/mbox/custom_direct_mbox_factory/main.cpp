@@ -152,12 +152,12 @@ class a_test_t : public so_5::agent_t
 					custom_direct_mbox_factory(
 						[&protocol](
 							so_5::partially_constructed_agent_ptr_t,
-							so_5::mbox_t actual_mbox )
+							so_5::mbox_t actual_mbox ) -> so_5::mbox_t
 						{
-							return so_5::mbox_t{ new test_mbox_t{
-									std::move(actual_mbox),
-									protocol
-								} };
+							return {
+									std::make_unique< test_mbox_t >(
+											std::move(actual_mbox), protocol )
+								};
 						}
 					)
 				)

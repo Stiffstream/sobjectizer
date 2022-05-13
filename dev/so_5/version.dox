@@ -9,6 +9,7 @@ Delivery filters for mutable messages should be set via a new method
 so_5::agent_t::so_set_delivery_filter_for_mutable_msg().
 
 A posibility to set a custom mbox as the direct mbox for an agent added.
+See so_5::agent_t::custom_direct_mbox_factory().
 
 \section so_5__5_7_3 5.7.3 "Cotopaxi"
 

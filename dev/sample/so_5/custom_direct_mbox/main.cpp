@@ -263,7 +263,7 @@ void run_intercepting_scenario()
 						( so_5::partially_constructed_agent_ptr_t /*agent_ptr*/,
 							so_5::mbox_t source_mbox ) -> so_5::mbox_t
 						{
-							return { new intercepting_mbox_t{ source_mbox, target_mbox } };
+							return { std::make_unique< intercepting_mbox_t >( source_mbox, target_mbox ) };
 						};
 
 					// Original consumer has to be created manually because we
