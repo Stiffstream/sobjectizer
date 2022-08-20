@@ -18,6 +18,43 @@ struct data { int m_key; };
 
 struct finish : public so_5::signal_t {};
 
+struct default_filter_setter_t
+{
+	static void
+	set( so_5::agent_t & to, const so_5::mbox_t & mbox )
+	{
+		to.so_set_delivery_filter_for_mutable_msg( mbox,
+			[]( const data & msg ) {
+				return 1 == msg.m_key;
+			} );
+	}
+};
+
+struct filter_as_variable_setter_t
+{
+	static void
+	set( so_5::agent_t & to, const so_5::mbox_t & mbox )
+	{
+		auto filter = []( const data & msg ) {
+				return 1 == msg.m_key;
+			};
+		to.so_set_delivery_filter_for_mutable_msg( mbox, filter );
+	}
+};
+
+struct filter_as_const_setter_t
+{
+	static void
+	set( so_5::agent_t & to, const so_5::mbox_t & mbox )
+	{
+		const auto filter = []( const data & msg ) {
+				return 1 == msg.m_key;
+			};
+		to.so_set_delivery_filter_for_mutable_msg( mbox, filter );
+	}
+};
+
+template< typename Delivery_Filter_Setter >
 class a_test_t : public so_5::agent_t
 {
 public :
@@ -28,10 +65,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_set_delivery_filter_for_mutable_msg( so_direct_mbox(),
-			[]( const data & msg ) {
-				return 1 == msg.m_key;
-			} );
+		Delivery_Filter_Setter::set( *this, so_direct_mbox() );
 
 		so_default_state()
 			.event( so_direct_mbox(), [this]( mutable_mhood_t< data > cmd ) {
@@ -69,14 +103,28 @@ public :
 	}
 
 private :
-	const so_5::mbox_t m_data_mbox;
 	unsigned int m_values_accepted = 0;
 };
 
 void
-init( so_5::environment_t & env )
+test_case_default_filter_setter( so_5::environment_t & env )
 {
-	env.register_agent_as_coop( env.make_agent< a_test_t >() );
+	env.register_agent_as_coop(
+			env.make_agent< a_test_t< default_filter_setter_t > >() );
+}
+
+void
+test_case_filter_as_variable_setter( so_5::environment_t & env )
+{
+	env.register_agent_as_coop(
+			env.make_agent< a_test_t< filter_as_variable_setter_t > >() );
+}
+
+void
+test_case_filter_as_const_setter( so_5::environment_t & env )
+{
+	env.register_agent_as_coop(
+			env.make_agent< a_test_t< filter_as_const_setter_t > >() );
 }
 
 int
@@ -87,11 +135,9 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				so_5::launch(
-					&init/*,
-					[]( so_5::environment_params_t & params ) {
-						params.message_delivery_tracer( so_5::msg_tracing::std_cout_tracer() );
-					}*/ );
+				so_5::launch( &test_case_default_filter_setter );
+				so_5::launch( &test_case_filter_as_variable_setter );
+				so_5::launch( &test_case_filter_as_const_setter );
 			},
 			20 );
 	}

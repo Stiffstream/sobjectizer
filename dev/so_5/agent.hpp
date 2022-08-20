@@ -3211,15 +3211,17 @@ agent_t::so_set_delivery_filter(
 		using namespace so_5::details::lambda_traits;
 		using namespace delivery_filter_templates;
 
-		using argument_type = typename argument_type_if_lambda< Lambda >::type;
+		using lambda_type = std::remove_reference_t<Lambda >;
+		using argument_type =
+				typename argument_type_if_lambda< lambda_type >::type;
 
 		ensure_not_signal< argument_type >();
 
 		do_set_delivery_filter(
 				mbox,
 				message_payload_type< argument_type >::subscription_type_index(),
-				delivery_filter_unique_ptr_t{ 
-					new lambda_as_filter_t< Lambda, argument_type >(
+				delivery_filter_unique_ptr_t{
+					new lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
@@ -3233,7 +3235,9 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 		using namespace so_5::details::lambda_traits;
 		using namespace delivery_filter_templates;
 
-		using argument_type = typename argument_type_if_lambda< Lambda >::type;
+		using lambda_type = std::remove_reference_t<Lambda >;
+		using argument_type =
+				typename argument_type_if_lambda< lambda_type >::type;
 
 		ensure_not_signal< argument_type >();
 
@@ -3242,8 +3246,8 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 		do_set_delivery_filter(
 				mbox,
 				message_payload_type< subscription_type >::subscription_type_index(),
-				delivery_filter_unique_ptr_t{ 
-					new lambda_as_filter_t< Lambda, argument_type >(
+				delivery_filter_unique_ptr_t{
+					new lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
