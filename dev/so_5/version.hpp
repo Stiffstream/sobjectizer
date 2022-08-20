@@ -12,7 +12,7 @@
 
 #pragma once
 
-// The current version is 5.7.4.1
+// The current version is 5.7.4.2
 //
 /*!
  * A number next to generation number in SObjectizer's version.
@@ -43,7 +43,7 @@
  * or API fixes are added to SObjectizer but SObjectizer API is compatible on
  * source-code level.
  */
-#define SO_5_VERSION_PATCH 1ull
+#define SO_5_VERSION_PATCH 2ull
 
 /*!
  * Helper macro for make single number representation of SObjectizer's version.
