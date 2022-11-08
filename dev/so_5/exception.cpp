@@ -17,7 +17,7 @@ void
 exception_t::raise(
 	const char * file_name,
 	unsigned int line_number,
-	const std::string & error_descr,
+	std::string_view error_descr,
 	int error_code )
 {
 	std::ostringstream s;
@@ -29,3 +29,4 @@ exception_t::raise(
 }
 
 } /* namespace so_5 */
+
