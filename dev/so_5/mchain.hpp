@@ -502,21 +502,6 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 
 		//! Close the chain.
 		/*!
-		 * \note
-		 * This version just calls protected actual_close() method.
-		 *
-		 * \deprecated
-		 * This method will be removed in v.5.8.0.
-		 * The `close(exceptions_control, close_mode)` has to be used instead.
-		 */
-		[[deprecated]]
-		virtual void
-		close(
-			//! What to do with chain's content.
-			mchain_props::close_mode_t mode );
-
-		//! Close the chain.
-		/*!
 		 * Since v.5.7.3 this is the recommended way of closing a mchain.
 		 * This method allows to specify how exceptions have to be treated:
 		 * \code
@@ -716,29 +701,6 @@ close_drop_content(
 				mchain_props::close_mode_t::drop_content );
 	}
 
-/*!
- * \since
- * v.5.5.13
- *
- * \brief Helper function for closing a message chain with dropping
- * all its content.
- *
- * \attention
- * This function can throw exceptions.
- *
- * \deprecated
- * Since v.5.7.3. Use close_drop_content(so_5::exceptions_enabled, ch) or
- * close_drop_content(so_5::terminate_if_throws, ch) instead.
- */
-[[deprecated("Use close_drop_content(so_5::exceptions_enabled, ch) instead")]]
-inline void
-close_drop_content( const mchain_t & ch )
-	{
-		ch->close(
-				so_5::exceptions_enabled,
-				mchain_props::close_mode_t::drop_content );
-	}
-
 //
 // close_retain_content
 //
@@ -778,28 +740,6 @@ close_retain_content(
 			details::should_terminate_if_throws_t<Exceptions_Control>::value))
 	{
 		ch->close( exceptions_control, mchain_props::close_mode_t::retain_content );
-	}
-
-/*!
- * \since
- * v.5.5.13
- *
- * \brief Helper function for closing a message chain with retaining
- * all its content.
- *
- * \note Because of ADL it can be used without specifying namespaces.
- *
- * \deprecated
- * Since v.5.7.3. Use close_retain_content(so_5::exceptions_enabled, ch) or
- * close_retain_content(so_5::terminate_if_throws, ch) instead.
- */
-[[deprecated("Use close_retain_content(exceptions_control, ch) instead")]]
-inline void
-close_retain_content( const mchain_t & ch )
-	{
-		ch->close(
-				terminate_if_throws,
-				mchain_props::close_mode_t::retain_content );
 	}
 
 //

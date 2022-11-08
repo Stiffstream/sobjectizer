@@ -23,12 +23,5 @@ abstract_message_chain_t::as_mbox()
 		return mbox_t{ this };
 	}
 
-void
-abstract_message_chain_t::close(
-	mchain_props::close_mode_t mode )
-	{
-		return this->actual_close( mode );
-	}
-
 } /* namespace so_5 */
 
