@@ -93,10 +93,9 @@ class agent_tuning_options_t
 				return *this;
 			}
 
-		//FIXME: this method should be marked as [[nodiscard]] and
-		//noexcept in SO-5.8.
+		[[nodiscard]]
 		const subscription_storage_factory_t &
-		query_subscription_storage_factory() const
+		query_subscription_storage_factory() const noexcept
 			{
 				return m_subscription_storage_factory;
 			}
