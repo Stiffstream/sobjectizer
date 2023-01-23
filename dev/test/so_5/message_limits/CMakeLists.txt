@@ -9,3 +9,6 @@ add_subdirectory(subscr_without_limit)
 add_subdirectory(transform_msg)
 add_subdirectory(transform_msg_too_deep)
 add_subdirectory(another_direct_mbox)
+add_subdirectory(redirect_from_timer_to_full_mchain)
+add_subdirectory(transform_from_timer_to_full_mchain)
+
