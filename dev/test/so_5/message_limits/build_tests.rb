@@ -34,5 +34,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/wont_compile_runner/prj.ut.rb"
 
 	required_prj "#{path}/redirect_from_timer_to_full_mchain/prj.ut.rb"
+	required_prj "#{path}/transform_from_timer_to_full_mchain/prj.ut.rb"
 }
 
