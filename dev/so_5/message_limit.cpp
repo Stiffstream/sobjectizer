@@ -97,7 +97,12 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
+				// Since v.5.8.0 nonblocking delivery mode
+				// has to be used for redirection.
+				// Otherwise the timer thread can be blocked if
+				// the destination is a full mchain.
 				to->do_deliver_message(
+						abstract_message_box_t::delivery_mode_t::nonblocking,
 						ctx.m_msg_type,
 						ctx.m_message,
 						ctx.m_reaction_deep + 1 );
@@ -138,7 +143,12 @@ transform_reaction(
 							msg_type,
 							message );
 
+				// Since v.5.8.0 nonblocking delivery mode
+				// has to be used for redirection.
+				// Otherwise the timer thread can be blocked if
+				// the destination is a full mchain.
 				to->do_deliver_message(
+						abstract_message_box_t::delivery_mode_t::nonblocking,
 						msg_type,
 						message,
 						ctx.m_reaction_deep + 1 );

@@ -201,6 +201,7 @@ public:
 	}
 
 	void do_deliver_message(
+		so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) override
@@ -213,6 +214,7 @@ public:
 				<< ", dest_id: " << dest.id() << std::endl;
 
 		dest.do_deliver_message(
+				delivery_mode,
 				msg_type,
 				message,
 				overlimit_reaction_deep );

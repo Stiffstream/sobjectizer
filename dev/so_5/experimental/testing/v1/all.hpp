@@ -836,6 +836,7 @@ class step_definition_proxy_t
 						[to = std::move(to), msg = std::move(msg)]() noexcept {
 							using namespace so_5::low_level_api;
 							deliver_message(
+									so_5::abstract_message_box_t::delivery_mode_t::ordinary,
 									*to,
 									message_payload_type< Msg_Type >
 											::subscription_type_index(),

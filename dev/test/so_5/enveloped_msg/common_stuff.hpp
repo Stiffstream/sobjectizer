@@ -156,6 +156,7 @@ public :
 
 	void
 	do_deliver_message(
+		so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) override
@@ -166,6 +167,7 @@ public :
 				message );
 
 		m_actual_mbox->do_deliver_message(
+				delivery_mode,
 				msg_type,
 				so_5::message_ref_t{ std::move(envelope) },
 				overlimit_reaction_deep );
@@ -192,23 +194,6 @@ public :
 	environment() const noexcept override
 	{
 		return m_actual_mbox->environment();
-	}
-
-protected :
-	void
-	do_deliver_message_from_timer(
-		const std::type_index & msg_type,
-		const so_5::message_ref_t & message ) override
-	{
-		auto envelope = std::make_unique< Envelope >(
-				m_trace,
-				allocate_counter(),
-				message );
-
-		delegate_deliver_message_from_timer(
-				*m_actual_mbox,
-				msg_type,
-				so_5::message_ref_t{ std::move(envelope) } );
 	}
 };
 

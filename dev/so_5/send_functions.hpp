@@ -56,6 +56,7 @@ namespace impl
 				Args &&... args )
 				{
 					so_5::low_level_api::deliver_message(
+							abstract_message_box_t::delivery_mode_t::ordinary,
 							*to,
 							message_payload_type< Message >::subscription_type_index(),
 							make_instance( std::forward<Args>(args)... ) );
@@ -83,7 +84,7 @@ namespace impl
 				std::chrono::steady_clock::duration period,
 				Args &&... args )
 				{
-					return so_5::low_level_api::schedule_timer( 
+					return so_5::low_level_api::schedule_timer(
 							message_payload_type< Message >::subscription_type_index(),
 							message_ref_t{ make_instance( std::forward<Args>(args)... ) },
 							to,
@@ -102,7 +103,9 @@ namespace impl
 			send( const so_5::mbox_t & to )
 				{
 					using namespace so_5::low_level_api;
-					deliver_signal< actual_signal_type >( *to );
+					deliver_signal< actual_signal_type >(
+							abstract_message_box_t::delivery_mode_t::ordinary,
+							*to );
 				}
 
 			static void
@@ -263,6 +266,7 @@ send( Target && to, mhood_t< Message > what )
 		using namespace so_5::low_level_api;
 
 		deliver_message(
+				abstract_message_box_t::delivery_mode_t::ordinary,
 				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
 				message_payload_type<Message>::subscription_type_index(),
 				what.make_reference() );
@@ -339,6 +343,7 @@ send(
 		using namespace so_5::low_level_api;
 
 		deliver_message(
+				abstract_message_box_t::delivery_mode_t::ordinary,
 				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
 				message_payload_type<Message>::subscription_type_index(),
 				what.make_reference() );

@@ -149,6 +149,13 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		operator=( abstract_message_box_t && ) = delete;
 
 	public:
+		//FIXME: document this!
+		enum class delivery_mode_t
+			{
+				ordinary,
+				nonblocking
+			};
+
 		abstract_message_box_t() = default;
 		virtual ~abstract_message_box_t() noexcept = default;
 
@@ -231,6 +238,8 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 		virtual void
 		do_deliver_message(
+			//FIXME: document this!
+			delivery_mode_t delivery_mode,
 			//! Type of the message to deliver.
 			const std::type_index & msg_type,
 			//! A message instance to be delivered.
@@ -286,6 +295,10 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		environment() const noexcept = 0;
 
 	protected :
+//FIXME: this fragment has to be removed completely.
+//Some of the description in the comment has to be moved to
+//the description of do_deliver_message method.
+#if 0
 		/*!
 		 * \since
 		 * v.5.5.18
@@ -312,7 +325,10 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const std::type_index & msg_type,
 			//! A message instance to be delivered.
 			const message_ref_t & message );
+#endif
 
+//FIXME: this fragment has to be removed completely.
+#if 0
 		/*!
 		 * \brief Helper for calling do_deliver_message_from_timer in
 		 * derived classes.
@@ -354,6 +370,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		{
 			mbox.do_deliver_message_from_timer( msg_type, message );
 		}
+#endif
 };
 
 namespace low_level_api {
@@ -377,6 +394,8 @@ namespace low_level_api {
 template< class Message >
 void
 deliver_message(
+	//FIXME: document this!
+	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -388,6 +407,7 @@ deliver_message(
 		ensure_message_with_actual_data( msg.get() );
 
 		target.do_deliver_message(
+			delivery_mode,
 			std::move(subscription_type),
 			message_ref_t{ msg.release() },
 			1u );
@@ -408,6 +428,8 @@ deliver_message(
  */
 inline void
 deliver_message(
+	//FIXME: document this!
+	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -416,6 +438,7 @@ deliver_message(
 	message_ref_t msg )
 	{
 		target.do_deliver_message(
+				delivery_mode,
 				std::move(subscription_type),
 				std::move(msg),
 				1u );
@@ -437,12 +460,15 @@ deliver_message(
 template< class Message >
 void
 deliver_signal(
+	//FIXME: document this!
+	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for signal.
 	abstract_message_box_t & target )
 	{
 		ensure_signal< Message >();
 
 		target.do_deliver_message(
+			delivery_mode,
 			message_payload_type< Message >::subscription_type_index(),
 			message_ref_t(),
 			1u );

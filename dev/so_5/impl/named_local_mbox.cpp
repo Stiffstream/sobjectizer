@@ -69,11 +69,16 @@ named_local_mbox_t::type() const
 
 void
 named_local_mbox_t::do_deliver_message(
+	delivery_mode_t delivery_mode,
 	const std::type_index & msg_type,
 	const message_ref_t & message,
 	unsigned int overlimit_reaction_deep )
 {
-	m_mbox->do_deliver_message( msg_type, message, overlimit_reaction_deep );
+	m_mbox->do_deliver_message(
+			delivery_mode,
+			msg_type,
+			message,
+			overlimit_reaction_deep );
 }
 
 void

@@ -62,12 +62,16 @@ public :
 
 	virtual void
 	do_deliver_message(
+		so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
 		unsigned int overlimit_reaction_deep ) override
 		{
 			m_actual_mbox->do_deliver_message(
-					msg_type, message, overlimit_reaction_deep );
+					delivery_mode,
+					msg_type,
+					message,
+					overlimit_reaction_deep );
 		}
 
 	virtual void

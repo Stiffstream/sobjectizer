@@ -377,13 +377,25 @@ class mchain_template
 
 		void
 		do_deliver_message(
+			delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
-				this->try_to_store_message_to_queue(
-							msg_type,
-							message );
+				switch( delivery_mode )
+					{
+					case delivery_mode_t::ordinary:
+						this->try_to_store_message_to_queue_ordinary_mode(
+								msg_type,
+								message );
+					break;
+
+					case delivery_mode_t::nonblocking:
+						this->try_to_store_message_to_queue_nonblocking_mode(
+								msg_type,
+								message );
+					break;
+					}
 			}
 
 		/*!
@@ -566,16 +578,6 @@ class mchain_template
 			}
 
 		void
-		do_deliver_message_from_timer(
-			const std::type_index & msg_type,
-			const message_ref_t & message ) override
-			{
-				try_to_store_message_from_timer_to_queue(
-						msg_type,
-						message );
-			}
-
-		void
 		actual_close( close_mode_t mode ) override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
@@ -663,10 +665,10 @@ class mchain_template
 		 * \note
 		 * This implementation must be used for ordinary delivery operations.
 		 * For delivery operations from timer thread another method must be
-		 * called (see try_to_store_message_from_timer_to_queue()).
+		 * called (see try_to_store_message_to_queue_nonblocking_mode()).
 		 */
 		void
-		try_to_store_message_to_queue(
+		try_to_store_message_to_queue_ordinary_mode(
 			const std::type_index & msg_type,
 			const message_ref_t & message )
 			{
@@ -772,7 +774,7 @@ class mchain_template
 		 * v.5.5.18
 		 */
 		void
-		try_to_store_message_from_timer_to_queue(
+		try_to_store_message_to_queue_nonblocking_mode(
 			const std::type_index & msg_type,
 			const message_ref_t & message )
 			{
@@ -882,8 +884,8 @@ class mchain_template
 		 * last part of storing a message into chain.
 		 *
 		 * \note
-		 * Intended to be called from try_to_store_message_to_queue()
-		 * and try_to_store_message_from_timer_to_queue().
+		 * Intended to be called from try_to_store_message_to_queue_ordinary_mode()
+		 * and try_to_store_message_to_queue_nonblocking_mode().
 		 *
 		 * \since
 		 * v.5.5.18

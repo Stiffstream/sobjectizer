@@ -201,10 +201,12 @@ class mpsc_mbox_template_t
 
 		void
 		do_deliver_message(
+			delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) override
 			{
+				//FIXME: delivery_mode has to be passed to deliver_op_tracer object.
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
