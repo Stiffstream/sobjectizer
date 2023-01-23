@@ -481,6 +481,37 @@ fill_trace_data_1(
 	}
 
 inline void
+make_trace_to_1(
+	std::ostream & s,
+	so_5::abstract_message_box_t::delivery_mode_t mode )
+	{
+		const auto mode_to_str = []( auto m ) -> const char * {
+				const char * r = "unknown";
+				switch( m )
+					{
+					case so_5::abstract_message_box_t::delivery_mode_t::ordinary:
+						r = "ordinary";
+					break;
+
+					case so_5::abstract_message_box_t::delivery_mode_t::nonblocking:
+						r = "nonblocking";
+					break;
+					}
+				return r;
+			};
+
+		s << "[delivery_mode=" << mode_to_str( mode ) << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	abstract_message_box_t::delivery_mode_t /*mode*/ )
+	{
+		// Just for compilation.
+	}
+
+inline void
 make_trace_to( std::ostream & ) {}
 
 inline void
@@ -554,6 +585,7 @@ struct tracing_disabled_base
 					const tracing_disabled_base &,
 					const abstract_message_box_t &,
 					const char *,
+					abstract_message_box_t::delivery_mode_t,
 					const std::type_index &,
 					const message_ref_t &,
 					const unsigned int )
@@ -621,6 +653,7 @@ class tracing_enabled_base
 				so_5::msg_tracing::holder_t & m_tracer;
 				const abstract_message_box_t & m_mbox;
 				const char * m_op_name;
+				const abstract_message_box_t::delivery_mode_t m_delivery_mode;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
 				const details::overlimit_deep m_overlimit_deep;
@@ -630,12 +663,14 @@ class tracing_enabled_base
 					const tracing_enabled_base & tracing_base,
 					const abstract_message_box_t & mbox,
 					const char * op_name,
+					so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
 					const std::type_index & msg_type,
 					const message_ref_t & message,
 					const unsigned int overlimit_reaction_deep )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_mbox( mbox )
 					,	m_op_name( op_name )
+					,	m_delivery_mode( delivery_mode )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
 					,	m_overlimit_deep( overlimit_reaction_deep )
@@ -655,6 +690,7 @@ class tracing_enabled_base
 								details::composed_action_name{
 										m_op_name, action_name_suffix },
 								details::original_msg_type{ m_msg_type },
+								m_delivery_mode,
 								m_message,
 								m_overlimit_deep,
 								std::forward< Args >(args)... );

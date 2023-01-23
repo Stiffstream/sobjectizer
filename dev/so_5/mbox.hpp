@@ -149,10 +149,23 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		operator=( abstract_message_box_t && ) = delete;
 
 	public:
-		//FIXME: document this!
+		/*!
+		 * \brief Possible modes of message/signal delivery.
+		 *
+		 * \since v.5.8.0
+		 */
 		enum class delivery_mode_t
 			{
+				//! Ordinary delivery. The send operation can block (for
+				//! example on an attempt to send a message to a full mchain).
 				ordinary,
+				//! Delivery that prohibit blocking. For example a delivery
+				//! of a delayed/periodic can't block the current thread
+				//! (because it's the timer thread and the timer thread
+				//! can't be blocked).
+				//!
+				//! NOTE. The current version also prohibit throwing of
+				//! exceptions.
 				nonblocking
 			};
 
@@ -232,13 +245,21 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
 		 *
+		 * A message delivery from timer thread is somewhat different from
+		 * an ordinary message delivery. Especially in the case when
+		 * target mbox is a message chain. If that message chain is
+		 * full and some kind of overflow reaction is specified (like waiting
+		 * for some time or throwing an exception) then it can lead to
+		 * undesired behaviour of the whole application. To take care about
+		 * these cases a new method is introduced.
+		 *
 		 * \note
 		 * Since v.5.6.0 this method is used for deliverance of ordinary
 		 * messages/signals and for deliverance of enveloped messages.
 		 */
 		virtual void
 		do_deliver_message(
-			//FIXME: document this!
+			//! Can the delivery blocks the current thread?
 			delivery_mode_t delivery_mode,
 			//! Type of the message to deliver.
 			const std::type_index & msg_type,
@@ -293,84 +314,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		[[nodiscard]]
 		virtual so_5::environment_t &
 		environment() const noexcept = 0;
-
-	protected :
-//FIXME: this fragment has to be removed completely.
-//Some of the description in the comment has to be moved to
-//the description of do_deliver_message method.
-#if 0
-		/*!
-		 * \since
-		 * v.5.5.18
-		 * 
-		 * \brief Special method for message delivery from a timer thread.
-		 *
-		 * A message delivery from timer thread is somewhat different from
-		 * an ordinary message delivery. Especially in the case when
-		 * target mbox is a message chain. If that message chain is
-		 * full and some kind of overflow reaction is specified (like waiting
-		 * for some time or throwing an exception) then it can lead to
-		 * undesired behaviour of the whole application. To take care about
-		 * these cases a new method is introduced.
-		 *
-		 * Note that implementation of that method in abstract_message_box_t
-		 * class is just a proxy for do_deliver_message() method. It is done
-		 * to keep compatibility with previous versions of SObjectizer.
-		 * The actual implementation of that method is present only in
-		 * message chains.
-		 */
-		virtual void
-		do_deliver_message_from_timer(
-			//! Type of the message to deliver.
-			const std::type_index & msg_type,
-			//! A message instance to be delivered.
-			const message_ref_t & message );
-#endif
-
-//FIXME: this fragment has to be removed completely.
-#if 0
-		/*!
-		 * \brief Helper for calling do_deliver_message_from_timer in
-		 * derived classes.
-		 *
-		 * Sometimes an user want to implement its own mbox on top
-		 * of an existing mbox. Something like that:
-		 * \code
-		 * class my_custom_mbox : public so_5::abstract_message_box_t
-		 * {
-		 * 	// Actual mbox to perform all work.
-		 * 	const so_5::mbox_t actual_mbox_;
-		 * 	...
-		 * 	void do_deliver_message_from_timer(
-		 * 		const std::type_index & msg_type,
-		 * 		const so_5::message_ref_t & message )
-		 * 	{
-		 * 		... // Do some specific stuff.
-		 * 		// Work should be delegated to actual_mbox_ but we
-		 * 		// can't simply call actual_mbox_->do_deliver_message_from_timer()
-		 * 		// because it is a protected method.
-		 * 		// But we can call delegate_deliver_message_from_timer():
-		 * 		delegate_deliver_message_from_timer(
-		 * 				actual_mbox_, msg_type, message );
-		 * 	}
-		 * };
-		 * \endcode
-		 * 
-		 * \since
-		 * v.5.5.23
-		 */
-		static void
-		delegate_deliver_message_from_timer(
-			//! Mbox to be used for message delivery.
-			abstract_message_box_t & mbox,
-			//! Type of the message to deliver.
-			const std::type_index & msg_type,
-			//! A message instance to be delivered.
-			const message_ref_t & message )
-		{
-			mbox.do_deliver_message_from_timer( msg_type, message );
-		}
-#endif
 };
 
 namespace low_level_api {
@@ -394,7 +337,7 @@ namespace low_level_api {
 template< class Message >
 void
 deliver_message(
-	//FIXME: document this!
+	//! Can the delivery blocks the current thread?
 	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
@@ -428,7 +371,7 @@ deliver_message(
  */
 inline void
 deliver_message(
-	//FIXME: document this!
+	//! Can the delivery blocks the current thread?
 	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
@@ -460,7 +403,7 @@ deliver_message(
 template< class Message >
 void
 deliver_signal(
-	//FIXME: document this!
+	//! Can the delivery blocks the current thread?
 	abstract_message_box_t::delivery_mode_t delivery_mode,
 	//! Destination for signal.
 	abstract_message_box_t & target )
