@@ -447,14 +447,14 @@ struct decrement_on_exception_t
  */
 template< typename Lambda >
 void
-try_to_deliver_to_agent(
+try_to_deliver_to_consumer(
 	//! Mbox that is used for message delivery.
 	/*!
 	 * Added in v.5.5.23 for support of enveloped messages.
 	 */
 	mbox_id_t mbox_id,
 	//! Receiver of the message or service request.
-	const agent_t & receiver,
+	const message_sink_t & receiver,
 	//! Optional message limit.
 	//! Value nullptr means that there is no message limit to control.
 	const control_block_t * limit,

@@ -347,7 +347,7 @@ class mchain_template
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
 			const so_5::message_limit::control_block_t * /*limit*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_subscriptions,
@@ -357,7 +357,7 @@ class mchain_template
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{}
 
 		std::string
@@ -406,7 +406,7 @@ class mchain_template
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_delivery_filters,
@@ -416,7 +416,7 @@ class mchain_template
 		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) noexcept override
+			message_sink_t & /*subscriber*/ ) noexcept override
 			{}
 
 		[[nodiscard]]

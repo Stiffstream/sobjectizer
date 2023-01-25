@@ -156,7 +156,7 @@ public :
 	template< typename Msg_Ref_Extractor >
 	delivery_possibility_t
 	must_be_delivered(
-		agent_t & subscriber,
+		message_sink_t & subscriber,
 		const message_ref_t & msg,
 		Msg_Ref_Extractor msg_extractor ) const
 	{

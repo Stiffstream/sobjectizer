@@ -715,7 +715,7 @@ agent_t::so_was_defined() const
 }
 
 environment_t &
-agent_t::so_environment() const
+agent_t::so_environment() const noexcept
 {
 	return m_env;
 }
@@ -1110,7 +1110,7 @@ select_demand_handler_for_message(
 } /* namespace anonymous */
 
 void
-agent_t::push_event(
+agent_t::so_push_event(
 	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,

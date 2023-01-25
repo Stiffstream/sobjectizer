@@ -42,7 +42,7 @@ void
 named_local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
 	const so_5::message_limit::control_block_t * limit,
-	agent_t & subscriber )
+	message_sink_t & subscriber )
 {
 	m_mbox->subscribe_event_handler( type_wrapper, limit, subscriber );
 }
@@ -50,7 +50,7 @@ named_local_mbox_t::subscribe_event_handler(
 void
 named_local_mbox_t::unsubscribe_event_handlers(
 	const std::type_index & type_wrapper,
-	agent_t & subscriber )
+	message_sink_t & subscriber )
 {
 	return m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
 }
@@ -85,7 +85,7 @@ void
 named_local_mbox_t::set_delivery_filter(
 	const std::type_index & msg_type,
 	const delivery_filter_t & filter,
-	agent_t & subscriber )
+	message_sink_t & subscriber )
 {
 	m_mbox->set_delivery_filter( msg_type, filter, subscriber );
 }
@@ -93,7 +93,7 @@ named_local_mbox_t::set_delivery_filter(
 void
 named_local_mbox_t::drop_delivery_filter(
 	const std::type_index & msg_type,
-	agent_t & subscriber ) noexcept
+	message_sink_t & subscriber ) noexcept
 {
 	m_mbox->drop_delivery_filter( msg_type, subscriber );
 }

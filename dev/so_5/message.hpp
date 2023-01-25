@@ -952,7 +952,7 @@ struct overlimit_context_t
 		const mbox_id_t m_mbox_id;
 
 		//! Receiver of the message (or enveloped message).
-		const agent_t & m_receiver;
+		const message_sink_t & m_receiver;
 
 		//! Control block for message limit.
 		const control_block_t & m_limit;
@@ -982,7 +982,7 @@ struct overlimit_context_t
 		inline
 		overlimit_context_t(
 			mbox_id_t mbox_id,
-			const agent_t & receiver,
+			const message_sink_t & receiver,
 			const control_block_t & limit,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,

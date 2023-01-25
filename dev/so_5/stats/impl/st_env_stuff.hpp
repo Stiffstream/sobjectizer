@@ -103,7 +103,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		subscribe_event_handler(
 			const std::type_index & /*type_index*/,
 			const message_limit::control_block_t * /*limit*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to subscribe_event_handler() is illegal for "
@@ -113,7 +113,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & /*type_index*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to unsubscribe_event_handler() is illegal for "
@@ -159,7 +159,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
-			agent_t & /*subscriber*/ ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to set_delivery_filter() is illegal for "
@@ -169,7 +169,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) noexcept override
+			message_sink_t & /*subscriber*/ ) noexcept override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to drop_delivery_filter() is illegal for "

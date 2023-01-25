@@ -169,7 +169,7 @@ public:
 	void subscribe_event_handler(
 		const std::type_index & msg_type,
 		const so_5::message_limit::control_block_t * limit,
-		so_5::agent_t & subscriber ) override
+		so_5::message_sink_t & subscriber ) override
 	{
 		if( !should_intercept( msg_type ) )
 			m_source->subscribe_event_handler(
@@ -180,7 +180,7 @@ public:
 
 	void unsubscribe_event_handlers(
 		const std::type_index & msg_type,
-		so_5::agent_t & subscriber ) override
+		so_5::message_sink_t & subscriber ) override
 	{
 		if( !should_intercept( msg_type ) )
 			m_source->unsubscribe_event_handlers(
@@ -223,7 +223,7 @@ public:
 	void set_delivery_filter(
 		const std::type_index & msg_type,
 		const so_5::delivery_filter_t & filter,
-		so_5::agent_t & subscriber ) override
+		so_5::message_sink_t & subscriber ) override
 	{
 		if( !should_intercept( msg_type ) )
 			m_source->set_delivery_filter(
@@ -234,7 +234,7 @@ public:
 
 	void drop_delivery_filter(
 		const std::type_index & msg_type,
-		::so_5::agent_t & subscriber ) noexcept override
+		so_5::message_sink_t & subscriber ) noexcept override
 	{
 		if( !should_intercept( msg_type ) )
 			m_source->drop_delivery_filter(

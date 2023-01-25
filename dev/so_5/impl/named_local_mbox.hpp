@@ -54,12 +54,12 @@ class named_local_mbox_t
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
 			const so_5::message_limit::control_block_t * limit,
-			agent_t & subscriber ) override;
+			message_sink_t & subscriber ) override;
 
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
-			agent_t & subscriber ) override;
+			message_sink_t & subscriber ) override;
 
 		std::string
 		query_name() const override;
@@ -78,12 +78,12 @@ class named_local_mbox_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			agent_t & subscriber ) override;
+			message_sink_t & subscriber ) override;
 
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept override;
+			message_sink_t & subscriber ) noexcept override;
 
 		environment_t &
 		environment() const noexcept override;

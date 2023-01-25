@@ -623,6 +623,7 @@ class subscription_bind_t
 */
 class SO_5_TYPE agent_t
 	:	private atomic_refcounted_t
+	,	public message_sink_t
 	,	public message_limit::message_limit_methods_mixin_t
 {
 		friend class subscription_bind_t;
@@ -986,22 +987,6 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		so_switch_to_awaiting_deregistration_state();
-
-		//! Push an event to the agent's event queue.
-		/*!
-			This method is used by SObjectizer for the 
-			agent's event scheduling.
-		*/
-		static inline void
-		call_push_event(
-			agent_t & agent,
-			const message_limit::control_block_t * limit,
-			mbox_id_t mbox_id,
-			std::type_index msg_type,
-			const message_ref_t & message )
-		{
-			agent.push_event( limit, mbox_id, msg_type, message );
-		}
 
 		/*!
 		 * \since
@@ -2277,7 +2262,7 @@ class SO_5_TYPE agent_t
 			\endcode
 		*/
 		environment_t &
-		so_environment() const;
+		so_environment() const noexcept override;
 
 		/*!
 		 * \brief Get a handle of agent's coop.
@@ -2493,15 +2478,30 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Get the priority of the agent.
+		 *
+		 * \since v.5.5.8
 		 */
+		[[nodiscard]]
 		priority_t
-		so_priority() const
+		so_priority() const noexcept
 			{
 				return m_priority;
+			}
+
+		/*!
+		 * \brief Get the priority of the agent.
+		 *
+		 * \note
+		 * This is the part of message_sink_t interface.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		priority_t
+		so_message_sink_priority() const noexcept override
+			{
+				return this->so_priority();
 			}
 		/*!
 		 * \}
@@ -2601,15 +2601,15 @@ class SO_5_TYPE agent_t
 		 * in so_bind_to_dispatcher() method. And reset to nullptr again
 		 * in shutdown_agent().
 		 *
-		 * nullptr in m_event_queue means that methods push_event() will throw
+		 * nullptr in m_event_queue means that methods so_push_event() will throw
 		 * away any new demand.
 		 *
 		 * It is necessary to provide guarantee that m_event_queue will be reset
 		 * to nullptr in shutdown_agent() only if there is no working
-		 * push_event() methods. To do that default_rw_spinlock_t is used. Method
-		 * push_event() acquire it in read-mode and shutdown_agent() acquires it
+		 * so_push_event() methods. To do that default_rw_spinlock_t is used. Method
+		 * so_push_event() acquire it in read-mode and shutdown_agent() acquires it
 		 * in write-mode. It means that shutdown_agent() cannot get access to
-		 * m_event_queue until there is working push_event().
+		 * m_event_queue until there is working so_push_event().
 		 */
 		default_rw_spinlock_t m_event_queue_lock;
 
@@ -2810,8 +2810,12 @@ class SO_5_TYPE agent_t
 		 */
 
 		//! Push event into the event queue.
+		/*!
+		 * \note
+		 * Since v.5.8.0 this is implementation of message_sink_t interface.
+		 */
 		void
-		push_event(
+		so_push_event(
 			//! Optional message limit.
 			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
@@ -2819,7 +2823,7 @@ class SO_5_TYPE agent_t
 			//! Message type for event.
 			std::type_index msg_type,
 			//! Event message.
-			const message_ref_t & message );
+			const message_ref_t & message ) override;
 		/*!
 		 * \}
 		 */
@@ -3193,7 +3197,7 @@ class lambda_as_filter_t : public delivery_filter_t
 
 		bool
 		check(
-			const agent_t & /*receiver*/,
+			const message_sink_t & /*receiver*/,
 			message_t & msg ) const noexcept override
 			{
 				return m_filter(message_payload_type< Message >::payload_reference( msg ));

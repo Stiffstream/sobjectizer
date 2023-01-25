@@ -234,7 +234,8 @@ struct call_pre_abort_action_impl
 			{
 				const auto & m = message_payload_type< M >::payload_reference(
 						*ctx.m_message );
-				action( ctx.m_receiver, m );
+				//FIXME: document ths use of dynamic_cast.
+				action( dynamic_cast<const so_5::agent_t &>( ctx.m_receiver ), m );
 			}
 	};
 
@@ -250,7 +251,8 @@ struct call_pre_abort_action_impl< false, M, L >
 		static void
 		call( const overlimit_context_t & ctx, L action )
 			{
-				action( ctx.m_receiver );
+				//FIXME: document ths use of dynamic_cast.
+				action( dynamic_cast<const so_5::agent_t &>( ctx.m_receiver ) );
 			}
 	};
 

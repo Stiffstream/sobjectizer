@@ -57,8 +57,8 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		virtual optional<current_thread_id_t>
 		tid() const noexcept override;
 
-		virtual optional<const agent_t *>
-		agent() const noexcept override;
+		virtual optional<const message_sink_t *>
+		message_sink() const noexcept override;
 
 		virtual optional<std::type_index>
 		msg_type() const noexcept override;
@@ -82,7 +82,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		set_tid( current_thread_id_t tid ) noexcept;
 
 		void
-		set_agent( const agent_t * agent ) noexcept;
+		set_message_sink( const message_sink_t * message_sink ) noexcept;
 
 		void
 		set_msg_type( const std::type_index & msg_type ) noexcept;
@@ -108,7 +108,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 
 	private :
 		optional<current_thread_id_t> m_tid;
-		optional<const agent_t *> m_agent;
+		optional<const message_sink_t *> m_message_sink;
 		optional<std::type_index> m_msg_type;
 		optional<so_5::msg_tracing::msg_source_t> m_msg_source;
 		optional<so_5::msg_tracing::message_or_signal_flag_t> m_message_or_signal;
@@ -322,15 +322,15 @@ fill_trace_data_1(
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const agent_t * agent )
+make_trace_to_1( std::ostream & s, const message_sink_t * sink )
 	{
-		s << "[agent_ptr=" << pointer{agent} << "]";
+		s << "[msg_sink_ptr=" << pointer{sink} << "]";
 	}
 
 inline void
-fill_trace_data_1( actual_trace_data_t & d, const agent_t * agent )
+fill_trace_data_1( actual_trace_data_t & d, const message_sink_t * sink )
 	{
-		d.set_agent( agent );
+		d.set_message_sink( sink );
 	}
 
 inline void
@@ -603,11 +603,11 @@ struct tracing_disabled_base
 				no_subscribers() const {}
 
 				void
-				push_to_queue( const agent_t * ) const {}
+				push_to_queue( const message_sink_t * ) const {}
 
 				void
 				message_rejected(
-					const agent_t *,
+					const message_sink_t *,
 					const delivery_possibility_t ) const {}
 
 				const so_5::message_limit::impl::action_msg_tracer_t *
@@ -703,14 +703,14 @@ class tracing_enabled_base
 					}
 
 				void
-				push_to_queue( const agent_t * subscriber ) const
+				push_to_queue( const message_sink_t * subscriber ) const
 					{
 						make_trace( "push_to_queue", subscriber );
 					}
 
 				void
 				message_rejected(
-					const agent_t * subscriber,
+					const message_sink_t * subscriber,
 					const delivery_possibility_t status ) const
 					{
 						switch( status )
@@ -739,21 +739,21 @@ class tracing_enabled_base
 			protected :
 				virtual void
 				reaction_abort_app(
-					const agent_t * subscriber ) const noexcept override
+					const message_sink_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.abort", subscriber );
 					}
 
 				virtual void
 				reaction_drop_message(
-					const agent_t * subscriber ) const noexcept override
+					const message_sink_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.drop", subscriber );
 					}
 
 				virtual void
 				reaction_redirect_message(
-					const agent_t * subscriber,
+					const message_sink_t * subscriber,
 					const mbox_t & target ) const noexcept override
 					{
 						make_trace(
@@ -765,7 +765,7 @@ class tracing_enabled_base
 
 				virtual void
 				reaction_transform(
-					const agent_t * subscriber,
+					const message_sink_t * subscriber,
 					const mbox_t & target,
 					const std::type_index & msg_type,
 					const message_ref_t & transformed ) const noexcept override

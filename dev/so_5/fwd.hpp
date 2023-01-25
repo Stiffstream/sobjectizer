@@ -30,6 +30,8 @@ class state_switch_guard_t;
 
 } /* namespace impl */
 
+class message_sink_t;
+
 class coop_dereg_reason_t;
 class state_t;
 class environment_t;

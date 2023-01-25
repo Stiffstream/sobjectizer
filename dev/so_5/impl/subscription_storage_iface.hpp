@@ -153,7 +153,7 @@ make_subscription_description(
 class subscription_storage_t
 	{
 	public :
-		subscription_storage_t( agent_t * owner );
+		subscription_storage_t( message_sink_t * owner );
 		virtual ~subscription_storage_t() noexcept = default;
 
 		virtual void
@@ -212,7 +212,6 @@ class subscription_storage_t
 		virtual void
 		drop_content() = 0;
 
-
 		//! Get content for copying subscription information
 		//! to another storage object.
 		virtual subscription_storage_common::subscr_info_vector_t
@@ -228,11 +227,12 @@ class subscription_storage_t
 		query_subscriptions_count() const = 0;
 
 	protected :
-		agent_t *
-		owner() const;
+		[[nodiscard]]
+		message_sink_t *
+		owner() const noexcept;
 
 	private :
-		agent_t * m_owner;
+		message_sink_t * m_owner;
 	};
 
 } /* namespace impl */

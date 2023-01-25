@@ -38,28 +38,28 @@ class action_msg_tracer_t
 		//! Application will be aborted as result of overlimit.
 		virtual void
 		reaction_abort_app(
-			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber ) const noexcept = 0;
+			//! Receiver for the problematic message.
+			const message_sink_t * subscriber ) const noexcept = 0;
 
 		//! Message will be dropped as result of overlimit.
 		virtual void
 		reaction_drop_message(
-			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber ) const noexcept = 0;
+			//! Receiver for the problematic message.
+			const message_sink_t * subscriber ) const noexcept = 0;
 
 		//! Message will be redirected to another mbox.
 		virtual void
 		reaction_redirect_message(
-			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber,
+			//! Receiver for the problematic message.
+			const message_sink_t * subscriber,
 			//! A new destination for the message.
 			const mbox_t & target ) const noexcept = 0;
 
 		//! Message will be transformed and redirected.
 		virtual void
 		reaction_transform(
-			//! Agent-receiver for the problematic message.
-			const agent_t * subscriber,
+			//! Receiver for the problematic message.
+			const message_sink_t * subscriber,
 			//! A new destination for transformed message.
 			const mbox_t & target,
 			//! A new type of message.

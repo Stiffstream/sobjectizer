@@ -201,7 +201,7 @@ namespace
 class storage_t : public subscription_storage_t
 	{
 	public :
-		storage_t( agent_t * owner );
+		storage_t( message_sink_t * owner );
 		~storage_t() override;
 
 		virtual void
@@ -276,7 +276,7 @@ class storage_t : public subscription_storage_t
 		destroy_all_subscriptions();
 	};
 
-storage_t::storage_t( agent_t * owner )
+storage_t::storage_t( message_sink_t * owner )
 	:	subscription_storage_t( owner )
 	{}
 
@@ -513,7 +513,7 @@ storage_t::query_subscriptions_count() const
 SO_5_FUNC subscription_storage_factory_t
 hash_table_based_subscription_storage_factory()
 	{
-		return []( agent_t * owner ) {
+		return []( message_sink_t * owner ) {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::hash_table_subscr_storage::storage_t( owner ) );
 		};

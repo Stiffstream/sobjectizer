@@ -18,12 +18,12 @@ namespace so_5
 namespace impl
 {
 
-subscription_storage_t::subscription_storage_t( agent_t * owner )
+subscription_storage_t::subscription_storage_t( message_sink_t * owner )
 	:	m_owner( owner )
 	{}
 
-agent_t *
-subscription_storage_t::owner() const
+message_sink_t *
+subscription_storage_t::owner() const noexcept
 	{
 		return m_owner;
 	}

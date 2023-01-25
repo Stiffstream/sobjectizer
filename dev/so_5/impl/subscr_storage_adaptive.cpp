@@ -47,7 +47,7 @@ class storage_t : public subscription_storage_t
 	{
 	public :
 		storage_t(
-			agent_t * owner,
+			message_sink_t * owner,
 			std::size_t threshold,
 			subscription_storage_unique_ptr_t small_storage,
 			subscription_storage_unique_ptr_t large_storage );
@@ -111,7 +111,7 @@ class storage_t : public subscription_storage_t
 	};
 
 storage_t::storage_t(
-	agent_t * owner,
+	message_sink_t * owner,
 	std::size_t threshold,
 	subscription_storage_unique_ptr_t small_storage,
 	subscription_storage_unique_ptr_t large_storage )
@@ -266,7 +266,7 @@ SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
 	std::size_t threshold )
 	{
-		return [threshold]( agent_t * owner ) {
+		return [threshold]( message_sink_t * owner ) {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::adaptive_subscr_storage::storage_t(
 							owner,
@@ -283,7 +283,7 @@ adaptive_subscription_storage_factory(
 	const subscription_storage_factory_t & small_storage_factory,
 	const subscription_storage_factory_t & large_storage_factory )
 	{
-		return [=]( agent_t * owner ) {
+		return [=]( message_sink_t * owner ) {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::adaptive_subscr_storage::storage_t(
 							owner,

@@ -23,6 +23,7 @@
 
 #include <so_5/mbox_fwd.hpp>
 #include <so_5/message.hpp>
+#include <so_5/message_sink.hpp>
 #include <so_5/mhood.hpp>
 
 namespace so_5
@@ -77,7 +78,7 @@ class SO_5_TYPE delivery_filter_t
 		virtual bool
 		check(
 			//! Receiver of the message.
-			const agent_t & receiver,
+			const message_sink_t & receiver,
 			//! Message itself.
 			message_t & msg ) const noexcept = 0;
 	};
@@ -189,16 +190,16 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			const std::type_index & type_index,
 			//! Optional message limit for that message type.
 			const message_limit::control_block_t * limit,
-			//! Agent-subscriber.
-			agent_t & subscriber ) = 0;
+			//! Subscriber.
+			message_sink_t & subscriber ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
 			const std::type_index & type_index,
-			//! Agent-subscriber.
-			agent_t & subscriber ) = 0;
+			//! Subscriber.
+			message_sink_t & subscriber ) = 0;
 
 		//! Get the mbox name.
 		[[nodiscard]]
@@ -290,7 +291,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A caller must guaranted the validity of this reference.
 			const delivery_filter_t & filter,
 			//! A subscriber for the message.
-			agent_t & subscriber ) = 0;
+			message_sink_t & subscriber ) = 0;
 
 		/*!
 		 * \since
@@ -301,7 +302,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept = 0;
+			message_sink_t & subscriber ) noexcept = 0;
 		/*!
 		 * \}
 		 */

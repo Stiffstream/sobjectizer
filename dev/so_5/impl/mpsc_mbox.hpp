@@ -124,7 +124,7 @@ class mpsc_mbox_template_t
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
-			agent_t * single_consumer,
+			message_sink_t * single_consumer,
 			Tracing_Args &&... tracing_args )
 			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
@@ -141,7 +141,7 @@ class mpsc_mbox_template_t
 		subscribe_event_handler(
 			const std::type_index & msg_type,
 			const message_limit::control_block_t * limit,
-			agent_t & subscriber ) override
+			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -166,7 +166,7 @@ class mpsc_mbox_template_t
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) override
+			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -223,7 +223,7 @@ class mpsc_mbox_template_t
 					{
 						using namespace so_5::message_limit::impl;
 
-						try_to_deliver_to_agent(
+						try_to_deliver_to_consumer(
 								this->m_id,
 								*(this->m_single_consumer),
 								info.limit(),
@@ -234,8 +234,7 @@ class mpsc_mbox_template_t
 								[&] {
 									tracer.push_to_queue( this->m_single_consumer );
 
-									agent_t::call_push_event(
-											*(this->m_single_consumer),
+									this->m_single_consumer->so_push_event(
 											info.limit(),
 											this->m_id,
 											msg_type,
@@ -248,7 +247,7 @@ class mpsc_mbox_template_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			agent_t & subscriber ) override
+			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -270,7 +269,7 @@ class mpsc_mbox_template_t
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept override
+			message_sink_t & subscriber ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -316,7 +315,7 @@ class mpsc_mbox_template_t
 		const mbox_id_t m_id;
 
 		//! The only consumer of this mbox's messages.
-		agent_t * m_single_consumer;
+		message_sink_t * m_single_consumer;
 
 		/*!
 		 * \since

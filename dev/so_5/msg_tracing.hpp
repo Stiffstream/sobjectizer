@@ -19,19 +19,13 @@
 #include <so_5/optional.hpp>
 #include <so_5/types.hpp>
 
+#include <so_5/fwd.hpp>
+
 #include <string>
 #include <memory>
 #include <typeindex>
 
 namespace so_5 {
-
-class agent_t;
-
-namespace impl {
-
-struct event_handler_data_t;
-
-} /* namespace impl */
 
 namespace msg_tracing {
 
@@ -264,8 +258,8 @@ class SO_5_TYPE trace_data_t
 		msg_source() const noexcept = 0;
 
 		//! Get a pointer to agent from trace message.
-		virtual optional<const so_5::agent_t *>
-		agent() const noexcept = 0;
+		virtual optional<const so_5::message_sink_t *>
+		message_sink() const noexcept = 0;
 
 		//! Get message or signal information.
 		virtual optional<message_or_signal_flag_t>

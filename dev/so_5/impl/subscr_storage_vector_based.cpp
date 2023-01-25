@@ -50,7 +50,7 @@ class storage_t : public subscription_storage_t
 	{
 	public :
 		storage_t(
-			agent_t * owner,
+			message_sink_t * owner,
 			std::size_t initial_capacity );
 		~storage_t() override;
 
@@ -149,7 +149,7 @@ namespace
 } /* namespace anonymous */
 
 storage_t::storage_t(
-	agent_t * owner,
+	message_sink_t * owner,
 	std::size_t initial_capacity )
 	:	subscription_storage_t( owner )
 	{
@@ -396,7 +396,7 @@ SO_5_FUNC subscription_storage_factory_t
 vector_based_subscription_storage_factory(
 	std::size_t initial_capacity )
 	{
-		return [initial_capacity]( agent_t * owner ) {
+		return [initial_capacity]( message_sink_t * owner ) {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::vector_based_subscr_storage::storage_t(
 							owner,
