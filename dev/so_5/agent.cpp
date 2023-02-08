@@ -528,13 +528,14 @@ agent_t::agent_t(
 	context_t ctx )
 	:	m_current_state_ptr( &st_default )
 	,	m_current_status( agent_status_t::not_defined_yet )
+	,	m_default_sink( partially_constructed_agent_ptr_t( self_ptr() ) )
 	,	m_handler_finder(
 			// Actual handler finder is dependent on msg_tracing status.
 			impl::internal_env_iface_t( ctx.env() ).is_msg_tracing_enabled() ?
 				&agent_t::handler_finder_msg_tracing_enabled :
 				&agent_t::handler_finder_msg_tracing_disabled )
 	,	m_subscriptions(
-			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
+			ctx.options().query_subscription_storage_factory()( &m_default_sink ) )
 	,	m_message_limits(
 			message_limit::impl::create_info_storage_if_necessary(
 				ctx.options().giveout_message_limits() ) )
@@ -1110,7 +1111,7 @@ select_demand_handler_for_message(
 } /* namespace anonymous */
 
 void
-agent_t::so_push_event(
+agent_t::push_event(
 	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,
@@ -1359,7 +1360,7 @@ agent_t::drop_all_delivery_filters() noexcept
 {
 	if( m_delivery_filters )
 	{
-		m_delivery_filters->drop_all( *this );
+		m_delivery_filters->drop_all( m_default_sink );
 		m_delivery_filters.reset();
 	}
 }
@@ -1385,7 +1386,7 @@ agent_t::do_set_delivery_filter(
 			mbox,
 			msg_type,
 			std::move(filter),
-			*this );
+			m_default_sink );
 }
 
 void
@@ -1396,7 +1397,7 @@ agent_t::do_drop_delivery_filter(
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 
 	if( m_delivery_filters )
-		m_delivery_filters->drop_delivery_filter( mbox, msg_type, *this );
+		m_delivery_filters->drop_delivery_filter( mbox, msg_type, m_default_sink );
 }
 
 const impl::event_handler_data_t *

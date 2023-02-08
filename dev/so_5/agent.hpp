@@ -459,6 +459,37 @@ class subscription_bind_t
 			const so_5::details::msg_type_and_handler_pair_t & handler ) const;
 };
 
+namespace impl
+{
+
+//FIXME: implement this!
+class default_agent_message_sink_t final
+	:	public message_sink_t
+	{
+		agent_t & m_agent;
+
+	public:
+		default_agent_message_sink_t(
+			partially_constructed_agent_ptr_t owner );
+
+		[[nodiscard]]
+		environment_t &
+		environment() const noexcept override;
+
+		[[nodiscard]]
+		priority_t
+		sink_priority() const noexcept override;
+
+		void
+		push_event(
+			mbox_id_t mbox_id,
+			std::type_index msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) override;
+	};
+
+} /* namespace impl */
+
 //
 // agent_t
 //
@@ -623,7 +654,6 @@ class subscription_bind_t
 */
 class SO_5_TYPE agent_t
 	:	private atomic_refcounted_t
-	,	public message_sink_t
 	,	public message_limit::message_limit_methods_mixin_t
 {
 		friend class subscription_bind_t;
@@ -987,6 +1017,22 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		so_switch_to_awaiting_deregistration_state();
+
+		//! Push an event to the agent's event queue.
+		/*!
+			This method is used by SObjectizer for the 
+			agent's event scheduling.
+		*/
+		static inline void
+		call_push_event(
+			agent_t & agent,
+			const message_limit::control_block_t * limit,
+			mbox_id_t mbox_id,
+			std::type_index msg_type,
+			const message_ref_t & message )
+			{
+				agent.push_event( limit, mbox_id, msg_type, message );
+			}
 
 		/*!
 		 * \since
@@ -2262,7 +2308,7 @@ class SO_5_TYPE agent_t
 			\endcode
 		*/
 		environment_t &
-		so_environment() const noexcept override;
+		so_environment() const noexcept;
 
 		/*!
 		 * \brief Get a handle of agent's coop.
@@ -2488,21 +2534,6 @@ class SO_5_TYPE agent_t
 			{
 				return m_priority;
 			}
-
-		/*!
-		 * \brief Get the priority of the agent.
-		 *
-		 * \note
-		 * This is the part of message_sink_t interface.
-		 *
-		 * \since v.5.8.0
-		 */
-		[[nodiscard]]
-		priority_t
-		so_message_sink_priority() const noexcept override
-			{
-				return this->so_priority();
-			}
 		/*!
 		 * \}
 		 */
@@ -2537,6 +2568,16 @@ class SO_5_TYPE agent_t
 		 * v.5.5.18
 		 */
 		agent_status_t m_current_status;
+
+		/*!
+		 * \brief The default message sink for that agent.
+		 * 
+		 * \note
+		 * This sink will be used also for setting delivery filters.
+		 *
+		 * \since v.5.8.0
+		 */
+		impl::default_agent_message_sink_t m_default_sink;
 
 		//! State listeners controller.
 		impl::state_listener_controller_t m_state_listener_controller;
@@ -2601,15 +2642,15 @@ class SO_5_TYPE agent_t
 		 * in so_bind_to_dispatcher() method. And reset to nullptr again
 		 * in shutdown_agent().
 		 *
-		 * nullptr in m_event_queue means that methods so_push_event() will throw
+		 * nullptr in m_event_queue means that methods push_event() will throw
 		 * away any new demand.
 		 *
 		 * It is necessary to provide guarantee that m_event_queue will be reset
 		 * to nullptr in shutdown_agent() only if there is no working
-		 * so_push_event() methods. To do that default_rw_spinlock_t is used. Method
-		 * so_push_event() acquire it in read-mode and shutdown_agent() acquires it
+		 * push_event() methods. To do that default_rw_spinlock_t is used. Method
+		 * push_event() acquire it in read-mode and shutdown_agent() acquires it
 		 * in write-mode. It means that shutdown_agent() cannot get access to
-		 * m_event_queue until there is working so_push_event().
+		 * m_event_queue until there is working push_event().
 		 */
 		default_rw_spinlock_t m_event_queue_lock;
 
@@ -2803,19 +2844,14 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
-
 		/*!
 		 * \name Event handling implementation details.
 		 * \{
 		 */
 
 		//! Push event into the event queue.
-		/*!
-		 * \note
-		 * Since v.5.8.0 this is implementation of message_sink_t interface.
-		 */
 		void
-		so_push_event(
+		push_event(
 			//! Optional message limit.
 			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
@@ -2823,7 +2859,7 @@ class SO_5_TYPE agent_t
 			//! Message type for event.
 			std::type_index msg_type,
 			//! Event message.
-			const message_ref_t & message ) override;
+			const message_ref_t & message );
 		/*!
 		 * \}
 		 */
