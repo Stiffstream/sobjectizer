@@ -901,14 +901,6 @@ struct message_limit_methods_mixin_t
 			}
 	};
 
-namespace impl
-{
-
-// Forward declaration.
-class info_storage_t;
-
-} /* namespace impl */
-
 } /* namespace message_limit */
 
 } /* namespace so_5 */

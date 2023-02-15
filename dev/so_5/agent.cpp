@@ -11,11 +11,11 @@
 #include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/coop_private_iface.hpp>
 
-#include <so_5/impl/subscription_storage_iface.hpp>
-#include <so_5/impl/process_unhandled_exception.hpp>
-#include <so_5/impl/message_limit_internals.hpp>
 #include <so_5/impl/delivery_filter_storage.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
+#include <so_5/impl/process_unhandled_exception.hpp>
+#include <so_5/impl/std_message_sinks.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
 
 #include <so_5/impl/enveloped_msg_details.hpp>
 
@@ -528,7 +528,6 @@ agent_t::agent_t(
 	context_t ctx )
 	:	m_current_state_ptr( &st_default )
 	,	m_current_status( agent_status_t::not_defined_yet )
-	,	m_default_sink( partially_constructed_agent_ptr_t( self_ptr() ) )
 	,	m_handler_finder(
 			// Actual handler finder is dependent on msg_tracing status.
 			impl::internal_env_iface_t( ctx.env() ).is_msg_tracing_enabled() ?
@@ -1114,7 +1113,7 @@ void
 agent_t::push_event(
 	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
-	std::type_index msg_type,
+	const std::type_index & msg_type,
 	const message_ref_t & message )
 {
 	const auto handler = select_demand_handler_for_message( *this, message );

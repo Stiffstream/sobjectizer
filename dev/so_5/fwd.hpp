@@ -27,6 +27,7 @@ class internal_message_iface_t;
 class internal_agent_iface_t;
 class layer_core_t;
 class state_switch_guard_t;
+class sinks_storage_t;
 
 } /* namespace impl */
 

@@ -58,7 +58,7 @@ abort_app_reaction( const overlimit_context_t & ctx )
 			if( ctx.m_msg_tracer )
 				ctx.m_msg_tracer->reaction_abort_app( &ctx.m_receiver );
 
-			SO_5_LOG_ERROR( ctx.m_receiver.environment().error_logger(), logger )
+			SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
 				logger
 					<< "message limit exceeded, application will be aborted. "
 					<< " msg_type: " << ctx.m_msg_type.name()
@@ -81,7 +81,7 @@ redirect_reaction(
 				// delivery process and exceptions are expected in that
 				// process.
 				SO_5_LOG_ERROR(
-						ctx.m_receiver.environment().error_logger(),
+						ctx.m_receiver.so_environment().error_logger(),
 						logger )
 					logger << "maximum message reaction deep exceeded on "
 							"redirection; message will be ignored; "
@@ -124,7 +124,7 @@ transform_reaction(
 				// delivery process and exceptions are expected in that
 				// process.
 				SO_5_LOG_ERROR(
-						ctx.m_receiver.environment().error_logger(),
+						ctx.m_receiver.so_environment().error_logger(),
 						logger )
 					logger << "maximum message reaction deep exceeded on "
 							"transformation; message will be ignored;"

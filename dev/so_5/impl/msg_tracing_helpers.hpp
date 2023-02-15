@@ -739,21 +739,21 @@ class tracing_enabled_base
 			protected :
 				virtual void
 				reaction_abort_app(
-					const message_sink_t * subscriber ) const noexcept override
+					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.abort", subscriber );
 					}
 
 				virtual void
 				reaction_drop_message(
-					const message_sink_t * subscriber ) const noexcept override
+					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.drop", subscriber );
 					}
 
 				virtual void
 				reaction_redirect_message(
-					const message_sink_t * subscriber,
+					const agent_t * subscriber,
 					const mbox_t & target ) const noexcept override
 					{
 						make_trace(
@@ -765,7 +765,7 @@ class tracing_enabled_base
 
 				virtual void
 				reaction_transform(
-					const message_sink_t * subscriber,
+					const agent_t * subscriber,
 					const mbox_t & target,
 					const std::type_index & msg_type,
 					const message_ref_t & transformed ) const noexcept override

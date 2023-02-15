@@ -459,37 +459,6 @@ class subscription_bind_t
 			const so_5::details::msg_type_and_handler_pair_t & handler ) const;
 };
 
-namespace impl
-{
-
-//FIXME: implement this!
-class default_agent_message_sink_t final
-	:	public message_sink_t
-	{
-		agent_t & m_agent;
-
-	public:
-		default_agent_message_sink_t(
-			partially_constructed_agent_ptr_t owner );
-
-		[[nodiscard]]
-		environment_t &
-		environment() const noexcept override;
-
-		[[nodiscard]]
-		priority_t
-		sink_priority() const noexcept override;
-
-		void
-		push_event(
-			mbox_id_t mbox_id,
-			std::type_index msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override;
-	};
-
-} /* namespace impl */
-
 //
 // agent_t
 //
@@ -1028,7 +997,7 @@ class SO_5_TYPE agent_t
 			agent_t & agent,
 			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
-			std::type_index msg_type,
+			const std::type_index & msg_type,
 			const message_ref_t & message )
 			{
 				agent.push_event( limit, mbox_id, msg_type, message );
@@ -2569,16 +2538,6 @@ class SO_5_TYPE agent_t
 		 */
 		agent_status_t m_current_status;
 
-		/*!
-		 * \brief The default message sink for that agent.
-		 * 
-		 * \note
-		 * This sink will be used also for setting delivery filters.
-		 *
-		 * \since v.5.8.0
-		 */
-		impl::default_agent_message_sink_t m_default_sink;
-
 		//! State listeners controller.
 		impl::state_listener_controller_t m_state_listener_controller;
 
@@ -2588,7 +2547,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Type of function for searching event handler.
 		 */
-		using handler_finder_t = 
+		using handler_finder_t =
 			const impl::event_handler_data_t *(*)(
 					execution_demand_t & /* demand */,
 					const char * /* context_marker */ );
@@ -2612,22 +2571,8 @@ class SO_5_TYPE agent_t
 		 */
 		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
-		/*!
-		 * \since
-		 * v.5.5.4
-		 *
-		 * \brief Run-time information for message limits.
-		 *
-		 * Created only of message limits are described in agent's
-		 * tuning options.
-		 *
-		 * \attention This attribute must be initialized before the
-		 * \a m_direct_mbox attribute. It is because the value of
-		 * \a m_message_limits is used in \a m_direct_mbox creation.
-		 * Because of that \a m_message_limits is declared before
-		 * \a m_direct_mbox.
-		 */
-		std::unique_ptr< message_limit::impl::info_storage_t > m_message_limits;
+		//FIXME: document this!
+		std::unique_ptr< impl::sinks_storage_t > m_message_sinks;
 
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
@@ -2857,7 +2802,7 @@ class SO_5_TYPE agent_t
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.
-			std::type_index msg_type,
+			const std::type_index & msg_type,
 			//! Event message.
 			const message_ref_t & message );
 		/*!
