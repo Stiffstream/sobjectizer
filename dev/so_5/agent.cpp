@@ -534,9 +534,10 @@ agent_t::agent_t(
 				&agent_t::handler_finder_msg_tracing_enabled :
 				&agent_t::handler_finder_msg_tracing_disabled )
 	,	m_subscriptions(
-			ctx.options().query_subscription_storage_factory()( &m_default_sink ) )
-	,	m_message_limits(
-			message_limit::impl::create_info_storage_if_necessary(
+			ctx.options().query_subscription_storage_factory()() )
+	,	m_message_sinks(
+			impl::create_sinks_storage_if_necessary(
+				partially_constructed_agent_ptr_t( self_ptr() ),
 				ctx.options().giveout_message_limits() ) )
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
@@ -546,7 +547,7 @@ agent_t::agent_t(
 				ctx.options(),
 				impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
 						self_ptr(),
-						m_message_limits.get() )
+						m_message_sinks.get() )
 			)
 		)
 		// It is necessary to enable agent subscription in the
@@ -633,7 +634,7 @@ agent_t::so_make_new_direct_mbox()
 {
 	return impl::internal_env_iface_t{ so_environment() }.create_mpsc_mbox(
 			self_ptr(),
-			m_message_limits.get() );
+			m_message_sinks.get() );
 }
 
 const state_t &
@@ -947,7 +948,7 @@ agent_t::so_create_event_subscription(
 	m_subscriptions->create_event_subscription(
 			mbox_ref,
 			msg_type,
-			detect_limit_for_message_type( msg_type ),
+			detect_sink_for_message_type( msg_type ),
 			target_state,
 			method,
 			thread_safety,
@@ -972,7 +973,7 @@ agent_t::so_create_deadletter_subscription(
 	m_subscriptions->create_event_subscription(
 			mbox,
 			msg_type,
-			detect_limit_for_message_type( msg_type ),
+			detect_sink_for_message_type( msg_type ),
 			deadletter_state,
 			method,
 			thread_safety,
@@ -993,24 +994,20 @@ agent_t::so_destroy_deadletter_subscription(
 	m_subscriptions->drop_subscription( mbox, msg_type, deadletter_state );
 }
 
-const message_limit::control_block_t *
-agent_t::detect_limit_for_message_type(
+message_sink_t &
+agent_t::detect_sink_for_message_type(
 	const std::type_index & msg_type )
 {
-	const message_limit::control_block_t * result = nullptr;
+	auto * result = m_message_sinks->find_or_create( msg_type );
 
-	if( m_message_limits )
-	{
-		result = m_message_limits->find_or_create( msg_type );
-		if( !result )
-			SO_5_THROW_EXCEPTION(
-					so_5::rc_message_has_no_limit_defined,
-					std::string( "an attempt to subscribe to message type without "
-					"predefined limit for that type, type: " ) +
-					msg_type.name() );
-	}
+	if( !result )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_message_has_no_limit_defined,
+				std::string( "message type without "
+				"predefined limit for that type, type: " ) +
+				msg_type.name() );
 
-	return result;
+	return *result;
 }
 
 void
@@ -1359,7 +1356,7 @@ agent_t::drop_all_delivery_filters() noexcept
 {
 	if( m_delivery_filters )
 	{
-		m_delivery_filters->drop_all( m_default_sink );
+		m_delivery_filters->drop_all();
 		m_delivery_filters.reset();
 	}
 }
@@ -1378,6 +1375,10 @@ agent_t::do_set_delivery_filter(
 				so_5::rc_agent_deactivated,
 				"new delivery filter can't be set for deactivated agent" );
 
+	// Message sink for that message type have to be obtained with
+	// the respect to message limits.
+	auto & target_sink = detect_sink_for_message_type( msg_type );
+
 	if( !m_delivery_filters )
 		m_delivery_filters.reset( new impl::delivery_filter_storage_t() );
 
@@ -1385,7 +1386,7 @@ agent_t::do_set_delivery_filter(
 			mbox,
 			msg_type,
 			std::move(filter),
-			m_default_sink );
+			outliving_mutable( target_sink ) );
 }
 
 void
@@ -1396,7 +1397,7 @@ agent_t::do_drop_delivery_filter(
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 
 	if( m_delivery_filters )
-		m_delivery_filters->drop_delivery_filter( mbox, msg_type, m_default_sink );
+		m_delivery_filters->drop_delivery_filter( mbox, msg_type );
 }
 
 const impl::event_handler_data_t *

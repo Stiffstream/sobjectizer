@@ -13,6 +13,8 @@
 
 #include <so_5/message_sink.hpp>
 
+#include <functional>
+
 namespace so_5 {
 
 namespace impl {
@@ -31,12 +33,16 @@ special_message_sink_ptr_compare(
 	const message_sink_t & a,
 	const message_sink_t & b ) noexcept
 	{
-		auto p1 = a.so_message_sink_priority();
-		auto p2 = b.so_message_sink_priority();
+		// Use std::less for compare pointers.
+		// NOTE: it's UB to compare pointers that do not belong to the same array.
+		using ptr_comparator_t = std::less< const message_sink_t * >;
+
+		auto p1 = a.sink_priority();
+		auto p2 = b.sink_priority();
 
 		// NOTE: there should be inversion -- sink with higher
 		// priority must be first.
-		return ( p1 > p2 || (p1 == p2 && &a < &b) );
+		return ( p1 > p2 || (p1 == p2 && ptr_comparator_t{}( &a, &b ) ) );
 	}
 
 } /* namespace impl */

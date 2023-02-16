@@ -57,6 +57,9 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		virtual optional<current_thread_id_t>
 		tid() const noexcept override;
 
+		virtual optional<const agent_t *>
+		agent() const noexcept override;
+
 		virtual optional<const message_sink_t *>
 		message_sink() const noexcept override;
 
@@ -80,6 +83,9 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 
 		void
 		set_tid( current_thread_id_t tid ) noexcept;
+
+		void
+		set_agent( const agent_t * agent ) noexcept;
 
 		void
 		set_message_sink( const message_sink_t * message_sink ) noexcept;
@@ -108,6 +114,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 
 	private :
 		optional<current_thread_id_t> m_tid;
+		optional<const agent_t *> m_agent;
 		optional<const message_sink_t *> m_message_sink;
 		optional<std::type_index> m_msg_type;
 		optional<so_5::msg_tracing::msg_source_t> m_msg_source;
@@ -331,6 +338,18 @@ inline void
 fill_trace_data_1( actual_trace_data_t & d, const message_sink_t * sink )
 	{
 		d.set_message_sink( sink );
+	}
+
+inline void
+make_trace_to_1( std::ostream & s, const agent_t * agent )
+	{
+		s << "[agent_ptr=" << pointer{agent} << "]";
+	}
+
+inline void
+fill_trace_data_1( actual_trace_data_t & d, const agent_t * agent )
+	{
+		d.set_agent( agent );
 	}
 
 inline void

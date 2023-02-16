@@ -258,6 +258,10 @@ class SO_5_TYPE trace_data_t
 		msg_source() const noexcept = 0;
 
 		//! Get a pointer to agent from trace message.
+		virtual optional<const so_5::agent_t *>
+		agent() const noexcept = 0;
+
+		//! Get a pointer to message_sink from trace message.
 		virtual optional<const so_5::message_sink_t *>
 		message_sink() const noexcept = 0;
 

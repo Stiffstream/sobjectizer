@@ -153,14 +153,14 @@ make_subscription_description(
 class subscription_storage_t
 	{
 	public :
-		subscription_storage_t( message_sink_t * owner );
+		subscription_storage_t();
 		virtual ~subscription_storage_t() noexcept = default;
 
 		virtual void
 		create_event_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const message_limit::control_block_t * limit,
+			message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -225,14 +225,6 @@ class subscription_storage_t
 		//! Count of subscriptions in the storage.
 		virtual std::size_t
 		query_subscriptions_count() const = 0;
-
-	protected :
-		[[nodiscard]]
-		message_sink_t *
-		owner() const noexcept;
-
-	private :
-		message_sink_t * m_owner;
 	};
 
 } /* namespace impl */

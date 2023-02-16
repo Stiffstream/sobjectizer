@@ -46,7 +46,7 @@ using subscription_storage_unique_ptr_t =
  */
 using subscription_storage_factory_t =
 		std::function<
-				impl::subscription_storage_unique_ptr_t( message_sink_t * ) >;
+				impl::subscription_storage_unique_ptr_t() >;
 
 /*!
  * \since

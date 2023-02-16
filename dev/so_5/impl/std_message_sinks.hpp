@@ -500,7 +500,7 @@ prepare(
 //! Create info_storage object if there are some message limits.
 [[nodiscard]]
 inline static std::unique_ptr< sinks_storage_t >
-create_info_storage_if_necessary(
+create_sinks_storage_if_necessary(
 	partially_constructed_agent_ptr_t owner_ptr,
 	so_5::message_limit::description_container_t && descriptions )
 	{

@@ -49,6 +49,7 @@ class SO_5_TYPE internal_env_iface_t
 			//! The only consumer for the messages.
 			agent_t * single_consumer,
 			//FIXME: document this!
+			//FIXME: should a reference be used here instead of a pointer?
 			const so_5::impl::sinks_storage_t * sinks_storage );
 
 		//! Notification about readiness to the deregistration.
