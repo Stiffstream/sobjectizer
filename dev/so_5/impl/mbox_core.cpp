@@ -76,11 +76,11 @@ make_actual_mbox(
 mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::message_limit::impl::info_storage_t * limits_storage )
+	const so_5::impl::sinks_storage_t * sinks_storage )
 {
 	const auto id = ++m_mbox_id_counter;
 
-	std::unique_ptr< abstract_message_box_t > actual_mbox = limits_storage
+	std::unique_ptr< abstract_message_box_t > actual_mbox = sinks_storage
 			? make_actual_mbox<
 							limitful_mpsc_mbox_without_tracing_t,
 							limitful_mpsc_mbox_with_tracing_t >(

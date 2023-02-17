@@ -47,7 +47,6 @@ class storage_t : public subscription_storage_t
 	{
 	public :
 		storage_t(
-			message_sink_t * owner,
 			std::size_t threshold,
 			subscription_storage_unique_ptr_t small_storage,
 			subscription_storage_unique_ptr_t large_storage );
@@ -56,7 +55,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const message_limit::control_block_t * limit,
+			message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -111,12 +110,10 @@ class storage_t : public subscription_storage_t
 	};
 
 storage_t::storage_t(
-	message_sink_t * owner,
 	std::size_t threshold,
 	subscription_storage_unique_ptr_t small_storage,
 	subscription_storage_unique_ptr_t large_storage )
-	:	subscription_storage_t( owner )
-	,	m_threshold( threshold )
+	:	m_threshold( threshold )
 	,	m_small_storage( std::move( small_storage ) )
 	,	m_large_storage( std::move( large_storage ) )
 	{
@@ -127,7 +124,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const message_limit::control_block_t * limit,
+	message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -151,7 +148,7 @@ storage_t::create_event_subscription(
 		m_current_storage->create_event_subscription(
 				mbox,
 				msg_type,
-				limit,
+				message_sink,
 				target_state,
 				method,
 				thread_safety,
@@ -266,14 +263,12 @@ SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
 	std::size_t threshold )
 	{
-		return [threshold]( message_sink_t * owner ) {
+		return [threshold]() {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::adaptive_subscr_storage::storage_t(
-							owner,
 							threshold,
-							vector_based_subscription_storage_factory(
-									threshold )( owner ),
-							map_based_subscription_storage_factory()( owner ) ) );
+							vector_based_subscription_storage_factory( threshold )(),
+							map_based_subscription_storage_factory()() ) );
 		};
 	}
 
@@ -283,13 +278,12 @@ adaptive_subscription_storage_factory(
 	const subscription_storage_factory_t & small_storage_factory,
 	const subscription_storage_factory_t & large_storage_factory )
 	{
-		return [=]( message_sink_t * owner ) {
+		return [=]() {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::adaptive_subscr_storage::storage_t(
-							owner,
 							threshold,
-							small_storage_factory( owner ),
-							large_storage_factory( owner ) ) );
+							small_storage_factory(),
+							large_storage_factory() ) );
 		};
 	}
 

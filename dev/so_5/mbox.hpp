@@ -188,8 +188,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		subscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
-			//! Optional message limit for that message type.
-			const message_limit::control_block_t * limit,
 			//! Subscriber.
 			message_sink_t & subscriber ) = 0;
 

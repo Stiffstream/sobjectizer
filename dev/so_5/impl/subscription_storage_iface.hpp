@@ -12,16 +12,17 @@
 
 #pragma once
 
-#include <ostream>
-#include <sstream>
-#include <vector>
-
 #include <so_5/types.hpp>
 
 #include <so_5/mbox.hpp>
 #include <so_5/state.hpp>
 #include <so_5/execution_demand.hpp>
 #include <so_5/subscription_storage_fwd.hpp>
+
+#include <functional>
+#include <ostream>
+#include <sstream>
+#include <vector>
 
 namespace so_5
 {
@@ -86,18 +87,22 @@ struct subscr_info_t
 		 */
 		mbox_t m_mbox;
 		std::type_index m_msg_type;
+		//! Message sink used for subscription.
+		std::reference_wrapper< message_sink_t > m_message_sink;
 		const state_t * m_state;
 		event_handler_data_t m_handler;
 
 		subscr_info_t(
 			mbox_t mbox,
 			std::type_index msg_type,
+			message_sink_t & message_sink,
 			const state_t & state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
 			event_handler_kind_t handler_kind )
 			:	m_mbox( std::move( mbox ) )
 			,	m_msg_type( std::move( msg_type ) )
+			,	m_message_sink( message_sink )
 			,	m_state( &state )
 			,	m_handler( method, thread_safety, handler_kind )
 			{}
