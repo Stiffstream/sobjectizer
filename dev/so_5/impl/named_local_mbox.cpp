@@ -41,10 +41,9 @@ named_local_mbox_t::id() const
 void
 named_local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
-	const so_5::message_limit::control_block_t * limit,
 	message_sink_t & subscriber )
 {
-	m_mbox->subscribe_event_handler( type_wrapper, limit, subscriber );
+	m_mbox->subscribe_event_handler( type_wrapper, subscriber );
 }
 
 void

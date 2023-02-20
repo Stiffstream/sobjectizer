@@ -16,8 +16,6 @@
 #include <so_5/agent.hpp>
 #include <so_5/enveloped_msg.hpp>
 
-#include <so_5/impl/message_limit_internals.hpp>
-
 namespace so_5
 {
 
@@ -28,10 +26,9 @@ namespace local_mbox_details
 {
 
 /*!
- * \since
- * v.5.7.4
- *
  * \brief An information block about one subscription to one message type.
+ *
+ * \since v.5.7.4
  */
 class basic_subscription_info_t
 {
@@ -47,9 +44,6 @@ protected:
 		subscriptions_and_filter
 	};
 
-	//! Optional message limit for that subscription.
-	const so_5::message_limit::control_block_t * m_limit;
-
 	/*!
 	 * \brief Delivery filter for that message for that subscription.
 	 */
@@ -61,21 +55,20 @@ protected:
 	state_t m_state;
 
 public :
+	//FIXME: document this!
+	struct subscription_present_t {};
+
 	//! Default constructor. Creates an empty object.
 	basic_subscription_info_t()
-		:	m_limit( nullptr )
-		,	m_filter( nullptr )
+		:	m_filter( nullptr )
 		,	m_state( state_t::nothing )
 	{}
 
 	//! Constructor for the case when info is being
 	//! created during event subscription.
 	basic_subscription_info_t(
-		//! Optional limit info. Can be nullptr if limits have not to be used at all
-		//! (for example, for limitless MPSC mboxes).
-		const so_5::message_limit::control_block_t * limit )
-		:	m_limit( limit )
-		,	m_filter( nullptr )
+		subscription_present_t /*subscription_presence*/ )
+		:	m_filter( nullptr )
 		,	m_state( state_t::only_subscriptions )
 	{}
 
@@ -83,8 +76,7 @@ public :
 	//! created during setting a delivery filter.
 	basic_subscription_info_t(
 		const delivery_filter_t * filter )
-		:	m_limit( nullptr )
-		,	m_filter( filter )
+		:	m_filter( filter )
 		,	m_state( state_t::only_filter )
 	{}
 
@@ -94,39 +86,23 @@ public :
 		return state_t::nothing == m_state;
 	}
 
-	const message_limit::control_block_t *
-	limit() const
-	{
-		return m_limit;
-	}
-
-	//! Set the message limit for the subscriber.
 	/*!
-	 * Setting the message limit means that there are subscriptions
-	 * for the agent.
-	 *
-	 * \note The message limit can be nullptr.
+	 * \brief Inform about addition of a subscription.
 	 */
 	void
-	set_limit( const message_limit::control_block_t * limit )
+	subscription_added()
 	{
-		m_limit = limit;
-
 		m_state = ( state_t::nothing == m_state ?
 				state_t::only_subscriptions :
 				state_t::subscriptions_and_filter );
 	}
 
-	//! Drop the message limit for the subscriber.
 	/*!
-	 * Dropping the message limit means that there is no more
-	 * subscription for the agent.
+	 * \brief Inform about removal of a subscription.
 	 */
 	void
-	drop_limit()
+	subscription_dropped()
 	{
-		m_limit = nullptr;
-
 		m_state = ( state_t::only_subscriptions == m_state ?
 				state_t::nothing : state_t::only_filter );
 	}

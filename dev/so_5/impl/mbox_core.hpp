@@ -102,9 +102,7 @@ class mbox_core_t
 		mbox_t
 		create_mpsc_mbox(
 			//! The only consumer for messages.
-			agent_t * single_consumer,
-			//FIXME: document this!
-			const so_5::impl::sinks_storage_t * sinks_storage );
+			agent_t * single_consumer );
 
 		//! Remove a reference to the named mbox.
 		/*!

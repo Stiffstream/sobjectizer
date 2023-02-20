@@ -26,6 +26,7 @@ namespace impl
 // named_local_mbox_t
 //
 
+//FIXME: should this class be made final?
 //! A class for the named local mbox.
 /*!
  * \note This class is necessary because there is a difference between
@@ -53,7 +54,6 @@ class named_local_mbox_t
 		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			const so_5::message_limit::control_block_t * limit,
 			message_sink_t & subscriber ) override;
 
 		void

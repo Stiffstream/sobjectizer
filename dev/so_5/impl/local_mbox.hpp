@@ -25,7 +25,6 @@
 #include <so_5/impl/local_mbox_basic_subscription_info.hpp>
 
 #include <so_5/impl/message_sink_ptr_compare.hpp>
-#include <so_5/impl/message_limit_internals.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
 
 #include <so_5/details/invoke_noexcept_code.hpp>
@@ -55,15 +54,6 @@ public :
 	//! for searching of existing subscription info.
 	subscriber_info_t( message_sink_t * subscriber )
 		:	m_subscriber( subscriber )
-	{}
-
-	//! Constructor for the case when subscriber info is being
-	//! created during event subscription.
-	subscriber_info_t(
-		message_sink_t * subscriber,
-		const so_5::message_limit::control_block_t * limit )
-		:	basic_subscription_info_t{ limit }
-		,	m_subscriber( subscriber )
 	{}
 
 	//! Constructor for the case when subscriber info is being
@@ -638,18 +628,16 @@ class local_mbox_template
 		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			const so_5::message_limit::control_block_t * limit,
 			message_sink_t & subscriber ) override
 			{
 				insert_or_modify_subscriber(
 						type_wrapper,
 						&subscriber,
 						[&] {
-							return local_mbox_details::subscriber_info_t{
-									&subscriber, limit };
+							return local_mbox_details::subscriber_info_t{ &subscriber };
 						},
 						[&]( local_mbox_details::subscriber_info_t & info ) {
-							info.set_limit( limit );
+							info.subscription_added();
 						} );
 			}
 
@@ -662,7 +650,7 @@ class local_mbox_template
 						type_wrapper,
 						&subscriber,
 						[]( local_mbox_details::subscriber_info_t & info ) {
-							info.drop_limit();
+							info.subscription_dropped();
 						} );
 			}
 
@@ -838,15 +826,15 @@ class local_mbox_template
 
 		void
 		do_deliver_message_to_subscriber(
-			const local_mbox_details::subscriber_info_t & agent_info,
+			const local_mbox_details::subscriber_info_t & subscriber_info,
 			typename Tracing_Base::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
 			{
 				const auto delivery_status =
-						agent_info.must_be_delivered(
-								agent_info.subscriber_reference(),
+						subscriber_info.must_be_delivered(
+								subscriber_info.subscriber_reference(),
 								message,
 								[]( const message_ref_t & m ) -> message_t & {
 									return *m;
@@ -854,29 +842,20 @@ class local_mbox_template
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						using namespace so_5::message_limit::impl;
+						//FIXME: this call to `push_to_queue` has to be moved
+						//inside a message_sink.
+						tracer.push_to_queue( subscriber_info.subscriber_pointer() );
 
-						try_to_deliver_to_consumer(
+						subscriber_info.subscriber_reference().push_event(
 								this->m_id,
-								agent_info.subscriber_reference(),
-								agent_info.limit(),
 								msg_type,
 								message,
 								overlimit_reaction_deep,
-								tracer.overlimit_tracer(),
-								[&] {
-									tracer.push_to_queue( agent_info.subscriber_pointer() );
-
-									agent_info.subscriber_reference().so_push_event(
-											agent_info.limit(),
-											this->m_id,
-											msg_type,
-											message );
-								} );
+								&tracer );
 					}
 				else
 					tracer.message_rejected(
-							agent_info.subscriber_pointer(), delivery_status );
+							subscriber_info.subscriber_pointer(), delivery_status );
 			}
 
 		/*!

@@ -23,7 +23,6 @@
 #include <so_5/impl/local_mbox_basic_subscription_info.hpp>
 
 #include <so_5/impl/msg_tracing_helpers.hpp>
-#include <so_5/impl/message_limit_internals.hpp>
 
 #include <type_traits>
 
@@ -78,20 +77,6 @@ struct mpsc_mbox_without_message_limits_t
 	};
 
 //
-// mpsc_mbox_message_limits_usage_t
-//
-/*!
- * \brief Indicator for using message limits by MPSC mbox.
- *
- * \since v.5.7.4
- */
-enum class mpsc_mbox_message_limits_usage_t
-	{
-		use,
-		dont_use
-	};
-
-//
 // mpsc_mbox_template_t
 //
 
@@ -108,18 +93,11 @@ enum class mpsc_mbox_message_limits_usage_t
  * \note Renamed from limitful_mpsc_mbox_template_t to
  * mpsc_mbox_template_t in v.5.7.4.
  */
-template<
-	typename Tracing_Base,
-	mpsc_mbox_message_limits_usage_t message_limits_usage >
+template< typename Tracing_Base >
 class mpsc_mbox_template_t
 	:	public abstract_message_box_t
 	,	protected Tracing_Base
 	{
-		using limits_selector_t = std::conditional_t<
-				mpsc_mbox_message_limits_usage_t::use == message_limits_usage,
-				mpsc_mbox_with_message_limits_t,
-				mpsc_mbox_without_message_limits_t >;
-
 	public:
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
@@ -140,7 +118,6 @@ class mpsc_mbox_template_t
 		void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
-			const message_limit::control_block_t * limit,
 			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
@@ -154,12 +131,11 @@ class mpsc_mbox_template_t
 						msg_type,
 						[&] {
 							return subscription_info_t{
-									limits_selector_t::message_limits_pointer( limit )
+									subscription_info_t::subscription_present_t{}
 								};
 						},
 						[&]( subscription_info_t & info ) {
-							info.set_limit(
-									limits_selector_t::message_limits_pointer( limit ) );
+							info.subscription_added();
 						} );
 			}
 
@@ -178,7 +154,7 @@ class mpsc_mbox_template_t
 				modify_and_remove_subscription_if_needed(
 						msg_type,
 						[]( subscription_info_t & info ) {
-							info.drop_limit();
+							info.subscription_dropped();
 						} );
 			}
 
@@ -221,25 +197,15 @@ class mpsc_mbox_template_t
 					tracer,
 					[&]( const subscription_info_t & info )
 					{
-						using namespace so_5::message_limit::impl;
+						//FIXME: this tracing has to be moved into message_sink.
+						tracer.push_to_queue( this->m_single_consumer );
 
-						try_to_deliver_to_consumer(
+						this->m_single_consumer->push_event(
 								this->m_id,
-								*(this->m_single_consumer),
-								info.limit(),
 								msg_type,
 								message,
 								overlimit_reaction_deep,
-								tracer.overlimit_tracer(),
-								[&] {
-									tracer.push_to_queue( this->m_single_consumer );
-
-									this->m_single_consumer->so_push_event(
-											info.limit(),
-											this->m_id,
-											msg_type,
-											message );
-								} );
+								&tracer );
 					} );
 			}
 
@@ -287,7 +253,7 @@ class mpsc_mbox_template_t
 		environment_t &
 		environment() const noexcept override
 			{
-				return m_single_consumer->so_environment();
+				return m_single_consumer->environment();
 			}
 
 	protected :
@@ -435,47 +401,18 @@ class mpsc_mbox_template_t
 /*!
  * \since v.5.5.9, v.5.7.4
  *
- * \brief Alias for mpsc_mbox without message delivery tracing and message limits.
+ * \brief Alias for mpsc_mbox without message delivery tracing.
  */
-using limitful_mpsc_mbox_without_tracing_t =
-	mpsc_mbox_template_t<
-			msg_tracing_helpers::tracing_disabled_base,
-			mpsc_mbox_message_limits_usage_t::use
-	>;
+using mpsc_mbox_without_tracing_t =
+	mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
  * \since v.5.5.9, v.5.7.4
  *
- * \brief Alias for mpsc_mbox with message delivery tracing and message limits.
+ * \brief Alias for mpsc_mbox with message delivery tracing.
  */
-using limitful_mpsc_mbox_with_tracing_t =
-	mpsc_mbox_template_t<
-			msg_tracing_helpers::tracing_enabled_base,
-			mpsc_mbox_message_limits_usage_t::use
-	>;
-
-/*!
- * \since v.5.5.9, v.5.7.4
- *
- * \brief Alias for mpsc_mbox without message delivery tracing and without
- * message limits.
- */
-using limitless_mpsc_mbox_without_tracing_t =
-	mpsc_mbox_template_t<
-			msg_tracing_helpers::tracing_disabled_base,
-			mpsc_mbox_message_limits_usage_t::dont_use
-	>;
-
-/*!
- * \since v.5.5.9, v.5.7.4
- *
- * \brief Alias for mpsc_mbox with message delivery tracing and without message limits.
- */
-using limitless_mpsc_mbox_with_tracing_t =
-	mpsc_mbox_template_t<
-			msg_tracing_helpers::tracing_enabled_base,
-			mpsc_mbox_message_limits_usage_t::dont_use
-	>;
+using mpsc_mbox_with_tracing_t =
+	mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base >;
 
 } /* namespace impl */
 
