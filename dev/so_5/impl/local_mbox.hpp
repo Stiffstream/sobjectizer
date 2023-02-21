@@ -44,25 +44,21 @@ namespace local_mbox_details
  *
  * \brief An information block about one subscriber.
  */
-class subscriber_info_t : public basic_subscription_info_t
+class subscriber_info_t : public subscription_info_with_sink_t
 {
-	//! Subscriber.
-	message_sink_t * m_subscriber;
-
 public :
 	//! Constructor for the case when info object is created only
 	//! for searching of existing subscription info.
-	subscriber_info_t( message_sink_t * subscriber )
-		:	m_subscriber( subscriber )
+	subscriber_info_t( message_sink_t & subscriber )
+		:	subscription_info_with_sink_t{ subscriber }
 	{}
 
 	//! Constructor for the case when subscriber info is being
 	//! created during setting a delivery filter.
 	subscriber_info_t(
-		message_sink_t * subscriber,
-		const delivery_filter_t * filter )
-		:	basic_subscription_info_t{ filter }
-		,	m_subscriber( subscriber )
+		message_sink_t & subscriber,
+		const delivery_filter_t & filter )
+		:	subscription_info_with_sink_t{ subscriber, filter }
 	{}
 
 	//! Comparison uses only pointer to subscriber.
@@ -73,19 +69,9 @@ public :
 	bool
 	operator<( const subscriber_info_t & o ) const
 	{
-		return special_message_sink_ptr_compare( *m_subscriber, *o.m_subscriber );
-	}
-
-	message_sink_t &
-	subscriber_reference() const
-	{
-		return *m_subscriber;
-	}
-
-	message_sink_t *
-	subscriber_pointer() const
-	{
-		return m_subscriber;
+		return special_message_sink_ptr_compare(
+				this->sink_reference(),
+				o.sink_reference() );
 	}
 };
 
@@ -317,7 +303,8 @@ private :
 	void
 	insert_to_map( subscriber_info_t && item )
 		{
-			auto * subscriber = item.subscriber_pointer();
+			auto * subscriber = item.sink_pointer();
+			//FIXME: can subscriber ptr be NULL here?
 			m_map.emplace( subscriber, std::move( item ) );
 		}
 
@@ -330,7 +317,7 @@ private :
 			map_type new_storage;
 			std::for_each( m_vector.begin(), m_vector.end(),
 				[&new_storage]( const subscriber_info_t & info ) {
-					new_storage.emplace( info.subscriber_pointer(), info );
+					new_storage.emplace( info.sink_pointer(), info );
 				} );
 
 			m_map.swap( new_storage );
@@ -380,20 +367,21 @@ private :
 		}
 
 	iterator
-	find_in_vector( message_sink_t * subscriber )
+	find_in_vector( message_sink_t & subscriber )
 		{
 			subscriber_info_t info{ subscriber };
 			auto pos = std::lower_bound( m_vector.begin(), m_vector.end(), info );
-			if( pos != m_vector.end() && pos->subscriber_pointer() == subscriber )
+			if( pos != m_vector.end()
+					&& pos->sink_pointer() == std::addressof(subscriber) )
 				return iterator{ pos };
 			else
 				return iterator{ m_vector.end() };
 		}
 
 	iterator
-	find_in_map( message_sink_t * subscriber )
+	find_in_map( message_sink_t & subscriber )
 		{
-			return iterator{ m_map.find( subscriber ) };
+			return iterator{ m_map.find( std::addressof(subscriber) ) };
 		}
 
 public :
@@ -483,7 +471,7 @@ public :
 		}
 
 	iterator
-	find( message_sink_t * subscriber )
+	find( message_sink_t & subscriber )
 		{
 			if( is_vector() )
 				return find_in_vector( subscriber );
@@ -632,12 +620,12 @@ class local_mbox_template
 			{
 				insert_or_modify_subscriber(
 						type_wrapper,
-						&subscriber,
+						subscriber,
 						[&] {
-							return local_mbox_details::subscriber_info_t{ &subscriber };
+							return local_mbox_details::subscriber_info_t{ subscriber };
 						},
 						[&]( local_mbox_details::subscriber_info_t & info ) {
-							info.subscription_added();
+							info.set_sink( subscriber );
 						} );
 			}
 
@@ -648,9 +636,9 @@ class local_mbox_template
 			{
 				modify_and_remove_subscriber_if_needed(
 						type_wrapper,
-						&subscriber,
+						subscriber,
 						[]( local_mbox_details::subscriber_info_t & info ) {
-							info.subscription_dropped();
+							info.drop_sink();
 						} );
 			}
 
@@ -702,10 +690,10 @@ class local_mbox_template
 			{
 				insert_or_modify_subscriber(
 						msg_type,
-						&subscriber,
+						subscriber,
 						[&] {
 							return local_mbox_details::subscriber_info_t{
-									&subscriber, &filter };
+									subscriber, filter };
 						},
 						[&]( local_mbox_details::subscriber_info_t & info ) {
 							info.set_filter( filter );
@@ -719,7 +707,7 @@ class local_mbox_template
 			{
 				modify_and_remove_subscriber_if_needed(
 						msg_type,
-						&subscriber,
+						subscriber,
 						[]( local_mbox_details::subscriber_info_t & info ) {
 							info.drop_filter();
 						} );
@@ -736,7 +724,7 @@ class local_mbox_template
 		void
 		insert_or_modify_subscriber(
 			const std::type_index & type_wrapper,
-			message_sink_t * subscriber,
+			message_sink_t & subscriber,
 			Info_Maker maker,
 			Info_Changer changer )
 			{
@@ -773,7 +761,7 @@ class local_mbox_template
 		void
 		modify_and_remove_subscriber_if_needed(
 			const std::type_index & type_wrapper,
-			message_sink_t * subscriber,
+			message_sink_t & subscriber,
 			Info_Changer changer )
 			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
@@ -834,7 +822,6 @@ class local_mbox_template
 			{
 				const auto delivery_status =
 						subscriber_info.must_be_delivered(
-								subscriber_info.subscriber_reference(),
 								message,
 								[]( const message_ref_t & m ) -> message_t & {
 									return *m;
@@ -844,9 +831,9 @@ class local_mbox_template
 					{
 						//FIXME: this call to `push_to_queue` has to be moved
 						//inside a message_sink.
-						tracer.push_to_queue( subscriber_info.subscriber_pointer() );
+						tracer.push_to_queue( subscriber_info.sink_pointer() );
 
-						subscriber_info.subscriber_reference().push_event(
+						subscriber_info.sink_reference().push_event(
 								this->m_id,
 								msg_type,
 								message,
@@ -855,7 +842,7 @@ class local_mbox_template
 					}
 				else
 					tracer.message_rejected(
-							subscriber_info.subscriber_pointer(), delivery_status );
+							subscriber_info.sink_pointer(), delivery_status );
 			}
 
 		/*!

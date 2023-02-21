@@ -85,7 +85,9 @@ mbox_core_t::create_mpsc_mbox(
 							mpsc_mbox_with_tracing_t >(
 					m_msg_tracing_stuff,
 					id,
-					single_consumer );
+//FIXME: is it safe to call so_environment() for single_consumer()?
+//single_consumer can be non-fully-constructed object.
+					outliving_mutable( single_consumer->so_environment() ) );
 
 	return mbox_t{ actual_mbox.release() };
 }

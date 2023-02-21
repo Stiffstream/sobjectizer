@@ -33,50 +33,6 @@ namespace impl
 {
 
 //
-// mpsc_mbox_with_message_limits_t
-//
-/*!
- * \brief Helper class to be used in limitful-MPSC mbox.
- *
- * Method message_limits_pointer() just returns an actual value of the argument.
- * It makes MPSC mbox limitful.
- *
- * \since v.5.7.4
- */
-struct mpsc_mbox_with_message_limits_t
-	{
-		[[nodiscard]]
-		static const so_5::message_limit::control_block_t *
-		message_limits_pointer(
-			const so_5::message_limit::control_block_t * limits ) noexcept
-			{
-				return limits;
-			}
-	};
-
-//
-// mpsc_mbox_without_message_limits_t
-//
-/*!
- * \brief Helper class to be used in limitless-MPSC mbox.
- *
- * Method message_limits_pointer() always returns nullptr.
- * It makes MPSC mbox limitless.
- *
- * \since v.5.7.4
- */
-struct mpsc_mbox_without_message_limits_t
-	{
-		[[nodiscard]]
-		static const so_5::message_limit::control_block_t *
-		message_limits_pointer(
-			const so_5::message_limit::control_block_t * /*limits*/ ) noexcept
-			{
-				return nullptr;
-			}
-	};
-
-//
 // mpsc_mbox_template_t
 //
 
@@ -102,11 +58,11 @@ class mpsc_mbox_template_t
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
-			message_sink_t * single_consumer,
+			outliving_reference_t< environment_t > env,
 			Tracing_Args &&... tracing_args )
 			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
-			,	m_single_consumer{ single_consumer }
+			,	m_env{ env.get() }
 			{}
 
 		mbox_id_t
@@ -122,39 +78,43 @@ class mpsc_mbox_template_t
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
+//FIXME: how to do that check now?
+#if 0
 				if( &subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can create subscription to mpsc_mbox" );
+#endif
 
 				insert_or_modify_subscription(
 						msg_type,
 						[&] {
-							return subscription_info_t{
-									subscription_info_t::subscription_present_t{}
-								};
+							return subscription_info_t{ subscriber };
 						},
 						[&]( subscription_info_t & info ) {
-							info.subscription_added();
+							info.set_sink( subscriber );
 						} );
 			}
 
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
+//FIXME: how to do that check now?
+#if 0
 				if( &subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can remove subscription to mpsc_mbox" );
+#endif
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,
 						[]( subscription_info_t & info ) {
-							info.subscription_dropped();
+							info.drop_sink();
 						} );
 			}
 
@@ -162,9 +122,7 @@ class mpsc_mbox_template_t
 		query_name() const override
 			{
 				std::ostringstream s;
-				s << "<mbox:type=MPSC:id="
-						<< m_id << ":consumer=" << m_single_consumer
-						<< ">";
+				s << "<mbox:type=MPSC:id=" << m_id << ">";
 
 				return s.str();
 			}
@@ -198,9 +156,9 @@ class mpsc_mbox_template_t
 					[&]( const subscription_info_t & info )
 					{
 						//FIXME: this tracing has to be moved into message_sink.
-						tracer.push_to_queue( this->m_single_consumer );
+						tracer.push_to_queue( info.sink_pointer() );
 
-						this->m_single_consumer->push_event(
+						info.sink_reference().push_event(
 								this->m_id,
 								msg_type,
 								message,
@@ -213,19 +171,22 @@ class mpsc_mbox_template_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			message_sink_t & subscriber ) override
+			message_sink_t & /*subscriber*/ ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
+//FIXME: how to do that check now?
+#if 0
 				if( &subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can create subscription to mpsc_mbox" );
+#endif
 
 				insert_or_modify_subscription(
 						msg_type,
 						[&] {
-							return subscription_info_t{ &filter };
+							return subscription_info_t{ filter };
 						},
 						[&]( subscription_info_t & info ) {
 							info.set_filter( filter );
@@ -235,13 +196,9 @@ class mpsc_mbox_template_t
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) noexcept override
+			message_sink_t & /*subscriber*/ ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
-
-				if( &subscriber != m_single_consumer )
-					// Nothing to do (we can't throw an exception here).
-					return;
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,
@@ -253,7 +210,7 @@ class mpsc_mbox_template_t
 		environment_t &
 		environment() const noexcept override
 			{
-				return m_single_consumer->environment();
+				return m_env;
 			}
 
 	protected :
@@ -262,7 +219,7 @@ class mpsc_mbox_template_t
 		 *
 		 * \since v.5.7.4
 		 */
-		using subscription_info_t = local_mbox_details::basic_subscription_info_t;
+		using subscription_info_t = local_mbox_details::subscription_info_with_sink_t;
 
 		/*!
 		 * \brief Type of dictionary for information about the current
@@ -280,8 +237,10 @@ class mpsc_mbox_template_t
 		 */
 		const mbox_id_t m_id;
 
-		//! The only consumer of this mbox's messages.
-		message_sink_t * m_single_consumer;
+		/*!
+		 * \brief SObjectizer Environment for that the mbox was created.
+		 */
+		environment_t & m_env;
 
 		/*!
 		 * \since
@@ -375,7 +334,6 @@ class mpsc_mbox_template_t
 						// delivery attempt.
 						const auto delivery_status =
 								it->second.must_be_delivered(
-										*m_single_consumer,
 										message,
 										[]( const message_ref_t & m ) -> message_t & {
 											return *m;
@@ -388,7 +346,9 @@ class mpsc_mbox_template_t
 						else
 							{
 								tracer.message_rejected(
-										m_single_consumer, delivery_status );
+										//FIXME: is it a normal to pass nullptr here?
+										nullptr,
+										delivery_status );
 							}
 					}
 				else

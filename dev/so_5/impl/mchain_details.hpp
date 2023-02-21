@@ -346,7 +346,6 @@ class mchain_template
 		void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
-			const so_5::message_limit::control_block_t * /*limit*/,
 			message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
