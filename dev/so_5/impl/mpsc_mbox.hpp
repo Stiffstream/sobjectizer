@@ -163,7 +163,7 @@ class mpsc_mbox_template_t
 								msg_type,
 								message,
 								overlimit_reaction_deep,
-								&tracer );
+								tracer.overlimit_tracer() );
 					} );
 			}
 

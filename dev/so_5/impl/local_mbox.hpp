@@ -838,7 +838,7 @@ class local_mbox_template
 								msg_type,
 								message,
 								overlimit_reaction_deep,
-								&tracer );
+								tracer.overlimit_tracer() );
 					}
 				else
 					tracer.message_rejected(
