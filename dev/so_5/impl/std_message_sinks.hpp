@@ -63,8 +63,13 @@ class message_sink_without_message_limit_t final
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/,
-			const message_limit::impl::action_msg_tracer_t * /*tracer*/ )
+			const message_limit::impl::action_msg_tracer_t * tracer )
 			{
+				// The fact of pushing message to the queue
+				// has to be logged if msg_tracing is on.
+				if( tracer )
+					tracer->push_to_queue( this, m_owner );
+
 				agent_t::call_push_event(
 						*m_owner,
 						nullptr /* no message limit */,
@@ -186,6 +191,11 @@ class message_sink_with_message_limit_t final
 
 						decrement_on_exception_t exception_guard(
 								std::addressof( m_control_block ) );
+
+						// The fact of pushing message to the queue
+						// has to be logged if msg_tracing is on.
+						if( tracer )
+							tracer->push_to_queue( this, m_owner );
 
 						agent_t::call_push_event(
 								*m_owner,

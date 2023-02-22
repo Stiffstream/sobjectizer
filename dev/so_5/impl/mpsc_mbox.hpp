@@ -155,9 +155,6 @@ class mpsc_mbox_template_t
 					tracer,
 					[&]( const subscription_info_t & info )
 					{
-						//FIXME: this tracing has to be moved into message_sink.
-						tracer.push_to_queue( info.sink_pointer() );
-
 						info.sink_reference().push_event(
 								this->m_id,
 								msg_type,

@@ -622,9 +622,6 @@ struct tracing_disabled_base
 				no_subscribers() const {}
 
 				void
-				push_to_queue( const message_sink_t * ) const {}
-
-				void
 				message_rejected(
 					const message_sink_t *,
 					const delivery_possibility_t ) const {}
@@ -722,12 +719,6 @@ class tracing_enabled_base
 					}
 
 				void
-				push_to_queue( const message_sink_t * subscriber ) const
-					{
-						make_trace( "push_to_queue", subscriber );
-					}
-
-				void
 				message_rejected(
 					const message_sink_t * subscriber,
 					const delivery_possibility_t status ) const
@@ -756,21 +747,29 @@ class tracing_enabled_base
 				overlimit_tracer() const { return this; }
 
 			protected :
-				virtual void
+				void
+				push_to_queue(
+					const message_sink_t * sink,
+					const agent_t * sink_owner ) const noexcept override
+					{
+						make_trace( "push_to_queue", sink, sink_owner );
+					}
+
+				void
 				reaction_abort_app(
 					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.abort", subscriber );
 					}
 
-				virtual void
+				void
 				reaction_drop_message(
 					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.drop", subscriber );
 					}
 
-				virtual void
+				void
 				reaction_redirect_message(
 					const agent_t * subscriber,
 					const mbox_t & target ) const noexcept override
@@ -782,7 +781,7 @@ class tracing_enabled_base
 								details::mbox_as_msg_destination{ *target } );
 					}
 
-				virtual void
+				void
 				reaction_transform(
 					const agent_t * subscriber,
 					const mbox_t & target,

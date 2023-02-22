@@ -35,6 +35,15 @@ class action_msg_tracer_t
 		~action_msg_tracer_t() {}
 
 	public :
+		//FIXME: should there be method for tracing in custom
+		//implementations of message_sink?
+
+		//FIXME: document this!
+		virtual void
+		push_to_queue(
+			const message_sink_t * sink,
+			const agent_t * sink_owner ) const noexcept = 0;
+
 		//! Application will be aborted as result of overlimit.
 		virtual void
 		reaction_abort_app(

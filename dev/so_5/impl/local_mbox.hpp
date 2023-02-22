@@ -829,10 +829,6 @@ class local_mbox_template
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						//FIXME: this call to `push_to_queue` has to be moved
-						//inside a message_sink.
-						tracer.push_to_queue( subscriber_info.sink_pointer() );
-
 						subscriber_info.sink_reference().push_event(
 								this->m_id,
 								msg_type,
