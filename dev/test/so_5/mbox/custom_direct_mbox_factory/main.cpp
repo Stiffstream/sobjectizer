@@ -63,13 +63,11 @@ class test_mbox_t final : public so_5::abstract_message_box_t
 		void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			const ::so_5::message_limit::control_block_t * limit,
 			::so_5::message_sink_t & subscriber ) override
 			{
 				m_protocol.append( "subscribe;" );
 				m_target->subscribe_event_handler(
 						type_index,
-						limit,
 						subscriber );
 			}
 

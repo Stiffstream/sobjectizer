@@ -264,24 +264,25 @@ storage_t::drop_subscription_for_all_states(
 		using namespace std;
 
 		const auto predicate = is_same_mbox_msg{ mbox->id(), msg_type };
-		if( const auto it_first =
+		if( auto it =
 				find_if( begin( m_events ), end( m_events ), predicate );
-				it_first == end( m_events ) )
+				it != end( m_events ) )
 			{
 				// There are subscriptions to be removed.
 				// Have to store message_sink reference because it has to
 				// be passed to unsubscribe_event_handlers.
-				auto & message_sink = it_first->m_message_sink.get();
+				auto & message_sink = it->m_message_sink.get();
 
-				auto it_last = find_if_not(
-						next( it_first ), end( m_events ), predicate );
-
-				m_events.erase( it_first, it_last );
+				// Remove all items that match the predicate.
+				m_events.erase(
+						remove_if( it, end( m_events ), predicate ),
+						end( m_events ) );
 
 				// Note: since v.5.5.9 mbox unsubscription is initiated even if
 				// it is MPSC mboxes. It is important for the case of message
 				// delivery tracing.
 				mbox->unsubscribe_event_handlers( msg_type, message_sink );
+
 			}
 	}
 

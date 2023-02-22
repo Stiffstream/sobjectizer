@@ -127,11 +127,10 @@ public :
 	void
 	subscribe_event_handler(
 		const std::type_index & type_index,
-		const so_5::message_limit::control_block_t * limit,
 		so_5::message_sink_t & subscriber ) override
 	{
 		m_actual_mbox->subscribe_event_handler(
-				type_index, limit, subscriber );
+				type_index, subscriber );
 	}
 
 	void

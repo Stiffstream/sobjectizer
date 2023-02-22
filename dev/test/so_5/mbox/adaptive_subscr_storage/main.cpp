@@ -58,11 +58,10 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			const so_5::message_limit::control_block_t * limit,
 			so_5::message_sink_t & subscriber ) override
 			{
 				++m_subscriptions;
-				m_actual_mbox->subscribe_event_handler( type_index, limit, subscriber );
+				m_actual_mbox->subscribe_event_handler( type_index, subscriber );
 			}
 
 		virtual void
