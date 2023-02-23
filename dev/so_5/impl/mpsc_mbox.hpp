@@ -21,7 +21,7 @@
 #include <so_5/message_limit.hpp>
 
 #include <so_5/impl/local_mbox_basic_subscription_info.hpp>
-
+#include <so_5/impl/message_sink_without_message_limit.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
 
 #include <type_traits>
@@ -31,6 +31,65 @@ namespace so_5
 
 namespace impl
 {
+
+//FIXME: document this!
+class limitful_mpsc_mbox_mixin_t
+	{
+		environment_t & m_env;
+
+	protected:
+		[[nodiscard]]
+		environment_t &
+		query_environment_reference() const noexcept
+			{
+				return m_env;
+			}
+
+		[[nodiscard]]
+		message_sink_t &
+		message_sink_to_use(
+			const local_mbox_details::subscription_info_with_sink_t & info ) const noexcept
+			{
+				return info.sink_reference();
+			}
+
+	public:
+		limitful_mpsc_mbox_mixin_t(
+			outliving_reference_t< environment_t > env,
+			outliving_reference_t< agent_t > /*owner*/ )
+			:	m_env{ env.get() }
+		{}
+	};
+
+//FIXME: document this!
+class limitless_mpsc_mbox_mixin_t
+	{
+		//! Actual message sink to be used.
+		message_sink_without_message_limit_t m_actual_sink;
+
+	protected:
+		[[nodiscard]]
+		environment_t &
+		query_environment_reference() const noexcept
+			{
+				return m_actual_sink.owner().so_environment();
+			}
+
+		[[nodiscard]]
+		message_sink_t &
+		message_sink_to_use(
+			const local_mbox_details::subscription_info_with_sink_t & /*info*/ ) noexcept
+			{
+				return m_actual_sink;
+			}
+
+	public:
+		limitless_mpsc_mbox_mixin_t(
+			outliving_reference_t< environment_t > /*env*/,
+			outliving_reference_t< agent_t > owner )
+			:	m_actual_sink{ owner }
+		{}
+	};
 
 //
 // mpsc_mbox_template_t
@@ -49,9 +108,12 @@ namespace impl
  * \note Renamed from limitful_mpsc_mbox_template_t to
  * mpsc_mbox_template_t in v.5.7.4.
  */
-template< typename Tracing_Base >
-class mpsc_mbox_template_t
+template<
+	typename Tracing_Base,
+	typename Limits_Handling_Mixin >
+class mpsc_mbox_template_t final
 	:	public abstract_message_box_t
+	,	private Limits_Handling_Mixin
 	,	protected Tracing_Base
 	{
 	public:
@@ -59,8 +121,10 @@ class mpsc_mbox_template_t
 		mpsc_mbox_template_t(
 			mbox_id_t id,
 			outliving_reference_t< environment_t > env,
+			outliving_reference_t< agent_t > owner,
 			Tracing_Args &&... tracing_args )
-			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
+			:	Limits_Handling_Mixin{ env, owner }
+			,	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
 			,	m_env{ env.get() }
 			{}
@@ -155,7 +219,8 @@ class mpsc_mbox_template_t
 					tracer,
 					[&]( const subscription_info_t & info )
 					{
-						info.sink_reference().push_event(
+						//FIXME: document this trick!
+						this->message_sink_to_use( info ).push_event(
 								this->m_id,
 								msg_type,
 								message,
@@ -207,7 +272,9 @@ class mpsc_mbox_template_t
 		environment_t &
 		environment() const noexcept override
 			{
-				return m_env;
+				// NOTE: query_environment_reference inherited from
+				// Limits_Handling_Mixin.
+				return this->query_environment_reference();
 			}
 
 	protected :
@@ -356,20 +423,50 @@ class mpsc_mbox_template_t
 	};
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \since v.5.5.9, v.5.7.4, v.5.8.0
  *
  * \brief Alias for mpsc_mbox without message delivery tracing.
  */
-using mpsc_mbox_without_tracing_t =
-	mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base >;
+using ordinary_mpsc_mbox_without_tracing_t =
+	mpsc_mbox_template_t<
+			msg_tracing_helpers::tracing_disabled_base,
+			limitful_mpsc_mbox_mixin_t
+	>;
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \since v.5.5.9, v.5.7.4, v.5.8.0
  *
  * \brief Alias for mpsc_mbox with message delivery tracing.
  */
-using mpsc_mbox_with_tracing_t =
-	mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base >;
+using ordinary_mpsc_mbox_with_tracing_t =
+	mpsc_mbox_template_t<
+			msg_tracing_helpers::tracing_enabled_base,
+			limitful_mpsc_mbox_mixin_t
+	>;
+
+/*!
+ * \brief Alias for mpsc_mbox without message delivery tracing that
+ * ignores message limits.
+ *
+ * \since v.5.8.0
+ */
+using limitless_mpsc_mbox_without_tracing_t =
+	mpsc_mbox_template_t<
+			msg_tracing_helpers::tracing_disabled_base,
+			limitless_mpsc_mbox_mixin_t
+	>;
+
+/*!
+ * \brief Alias for mpsc_mbox with message delivery tracing that
+ * ignores message limits.
+ *
+ * \since v.5.8.0
+ */
+using limitless_mpsc_mbox_with_tracing_t =
+	mpsc_mbox_template_t<
+			msg_tracing_helpers::tracing_enabled_base,
+			limitless_mpsc_mbox_mixin_t
+	>;
 
 } /* namespace impl */
 

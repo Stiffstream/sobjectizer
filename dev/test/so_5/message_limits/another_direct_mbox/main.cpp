@@ -31,7 +31,7 @@ public :
 		:	so_5::agent_t( ctx + limit_then_abort< msg_timeout >( 1 ) )
 		,	m_another_mbox{
 				so_5::impl::internal_env_iface_t{ so_environment() }
-						.create_mpsc_mbox( this )
+						.create_limitless_mpsc_mbox( *this )
 			}
 	{}
 

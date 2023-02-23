@@ -70,8 +70,8 @@ public :
 	operator<( const subscriber_info_t & o ) const
 	{
 		return special_message_sink_ptr_compare(
-				this->sink_reference(),
-				o.sink_reference() );
+				this->sink_pointer(),
+				o.sink_pointer() );
 	}
 };
 
@@ -96,7 +96,7 @@ class subscriber_adaptive_container_t
 			operator()(
 				message_sink_t * a, message_sink_t * b ) const noexcept
 			{
-				return special_message_sink_ptr_compare( *a, *b );
+				return special_message_sink_ptr_compare( a, b );
 			}
 		};
 

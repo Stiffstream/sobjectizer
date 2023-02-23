@@ -76,6 +76,7 @@ class mbox_core_t
 		/*!
 			\note always creates a new mbox.
 		*/
+		[[nodiscard]]
 		mbox_t
 		create_mbox( environment_t & env );
 
@@ -86,6 +87,7 @@ class mbox_core_t
 			will return a new mbox_t, which links to 
 			the present mbox (with this name).
 		*/
+		[[nodiscard]]
 		mbox_t
 		create_mbox(
 			//! Environment for which the mbox is created.
@@ -94,15 +96,30 @@ class mbox_core_t
 			nonempty_name_t mbox_name );
 
 		/*!
-		 * \since
-		 * v.5.4.0
+		 * \brief Create mpsc_mbox that handles message limits.
 		 *
-		 * \brief Create anonymous mpsc_mbox.
+		 * \since v.5.8.0
 		 */
+		[[nodiscard]]
 		mbox_t
-		create_mpsc_mbox(
-			//! The only consumer for messages.
-			agent_t * single_consumer );
+		create_ordinary_mpsc_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
+			//! The only consumer for the mbox.
+			agent_t & owner );
+
+		/*!
+		 * \brief Create mpsc_mbox that ignores message limits.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		create_limitless_mpsc_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
+			//! The only consumer for the mbox.
+			agent_t & owner );
 
 		//! Remove a reference to the named mbox.
 		/*!

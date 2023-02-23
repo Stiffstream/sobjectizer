@@ -320,6 +320,17 @@ public :
 	{
 		return m_sink;
 	}
+
+//FIXME: methods for debugging purposes only!
+#if 1
+[[nodiscard]]
+message_sink_t *
+debug_raw_sink_pointer() const noexcept { return m_sink; }
+
+[[nodiscard]]
+const delivery_filter_t *
+debug_raw_delivery_filter_pointer() const noexcept { return m_filter; }
+#endif
 };
 
 } /* namespace local_mbox_details */

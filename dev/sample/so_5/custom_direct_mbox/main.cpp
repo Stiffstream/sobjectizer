@@ -168,13 +168,11 @@ public:
 
 	void subscribe_event_handler(
 		const std::type_index & msg_type,
-		const so_5::message_limit::control_block_t * limit,
 		so_5::message_sink_t & subscriber ) override
 	{
 		if( !should_intercept( msg_type ) )
 			m_source->subscribe_event_handler(
 					msg_type,
-					limit,
 					subscriber );
 	}
 

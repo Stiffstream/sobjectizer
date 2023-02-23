@@ -74,20 +74,39 @@ make_actual_mbox(
 } /* namespace anonymous */
 
 mbox_t
-mbox_core_t::create_mpsc_mbox(
-	agent_t * single_consumer )
+mbox_core_t::create_ordinary_mpsc_mbox(
+	environment_t & env,
+	agent_t & owner )
 {
 	const auto id = ++m_mbox_id_counter;
 
 	std::unique_ptr< abstract_message_box_t > actual_mbox =
 			make_actual_mbox<
-							mpsc_mbox_without_tracing_t,
-							mpsc_mbox_with_tracing_t >(
+							ordinary_mpsc_mbox_without_tracing_t,
+							ordinary_mpsc_mbox_with_tracing_t >(
 					m_msg_tracing_stuff,
 					id,
-//FIXME: is it safe to call so_environment() for single_consumer()?
-//single_consumer can be non-fully-constructed object.
-					outliving_mutable( single_consumer->so_environment() ) );
+					outliving_mutable( env ),
+					outliving_mutable( owner ) );
+
+	return mbox_t{ actual_mbox.release() };
+}
+
+mbox_t
+mbox_core_t::create_limitless_mpsc_mbox(
+	environment_t & env,
+	agent_t & owner )
+{
+	const auto id = ++m_mbox_id_counter;
+
+	std::unique_ptr< abstract_message_box_t > actual_mbox =
+			make_actual_mbox<
+							limitless_mpsc_mbox_without_tracing_t,
+							limitless_mpsc_mbox_with_tracing_t >(
+					m_msg_tracing_stuff,
+					id,
+					outliving_mutable( env ),
+					outliving_mutable( owner ) );
 
 	return mbox_t{ actual_mbox.release() };
 }

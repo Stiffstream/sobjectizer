@@ -43,11 +43,19 @@ class SO_5_TYPE internal_env_iface_t
 			:	m_env( env )
 			{}
 
-		//! Create multi-producer/single-consumer mbox.
+		//! Create multi-producer/single-consumer mbox that handles message limits.
+		[[nodiscard]]
 		mbox_t
-		create_mpsc_mbox(
+		create_ordinary_mpsc_mbox(
 			//! The only consumer for the messages.
-			agent_t * single_consumer );
+			agent_t & single_consumer );
+
+		//! Create multi-producer/single-consumer mbox that ignores message limits.
+		[[nodiscard]]
+		mbox_t
+		create_limitless_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t & single_consumer );
 
 		//! Notification about readiness to the deregistration.
 		void
