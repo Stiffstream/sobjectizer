@@ -84,7 +84,7 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 struct state_t::time_limit_t
 {
-	struct timeout : public signal_t {};
+	struct msg_timeout final : public signal_t {};
 
 	duration_t m_limit;
 	const state_t & m_state_to_switch;
@@ -111,21 +111,20 @@ struct state_t::time_limit_t
 
 			// New unique mbox is necessary for time limit.
 			m_unique_mbox = impl::internal_env_iface_t{ agent.so_environment() }
-//FIXME: create_limitless_mpsc_mbox has to be used here!
 					// A new MPSC mbox will be used for that.
-					.create_ordinary_mpsc_mbox(
+					.create_limitless_mpsc_mbox(
 							// New MPSC mbox will be directly connected to target agent.
 							agent );
 
-			// A subscription must be created for timeout signal.
+			// A subscription must be created for msg_timeout signal.
 			agent.so_subscribe( m_unique_mbox )
 					.in( current_state )
-					.event( [&agent, this](mhood_t<timeout>) {
+					.event( [&agent, this](mhood_t<msg_timeout>) {
 						agent.so_change_state( m_state_to_switch );
 					} );
 
 			// Delayed timeout signal must be sent.
-			m_timer = send_periodic< timeout >(
+			m_timer = send_periodic< msg_timeout >(
 					m_unique_mbox,
 					m_limit,
 					duration_t::zero() );
@@ -146,7 +145,8 @@ struct state_t::time_limit_t
 			if( m_unique_mbox )
 			{
 				// Old subscription must be removed.
-				agent.so_drop_subscription< timeout >( m_unique_mbox, current_state );
+				agent.so_drop_subscription< msg_timeout >(
+						m_unique_mbox, current_state );
 				// Unique mbox is no more needed.
 				m_unique_mbox = mbox_t{};
 			}
