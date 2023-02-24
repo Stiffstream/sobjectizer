@@ -136,11 +136,10 @@ class agent_tuning_options_t
 				return *this;
 			}
 
-		//FIXME: this method should be marked as [[nodiscard]] and
-		//noexcept in SO-5.8.
 		//! Get priority value.
+		[[nodiscard]]
 		so_5::priority_t
-		query_priority() const
+		query_priority() const noexcept
 			{
 				return m_priority;
 			}
