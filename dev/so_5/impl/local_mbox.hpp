@@ -38,46 +38,6 @@ namespace impl
 namespace local_mbox_details
 {
 
-//FIXME: remove after refactoring.
-#if 0
-/*!
- * \since
- * v.5.5.4
- *
- * \brief An information block about one subscriber.
- */
-class subscriber_info_t : public subscription_info_with_sink_t
-{
-public :
-	//! Constructor for the case when info object is created only
-	//! for searching of existing subscription info.
-	subscriber_info_t( message_sink_t & subscriber )
-		:	subscription_info_with_sink_t{ subscriber }
-	{}
-
-	//! Constructor for the case when subscriber info is being
-	//! created during setting a delivery filter.
-	subscriber_info_t(
-		message_sink_t & subscriber,
-		const delivery_filter_t & filter )
-		:	subscription_info_with_sink_t{ subscriber, filter }
-	{}
-
-	//! Comparison uses only pointer to subscriber.
-	/*!
-	 * \note Since v.5.5.8 not only pointers to subscribers, but also
-	 * the priorities of the subscribers are used in comparision.
-	 */
-	bool
-	operator<( const subscriber_info_t & o ) const
-	{
-		return special_message_sink_ptr_compare(
-				this->sink_pointer(),
-				o.sink_pointer() );
-	}
-};
-#endif
-
 //
 // subscriber_adaptive_container_t
 //
@@ -92,18 +52,34 @@ public :
  */
 class subscriber_adaptive_container_t
 {
-	//FIXME: document this!
+	/*!
+	 * \brief Information about one subscriber to be stored in a vector.
+	 *
+	 * It's necessary to have a pointer to message sink that will be
+	 * used as a search key. Such a pointer from m_info field can't be
+	 * used because it will be set to nullptr when agent drops the
+	 * subscription but keeps a delivery filter.
+	 */
 	struct subscribers_vector_item_t
 		{
+			//! Pointer to sink that has to be used as search key.
+			/*!
+			 * \attention
+			 * It's must not be nullptr!
+			 */
 			message_sink_t * m_sink_as_key;
 
+			//! Information about the subscription.
 			subscription_info_with_sink_t m_info;
 
+			//! Special constructor for cases when item is created for searching
+			//! information in the vector.
 			subscribers_vector_item_t(
 				message_sink_t & sink_as_key )
 				:	m_sink_as_key{ std::addressof(sink_as_key) }
 				{}
 
+			//! The normal initializing constructor.
 			subscribers_vector_item_t(
 				message_sink_t & sink_as_key,
 				subscription_info_with_sink_t info )
@@ -112,7 +88,9 @@ class subscriber_adaptive_container_t
 				{}
 		};
 
-	//FIXME: document this!
+	/*!
+	 * \brief Predicate to be used for searching information in the vector.
+	 */
 	struct subscribers_vector_item_comparator
 		{
 			[[nodiscard]]
@@ -127,6 +105,9 @@ class subscriber_adaptive_container_t
 				}
 		};
 
+	/*!
+	 * \brief Predicate to be used for comparing keys in subscriber map.
+	 */
 	struct subscriber_ptr_compare_type
 		{
 			[[nodiscard]]
@@ -450,21 +431,6 @@ private :
 		}
 
 public :
-//FIXME: remove after debugging!
-void debug_dump() const
-{
-	std::cout << "<<<<<<<" << std::endl;
-	if( is_vector() )
-	{
-		for( const auto i : m_vector ) std::cout << "[" << i.m_sink_as_key << ": " << i.m_info.debug_raw_sink_pointer() << ", " << i.m_info.debug_raw_delivery_filter_pointer() << "]" << std::endl;
-	}
-	else
-	{
-		for( const auto [k, i] : m_map ) std::cout << "{" << k << ": " << i.debug_raw_sink_pointer() << ", " << i.debug_raw_delivery_filter_pointer() << "}" << std::endl;
-	}
-	std::cout << ">>>>>>>" << std::endl;
-}
-
 	//! Default constructor.
 	subscriber_adaptive_container_t()
 		{}
@@ -824,10 +790,6 @@ class local_mbox_template
 					container.insert( subscriber, maker() );
 
 					m_subscribers.emplace( type_wrapper, std::move( container ) );
-//FIXME: remove after debugging!
-#if 0
-m_subscribers.find(type_wrapper)->second.debug_dump();
-#endif
 				}
 				else
 				{
@@ -844,11 +806,6 @@ m_subscribers.find(type_wrapper)->second.debug_dump();
 						// There is no subscriber in the container.
 						// It must be added.
 						sinks.insert( subscriber, maker() );
-
-//FIXME: remove after debugging!
-#if 0
-sinks.debug_dump();
-#endif
 				}
 			}
 
@@ -877,11 +834,6 @@ sinks.debug_dump();
 						if( pos->empty() )
 							sinks.erase( pos );
 					}
-
-//FIXME: remove after debugging!
-#if 0
-sinks.debug_dump();
-#endif
 
 					if( sinks.empty() )
 						m_subscribers.erase( it );
