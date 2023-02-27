@@ -37,5 +37,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/transform_from_timer_to_full_mchain/prj.ut.rb"
 
 	required_prj "#{path}/any_unspecified_msg_and_state_time_limit/prj.ut.rb"
+
+	required_prj "#{path}/subscription_unsubscription_1/prj.ut.rb"
 }
 
