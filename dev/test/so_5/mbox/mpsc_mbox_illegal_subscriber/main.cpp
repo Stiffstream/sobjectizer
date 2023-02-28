@@ -53,6 +53,8 @@ class a_second_t : public so_5::agent_t
 			try
 			{
 				so_subscribe( m_mbox ).event( &a_second_t::evt_one );
+				// Shouldn't be here!
+				throw std::runtime_error{ "successful subscription!" };
 			}
 			catch( const so_5::exception_t & x )
 			{

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <so_5/message_limit.hpp>
+#include <so_5/impl/message_sink_for_agent.hpp>
 
 namespace so_5
 {
@@ -27,36 +27,20 @@ namespace impl
  * \since v.5.8.0
  */
 class message_sink_without_message_limit_t final
-	: public message_sink_t
+	: public message_sink_for_agent_t
 	{
-		//FIXME: should it be a reference instead of a pointer?
-		//! Owner of the sink.
-		agent_t * m_owner;
-
 	public:
 		//! Constructor for a case when agent is being created.
 		message_sink_without_message_limit_t(
 			partially_constructed_agent_ptr_t owner_ptr )
-			:	m_owner( owner_ptr.ptr() )
+			:	message_sink_for_agent_t{ owner_ptr }
 			{}
 
 		//! Constructor for a case when agent is already created.
 		message_sink_without_message_limit_t(
 			outliving_reference_t< agent_t > owner )
-			:	m_owner( std::addressof(owner.get()) )
+			:	message_sink_for_agent_t{ owner }
 			{}
-
-		environment_t &
-		environment() const noexcept override
-			{
-				return m_owner->so_environment();
-			}
-
-		priority_t
-		sink_priority() const noexcept override
-			{
-				return m_owner->so_priority();
-			}
 
 		void
 		push_event(
@@ -69,21 +53,14 @@ class message_sink_without_message_limit_t final
 				// The fact of pushing message to the queue
 				// has to be logged if msg_tracing is on.
 				if( tracer )
-					tracer->push_to_queue( this, m_owner );
+					tracer->push_to_queue( this, owner_pointer() );
 
 				agent_t::call_push_event(
-						*m_owner,
+						owner_reference(),
 						nullptr /* no message limit */,
 						mbox_id,
 						msg_type,
 						message );
-			}
-
-		[[nodiscard]]
-		agent_t &
-		owner() const noexcept
-			{
-				return *m_owner;
 			}
 	};
 

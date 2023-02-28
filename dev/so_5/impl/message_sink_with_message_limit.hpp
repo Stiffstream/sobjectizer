@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <so_5/message_limit.hpp>
+#include <so_5/impl/message_sink_for_agent.hpp>
 
 namespace so_5
 {
@@ -68,11 +68,8 @@ struct decrement_on_exception_t
  * \since v.5.8.0
  */
 class message_sink_with_message_limit_t final
-	: public message_sink_t
+	: public message_sink_for_agent_t
 	{
-		//! Owner of the sink.
-		agent_t * m_owner;
-
 		//! Run-time data for the message type.
 		so_5::message_limit::control_block_t m_control_block;
 
@@ -85,21 +82,9 @@ class message_sink_with_message_limit_t final
 			unsigned int limit,
 			//! Reaction to the limit overflow.
 			so_5::message_limit::action_t action )
-			:	m_owner( owner_ptr.ptr() )
+			:	message_sink_for_agent_t( owner_ptr )
 			,	m_control_block( limit, std::move( action ) )
 			{}
-
-		environment_t &
-		environment() const noexcept override
-			{
-				return m_owner->so_environment();
-			}
-
-		priority_t
-		sink_priority() const noexcept override
-			{
-				return m_owner->so_priority();
-			}
 
 		void
 		push_event(
@@ -116,7 +101,7 @@ class message_sink_with_message_limit_t final
 						m_control_block.m_action(
 								so_5::message_limit::overlimit_context_t{
 										mbox_id,
-										*m_owner,
+										owner_reference(),
 										m_control_block,
 										overlimit_reaction_deep,
 										msg_type,
@@ -134,10 +119,10 @@ class message_sink_with_message_limit_t final
 						// The fact of pushing message to the queue
 						// has to be logged if msg_tracing is on.
 						if( tracer )
-							tracer->push_to_queue( this, m_owner );
+							tracer->push_to_queue( this, owner_pointer() );
 
 						agent_t::call_push_event(
-								*m_owner,
+								owner_reference(),
 								std::addressof( m_control_block ),
 								mbox_id,
 								msg_type,
@@ -151,5 +136,4 @@ class message_sink_with_message_limit_t final
 } /* namespace impl */
 
 } /* namespace so_5 */
-
 

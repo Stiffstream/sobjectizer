@@ -35,14 +35,21 @@ namespace impl
 //FIXME: document this!
 class limitful_mpsc_mbox_mixin_t
 	{
-		environment_t & m_env;
+		agent_t & m_owner;
 
 	protected:
+		[[nodiscard]]
+		agent_t &
+		query_owner_reference() const noexcept
+			{
+				return m_owner;
+			}
+
 		[[nodiscard]]
 		environment_t &
 		query_environment_reference() const noexcept
 			{
-				return m_env;
+				return m_owner.so_environment();
 			}
 
 		[[nodiscard]]
@@ -55,9 +62,10 @@ class limitful_mpsc_mbox_mixin_t
 
 	public:
 		limitful_mpsc_mbox_mixin_t(
-			outliving_reference_t< environment_t > env,
-			outliving_reference_t< agent_t > /*owner*/ )
-			:	m_env{ env.get() }
+			//FIXME: does this parameter actually needed?
+			outliving_reference_t< environment_t > /*env*/,
+			outliving_reference_t< agent_t > owner )
+			:	m_owner{ owner.get() }
 		{}
 	};
 
@@ -69,10 +77,17 @@ class limitless_mpsc_mbox_mixin_t
 
 	protected:
 		[[nodiscard]]
+		agent_t &
+		query_owner_reference() const noexcept
+			{
+				return m_actual_sink.owner_reference();
+			}
+
+		[[nodiscard]]
 		environment_t &
 		query_environment_reference() const noexcept
 			{
-				return m_actual_sink.owner().so_environment();
+				return m_actual_sink.owner_reference().so_environment();
 			}
 
 		[[nodiscard]]
@@ -90,6 +105,30 @@ class limitless_mpsc_mbox_mixin_t
 			:	m_actual_sink{ owner }
 		{}
 	};
+
+namespace
+{
+
+//FIXME: document this!
+void
+ensure_sink_for_same_owner(
+	agent_t & actual_owner,
+	message_sink_t & sink )
+	{
+		auto * p = dynamic_cast<message_sink_for_agent_t *>( std::addressof(sink) );
+		if( !p )
+			SO_5_THROW_EXCEPTION(
+					rc_illegal_subscriber_for_mpsc_mbox,
+					"unexpected type of message_sink is used for subscription "
+					"to agent's direct mbox" );
+
+		if( std::addressof(actual_owner) != p->owner_pointer() )
+			SO_5_THROW_EXCEPTION(
+					rc_illegal_subscriber_for_mpsc_mbox,
+					"the only one consumer can create subscription to mpsc_mbox" );
+	}
+
+} /* namespace anonymous */
 
 //
 // mpsc_mbox_template_t
@@ -142,13 +181,9 @@ class mpsc_mbox_template_t final
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-//FIXME: how to do that check now?
-#if 0
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can create subscription to mpsc_mbox" );
-#endif
+				ensure_sink_for_same_owner(
+						this->query_owner_reference(),
+						subscriber );
 
 				insert_or_modify_subscription(
 						msg_type,
@@ -163,17 +198,13 @@ class mpsc_mbox_template_t final
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & msg_type,
-			message_sink_t & /*subscriber*/ ) override
+			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-//FIXME: how to do that check now?
-#if 0
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can remove subscription to mpsc_mbox" );
-#endif
+				ensure_sink_for_same_owner(
+						this->query_owner_reference(),
+						subscriber );
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,
@@ -233,17 +264,13 @@ class mpsc_mbox_template_t final
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			message_sink_t & /*subscriber*/ ) override
+			message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-//FIXME: how to do that check now?
-#if 0
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can create subscription to mpsc_mbox" );
-#endif
+				ensure_sink_for_same_owner(
+						this->query_owner_reference(),
+						subscriber );
 
 				insert_or_modify_subscription(
 						msg_type,
