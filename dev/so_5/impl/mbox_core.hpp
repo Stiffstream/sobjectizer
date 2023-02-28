@@ -103,8 +103,6 @@ class mbox_core_t
 		[[nodiscard]]
 		mbox_t
 		create_ordinary_mpsc_mbox(
-			//! Environment for which the mbox is created.
-			environment_t & env,
 			//! The only consumer for the mbox.
 			agent_t & owner );
 
@@ -116,8 +114,6 @@ class mbox_core_t
 		[[nodiscard]]
 		mbox_t
 		create_limitless_mpsc_mbox(
-			//! Environment for which the mbox is created.
-			environment_t & env,
 			//! The only consumer for the mbox.
 			agent_t & owner );
 

@@ -75,7 +75,6 @@ make_actual_mbox(
 
 mbox_t
 mbox_core_t::create_ordinary_mpsc_mbox(
-	environment_t & env,
 	agent_t & owner )
 {
 	const auto id = ++m_mbox_id_counter;
@@ -86,7 +85,6 @@ mbox_core_t::create_ordinary_mpsc_mbox(
 							ordinary_mpsc_mbox_with_tracing_t >(
 					m_msg_tracing_stuff,
 					id,
-					outliving_mutable( env ),
 					outliving_mutable( owner ) );
 
 	return mbox_t{ actual_mbox.release() };
@@ -94,7 +92,6 @@ mbox_core_t::create_ordinary_mpsc_mbox(
 
 mbox_t
 mbox_core_t::create_limitless_mpsc_mbox(
-	environment_t & env,
 	agent_t & owner )
 {
 	const auto id = ++m_mbox_id_counter;
@@ -105,7 +102,6 @@ mbox_core_t::create_limitless_mpsc_mbox(
 							limitless_mpsc_mbox_with_tracing_t >(
 					m_msg_tracing_stuff,
 					id,
-					outliving_mutable( env ),
 					outliving_mutable( owner ) );
 
 	return mbox_t{ actual_mbox.release() };

@@ -62,8 +62,6 @@ class limitful_mpsc_mbox_mixin_t
 
 	public:
 		limitful_mpsc_mbox_mixin_t(
-			//FIXME: does this parameter actually needed?
-			outliving_reference_t< environment_t > /*env*/,
 			outliving_reference_t< agent_t > owner )
 			:	m_owner{ owner.get() }
 		{}
@@ -100,7 +98,6 @@ class limitless_mpsc_mbox_mixin_t
 
 	public:
 		limitless_mpsc_mbox_mixin_t(
-			outliving_reference_t< environment_t > /*env*/,
 			outliving_reference_t< agent_t > owner )
 			:	m_actual_sink{ owner }
 		{}
@@ -159,13 +156,11 @@ class mpsc_mbox_template_t final
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
-			outliving_reference_t< environment_t > env,
 			outliving_reference_t< agent_t > owner,
 			Tracing_Args &&... tracing_args )
-			:	Limits_Handling_Mixin{ env, owner }
+			:	Limits_Handling_Mixin{ owner }
 			,	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
-			,	m_env{ env.get() }
 			{}
 
 		mbox_id_t
@@ -316,8 +311,7 @@ class mpsc_mbox_template_t final
 		 * \brief Type of dictionary for information about the current
 		 * subscriptions.
 		 *
-		 * \since
-		 * v.5.7.1
+		 * \since v.5.7.1
 		 */
 		using subscriptions_map_t = std::map<
 				std::type_index,
@@ -329,23 +323,16 @@ class mpsc_mbox_template_t final
 		const mbox_id_t m_id;
 
 		/*!
-		 * \brief SObjectizer Environment for that the mbox was created.
-		 */
-		environment_t & m_env;
-
-		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Protection of object from modification.
+		 *
+		 * \since v.5.5.9
 		 */
 		default_rw_spinlock_t m_lock;
 
 		/*!
 		 * \brief Information about the current subscriptions.
 		 *
-		 * \since
-		 * v.5.7.1
+		 * \since v.5.7.1
 		 */
 		subscriptions_map_t m_subscriptions;
 
