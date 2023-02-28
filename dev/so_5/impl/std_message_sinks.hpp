@@ -44,11 +44,6 @@ class sinks_storage_t
 		sinks_storage_t() = default;
 		virtual ~sinks_storage_t() = default;
 
-		//FIXME: is it really needed?
-		[[nodiscard]]
-		virtual message_sink_t *
-		find( const std::type_index & msg_type ) = 0;
-
 		[[nodiscard]]
 		virtual message_sink_t *
 		find_or_create( const std::type_index & msg_type ) = 0;
@@ -76,12 +71,6 @@ class storage_without_limits_t final
 			partially_constructed_agent_ptr_t owner_ptr )
 			:	m_sink{ owner_ptr }
 			{}
-
-		message_sink_t *
-		find( const std::type_index & /*msg_type*/ ) override
-			{
-				return std::addressof( m_sink );
-			}
 
 		message_sink_t *
 		find_or_create( const std::type_index & /*msg_type*/ ) override
@@ -192,13 +181,6 @@ class fixed_sinks_storage_t final : public sinks_storage_t
 
 		[[nodiscard]]
 		message_sink_t *
-		find( const std::type_index & msg_type ) override
-			{
-				return m_holder.find( msg_type );
-			}
-
-		[[nodiscard]]
-		message_sink_t *
 		find_or_create( const std::type_index & msg_type ) override
 			{
 				return m_holder.find( msg_type );
@@ -232,13 +214,6 @@ class growable_sinks_storage_t final : public sinks_storage_t
 			,	m_default_limit_description{ std::move(default_limit_description) }
 			,	m_holder{ owner_ptr, std::move(descriptions) }
 			{}
-
-		[[nodiscard]]
-		message_sink_t *
-		find( const std::type_index & msg_type ) override
-			{
-				return m_holder.find( msg_type );
-			}
 
 		[[nodiscard]]
 		message_sink_t *
