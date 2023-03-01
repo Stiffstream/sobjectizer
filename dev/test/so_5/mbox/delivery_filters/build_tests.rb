@@ -12,4 +12,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/dereg_subscriber/prj.ut.rb"
 	required_prj "#{path}/set_unset/prj.ut.rb"
 	required_prj "#{path}/exception_in_filter/prj.ut.rb"
+	required_prj "#{path}/foreign_mpsc_mbox/prj.ut.rb"
 }
