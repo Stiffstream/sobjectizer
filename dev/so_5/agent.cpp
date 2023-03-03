@@ -991,7 +991,7 @@ agent_t::so_destroy_deadletter_subscription(
 	m_subscriptions->drop_subscription( mbox, msg_type, deadletter_state );
 }
 
-message_sink_t &
+abstract_message_sink_t &
 agent_t::detect_sink_for_message_type(
 	const std::type_index & msg_type )
 {

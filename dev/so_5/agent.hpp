@@ -2713,7 +2713,7 @@ class SO_5_TYPE agent_t
 		 */
 
 //FIXME: document this!
-		message_sink_t &
+		abstract_message_sink_t &
 		detect_sink_for_message_type(
 			const std::type_index & msg_type );
 
@@ -3165,7 +3165,7 @@ class lambda_as_filter_t : public delivery_filter_t
 
 		bool
 		check(
-			const message_sink_t & /*receiver*/,
+			const abstract_message_sink_t & /*receiver*/,
 			message_t & msg ) const noexcept override
 			{
 				return m_filter(message_payload_type< Message >::payload_reference( msg ));

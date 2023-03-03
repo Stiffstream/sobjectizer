@@ -31,7 +31,7 @@ public :
 	virtual void
 	subscribe_event_handler(
 		const std::type_index & type_index,
-		so_5::message_sink_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) override
 		{
 			if( is_enabled_message( type_index ) )
 				m_actual_mbox->subscribe_event_handler(
@@ -41,7 +41,7 @@ public :
 	virtual void
 	unsubscribe_event_handlers(
 		const std::type_index & type_index,
-		so_5::message_sink_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) override
 		{
 			if( is_enabled_message( type_index ) )
 				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
@@ -77,7 +77,7 @@ public :
 	set_delivery_filter(
 		const std::type_index & msg_type,
 		const so_5::delivery_filter_t & filter,
-		so_5::message_sink_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) override
 		{
 			m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 		}
@@ -85,7 +85,7 @@ public :
 	virtual void
 	drop_delivery_filter(
 		const std::type_index & msg_type,
-		so_5::message_sink_t & subscriber ) noexcept override
+		so_5::abstract_message_sink_t & subscriber ) noexcept override
 		{
 			m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 		}

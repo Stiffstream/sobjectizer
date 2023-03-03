@@ -30,12 +30,12 @@ namespace impl {
 [[nodiscard]]
 inline bool
 special_message_sink_ptr_compare(
-	const message_sink_t * a,
-	const message_sink_t * b ) noexcept
+	const abstract_message_sink_t * a,
+	const abstract_message_sink_t * b ) noexcept
 	{
 		// Use std::less for compare pointers.
 		// NOTE: it's UB to compare pointers that do not belong to the same array.
-		using ptr_comparator_t = std::less< const message_sink_t * >;
+		using ptr_comparator_t = std::less< const abstract_message_sink_t * >;
 
 		const auto priority_getter = [](auto * sink) noexcept {
 				return sink == nullptr ? so_5::priority_t::p_min : sink->sink_priority();

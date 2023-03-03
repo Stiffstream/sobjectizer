@@ -88,14 +88,14 @@ struct subscr_info_t
 		mbox_t m_mbox;
 		std::type_index m_msg_type;
 		//! Message sink used for subscription.
-		std::reference_wrapper< message_sink_t > m_message_sink;
+		std::reference_wrapper< abstract_message_sink_t > m_message_sink;
 		const state_t * m_state;
 		event_handler_data_t m_handler;
 
 		subscr_info_t(
 			mbox_t mbox,
 			std::type_index msg_type,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -165,7 +165,7 @@ class subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,

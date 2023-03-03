@@ -57,7 +57,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -162,7 +162,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	message_sink_t & message_sink,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -233,7 +233,7 @@ storage_t::drop_subscription(
 		if( existed_position != m_events.end() )
 			{
 				// This value may be necessary for unsubscription.
-				message_sink_t & message_sink = existed_position->m_message_sink.get();
+				abstract_message_sink_t & message_sink = existed_position->m_message_sink.get();
 
 				// Item is no more needed.
 				m_events.erase( existed_position );
@@ -331,7 +331,7 @@ storage_t::destroy_all_subscriptions()
 			{
 				abstract_message_box_t * m_mbox;
 				const type_index * m_msg_type;
-				message_sink_t * m_message_sink;
+				abstract_message_sink_t * m_message_sink;
 
 				bool
 				operator<( const mbox_msg_info_t & o ) const

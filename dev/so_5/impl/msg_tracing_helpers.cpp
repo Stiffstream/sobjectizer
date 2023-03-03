@@ -36,7 +36,7 @@ actual_trace_data_t::agent() const noexcept
 		return m_agent;
 	}
 
-optional<const message_sink_t *>
+optional<const abstract_message_sink_t *>
 actual_trace_data_t::message_sink() const noexcept
 	{
 		return m_message_sink;
@@ -91,7 +91,7 @@ actual_trace_data_t::set_agent( const agent_t * agent ) noexcept
 	}
 
 void
-actual_trace_data_t::set_message_sink( const message_sink_t * sink ) noexcept
+actual_trace_data_t::set_message_sink( const abstract_message_sink_t * sink ) noexcept
 	{
 		m_message_sink = sink;
 	}

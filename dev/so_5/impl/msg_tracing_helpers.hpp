@@ -60,7 +60,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		virtual optional<const agent_t *>
 		agent() const noexcept override;
 
-		virtual optional<const message_sink_t *>
+		virtual optional<const abstract_message_sink_t *>
 		message_sink() const noexcept override;
 
 		virtual optional<std::type_index>
@@ -88,7 +88,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		set_agent( const agent_t * agent ) noexcept;
 
 		void
-		set_message_sink( const message_sink_t * message_sink ) noexcept;
+		set_message_sink( const abstract_message_sink_t * message_sink ) noexcept;
 
 		void
 		set_msg_type( const std::type_index & msg_type ) noexcept;
@@ -115,7 +115,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 	private :
 		optional<current_thread_id_t> m_tid;
 		optional<const agent_t *> m_agent;
-		optional<const message_sink_t *> m_message_sink;
+		optional<const abstract_message_sink_t *> m_message_sink;
 		optional<std::type_index> m_msg_type;
 		optional<so_5::msg_tracing::msg_source_t> m_msg_source;
 		optional<so_5::msg_tracing::message_or_signal_flag_t> m_message_or_signal;
@@ -329,13 +329,13 @@ fill_trace_data_1(
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const message_sink_t * sink )
+make_trace_to_1( std::ostream & s, const abstract_message_sink_t * sink )
 	{
 		s << "[msg_sink_ptr=" << pointer{sink} << "]";
 	}
 
 inline void
-fill_trace_data_1( actual_trace_data_t & d, const message_sink_t * sink )
+fill_trace_data_1( actual_trace_data_t & d, const abstract_message_sink_t * sink )
 	{
 		d.set_message_sink( sink );
 	}
@@ -623,7 +623,7 @@ struct tracing_disabled_base
 
 				void
 				message_rejected(
-					const message_sink_t *,
+					const abstract_message_sink_t *,
 					const delivery_possibility_t ) const {}
 
 				const so_5::message_limit::impl::action_msg_tracer_t *
@@ -720,7 +720,7 @@ class tracing_enabled_base
 
 				void
 				message_rejected(
-					const message_sink_t * subscriber,
+					const abstract_message_sink_t * subscriber,
 					const delivery_possibility_t status ) const
 					{
 						switch( status )
@@ -749,7 +749,7 @@ class tracing_enabled_base
 			protected :
 				void
 				push_to_queue(
-					const message_sink_t * sink,
+					const abstract_message_sink_t * sink,
 					const agent_t * sink_owner ) const noexcept override
 					{
 						make_trace( "push_to_queue", sink, sink_owner );

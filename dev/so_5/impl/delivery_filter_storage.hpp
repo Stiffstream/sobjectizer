@@ -75,11 +75,11 @@ class delivery_filter_storage_t
 				 * @note
 				 * The lifetime of the sink is controlled elsewhere.
 				 */
-				std::reference_wrapper< message_sink_t > m_sink;
+				std::reference_wrapper< abstract_message_sink_t > m_sink;
 
 				value_t(
 					delivery_filter_unique_ptr_t filter,
-					so_5::outliving_reference_t< message_sink_t > sink )
+					so_5::outliving_reference_t< abstract_message_sink_t > sink )
 					:	m_filter{ std::move(filter) }
 					,	m_sink{ sink.get() }
 					{}
@@ -114,7 +114,7 @@ class delivery_filter_storage_t
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
 			delivery_filter_unique_ptr_t filter,
-			so_5::outliving_reference_t< message_sink_t > owner )
+			so_5::outliving_reference_t< abstract_message_sink_t > owner )
 			{
 				const key_t key{ mbox, msg_type };
 				auto it = m_filters.find( key );

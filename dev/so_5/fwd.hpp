@@ -31,7 +31,7 @@ class sinks_storage_t;
 
 } /* namespace impl */
 
-class message_sink_t;
+class abstract_message_sink_t;
 
 class coop_dereg_reason_t;
 class state_t;

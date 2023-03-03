@@ -40,14 +40,14 @@ class sink_binding_holder_t
 			{
 				mbox_t m_source;
 				std::type_index m_msg_type;
-				std::reference_wrapper< message_sink_t > m_sink;
+				std::reference_wrapper< abstract_message_sink_t > m_sink;
 				// NOTE: may be nullptr!
 				delivery_filter_unique_ptr_t m_delivery_filter;
 
 				binding_info_t(
 					mbox_t & source,
 					const std::type_index & msg_type,
-					message_sink_t & sink,
+					abstract_message_sink_t & sink,
 					delivery_filter_unique_ptr_t delivery_filter ) noexcept
 					:	m_source{ source }
 					,	m_msg_type{ msg_type }
@@ -61,7 +61,7 @@ class sink_binding_holder_t
 		sink_binding_holder_t(
 			mbox_t & source,
 			const std::type_index & msg_type,
-			message_sink_t & sink,
+			abstract_message_sink_t & sink,
 			delivery_filter_unique_ptr_t delivery_filter ) noexcept
 			:	m_info{
 					std::in_place,
@@ -166,7 +166,7 @@ template< typename Msg >
 sink_binding_holder_t
 bind_sink(
 	mbox_t & source,
-	message_sink_t & sink )
+	abstract_message_sink_t & sink )
 	{
 		const auto msg_type = message_payload_type<Msg>::subscription_type_index();
 
@@ -184,7 +184,7 @@ template< typename Msg >
 sink_binding_holder_t
 bind_sink(
 	mbox_t & source,
-	message_sink_t & sink,
+	abstract_message_sink_t & sink,
 	delivery_filter_unique_ptr_t delivery_filter )
 	{
 		//FIXME: there should be check that delivery_filter isn't nullptr.
@@ -218,7 +218,7 @@ template< typename Msg, typename Lambda >
 sink_binding_holder_t
 bind_sink(
 	mbox_t & source,
-	message_sink_t & sink,
+	abstract_message_sink_t & sink,
 	Lambda && filter )
 	{
 		using namespace so_5::details::lambda_traits;

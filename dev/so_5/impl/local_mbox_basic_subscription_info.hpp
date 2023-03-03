@@ -135,7 +135,7 @@ public :
 	[[nodiscard]]
 	delivery_possibility_t
 	must_be_delivered(
-		message_sink_t & subscriber,
+		abstract_message_sink_t & subscriber,
 		const message_ref_t & msg,
 		Msg_Ref_Extractor msg_extractor ) const
 	{
@@ -182,7 +182,7 @@ protected:
 	 *
 	 * nullptr means that there is no subscriber.
 	 */
-	message_sink_t * m_sink;
+	abstract_message_sink_t * m_sink;
 
 	/*!
 	 * \brief Delivery filter for that message for that subscription.
@@ -201,7 +201,7 @@ public :
 	//! Constructor for the case when info is being
 	//! created during event subscription.
 	subscription_info_with_sink_t(
-		message_sink_t & sink )
+		abstract_message_sink_t & sink )
 		:	m_sink{ std::addressof(sink) }
 		,	m_filter{ nullptr }
 	{}
@@ -217,7 +217,7 @@ public :
 	//! Constructor for the case when info is being
 	//! created when subscriber and delivery_filter are known.
 	subscription_info_with_sink_t(
-		message_sink_t & sink,
+		abstract_message_sink_t & sink,
 		const delivery_filter_t & filter )
 		:	m_sink{ std::addressof(sink) }
 		,	m_filter{ std::addressof(filter) }
@@ -234,7 +234,7 @@ public :
 	 * \brief Inform about addition of a subscription.
 	 */
 	void
-	set_sink( message_sink_t & sink )
+	set_sink( abstract_message_sink_t & sink )
 	{
 		m_sink = std::addressof(sink);
 	}
@@ -305,7 +305,7 @@ public :
 	 * There is no checking for performance reasons.
 	 */
 	[[nodiscard]]
-	message_sink_t &
+	abstract_message_sink_t &
 	sink_reference() const noexcept
 	{
 		return *m_sink;
@@ -315,7 +315,7 @@ public :
 	 * \brief Get a pointer to the subscribed sink.
 	 */
 	[[nodiscard]]
-	message_sink_t *
+	abstract_message_sink_t *
 	sink_pointer() const noexcept
 	{
 		return m_sink;

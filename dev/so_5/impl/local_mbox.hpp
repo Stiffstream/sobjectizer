@@ -67,7 +67,7 @@ class subscriber_adaptive_container_t
 			 * \attention
 			 * It's must not be nullptr!
 			 */
-			message_sink_t * m_sink_as_key;
+			abstract_message_sink_t * m_sink_as_key;
 
 			//! Information about the subscription.
 			subscription_info_with_sink_t m_info;
@@ -75,13 +75,13 @@ class subscriber_adaptive_container_t
 			//! Special constructor for cases when item is created for searching
 			//! information in the vector.
 			subscribers_vector_item_t(
-				message_sink_t & sink_as_key )
+				abstract_message_sink_t & sink_as_key )
 				:	m_sink_as_key{ std::addressof(sink_as_key) }
 				{}
 
 			//! The normal initializing constructor.
 			subscribers_vector_item_t(
-				message_sink_t & sink_as_key,
+				abstract_message_sink_t & sink_as_key,
 				subscription_info_with_sink_t info )
 				:	m_sink_as_key{ std::addressof(sink_as_key) }
 				,	m_info{ std::move(info) }
@@ -113,7 +113,7 @@ class subscriber_adaptive_container_t
 			[[nodiscard]]
 			bool
 			operator()(
-				message_sink_t * a, message_sink_t * b ) const noexcept
+				abstract_message_sink_t * a, abstract_message_sink_t * b ) const noexcept
 				{
 					return special_message_sink_ptr_compare( a, b );
 				}
@@ -124,7 +124,7 @@ class subscriber_adaptive_container_t
 	using const_vector_iterator_type = vector_type::const_iterator;
 
 	using map_type = std::map<
-			message_sink_t *,
+			abstract_message_sink_t *,
 			subscription_info_with_sink_t,
 			subscriber_ptr_compare_type
 		>;
@@ -312,7 +312,7 @@ private :
 	//! Insertion of new item to vector.
 	void
 	insert_to_vector(
-		message_sink_t & sink_as_key,
+		abstract_message_sink_t & sink_as_key,
 		subscription_info_with_sink_t && info )
 		{
 			subscribers_vector_item_t new_item{
@@ -330,7 +330,7 @@ private :
 	//! Insertion of new item to map.
 	void
 	insert_to_map(
-		message_sink_t & sink_as_key,
+		abstract_message_sink_t & sink_as_key,
 		subscription_info_with_sink_t && info )
 		{
 			m_map.emplace( std::addressof(sink_as_key), std::move(info) );
@@ -409,7 +409,7 @@ private :
 		}
 
 	iterator
-	find_in_vector( message_sink_t & subscriber )
+	find_in_vector( abstract_message_sink_t & subscriber )
 		{
 			subscribers_vector_item_t info{ subscriber };
 			auto pos = std::lower_bound(
@@ -425,7 +425,7 @@ private :
 		}
 
 	iterator
-	find_in_map( message_sink_t & subscriber )
+	find_in_map( abstract_message_sink_t & subscriber )
 		{
 			return iterator{ m_map.find( std::addressof(subscriber) ) };
 		}
@@ -481,7 +481,7 @@ public :
 
 	void
 	insert(
-		message_sink_t & sink_as_key,
+		abstract_message_sink_t & sink_as_key,
 		subscription_info_with_sink_t info )
 		{
 			if( is_vector() )
@@ -498,7 +498,7 @@ public :
 
 	template< typename... Args >
 	void
-	emplace( message_sink_t & sink_as_key, Args &&... args )
+	emplace( abstract_message_sink_t & sink_as_key, Args &&... args )
 		{
 			insert( sink_as_key,
 					subscription_info_with_sink_t{ std::forward<Args>( args )... } );
@@ -520,7 +520,7 @@ public :
 		}
 
 	iterator
-	find( message_sink_t & subscriber )
+	find( abstract_message_sink_t & subscriber )
 		{
 			if( is_vector() )
 				return find_in_vector( subscriber );
@@ -665,7 +665,7 @@ class local_mbox_template
 		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				insert_or_modify_subscriber(
 						type_wrapper,
@@ -683,7 +683,7 @@ class local_mbox_template
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & type_wrapper,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				modify_and_remove_subscriber_if_needed(
 						type_wrapper,
@@ -737,7 +737,7 @@ class local_mbox_template
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				insert_or_modify_subscriber(
 						msg_type,
@@ -755,7 +755,7 @@ class local_mbox_template
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) noexcept override
+			abstract_message_sink_t & subscriber ) noexcept override
 			{
 				modify_and_remove_subscriber_if_needed(
 						msg_type,
@@ -776,7 +776,7 @@ class local_mbox_template
 		void
 		insert_or_modify_subscriber(
 			const std::type_index & type_wrapper,
-			message_sink_t & subscriber,
+			abstract_message_sink_t & subscriber,
 			Info_Maker maker,
 			Info_Changer changer )
 			{
@@ -813,7 +813,7 @@ class local_mbox_template
 		void
 		modify_and_remove_subscriber_if_needed(
 			const std::type_index & type_wrapper,
-			message_sink_t & subscriber,
+			abstract_message_sink_t & subscriber,
 			Info_Changer changer )
 			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );

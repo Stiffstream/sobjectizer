@@ -78,7 +78,7 @@ class SO_5_TYPE delivery_filter_t
 		virtual bool
 		check(
 			//! Receiver of the message.
-			const message_sink_t & receiver,
+			const abstract_message_sink_t & receiver,
 			//! Message itself.
 			message_t & msg ) const noexcept = 0;
 	};
@@ -189,7 +189,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Subscriber.
-			message_sink_t & subscriber ) = 0;
+			abstract_message_sink_t & subscriber ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
@@ -197,7 +197,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Subscriber.
-			message_sink_t & subscriber ) = 0;
+			abstract_message_sink_t & subscriber ) = 0;
 
 		//! Get the mbox name.
 		[[nodiscard]]
@@ -289,7 +289,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A caller must guaranted the validity of this reference.
 			const delivery_filter_t & filter,
 			//! A subscriber for the message.
-			message_sink_t & subscriber ) = 0;
+			abstract_message_sink_t & subscriber ) = 0;
 
 		/*!
 		 * \since
@@ -300,7 +300,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) noexcept = 0;
+			abstract_message_sink_t & subscriber ) noexcept = 0;
 		/*!
 		 * \}
 		 */

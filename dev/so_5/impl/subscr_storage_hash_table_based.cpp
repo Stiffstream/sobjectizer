@@ -214,7 +214,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -262,7 +262,7 @@ class storage_t : public subscription_storage_t
 		struct mbox_with_sink_info_t
 			{
 				mbox_t m_mbox;
-				std::reference_wrapper< message_sink_t > m_message_sink;
+				std::reference_wrapper< abstract_message_sink_t > m_message_sink;
 			};
 
 		//! Type of subscription map.
@@ -302,7 +302,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & type_index,
-	message_sink_t & message_sink,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -362,7 +362,7 @@ storage_t::drop_subscription(
 
 			// A reference to message_sink has to be stored for a case when
 			// unsubscribe_event_handlers has to be called.
-			message_sink_t & sink = it->second.m_message_sink.get();
+			abstract_message_sink_t & sink = it->second.m_message_sink.get();
 
 			m_hash_table.erase( &(it->first) );
 			m_map.erase( it );
@@ -392,7 +392,7 @@ storage_t::drop_subscription_for_all_states(
 			// A reference to message_sink is necessary for calling
 			// unsubscribe_event_handlers. Store it here before removing
 			// items from m_hash_table and m_map.
-			message_sink_t & sink = it->second.m_message_sink.get();
+			abstract_message_sink_t & sink = it->second.m_message_sink.get();
 
 			do
 				{

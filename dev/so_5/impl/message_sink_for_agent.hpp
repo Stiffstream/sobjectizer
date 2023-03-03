@@ -31,7 +31,7 @@ namespace impl
  * \since v.5.8.0
  */
 class message_sink_for_agent_t
-	: public message_sink_t
+	: public abstract_message_sink_t
 	{
 		//! Owner of the sink.
 		agent_t & m_owner;

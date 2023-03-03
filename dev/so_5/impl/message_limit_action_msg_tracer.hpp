@@ -41,7 +41,7 @@ class action_msg_tracer_t
 		//FIXME: document this!
 		virtual void
 		push_to_queue(
-			const message_sink_t * sink,
+			const abstract_message_sink_t * sink,
 			const agent_t * sink_owner ) const noexcept = 0;
 
 		//! Application will be aborted as result of overlimit.

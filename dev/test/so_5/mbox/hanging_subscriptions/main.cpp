@@ -48,7 +48,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			so_5::message_sink_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) override
 			{
 				++subscriptions;
 				m_actual_mbox->subscribe_event_handler( type_index, subscriber );
@@ -57,7 +57,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & type_index,
-			so_5::message_sink_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) override
 			{
 				++unsubscriptions;
 				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
@@ -76,7 +76,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const so_5::delivery_filter_t & filter,
-			so_5::message_sink_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) override
 			{
 				m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 			}
@@ -84,7 +84,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			so_5::message_sink_t & subscriber ) noexcept override
+			so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 			}

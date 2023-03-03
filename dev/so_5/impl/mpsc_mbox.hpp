@@ -53,7 +53,7 @@ class limitful_mpsc_mbox_mixin_t
 			}
 
 		[[nodiscard]]
-		message_sink_t &
+		abstract_message_sink_t &
 		message_sink_to_use(
 			const local_mbox_details::subscription_info_with_sink_t & info ) const noexcept
 			{
@@ -89,7 +89,7 @@ class limitless_mpsc_mbox_mixin_t
 			}
 
 		[[nodiscard]]
-		message_sink_t &
+		abstract_message_sink_t &
 		message_sink_to_use(
 			const local_mbox_details::subscription_info_with_sink_t & /*info*/ ) noexcept
 			{
@@ -110,7 +110,7 @@ namespace
 void
 ensure_sink_for_same_owner(
 	agent_t & actual_owner,
-	message_sink_t & sink )
+	abstract_message_sink_t & sink )
 	{
 		auto * p = dynamic_cast<message_sink_for_agent_t *>( std::addressof(sink) );
 		if( !p )
@@ -172,7 +172,7 @@ class mpsc_mbox_template_t final
 		void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -193,7 +193,7 @@ class mpsc_mbox_template_t final
 		void
 		unsubscribe_event_handlers(
 			const std::type_index & msg_type,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -259,7 +259,7 @@ class mpsc_mbox_template_t final
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
@@ -280,7 +280,7 @@ class mpsc_mbox_template_t final
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			message_sink_t & /*subscriber*/ ) noexcept override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 

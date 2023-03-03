@@ -52,7 +52,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -142,7 +142,7 @@ class storage_t : public subscription_storage_t
 				/*!
 				 * Message sink used for that mbox.
 				 */
-				const std::reference_wrapper< message_sink_t > m_message_sink;
+				const std::reference_wrapper< abstract_message_sink_t > m_message_sink;
 
 				/*!
 				 * Event handler for that subscription.
@@ -224,7 +224,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	message_sink_t & message_sink,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -301,7 +301,7 @@ storage_t::drop_subscription(
 
 				// Store a reference to message_sink for a case if
 				// unsubscribe_event_handlers has to be called.
-				message_sink_t & sink = existed_position->second.m_message_sink.get();
+				abstract_message_sink_t & sink = existed_position->second.m_message_sink.get();
 
 				m_events.erase( existed_position );
 
@@ -332,7 +332,7 @@ storage_t::drop_subscription_for_all_states(
 			{
 				// Store a reference to message_sink because it's required
 				// for unsubscribe_event_handlers call.
-				message_sink_t & sink = lower_bound->second.m_message_sink.get();
+				abstract_message_sink_t & sink = lower_bound->second.m_message_sink.get();
 
 				// Erase all subscribed event handlers.
 				do

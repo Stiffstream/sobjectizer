@@ -55,7 +55,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			message_sink_t & message_sink,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -124,7 +124,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	message_sink_t & message_sink,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,

@@ -262,7 +262,7 @@ class SO_5_TYPE trace_data_t
 		agent() const noexcept = 0;
 
 		//! Get a pointer to message_sink from trace message.
-		virtual optional<const so_5::message_sink_t *>
+		virtual optional<const so_5::abstract_message_sink_t *>
 		message_sink() const noexcept = 0;
 
 		//! Get message or signal information.

@@ -17,13 +17,13 @@ namespace so_5
 {
 
 //
-// message_sink_t
+// abstract_message_sink_t
 //
 //FIXME: document this!
-class SO_5_TYPE message_sink_t
+class SO_5_TYPE abstract_message_sink_t
 	{
 	public:
-		virtual ~message_sink_t() noexcept = default;
+		virtual ~abstract_message_sink_t() noexcept = default;
 
 		[[nodiscard]]
 		virtual environment_t &
