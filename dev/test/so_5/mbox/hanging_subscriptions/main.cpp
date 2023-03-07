@@ -33,7 +33,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 
 		virtual void
 		do_deliver_message(
-			so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
+			so_5::message_delivery_mode_t delivery_mode,
 			const std::type_index & type_index,
 			const so_5::message_ref_t & message_ref,
 			unsigned int overlimit_reaction_deep ) override

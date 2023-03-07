@@ -102,7 +102,7 @@ redirect_reaction(
 				// Otherwise the timer thread can be blocked if
 				// the destination is a full mchain.
 				to->do_deliver_message(
-						abstract_message_box_t::delivery_mode_t::nonblocking,
+						message_delivery_mode_t::nonblocking,
 						ctx.m_msg_type,
 						ctx.m_message,
 						ctx.m_reaction_deep + 1 );
@@ -148,7 +148,7 @@ transform_reaction(
 				// Otherwise the timer thread can be blocked if
 				// the destination is a full mchain.
 				to->do_deliver_message(
-						abstract_message_box_t::delivery_mode_t::nonblocking,
+						message_delivery_mode_t::nonblocking,
 						msg_type,
 						message,
 						ctx.m_reaction_deep + 1 );

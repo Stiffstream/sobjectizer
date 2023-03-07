@@ -502,17 +502,17 @@ fill_trace_data_1(
 inline void
 make_trace_to_1(
 	std::ostream & s,
-	so_5::abstract_message_box_t::delivery_mode_t mode )
+	message_delivery_mode_t mode )
 	{
 		const auto mode_to_str = []( auto m ) -> const char * {
 				const char * r = "unknown";
 				switch( m )
 					{
-					case so_5::abstract_message_box_t::delivery_mode_t::ordinary:
+					case message_delivery_mode_t::ordinary:
 						r = "ordinary";
 					break;
 
-					case so_5::abstract_message_box_t::delivery_mode_t::nonblocking:
+					case message_delivery_mode_t::nonblocking:
 						r = "nonblocking";
 					break;
 					}
@@ -525,7 +525,7 @@ make_trace_to_1(
 inline void
 fill_trace_data_1(
 	actual_trace_data_t & /*d*/,
-	abstract_message_box_t::delivery_mode_t /*mode*/ )
+	message_delivery_mode_t /*mode*/ )
 	{
 		// Just for compilation.
 	}
@@ -604,7 +604,7 @@ struct tracing_disabled_base
 					const tracing_disabled_base &,
 					const abstract_message_box_t &,
 					const char *,
-					abstract_message_box_t::delivery_mode_t,
+					message_delivery_mode_t,
 					const std::type_index &,
 					const message_ref_t &,
 					const unsigned int )
@@ -669,7 +669,7 @@ class tracing_enabled_base
 				so_5::msg_tracing::holder_t & m_tracer;
 				const abstract_message_box_t & m_mbox;
 				const char * m_op_name;
-				const abstract_message_box_t::delivery_mode_t m_delivery_mode;
+				const message_delivery_mode_t m_delivery_mode;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
 				const details::overlimit_deep m_overlimit_deep;
@@ -679,7 +679,7 @@ class tracing_enabled_base
 					const tracing_enabled_base & tracing_base,
 					const abstract_message_box_t & mbox,
 					const char * op_name,
-					so_5::abstract_message_box_t::delivery_mode_t delivery_mode,
+					message_delivery_mode_t delivery_mode,
 					const std::type_index & msg_type,
 					const message_ref_t & message,
 					const unsigned int overlimit_reaction_deep )

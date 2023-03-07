@@ -12,7 +12,7 @@
 #include <atomic>
 #include <cstdint>
 
-// It is necessary that version.hpp will be almost always automatically 
+// It is necessary that version.hpp will be almost always automatically
 // included. To do that we include it in that header file because
 // that file seems to be necessary for all SObjectizer's definintions.
 #include <so_5/version.hpp>
@@ -161,6 +161,26 @@ enum class event_handler_kind_t : char
 		//! the message.
 		//! That event handler should take the whole envelope.
 		intermediate_handler
+	};
+
+/*!
+ * \brief Possible modes of message/signal delivery.
+ *
+ * \since v.5.8.0
+ */
+enum class message_delivery_mode_t
+	{
+		//! Ordinary delivery. The send operation can block (for
+		//! example on an attempt to send a message to a full mchain).
+		ordinary,
+		//! Delivery that prohibit blocking. For example a delivery
+		//! of a delayed/periodic can't block the current thread
+		//! (because it's the timer thread and the timer thread
+		//! can't be blocked).
+		//!
+		//! NOTE. The current version also prohibit throwing of
+		//! exceptions.
+		nonblocking
 	};
 
 } /* namespace so_5 */

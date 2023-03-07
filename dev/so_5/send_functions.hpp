@@ -56,7 +56,7 @@ namespace impl
 				Args &&... args )
 				{
 					so_5::low_level_api::deliver_message(
-							abstract_message_box_t::delivery_mode_t::ordinary,
+							message_delivery_mode_t::ordinary,
 							*to,
 							message_payload_type< Message >::subscription_type_index(),
 							make_instance( std::forward<Args>(args)... ) );
@@ -104,7 +104,7 @@ namespace impl
 				{
 					using namespace so_5::low_level_api;
 					deliver_signal< actual_signal_type >(
-							abstract_message_box_t::delivery_mode_t::ordinary,
+							message_delivery_mode_t::ordinary,
 							*to );
 				}
 
@@ -266,7 +266,7 @@ send( Target && to, mhood_t< Message > what )
 		using namespace so_5::low_level_api;
 
 		deliver_message(
-				abstract_message_box_t::delivery_mode_t::ordinary,
+				message_delivery_mode_t::ordinary,
 				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
 				message_payload_type<Message>::subscription_type_index(),
 				what.make_reference() );
@@ -343,7 +343,7 @@ send(
 		using namespace so_5::low_level_api;
 
 		deliver_message(
-				abstract_message_box_t::delivery_mode_t::ordinary,
+				message_delivery_mode_t::ordinary,
 				*send_functions_details::arg_to_mbox( std::forward<Target>(to) ),
 				message_payload_type<Message>::subscription_type_index(),
 				what.make_reference() );

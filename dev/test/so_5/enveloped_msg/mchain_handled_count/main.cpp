@@ -67,12 +67,12 @@ run_test()
 			std::make_unique<special_wrapper_t>(msg2) };
 
 	mchain->as_mbox()->do_deliver_message(
-			so_5::abstract_message_box_t::delivery_mode_t::ordinary,
+			so_5::message_delivery_mode_t::ordinary,
 			so_5::message_payload_type<just_test_msg>::subscription_type_index(),
 			env1,
 			1u );
 	mchain->as_mbox()->do_deliver_message(
-			so_5::abstract_message_box_t::delivery_mode_t::ordinary,
+			so_5::message_delivery_mode_t::ordinary,
 			so_5::message_payload_type<just_test_msg>::subscription_type_index(),
 			env2,
 			1u );

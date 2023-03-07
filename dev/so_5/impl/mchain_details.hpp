@@ -376,20 +376,20 @@ class mchain_template
 
 		void
 		do_deliver_message(
-			delivery_mode_t delivery_mode,
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) override
 			{
 				switch( delivery_mode )
 					{
-					case delivery_mode_t::ordinary:
+					case message_delivery_mode_t::ordinary:
 						this->try_to_store_message_to_queue_ordinary_mode(
 								msg_type,
 								message );
 					break;
 
-					case delivery_mode_t::nonblocking:
+					case message_delivery_mode_t::nonblocking:
 						this->try_to_store_message_to_queue_nonblocking_mode(
 								msg_type,
 								message );

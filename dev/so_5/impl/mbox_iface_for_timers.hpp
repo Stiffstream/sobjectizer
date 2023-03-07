@@ -41,7 +41,7 @@ class mbox_iface_for_timers_t
 			const message_ref_t & message )
 			{
 				m_mb.do_deliver_message(
-						abstract_message_box_t::delivery_mode_t::nonblocking,
+						message_delivery_mode_t::nonblocking,
 						msg_type,
 						message,
 						1u /* overlimit_reaction_deep */ );

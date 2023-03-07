@@ -133,7 +133,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 
 		void
 		do_deliver_message(
-			delivery_mode_t /*delivery_mode*/,
+			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) override

@@ -150,26 +150,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		operator=( abstract_message_box_t && ) = delete;
 
 	public:
-		/*!
-		 * \brief Possible modes of message/signal delivery.
-		 *
-		 * \since v.5.8.0
-		 */
-		enum class delivery_mode_t
-			{
-				//! Ordinary delivery. The send operation can block (for
-				//! example on an attempt to send a message to a full mchain).
-				ordinary,
-				//! Delivery that prohibit blocking. For example a delivery
-				//! of a delayed/periodic can't block the current thread
-				//! (because it's the timer thread and the timer thread
-				//! can't be blocked).
-				//!
-				//! NOTE. The current version also prohibit throwing of
-				//! exceptions.
-				nonblocking
-			};
-
 		abstract_message_box_t() = default;
 		virtual ~abstract_message_box_t() noexcept = default;
 
@@ -259,7 +239,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual void
 		do_deliver_message(
 			//! Can the delivery blocks the current thread?
-			delivery_mode_t delivery_mode,
+			message_delivery_mode_t delivery_mode,
 			//! Type of the message to deliver.
 			const std::type_index & msg_type,
 			//! A message instance to be delivered.
@@ -315,6 +295,16 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		environment() const noexcept = 0;
 };
 
+//
+// as_msink
+//
+//FIXME: document this!
+//FIXME: should mbox be checked to be not-null?
+//FIXME: should priority be passed as an argument?
+[[nodiscard]]
+msink_t SO_5_FUNC
+as_msink( const mbox_t & mbox );
+
 namespace low_level_api {
 
 //! Deliver message.
@@ -337,7 +327,7 @@ template< class Message >
 void
 deliver_message(
 	//! Can the delivery blocks the current thread?
-	abstract_message_box_t::delivery_mode_t delivery_mode,
+	message_delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -371,7 +361,7 @@ deliver_message(
 inline void
 deliver_message(
 	//! Can the delivery blocks the current thread?
-	abstract_message_box_t::delivery_mode_t delivery_mode,
+	message_delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -403,7 +393,7 @@ template< class Message >
 void
 deliver_signal(
 	//! Can the delivery blocks the current thread?
-	abstract_message_box_t::delivery_mode_t delivery_mode,
+	message_delivery_mode_t delivery_mode,
 	//! Destination for signal.
 	abstract_message_box_t & target )
 	{
