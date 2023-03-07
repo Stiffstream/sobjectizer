@@ -713,7 +713,7 @@ class local_mbox_template
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
+			unsigned int redirection_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_base
@@ -722,7 +722,7 @@ class local_mbox_template
 						delivery_mode,
 						msg_type,
 						message,
-						overlimit_reaction_deep };
+						redirection_deep };
 
 				ensure_immutable_message( msg_type, message );
 
@@ -731,7 +731,7 @@ class local_mbox_template
 						delivery_mode,
 						msg_type,
 						message,
-						overlimit_reaction_deep );
+						redirection_deep );
 			}
 
 		void
@@ -847,7 +847,7 @@ class local_mbox_template
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep )
+			unsigned int redirection_deep )
 			{
 				read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
@@ -861,7 +861,7 @@ class local_mbox_template
 									delivery_mode,
 									msg_type,
 									message,
-									overlimit_reaction_deep );
+									redirection_deep );
 					}
 				else
 					tracer.no_subscribers();
@@ -874,7 +874,7 @@ class local_mbox_template
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const
+			unsigned int redirection_deep ) const
 			{
 				const auto delivery_status =
 						subscriber_info.must_be_delivered(
@@ -890,7 +890,7 @@ class local_mbox_template
 								delivery_mode,
 								msg_type,
 								message,
-								overlimit_reaction_deep,
+								redirection_deep,
 								tracer.overlimit_tracer() );
 					}
 				else

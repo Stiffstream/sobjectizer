@@ -6,6 +6,8 @@
 
 #include <so_5/ret_code.hpp>
 
+#include <so_5/environment.hpp>
+
 namespace so_5
 {
 
@@ -51,17 +53,32 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep,
+			unsigned int redirection_deep,
 			const message_limit::impl::action_msg_tracer_t * /*tracer*/ ) override
 			{
-				//FIXME: should the value of overlimit_reaction_deep be checked here?
-
-				m_mbox->do_deliver_message(
-						delivery_mode,
-						msg_type,
-						message,
-						//FIXME: should we increment overlimit_reaction_deep here?
-						overlimit_reaction_deep );
+				if( redirection_deep >= max_redirection_deep )
+					{
+						// NOTE: this fragment can throw but it isn't a problem
+						// because transform_reaction() is called during message
+						// delivery process and exceptions are expected in that
+						// process.
+						SO_5_LOG_ERROR(
+								this->environment().error_logger(),
+								logger )
+							logger << "maximum message redirection deep exceeded on "
+									"mbox_as_sink::push_event; message will be ignored;"
+								<< " msg_type: " << msg_type.name()
+								<< ", target_mbox: " << m_mbox->query_name();
+					}
+				else
+					{
+						m_mbox->do_deliver_message(
+								delivery_mode,
+								msg_type,
+								message,
+								// redirection_deep has to be increased.
+								redirection_deep + 1u );
+					}
 			}
 	};
 

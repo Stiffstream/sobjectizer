@@ -92,7 +92,7 @@ class message_sink_with_message_limit_t final
 			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep,
+			unsigned int redirection_deep,
 			const message_limit::impl::action_msg_tracer_t * tracer )
 			{
 				if( m_control_block.m_limit < ++(m_control_block.m_count) )
@@ -105,7 +105,7 @@ class message_sink_with_message_limit_t final
 										mbox_id,
 										owner_reference(),
 										m_control_block,
-										overlimit_reaction_deep,
+										redirection_deep,
 										msg_type,
 										message,
 										tracer

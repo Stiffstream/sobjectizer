@@ -228,7 +228,7 @@ class mpsc_mbox_template_t final
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
+			unsigned int redirection_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
@@ -237,7 +237,7 @@ class mpsc_mbox_template_t final
 						delivery_mode,
 						msg_type,
 						message,
-						overlimit_reaction_deep };
+						redirection_deep };
 
 				this->do_delivery(
 					msg_type,
@@ -251,7 +251,7 @@ class mpsc_mbox_template_t final
 								delivery_mode,
 								msg_type,
 								message,
-								overlimit_reaction_deep,
+								redirection_deep,
 								tracer.overlimit_tracer() );
 					} );
 			}

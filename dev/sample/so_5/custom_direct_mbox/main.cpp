@@ -202,7 +202,7 @@ public:
 		so_5::message_delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) override
+		unsigned int redirection_deep ) override
 	{
 		auto & dest = should_intercept( msg_type ) ? *m_target : *m_source;
 
@@ -215,7 +215,7 @@ public:
 				delivery_mode,
 				msg_type,
 				message,
-				overlimit_reaction_deep );
+				redirection_deep );
 	}
 
 	void set_delivery_filter(

@@ -158,7 +158,7 @@ public :
 		so_5::message_delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) override
+		unsigned int redirection_deep ) override
 	{
 		auto envelope = std::make_unique< Envelope >(
 				m_trace,
@@ -169,7 +169,7 @@ public :
 				delivery_mode,
 				msg_type,
 				so_5::message_ref_t{ std::move(envelope) },
-				overlimit_reaction_deep );
+				redirection_deep );
 	}
 
 	void

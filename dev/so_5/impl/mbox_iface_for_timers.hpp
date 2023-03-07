@@ -44,7 +44,7 @@ class mbox_iface_for_timers_t
 						message_delivery_mode_t::nonblocking,
 						msg_type,
 						message,
-						1u /* overlimit_reaction_deep */ );
+						1u /* redirection_deep */ );
 			}
 
 	private :

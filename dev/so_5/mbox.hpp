@@ -245,7 +245,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A message instance to be delivered.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) = 0;
+			unsigned int redirection_deep ) = 0;
 
 		/*!
 		 * \name Methods for working with delivery filters.

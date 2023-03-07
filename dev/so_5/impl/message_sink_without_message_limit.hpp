@@ -48,7 +48,7 @@ class message_sink_without_message_limit_t final
 			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/,
+			unsigned int /*redirection_deep*/,
 			const message_limit::impl::action_msg_tracer_t * tracer )
 			{
 				// The fact of pushing message to the queue

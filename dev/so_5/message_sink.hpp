@@ -17,6 +17,16 @@ namespace so_5
 {
 
 //
+// max_redirection_deep
+//
+/*!
+ * \brief Maximum deep of message redirections.
+ *
+ * \since v.5.8.0
+ */
+constexpr unsigned int max_redirection_deep = 32;
+
+//
 // abstract_message_sink_t
 //
 //FIXME: document this!
@@ -39,7 +49,7 @@ class SO_5_TYPE abstract_message_sink_t
 			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep,
+			unsigned int redirection_deep,
 			//! Message delivery tracer to be used inside overlimit reaction.
 			const message_limit::impl::action_msg_tracer_t * tracer ) = 0;
 	};

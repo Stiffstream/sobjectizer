@@ -136,7 +136,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
+			unsigned int /*redirection_deep*/ ) override
 			{
 				static const auto & next_turn_msg_type =
 						typeid(next_turn_handler_t::next_turn);

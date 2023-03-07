@@ -124,12 +124,12 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		optional<const so_5::impl::event_handler_data_t *> m_event_handler_data_ptr;
 	};
 
-struct overlimit_deep
+struct redirection_deep
 	{
 		unsigned int m_deep;
 
 		// Note: this constructor is necessary for compatibility with MSVC++2013.
-		overlimit_deep( unsigned int deep ) : m_deep{ deep } {}
+		redirection_deep( unsigned int deep ) : m_deep{ deep } {}
 	};
 
 struct mbox_identification
@@ -442,15 +442,15 @@ fill_trace_data_1(
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const overlimit_deep limit )
+make_trace_to_1( std::ostream & s, const redirection_deep limit )
 	{
-		s << "[overlimit_deep=" << limit.m_deep << "]";
+		s << "[redirection_deep=" << limit.m_deep << "]";
 	}
 
 inline void
 fill_trace_data_1(
 	actual_trace_data_t & /*d*/,
-	const overlimit_deep /*limit*/ )
+	const redirection_deep /*limit*/ )
 	{
 		// Just for compilation.
 	}
@@ -672,7 +672,7 @@ class tracing_enabled_base
 				const message_delivery_mode_t m_delivery_mode;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
-				const details::overlimit_deep m_overlimit_deep;
+				const details::redirection_deep m_redirection_deep;
 
 			public :
 				deliver_op_tracer(
@@ -682,14 +682,14 @@ class tracing_enabled_base
 					message_delivery_mode_t delivery_mode,
 					const std::type_index & msg_type,
 					const message_ref_t & message,
-					const unsigned int overlimit_reaction_deep )
+					const unsigned int redirection_deep )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_mbox( mbox )
 					,	m_op_name( op_name )
 					,	m_delivery_mode( delivery_mode )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
-					,	m_overlimit_deep( overlimit_reaction_deep )
+					,	m_redirection_deep( redirection_deep )
 					{
 					}
 
@@ -708,7 +708,7 @@ class tracing_enabled_base
 								details::original_msg_type{ m_msg_type },
 								m_delivery_mode,
 								m_message,
-								m_overlimit_deep,
+								m_redirection_deep,
 								std::forward< Args >(args)... );
 					}
 
