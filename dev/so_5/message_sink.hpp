@@ -36,6 +36,7 @@ class SO_5_TYPE abstract_message_sink_t
 		virtual void
 		push_event(
 			mbox_id_t mbox_id,
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep,

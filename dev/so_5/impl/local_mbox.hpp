@@ -728,6 +728,7 @@ class local_mbox_template
 
 				do_deliver_message_impl(
 						tracer,
+						delivery_mode,
 						msg_type,
 						message,
 						overlimit_reaction_deep );
@@ -843,6 +844,7 @@ class local_mbox_template
 		void
 		do_deliver_message_impl(
 			typename Tracing_Base::deliver_op_tracer const & tracer,
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep )
@@ -856,6 +858,7 @@ class local_mbox_template
 							do_deliver_message_to_subscriber(
 									a,
 									tracer,
+									delivery_mode,
 									msg_type,
 									message,
 									overlimit_reaction_deep );
@@ -868,6 +871,7 @@ class local_mbox_template
 		do_deliver_message_to_subscriber(
 			const local_mbox_details::subscription_info_with_sink_t & subscriber_info,
 			typename Tracing_Base::deliver_op_tracer const & tracer,
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -883,6 +887,7 @@ class local_mbox_template
 					{
 						subscriber_info.sink_reference().push_event(
 								this->m_id,
+								delivery_mode,
 								msg_type,
 								message,
 								overlimit_reaction_deep,

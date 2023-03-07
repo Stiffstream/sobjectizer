@@ -48,6 +48,7 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 		void
 		push_event(
 			mbox_id_t /*mbox_id*/,
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep,
@@ -56,8 +57,7 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 				//FIXME: should the value of overlimit_reaction_deep be checked here?
 
 				m_mbox->do_deliver_message(
-						//FIXME: where can we get the delivery_mode?
-						message_delivery_mode_t::ordinary,
+						delivery_mode,
 						msg_type,
 						message,
 						//FIXME: should we increment overlimit_reaction_deep here?

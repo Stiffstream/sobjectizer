@@ -89,6 +89,7 @@ class message_sink_with_message_limit_t final
 		void
 		push_event(
 			mbox_id_t mbox_id,
+			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep,
@@ -98,6 +99,7 @@ class message_sink_with_message_limit_t final
 					{
 						--(m_control_block.m_count);
 
+//FIXME: should delivery_mode be placed into overlimit_context_t?
 						m_control_block.m_action(
 								so_5::message_limit::overlimit_context_t{
 										mbox_id,

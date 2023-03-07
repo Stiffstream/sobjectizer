@@ -248,6 +248,7 @@ class mpsc_mbox_template_t final
 						//FIXME: document this trick!
 						this->message_sink_to_use( info ).push_event(
 								this->m_id,
+								delivery_mode,
 								msg_type,
 								message,
 								overlimit_reaction_deep,
