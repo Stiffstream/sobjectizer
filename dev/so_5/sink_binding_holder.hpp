@@ -40,18 +40,18 @@ class sink_binding_holder_t
 			{
 				mbox_t m_source;
 				std::type_index m_msg_type;
-				std::reference_wrapper< abstract_message_sink_t > m_sink;
+				msink_t m_sink_owner;
 				// NOTE: may be nullptr!
 				delivery_filter_unique_ptr_t m_delivery_filter;
 
 				binding_info_t(
-					mbox_t & source,
+					const mbox_t & source,
 					const std::type_index & msg_type,
-					abstract_message_sink_t & sink,
+					const msink_t & sink_owner,
 					delivery_filter_unique_ptr_t delivery_filter ) noexcept
 					:	m_source{ source }
 					,	m_msg_type{ msg_type }
-					,	m_sink{ sink }
+					,	m_sink_owner{ sink_owner }
 					,	m_delivery_filter{ std::move(delivery_filter) }
 					{}
 			};
@@ -59,15 +59,15 @@ class sink_binding_holder_t
 		std::optional< binding_info_t > m_info;
 
 		sink_binding_holder_t(
-			mbox_t & source,
+			const mbox_t & source,
 			const std::type_index & msg_type,
-			abstract_message_sink_t & sink,
+			const msink_t & sink_owner,
 			delivery_filter_unique_ptr_t delivery_filter ) noexcept
 			:	m_info{
 					std::in_place,
 					source,
 					msg_type,
-					sink,
+					sink_owner,
 					std::move(delivery_filter)
 				}
 			{}
@@ -95,6 +95,7 @@ class sink_binding_holder_t
 			sink_binding_holder_t && other ) noexcept
 			:	m_info{ std::exchange( other.m_info, std::nullopt ) }
 			{}
+
 		sink_binding_holder_t &
 		operator=(
 			sink_binding_holder_t && other ) noexcept
@@ -121,13 +122,13 @@ class sink_binding_holder_t
 							{
 								m_info->m_source->drop_delivery_filter(
 										m_info->m_msg_type,
-										m_info->m_sink.get() );
+										m_info->m_sink_owner->sink() );
 								m_info->m_delivery_filter.reset();
 							}
 
 						m_info->m_source->unsubscribe_event_handlers(
 								m_info->m_msg_type,
-								m_info->m_sink.get() );
+								m_info->m_sink_owner->sink() );
 
 						m_info = std::nullopt;
 					}
@@ -165,17 +166,19 @@ template< typename Msg >
 [[nodiscard]]
 sink_binding_holder_t
 bind_sink(
-	mbox_t & source,
-	abstract_message_sink_t & sink )
+	const mbox_t & source,
+	const msink_t & sink_owner )
 	{
+		//FIXME: should we check that `sink_owner` isn't null (the same for `source`)?
+
 		const auto msg_type = message_payload_type<Msg>::subscription_type_index();
 
 		source->subscribe_event_handler(
 				msg_type,
-				sink );
+				sink_owner->sink() );
 
 		return low_level_api::sink_binding_holder_builder_t::make(
-				source, msg_type, sink, delivery_filter_unique_ptr_t{} );
+				source, msg_type, sink_owner, delivery_filter_unique_ptr_t{} );
 	}
 
 //FIXME: document this!
@@ -183,10 +186,11 @@ template< typename Msg >
 [[nodiscard]]
 sink_binding_holder_t
 bind_sink(
-	mbox_t & source,
-	abstract_message_sink_t & sink,
+	const mbox_t & source,
+	const msink_t & sink_owner,
 	delivery_filter_unique_ptr_t delivery_filter )
 	{
+		//FIXME: should we check that `sink_owner` isn't null (the same for `source`)?
 		//FIXME: there should be check that delivery_filter isn't nullptr.
 
 		const auto msg_type = message_payload_type<Msg>::subscription_type_index();
@@ -196,22 +200,24 @@ bind_sink(
 		source->set_delivery_filter(
 				msg_type,
 				*delivery_filter,
-				sink );
+				sink_owner->sink() );
 
 		do_with_rollback_on_exception(
 				[&]() {
 					source->subscribe_event_handler(
 							msg_type,
-							sink );
+							sink_owner->sink() );
 				},
 				[&]() {
-					source->drop_delivery_filter( msg_type, sink );
+					source->drop_delivery_filter( msg_type, sink_owner->sink() );
 				} );
 
 		return low_level_api::sink_binding_holder_builder_t::make(
-				source, msg_type, sink, std::move(delivery_filter) );
+				source, msg_type, sink_owner, std::move(delivery_filter) );
 	}
 
+//FIXME: uncomment this!
+#if 0
 //FIXME: document this!
 template< typename Msg, typename Lambda >
 [[nodiscard]]
@@ -244,6 +250,7 @@ bind_sink(
 
 		return bind_sink< Msg >( source, sink, std::move(filter_holder) );
 	}
+#endif
 
 } /* namespace so_5 */
 

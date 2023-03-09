@@ -271,6 +271,7 @@ class intrusive_ptr_t
 			if( p1 != nullptr && p2 != nullptr )
 				return (*p1) < (*p2);
 			else
+				//FIXME: std::less should be used for pointer comparison!
 				return p1 < p2;
 		}
 		/*!

@@ -18,4 +18,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/custom_mbox_simple/prj.ut.rb" )
 	required_prj( "#{path}/make_new_direct_mbox/prj.ut.rb" )
 	required_prj( "#{path}/custom_direct_mbox_factory/prj.ut.rb" )
+	required_prj( "#{path}/sink_binding/build_tests.rb" )
 }

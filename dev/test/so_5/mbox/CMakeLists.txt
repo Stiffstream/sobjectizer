@@ -11,3 +11,5 @@ add_subdirectory(local_mbox_growth)
 add_subdirectory(custom_mbox_simple)
 add_subdirectory(make_new_direct_mbox)
 add_subdirectory(custom_direct_mbox_factory)
+
+add_subdirectory(sink_binding)
