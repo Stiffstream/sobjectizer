@@ -300,10 +300,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 //
 //FIXME: document this!
 //FIXME: should mbox be checked to be not-null?
-//FIXME: should priority be passed as an argument?
 [[nodiscard]]
 msink_t SO_5_FUNC
-as_msink( const mbox_t & mbox );
+wrap_to_msink(
+	const mbox_t & mbox,
+	priority_t sink_priority = prio::p0 );
 
 namespace low_level_api {
 

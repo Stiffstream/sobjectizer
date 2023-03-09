@@ -16,7 +16,7 @@ namespace so_5
 //
 
 //
-// as_msink
+// wrap_to_msink
 //
 
 namespace as_msink_impl
@@ -30,8 +30,14 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 	{
 		const mbox_t m_mbox;
 
+		const priority_t m_sink_priority;
+
 	public:
-		mbox_as_sink_t( mbox_t mbox ) : m_mbox{ std::move(mbox) }
+		mbox_as_sink_t(
+			mbox_t mbox,
+			priority_t priority )
+			:	m_mbox{ std::move(mbox) }
+			,	m_sink_priority{ priority }
 			{}
 
 		environment_t &
@@ -43,8 +49,7 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 		priority_t
 		sink_priority() const noexcept override
 			{
-				//FIXME: this value has to be specified by a user.
-				return prio::p0;
+				return m_sink_priority;
 			}
 
 		void
@@ -85,12 +90,14 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 } /* namespace as_msink_impl */
 
 msink_t
-as_msink( const mbox_t & mbox )
+wrap_to_msink(
+	const mbox_t & mbox,
+	so_5::priority_t sink_priority )
 	{
 		return msink_t{
 				std::make_unique<
 						simple_sink_owner_t< as_msink_impl::mbox_as_sink_t >
-					>( mbox )
+					>( mbox, sink_priority )
 			};
 	}
 
