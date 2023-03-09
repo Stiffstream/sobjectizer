@@ -202,7 +202,7 @@ bind_sink(
 				*delivery_filter,
 				sink_owner->sink() );
 
-		do_with_rollback_on_exception(
+		so_5::details::do_with_rollback_on_exception(
 				[&]() {
 					source->subscribe_event_handler(
 							msg_type,
@@ -216,15 +216,13 @@ bind_sink(
 				source, msg_type, sink_owner, std::move(delivery_filter) );
 	}
 
-//FIXME: uncomment this!
-#if 0
 //FIXME: document this!
 template< typename Msg, typename Lambda >
 [[nodiscard]]
 sink_binding_holder_t
 bind_sink(
-	mbox_t & source,
-	abstract_message_sink_t & sink,
+	const mbox_t & source,
+	const msink_t & sink_owner,
 	Lambda && filter )
 	{
 		using namespace so_5::details::lambda_traits;
@@ -239,7 +237,7 @@ bind_sink(
 		// For cases when Msg is mutable_msg<M>.
 		static_assert(
 				std::is_same_v<
-						so_5::message_payload_type<Msg>::payload_type,
+						typename so_5::message_payload_type<Msg>::payload_type,
 						argument_type >,
 				"lambda expects a different message type" );
 
@@ -248,9 +246,8 @@ bind_sink(
 						std::move(filter) )
 			};
 
-		return bind_sink< Msg >( source, sink, std::move(filter_holder) );
+		return bind_sink< Msg >( source, sink_owner, std::move(filter_holder) );
 	}
-#endif
 
 } /* namespace so_5 */
 
