@@ -4,7 +4,7 @@
 
 /*!
  * \file
- * \brief Stuff for sink_binding_holder implementation.
+ * \brief Stuff for single_sink_binding implementation.
  *
  * \since v.5.8.0
  */
@@ -24,17 +24,17 @@ namespace so_5
 namespace low_level_api
 {
 
-struct sink_binding_holder_builder_t;
+struct single_sink_binding_builder_t;
 
 } /* namespace low_level_api */
 
 //
-// sink_binding_holder_t
+// single_sink_binding_t
 //
 //FIXME: document this!
-class sink_binding_holder_t
+class single_sink_binding_t
 	{
-		friend class low_level_api::sink_binding_holder_builder_t;
+		friend class low_level_api::single_sink_binding_builder_t;
 
 		struct binding_info_t
 			{
@@ -58,7 +58,7 @@ class sink_binding_holder_t
 
 		std::optional< binding_info_t > m_info;
 
-		sink_binding_holder_t(
+		single_sink_binding_t(
 			const mbox_t & source,
 			const std::type_index & msg_type,
 			const msink_t & sink_owner,
@@ -74,33 +74,33 @@ class sink_binding_holder_t
 
 	public:
 		friend void
-		swap( sink_binding_holder_t & a, sink_binding_holder_t & b ) noexcept
+		swap( single_sink_binding_t & a, single_sink_binding_t & b ) noexcept
 			{
 				using std::swap;
 				swap( a.m_info, b.m_info );
 			}
 
-		~sink_binding_holder_t() noexcept
+		~single_sink_binding_t() noexcept
 			{
 				clear();
 			}
 
-		sink_binding_holder_t(
-			const sink_binding_holder_t & ) = delete;
-		sink_binding_holder_t &
+		single_sink_binding_t(
+			const single_sink_binding_t & ) = delete;
+		single_sink_binding_t &
 		operator=(
-			const sink_binding_holder_t & ) = delete;
+			const single_sink_binding_t & ) = delete;
 
-		sink_binding_holder_t(
-			sink_binding_holder_t && other ) noexcept
+		single_sink_binding_t(
+			single_sink_binding_t && other ) noexcept
 			:	m_info{ std::exchange( other.m_info, std::nullopt ) }
 			{}
 
-		sink_binding_holder_t &
+		single_sink_binding_t &
 		operator=(
-			sink_binding_holder_t && other ) noexcept
+			single_sink_binding_t && other ) noexcept
 			{
-				sink_binding_holder_t tmp{ std::move(other) };
+				single_sink_binding_t tmp{ std::move(other) };
 				swap( *this, tmp );
 				return *this;
 			}
@@ -145,17 +145,17 @@ namespace low_level_api
 {
 
 //
-// sink_binding_holder_builder_t
+// single_sink_binding_builder_t
 //
 //FIXME: document this!
-struct sink_binding_holder_builder_t
+struct single_sink_binding_builder_t
 	{
 		template< typename... Args >
 		[[nodiscard]]
-		static sink_binding_holder_t
+		static single_sink_binding_t
 		make( Args &&... args ) noexcept
 			{
-				return sink_binding_holder_t{ std::forward<Args>(args)... };
+				return single_sink_binding_t{ std::forward<Args>(args)... };
 			}
 	};
 
@@ -164,7 +164,7 @@ struct sink_binding_holder_builder_t
 //FIXME: document this!
 template< typename Msg >
 [[nodiscard]]
-sink_binding_holder_t
+single_sink_binding_t
 bind_sink(
 	const mbox_t & source,
 	const msink_t & sink_owner )
@@ -177,14 +177,14 @@ bind_sink(
 				msg_type,
 				sink_owner->sink() );
 
-		return low_level_api::sink_binding_holder_builder_t::make(
+		return low_level_api::single_sink_binding_builder_t::make(
 				source, msg_type, sink_owner, delivery_filter_unique_ptr_t{} );
 	}
 
 //FIXME: document this!
 template< typename Msg >
 [[nodiscard]]
-sink_binding_holder_t
+single_sink_binding_t
 bind_sink(
 	const mbox_t & source,
 	const msink_t & sink_owner,
@@ -212,14 +212,14 @@ bind_sink(
 					source->drop_delivery_filter( msg_type, sink_owner->sink() );
 				} );
 
-		return low_level_api::sink_binding_holder_builder_t::make(
+		return low_level_api::single_sink_binding_builder_t::make(
 				source, msg_type, sink_owner, std::move(delivery_filter) );
 	}
 
 //FIXME: document this!
 template< typename Msg, typename Lambda >
 [[nodiscard]]
-sink_binding_holder_t
+single_sink_binding_t
 bind_sink(
 	const mbox_t & source,
 	const msink_t & sink_owner,

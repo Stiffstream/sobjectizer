@@ -1,5 +1,5 @@
 /*
- * A simple case for sink_binding_holder_t.
+ * A simple case for single_sink_binding_t.
  */
 
 #include <iostream>
@@ -79,14 +79,14 @@ introduce_test_coop( so_5::environment_t & env )
 				auto * consumer = coop.make_agent< a_consumer_t >();
 
 				coop.take_under_control(
-						std::make_unique< so_5::sink_binding_holder_t >(
+						std::make_unique< so_5::single_sink_binding_t >(
 								so_5::bind_sink< msg_data >(
 										producer->dest(),
 										so_5::wrap_to_msink( consumer->so_direct_mbox() )
 								)
 						) );
 				coop.take_under_control(
-						std::make_unique< so_5::sink_binding_holder_t >(
+						std::make_unique< so_5::single_sink_binding_t >(
 								so_5::bind_sink< msg_signal >(
 										producer->dest(),
 										so_5::wrap_to_msink( consumer->so_direct_mbox() )
