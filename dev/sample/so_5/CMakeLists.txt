@@ -75,3 +75,5 @@ add_subdirectory(custom_work_thread_factory)
 
 add_subdirectory(custom_direct_mbox)
 
+add_subdirectory(single_sink_binding)
+
