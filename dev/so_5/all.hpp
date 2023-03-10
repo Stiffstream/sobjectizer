@@ -17,7 +17,7 @@
 #include <so_5/wrapped_env.hpp>
 #include <so_5/env_infrastructures.hpp>
 
-#include <so_5/sink_binding_holder.hpp>
+#include <so_5/single_sink_binding.hpp>
 
 #include <so_5/enveloped_msg.hpp>
 
