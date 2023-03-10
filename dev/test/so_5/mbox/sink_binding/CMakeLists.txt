@@ -1,2 +1,3 @@
 add_subdirectory(simple)
 add_subdirectory(simple_with_delivery_filter)
+add_subdirectory(single_sink_clear)
