@@ -99,11 +99,11 @@ introduce_test_coop( so_5::environment_t & env )
 				auto * binding = coop.take_under_control(
 						std::make_unique< so_5::multi_sink_binding_t<> >() );
 
-				binding->make_subscription< msg_data >(
+				binding->bind< msg_data >(
 						producer->data_dest(),
 						consumer_msink );
 
-				binding->make_subscription< msg_signal >(
+				binding->bind< msg_signal >(
 						producer->signal_dest(),
 						consumer_msink );
 			} );

@@ -44,9 +44,49 @@ class actual_binding_handler_t
 		bindings_map_t m_bindings;
 
 	public:
+		// Can be used for signals.
 		template< typename Msg >
 		void
-		do_make_subscription(
+		do_bind(
+			const mbox_t & from,
+			const msink_t & dest )
+			{
+				//FIXME: this implementation provides only basic exception
+				//safety. It needs to be rewritten to provide strong exception
+				//safety.
+				auto it_mbox = m_bindings.find( from->id() );
+				if( it_mbox == m_bindings.end() )
+					it_mbox = m_bindings.emplace( from, one_mbox_bindings_t{} ).first;
+
+				auto & msinks = it_mbox->second;
+				auto it_msink = msinks.find( dest );
+				if( it_msink == msinks.end() )
+					it_msink = msinks.emplace( dest, one_sink_bindings_t{} ).first;
+
+				const auto & msg_type =
+						message_payload_type< Msg >::subscription_type_index();
+
+				auto & msgs = it_msink->second;
+				auto it_msg = msgs.find( msg_type );
+				if( it_msg == msgs.end() )
+					it_msg = msgs.emplace( msg_type, single_sink_binding_t{} ).first;
+				else
+					{
+						SO_5_THROW_EXCEPTION(
+								rc_evt_handler_already_provided,
+								std::string{ "msink already subscribed to a message" } +
+								"(mbox:'" + from->query_name() +
+								"', msg_type:'" + msg_type.name() + "'" );
+					}
+
+				it_msg->second.template bind< Msg >(
+						from,
+						dest );
+			}
+
+		template< typename Msg >
+		void
+		do_bind(
 			const mbox_t & from,
 			const msink_t & dest,
 			delivery_filter_unique_ptr_t opt_delivery_filter )
@@ -87,7 +127,7 @@ class actual_binding_handler_t
 
 		template< typename Msg >
 		void
-		do_drop_subscription(
+		do_unbind(
 			const mbox_t & from,
 			const msink_t & dest ) noexcept
 		{
@@ -104,15 +144,11 @@ class actual_binding_handler_t
 					message_payload_type< Msg >::subscription_type_index();
 
 			auto & msgs = it_msink->second;
-			auto it_msg = msgs.find( msg_type );
-			if( it_msg == msgs.end() )
-				return;
-
-			msgs.erase( it_msg );
+			msgs.erase( msg_type );
 
 			if( msgs.empty() )
 				{
-					msinks.erase( it_msg );
+					msinks.erase( it_msink );
 					if( msinks.empty() )
 						{
 							m_bindings.erase( it_mbox );
@@ -121,7 +157,7 @@ class actual_binding_handler_t
 		}
 
 		void
-		do_drop_all_subscriptions(
+		do_unbind_all(
 			const mbox_t & from,
 			const msink_t & dest ) noexcept
 		{
@@ -154,25 +190,22 @@ class multi_sink_binding_t
 		multi_sink_binding_t &
 		operator=( multi_sink_binding_t && ) = delete;
 
-		//FIXME: maybe it's better to name it as `subscribe`?
 		template< typename Msg >
 		void
-		make_subscription(
+		bind(
 			const mbox_t & from,
 			const msink_t & dest )
 			{
 				this->lock_and_perform( [&]() {
-						this->template do_make_subscription< Msg >(
+						this->template do_bind< Msg >(
 								from,
-								dest,
-								delivery_filter_unique_ptr_t{} );
+								dest );
 					} );
 			}
 
-		//FIXME: maybe it's better to name it as `subscribe`?
 		template< typename Msg >
 		void
-		make_subscription(
+		bind(
 			const mbox_t & from,
 			const msink_t & dest,
 			delivery_filter_unique_ptr_t opt_delivery_filter )
@@ -188,22 +221,22 @@ class multi_sink_binding_t
 
 		template< typename Msg >
 		void
-		drop_subscription(
+		unbind(
 			const mbox_t & from,
 			const msink_t & dest ) noexcept
 			{
 				this->lock_and_perform( [&]() {
-						this->template do_drop_subscription< Msg >( from, dest );
+						this->template do_unbind< Msg >( from, dest );
 					} );
 			}
 
 		void
-		drop_all_subscriptions(
+		unbind_all(
 			const mbox_t & from,
 			const msink_t & dest ) noexcept
 			{
 				this->lock_and_perform( [&]() {
-						this->do_drop_all_subscriptions( from, dest );
+						this->do_unbind_all( from, dest );
 					} );
 			}
 	};
