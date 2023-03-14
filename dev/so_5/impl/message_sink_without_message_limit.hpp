@@ -49,7 +49,7 @@ class message_sink_without_message_limit_t final
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int /*redirection_deep*/,
-			const message_limit::impl::action_msg_tracer_t * tracer )
+			const message_limit::impl::action_msg_tracer_t * tracer ) override
 			{
 				// The fact of pushing message to the queue
 				// has to be logged if msg_tracing is on.

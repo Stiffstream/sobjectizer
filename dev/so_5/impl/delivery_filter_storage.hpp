@@ -122,7 +122,7 @@ class delivery_filter_storage_t
 					{
 						// There is no previous filter.
 						// New filter must be added.
-						auto [insertion_it, was_inserted] = m_filters.emplace(
+						auto ins_result = m_filters.emplace(
 								key,
 								value_t{
 										std::move( filter ),
@@ -130,12 +130,14 @@ class delivery_filter_storage_t
 								} );
 						so_5::details::do_with_rollback_on_exception(
 							[&] {
+								auto & insertion_it = ins_result.first;
 								mbox->set_delivery_filter(
 										msg_type,
 										*(insertion_it->second.m_filter),
 										owner.get() );
 							},
-							[&] {
+							[this, &ins_result] {
+								auto & insertion_it = ins_result.first;
 								m_filters.erase( insertion_it );
 							} );
 					}

@@ -13,6 +13,8 @@
 #include <so_5/message.hpp>
 #include <so_5/priority.hpp>
 
+#include <functional>
+
 namespace so_5
 {
 
@@ -33,7 +35,20 @@ constexpr unsigned int max_redirection_deep = 32;
 class SO_5_TYPE abstract_message_sink_t
 	{
 	public:
+		abstract_message_sink_t() = default;
 		virtual ~abstract_message_sink_t() noexcept = default;
+
+		abstract_message_sink_t(
+				const abstract_message_sink_t & ) = default;
+		abstract_message_sink_t &
+		operator=(
+				const abstract_message_sink_t & ) = default;
+
+		abstract_message_sink_t(
+				abstract_message_sink_t && ) = default;
+		abstract_message_sink_t &
+		operator=(
+				abstract_message_sink_t && ) = default;
 
 		[[nodiscard]]
 		virtual environment_t &
@@ -80,6 +95,26 @@ class SO_5_TYPE abstract_sink_owner_t : protected atomic_refcounted_t
 //
 //FIME: document this!
 using msink_t = intrusive_ptr_t< abstract_sink_owner_t >;
+
+namespace impl
+{
+
+//
+// msink_less_comparator_t
+//
+//FIXME: document this!
+struct msink_less_comparator_t
+	{
+		[[nodiscard]]
+		bool
+		operator()( const msink_t & a, const msink_t & b ) const noexcept
+			{
+				return std::less< const abstract_sink_owner_t * >{}(
+						a.get(), b.get() );
+			}
+	};
+
+} /* namespace impl */
 
 //
 // simple_sink_owner_t
