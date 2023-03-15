@@ -95,6 +95,40 @@ class SO_5_TYPE delivery_filter_t
 using delivery_filter_unique_ptr_t =
 	std::unique_ptr< delivery_filter_t >;
 
+namespace low_level_api
+{
+
+/*!
+ * \brief An implementation of delivery filter represented by lambda-function
+ * like object.
+ *
+ * NOTE. This template is moved into low_level_api namespace in v.5.8.0.
+ *
+ * \tparam Lambda type of lambda-function or functional object.
+ *
+ * \since v.5.5.5, v.5.8.0
+ */
+template< typename Lambda, typename Message >
+class lambda_as_filter_t : public delivery_filter_t
+	{
+		Lambda m_filter;
+
+	public :
+		lambda_as_filter_t( Lambda && filter )
+			:	m_filter( std::forward< Lambda >( filter ) )
+			{}
+
+		bool
+		check(
+			const abstract_message_sink_t & /*receiver*/,
+			message_t & msg ) const noexcept override
+			{
+				return m_filter(message_payload_type< Message >::payload_reference( msg ));
+			}
+	};
+
+} /* namespace low_level_api */
+
 //
 // mbox_type_t
 //

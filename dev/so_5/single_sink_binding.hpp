@@ -195,7 +195,6 @@ class single_sink_binding_t
 			Lambda && filter )
 			{
 				using namespace so_5::details::lambda_traits;
-				using namespace delivery_filter_templates;
 
 				using lambda_type = std::remove_reference_t< Lambda >;
 				using argument_type =
@@ -211,7 +210,7 @@ class single_sink_binding_t
 						"lambda expects a different message type" );
 
 				delivery_filter_unique_ptr_t filter_holder{
-						new lambda_as_filter_t< lambda_type, argument_type >(
+						new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
 								std::move(filter) )
 					};
 

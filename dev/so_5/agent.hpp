@@ -3135,45 +3135,6 @@ make_agent_ref( Derived * agent )
 		return { agent };
 	}
 
-/*!
- * \since
- * v.5.5.5
- *
- * \brief Template-based implementations of delivery filters.
- */
-namespace delivery_filter_templates
-{
-
-/*!
- * \since
- * v.5.5.5
- *
- * \brief An implementation of delivery filter represented by lambda-function
- * like object.
- *
- * \tparam Lambda type of lambda-function or functional object.
- */
-template< typename Lambda, typename Message >
-class lambda_as_filter_t : public delivery_filter_t
-	{
-		Lambda m_filter;
-
-	public :
-		lambda_as_filter_t( Lambda && filter )
-			:	m_filter( std::forward< Lambda >( filter ) )
-			{}
-
-		bool
-		check(
-			const abstract_message_sink_t & /*receiver*/,
-			message_t & msg ) const noexcept override
-			{
-				return m_filter(message_payload_type< Message >::payload_reference( msg ));
-			}
-	};
-
-} /* namespace delivery_filter_templates */
-
 template< typename Lambda >
 void
 agent_t::so_set_delivery_filter(
@@ -3181,7 +3142,6 @@ agent_t::so_set_delivery_filter(
 	Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
-		using namespace delivery_filter_templates;
 
 		using lambda_type = std::remove_reference_t<Lambda >;
 		using argument_type =
@@ -3193,7 +3153,7 @@ agent_t::so_set_delivery_filter(
 				mbox,
 				message_payload_type< argument_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{
-					new lambda_as_filter_t< lambda_type, argument_type >(
+					new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
@@ -3205,7 +3165,6 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 	Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
-		using namespace delivery_filter_templates;
 
 		using lambda_type = std::remove_reference_t<Lambda >;
 		using argument_type =
@@ -3219,7 +3178,7 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 				mbox,
 				message_payload_type< subscription_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{
-					new lambda_as_filter_t< lambda_type, argument_type >(
+					new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
