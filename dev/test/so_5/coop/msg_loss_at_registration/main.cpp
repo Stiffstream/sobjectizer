@@ -124,7 +124,7 @@ public:
 	custom_dispatcher_t( so_5::environment_t & env )
 		:	m_queue{ so_5::create_mchain( env ) }
 	{}
-	~custom_dispatcher_t()
+	~custom_dispatcher_t() override
 	{
 		if( m_worker_thread.joinable() )
 		{
