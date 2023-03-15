@@ -44,6 +44,7 @@ class actual_binding_handler_t
 		bindings_map_t m_bindings;
 
 	public:
+//FIXME: methods do_bind have too many similar lines, can they be refactored?
 		// Can be used for signals.
 		template< typename Msg >
 		void
@@ -56,7 +57,7 @@ class actual_binding_handler_t
 				//safety.
 				auto it_mbox = m_bindings.find( from->id() );
 				if( it_mbox == m_bindings.end() )
-					it_mbox = m_bindings.emplace( from, one_mbox_bindings_t{} ).first;
+					it_mbox = m_bindings.emplace( from->id(), one_mbox_bindings_t{} ).first;
 
 				auto & msinks = it_mbox->second;
 				auto it_msink = msinks.find( dest );
@@ -96,7 +97,7 @@ class actual_binding_handler_t
 				//safety.
 				auto it_mbox = m_bindings.find( from->id() );
 				if( it_mbox == m_bindings.end() )
-					it_mbox = m_bindings.emplace( from, one_mbox_bindings_t{} ).first;
+					it_mbox = m_bindings.emplace( from->id(), one_mbox_bindings_t{} ).first;
 
 				auto & msinks = it_mbox->second;
 				auto it_msink = msinks.find( dest );
