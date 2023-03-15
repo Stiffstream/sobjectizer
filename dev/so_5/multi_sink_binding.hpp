@@ -212,11 +212,42 @@ class multi_sink_binding_t
 			{
 				//FIXME: can delivery_filter be null here?
 				this->lock_and_perform( [&]() {
-						this->template do_make_subscription< Msg >(
+						this->template do_bind< Msg >(
 								from,
 								dest,
 								std::move(opt_delivery_filter) );
 					} );
+			}
+
+		//FIXME: document this!
+		template< typename Msg, typename Lambda >
+		void
+		bind(
+			const mbox_t & from,
+			const msink_t & dest,
+			Lambda && filter )
+			{
+				using namespace so_5::details::lambda_traits;
+
+				using lambda_type = std::remove_reference_t< Lambda >;
+				using argument_type =
+						typename argument_type_if_lambda< lambda_type >::type;
+
+				//FIXME: can this check be written that way to show Msg and argument_type
+				//in the error message?
+				// For cases when Msg is mutable_msg<M>.
+				static_assert(
+						std::is_same_v<
+								typename so_5::message_payload_type<Msg>::payload_type,
+								argument_type >,
+						"lambda expects a different message type" );
+
+				delivery_filter_unique_ptr_t filter_holder{
+						new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
+								std::move(filter) )
+					};
+
+				this->bind< Msg >( from, dest, std::move(filter_holder) );
 			}
 
 		template< typename Msg >
