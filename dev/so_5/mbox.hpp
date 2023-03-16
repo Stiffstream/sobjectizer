@@ -233,25 +233,6 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		type() const = 0;
 
 		/*!
-		 * \name Comparision.
-		 * \{
-		 */
-		[[nodiscard]]
-		bool operator==( const abstract_message_box_t & o ) const noexcept
-		{
-			return id() == o.id();
-		}
-
-		[[nodiscard]]
-		bool operator<( const abstract_message_box_t & o ) const noexcept
-		{
-			return id() < o.id();
-		}
-		/*!
-		 * \}
-		 */
-
-		/*!
 		 * \since
 		 * v.5.5.4
 		 *

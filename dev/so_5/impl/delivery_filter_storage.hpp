@@ -53,9 +53,9 @@ class delivery_filter_storage_t
 				bool
 				operator<( const key_t & o ) const
 					{
-						const abstract_message_box_t & a = *m_mbox;
-						const abstract_message_box_t & b = *(o.m_mbox);
-						return a < b || ( a == b && m_msg_type < o.m_msg_type );
+						const auto id_a = m_mbox->id();
+						const auto id_b = o.m_mbox->id();
+						return id_a < id_b || ( id_a == id_b && m_msg_type < o.m_msg_type );
 					}
 			};
 

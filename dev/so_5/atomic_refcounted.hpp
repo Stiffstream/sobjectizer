@@ -263,23 +263,13 @@ class intrusive_ptr_t
 		[[nodiscard]]
 		bool operator==( const intrusive_ptr_t & o ) const
 		{
-			T * p1 = get();
-			T * p2 = o.get();
-			if( p1 != nullptr && p2 != nullptr )
-				return (*p1) == (*p2);
-			else
-				return p1 == p2;
+			return get() == o.get();
 		}
 
 		[[nodiscard]]
 		bool operator<( const intrusive_ptr_t & o ) const
 		{
-			T * p1 = get();
-			T * p2 = o.get();
-			if( p1 != nullptr && p2 != nullptr )
-				return (*p1) < (*p2);
-			else
-				return std::less<T*>{}( p1, p2 );
+			return std::less<T*>{}( get(), o.get() );
 		}
 		/*!
 		 * \}

@@ -336,15 +336,15 @@ storage_t::destroy_all_subscriptions()
 				bool
 				operator<( const mbox_msg_info_t & o ) const
 					{
-						return (*m_mbox) < (*o.m_mbox) ||
-								( (*m_mbox) == (*o.m_mbox) &&
+						return m_mbox->id() < o.m_mbox->id() ||
+								( m_mbox->id() == o.m_mbox->id() &&
 								 (*m_msg_type) < (*o.m_msg_type) );
 					}
 
 				bool
 				operator==( const mbox_msg_info_t & o ) const
 					{
-						return (*m_mbox) == (*o.m_mbox) &&
+						return m_mbox->id() == o.m_mbox->id() &&
 								(*m_msg_type) == (*o.m_msg_type);
 					}
 			};
