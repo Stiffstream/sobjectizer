@@ -44,14 +44,13 @@ class actual_binding_handler_t
 	{
 		bindings_map_t m_bindings;
 
-	public:
-//FIXME: methods do_bind have too many similar lines, can they be refactored?
-		// Can be used for signals.
-		template< typename Msg >
+		template< typename Single_Sink_Modificator >
 		void
-		do_bind(
+		do_actual_bind(
+			const std::type_index & msg_type,
 			const mbox_t & from,
-			const msink_t & dest )
+			const msink_t & dest,
+			Single_Sink_Modificator && single_sink_modificator )
 			{
 				auto it_mbox = m_bindings.find( from->id() );
 				bool bindings_modified = false;
@@ -78,9 +77,6 @@ class actual_binding_handler_t
 
 							so_5::details::do_with_rollback_on_exception(
 									[&]() {
-										const auto & msg_type =
-												message_payload_type< Msg >::subscription_type_index();
-
 										auto & msgs = it_msink->second;
 										auto it_msg = msgs.find( msg_type );
 										bool msgs_modified = false;
@@ -102,10 +98,7 @@ class actual_binding_handler_t
 
 										so_5::details::do_with_rollback_on_exception(
 												[&]() {
-													it_msg->second.bind_for_msg_type(
-															msg_type,
-															from,
-															dest );
+													single_sink_modificator( msg_type, it_msg->second );
 												},
 												[&msgs, &it_msg, msgs_modified]() {
 													if( msgs_modified )
@@ -123,6 +116,30 @@ class actual_binding_handler_t
 						} );
 			}
 
+	public:
+//FIXME: methods do_bind have too many similar lines, can they be refactored?
+		// Can be used for signals.
+		template< typename Msg >
+		void
+		do_bind(
+			const mbox_t & from,
+			const msink_t & dest )
+			{
+				do_actual_bind(
+						message_payload_type< Msg >::subscription_type_index(),
+						from,
+						dest,
+						[&](
+							const std::type_index & msg_type,
+							single_sink_binding_t & binding )
+						{
+							binding.bind_for_msg_type(
+									msg_type,
+									from,
+									dest );
+						} );
+			}
+
 		template< typename Msg >
 		void
 		do_bind(
@@ -130,41 +147,23 @@ class actual_binding_handler_t
 			const msink_t & dest,
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
-				//FIXME: this implementation provides only basic exception
-				//safety. It needs to be rewritten to provide strong exception
-				//safety.
-				auto it_mbox = m_bindings.find( from->id() );
-				if( it_mbox == m_bindings.end() )
-					it_mbox = m_bindings.emplace( from->id(), one_mbox_bindings_t{} ).first;
-
-				auto & msinks = it_mbox->second;
-				auto it_msink = msinks.find( dest );
-				if( it_msink == msinks.end() )
-					it_msink = msinks.emplace( dest, one_sink_bindings_t{} ).first;
-
-				const auto & msg_type =
-						message_payload_type< Msg >::subscription_type_index();
-
-				auto & msgs = it_msink->second;
-				auto it_msg = msgs.find( msg_type );
-				if( it_msg == msgs.end() )
-					it_msg = msgs.emplace( msg_type, single_sink_binding_t{} ).first;
-				else
-					{
-						SO_5_THROW_EXCEPTION(
-								rc_evt_handler_already_provided,
-								std::string{ "msink already subscribed to a message" } +
-								"(mbox:'" + from->query_name() +
-								"', msg_type:'" + msg_type.name() + "'" );
-					}
-
 				// Msg can't be a signal!
 				ensure_not_signal< Msg >();
-				it_msg->second.bind_for_msg_type(
-						msg_type,
+
+				do_actual_bind(
+						message_payload_type< Msg >::subscription_type_index(),
 						from,
 						dest,
-						std::move(delivery_filter) );
+						[&](
+							const std::type_index & msg_type,
+							single_sink_binding_t & binding )
+						{
+							binding.bind_for_msg_type(
+									msg_type,
+									from,
+									dest,
+									std::move(delivery_filter) );
+						} );
 			}
 
 		template< typename Msg >
