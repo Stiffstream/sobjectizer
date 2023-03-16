@@ -42,6 +42,64 @@ using bindings_map_t = std::map< mbox_id_t, one_mbox_bindings_t >;
 //FIXME: document this!
 class actual_binding_handler_t
 	{
+		template< class Container >
+		class it_with_auto_erase_if_not_committed_t final
+			{
+				using iterator_type = typename Container::iterator;
+
+				Container & m_container;
+				iterator_type m_it;
+				bool m_modified;
+				bool m_commited{ false };
+
+			public:
+				it_with_auto_erase_if_not_committed_t(
+					Container & container,
+					typename Container::key_type const & k )
+					:	m_container{ container }
+					,	m_it{ container.find( k ) }
+					,	m_modified{ false }
+					{}
+
+				it_with_auto_erase_if_not_committed_t(
+					const it_with_auto_erase_if_not_committed_t & ) = delete;
+				it_with_auto_erase_if_not_committed_t(
+					it_with_auto_erase_if_not_committed_t && ) = delete;
+
+				~it_with_auto_erase_if_not_committed_t() noexcept
+					{
+						if( m_modified && !m_commited )
+							m_container.erase( m_it );
+					}
+
+				void
+				set_emplace_result( std::pair< iterator_type, bool > emplace_result ) noexcept
+					{
+						m_it = emplace_result.first;
+						m_modified = true;
+					}
+
+				void
+				commit() noexcept
+					{
+						m_commited = true;
+					}
+
+				[[nodiscard]]
+				iterator_type
+				operator->() const
+					{
+						return m_it;
+					}
+
+				[[nodiscard]]
+				bool
+				is_valid() const
+					{
+						return m_it != m_container.end();
+					}
+			};
+
 		bindings_map_t m_bindings;
 
 		template< typename Single_Sink_Modificator >
@@ -52,68 +110,45 @@ class actual_binding_handler_t
 			const msink_t & dest,
 			Single_Sink_Modificator && single_sink_modificator )
 			{
-				auto it_mbox = m_bindings.find( from->id() );
-				bool bindings_modified = false;
-				if( it_mbox == m_bindings.end() )
+				it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{ m_bindings, from->id() };
+				if( !it_mbox.is_valid() )
 					{
-						it_mbox = m_bindings.emplace(
+						it_mbox.set_emplace_result( m_bindings.emplace(
 								from->id(),
-								one_mbox_bindings_t{} ).first;
-						bindings_modified = true;
+								one_mbox_bindings_t{} ) );
 					}
 
-				so_5::details::do_with_rollback_on_exception(
-						[&]() {
-							auto & msinks = it_mbox->second;
-							auto it_msink = msinks.find( dest );
-							bool msinks_modified = false;
-							if( it_msink == msinks.end() )
-								{
-									it_msink = msinks.emplace(
-											dest,
-											one_sink_bindings_t{} ).first;
-									msinks_modified = true;
-								}
+				auto & msinks = it_mbox->second;
+				it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{ msinks, dest };
+				if( !it_msink.is_valid() )
+					{
+						it_msink.set_emplace_result( msinks.emplace(
+								dest,
+								one_sink_bindings_t{} ) );
+					}
 
-							so_5::details::do_with_rollback_on_exception(
-									[&]() {
-										auto & msgs = it_msink->second;
-										auto it_msg = msgs.find( msg_type );
-										bool msgs_modified = false;
-										if( it_msg == msgs.end() )
-											{
-												it_msg = msgs.emplace(
-														msg_type,
-														single_sink_binding_t{} ).first;
-												msgs_modified = true;
-											}
-										else
-											{
-												SO_5_THROW_EXCEPTION(
-														rc_evt_handler_already_provided,
-														std::string{ "msink already subscribed to a message" } +
-														"(mbox:'" + from->query_name() +
-														"', msg_type:'" + msg_type.name() + "'" );
-											}
+				auto & msgs = it_msink->second;
+				it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{ msgs, msg_type };
+				if( !it_msg.is_valid() )
+					{
+						it_msg.set_emplace_result( msgs.emplace(
+								msg_type,
+								single_sink_binding_t{} ) );
+					}
+				else
+					{
+						SO_5_THROW_EXCEPTION(
+								rc_evt_handler_already_provided,
+								std::string{ "msink already subscribed to a message" } +
+								"(mbox:'" + from->query_name() +
+								"', msg_type:'" + msg_type.name() + "'" );
+					}
 
-										so_5::details::do_with_rollback_on_exception(
-												[&]() {
-													single_sink_modificator( msg_type, it_msg->second );
-												},
-												[&msgs, &it_msg, msgs_modified]() {
-													if( msgs_modified )
-														msgs.erase( it_msg );
-												} );
-									},
-									[&msinks, it_msink, msinks_modified]() {
-										if( msinks_modified )
-											msinks.erase( it_msink );
-									} );
-						},
-						[this, &it_mbox, bindings_modified]() {
-							if( bindings_modified )
-								m_bindings.erase( it_mbox );
-						} );
+				single_sink_modificator( msg_type, it_msg->second );
+
+				it_msg.commit();
+				it_msink.commit();
+				it_mbox.commit();
 			}
 
 	public:
