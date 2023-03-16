@@ -17,6 +17,7 @@
 #include <so_5/ret_code.hpp>
 
 #include <so_5/details/sync_helpers.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <map>
 
@@ -52,37 +53,74 @@ class actual_binding_handler_t
 			const mbox_t & from,
 			const msink_t & dest )
 			{
-				//FIXME: this implementation provides only basic exception
-				//safety. It needs to be rewritten to provide strong exception
-				//safety.
 				auto it_mbox = m_bindings.find( from->id() );
+				bool bindings_modified = false;
 				if( it_mbox == m_bindings.end() )
-					it_mbox = m_bindings.emplace( from->id(), one_mbox_bindings_t{} ).first;
-
-				auto & msinks = it_mbox->second;
-				auto it_msink = msinks.find( dest );
-				if( it_msink == msinks.end() )
-					it_msink = msinks.emplace( dest, one_sink_bindings_t{} ).first;
-
-				const auto & msg_type =
-						message_payload_type< Msg >::subscription_type_index();
-
-				auto & msgs = it_msink->second;
-				auto it_msg = msgs.find( msg_type );
-				if( it_msg == msgs.end() )
-					it_msg = msgs.emplace( msg_type, single_sink_binding_t{} ).first;
-				else
 					{
-						SO_5_THROW_EXCEPTION(
-								rc_evt_handler_already_provided,
-								std::string{ "msink already subscribed to a message" } +
-								"(mbox:'" + from->query_name() +
-								"', msg_type:'" + msg_type.name() + "'" );
+						it_mbox = m_bindings.emplace(
+								from->id(),
+								one_mbox_bindings_t{} ).first;
+						bindings_modified = true;
 					}
 
-				it_msg->second.template bind< Msg >(
-						from,
-						dest );
+				so_5::details::do_with_rollback_on_exception(
+						[&]() {
+							auto & msinks = it_mbox->second;
+							auto it_msink = msinks.find( dest );
+							bool msinks_modified = false;
+							if( it_msink == msinks.end() )
+								{
+									it_msink = msinks.emplace(
+											dest,
+											one_sink_bindings_t{} ).first;
+									msinks_modified = true;
+								}
+
+							so_5::details::do_with_rollback_on_exception(
+									[&]() {
+										const auto & msg_type =
+												message_payload_type< Msg >::subscription_type_index();
+
+										auto & msgs = it_msink->second;
+										auto it_msg = msgs.find( msg_type );
+										bool msgs_modified = false;
+										if( it_msg == msgs.end() )
+											{
+												it_msg = msgs.emplace(
+														msg_type,
+														single_sink_binding_t{} ).first;
+												msgs_modified = true;
+											}
+										else
+											{
+												SO_5_THROW_EXCEPTION(
+														rc_evt_handler_already_provided,
+														std::string{ "msink already subscribed to a message" } +
+														"(mbox:'" + from->query_name() +
+														"', msg_type:'" + msg_type.name() + "'" );
+											}
+
+										so_5::details::do_with_rollback_on_exception(
+												[&]() {
+													it_msg->second.bind_for_msg_type(
+															msg_type,
+															from,
+															dest );
+												},
+												[&msgs, &it_msg, msgs_modified]() {
+													if( msgs_modified )
+														msgs.erase( it_msg );
+												} );
+									},
+									[&msinks, it_msink, msinks_modified]() {
+										if( msinks_modified )
+											msinks.erase( it_msink );
+									} );
+						},
+						[this, &it_mbox, bindings_modified]() {
+							if( bindings_modified )
+								m_bindings.erase( it_mbox );
+						} );
 			}
 
 		template< typename Msg >
@@ -90,7 +128,7 @@ class actual_binding_handler_t
 		do_bind(
 			const mbox_t & from,
 			const msink_t & dest,
-			delivery_filter_unique_ptr_t opt_delivery_filter )
+			delivery_filter_unique_ptr_t delivery_filter )
 			{
 				//FIXME: this implementation provides only basic exception
 				//safety. It needs to be rewritten to provide strong exception
@@ -120,10 +158,13 @@ class actual_binding_handler_t
 								"', msg_type:'" + msg_type.name() + "'" );
 					}
 
-				it_msg->second.template bind< Msg >(
+				// Msg can't be a signal!
+				ensure_not_signal< Msg >();
+				it_msg->second.bind_for_msg_type(
+						msg_type,
 						from,
 						dest,
-						std::move(opt_delivery_filter) );
+						std::move(delivery_filter) );
 			}
 
 		template< typename Msg >
@@ -209,14 +250,15 @@ class multi_sink_binding_t
 		bind(
 			const mbox_t & from,
 			const msink_t & dest,
-			delivery_filter_unique_ptr_t opt_delivery_filter )
+			//NOTE: delivery_filter can't be null!
+			delivery_filter_unique_ptr_t delivery_filter )
 			{
 				//FIXME: can delivery_filter be null here?
 				this->lock_and_perform( [&]() {
 						this->template do_bind< Msg >(
 								from,
 								dest,
-								std::move(opt_delivery_filter) );
+								std::move(delivery_filter) );
 					} );
 			}
 

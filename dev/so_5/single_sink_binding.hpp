@@ -120,18 +120,14 @@ class single_sink_binding_t
 			}
 
 		//FIXME: document this!
-		template< typename Msg >
 		void
-		bind(
+		bind_for_msg_type(
+			const std::type_index & msg_type,
 			const mbox_t & source,
 			const msink_t & sink_owner )
 			{
-				//FIXME: should we check that `sink_owner` isn't null (the same for `source`)?
-
 				// Previous binding has to be dropped.
 				clear();
-
-				const auto msg_type = message_payload_type<Msg>::subscription_type_index();
 
 				source->subscribe_event_handler(
 						msg_type,
@@ -150,6 +146,19 @@ class single_sink_binding_t
 		void
 		bind(
 			const mbox_t & source,
+			const msink_t & sink_owner )
+			{
+				this->bind_for_msg_type(
+						message_payload_type<Msg>::subscription_type_index(),
+						source,
+						sink_owner );
+			}
+
+		//FIXME: document this!
+		void
+		bind_for_msg_type(
+			const std::type_index & msg_type,
+			const mbox_t & source,
 			const msink_t & sink_owner,
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
@@ -159,9 +168,8 @@ class single_sink_binding_t
 				// Previous binding has to be dropped.
 				clear();
 
-				const auto msg_type = message_payload_type<Msg>::subscription_type_index();
-
-				ensure_not_signal< Msg >();
+				// Assume that this check was performed by caller.
+				// ensure_not_signal< Msg >();
 
 				source->set_delivery_filter(
 						msg_type,
@@ -184,6 +192,23 @@ class single_sink_binding_t
 								source, msg_type, sink_owner, std::move(delivery_filter)
 							};
 					} );
+			}
+
+		//FIXME: document this!
+		template< typename Msg >
+		void
+		bind(
+			const mbox_t & source,
+			const msink_t & sink_owner,
+			delivery_filter_unique_ptr_t delivery_filter )
+			{
+				ensure_not_signal< Msg >();
+
+				bind_for_msg_type(
+						message_payload_type< Msg >::subscription_type_index(),
+						source,
+						sink_owner,
+						std::move(delivery_filter) );
 			}
 
 		//FIXME: document this!
