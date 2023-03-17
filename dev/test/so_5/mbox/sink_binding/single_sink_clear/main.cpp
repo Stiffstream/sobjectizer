@@ -54,14 +54,14 @@ class a_test_t final : public so_5::agent_t
 
 				msg_data_binding.bind< msg_data >( dest,
 						so_5::wrap_to_msink( so_direct_mbox() ) );
-				ensure_or_die( not msg_data_binding.empty(),
+				ensure_or_die( !msg_data_binding.empty(),
 						"(3) msg_data_binding should have a value" );
 				ensure_or_die( msg_data_binding.has_value(),
 						"(4) msg_data_binding should have a value" );
 
 				msg_stop_binding.bind< msg_stop >( dest,
 						so_5::wrap_to_msink( so_direct_mbox() ) );
-				ensure_or_die( not msg_stop_binding.empty(),
+				ensure_or_die( !msg_stop_binding.empty(),
 						"(5) msg_stop_binding should have a value" );
 				ensure_or_die( msg_stop_binding.has_value(),
 						"(6) msg_stop_binding should have a value" );

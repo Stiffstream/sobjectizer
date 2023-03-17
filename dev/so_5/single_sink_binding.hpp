@@ -90,7 +90,7 @@ class single_sink_binding_t
 
 		[[nodiscard]]
 		bool
-		empty() const noexcept { return not has_value(); }
+		empty() const noexcept { return !has_value(); }
 
 		void
 		clear() noexcept
