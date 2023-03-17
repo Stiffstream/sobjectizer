@@ -40,77 +40,72 @@ using one_mbox_bindings_t = std::map<
 using bindings_map_t = std::map< mbox_id_t, one_mbox_bindings_t >;
 
 //FIXME: document this!
-class actual_binding_handler_t
+template< class Container >
+class insertion_it_with_auto_erase_if_not_committed_t final
 	{
-		struct auto_emplace_if_not_found_t {};
+		using iterator_type = typename Container::iterator;
 
-		template< class Container >
-		class insertion_it_with_auto_erase_if_not_committed_t final
+		Container & m_container;
+		iterator_type m_it;
+		bool m_modified;
+		bool m_commited{ false };
+
+	public:
+		insertion_it_with_auto_erase_if_not_committed_t(
+			Container & container,
+			typename Container::key_type const & k )
+			:	m_container{ container }
+			,	m_it{ container.find( k ) }
 			{
-				using iterator_type = typename Container::iterator;
-
-				Container & m_container;
-				iterator_type m_it;
-				bool m_modified;
-				bool m_commited{ false };
-
-			public:
-				insertion_it_with_auto_erase_if_not_committed_t(
-					Container & container,
-					typename Container::key_type const & k )
-					:	m_container{ container }
-					,	m_it{ container.find( k ) }
-					,	m_modified{ false }
-					{}
-				insertion_it_with_auto_erase_if_not_committed_t(
-					Container & container,
-					typename Container::key_type const & k,
-					const auto_emplace_if_not_found_t /*auto_emplace*/ )
-					:	insertion_it_with_auto_erase_if_not_committed_t{ container, k }
-					{
-						if( !is_valid() )
-							emplace_new_value_for_key( k );
-					}
-
-				insertion_it_with_auto_erase_if_not_committed_t(
-					const insertion_it_with_auto_erase_if_not_committed_t & ) = delete;
-				insertion_it_with_auto_erase_if_not_committed_t(
-					insertion_it_with_auto_erase_if_not_committed_t && ) = delete;
-
-				~insertion_it_with_auto_erase_if_not_committed_t() noexcept
-					{
-						if( m_modified && !m_commited )
-							m_container.erase( m_it );
-					}
-
-				void
-				emplace_new_value_for_key( typename Container::key_type const & k ) noexcept
+				if( container.end() == m_it )
 					{
 						m_it = m_container.emplace( k, typename Container::mapped_type{} ).first;
 						m_modified = true;
 					}
+				else
+					m_modified = false;
+			}
 
-				void
-				commit() noexcept
-					{
-						m_commited = true;
-					}
+		insertion_it_with_auto_erase_if_not_committed_t(
+			const insertion_it_with_auto_erase_if_not_committed_t & ) = delete;
+		insertion_it_with_auto_erase_if_not_committed_t(
+			insertion_it_with_auto_erase_if_not_committed_t && ) = delete;
 
-				[[nodiscard]]
-				iterator_type
-				operator->() const
-					{
-						return m_it;
-					}
+		~insertion_it_with_auto_erase_if_not_committed_t() noexcept
+			{
+				if( m_modified && !m_commited )
+					m_container.erase( m_it );
+			}
 
-				[[nodiscard]]
-				bool
-				is_valid() const
-					{
-						return m_it != m_container.end();
-					}
-			};
+		void
+		commit() noexcept
+			{
+				m_commited = true;
+			}
 
+		[[nodiscard]]
+		iterator_type
+		operator->() const
+			{
+				return m_it;
+			}
+
+		[[nodiscard]]
+		bool
+		modified() const noexcept
+			{
+				return m_modified;
+			}
+	};
+
+// Deduction guide for insertion_it_with_auto_erase_if_not_committed_t.
+template<typename C, typename K>
+insertion_it_with_auto_erase_if_not_committed_t(C &, const K&) ->
+		insertion_it_with_auto_erase_if_not_committed_t<C>;
+
+//FIXME: document this!
+class actual_binding_handler_t
+	{
 		bindings_map_t m_bindings;
 
 		template< typename Single_Sink_Modificator >
@@ -121,25 +116,13 @@ class actual_binding_handler_t
 			const msink_t & dest,
 			Single_Sink_Modificator && single_sink_modificator )
 			{
-				insertion_it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{
-						m_bindings,
-						from->id(),
-						auto_emplace_if_not_found_t{}
-					};
+				insertion_it_with_auto_erase_if_not_committed_t it_mbox{ m_bindings, from->id() };
 
-				insertion_it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{
-						it_mbox->second,
-						dest,
-						auto_emplace_if_not_found_t{}
-					};
+				insertion_it_with_auto_erase_if_not_committed_t it_msink{ it_mbox->second, dest };
 
-				insertion_it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{
-						it_msink->second,
-						msg_type
-					};
-				if( !it_msg.is_valid() )
-					it_msg.emplace_new_value_for_key( msg_type );
-				else
+				insertion_it_with_auto_erase_if_not_committed_t it_msg{ it_msink->second, msg_type };
+				// If new item wasn't inserted then it's an error.
+				if( !it_msg.modified() )
 					{
 						SO_5_THROW_EXCEPTION(
 								rc_evt_handler_already_provided,
