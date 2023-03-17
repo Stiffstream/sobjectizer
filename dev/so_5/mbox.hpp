@@ -99,6 +99,19 @@ namespace low_level_api
 {
 
 /*!
+ * \brief Helper function that throws if a pointer to delivery_filter is null.
+ *
+ * \since v.5.8.0
+ */
+inline void
+ensure_not_null( const delivery_filter_unique_ptr_t & ptr )
+	{
+		if( !ptr )
+			SO_5_THROW_EXCEPTION( rc_nullptr_as_delivery_filter_pointer,
+					"a pointer to delivery_filter can't be nullptr" );
+	}
+
+/*!
  * \brief An implementation of delivery filter represented by lambda-function
  * like object.
  *

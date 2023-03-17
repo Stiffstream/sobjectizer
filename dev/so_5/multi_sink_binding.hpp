@@ -274,6 +274,8 @@ class multi_sink_binding_t
 			//NOTE: delivery_filter can't be null!
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
+				so_5::low_level_api::ensure_not_null( delivery_filter );
+
 				//FIXME: can delivery_filter be null here?
 				this->lock_and_perform( [&]() {
 						this->template do_bind< Msg >(

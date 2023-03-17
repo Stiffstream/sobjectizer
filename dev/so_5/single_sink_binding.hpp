@@ -162,8 +162,7 @@ class single_sink_binding_t
 			const msink_t & sink_owner,
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
-				//FIXME: should we check that `sink_owner` isn't null (the same for `source`)?
-				//FIXME: there should be check that delivery_filter isn't nullptr.
+				so_5::low_level_api::ensure_not_null( delivery_filter );
 
 				// Previous binding has to be dropped.
 				clear();
@@ -203,6 +202,8 @@ class single_sink_binding_t
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
 				ensure_not_signal< Msg >();
+
+				so_5::low_level_api::ensure_not_null( delivery_filter );
 
 				bind_for_msg_type(
 						message_payload_type< Msg >::subscription_type_index(),

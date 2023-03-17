@@ -471,6 +471,17 @@ const int rc_agent_deactivated = 189;
  */
 const int rc_mpsc_mbox_expected = 190;
 
+/*!
+ * \brief nullptr can't be passed as delivery_filter.
+ *
+ * An attempt to pass nullptr pointer to a delivery_filter (or empty
+ * delivery_filter_unique_ptr_t) to a method/function that expects
+ * an actual instance of delivery_filter.
+ *
+ * \since v.5.8.0
+ */
+const int rc_nullptr_as_delivery_filter_pointer = 191;
+
 //! \name Common error codes.
 //! \{
 
