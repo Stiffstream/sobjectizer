@@ -43,7 +43,7 @@ using bindings_map_t = std::map< mbox_id_t, one_mbox_bindings_t >;
 class actual_binding_handler_t
 	{
 		template< class Container >
-		class it_with_auto_erase_if_not_committed_t final
+		class insertion_it_with_auto_erase_if_not_committed_t final
 			{
 				using iterator_type = typename Container::iterator;
 
@@ -53,7 +53,7 @@ class actual_binding_handler_t
 				bool m_commited{ false };
 
 			public:
-				it_with_auto_erase_if_not_committed_t(
+				insertion_it_with_auto_erase_if_not_committed_t(
 					Container & container,
 					typename Container::key_type const & k )
 					:	m_container{ container }
@@ -61,21 +61,21 @@ class actual_binding_handler_t
 					,	m_modified{ false }
 					{}
 
-				it_with_auto_erase_if_not_committed_t(
-					const it_with_auto_erase_if_not_committed_t & ) = delete;
-				it_with_auto_erase_if_not_committed_t(
-					it_with_auto_erase_if_not_committed_t && ) = delete;
+				insertion_it_with_auto_erase_if_not_committed_t(
+					const insertion_it_with_auto_erase_if_not_committed_t & ) = delete;
+				insertion_it_with_auto_erase_if_not_committed_t(
+					insertion_it_with_auto_erase_if_not_committed_t && ) = delete;
 
-				~it_with_auto_erase_if_not_committed_t() noexcept
+				~insertion_it_with_auto_erase_if_not_committed_t() noexcept
 					{
 						if( m_modified && !m_commited )
 							m_container.erase( m_it );
 					}
 
 				void
-				set_emplace_result( std::pair< iterator_type, bool > emplace_result ) noexcept
+				emplace_new_value_for_key( typename Container::key_type const & k ) noexcept
 					{
-						m_it = emplace_result.first;
+						m_it = m_container.emplace( k, typename Container::mapped_type{} ).first;
 						m_modified = true;
 					}
 
@@ -110,31 +110,19 @@ class actual_binding_handler_t
 			const msink_t & dest,
 			Single_Sink_Modificator && single_sink_modificator )
 			{
-				it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{ m_bindings, from->id() };
+				insertion_it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{ m_bindings, from->id() };
 				if( !it_mbox.is_valid() )
-					{
-						it_mbox.set_emplace_result( m_bindings.emplace(
-								from->id(),
-								one_mbox_bindings_t{} ) );
-					}
+					it_mbox.emplace_new_value_for_key( from->id() );
 
 				auto & msinks = it_mbox->second;
-				it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{ msinks, dest };
+				insertion_it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{ msinks, dest };
 				if( !it_msink.is_valid() )
-					{
-						it_msink.set_emplace_result( msinks.emplace(
-								dest,
-								one_sink_bindings_t{} ) );
-					}
+					it_msink.emplace_new_value_for_key( dest );
 
 				auto & msgs = it_msink->second;
-				it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{ msgs, msg_type };
+				insertion_it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{ msgs, msg_type };
 				if( !it_msg.is_valid() )
-					{
-						it_msg.set_emplace_result( msgs.emplace(
-								msg_type,
-								single_sink_binding_t{} ) );
-					}
+					it_msg.emplace_new_value_for_key( msg_type );
 				else
 					{
 						SO_5_THROW_EXCEPTION(
