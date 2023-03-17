@@ -42,6 +42,8 @@ using bindings_map_t = std::map< mbox_id_t, one_mbox_bindings_t >;
 //FIXME: document this!
 class actual_binding_handler_t
 	{
+		struct auto_emplace_if_not_found_t {};
+
 		template< class Container >
 		class insertion_it_with_auto_erase_if_not_committed_t final
 			{
@@ -60,6 +62,15 @@ class actual_binding_handler_t
 					,	m_it{ container.find( k ) }
 					,	m_modified{ false }
 					{}
+				insertion_it_with_auto_erase_if_not_committed_t(
+					Container & container,
+					typename Container::key_type const & k,
+					const auto_emplace_if_not_found_t /*auto_emplace*/ )
+					:	insertion_it_with_auto_erase_if_not_committed_t{ container, k }
+					{
+						if( !is_valid() )
+							emplace_new_value_for_key( k );
+					}
 
 				insertion_it_with_auto_erase_if_not_committed_t(
 					const insertion_it_with_auto_erase_if_not_committed_t & ) = delete;
@@ -110,17 +121,22 @@ class actual_binding_handler_t
 			const msink_t & dest,
 			Single_Sink_Modificator && single_sink_modificator )
 			{
-				insertion_it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{ m_bindings, from->id() };
-				if( !it_mbox.is_valid() )
-					it_mbox.emplace_new_value_for_key( from->id() );
+				insertion_it_with_auto_erase_if_not_committed_t< bindings_map_t > it_mbox{
+						m_bindings,
+						from->id(),
+						auto_emplace_if_not_found_t{}
+					};
 
-				auto & msinks = it_mbox->second;
-				insertion_it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{ msinks, dest };
-				if( !it_msink.is_valid() )
-					it_msink.emplace_new_value_for_key( dest );
+				insertion_it_with_auto_erase_if_not_committed_t< one_mbox_bindings_t > it_msink{
+						it_mbox->second,
+						dest,
+						auto_emplace_if_not_found_t{}
+					};
 
-				auto & msgs = it_msink->second;
-				insertion_it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{ msgs, msg_type };
+				insertion_it_with_auto_erase_if_not_committed_t< one_sink_bindings_t > it_msg{
+						it_msink->second,
+						msg_type
+					};
 				if( !it_msg.is_valid() )
 					it_msg.emplace_new_value_for_key( msg_type );
 				else
