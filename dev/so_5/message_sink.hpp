@@ -106,13 +106,51 @@ namespace impl
 struct msink_less_comparator_t
 	{
 		[[nodiscard]]
+		static std::pair< const abstract_sink_owner_t *, so_5::priority_t >
+		safe_get_pair( const msink_t & from ) noexcept
+			{
+				if( from )
+					return { from.get(), from->sink().sink_priority() };
+				else
+					return { nullptr, so_5::prio::p0 };
+			}
+
+		[[nodiscard]]
 		bool
 		operator()( const msink_t & a, const msink_t & b ) const noexcept
 			{
-				return std::less< const abstract_sink_owner_t * >{}(
-						a.get(), b.get() );
+				//FIXME: document this logic!
+				const std::less< const abstract_sink_owner_t * > ptr_less;
+				const std::less< so_5::priority_t > prio_less;
+
+				const auto [a_ptr, a_prio] = safe_get_pair( a );
+				const auto [b_ptr, b_prio] = safe_get_pair( b );
+
+				if( ptr_less( a_ptr, b_ptr ) )
+					return true;
+				else if( ptr_less( b_ptr, a_ptr ) )
+					return false;
+				else return prio_less( a_prio, b_prio );
 			}
 	};
+
+//
+// msink_const_ref_for_comparison_t
+//
+struct msink_const_ref_for_comparison_t
+	{
+		const msink_t & m_ref;
+	};
+
+//FIXME: document this!
+[[nodiscard]]
+inline bool
+operator<(
+	const msink_const_ref_for_comparison_t & a,
+	const msink_const_ref_for_comparison_t & b ) noexcept
+	{
+		return impl::msink_less_comparator_t{}( a.m_ref, b.m_ref );
+	}
 
 } /* namespace impl */
 
