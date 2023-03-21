@@ -80,7 +80,7 @@ class a_test_t final : public so_5::agent_t
 				so_5::send< msg_data >( m_d2, 2, 1 );
 				so_5::send< msg_data >( m_d3, 3, 1 );
 
-				m_binding.unbind_all( m_d3, self_msink );
+				m_binding.unbind_all_for( m_d3, self_msink );
 
 				so_5::send< msg_data >( m_d1, 1, 2 );
 				so_5::send< msg_data >( m_d2, 2, 2 );
