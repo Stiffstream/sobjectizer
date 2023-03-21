@@ -36,3 +36,5 @@
 
 #include <so_5/version.hpp>
 
+#include <so_5/unique_subscribers_mbox.hpp>
+

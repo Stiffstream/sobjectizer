@@ -12,4 +12,7 @@ add_subdirectory(custom_mbox_simple)
 add_subdirectory(make_new_direct_mbox)
 add_subdirectory(custom_direct_mbox_factory)
 
+add_subdirectory(unique_subscribers)
+
 add_subdirectory(sink_binding)
+

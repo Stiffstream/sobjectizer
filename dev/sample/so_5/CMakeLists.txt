@@ -77,3 +77,5 @@ add_subdirectory(custom_direct_mbox)
 
 add_subdirectory(single_sink_binding)
 
+add_subdirectory(unique_subscribers_mbox)
+

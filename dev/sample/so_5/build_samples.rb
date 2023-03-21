@@ -82,4 +82,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'custom_direct_mbox' ]
 
 	example[ 'single_sink_binding' ]
+
+	example[ 'unique_subscribers_mbox' ]
 }

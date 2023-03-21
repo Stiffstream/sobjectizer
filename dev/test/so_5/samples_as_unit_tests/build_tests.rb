@@ -98,5 +98,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/single_sink_binding.ut.rb"
   required_prj "#{path}/single_sink_binding-static.ut.rb"
+
+  required_prj "#{path}/unique_subscribers_mbox.ut.rb"
+  required_prj "#{path}/unique_subscribers_mbox-static.ut.rb"
 }
 
