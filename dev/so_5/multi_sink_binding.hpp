@@ -306,14 +306,11 @@ class multi_sink_binding_t
 				using argument_type =
 						typename argument_type_if_lambda< lambda_type >::type;
 
-				//FIXME: can this check be written that way to show Msg and argument_type
-				//in the error message?
 				// For cases when Msg is mutable_msg<M>.
-				static_assert(
-						std::is_same_v<
-								typename so_5::message_payload_type<Msg>::payload_type,
-								argument_type >,
-						"lambda expects a different message type" );
+				sink_bindings_details::ensure_valid_argument_for_delivery_filter<
+						typename so_5::message_payload_type<Msg>::payload_type,
+						argument_type
+					>();
 
 				delivery_filter_unique_ptr_t filter_holder{
 						new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
