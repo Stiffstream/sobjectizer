@@ -32,7 +32,12 @@ namespace so_5
 namespace impl
 {
 
-//FIXME: document this!
+/*!
+ * \brief Mixin to be used in implementation of MPSC mbox with message limits.
+ *
+ * It returns a reference to a sink from subscription_info_with_sink_t object
+ * in message_sink_to_use() method.
+ */
 class limitful_mpsc_mbox_mixin_t
 	{
 		agent_t & m_owner;
@@ -67,7 +72,14 @@ class limitful_mpsc_mbox_mixin_t
 		{}
 	};
 
-//FIXME: document this!
+/*!
+ * \brief Mixin to be used in implementation of MPSC mbox without message limits.
+ *
+ * Holds an actual instance of message_sink_without_message_limit_t.
+ *
+ * It ignores \a info parameter to message_sink_to_use() method and returns
+ * a reference to m_actual_sink.
+ */
 class limitless_mpsc_mbox_mixin_t
 	{
 		//! Actual message sink to be used.
@@ -106,7 +118,14 @@ class limitless_mpsc_mbox_mixin_t
 namespace
 {
 
-//FIXME: document this!
+/*!
+ * \brief Helper the ensures that sink can be used with agent.
+ *
+ * It throws if:
+ *
+ * - \a sink is not a message_sink_for_agent_t (or derived class);
+ * - \a sink is created for a different owner.
+ */
 void
 ensure_sink_for_same_owner(
 	agent_t & actual_owner,
