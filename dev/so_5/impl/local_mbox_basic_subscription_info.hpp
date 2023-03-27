@@ -25,9 +25,15 @@ namespace impl
 namespace local_mbox_details
 {
 
-//FIXME: document this!
 /*!
  * \brief An information block about one subscription to one message type.
+ *
+ * This class is intended to be used for cases when there is no actual
+ * reference to a sink. The presence/absence of a subscription is controlled
+ * by m_state member (and subscription_defined()/subscription_dropped() methods).
+ *
+ * Delivery filter can be present, in that case a pointer to delivery filter
+ * will be stored inside the instance of that class.
  *
  * \since v.5.7.4
  */
@@ -56,7 +62,9 @@ protected:
 	state_t m_state;
 
 public :
-	//FIXME: document this!
+	/*!
+	 * \brief Helper type that tells that subscription is present.
+	 */
 	struct subscription_present_t {};
 
 	//! Default constructor. Creates an empty object.
@@ -76,8 +84,8 @@ public :
 	//! Constructor for the case when subscriber info is being
 	//! created during setting a delivery filter.
 	subscription_info_without_sink_t(
-		const delivery_filter_t * filter )
-		:	m_filter( filter )
+		const delivery_filter_t & filter )
+		:	m_filter( std::addressof(filter) )
 		,	m_state( state_t::only_filter )
 	{}
 
@@ -171,6 +179,12 @@ public :
 /*!
  * \brief An information block about one subscription to one message type
  * with presence of message_sink.
+ *
+ * This class is intended to be used for cases when actual
+ * reference to a sink has to be stored if subscription is present.
+ *
+ * Delivery filter can be present, in that case a pointer to delivery filter
+ * will be stored inside the instance of that class.
  *
  * \since v.5.7.4
  */

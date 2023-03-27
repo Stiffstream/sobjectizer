@@ -69,9 +69,12 @@ class delivery_filter_storage_t
 				 */
 				delivery_filter_unique_ptr_t m_filter;
 
-//FIXME: describe why naked raw pointer isn't used here (pointer can be null, but not here).
 				//! Message sink for that the filter was set.
 				/*!
+				 * A reference to message_sink is used instead of raw (non-owning) pointer
+				 * to indicate that a valid reference is required here (null is a valid
+				 * value for a pointer).
+				 *
 				 * @note
 				 * The lifetime of the sink is controlled elsewhere.
 				 */

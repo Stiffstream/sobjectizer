@@ -2564,14 +2564,23 @@ class SO_5_TYPE agent_t
 		handler_finder_t m_handler_finder;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief All agent's subscriptions.
+		 *
+		 * \since v.5.4.0
 		 */
 		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Holder of message sinks for that agent.
+		 *
+		 * If message limits are defined for the agent it will be an actual
+		 * storage with separate sinks for every (message_type, message_limit).
+		 *
+		 * If message limits are not defined then it will be a special storage
+		 * with just one message sink (that sink will be used for all subscriptions).
+		 *
+		 * \since v.5.8.0
+		 */
 		std::unique_ptr< impl::sinks_storage_t > m_message_sinks;
 
 		//! SObjectizer Environment for which the agent is belong.
@@ -2712,7 +2721,13 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 
-//FIXME: document this!
+		/*!
+		 * \brief Helper function that returns a message sink to be used
+		 * for subscriptions for specified message type.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
 		abstract_message_sink_t &
 		detect_sink_for_message_type(
 			const std::type_index & msg_type );
