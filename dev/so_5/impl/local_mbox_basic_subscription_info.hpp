@@ -175,7 +175,6 @@ public :
 	}
 };
 
-//FIXME: document this!
 /*!
  * \brief An information block about one subscription to one message type
  * with presence of message_sink.

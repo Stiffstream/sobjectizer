@@ -25,14 +25,24 @@ namespace as_msink_impl
 //
 // mbox_as_sink_t
 //
-//FIXME: document this!
+/*!
+ * \brief Implementation of abstract_message_sink for a case when
+ * the destination is a mbox.
+ *
+ * \note
+ * Because mbox has no priority, but message_sink should have it, the
+ * priority has to be specified in the constructor.
+ */
 class mbox_as_sink_t final : public abstract_message_sink_t
 	{
+		//! The destination for messages.
 		const mbox_t m_mbox;
 
+		//! The priority for the sink.
 		const priority_t m_sink_priority;
 
 	public:
+		//! Initializing constructor.
 		mbox_as_sink_t(
 			mbox_t mbox,
 			priority_t priority )

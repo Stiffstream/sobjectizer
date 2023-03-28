@@ -24,6 +24,19 @@ namespace so_5
 /*!
  * \brief Maximum deep of message redirections.
  *
+ * Examples for message redirections:
+ *
+ * - message limits are used and so_5::agent_t::limit_then_redirect is
+ *   used for pushing a message to another mbox;
+ * - a custom message sink is used for transfering messages from
+ *   one mbox to another.
+ *
+ * Such redirections could lead to infinite loops.
+ * SObjectizer cannot detect such loops so it uses a primitive protection
+ * method: the limit for a number of redirections. If message delivery
+ * attempt exceeds this limit then the delivery must be cancelled
+ * (with or without an exception).
+ *
  * \since v.5.8.0
  */
 constexpr unsigned int max_redirection_deep = 32;
@@ -31,7 +44,26 @@ constexpr unsigned int max_redirection_deep = 32;
 //
 // abstract_message_sink_t
 //
-//FIXME: document this!
+/*!
+ * \brief Interface for message sink.
+ *
+ * This class is the base for all message sinks.
+ *
+ * The purpose of message sink is to be a subscriber for an mbox. An mbox holds
+ * a list of subscribers and delivers a message to appropriate subscribers
+ * (message sinks). When an mbox receives a message it calls push_event()
+ * method for all message sinks that are subscribed to this message
+ * (and delivery filters permit the delivery to those sinks).
+ *
+ * \note
+ * A message sink in SO-5.8 plays the same role as agent_t in previous
+ * versions, in the sense that message sinks act as a receiver of messages sent
+ * to message boxes. Since an agent_t has priority and this priority is taken
+ * into account during subscriptions and message delivery, the message sink
+ * should also have priority. Because of that there is sink_priority() method.
+ * For cases where a message sink is created for an agent, the sink_priority()
+ * should return the agent's priority.
+ */
 class SO_5_TYPE abstract_message_sink_t
 	{
 	public:
@@ -50,22 +82,54 @@ class SO_5_TYPE abstract_message_sink_t
 		operator=(
 				abstract_message_sink_t && ) = default;
 
+		//! Get a reference for SObjectizer Environment for that
+		//! the message sink is created.
+		/*!
+		 * This method plays the same role as abstract_message_box_t::environment()
+		 * or coop_t::environment().
+		 */
 		[[nodiscard]]
 		virtual environment_t &
 		environment() const noexcept = 0;
 
+		//! Get the priority for the message sink.
 		[[nodiscard]]
 		virtual priority_t
 		sink_priority() const noexcept = 0;
 
+		//! Get a message and push it to the appropriate destination.
+		/*!
+		 * This is key method for message sink. Its logic depends of message sink
+		 * type. For example, ordinary message sink for an agent just pushes the
+		 * message to the agent's event_queue.
+		 *
+		 * \attention
+		 * Implementations of message sinks should control the value of
+		 * \a redirection_deep. If that value exceeds \a so_5::max_redirection_deep
+		 * then the delivery procedure has to be cancelled and the message
+		 * (signal) should be dropped (ignored). If an implementation redirects
+		 * message to another mbox/msink then the value of \a redirection_deep
+		 * has to be incremented.
+		 *
+		 * \attention
+		 * The \a tracer can be nullptr. Moreover, it will be nullptr in most of
+		 * the cases when message delivery tracing is off.
+		 */
 		virtual void
 		push_event(
+			//! ID of mbox from that the message is received.
 			mbox_id_t mbox_id,
+			//! Delivery mode for this delivery attempt.
 			message_delivery_mode_t delivery_mode,
+			//! Type of message to be delivered.
 			const std::type_index & msg_type,
+			//! Reference to the message to be delivered.
+			//! NOTE: it can be empty (nullptr) reference in the case of a signal.
 			const message_ref_t & message,
+			//! The current deep of message redirection between mboxes and msinks.
 			unsigned int redirection_deep,
 			//! Message delivery tracer to be used inside overlimit reaction.
+			//! NOTE: it will be nullptr when message delivery tracing if off.
 			const message_limit::impl::action_msg_tracer_t * tracer ) = 0;
 	};
 

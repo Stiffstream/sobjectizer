@@ -264,7 +264,12 @@ class mpsc_mbox_template_t final
 					tracer,
 					[&]( const subscription_info_t & info )
 					{
-						//FIXME: document this trick!
+						// NOTE: method message_sink_to_use is inherited from
+						// Limits_Handling_Mixin. In the case of
+						// limitful_mpsc_mbox_mixin_t this method returns a reference
+						// to a separate sink with message limit info. In the case of
+						// limitless_mpsc_mbox_mixin_t it will be a reference to the
+						// single message sink without information about limits.
 						this->message_sink_to_use( info ).push_event(
 								this->m_id,
 								delivery_mode,

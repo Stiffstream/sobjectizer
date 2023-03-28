@@ -82,7 +82,15 @@ class storage_without_limits_t final
 //
 // message_sinks_with_limits_holder_t
 //
-//FIXME: document this!
+/*!
+ * \brief Type that holds message_sink_with_message_limit objects.
+ *
+ * It plays a role of associative container with std::type_index as
+ * a key, and message_sink_with_message_limit_t as a value.
+ *
+ * It creates a new instance of message_sink_with_message_limit_t in
+ * find_or_create() method if msg_type is unknown yet.
+ */
 class message_sinks_with_limits_holder_t
 	{
 		//! Type of storage for message_sinks.
@@ -121,6 +129,10 @@ class message_sinks_with_limits_holder_t
 				:	m_sinks{ build_sinks( owner_ptr, std::move(descriptions) ) }
 			{}
 
+		/*!
+		 * \note
+		 * Returns nullptr if there is no sink for \a msg_type.
+		 */
 		[[nodiscard]]
 		abstract_message_sink_t *
 		find( const std::type_index & msg_type )
@@ -132,6 +144,11 @@ class message_sinks_with_limits_holder_t
 				return std::addressof( it->second );
 			}
 
+		/*!
+		 * \note
+		 * If \a msg_type isn't known then a new message_sink_with_message_limit_t
+		 * is created and a pointer to that new object is returned.
+		 */
 		[[nodiscard]]
 		abstract_message_sink_t *
 		find_or_create(

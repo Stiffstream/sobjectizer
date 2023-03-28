@@ -324,10 +324,27 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 };
 
 //
-// as_msink
+// wrap_to_msink
 //
-//FIXME: document this!
-//FIXME: should mbox be checked to be not-null?
+/*!
+ * \brief Helper for wrapping an existing mbox into message_sink.
+ *
+ * Usage example:
+ * \code
+ * const so_5::mbox_t source = ...;
+ * const so_5::mbox_t dest = ...;
+ *
+ * so_5::single_sink_binding_t source_to_dest_binding;
+ * source_to_dest_binding.bind<my_message>(
+ * 	// Source mbox has to be specified as is.
+ * 	source,
+ * 	// The destination has to be wrapped into a msink.
+ * 	so_5::wrap_to_msink(dest));
+ * \endcode
+ *
+ * \attention
+ * The \a mbox is expected to be not-null.
+ */
 [[nodiscard]]
 msink_t SO_5_FUNC
 wrap_to_msink(

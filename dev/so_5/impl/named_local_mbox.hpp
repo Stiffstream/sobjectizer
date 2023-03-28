@@ -26,7 +26,6 @@ namespace impl
 // named_local_mbox_t
 //
 
-//FIXME: should this class be made final?
 //! A class for the named local mbox.
 /*!
  * \note This class is necessary because there is a difference between
@@ -34,10 +33,9 @@ namespace impl
  * local mboxes should have only one instance inside
  * SObjectizer Environment.
 */
-class named_local_mbox_t
-	:
-		public abstract_message_box_t
-{
+class named_local_mbox_t final
+	: public abstract_message_box_t
+	{
 		friend class impl::mbox_core_t;
 
 		named_local_mbox_t(
@@ -97,8 +95,9 @@ class named_local_mbox_t
 
 		//! Actual mbox.
 		mbox_t m_mbox;
-};
+	};
 
 } /* namespace impl */
 
 } /* namespace so_5 */
+
