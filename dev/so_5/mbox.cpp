@@ -62,6 +62,12 @@ class mbox_as_sink_t final : public abstract_message_sink_t
 				return m_sink_priority;
 			}
 
+		/*!
+		 * Actual implementation of so_5::abstract_message_sink_t::push_event().
+		 *
+		 * If \a redirection_deep exceeds so_5::max_redirection_deep then message is
+		 * ignored (with logging). Otherwise the message is pushed to m_mbox.
+		 */
 		void
 		push_event(
 			mbox_id_t /*mbox_id*/,

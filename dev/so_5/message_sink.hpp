@@ -63,6 +63,8 @@ constexpr unsigned int max_redirection_deep = 32;
  * should also have priority. Because of that there is sink_priority() method.
  * For cases where a message sink is created for an agent, the sink_priority()
  * should return the agent's priority.
+ *
+ * \since v.5.8.0
  */
 class SO_5_TYPE abstract_message_sink_t
 	{
@@ -136,7 +138,35 @@ class SO_5_TYPE abstract_message_sink_t
 //
 // abstract_sink_owner_t
 //
-//FIXME: document this!
+/*!
+ * \brief Interface for holders of message_sink instances.
+ *
+ * There is mbox_t, which is a kind of smart pointer to abstract_message_box_t.
+ * It's a very useful type that allows to hold references to message boxes
+ * safely. But mbox_t exists because all message boxes should be dynamically
+ * allocated objects. The situation with message sinks is a bit more
+ * complicated. Not all message sinks are dynamically allocated, some may be
+ * parts of other objects. But if a message sink is dynamically allocated then
+ * it's good to have something like mbox_t, but for message sinks.
+ *
+ * The type abstract_sink_owner_t is a proxy for a real message sink object.
+ * Instances of abstract_sink_owner_t are always allocated dynamically. They
+ * can hold real message sinks as members (in this case abstract_sink_owner
+ * lives on the heap and the message sink lives inside it), or they can hold
+ * references to message sinks that live elsewhere.
+ *
+ * The presence of abstract_sink_owner_t allows to have msink_t type, which is
+ * very similar to mbox_t.
+ *
+ * Note that the abstract_sink_owner_t is an abstract class. The real
+ * implementations of sink owners must be derived from this class.
+ *
+ * \note
+ * It's expected that one abstract_sink_owner_t holds a reference to
+ * just one message sink.
+ *
+ * \since v.5.8.0
+ */
 class SO_5_TYPE abstract_sink_owner_t : protected atomic_refcounted_t
 	{
 		friend class intrusive_ptr_t< abstract_sink_owner_t >;
@@ -145,10 +175,12 @@ class SO_5_TYPE abstract_sink_owner_t : protected atomic_refcounted_t
 		abstract_sink_owner_t() = default;
 		virtual ~abstract_sink_owner_t() noexcept = default;
 
+		//! Get a reference to the underlying message sink.
 		[[nodiscard]]
 		virtual abstract_message_sink_t &
 		sink() noexcept = 0;
 
+		//! Get a const reference to the underlying message sink.
 		[[nodiscard]]
 		virtual const abstract_message_sink_t &
 		sink() const noexcept = 0;
@@ -157,7 +189,11 @@ class SO_5_TYPE abstract_sink_owner_t : protected atomic_refcounted_t
 //
 // msink_t
 //
-//FIME: document this!
+/*!
+ * \brief Smart reference for abstract_sink_owner.
+ *
+ * \since v.5.8.0
+ */
 using msink_t = intrusive_ptr_t< abstract_sink_owner_t >;
 
 namespace impl
@@ -166,7 +202,25 @@ namespace impl
 //
 // msink_less_comparator_t
 //
-//FIXME: document this!
+/*!
+ * \brief Helper class to be used as a comparator for msinks.
+ *
+ * Two instances of msink_t can't be compared in a trivial way: they can
+ * be nullptr, if both are not nullptr then their priorities have to be
+ * compared too.
+ *
+ * This class implements the logic of msink_t comparison and can be used
+ * as Comparator template parameter for std::set/map classes. For example:
+ * \code
+ * std::set<so_5::msink_t, so_5::impl::msink_less_comparator_t> known_msinks;
+ * \endcode
+ *
+ * \attention
+ * This class is part of the SObjectizer implementation and is subject to
+ * change without notice.
+ *
+ * \since v.5.8.0
+ */
 struct msink_less_comparator_t
 	{
 		[[nodiscard]]
@@ -183,7 +237,6 @@ struct msink_less_comparator_t
 		bool
 		operator()( const msink_t & a, const msink_t & b ) const noexcept
 			{
-				//FIXME: document this logic!
 				const std::less< const abstract_sink_owner_t * > ptr_less;
 				const std::less< so_5::priority_t > prio_less;
 
@@ -194,34 +247,24 @@ struct msink_less_comparator_t
 					return true;
 				else if( ptr_less( b_ptr, a_ptr ) )
 					return false;
+				// Assume that a_ptr == b_ptr.
 				else return prio_less( a_prio, b_prio );
 			}
 	};
-
-//
-// msink_const_ref_for_comparison_t
-//
-struct msink_const_ref_for_comparison_t
-	{
-		const msink_t & m_ref;
-	};
-
-//FIXME: document this!
-[[nodiscard]]
-inline bool
-operator<(
-	const msink_const_ref_for_comparison_t & a,
-	const msink_const_ref_for_comparison_t & b ) noexcept
-	{
-		return impl::msink_less_comparator_t{}( a.m_ref, b.m_ref );
-	}
 
 } /* namespace impl */
 
 //
 // simple_sink_owner_t
 //
-//FIXME: document this!
+/*!
+ * \brief Implementation of abstract_sink_owner that owns an instance
+ * of message sink.
+ *
+ * \tparam Sink_Type Type of the message sink to be created as a part of owner object.
+ *
+ * \since v.5.8.0
+ */
 template< typename Sink_Type >
 class simple_sink_owner_t final : public abstract_sink_owner_t
 	{

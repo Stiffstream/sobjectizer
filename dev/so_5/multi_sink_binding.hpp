@@ -28,19 +28,49 @@ namespace so_5
 namespace multi_sink_binding_impl
 {
 
-//FIXME: document this!
+/*!
+ * \brief Type of container for bindings for messages.
+ *
+ * There could be just one binding for one message type.
+ *
+ * \since v.5.8.0
+ */
 using one_sink_bindings_t = std::map< std::type_index, single_sink_binding_t >;
 
-//FIXME: document this!
+/*!
+ * \brief Type of container for bindings for one msink.
+ *
+ * There could be bindings for several message types for the same msink.
+ *
+ * \since v.5.8.0
+ */
 using one_mbox_bindings_t = std::map<
 		msink_t,
 		one_sink_bindings_t,
 		so_5::impl::msink_less_comparator_t >;
 
-//FIXME: document this!
+/*!
+ * \brief Type of container for bindings for messages from mboxes.
+ *
+ * Several msinks can be bound to one mbox.
+ *
+ * \since v.5.8.0
+ */
 using bindings_map_t = std::map< mbox_id_t, one_mbox_bindings_t >;
 
-//FIXME: document this!
+/*!
+ * \brief Helper type for insertion into a std::map with automatic rollback.
+ *
+ * It's expected that \a Container is a std::map. It's expected that
+ * Container::mapped_type is DefaultConstructible.
+ *
+ * If commit() isn't called and a new item was inserted to the map
+ * in the constructor then that item will be erased in the destructor.
+ *
+ * See actual_binding_handler_t::do_actual_bind() for usage examples.
+ *
+ * \since v.5.8.0
+ */
 template< class Container >
 class insertion_it_with_auto_erase_if_not_committed_t final
 	{
@@ -52,6 +82,13 @@ class insertion_it_with_auto_erase_if_not_committed_t final
 		bool m_commited{ false };
 
 	public:
+		/*!
+		 * \brief Initializing constructor.
+		 *
+		 * Tries to find an item with \a k in \a container.
+		 * If item isn't found then a new item with \a k as key will be inserted
+		 * into \a container.
+		 */
 		insertion_it_with_auto_erase_if_not_committed_t(
 			Container & container,
 			typename Container::key_type const & k )
@@ -91,6 +128,10 @@ class insertion_it_with_auto_erase_if_not_committed_t final
 				return m_it;
 			}
 
+		/*!
+		 * \retval true if new item was inserted in the constructor.
+		 * \retval false if item was found in the container.
+		 */
 		[[nodiscard]]
 		bool
 		modified() const noexcept
