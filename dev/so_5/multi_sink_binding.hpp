@@ -145,11 +145,30 @@ template<typename C, typename K>
 insertion_it_with_auto_erase_if_not_committed_t(C &, const K&) ->
 		insertion_it_with_auto_erase_if_not_committed_t<C>;
 
-//FIXME: document this!
+/*!
+ * \brief Class that actually holds multiple sinks bindings.
+ *
+ * \attention
+ * It's not a thread-safe class. Thread-safety has to be provided by
+ * an owner of actual_binding_handler_t instance.
+ *
+ * \since v.5.8.0
+ */
 class actual_binding_handler_t
 	{
+		//! All bindings.
 		bindings_map_t m_bindings;
 
+		/*!
+		 * \brief Implementation of bind procedure.
+		 *
+		 * \tparam Single_Sink_Modificator Type of functor that will be called
+		 * for modification of the corresponding single_sink_binding_t instance.
+		 * This functor should have a prototype like:
+		 * \code
+		 * void(const std::type_index & msg_type, single_sink_binding_t & binding);
+		 * \endcode
+		 */
 		template< typename Single_Sink_Modificator >
 		void
 		do_actual_bind(
@@ -181,8 +200,9 @@ class actual_binding_handler_t
 			}
 
 	public:
-//FIXME: methods do_bind have too many similar lines, can they be refactored?
-		// Can be used for signals.
+		/*!
+		 * This method can be used for messages and signals.
+		 */
 		template< typename Msg >
 		void
 		do_bind(
@@ -204,6 +224,11 @@ class actual_binding_handler_t
 						} );
 			}
 
+		/*!
+		 * This method can only be used if \a Msg isn't a signal.
+		 *
+		 * It's expected that \a delivery_filter isn't nullptr.
+		 */
 		template< typename Msg >
 		void
 		do_bind(
@@ -230,6 +255,9 @@ class actual_binding_handler_t
 						} );
 			}
 
+		/*!
+		 * This method can be used for messages and signals.
+		 */
 		template< typename Msg >
 		void
 		do_unbind(
@@ -261,6 +289,10 @@ class actual_binding_handler_t
 					}
 			}
 
+		/*!
+		 * Remove binding for all types of messages/signals that were
+		 * made for \a dest from \a from.
+		 */
 		void
 		do_unbind_all_for(
 			const mbox_t & from,
@@ -276,6 +308,9 @@ class actual_binding_handler_t
 					m_bindings.erase( it_mbox );
 			}
 
+		/*!
+		 * Removes all bindings.
+		 */
 		void
 		do_clear() noexcept
 			{
@@ -285,6 +320,84 @@ class actual_binding_handler_t
 
 } /* namespace multi_sink_binding_impl */
 
+//FIXME: document this!
+/*!
+ * \brief Helper class for managing multiple sink bindings.
+ *
+ * An instance of multi_sink_binding_t drops all binding in the destructor.
+ * If it's necessary to drop all binding manually then clear() method
+ * can be used.
+ *
+ * Usage examples:
+ * \code
+ * // Use as a part of an agent.
+ * class coordinator final : public so_5::agent_t
+ * {
+ * 	const so_5::mbox_t broadcasting_mbox_;
+ * 	so_5::multi_sink_binding_t<> bindings_;
+ * ...
+ * 	void on_some_event(mhood_t<msg_some_command> cmd) {
+ * 		// Create a child coop and bind agents to broadcasting mbox.
+ * 		so_5::introduce_child_coop(*this, [](so_5::coop_t & coop) {
+ * 				auto * first = coop.make_agent<first_worker>(...);
+ * 				auto first_worker_msink = so_5::wrap_to_msink(first->so_direct_mbox());
+ *
+ * 				auto * second = coop.make_agent<second_worker>(...);
+ * 				auto second_worker_msink = so_5::wrap_to_msink(second->so_direct_mbox());
+ *
+ * 				bindings_.bind<msg_some_data>(broadcasting_mbox_, first_worker_msink);
+ * 				bindings_.bind<msg_some_data>(broadcasting_mbox_, second_worker_msink);
+ * 				bindings_.bind<msg_some_notify>(broadcasting_mbox_, first_worker_msink);
+ * 				bindings_.bind<msg_another_notify>(broadcasting_mbox_, second_worker_msink);
+ * 				...
+ * 			});
+ * 	}
+ * };
+ *
+ * // Use as object controlled by a coop.
+ * so_5::environment_t & env = ...;
+ * env.introduce_coop([](so_5::coop_t & coop) {
+ * 		const auto broadcasting_mbox = coop.environment().create_mbox();
+ * 		auto * bindings = coop.take_under_control(
+ * 			std::make_unique<so_5::multi_sink_binding_t<>>());
+ *
+ * 		auto * first = coop.make_agent<first_worker>(...);
+ * 		auto first_worker_msink = so_5::wrap_to_msink(first->so_direct_mbox());
+ *
+ * 		auto * second = coop.make_agent<second_worker>(...);
+ * 		auto second_worker_msink = so_5::wrap_to_msink(second->so_direct_mbox());
+ *
+ * 		bindings.bind<msg_some_data>(broadcasting_mbox, first_worker_msink);
+ * 		bindings.bind<msg_some_data>(broadcasting_mbox, second_worker_msink);
+ * 		bindings.bind<msg_some_notify>(broadcasting_mbox, first_worker_msink);
+ * 		bindings.bind<msg_another_notify>(broadcasting_mbox, second_worker_msink);
+ * 		...
+ * 	});
+ * \endcode
+ *
+ * The instance of multi_sink_binding_t is thread safe by the default (if
+ * the default value is used for template parameter \a Lock_Type).
+ * In single-threaded environments this can be unnecessary, so_5::null_mutex_t
+ * can be used in those cases:
+ * \code
+ * // It's assumed that code works in single-threaded environment.
+ * so_5::environment_t & env = ...;
+ * env.introduce_coop([](so_5::coop_t & coop) {
+ * 		const auto broadcasting_mbox = coop.environment().create_mbox();
+ * 		auto * bindings = coop.take_under_control(
+ * 			std::make_unique<so_5::multi_sink_binding_t<so_5::null_mutex_t>>());
+ * \endcode
+ *
+ * \note
+ * This class isn't Copyable, not Moveable. Once created an instance of
+ * that type can't be copied or moved.
+ *
+ * \tparam Lock_Type Type to be used for thread-safety.
+ * It should be a std::mutex-like class. If thread-safety isn't needed
+ * then so_5::null_mutex_t can be used.
+ *
+ * \since v.5.8.0
+ */
 template< typename Lock_Type = std::mutex >
 class multi_sink_binding_t
 	:	protected so_5::details::lock_holder_detector< Lock_Type >::type
