@@ -320,7 +320,6 @@ class actual_binding_handler_t
 
 } /* namespace multi_sink_binding_impl */
 
-//FIXME: document this!
 /*!
  * \brief Helper class for managing multiple sink bindings.
  *
@@ -414,10 +413,40 @@ class multi_sink_binding_t
 		multi_sink_binding_t &
 		operator=( multi_sink_binding_t && ) = delete;
 
+		/*!
+		 * Create a binding for message/signal of type \a Msg from mbox \a from
+		 * to the destination \a dest.
+		 *
+		 * This binding won't use a delivery filter.
+		 *
+		 * An exception will be thrown if such a binding already exists.
+		 *
+		 * Usage example:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * auto binding = std::make_unique< so_5::multi_sink_binding_t<> >();
+		 *
+		 * binding->bind<my_message>(source, dest);
+		 * binding->bind<my_signal>(source, dest);
+		 * \endcode
+		 *
+		 * It it's required to make a binding for a mutable message then
+		 * so_5::mutable_msg marker has to be used:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * auto binding = std::make_unique< so_5::multi_sink_binding_t<> >();
+		 *
+		 * binding->bind< so_5::mutable_msg<my_message> >(source, dest);
+		 * \endcode
+		 */
 		template< typename Msg >
 		void
 		bind(
+			//! The source mbox.
 			const mbox_t & from,
+			//! The destination for messages.
 			const msink_t & dest )
 			{
 				this->lock_and_perform( [&]() {
@@ -427,17 +456,29 @@ class multi_sink_binding_t
 					} );
 			}
 
+		/*!
+		 * Create a binding for message of type \a Msg from mbox \a from
+		 * to the destination \a dest.
+		 *
+		 * This binding should use delivery filter \a delivery_filter.
+		 *
+		 * An exception will be thrown if such a binding already exists.
+		 *
+		 * \note
+		 * This method can't be used for binding signals.
+		 */
 		template< typename Msg >
 		void
 		bind(
+			//! The source mbox.
 			const mbox_t & from,
+			//! The destination for messages.
 			const msink_t & dest,
-			//NOTE: delivery_filter can't be null!
+			//! Delivery filter to be used. It shouldn't be nullptr.
 			delivery_filter_unique_ptr_t delivery_filter )
 			{
 				so_5::low_level_api::ensure_not_null( delivery_filter );
 
-				//FIXME: can delivery_filter be null here?
 				this->lock_and_perform( [&]() {
 						this->template do_bind< Msg >(
 								from,
@@ -446,12 +487,52 @@ class multi_sink_binding_t
 					} );
 			}
 
-		//FIXME: document this!
+		/*!
+		 * Create a binding for message of type \a Msg from mbox \a from
+		 * to the destination \a dest.
+		 *
+		 * The lambda (or functor) \a filter will be used as delivery filter
+		 * for messages.
+		 *
+		 * An exception will be thrown if such a binding already exists.
+		 *
+		 * \note
+		 * This method can't be used for binding signals.
+		 *
+		 * Usage example:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * auto binding = std::make_unique< so_5::multi_sink_binding_t<> >();
+		 *
+		 * binding->bind<my_message>(source, dest,
+		 * 	[](const my_message & msg) {
+		 * 		... // should return `true` or `false`.
+		 * 	});
+		 * \endcode
+		 *
+		 * It it's required to make a binding for a mutable message then
+		 * so_5::mutable_msg marker has to be used, but note the type of
+		 * delivery filter argument:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * auto binding = std::make_unique< so_5::multi_sink_binding_t<> >();
+		 *
+		 * binding->bind< so_5::mutable_msg<my_message> >(source, dest,
+		 * 	[](const my_message & msg) {
+		 * 		... // should return `true` or `false`.
+		 * 	});
+		 * \endcode
+		 */
 		template< typename Msg, typename Lambda >
 		void
 		bind(
+			//! The source mbox.
 			const mbox_t & from,
+			//! The destination for messages.
 			const msink_t & dest,
+			//! Delivery filter to be used.
 			Lambda && filter )
 			{
 				using namespace so_5::details::lambda_traits;
@@ -474,10 +555,28 @@ class multi_sink_binding_t
 				this->bind< Msg >( from, dest, std::move(filter_holder) );
 			}
 
+		/*!
+		 * Remove binding for message/signal of type \a Msg from mbox \a from
+		 * to the destination \a dest.
+		 *
+		 * It is safe to call this method if such a binding doesn't exist.
+		 *
+		 * Usage example:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * so_5::multi_sink_binding_t & bindings = ...;
+		 *
+		 * binding->unbind<my_message>(source, dest);
+		 * binding->unbind<my_signal>(source, dest);
+		 * \endcode
+		 */
 		template< typename Msg >
 		void
 		unbind(
+			//! The source mbox.
 			const mbox_t & from,
+			//! The destination for messages.
 			const msink_t & dest ) noexcept
 			{
 				this->lock_and_perform( [&]() {
@@ -485,9 +584,27 @@ class multi_sink_binding_t
 					} );
 			}
 
+		/*!
+		 * Remove binding for all message/signal types from mbox \a from
+		 * to the destination \a dest.
+		 *
+		 * It is safe to call this method if there is no any binding for
+		 * (\a form, \a dest) pair.
+		 *
+		 * Usage example:
+		 * \code
+		 * const so_5::mbox_t & source = ...;
+		 * const so_5::msink_t & dest = ...;
+		 * so_5::multi_sink_binding_t & bindings = ...;
+		 *
+		 * binding->unbind_all_for(source, dest);
+		 * \endcode
+		 */
 		void
 		unbind_all_for(
+			//! The source mbox.
 			const mbox_t & from,
+			//! The destination for messages.
 			const msink_t & dest ) noexcept
 			{
 				this->lock_and_perform( [&]() {
@@ -495,6 +612,9 @@ class multi_sink_binding_t
 					} );
 			}
 
+		/*!
+		 * Remove all exising bindings.
+		 */
 		void
 		clear() noexcept
 			{
