@@ -449,7 +449,8 @@ class mpsc_mbox_template_t final
 						else
 							{
 								tracer.message_rejected(
-										//FIXME: is it a normal to pass nullptr here?
+										// It's safe to pass nullptr as a pointer
+										// to the subscriber.
 										nullptr,
 										delivery_status );
 							}

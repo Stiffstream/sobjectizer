@@ -623,6 +623,7 @@ struct tracing_disabled_base
 
 				void
 				message_rejected(
+					// NOTE: it can be nullptr.
 					const abstract_message_sink_t *,
 					const delivery_possibility_t ) const {}
 
@@ -720,6 +721,7 @@ class tracing_enabled_base
 
 				void
 				message_rejected(
+					// NOTE: it can be nullptr.
 					const abstract_message_sink_t * subscriber,
 					const delivery_possibility_t status ) const
 					{

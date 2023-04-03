@@ -271,31 +271,6 @@ class actual_mbox_t final
 				} );
 			}
 
-//FIXME: remove if it isn't needed.
-#if 0
-		void
-		remove_subscriber_if_needed(
-			const std::type_index & msg_type,
-			agent_t * subscriber )
-			{
-				this->lock_and_perform( [&] {
-					auto it = this->m_subscribers.find( msg_type );
-					if( it != this->m_subscribers.end() )
-					{
-						auto & subscriber_info = it->second;
-
-						// Skip all other actions if the subscription is
-						// made for a different agent.
-						if( subscriber == subscriber_info.receiver() )
-						{
-							// Subscriber must be removed.
-							this->m_subscribers.erase( it );
-						}
-					}
-				} );
-			}
-#endif
-
 		void
 		do_deliver_message_impl(
 			typename Tracing_Base::deliver_op_tracer const & tracer,
@@ -357,7 +332,6 @@ class actual_mbox_t final
 
 } /* namespace unique_subscribers_mbox_impl */
 
-//FIXME: the description in the doxygen comment has to be modified.
 //
 // make_unique_subscribers_mbox
 //
@@ -371,14 +345,14 @@ class actual_mbox_t final
  * used in multi-threaded environments):
  * \code
  * so_5::environment_t & env = ...;
- * auto mbox = so_5::extra::mboxes::unique_subscribers::make_mbox(env);
+ * auto mbox = so_5::make_unique_subscribers_mbox(env);
  * \endcode
  *
  * Create a mbox with so_5::null_mutex_t as Lock_Type (this mbox can only
  * be used in single-threaded environments):
  * \code
  * so_5::environment_t & env = ...;
- * auto mbox = so_5::extra::mboxes::unique_subscribers::make_mbox<so_5::null_mutex_t>(env);
+ * auto mbox = so_5::make_unique_subscribers_mbox<so_5::null_mutex_t>(env);
  * \endcode
  *
  * \tparam Lock_Type type of lock to be used for thread safety. It can be

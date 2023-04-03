@@ -421,7 +421,6 @@ class single_sink_binding_t
 						std::move(delivery_filter) );
 			}
 
-		//FIXME: document this!
 		/*!
 		 * Create a binding for message of type \a Msg from mbox \a source
 		 * to the destination \a sink_owner.
