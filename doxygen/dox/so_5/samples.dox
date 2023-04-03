@@ -206,6 +206,7 @@
  * \example so_5/named_dispatchers_layer/main.cpp
  * \example so_5/custom_work_thread_factory/main.cpp
  * \example so_5/custom_direct_mbox/main.cpp
+ * \example so_5/single_sink_binding/main.cpp
  */
 
 // vim:ft=cpp.doxygen
