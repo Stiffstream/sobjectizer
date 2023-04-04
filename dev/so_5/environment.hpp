@@ -1048,6 +1048,50 @@ class SO_5_TYPE environment_t
 		 *
 		 * If all these actions are successful then the cooperation is
 		 * marked as registered.
+		 *
+		 * \par Usage examples
+		 *
+		 * Very simple case.
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * env.register_coop(std::move(simple_coop));
+		 * \endcode
+		 *
+		 * More complex case with storing coop_handle and using it for
+		 * coop deregistration:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * so_5::coop_handle_t coop_handle;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * coop_handle = env.register_coop(std::move(simple_coop));
+		 * ...
+		 * // Some time later.
+		 * env.deregister_coop(coop_handle, so_5::dereg_reason::normal);
+		 * \endcode
+		 *
+		 * A typical scenario for register_coop() when an instance of coop
+		 * is created by a separate function:
+		 * \code
+		 * [[nodiscard]] so_5::coop_unique_holder_t create_coop(
+		 * 		so_5::environment_t & env)
+		 * {
+		 * 	auto coop = env.make_coop();
+		 * 	coop->make_agent<some_agent_type>(...);
+		 * 	... // Some other actions like creation of additional agents.
+		 *
+		 * 	// Now the coop can be returned back.
+		 * 	return coop;
+		 * }
+		 *
+		 * so_5::environment_t & env = ...;
+		 * ...
+		 * env.register_coop(create_coop(env));
+		 * \endcode
 		 */
 		coop_handle_t
 		register_coop(
