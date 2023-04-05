@@ -317,6 +317,8 @@ storage_t::debug_dump( std::ostream & to ) const
 
 //FIXME: dynamic memory allocation is used inside. What to do if std::bad_alloc
 //will be thrown here?
+//FIXME: a special unit-test should be added to check the correctness of this
+//implementation.
 void
 storage_t::destroy_all_subscriptions() noexcept
 	{
@@ -326,58 +328,46 @@ storage_t::destroy_all_subscriptions() noexcept
 
 		using namespace std;
 
-		// Structure for collecting information about mbox for
-		// calling unsubscribe_event_handler.
-		struct mbox_msg_info_t
-			{
-				abstract_message_box_t * m_mbox;
-				const type_index * m_msg_type;
-				abstract_message_sink_t * m_message_sink;
-
-				bool
-				operator<( const mbox_msg_info_t & o ) const
-					{
-						return m_mbox->id() < o.m_mbox->id() ||
-								( m_mbox->id() == o.m_mbox->id() &&
-								 (*m_msg_type) < (*o.m_msg_type) );
-					}
-
-				bool
-				operator==( const mbox_msg_info_t & o ) const
-					{
-						return m_mbox->id() == o.m_mbox->id() &&
-								(*m_msg_type) == (*o.m_msg_type);
-					}
-			};
-
-		// First step: collect all pointers to mbox-es.
-		vector< mbox_msg_info_t > mboxes;
-		mboxes.reserve( m_events.size() );
-
-		transform(
-				begin( m_events ), end( m_events ),
-				back_inserter( mboxes ),
-				[]( info_t & i ) {
-					return mbox_msg_info_t{
-							i.m_mbox.get(),
-							std::addressof( i.m_msg_type ),
-							std::addressof( i.m_message_sink.get() )
-						};
+		// Step one.
+		//
+		// Sort all event_info to have all subscriptions for the
+		// same (mbox, msg_type) one after another.
+		sort( begin( m_events ), end( m_events ),
+				[]( const auto & a, const auto & b )
+				{
+					return a.m_mbox->id() < b.m_mbox->id() ||
+							( a.m_mbox->id() == b.m_mbox->id() &&
+							 a.m_msg_type < b.m_msg_type );
 				} );
 
-		// Second step: remove duplicates.
-		sort( begin( mboxes ), end( mboxes ) );
-		mboxes.erase(
-				unique( begin( mboxes ), end( mboxes ) ),
-				end( mboxes ) );
+		// Step two.
+		//
+		// Destroy all subscriptions for unique (mbox, msg_type).
+		const auto total_items = m_events.size();
+		for( std::size_t i = 0u; i < total_items; )
+			{
+				auto & current_info = m_events[ i ];
+				current_info.m_mbox->unsubscribe_event_handler(
+						current_info.m_msg_type,
+						current_info.m_message_sink );
 
-		// Third step: destroy subscription in mboxes.
-		for( auto m : mboxes )
-			m.m_mbox->unsubscribe_event_handler(
-					*m.m_msg_type,
-					*m.m_message_sink );
+				// We should skip all consequtive items with the same
+				// (mbox, msg_type) pairs.
+				std::size_t j = 1u;
+				for( ; (i+j) < total_items; ++j )
+					{
+						const auto & next_info = m_events[ i+j ];
+						if( current_info.m_mbox->id() != next_info.m_mbox->id() ||
+								current_info.m_msg_type != next_info.m_msg_type )
+							break;
+					}
 
-		// Fourth step: cleanup subscription vector.
+				i += j;
+			}
+
+		// Third step.
+		//
+		// Cleanup subscription vector.
 		drop_content();
 	}
 
