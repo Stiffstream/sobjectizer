@@ -681,9 +681,9 @@ class local_mbox_template
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_wrapper,
-			abstract_message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) noexcept override
 			{
 				modify_and_remove_subscriber_if_needed(
 						type_wrapper,

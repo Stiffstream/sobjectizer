@@ -110,13 +110,11 @@ class next_turn_mbox_t final : public abstract_message_box_t
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & /*type_index*/,
-			abstract_message_sink_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{
-				SO_5_THROW_EXCEPTION( rc_not_implemented,
-						"call to unsubscribe_event_handler() is illegal for "
-						"next_turn_mbox_t" );
+				// Do nothing because it's a noexcept method since v.5.8.0.
 			}
 
 		std::string

@@ -55,9 +55,9 @@ class named_local_mbox_t final
 			abstract_message_sink_t & subscriber ) override;
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_wrapper,
-			abstract_message_sink_t & subscriber ) override;
+			abstract_message_sink_t & subscriber ) noexcept override;
 
 		std::string
 		query_name() const override;

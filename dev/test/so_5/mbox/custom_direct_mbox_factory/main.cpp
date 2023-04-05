@@ -72,11 +72,11 @@ class test_mbox_t final : public so_5::abstract_message_box_t
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_index,
-			::so_5::abstract_message_sink_t & subscriber ) override
+			::so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
-				m_target->unsubscribe_event_handlers(
+				m_target->unsubscribe_event_handler(
 						type_index,
 						subscriber );
 				m_protocol.append( "unsubscribe;" );

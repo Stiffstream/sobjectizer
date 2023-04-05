@@ -134,11 +134,11 @@ public :
 	}
 
 	void
-	unsubscribe_event_handlers(
+	unsubscribe_event_handler(
 		const std::type_index & type_index,
-		so_5::abstract_message_sink_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) noexcept override
 	{
-		m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
+		m_actual_mbox->unsubscribe_event_handler( type_index, subscriber );
 	}
 
 	std::string

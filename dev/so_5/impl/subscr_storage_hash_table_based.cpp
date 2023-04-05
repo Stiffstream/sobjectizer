@@ -346,6 +346,7 @@ storage_t::create_event_subscription(
 		}
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription(
 	const mbox_t & mbox_ref,
@@ -361,7 +362,7 @@ storage_t::drop_subscription(
 			bool mbox_msg_known = is_known_mbox_msg_pair( m_map, it );
 
 			// A reference to message_sink has to be stored for a case when
-			// unsubscribe_event_handlers has to be called.
+			// unsubscribe_event_handler has to be called.
 			abstract_message_sink_t & sink = it->second.m_message_sink.get();
 
 			m_hash_table.erase( &(it->first) );
@@ -369,11 +370,12 @@ storage_t::drop_subscription(
 
 			if( !mbox_msg_known )
 			{
-				mbox_ref->unsubscribe_event_handlers( type_index, sink );
+				mbox_ref->unsubscribe_event_handler( type_index, sink );
 			}
 		}
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox_ref,
@@ -390,7 +392,7 @@ storage_t::drop_subscription_for_all_states(
 		if( found )
 		{
 			// A reference to message_sink is necessary for calling
-			// unsubscribe_event_handlers. Store it here before removing
+			// unsubscribe_event_handler. Store it here before removing
 			// items from m_hash_table and m_map.
 			abstract_message_sink_t & sink = it->second.m_message_sink.get();
 
@@ -401,7 +403,7 @@ storage_t::drop_subscription_for_all_states(
 				}
 			while( need_erase() );
 
-			mbox_ref->unsubscribe_event_handlers( type_index, sink );
+			mbox_ref->unsubscribe_event_handler( type_index, sink );
 		}
 	}
 
@@ -435,35 +437,41 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
+//FIXME: should this method be noexcept?
 void
 storage_t::destroy_all_subscriptions()
 	{
 		{
 			const map_t::value_type * previous = nullptr;
 			for( auto & i : m_map )
-			{
-				// Optimisation: for several consequtive keys with
-				// the same (mbox, msg_type) pair it is necessary to
-				// call unsubscribe_event_handlers only once.
-				if( !previous ||
-						!previous->first.is_same_mbox_msg_pair( i.first ) )
-					i.second.m_mbox->unsubscribe_event_handlers(
-						i.first.m_msg_type,
-						i.second.m_message_sink.get() );
+				{
+					// Optimisation: for several consequtive keys with
+					// the same (mbox, msg_type) pair it is necessary to
+					// call unsubscribe_event_handler only once.
+					if( !previous ||
+							!previous->first.is_same_mbox_msg_pair( i.first ) )
+						{
+							i.second.m_mbox->unsubscribe_event_handler(
+								i.first.m_msg_type,
+								i.second.m_message_sink.get() );
+						}
 
-				previous = &i;
-			}
+					previous = &i;
+				}
 		}
 
 		drop_content();
 	}
 
+//FIXME: should this method be noexcept?
 void
 storage_t::drop_content()
 	{
+		//FIXME: the constructor of hash_table_t can throw.
 		hash_table_t tmp_hash_table;
 		m_hash_table.swap( tmp_hash_table );
 
+		//FIXME: the constructor of map_t can throw?
 		map_t tmp_map;
 		m_map.swap( tmp_map );
 	}

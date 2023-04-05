@@ -47,11 +47,11 @@ named_local_mbox_t::subscribe_event_handler(
 }
 
 void
-named_local_mbox_t::unsubscribe_event_handlers(
+named_local_mbox_t::unsubscribe_event_handler(
 	const std::type_index & type_wrapper,
-	abstract_message_sink_t & subscriber )
+	abstract_message_sink_t & subscriber ) noexcept
 {
-	return m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
+	return m_mbox->unsubscribe_event_handler( type_wrapper, subscriber );
 }
 
 std::string

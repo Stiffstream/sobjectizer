@@ -220,11 +220,11 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 
 		//! Remove all message handlers.
 		virtual void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
 			//! Subscriber.
-			abstract_message_sink_t & subscriber ) = 0;
+			abstract_message_sink_t & subscriber ) noexcept = 0;
 
 		//! Get the mbox name.
 		[[nodiscard]]

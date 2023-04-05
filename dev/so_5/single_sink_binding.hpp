@@ -239,7 +239,7 @@ class single_sink_binding_t
 								m_info->m_delivery_filter.reset();
 							}
 
-						m_info->m_source->unsubscribe_event_handlers(
+						m_info->m_source->unsubscribe_event_handler(
 								m_info->m_msg_type,
 								m_info->m_sink_owner->sink() );
 

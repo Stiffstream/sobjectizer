@@ -176,12 +176,12 @@ public:
 					subscriber );
 	}
 
-	void unsubscribe_event_handlers(
+	void unsubscribe_event_handler(
 		const std::type_index & msg_type,
-		so_5::abstract_message_sink_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) noexcept override
 	{
 		if( !should_intercept( msg_type ) )
-			m_source->unsubscribe_event_handlers(
+			m_source->unsubscribe_event_handler(
 					msg_type,
 					subscriber );
 	}

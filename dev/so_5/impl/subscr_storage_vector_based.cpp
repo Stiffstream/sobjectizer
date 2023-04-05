@@ -238,7 +238,7 @@ storage_t::drop_subscription(
 				// Item is no more needed.
 				m_events.erase( existed_position );
 
-				// Note v.5.5.9 unsubscribe_event_handlers is called for
+				// Note v.5.5.9 unsubscribe_event_handler is called for
 				// mbox even if it is MPSC mbox. It is necessary for the case
 				// of message delivery tracing.
 
@@ -251,11 +251,12 @@ storage_t::drop_subscription(
 						// If we are here then there is no more references
 						// to the mbox. And mbox must not hold reference
 						// to the agent.
-						mbox->unsubscribe_event_handlers( msg_type, message_sink );
+						mbox->unsubscribe_event_handler( msg_type, message_sink );
 					}
 			}
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
@@ -270,7 +271,7 @@ storage_t::drop_subscription_for_all_states(
 			{
 				// There are subscriptions to be removed.
 				// Have to store message_sink reference because it has to
-				// be passed to unsubscribe_event_handlers.
+				// be passed to unsubscribe_event_handler.
 				auto & message_sink = it->m_message_sink.get();
 
 				// Remove all items that match the predicate.
@@ -281,7 +282,7 @@ storage_t::drop_subscription_for_all_states(
 				// Note: since v.5.5.9 mbox unsubscription is initiated even if
 				// it is MPSC mboxes. It is important for the case of message
 				// delivery tracing.
-				mbox->unsubscribe_event_handlers( msg_type, message_sink );
+				mbox->unsubscribe_event_handler( msg_type, message_sink );
 
 			}
 	}
@@ -316,6 +317,9 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
+//FIXME: should this method be marked as noexcept?
+//FIXME: dynamic memory allocation is used inside. What to do if std::bad_alloc
+//will be thrown here?
 void
 storage_t::destroy_all_subscriptions()
 	{
@@ -326,7 +330,7 @@ storage_t::destroy_all_subscriptions()
 		using namespace std;
 
 		// Structure for collecting information about mbox for
-		// calling unsubscribe_event_handlers.
+		// calling unsubscribe_event_handler.
 		struct mbox_msg_info_t
 			{
 				abstract_message_box_t * m_mbox;
@@ -372,7 +376,7 @@ storage_t::destroy_all_subscriptions()
 
 		// Third step: destroy subscription in mboxes.
 		for( auto m : mboxes )
-			m.m_mbox->unsubscribe_event_handlers(
+			m.m_mbox->unsubscribe_event_handler(
 					*m.m_msg_type,
 					*m.m_message_sink );
 

@@ -210,15 +210,25 @@ class mpsc_mbox_template_t final
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & msg_type,
-			abstract_message_sink_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				ensure_sink_for_same_owner(
-						this->query_owner_reference(),
-						subscriber );
+				// ensure_sink_for_same_owner can't be used here because
+				// we're in noexcept method.
+				// So let's check the possiblity of unsubscription right here.
+				{
+					auto * p = dynamic_cast<message_sink_for_agent_t *>(
+							std::addressof(subscriber) );
+					if( !p )
+						return;
+
+					if( std::addressof(this->query_owner_reference()) !=
+							p->owner_pointer() )
+						return;
+				}
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,

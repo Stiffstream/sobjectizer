@@ -279,6 +279,7 @@ storage_t::create_event_subscription(
 			}
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription(
 	const mbox_t & mbox,
@@ -289,7 +290,7 @@ storage_t::drop_subscription(
 				m_events, mbox->id(), msg_type, target_state );
 		if( existed_position != m_events.end() )
 			{
-				// Note v.5.5.9 unsubscribe_event_handlers is called for
+				// Note v.5.5.9 unsubscribe_event_handler is called for
 				// mbox even if it is MPSC mbox. It is necessary for the case
 				// of message delivery tracing.
 
@@ -300,18 +301,19 @@ storage_t::drop_subscription(
 						!is_known_mbox_msg_pair( m_events, existed_position );
 
 				// Store a reference to message_sink for a case if
-				// unsubscribe_event_handlers has to be called.
+				// unsubscribe_event_handler has to be called.
 				abstract_message_sink_t & sink = existed_position->second.m_message_sink.get();
 
 				m_events.erase( existed_position );
 
 				if( must_unsubscribe_mbox )
 					{
-						mbox->unsubscribe_event_handlers( msg_type, sink );
+						mbox->unsubscribe_event_handler( msg_type, sink );
 					}
 			}
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
@@ -331,7 +333,7 @@ storage_t::drop_subscription_for_all_states(
 		if( events_found )
 			{
 				// Store a reference to message_sink because it's required
-				// for unsubscribe_event_handlers call.
+				// for unsubscribe_event_handler call.
 				abstract_message_sink_t & sink = lower_bound->second.m_message_sink.get();
 
 				// Erase all subscribed event handlers.
@@ -345,7 +347,7 @@ storage_t::drop_subscription_for_all_states(
 				// it is MPSC mboxes. It is important for the case of message
 				// delivery tracing.
 
-				mbox->unsubscribe_event_handlers( msg_type, sink );
+				mbox->unsubscribe_event_handler( msg_type, sink );
 			}
 	}
 
@@ -379,6 +381,7 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
+//FIXME: should this method be marked as noexcept?
 void
 storage_t::destroy_all_subscriptions()
 	{
@@ -393,7 +396,7 @@ storage_t::destroy_all_subscriptions()
 						cur->first.m_mbox_id,
 						cur->first.m_msg_type }( it->first ) )
 					{
-						cur->second.m_mbox->unsubscribe_event_handlers(
+						cur->second.m_mbox->unsubscribe_event_handler(
 								cur->first.m_msg_type,
 								cur->second.m_message_sink.get() );
 					}
