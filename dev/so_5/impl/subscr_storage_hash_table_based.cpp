@@ -224,15 +224,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox_ref,
-			const std::type_index & type_index ) override;
+			const std::type_index & type_index ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -244,7 +244,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -287,7 +287,7 @@ class storage_t : public subscription_storage_t
 		hash_table_t m_hash_table;
 
 		void
-		destroy_all_subscriptions();
+		destroy_all_subscriptions() noexcept;
 	};
 
 storage_t::storage_t()
@@ -346,12 +346,11 @@ storage_t::create_event_subscription(
 		}
 	}
 
-//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription(
 	const mbox_t & mbox_ref,
 	const std::type_index & type_index,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		key_t key( mbox_ref->id(), type_index, target_state );
 
@@ -375,11 +374,10 @@ storage_t::drop_subscription(
 		}
 	}
 
-//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox_ref,
-	const std::type_index & type_index )
+	const std::type_index & type_index ) noexcept
 	{
 		const key_t key( mbox_ref->id(), type_index );
 
@@ -408,7 +406,7 @@ storage_t::drop_subscription_for_all_states(
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		destroy_all_subscriptions();
 	}
@@ -437,9 +435,8 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
-//FIXME: should this method be noexcept?
 void
-storage_t::destroy_all_subscriptions()
+storage_t::destroy_all_subscriptions() noexcept
 	{
 		{
 			const map_t::value_type * previous = nullptr;
@@ -463,17 +460,12 @@ storage_t::destroy_all_subscriptions()
 		drop_content();
 	}
 
-//FIXME: should this method be noexcept?
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
-		//FIXME: the constructor of hash_table_t can throw.
-		hash_table_t tmp_hash_table;
-		m_hash_table.swap( tmp_hash_table );
+		m_hash_table.clear();
 
-		//FIXME: the constructor of map_t can throw?
-		map_t tmp_map;
-		m_map.swap( tmp_map );
+		m_map.clear();
 	}
 
 subscription_storage_common::subscr_info_vector_t

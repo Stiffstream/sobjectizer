@@ -62,15 +62,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) override;
+			const std::type_index & msg_type ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -82,7 +82,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -157,7 +157,7 @@ class storage_t : public subscription_storage_t
 		subscr_map_t m_events;
 
 		void
-		destroy_all_subscriptions();
+		destroy_all_subscriptions() noexcept;
 	};
 
 namespace
@@ -279,12 +279,11 @@ storage_t::create_event_subscription(
 			}
 	}
 
-//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		auto existed_position = find(
 				m_events, mbox->id(), msg_type, target_state );
@@ -313,11 +312,10 @@ storage_t::drop_subscription(
 			}
 	}
 
-//FIXME: should this method be marked as noexcept?
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
-	const std::type_index & msg_type )
+	const std::type_index & msg_type ) noexcept
 	{
 		const is_same_mbox_msg is_same{ mbox->id(), msg_type };
 
@@ -352,7 +350,7 @@ storage_t::drop_subscription_for_all_states(
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		destroy_all_subscriptions();
 	}
@@ -381,9 +379,8 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
-//FIXME: should this method be marked as noexcept?
 void
-storage_t::destroy_all_subscriptions()
+storage_t::destroy_all_subscriptions() noexcept
 	{
 		using namespace std;
 
@@ -406,10 +403,9 @@ storage_t::destroy_all_subscriptions()
 	}
 
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
-		subscr_map_t empty_map;
-		m_events.swap( empty_map );
+		m_events.clear();
 	}
 
 subscription_storage_common::subscr_info_vector_t

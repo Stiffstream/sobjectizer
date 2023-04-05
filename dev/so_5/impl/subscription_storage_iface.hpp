@@ -175,12 +175,12 @@ class subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const state_t & target_state ) = 0;
+			const state_t & target_state ) noexcept = 0;
 
 		virtual void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) = 0;
+			const std::type_index & msg_type ) noexcept = 0;
 
 		/*!
 		 * \brief Drop all subscriptions.
@@ -195,7 +195,7 @@ class subscription_storage_t
 		 * \since v.5.7.3
 		 */
 		virtual void
-		drop_all_subscriptions() = 0;
+		drop_all_subscriptions() noexcept = 0;
 
 		virtual const event_handler_data_t *
 		find_handler(
@@ -215,7 +215,7 @@ class subscription_storage_t
 		 * subscription information to another storage.
 		 */
 		virtual void
-		drop_content() = 0;
+		drop_content() noexcept = 0;
 
 		//! Get content for copying subscription information
 		//! to another storage object.

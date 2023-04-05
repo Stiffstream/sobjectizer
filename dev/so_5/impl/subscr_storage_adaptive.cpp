@@ -65,15 +65,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) override;
+			const std::type_index & msg_type ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -85,7 +85,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -106,7 +106,7 @@ class storage_t : public subscription_storage_t
 		subscription_storage_t * m_current_storage = nullptr;
 
 		void
-		try_switch_to_smaller_storage();
+		try_switch_to_smaller_storage() noexcept;
 	};
 
 storage_t::storage_t(
@@ -159,7 +159,7 @@ void
 storage_t::drop_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		m_current_storage->drop_subscription( mbox, msg_type, target_state );
 
@@ -169,7 +169,7 @@ storage_t::drop_subscription(
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
-	const std::type_index & msg_type )
+	const std::type_index & msg_type ) noexcept
 	{
 		m_current_storage->drop_subscription_for_all_states( mbox, msg_type );
 
@@ -177,7 +177,7 @@ storage_t::drop_subscription_for_all_states(
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		m_current_storage->drop_all_subscriptions();
 		m_current_storage = m_small_storage.get();
@@ -202,7 +202,7 @@ storage_t::debug_dump( std::ostream & to ) const
 	}
 
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
 		m_current_storage->drop_content();
 		m_current_storage = m_small_storage.get();
@@ -233,7 +233,7 @@ storage_t::query_subscriptions_count() const
 	}
 
 void
-storage_t::try_switch_to_smaller_storage()
+storage_t::try_switch_to_smaller_storage() noexcept
 	{
 		if( m_current_storage == m_large_storage.get() &&
 				m_threshold >= m_large_storage->query_subscriptions_count() )
