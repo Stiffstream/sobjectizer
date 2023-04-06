@@ -315,10 +315,6 @@ storage_t::debug_dump( std::ostream & to ) const
 					<< std::endl;
 	}
 
-//FIXME: dynamic memory allocation is used inside. What to do if std::bad_alloc
-//will be thrown here?
-//FIXME: a special unit-test should be added to check the correctness of this
-//implementation.
 void
 storage_t::destroy_all_subscriptions() noexcept
 	{

@@ -8,6 +8,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/subscribe_when_deregistered/prj.ut.rb" )
 	required_prj( "#{path}/drop_subscription/prj.ut.rb" )
 	required_prj( "#{path}/drop_subscr_when_demand_in_queue/prj.ut.rb" )
+	required_prj( "#{path}/drop_subscr_on_dereg/prj.ut.rb" )
 	required_prj( "#{path}/adaptive_subscr_storage/prj.ut.rb" )
 	required_prj( "#{path}/mpsc_mbox/prj.ut.rb" )
 	required_prj( "#{path}/mpsc_mbox_illegal_subscriber/prj.ut.rb" )
