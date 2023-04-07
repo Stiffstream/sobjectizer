@@ -30,6 +30,7 @@
 #include <so_5/impl/thread_join_stuff.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
 
 namespace so_5
 {
@@ -573,7 +574,7 @@ public :
 	void
 	start()
 	{
-		// NOTE: those actions have to be rollbacked in work thread can't
+		// NOTE: those actions have to be rollbacked if work thread can't
 		// be started.
 		this->m_queue.start_service();
 		this->m_status = status_t::working;
@@ -584,12 +585,11 @@ public :
 							[this]() { this->body(); } );
 				},
 				[this]() {
-					this->m_status = status_t::stopped;
-					//FIXME: this call can throw too.
-					// We don't known what to do with at the moment.
-					// This case has to be addressed in some future
-					// version of SObjectizer.
-					this->m_queue.stop_service();
+					// We can't recover if that code throws.
+					so_5::details::invoke_noexcept_code( [this]() {
+							this->m_status = status_t::stopped;
+							this->m_queue.stop_service();
+						} );
 				} );
 	}
 

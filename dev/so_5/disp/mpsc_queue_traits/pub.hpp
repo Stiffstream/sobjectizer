@@ -225,8 +225,10 @@ class unique_lock_t
 		unique_lock_t( unique_lock_t && ) = delete;
 
 		inline void
-		wait_for_notify()
+		wait_for_notify() noexcept
 			{
+				static_assert( noexcept(m_lock.wait_for_notify()) );
+
 				m_lock.wait_for_notify();
 			}
 
@@ -263,8 +265,10 @@ class lock_guard_t
 		lock_guard_t( lock_guard_t && ) = delete;
 
 		inline void
-		notify_one()
+		notify_one() noexcept
 			{
+				static_assert( noexcept(m_lock.notify_one()) );
+
 				m_lock.notify_one();
 			}
 
@@ -293,11 +297,12 @@ class queue_params_t
 			:	m_lock_factory{ o.m_lock_factory }
 			{}
 		//! Move constructor.
-		queue_params_t( queue_params_t && o )
+		queue_params_t( queue_params_t && o ) noexcept
 			:	m_lock_factory{ std::move(o.m_lock_factory) }
 			{}
 
-		friend inline void swap( queue_params_t & a, queue_params_t & b )
+		friend inline void
+		swap( queue_params_t & a, queue_params_t & b ) noexcept
 			{
 				using namespace std;
 				swap( a.m_lock_factory, b.m_lock_factory );
@@ -312,7 +317,8 @@ class queue_params_t
 			}
 
 		//! Move operator.
-		queue_params_t & operator=( queue_params_t && o )
+		queue_params_t &
+		operator=( queue_params_t && o ) noexcept
 			{
 				queue_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
