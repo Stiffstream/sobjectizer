@@ -34,8 +34,6 @@ namespace so_5
 namespace impl
 {
 
-class mbox_core_ref_t;
-
 //
 // mbox_core_stats_t
 //
@@ -58,11 +56,9 @@ struct mbox_core_stats_t
 /*!
  * \brief A utility class for the work with mboxes.
  */
-class mbox_core_t
-	:
-		private atomic_refcounted_t
+class mbox_core_t final : private atomic_refcounted_t
 {
-		friend class mbox_core_ref_t;
+		friend class intrusive_ptr_t< mbox_core_t >;
 
 		mbox_core_t( const mbox_core_t & ) = delete;
 		mbox_core_t & operator=( const mbox_core_t & ) = delete;
@@ -236,88 +232,14 @@ class mbox_core_t
 };
 
 //! Smart reference to the mbox_core_t.
-class mbox_core_ref_t
-{
-	public:
-		mbox_core_ref_t();
-
-		explicit mbox_core_ref_t(
-			mbox_core_t * mbox_core );
-
-		mbox_core_ref_t(
-			const mbox_core_ref_t & mbox_core_ref );
-
-		void
-		operator = ( const mbox_core_ref_t & mbox_core_ref );
-
-		~mbox_core_ref_t();
-
-		inline const mbox_core_t *
-		get() const
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t *
-		get()
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline const mbox_core_t *
-		operator -> () const
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t *
-		operator -> ()
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t &
-		operator * ()
-		{
-			return *m_mbox_core_ptr;
-		}
-
-
-		inline const mbox_core_t &
-		operator * () const
-		{
-			return *m_mbox_core_ptr;
-		}
-
-		inline bool
-		operator == ( const mbox_core_ref_t & mbox_core_ref ) const
-		{
-			return m_mbox_core_ptr ==
-				mbox_core_ref.m_mbox_core_ptr;
-		}
-
-		inline bool
-		operator < ( const mbox_core_ref_t & mbox_core_ref ) const
-		{
-			return m_mbox_core_ptr <
-				mbox_core_ref.m_mbox_core_ptr;
-		}
-
-	private:
-		//! Increment reference count to the mbox_core.
-		void
-		inc_mbox_core_ref_count();
-
-		//! Decrement reference count to the mbox_core.
-		/*!
-		 * If a reference count become 0 then mbox_core is destroyed.
-		 */
-		void
-		dec_mbox_core_ref_count();
-
-		mbox_core_t * m_mbox_core_ptr;
-};
+/*!
+ * \note
+ * It was a separate class until v.5.8.0.
+ * Since v.5.8.0 it's just a typedef for intrusive_ptr_t.
+ */
+using mbox_core_ref_t = intrusive_ptr_t< mbox_core_t >;
 
 } /* namespace impl */
 
 } /* namespace so_5 */
+

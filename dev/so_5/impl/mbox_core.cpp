@@ -202,69 +202,6 @@ mbox_core_t::create_named_mbox(
 	return mbox_t( new named_local_mbox_t( name, mbox_ref, *this ) );
 }
 
-//
-// mbox_core_ref_t
-//
-
-mbox_core_ref_t::mbox_core_ref_t()
-	:
-		m_mbox_core_ptr( nullptr )
-{
-}
-
-mbox_core_ref_t::mbox_core_ref_t(
-	mbox_core_t * mbox_core )
-	:
-		m_mbox_core_ptr( mbox_core )
-{
-	inc_mbox_core_ref_count();
-}
-
-mbox_core_ref_t::mbox_core_ref_t(
-	const mbox_core_ref_t & mbox_core_ref )
-	:
-		m_mbox_core_ptr( mbox_core_ref.m_mbox_core_ptr )
-{
-	inc_mbox_core_ref_count();
-}
-
-void
-mbox_core_ref_t::operator = (
-	const mbox_core_ref_t & mbox_core_ref )
-{
-	if( &mbox_core_ref != this )
-	{
-		dec_mbox_core_ref_count();
-
-		m_mbox_core_ptr = mbox_core_ref.m_mbox_core_ptr;
-		inc_mbox_core_ref_count();
-	}
-
-}
-
-mbox_core_ref_t::~mbox_core_ref_t()
-{
-	dec_mbox_core_ref_count();
-}
-
-inline void
-mbox_core_ref_t::dec_mbox_core_ref_count()
-{
-	if( m_mbox_core_ptr &&
-		0 == m_mbox_core_ptr->dec_ref_count() )
-	{
-		delete m_mbox_core_ptr;
-		m_mbox_core_ptr = nullptr;
-	}
-}
-
-inline void
-mbox_core_ref_t::inc_mbox_core_ref_count()
-{
-	if( m_mbox_core_ptr )
-		m_mbox_core_ptr->inc_ref_count();
-}
-
 } /* namespace impl */
 
 } /* namespace so_5 */
