@@ -526,8 +526,8 @@ storage_t::setup_content(
 				fresh_table.emplace( &(ins_result.first->first), i.m_handler );
 			} );
 
-		m_map.swap( fresh_map );
-		m_hash_table.swap( fresh_table );
+		swap( m_map, fresh_map );
+		swap( m_hash_table, fresh_table );
 	}
 
 std::size_t

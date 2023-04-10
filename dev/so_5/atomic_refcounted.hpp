@@ -166,11 +166,20 @@ class intrusive_ptr_t
 			dismiss_object();
 		}
 
+		//! Swap values.
+		friend void
+		swap( intrusive_ptr_t & a, intrusive_ptr_t & b ) noexcept
+		{
+			using std::swap;
+			swap( a.m_obj, b.m_obj );
+		}
+
 		//! Copy operator.
 		intrusive_ptr_t &
 		operator=( const intrusive_ptr_t & o ) noexcept
 		{
-			intrusive_ptr_t( o ).swap( *this );
+			intrusive_ptr_t tmp( o );
+			swap( tmp, *this );
 			return *this;
 		}
 
@@ -178,15 +187,9 @@ class intrusive_ptr_t
 		intrusive_ptr_t &
 		operator=( intrusive_ptr_t && o ) noexcept
 		{
-			intrusive_ptr_t( std::move(o) ).swap( *this );
+			intrusive_ptr_t tmp( std::move(o) );
+			swap( tmp, *this );
 			return *this;
-		}
-
-		//! Swap values.
-		void
-		swap( intrusive_ptr_t & o ) noexcept
-		{
-			std::swap( m_obj, o.m_obj );
 		}
 
 		/*!

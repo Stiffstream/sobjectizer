@@ -64,7 +64,8 @@ class disp_params_t
 		//! Default constructor.
 		disp_params_t() = default;
 
-		friend inline void swap( disp_params_t & a, disp_params_t & b ) noexcept
+		friend inline void
+		swap( disp_params_t & a, disp_params_t & b ) noexcept
 			{
 				swap(
 						static_cast< activity_tracking_mixin_t & >(a),

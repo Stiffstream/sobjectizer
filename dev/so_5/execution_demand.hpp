@@ -274,9 +274,10 @@ struct msg_type_and_handler_pair_t
 			msg_type_and_handler_pair_t & a,
 			msg_type_and_handler_pair_t & b ) noexcept
 			{
-				std::swap( a.m_msg_type, b.m_msg_type );
-				a.m_handler.swap( b.m_handler );
-				std::swap( a.m_mutability, b.m_mutability );
+				using std::swap;
+				swap( a.m_msg_type, b.m_msg_type );
+				swap( a.m_handler, b.m_handler );
+				swap( a.m_mutability, b.m_mutability );
 			}
 
 		//! Copy operator.

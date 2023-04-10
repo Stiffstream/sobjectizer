@@ -258,10 +258,12 @@ class queue_params_t
 					std::move(o.m_next_thread_wakeup_threshold) }
 			{}
 
-		friend inline void swap( queue_params_t & a, queue_params_t & b )
+		friend inline void
+		swap( queue_params_t & a, queue_params_t & b ) noexcept
 			{
-				std::swap( a.m_lock_factory, b.m_lock_factory );
-				std::swap( a.m_next_thread_wakeup_threshold, b.m_next_thread_wakeup_threshold );
+				using std::swap;
+				swap( a.m_lock_factory, b.m_lock_factory );
+				swap( a.m_next_thread_wakeup_threshold, b.m_next_thread_wakeup_threshold );
 			}
 
 		//! Copy operator.

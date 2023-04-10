@@ -498,7 +498,7 @@ class select_cases_holder_t
 		//! Move constructor.
 		select_cases_holder_t( select_cases_holder_t && o ) noexcept
 			{
-				swap( o );
+				swap( *this, o );
 			}
 
 		//! Move operator.
@@ -506,17 +506,20 @@ class select_cases_holder_t
 		operator=( select_cases_holder_t && o ) noexcept
 			{
 				select_cases_holder_t tmp( std::move( o ) );
-				swap( tmp );
+				swap( *this, tmp );
 
 				return *this;
 			}
 
 		//! Swap operation.
-		void
-		swap( select_cases_holder_t & o ) noexcept
+		friend void
+		swap(
+			select_cases_holder_t & a,
+			select_cases_holder_t & b ) noexcept
 			{
+				using std::swap;
 				for( std::size_t i = 0; i != Cases_Count; ++i )
-					m_cases[ i ] = std::move(o.m_cases[ i ]);
+					swap( a.m_cases[ i ], b.m_cases[ i ] );
 			}
 
 		//! Helper method for setting up specific select_case.

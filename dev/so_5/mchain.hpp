@@ -170,7 +170,7 @@ struct demand_t
 
 		//! Swap operation.
 		friend void
-		swap( demand_t & a, demand_t & b )
+		swap( demand_t & a, demand_t & b ) noexcept
 			{
 				using std::swap;
 

@@ -43,7 +43,7 @@ class auto_joiner_t
 				nullify();
 			}
 
-		auto_joiner_t( auto_joiner_t && o )
+		auto_joiner_t( auto_joiner_t && o ) noexcept
 			{
 				nullify();
 				m_threads.swap( o.m_threads );
@@ -59,11 +59,12 @@ class auto_joiner_t
 		friend inline void
 		swap( auto_joiner_t & a, auto_joiner_t & b ) noexcept
 			{
-				a.m_threads.swap( b.m_threads );
+				using std::swap;
+				swap( a.m_threads, b.m_threads );
 			}
 
 		auto_joiner_t &
-		operator=( auto_joiner_t && o )
+		operator=( auto_joiner_t && o ) noexcept
 			{
 				auto_joiner_t tmp{ std::move(o) };
 				swap( *this, tmp );

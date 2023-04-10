@@ -154,7 +154,7 @@ public :
 		}
 
 	friend void
-	swap( mhood_base_t & a, mhood_base_t & b )
+	swap( mhood_base_t & a, mhood_base_t & b ) noexcept
 		{
 			using namespace std;
 			swap( a, b );

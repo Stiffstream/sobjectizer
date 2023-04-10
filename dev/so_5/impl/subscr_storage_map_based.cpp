@@ -463,7 +463,7 @@ storage_t::setup_content(
 							} };
 				} );
 
-		m_events.swap( events );
+		swap( m_events, events );
 	}
 
 std::size_t

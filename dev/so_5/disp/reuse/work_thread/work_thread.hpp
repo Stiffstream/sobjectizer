@@ -242,7 +242,8 @@ public:
 		{
 			if( this->m_in_service && !this->m_demands.empty() )
 			{
-				demands.swap( this->m_demands );
+				//FIXME: using std::swap?
+				swap( demands, this->m_demands );
 
 				// It's time to update external counter.
 				external_counter.store( demands.size(), std::memory_order_release );

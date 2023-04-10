@@ -358,8 +358,8 @@ private :
 					// No exceptions expected here.
 					so_5::details::invoke_noexcept_code(
 						[&]() {
-							m_map.swap( new_storage );
-							m_vector.swap( empty_vector );
+							swap( m_map, new_storage );
+							swap( m_vector, empty_vector );
 							m_storage = storage_type::map;
 						} );
 				}
@@ -399,8 +399,8 @@ private :
 					// No exceptions expected here.
 					so_5::details::invoke_noexcept_code(
 						[&]() {
-							m_vector.swap( new_storage );
-							m_map.swap( empty_map );
+							swap( m_vector, new_storage );
+							swap( m_map, empty_map );
 							m_storage = storage_type::vector;
 						} );
 				}
@@ -443,7 +443,7 @@ public :
 		{}
 	//! Move constructor.
 	subscriber_adaptive_container_t(
-		subscriber_adaptive_container_t && o )
+		subscriber_adaptive_container_t && o ) noexcept
 		:	m_storage{ o.m_storage }
 		,	m_vector( std::move( o.m_vector ) )
 		,	m_map( std::move( o.m_map ) )
@@ -453,12 +453,15 @@ public :
 			o.m_storage = storage_type::vector;
 		}
 
-	void
-	swap( subscriber_adaptive_container_t & o )
+	friend void
+	swap(
+		subscriber_adaptive_container_t & a,
+		subscriber_adaptive_container_t & b ) noexcept
 		{
-			std::swap( m_storage, o.m_storage );
-			m_vector.swap( o.m_vector );
-			m_map.swap( o.m_map );
+			using std::swap;
+			swap( a.m_storage, b.m_storage );
+			swap( a.m_vector, b.m_vector );
+			swap( a.m_map, b.m_map );
 		}
 
 	//! Copy operator.
@@ -466,16 +469,16 @@ public :
 	operator=( const subscriber_adaptive_container_t & o )
 		{
 			subscriber_adaptive_container_t tmp{ o };
-			this->swap( tmp );
+			swap( *this, tmp );
 			return *this;
 		}
 
 	//! Move operator.
 	subscriber_adaptive_container_t &
-	operator=( const subscriber_adaptive_container_t && o )
+	operator=( const subscriber_adaptive_container_t && o ) noexcept
 		{
 			subscriber_adaptive_container_t tmp{ std::move(o) };
-			this->swap( tmp );
+			swap( *this, tmp );
 			return *this;
 		}
 
