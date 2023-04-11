@@ -46,7 +46,7 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		operator=( exception_t & o ) = default;
 
 		exception_t &
-		operator=( exception_t && o ) = default;
+		operator=( exception_t && o ) noexcept = default;
 
 		//! Error code getter.
 		int

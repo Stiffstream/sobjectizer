@@ -79,10 +79,10 @@ class SO_5_TYPE abstract_message_sink_t
 				const abstract_message_sink_t & ) = default;
 
 		abstract_message_sink_t(
-				abstract_message_sink_t && ) = default;
+				abstract_message_sink_t && ) noexcept = default;
 		abstract_message_sink_t &
 		operator=(
-				abstract_message_sink_t && ) = default;
+				abstract_message_sink_t && ) noexcept = default;
 
 		//! Get a reference for SObjectizer Environment for that
 		//! the message sink is created.

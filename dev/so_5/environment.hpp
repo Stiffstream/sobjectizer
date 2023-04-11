@@ -122,7 +122,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.2.3
 		 */
 		environment_params_t &
-		operator=( environment_params_t && other );
+		operator=( environment_params_t && other ) noexcept;
 
 		/*!
 		 * \brief Swap operation.
@@ -131,7 +131,7 @@ class SO_5_TYPE environment_params_t
 		 * v.5.2.3
 		 */
 		friend SO_5_FUNC void
-		swap( environment_params_t & a, environment_params_t & b );
+		swap( environment_params_t & a, environment_params_t & b ) noexcept;
 
 		//! Set the timer_thread factory.
 		/*!

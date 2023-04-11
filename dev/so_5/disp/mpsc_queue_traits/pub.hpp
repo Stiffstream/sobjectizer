@@ -309,7 +309,8 @@ class queue_params_t
 			}
 
 		//! Copy operator.
-		queue_params_t & operator=( const queue_params_t & o )
+		queue_params_t &
+		operator=( const queue_params_t & o )
 			{
 				queue_params_t tmp{ o };
 				swap( *this, tmp );

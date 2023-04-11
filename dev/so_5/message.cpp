@@ -36,7 +36,7 @@ message_t::operator=( const message_t & other )
 }
 
 message_t &
-message_t::operator=( message_t && other )
+message_t::operator=( message_t && other ) noexcept
 {
 	m_mutability = other.m_mutability;
 	return *this;

@@ -267,7 +267,8 @@ class queue_params_t
 			}
 
 		//! Copy operator.
-		queue_params_t & operator=( const queue_params_t & o )
+		queue_params_t &
+		operator=( const queue_params_t & o )
 			{
 				queue_params_t tmp{ o };
 				swap( *this, tmp );
@@ -275,7 +276,8 @@ class queue_params_t
 			}
 
 		//! Move operator.
-		queue_params_t & operator=( queue_params_t && o )
+		queue_params_t &
+		operator=( queue_params_t && o ) noexcept
 			{
 				queue_params_t tmp{ std::move(o) };
 				swap( *this, tmp );

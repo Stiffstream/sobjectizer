@@ -55,7 +55,8 @@ class nonempty_name_t
 			swap( a.m_nonempty_name, b.m_nonempty_name );
 		}
 
-		nonempty_name_t & operator=( nonempty_name_t && o ) noexcept
+		nonempty_name_t &
+		operator=( nonempty_name_t && o ) noexcept
 		{
 			nonempty_name_t tmp( std::move(o) );
 			swap( *this, o );

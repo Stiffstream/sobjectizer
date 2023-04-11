@@ -69,7 +69,7 @@ environment_params_t::~environment_params_t()
 }
 
 environment_params_t &
-environment_params_t::operator=( environment_params_t && other )
+environment_params_t::operator=( environment_params_t && other ) noexcept
 {
 	environment_params_t tmp( std::move( other ) );
 	swap( *this, tmp );
@@ -78,7 +78,7 @@ environment_params_t::operator=( environment_params_t && other )
 }
 
 SO_5_FUNC void
-swap( environment_params_t & a, environment_params_t & b )
+swap( environment_params_t & a, environment_params_t & b ) noexcept
 {
 	using std::swap;
 

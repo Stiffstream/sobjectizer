@@ -61,7 +61,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		message_t &
 		operator=( const message_t & other );
 		message_t &
-		operator=( message_t && other );
+		operator=( message_t && other ) noexcept;
 
 		virtual ~message_t() noexcept = default;
 

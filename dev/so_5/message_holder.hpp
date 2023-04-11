@@ -199,7 +199,7 @@ class unique_message_holder_impl_t
 
 		unique_message_holder_impl_t &
 		operator=(
-			unique_message_holder_impl_t && ) = default;
+			unique_message_holder_impl_t && ) noexcept = default;
 
 		//! Extracts the smart pointer to the message.
 		/*!

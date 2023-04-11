@@ -1339,7 +1339,7 @@ class coop_unique_holder_t
 		operator=( const coop_unique_holder_t & ) = delete;
 
 		coop_unique_holder_t &
-		operator=( coop_unique_holder_t && ) = default;
+		operator=( coop_unique_holder_t && ) noexcept = default;
 
 		friend void
 		swap( coop_unique_holder_t & a, coop_unique_holder_t & b ) noexcept
