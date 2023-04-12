@@ -183,11 +183,6 @@ class mbox_core_t final : private atomic_refcounted_t
 		//! Named mbox information.
 		struct named_mbox_info_t
 		{
-			named_mbox_info_t()
-				:
-					m_external_ref_count( 0 )
-			{}
-
 			named_mbox_info_t( mbox_t mbox )
 				:
 					m_external_ref_count( 1 ),
