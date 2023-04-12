@@ -1168,6 +1168,19 @@ class SO_5_TYPE environment_t
 		 * After the cooperation deregistration agents are unbound from
 		 * dispatchers.
 		 *
+		 * Usage example:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * so_5::coop_handle_t coop_handle;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * coop_handle = env.register_coop(std::move(simple_coop));
+		 * ...
+		 * // Some time later.
+		 * env.deregister_coop(coop_handle, so_5::dereg_reason::normal);
+		 * \endcode
+		 *
 		 * \note
 		 * This method is marked as noexcept because there is no way
 		 * to recover if any exception is raised here.
