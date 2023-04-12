@@ -62,3 +62,5 @@ add_subdirectory(bench/coop_dereg)
 add_subdirectory(bench/skynet1m)
 add_subdirectory(bench/prepared_receive)
 add_subdirectory(bench/prepared_select)
+add_subdirectory(bench/named_mboxes)
+
