@@ -17,11 +17,11 @@ namespace impl
 //
 
 named_local_mbox_t::named_local_mbox_t(
-	const std::string & name,
+	full_named_mbox_id_t name,
 	const mbox_t & mbox,
 	impl::mbox_core_t & mbox_core )
 	:
-		m_name( name ),
+		m_name( std::move(name) ),
 		m_mbox_core( &mbox_core ),
 		m_mbox( mbox )
 {
@@ -57,7 +57,10 @@ named_local_mbox_t::unsubscribe_event_handler(
 std::string
 named_local_mbox_t::query_name() const
 {
-	return m_name;
+	if( default_global_mbox_namespace() == m_name.m_namespace )
+		return m_name.m_name;
+	else
+		return m_name.m_namespace + "::" + m_name.m_name;
 }
 
 mbox_type_t

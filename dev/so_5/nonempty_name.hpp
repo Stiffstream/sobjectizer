@@ -64,12 +64,14 @@ class nonempty_name_t
 		}
 
 		//! Get the value.
+		[[nodiscard]]
 		inline const std::string &
-		query_name() const
+		query_name() const noexcept
 		{
 			return m_nonempty_name;
 		}
 
+//FIXME: should this method be marked as noexcept?
 		/*!
 		 * \brief Get the value away from the object.
 		 *
@@ -79,6 +81,7 @@ class nonempty_name_t
 		 * \since
 		 * v.5.5.19
 		 */
+		[[nodiscard]]
 		std::string
 		giveout_value()
 		{

@@ -48,6 +48,7 @@ mbox_core_t::create_mbox(
 	nonempty_name_t mbox_name )
 {
 	return create_named_mbox(
+			default_global_mbox_namespace(),
 			std::move(mbox_name),
 			[&env, this]() { return create_mbox(env); } );
 }
@@ -109,7 +110,7 @@ mbox_core_t::create_limitless_mpsc_mbox(
 
 void
 mbox_core_t::destroy_mbox(
-	const std::string & name )
+	const full_named_mbox_id_t & name ) noexcept
 {
 	std::lock_guard< std::mutex > lock( m_dictionary_lock );
 
@@ -137,6 +138,18 @@ mbox_core_t::create_custom_mbox(
 					outliving_mutable(m_msg_tracing_stuff)
 			} );
 }
+
+//FIXME: this method has to be implemented!
+#if 0
+mbox_t
+mbox_core_t::introduce_named_mbox(
+	environment_t & env,
+	mbox_namespace_name_t mbox_namespace,
+	nonempty_name_t mbox_name,
+	const std::function< mbox_t() > & mbox_factory )
+{
+}
+#endif
 
 mchain_t
 mbox_core_t::create_mchain(
@@ -175,23 +188,28 @@ mbox_core_t::allocate_mbox_id() noexcept
 
 mbox_t
 mbox_core_t::create_named_mbox(
+	std::string namespace_name,
 	nonempty_name_t nonempty_name,
 	const std::function< mbox_t() > & factory )
 {
 	mbox_t result; // Will be created later,
 
-	const std::string & name = nonempty_name.query_name();
+	full_named_mbox_id_t key{
+			std::move(namespace_name), nonempty_name.giveout_value()
+		};
+	// NOTE: namespace_name and nonempty_name can't be used anymore!
+
 	std::lock_guard< std::mutex > lock( m_dictionary_lock );
 
 	named_mboxes_dictionary_t::iterator it =
-		m_named_mboxes_dictionary.find( name );
+		m_named_mboxes_dictionary.find( key );
 
 	if( m_named_mboxes_dictionary.end() != it )
 	{
 		// For strong exception safety create a new instance
 		// of named_local_mbox first...
 		result = mbox_t{
-				new named_local_mbox_t( name, it->second.m_mbox, *this )
+				new named_local_mbox_t( key, it->second.m_mbox, *this )
 			};
 
 		// ... now the count of references can be incremented safely
@@ -206,13 +224,13 @@ mbox_core_t::create_named_mbox(
 		// For strong exception safety create a new instance
 		// of named_local_mbox first...
 		result = mbox_t{
-				new named_local_mbox_t( name, mbox_ref, *this )
+				new named_local_mbox_t( key, mbox_ref, *this )
 			};
 
 		// ...now we can update the dictionary. It there will be an exception
 		// then all new object will be destroyed automatically.
 		m_named_mboxes_dictionary.emplace(
-				name,
+				key,
 				named_mbox_info_t( mbox_ref ) );
 	}
 

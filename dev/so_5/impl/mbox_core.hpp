@@ -9,13 +9,6 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <map>
-#include <vector>
-#include <functional>
-#include <mutex>
-
 #include <so_5/mbox.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/nonempty_name.hpp>
@@ -27,6 +20,14 @@
 #include <so_5/outliving.hpp>
 
 #include <so_5/custom_mbox.hpp>
+
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace so_5
 {
@@ -48,6 +49,76 @@ struct mbox_core_stats_t
 		//! Count of named mboxes.
 		std::size_t m_named_mbox_count;
 	};
+
+//
+// full_named_mbox_id_t
+//
+/*!
+ * \brief Full name for a named mbox.
+ *
+ * The full name includes mbox namespace and the name of the mbox.
+ *
+ * \note
+ * The mbox namespace may be empty if named was created as ordinary
+ * named mbox (via environment_t::create_mbox()).
+ *
+ * \since v.5.8.0
+ */
+struct full_named_mbox_id_t
+	{
+		/*!
+		 * \brief Name of mbox namespace in that the mbox is defined.
+		 *
+		 * May be empty for ordinary named mbox.
+		 */
+		std::string m_namespace;
+
+		/*!
+		 * \brief Own name of the mbox.
+		 *
+		 * \attention
+		 * Can't be empty.
+		 */
+		std::string m_name;
+
+		//! Initializing constructor.
+		full_named_mbox_id_t(
+			std::string mbox_namespace,
+			std::string mbox_name )
+			:	m_namespace{ std::move(mbox_namespace) }
+			,	m_name{ std::move(mbox_name) }
+			{}
+	};
+
+[[nodiscard]]
+inline bool
+operator<(
+	const full_named_mbox_id_t & a,
+	const full_named_mbox_id_t & b )
+	{
+		return std::tie(a.m_namespace, a.m_name) <
+				std::tie(b.m_namespace, b.m_name);
+	}
+
+//
+// default_global_mbox_namespace
+//
+/*!
+ * \brief Helper function that returns name of the default global
+ * namespace for named mboxes.
+ *
+ * \note
+ * This default global namespace has empty name in the current version
+ * of SObjectizer.
+ *
+ * \since v.5.8.0
+ */
+[[nodiscard]]
+inline std::string
+default_global_mbox_namespace()
+	{
+		return {};
+	}
 
 //
 // mbox_core_t
@@ -120,7 +191,7 @@ class mbox_core_t final : private atomic_refcounted_t
 		void
 		destroy_mbox(
 			//! Mbox name.
-			const std::string & name );
+			const full_named_mbox_id_t & name ) noexcept;
 
 		/*!
 		 * \brief Create a custom mbox.
@@ -128,12 +199,33 @@ class mbox_core_t final : private atomic_refcounted_t
 		 * \since
 		 * v.5.5.19.2
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_custom_mbox(
 			//! Environment for which the mbox is created.
 			environment_t & env,
 			//! Creator for new mbox.
 			::so_5::custom_mbox_details::creator_iface_t & creator );
+
+//FIXME: this method has to be implemented!
+#if 0
+		/*!
+		 * \brief Introduce named mbox with user-provided factory.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		introduce_named_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
+			//! Name of mbox_namespace for a new mbox.
+			mbox_namespace_name_t mbox_namespace,
+			//! Name for a new mbox.
+			nonempty_name_t mbox_name,
+			//! Factory for new mbox.
+			const std::function< mbox_t() > & mbox_factory );
+#endif
 
 		/*!
 		 * \since
@@ -197,8 +289,10 @@ class mbox_core_t final : private atomic_refcounted_t
 
 		//! Typedef for the map from the mbox name to the mbox information.
 		using named_mboxes_dictionary_t = std::map<
-				std::string,
-				named_mbox_info_t >;
+				full_named_mbox_id_t,
+				named_mbox_info_t,
+				std::less<> // It's important.
+			>;
 
 		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
@@ -219,6 +313,8 @@ class mbox_core_t final : private atomic_refcounted_t
 		 */
 		mbox_t
 		create_named_mbox(
+			//! Namespace for a named mbox.
+			std::string namespace_name,
 			//! Mbox name.
 			nonempty_name_t nonempty_name,
 			//! Functional object to create new instance of mbox.

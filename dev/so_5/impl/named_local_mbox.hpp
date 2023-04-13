@@ -39,7 +39,7 @@ class named_local_mbox_t final
 		friend class impl::mbox_core_t;
 
 		named_local_mbox_t(
-			const std::string & name,
+			full_named_mbox_id_t full_name,
 			const mbox_t & mbox,
 			impl::mbox_core_t & mbox_core );
 
@@ -88,7 +88,7 @@ class named_local_mbox_t final
 
 	private:
 		//! Mbox name.
-		const std::string m_name;
+		const full_named_mbox_id_t m_name;
 
 		//! An utility for this mbox.
 		impl::mbox_core_ref_t m_mbox_core;
