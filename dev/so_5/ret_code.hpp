@@ -482,6 +482,14 @@ const int rc_mpsc_mbox_expected = 190;
  */
 const int rc_nullptr_as_delivery_filter_pointer = 191;
 
+//FIXME: a more detailed description has to be provided.
+/*!
+ * \brief nullptr returned by user-provided mbox factory.
+ *
+ * \since v.5.8.0
+ */
+const int rc_nullptr_as_result_of_user_mbox_factory = 192;
+
 //! \name Common error codes.
 //! \{
 

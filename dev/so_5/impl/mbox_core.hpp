@@ -10,6 +10,7 @@
 #pragma once
 
 #include <so_5/mbox.hpp>
+#include <so_5/mbox_namespace_name.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/nonempty_name.hpp>
 
@@ -207,8 +208,6 @@ class mbox_core_t final : private atomic_refcounted_t
 			//! Creator for new mbox.
 			::so_5::custom_mbox_details::creator_iface_t & creator );
 
-//FIXME: this method has to be implemented!
-#if 0
 		/*!
 		 * \brief Introduce named mbox with user-provided factory.
 		 *
@@ -217,15 +216,12 @@ class mbox_core_t final : private atomic_refcounted_t
 		[[nodiscard]]
 		mbox_t
 		introduce_named_mbox(
-			//! Environment for which the mbox is created.
-			environment_t & env,
 			//! Name of mbox_namespace for a new mbox.
 			mbox_namespace_name_t mbox_namespace,
 			//! Name for a new mbox.
 			nonempty_name_t mbox_name,
 			//! Factory for new mbox.
 			const std::function< mbox_t() > & mbox_factory );
-#endif
 
 		/*!
 		 * \since
@@ -304,22 +300,6 @@ class mbox_core_t final : private atomic_refcounted_t
 		 * \brief A counter for mbox ID generation.
 		 */
 		std::atomic< mbox_id_t > m_mbox_id_counter;
-
-		/*!
-		 * \since
-		 * v.5.2.0
-		 *
-		 * \brief Low-level implementation of named mbox creation.
-		 */
-		mbox_t
-		create_named_mbox(
-			//! Namespace for a named mbox.
-			std::string namespace_name,
-			//! Mbox name.
-			nonempty_name_t nonempty_name,
-			//! Functional object to create new instance of mbox.
-			//! Must have a prototype: mbox_t factory().
-			const std::function< mbox_t() > & factory );
 };
 
 //! Smart reference to the mbox_core_t.

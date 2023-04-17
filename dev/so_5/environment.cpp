@@ -504,6 +504,18 @@ environment_t::create_mbox(
 	return m_impl->m_mbox_core->create_mbox( *this, std::move(nonempty_name) );
 }
 
+mbox_t
+environment_t::introduce_named_mbox(
+	mbox_namespace_name_t mbox_namespace,
+	nonempty_name_t mbox_name,
+	const std::function< mbox_t() > & mbox_factory )
+{
+	return m_impl->m_mbox_core->introduce_named_mbox(
+			std::move(mbox_namespace),
+			std::move(mbox_name),
+			mbox_factory );
+}
+
 mchain_t
 environment_t::create_mchain(
 	const mchain_params_t & params )

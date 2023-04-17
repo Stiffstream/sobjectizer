@@ -47,10 +47,52 @@ mbox_core_t::create_mbox(
 	environment_t & env,
 	nonempty_name_t mbox_name )
 {
-	return create_named_mbox(
+	mbox_t result; // Will be created later,
+
+	full_named_mbox_id_t key{
 			default_global_mbox_namespace(),
-			std::move(mbox_name),
-			[&env, this]() { return create_mbox(env); } );
+			mbox_name.giveout_value()
+		};
+	// NOTE: mbox_name can't be used anymore!
+
+	std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+	named_mboxes_dictionary_t::iterator it =
+		m_named_mboxes_dictionary.find( key );
+
+	if( m_named_mboxes_dictionary.end() != it )
+	{
+		// For strong exception safety create a new instance
+		// of named_local_mbox first...
+		result = mbox_t{
+				new named_local_mbox_t( key, it->second.m_mbox, *this )
+			};
+
+		// ... now the count of references can be incremented safely
+		// (exceptions is no more expected).
+		++(it->second.m_external_ref_count);
+	}
+	else
+	{
+		// There is no mbox with such name. New mbox should be created.
+		// NOTE: it's safe to call create_mbox(env) when mbox_core is
+		// locked because create_mbox(env) doesn't to lock the mbox_core.
+		mbox_t mbox_ref = create_mbox( env );
+
+		// For strong exception safety create a new instance
+		// of named_local_mbox first...
+		result = mbox_t{
+				new named_local_mbox_t( key, mbox_ref, *this )
+			};
+
+		// ...now we can update the dictionary. If there will be an exception
+		// then all new object will be destroyed automatically.
+		m_named_mboxes_dictionary.emplace(
+				key,
+				named_mbox_info_t( mbox_ref ) );
+	}
+
+	return result;
 }
 
 namespace {
@@ -139,17 +181,96 @@ mbox_core_t::create_custom_mbox(
 			} );
 }
 
-//FIXME: this method has to be implemented!
-#if 0
 mbox_t
 mbox_core_t::introduce_named_mbox(
-	environment_t & env,
 	mbox_namespace_name_t mbox_namespace,
 	nonempty_name_t mbox_name,
 	const std::function< mbox_t() > & mbox_factory )
 {
+	mbox_t result;
+
+	full_named_mbox_id_t key{
+			std::string{ mbox_namespace.query_name() },
+			mbox_name.giveout_value()
+		};
+	// NOTE: mbox_name can't be used anymore!
+
+	// Step 1. Check the presense of this mbox.
+	// It's important to do that step on locked object.
+	{
+		std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+		named_mboxes_dictionary_t::iterator it =
+			m_named_mboxes_dictionary.find( key );
+
+		if( m_named_mboxes_dictionary.end() != it )
+		{
+			// For strong exception safety create a new instance
+			// of named_local_mbox first...
+			result = mbox_t{
+					new named_local_mbox_t( key, it->second.m_mbox, *this )
+				};
+
+			// ... now the count of references can be incremented safely
+			// (exceptions is no more expected).
+			++(it->second.m_external_ref_count);
+		}
+	}
+
+	if( !result )
+	{
+		// Step 2. Create a new instance on mbox.
+		// It's important to call mbox_factory when mbox_core isn't locked.
+		auto fresh_mbox = mbox_factory();
+		if( !fresh_mbox )
+			SO_5_THROW_EXCEPTION(
+					rc_nullptr_as_result_of_user_mbox_factory,
+					"user-provided mbox_factory returns nullptr" );
+
+		// Step 3. Try to register the fresh_mbox.
+		// It has to be done on locked object.
+		{
+			std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+			// Another search. This is necessary because the name may have been
+			// created while mbox_factory() was running.
+			named_mboxes_dictionary_t::iterator it =
+				m_named_mboxes_dictionary.find( key );
+
+			if( m_named_mboxes_dictionary.end() != it )
+			{
+				// Yes, the name has been created while we were inside
+				// mbox_factory() call. The fresh_mbox has to be discarded.
+				//
+				// For strong exception safety create a new instance
+				// of named_local_mbox first...
+				result = mbox_t{
+						new named_local_mbox_t( key, it->second.m_mbox, *this )
+					};
+
+				// ... now the count of references can be incremented safely
+				// (exceptions is no more expected).
+				++(it->second.m_external_ref_count);
+			}
+			else
+			{
+				// For strong exception safety create a new instance
+				// of named_local_mbox first...
+				result = mbox_t{
+						new named_local_mbox_t( key, fresh_mbox, *this )
+					};
+
+				// ...now we can update the dictionary. If there will be an
+				// exception then all new object will be destroyed automatically.
+				m_named_mboxes_dictionary.emplace(
+						key,
+						named_mbox_info_t( fresh_mbox ) );
+			}
+		}
+	}
+
+	return result;
 }
-#endif
 
 mchain_t
 mbox_core_t::create_mchain(
@@ -184,57 +305,6 @@ mbox_core_t::query_stats()
 mbox_core_t::allocate_mbox_id() noexcept
 {
 	return ++m_mbox_id_counter;
-}
-
-mbox_t
-mbox_core_t::create_named_mbox(
-	std::string namespace_name,
-	nonempty_name_t nonempty_name,
-	const std::function< mbox_t() > & factory )
-{
-	mbox_t result; // Will be created later,
-
-	full_named_mbox_id_t key{
-			std::move(namespace_name), nonempty_name.giveout_value()
-		};
-	// NOTE: namespace_name and nonempty_name can't be used anymore!
-
-	std::lock_guard< std::mutex > lock( m_dictionary_lock );
-
-	named_mboxes_dictionary_t::iterator it =
-		m_named_mboxes_dictionary.find( key );
-
-	if( m_named_mboxes_dictionary.end() != it )
-	{
-		// For strong exception safety create a new instance
-		// of named_local_mbox first...
-		result = mbox_t{
-				new named_local_mbox_t( key, it->second.m_mbox, *this )
-			};
-
-		// ... now the count of references can be incremented safely
-		// (exceptions is no more expected).
-		++(it->second.m_external_ref_count);
-	}
-	else
-	{
-		// There is no mbox with such name. New mbox should be created.
-		mbox_t mbox_ref = factory();
-
-		// For strong exception safety create a new instance
-		// of named_local_mbox first...
-		result = mbox_t{
-				new named_local_mbox_t( key, mbox_ref, *this )
-			};
-
-		// ...now we can update the dictionary. It there will be an exception
-		// then all new object will be destroyed automatically.
-		m_named_mboxes_dictionary.emplace(
-				key,
-				named_mbox_info_t( mbox_ref ) );
-	}
-
-	return result;
 }
 
 } /* namespace impl */

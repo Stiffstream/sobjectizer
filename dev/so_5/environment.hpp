@@ -15,35 +15,29 @@
 #include <type_traits>
 
 #include <so_5/compiler_features.hpp>
-#include <so_5/declspec.hpp>
-#include <so_5/exception.hpp>
-#include <so_5/error_logger.hpp>
-#include <so_5/compiler_features.hpp>
-#include <so_5/msg_tracing.hpp>
-
-#include <so_5/custom_mbox.hpp>
-
-#include <so_5/stop_guard.hpp>
-
-#include <so_5/nonempty_name.hpp>
-#include <so_5/mbox.hpp>
-#include <so_5/mchain.hpp>
-#include <so_5/message.hpp>
 #include <so_5/coop.hpp>
-#include <so_5/disp_binder.hpp>
-#include <so_5/so_layer.hpp>
 #include <so_5/coop_listener.hpp>
+#include <so_5/custom_mbox.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/disp_binder.hpp>
+#include <so_5/environment_infrastructure.hpp>
+#include <so_5/error_logger.hpp>
 #include <so_5/event_exception_logger.hpp>
 #include <so_5/event_queue_hook.hpp>
-
+#include <so_5/exception.hpp>
+#include <so_5/mbox.hpp>
+#include <so_5/mbox_namespace_name.hpp>
+#include <so_5/mchain.hpp>
+#include <so_5/message.hpp>
+#include <so_5/msg_tracing.hpp>
+#include <so_5/nonempty_name.hpp>
+#include <so_5/queue_locks_defaults_manager.hpp>
+#include <so_5/so_layer.hpp>
+#include <so_5/stop_guard.hpp>
 #include <so_5/timers.hpp>
 
 #include <so_5/stats/controller.hpp>
 #include <so_5/stats/repository.hpp>
-
-#include <so_5/queue_locks_defaults_manager.hpp>
-
-#include <so_5/environment_infrastructure.hpp>
 
 #include <so_5/disp/one_thread/params.hpp>
 #include <so_5/disp/abstract_work_thread.hpp>
@@ -843,22 +837,43 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 
+		//FIXME: a usage example has to be added.
 		//! Create an anonymous mbox with the default mutex.
 		/*!
 		 *	\note always creates a new mbox.
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_mbox();
 
+		//FIXME: a usage example has to be added.
 		//! Create named mbox.
 		/*!
 		 * If \a mbox_name is unique then a new mbox will be created.
 		 * If not the reference to existing mbox will be returned.
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_mbox(
 			//! Mbox name.
 			nonempty_name_t mbox_name );
+
+		//FIXME: more description and examples have to be added.
+		/*!
+		 * \brief Introduce named mbox with user-provided factory.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		introduce_named_mbox(
+			//! Name of mbox_namespace for a new mbox.
+			mbox_namespace_name_t mbox_namespace,
+			//! Name for a new mbox.
+			nonempty_name_t mbox_name,
+			//! Factory for new mbox.
+			const std::function< mbox_t() > & mbox_factory );
+
 		/*!
 		 * \}
 		 */

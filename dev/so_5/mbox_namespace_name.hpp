@@ -38,19 +38,24 @@ class mbox_namespace_name_t
 		std::string_view m_name;
 
 	public:
+		/*!
+		 * There is no way to create an empty name.
+		 */
+		mbox_namespace_name_t() = delete;
+
 		//! Constructor with check for the empty value.
-		explicit nonempty_name_t( std::string_view name )
+		explicit mbox_namespace_name_t( std::string_view name )
 			:	m_name( std::move(name) )
 			{
 				if( m_name.empty() )
 					SO_5_THROW_EXCEPTION( rc_empty_name, "empty mbox_namespace name" );
 			}
 
-//FIXME: should this method be marked as noexcept?
 		//! Get the value.
 		[[nodiscard]]
 		std::string_view
 		query_name() const
+			noexcept( noexcept( std::string_view{m_name} ) )
 			{
 				return m_name;
 			}

@@ -17,3 +17,5 @@ add_subdirectory(unique_subscribers)
 
 add_subdirectory(sink_binding)
 
+add_subdirectory(introduce_named_mbox)
+
