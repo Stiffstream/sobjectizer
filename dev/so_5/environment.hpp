@@ -837,20 +837,63 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 
-		//FIXME: a usage example has to be added.
-		//! Create an anonymous mbox with the default mutex.
+		//! Create an anonymous MPMC mbox.
 		/*!
+		 * Usage example:
+		 * \code
+		 * class my_agent final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	my_agent(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox()}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
 		 *	\note always creates a new mbox.
 		 */
 		[[nodiscard]]
 		mbox_t
 		create_mbox();
 
-		//FIXME: a usage example has to be added.
-		//! Create named mbox.
+		//! Create named MPMC mbox.
 		/*!
 		 * If \a mbox_name is unique then a new mbox will be created.
 		 * If not the reference to existing mbox will be returned.
+		 *
+		 * Usage example:
+		 * \code
+		 * class first_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	first_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox("message-board")}
+		 * 	{}
+		 * 	...
+		 * };
+		 *
+		 * class second_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	second_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox("message-board")}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 * In this example both agents will use the same mbox instance.
+		 *
+		 * \attention
+		 * Mboxes created by this method live in a separate namespace,
+		 * they are not mixed with named mboxes introduced via
+		 * introduce_named_mbox() method.
 		 */
 		[[nodiscard]]
 		mbox_t
@@ -861,6 +904,90 @@ class SO_5_TYPE environment_t
 		//FIXME: more description and examples have to be added.
 		/*!
 		 * \brief Introduce named mbox with user-provided factory.
+		 *
+		 * This method allows a user to create own named mbox.
+		 *
+		 * The create_mbox(nonempty_name_t) method always creates a standard
+		 * MPMC mbox. This isn't always desirable. For example, a user may want
+		 * to have a named unique_subscribers mbox. The introduce_named_mbox()
+		 * allows to achieve this:
+		 * \code
+		 * class first_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	first_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().introduce_named_mbox(
+		 * 				so_5::mbox_namespace_name_t{"demo"},
+		 * 				"message-board",
+		 * 				[this]() { return so_5::make_unique_subscribers_mbox(so_environment()); } )
+		 * 			}
+		 * 	{}
+		 * 	...
+		 * };
+		 *
+		 * class second_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	second_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().introduce_named_mbox(
+		 * 				so_5::mbox_namespace_name_t{"demo"},
+		 * 				"message-board",
+		 * 				[this]() { return so_5::make_unique_subscribers_mbox(so_environment()); } )
+		 * 			}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * Note that named mboxes created by this method live in separate
+		 * namespaces and those namespaces aren't intersect with "the default"
+		 * namespace used by the create_mbox(nonempty_name_t) method. It means
+		 * that a user can create named mboxes with the same name in different
+		 * namespaces and they will be different mboxes:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * auto std_mbox = env.create_mbox("alice");
+		 * auto my_mbox1 = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"a"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 * auto my_mbox2 = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"b"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 * // NOTE: it's just a reference to my_mbox2.
+		 * auto my_duplicate = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"b"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 *
+		 * assert(std_mbox->id() != my_mbox1->id());
+		 * assert(std_mbox->id() != my_mbox2->id());
+		 * assert(my_mbox1->id() != my_mbox2->id());
+		 * assert(my_mbox2->id() == my_duplicate->id());
+		 * \endcode
+		 *
+		 * The \a mbox_factory is used if there is no a mbox with the
+		 * name specified yet. If such a mbox is already exists then
+		 * the already created mbox will be returned without calling
+		 * \a mbox_factory.
+		 *
+		 * \note
+		 * If several parallel calls to introduce_named_mbox() with the same
+		 * parameters are made at the same time then \a mbox_factory can
+		 * be called several times (at most once for every introduce_named_mbox()
+		 * invocation). But only the one result of those calls will be used,
+		 * all other returned values will be discarded.
+		 *
+		 * \attention
+		 * The \a mbox_factory can be called in parallel (so \a mbox_factory
+		 * should support this behavior).
+		 * The \a mbox_factory can safely call environment_t's methods
+		 * like create_mbox() and so on.
 		 *
 		 * \since v.5.8.0
 		 */

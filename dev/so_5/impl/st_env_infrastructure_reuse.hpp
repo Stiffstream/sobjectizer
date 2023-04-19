@@ -487,7 +487,6 @@ class actual_elapsed_timers_collector_t final
 				else
 					{
 						// Old container must be utilized.
-						//FIXME: using std::swap?
 						demands_container_t demands;
 						swap( demands, m_demands );
 					}

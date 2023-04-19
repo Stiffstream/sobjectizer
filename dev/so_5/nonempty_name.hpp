@@ -71,7 +71,6 @@ class nonempty_name_t
 			return m_nonempty_name;
 		}
 
-//FIXME: should this method be marked as noexcept?
 		/*!
 		 * \brief Get the value away from the object.
 		 *
@@ -84,6 +83,7 @@ class nonempty_name_t
 		[[nodiscard]]
 		std::string
 		giveout_value()
+			noexcept( noexcept( std::string{ std::move(m_nonempty_name) } ) )
 		{
 			return std::move(m_nonempty_name);
 		}

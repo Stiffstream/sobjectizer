@@ -675,7 +675,6 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 		// the current final dereg demand.
 		while( !m_final_dereg_coops.empty() )
 			{
-				//FIXME: using std::swap?
 				final_dereg_coop_container_t coops;
 				swap( coops, m_final_dereg_coops );
 
