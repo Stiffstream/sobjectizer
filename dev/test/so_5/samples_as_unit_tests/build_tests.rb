@@ -101,5 +101,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/unique_subscribers_mbox.ut.rb"
   required_prj "#{path}/unique_subscribers_mbox-static.ut.rb"
+
+  required_prj "#{path}/introduce_named_mbox.ut.rb"
+  required_prj "#{path}/introduce_named_mbox-static.ut.rb"
 }
 

@@ -84,4 +84,5 @@ MxxRu::Cpp::composite_target {
 	example[ 'single_sink_binding' ]
 
 	example[ 'unique_subscribers_mbox' ]
+	example[ 'introduce_named_mbox' ]
 }
