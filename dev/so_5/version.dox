@@ -27,6 +27,10 @@ Unique-subcribers mbox is now a part of SObjectizer core (it's borrowed from
 companion so5extra project). See so_5::make_unique_subscribers_mbox() helper
 function for more details.
 
+There were several member functions `swap` in different classes. Since v.5.8
+they have been transformed into more standard-like friend freestanding `swap`
+functions (receive two references as parameters and are noexcept).
+
 \section so_5__5_7_4 5.7.4 "Cerro Miniques"
 
 The standard MPSC mboxes now support delivery filters.
