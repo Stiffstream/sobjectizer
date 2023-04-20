@@ -2,6 +2,31 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_0 5.8.0 "Licancabur"
+
+\attention
+This version breaks compatibility with SObjectizer-5.7 in several
+places.
+
+An introduction of so_5::abstract_message_sink_t interface.
+
+Format of so_5::abstract_message_box_t::subscribe_event_handler() changed.
+
+Method so_5::abstract_message_box_t::unsubscribe_event_handler() instead
+of unsubscribe_event_handlers in previous versions.
+
+Several method of so_5::abstract_message_box_t (like
+unsubscribe_event_handler() and drop_delivery_filter()) are now noexcept.
+
+New helpers so_5::single_sink_binding_t, so_5::multi_sink_binding_t and
+so_5::wrap_to_msink().
+
+New method so_5::environment_t::introduce_named_mbox().
+
+Unique-subcribers mbox is now a part of SObjectizer core (it's borrowed from
+companion so5extra project). See so_5::make_unique_subscribers_mbox() helper
+function for more details.
+
 \section so_5__5_7_4 5.7.4 "Cerro Miniques"
 
 The standard MPSC mboxes now support delivery filters.
