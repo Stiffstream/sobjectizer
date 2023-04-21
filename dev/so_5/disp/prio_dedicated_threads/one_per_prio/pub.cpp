@@ -233,7 +233,8 @@ class dispatcher_template_t final : public disp_binder_t
 		std::vector< std::unique_ptr< Work_Thread > > m_threads;
 
 		//! Counters for agent count for every priority.
-		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
+		std::array< std::atomic< std::size_t >, so_5::prio::total_priorities_count >
+				m_agents_per_priority;
 
 		//! Allocate work threads for dispatcher.
 		void
@@ -263,7 +264,7 @@ class dispatcher_template_t final : public disp_binder_t
 
 				// This helper vector will be used for shutdown of
 				// started threads in the case of an exception.
-				Work_Thread * started_threads[ total_priorities_count ];
+				std::array< Work_Thread *, total_priorities_count > started_threads;
 				// Initially all items must be NULL.
 				fill( begin(started_threads), end(started_threads), nullptr );
 

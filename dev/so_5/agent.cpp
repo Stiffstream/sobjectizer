@@ -581,10 +581,13 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 	state_t::path_t path;
 	m_current_state_ptr->fill_path( path );
 
-	auto e = begin(path) + static_cast< state_t::path_t::difference_type >(
-			m_current_state_ptr->nested_level() ) + 1;
+	const auto past_the_end = [&path, this]() {
+			auto r = begin(path);
+			std::advance( r, m_current_state_ptr->nested_level() + 1u );
+			return r;
+		}();
 
-	return e != std::find( begin(path), e, &state_to_check );
+	return past_the_end != std::find( begin(path), past_the_end, &state_to_check );
 }
 
 void

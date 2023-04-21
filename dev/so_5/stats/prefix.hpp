@@ -50,6 +50,10 @@ class prefix_t
 		inline
 		prefix_t( const char * value )
 			{
+				char * e = std::strncpy( m_value, value, max_length );
+				*e = 0;
+//FIXME: remove after debugging!
+#if 0
 				char * last = m_value + max_length;
 				char * pos = m_value;
 				while( *value && pos != last )
@@ -57,6 +61,7 @@ class prefix_t
 						*(pos++) = *(value++);
 					}
 				*pos = 0;
+#endif
 			}
 
 		//! Initializing constructor.

@@ -15,6 +15,11 @@
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 #include <test/3rd_party/various_helpers/cmd_line_args_helpers.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 namespace named_mbox_benchmark
 {
 

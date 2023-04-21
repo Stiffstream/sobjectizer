@@ -21,6 +21,11 @@
 #include <iterator>
 #include <array>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 namespace so_5 {
 
 namespace mchain_props {
@@ -2182,4 +2187,8 @@ select(
 	}
 
 } /* namespace so_5 */
+
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic pop
+#endif
 

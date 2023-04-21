@@ -43,8 +43,8 @@ public :
 		// Chain for responses to not-SO-part.
 		so_5::mchain_t chain )
 		:	so_5::agent_t{ ctx }
-		,	m_req_mbox{ move(req_mbox) }
-		,	m_chain{ move(chain) }
+		,	m_req_mbox{ std::move(req_mbox) }
+		,	m_chain{ std::move(chain) }
 		{}
 
 	void so_define_agent() override

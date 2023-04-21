@@ -9,6 +9,11 @@
 
 #include <so_5/all.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 struct msg_do_hardwork
 {
 	unsigned int m_index;

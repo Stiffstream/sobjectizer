@@ -10,6 +10,11 @@
 
 #include <test/3rd_party/utest_helper/helper.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 //
 // test_layer_t
 //

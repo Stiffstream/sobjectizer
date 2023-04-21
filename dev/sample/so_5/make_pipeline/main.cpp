@@ -65,7 +65,7 @@ template< typename M, typename... Args >
 stage_result_t< M >
 make_result( Args &&... args )
 {
-	return stage_result_t< M >::make(forward< Args >(args)...);
+	return stage_result_t< M >::make(std::forward< Args >(args)...);
 }
 
 //
@@ -358,7 +358,7 @@ move_sink_builder_to(
 {
 	receiver.emplace_back( std::move( first.m_builder ) );
 	if constexpr( 0u != sizeof...(rest) )
-		move_sink_builder_to<In>( receiver, forward< Rest >(rest)... );
+		move_sink_builder_to<In>( receiver, std::forward< Rest >(rest)... );
 }
 
 template< typename In, typename Out, typename... Rest >
@@ -384,7 +384,7 @@ broadcast( stage_t< In, Out > && first, Rest &&... stages )
 {
 	stage_builder_t builder{
 		[broadcasts = collect_sink_builders(
-				std::move(first), forward< Rest >(stages)...)]
+				std::move(first), std::forward< Rest >(stages)...)]
 		( coop_t & coop, mbox_t ) -> mbox_t
 		{
 			vector< mbox_t > mboxes;
@@ -434,7 +434,7 @@ make_pipeline(
 	// Optional args to be passed to so_5::create_child_coop function.
 	Args &&... args )
 {
-	auto coop = create_child_coop( owner, forward< Args >(args)... );
+	auto coop = create_child_coop( owner, std::forward< Args >(args)... );
 
 	auto mbox = sink.m_builder( *coop, mbox_t{} );
 

@@ -7,7 +7,12 @@
 
 #include <so_5/all.hpp>
 
-struct	cfg_t
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
+struct cfg_t
 {
 	unsigned int	m_request_count;
 

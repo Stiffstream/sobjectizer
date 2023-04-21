@@ -12,6 +12,11 @@
 
 #include "../separate_so_thread_inl.cpp"
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 void * last_created_objects[ 64 ];
 
 template < int N >

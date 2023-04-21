@@ -26,6 +26,11 @@
 
 #include <so_5/disp/prio_one_thread/quoted_round_robin/quotes.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 namespace so_5 {
 
 namespace disp {
@@ -357,4 +362,8 @@ class demand_queue_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic pop
+#endif
 
