@@ -43,6 +43,12 @@ class prefix_t
 				m_value[ 0 ] = 0;
 			}
 
+// clang++ complaints about unsafe pointer arithmetics.
+// Attempt to use strncpy leads to warnings in VC++.
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
 		//! Initializing constructor.
 		/*!
 		 * Gets no more than max_length symbols.
@@ -50,10 +56,6 @@ class prefix_t
 		inline
 		prefix_t( const char * value )
 			{
-				char * e = std::strncpy( m_value, value, max_length );
-				*e = 0;
-//FIXME: remove after debugging!
-#if 0
 				char * last = m_value + max_length;
 				char * pos = m_value;
 				while( *value && pos != last )
@@ -61,8 +63,10 @@ class prefix_t
 						*(pos++) = *(value++);
 					}
 				*pos = 0;
-#endif
 			}
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic pop
+#endif
 
 		//! Initializing constructor.
 		/*!
