@@ -2549,7 +2549,71 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
-		//FIXME: document this!
+		/*!
+		 * \brief Helper method that allows to run a block of code as
+		 * non-thread-safe event handler.
+		 *
+		 * \attention
+		 * This is a low-level method. Using it may destroy all thread-safety
+		 * guarantees provided by SObjectizer. Please use it only when you know
+		 * what your are doing. All responsibility rests with the user.
+		 *
+		 * Use of this method may be necessary when an agent is bound to a
+		 * special dispatcher that runs not only the agent's event-handlers, but
+		 * also other callbacks on the same worker thread.
+		 *
+		 * A good example of such a dispatcher is so5extra's asio_one_thread
+		 * dispatcher. It guarantees that an IO completion handler is called on
+		 * the same worker thread as agent's event-handlers. For example:
+		 * \code
+		 * class agent_that_uses_asio : public so_5::agent_t
+		 * {
+		 * 	state_t st_not_ready{this};
+		 * 	state_t st_ready{this};
+		 *
+		 * 	asio::io_context & io_ctx_;
+		 *
+		 * public:
+		 * 	agent_that_uses_asio(context_t ctx, asio::io_context & io_ctx)
+		 * 		:	so_5::agent_t{std::move(ctx)}
+		 * 		,	io_ctx_{io_ctx}
+		 * 	{}
+		 * 	...
+		 * 	void so_define_agent() override
+		 * 	{
+		 * 		st_not_ready.activate();
+		 * 		...
+		 * 	}
+		 *
+		 * 	void so_evt_start() override
+		 * 	{
+		 * 		auto resolver = std::make_shared<asio::ip::tcp::resolver>(io_ctx_);
+		 * 		resolver->async_resolve("some.host.name", "",
+		 * 				asio::ip::tcp::numeric_service | asio::ip::tcp::address_configured,
+		 * 				// IO completion handler to be run on agent's worker thread.
+		 * 				[resolver, this](auto ec, auto results) {
+		 * 					// It's necessary to wrap the block of code, otherwise
+		 * 					// modification of the agent's state (or managing of subscriptions)
+		 * 					// will be prohibited because SObjectizer doesn't see
+		 * 					// the IO completion handler as event handler.
+		 * 					so_low_level_exec_as_event_handler( [&]() {
+		 * 							...
+		 * 							st_ready.activate();
+		 * 						});
+		 * 				});
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * Using this method inside a running event-handler (non-thread-safe and
+		 * especially thread-safe) is undefined behavior. SObjectizer can't check
+		 * such a case without a significant performance penalty, so there won't
+		 * be any warnings or errors from SObjectizer's side, anything can
+		 * happen.
+		 *
+		 * \since v.5.8.0
+		 */
 		template< typename Lambda >
 		decltype(auto)
 		so_low_level_exec_as_event_handler(
