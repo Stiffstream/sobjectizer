@@ -32,5 +32,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/deactivate_agent_evt_finish/prj.ut.rb" )
 
 	required_prj( "#{path}/thread_safety_check/prj.ut.rb" )
+
+	required_prj( "#{path}/as_event_handler/prj.ut.rb" )
 }
 

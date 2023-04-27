@@ -459,6 +459,48 @@ class subscription_bind_t
 			const so_5::details::msg_type_and_handler_pair_t & handler ) const;
 };
 
+/*!
+ * \brief Internal namespace with details of agent_t implementation.
+ *
+ * \attention
+ * Nothing from that namespace can be used in user code. All of this is an
+ * implementation detail and is subject to change without any prior notice.
+ *
+ * \since v.5.8.0
+ */
+namespace impl::agent_impl
+{
+
+/*!
+ * \brief A helper class for temporary setting and then dropping
+ * the ID of the current working thread.
+ *
+ * \note New working thread_id is set only if it is not an
+ * null thread_id.
+ *
+ * \since v.5.4.0
+ */
+struct working_thread_id_sentinel_t
+	{
+		so_5::current_thread_id_t & m_id;
+
+		working_thread_id_sentinel_t(
+			so_5::current_thread_id_t & id_var,
+			so_5::current_thread_id_t value_to_set )
+			:	m_id( id_var )
+			{
+				if( value_to_set != null_current_thread_id() )
+					m_id = value_to_set;
+			}
+		~working_thread_id_sentinel_t()
+			{
+				if( m_id != null_current_thread_id() )
+					m_id = null_current_thread_id();
+			}
+	};
+
+} /* namespace impl::agent_impl */
+
 //
 // agent_t
 //
@@ -2506,6 +2548,20 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+		//FIXME: document this!
+		template< typename Lambda >
+		decltype(auto)
+		so_low_level_exec_as_event_handler(
+			Lambda && lambda ) noexcept( noexcept(lambda()) )
+			{
+				impl::agent_impl::working_thread_id_sentinel_t sentinel{
+						m_working_thread_id,
+						query_current_thread_id()
+					};
+
+				return lambda();
+			}
 
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };

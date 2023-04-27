@@ -104,6 +104,9 @@ class a_test_t final : public so_5::agent_t
 
 	custom_demand_scheduler_t & m_scheduler;
 
+	state_t st_waiting{ this, "waiting" };
+	state_t st_ready{ this, "ready" };
+
 public:
 	a_test_t( context_t ctx,
 		custom_demand_scheduler_t & scheduler )
@@ -114,18 +117,23 @@ public:
 	void
 	so_define_agent() override
 	{
-		so_subscribe_self()
+		st_ready
 			.event( [this]( mhood_t< msg_stop > ) {
 					so_deregister_agent_coop_normally();
 				} )
 			;
+
+		st_waiting.activate();
 	}
 
 	void
 	so_evt_start() override
 	{
 		m_scheduler.schedule( [this]() {
-				so_5::send< msg_stop >( *this );
+				so_low_level_exec_as_event_handler( [this]() {
+						st_ready.activate();
+						so_5::send< msg_stop >( *this );
+					} );
 			} );
 	}
 };

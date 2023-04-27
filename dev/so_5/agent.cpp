@@ -37,35 +37,6 @@ namespace
  * \since
  * v.5.4.0
  *
- * \brief A helper class for temporary setting and then dropping
- * the ID of the current working thread.
- *
- * \note New working thread_id is set only if it is not an
- * null thread_id.
- */
-struct working_thread_id_sentinel_t
-	{
-		so_5::current_thread_id_t & m_id;
-
-		working_thread_id_sentinel_t(
-			so_5::current_thread_id_t & id_var,
-			so_5::current_thread_id_t value_to_set )
-			:	m_id( id_var )
-			{
-				if( value_to_set != null_current_thread_id() )
-					m_id = value_to_set;
-			}
-		~working_thread_id_sentinel_t()
-			{
-				if( m_id != null_current_thread_id() )
-					m_id = null_current_thread_id();
-			}
-	};
-
-/*!
- * \since
- * v.5.4.0
- *
  */
 std::string
 create_anonymous_state_name( const agent_t * agent, const state_t * st )
@@ -694,7 +665,7 @@ agent_t::so_deactivate_agent()
 void
 agent_t::so_initiate_agent_definition()
 {
-	working_thread_id_sentinel_t sentinel(
+	impl::agent_impl::working_thread_id_sentinel_t sentinel(
 			m_working_thread_id,
 			so_5::query_current_thread_id() );
 
@@ -1135,7 +1106,7 @@ agent_t::demand_handler_on_start(
 {
 	d.m_receiver->ensure_binding_finished();
 
-	working_thread_id_sentinel_t sentinel(
+	impl::agent_impl::working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
 
@@ -1178,7 +1149,7 @@ agent_t::demand_handler_on_finish(
 	{
 		// Sentinel must finish its work before decrementing
 		// reference count to cooperation.
-		working_thread_id_sentinel_t sentinel(
+		impl::agent_impl::working_thread_id_sentinel_t sentinel(
 				d.m_receiver->m_working_thread_id,
 				working_thread_id );
 
@@ -1260,7 +1231,7 @@ agent_t::process_message(
 	thread_safety_t thread_safety,
 	event_handler_method_t method )
 {
-	working_thread_id_sentinel_t sentinel{
+	impl::agent_impl::working_thread_id_sentinel_t sentinel{
 			d.m_receiver->m_working_thread_id,
 			// v.5.7.3
 			// If event_handler is thread_safe-handler then null_thread_id
