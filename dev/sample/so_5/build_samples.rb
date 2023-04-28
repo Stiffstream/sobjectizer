@@ -85,4 +85,5 @@ MxxRu::Cpp::composite_target {
 
 	example[ 'unique_subscribers_mbox' ]
 	example[ 'introduce_named_mbox' ]
+	example[ 'child_soenv' ]
 }

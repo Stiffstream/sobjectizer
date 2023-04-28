@@ -104,5 +104,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/introduce_named_mbox.ut.rb"
   required_prj "#{path}/introduce_named_mbox-static.ut.rb"
+
+  required_prj "#{path}/child_soenv.ut.rb"
+  required_prj "#{path}/child_soenv-static.ut.rb"
 }
 

@@ -209,6 +209,7 @@
  * \example so_5/single_sink_binding/main.cpp
  * \example so_5/unique_subscribers_mbox/main.cpp
  * \example so_5/introduce_named_mbox/main.cpp
+ * \example so_5/child_soenv/main.cpp
  */
 
 // vim:ft=cpp.doxygen
