@@ -104,6 +104,30 @@ class coop_private_iface_t
 			{
 				return coop.m_dereg_reason;
 			}
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		static void
+		set_next_in_final_dereg_chain(
+			coop_t & coop,
+			coop_shptr_t next_in_chain ) noexcept
+		{
+			coop.m_next_in_final_dereg_chain = std::move(next_in_chain);
+		}
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		static coop_shptr_t
+		giveout_next_in_final_dereg_chain(
+			coop_t & coop ) noexcept
+		{
+			return std::exchange( coop.m_next_in_final_dereg_chain, coop_shptr_t{} );
+		}
 };
 
 } /* namespace impl */

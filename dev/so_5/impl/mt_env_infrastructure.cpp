@@ -28,19 +28,6 @@ namespace default_mt {
 
 namespace impl {
 
-namespace {
-
-struct msg_final_coop_dereg final : public so_5::message_t
-	{
-		coop_shptr_t m_coop;
-
-		msg_final_coop_dereg( coop_shptr_t coop )
-			:	m_coop{ std::move(coop) }
-			{}
-	};
-
-} /* namespace anonymous */
-
 //
 // coop_repo_t
 //
@@ -48,26 +35,15 @@ coop_repo_t::coop_repo_t(
 	outliving_reference_t< environment_t > env,
 	coop_listener_unique_ptr_t coop_listener )
 	:	coop_repository_basis_t( env, std::move(coop_listener) )
+	,	m_final_dereg_chain_size{ 0u }
+	,	m_final_dereg_thread_shutdown_flag{ false }
 	{}
 
 void
 coop_repo_t::start()
 {
-	// mchain for final coop deregs must be created.
-	m_final_dereg_chain = environment().create_mchain(
-			make_unlimited_mchain_params().disable_msg_tracing() );
 	// A separate thread for doing the final dereg must be started.
-	m_final_dereg_thread = std::thread{ [this] {
-		// Process dereg demands until chain will be closed.
-		receive( from( m_final_dereg_chain ).handle_all(),
-			[]( mutable_mhood_t<msg_final_coop_dereg> cmd ) {
-				// NOTE: we should call final_deregister_coop from
-				// environment because only this call handles autoshutdown flag.
-				auto & env = cmd->m_coop->environment();
-				so_5::impl::internal_env_iface_t{ env }.final_deregister_coop(
-						std::move(cmd->m_coop) );
-			} );
-	} };
+	m_final_dereg_thread = std::thread{ [this] { final_dereg_thread_body(); } };
 }
 
 void
@@ -80,9 +56,11 @@ coop_repo_t::finish()
 	wait_all_coop_to_deregister();
 
 	// Notify a dedicated thread and wait while it will be stopped.
-	// NOTE: use exceptions_enabled because finish() allowed to throw
-	// exceptions.
-	close_retain_content( so_5::exceptions_enabled, m_final_dereg_chain );
+	{
+		std::lock_guard< std::mutex > lock{ m_final_dereg_chain_lock };
+		m_final_dereg_thread_shutdown_flag = true;
+		m_final_dereg_chain_cond.notify_one();
+	}
 	m_final_dereg_thread.join();
 }
 
@@ -90,8 +68,22 @@ void
 coop_repo_t::ready_to_deregister_notify(
 	coop_shptr_t coop )
 {
-	so_5::send< mutable_msg< msg_final_coop_dereg > >(
-			m_final_dereg_chain, std::move(coop) );
+	std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
+
+	// Update the final_dereg_chain.
+	if( !m_final_dereg_chain_head )
+		m_final_dereg_chain_head = coop;
+	if( m_final_dereg_chain_tail )
+		so_5::impl::coop_private_iface_t::set_next_in_final_dereg_chain(
+				*m_final_dereg_chain_tail,
+				coop );
+	m_final_dereg_chain_tail = std::move(coop);
+
+	if( 1u == (m_final_dereg_chain_size += 1u) )
+	{
+		// Final deregistration thread may wait, have to wake it up.
+		m_final_dereg_chain_cond.notify_one();
+	}
 }
 
 bool
@@ -140,7 +132,10 @@ coop_repo_t::wait_all_coop_to_deregister()
 environment_infrastructure_t::coop_repository_stats_t
 coop_repo_t::query_stats()
 {
-	const auto final_dereg_coops = m_final_dereg_chain->size();
+	const auto final_dereg_coops = [this]() {
+			std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
+			return m_final_dereg_chain_size;
+		}();
 
 	const auto basis_stats = coop_repository_basis_t::query_stats();
 
@@ -149,6 +144,63 @@ coop_repo_t::query_stats()
 			basis_stats.m_total_agent_count,
 			final_dereg_coops
 		};
+}
+
+void
+coop_repo_t::final_dereg_thread_body()
+{
+	std::unique_lock< std::mutex > lck{ m_final_dereg_chain_lock };
+
+	for( bool should_continue = true; should_continue; )
+	{
+		bool should_wait = true;
+
+		// If there are some waiting coops they have to be processed even
+		// if m_final_dereg_thread_shutdown_flag is set.
+		if( m_final_dereg_chain_head )
+		{
+			// There are some coops to be deregistered.
+			coop_shptr_t head = std::exchange(
+					m_final_dereg_chain_head,
+					coop_shptr_t{} );
+			m_final_dereg_chain_tail = coop_shptr_t{};
+			m_final_dereg_chain_size = 0u;
+
+			// All following actions has to be performed on unlocked mutex.
+			lck.unlock();
+
+			// Don't expect exceptions here.
+			so_5::details::invoke_noexcept_code( [&] {
+					// Do final_deregister_coop for every item in the chain
+					// one by one.
+					while( head )
+					{
+						using namespace so_5::impl;
+
+						coop_shptr_t next =
+								coop_private_iface_t::giveout_next_in_final_dereg_chain(
+										*head );
+						auto & env = head->environment();
+						internal_env_iface_t{ env }.final_deregister_coop(
+								std::move(head) );
+
+						head = std::move(next);
+					}
+				} );
+
+			lck.lock();
+
+			should_wait = false;
+		}
+
+		if( m_final_dereg_thread_shutdown_flag )
+			should_continue = true;
+		else if( should_wait )
+		{
+			// No coops to deregister. Have to wait.
+			m_final_dereg_chain_cond.wait( lck );
+		}
+	}
 }
 
 //

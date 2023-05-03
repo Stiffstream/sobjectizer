@@ -96,10 +96,9 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		wait_all_coop_to_deregister();
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Get the current statistic for run-time monitoring.
+		 *
+		 * \since v.5.5.4
 		 */
 		environment_infrastructure_t::coop_repository_stats_t
 		query_stats();
@@ -115,28 +114,60 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 * \name Stuff for final coop deregistration.
 		 * \{
 		 */
+		//FIXME: document this!
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
-		 * \brief Queue of coops to be finally deregistered.
-		 *
-		 * \note Actual mchain is created inside start() method.
+		 * \since v.5.8.0
 		 */
-		mchain_t m_final_dereg_chain;
+		std::mutex m_final_dereg_chain_lock;
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		std::condition_variable m_final_dereg_chain_cond;
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		std::size_t m_final_dereg_chain_size;
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_final_dereg_chain_head;
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_final_dereg_chain_tail;
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		bool m_final_dereg_thread_shutdown_flag;
 
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
 		 * \brief A separate thread for doing the final deregistration.
 		 *
 		 * \note Actual thread is started inside start() method.
+		 *
+		 * \since v.5.5.13
 		 */
 		std::thread m_final_dereg_thread;
 		/*!
 		 * \}
 		 */
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.0
+		 */
+		void
+		final_dereg_thread_body();
 	};
 
 //

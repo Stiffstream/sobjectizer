@@ -1150,8 +1150,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \note
 		 * This field will be used only by parent coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		coop_shptr_t m_prev_sibling;
 
@@ -1163,10 +1162,17 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \note
 		 * This field will be used only by parent coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		coop_shptr_t m_next_sibling;
+
+		//FIXME: add more description to the comment.
+		/*!
+		 * \brief The next coop in the chain for final deregistration actions.
+		 *
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_next_in_final_dereg_chain;
 
 		/*!
 		 * \brief Increment usage count for the coop.
