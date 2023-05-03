@@ -54,8 +54,6 @@ void
 coop_impl_t::destroy_content(
 	coop_t & coop ) noexcept
 	{
-		using std::swap;
-
 		// Initiate deleting of agents by hand to guarantee that
 		// agents will be destroyed before return from coop_t
 		// destructor.
@@ -63,17 +61,19 @@ coop_impl_t::destroy_content(
 		// NOTE: because agents are stored here by smart references
 		// for some agents this operation will lead only to reference
 		// counter descrement. Not to deletion of agent.
-		decltype(coop.m_agent_array) agents;
-		swap( coop.m_agent_array, agents );
-
-		agents.clear();
+		coop.m_agent_array.clear();
 
 		// Now all user resources should be destroyed.
-		decltype(coop.m_resource_deleters) resources;
-		swap( coop.m_resource_deleters, resources );
+		// Don't expect exceptions here because all resource deleters have
+		// to be noexcept.
+		for( auto & d : coop.m_resource_deleters )
+		{
+			static_assert( noexcept( d() ),
+					"resource deleter is expected to be noexcept" );
 
-		for( auto & d : resources )
 			d();
+		}
+		coop.m_resource_deleters.clear();
 	}
 
 void

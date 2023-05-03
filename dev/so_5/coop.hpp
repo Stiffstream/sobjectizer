@@ -1247,6 +1247,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				impl::coop_impl_t::do_add_child( *this, std::move(child) );
 			}
 
+//FIXME: should this method be noexcept?
 		/*!
 		 * \brief Remove a child from the parent coop.
 		 *
