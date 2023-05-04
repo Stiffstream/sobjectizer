@@ -35,7 +35,6 @@ coop_repo_t::coop_repo_t(
 	outliving_reference_t< environment_t > env,
 	coop_listener_unique_ptr_t coop_listener )
 	:	coop_repository_basis_t( env, std::move(coop_listener) )
-	,	m_final_dereg_chain_size{ 0u }
 	,	m_final_dereg_thread_shutdown_flag{ false }
 	{}
 
@@ -71,15 +70,9 @@ coop_repo_t::ready_to_deregister_notify(
 	std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
 
 	// Update the final_dereg_chain.
-	if( !m_final_dereg_chain_head )
-		m_final_dereg_chain_head = coop;
-	if( m_final_dereg_chain_tail )
-		so_5::impl::coop_private_iface_t::set_next_in_final_dereg_chain(
-				*m_final_dereg_chain_tail,
-				coop );
-	m_final_dereg_chain_tail = std::move(coop);
+	m_final_dereg_chain.append( std::move(coop) );
 
-	if( 1u == (m_final_dereg_chain_size += 1u) )
+	if( 1u == m_final_dereg_chain.size() )
 	{
 		// Final deregistration thread may wait, have to wake it up.
 		m_final_dereg_chain_cond.notify_one();
@@ -134,7 +127,7 @@ coop_repo_t::query_stats()
 {
 	const auto final_dereg_coops = [this]() {
 			std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
-			return m_final_dereg_chain_size;
+			return m_final_dereg_chain.size();
 		}();
 
 	const auto basis_stats = coop_repository_basis_t::query_stats();
@@ -157,13 +150,13 @@ coop_repo_t::final_dereg_thread_body()
 
 		// If there are some waiting coops they have to be processed even
 		// if m_final_dereg_thread_shutdown_flag is set.
-		if( m_final_dereg_chain_head )
+		if( !m_final_dereg_chain.empty() )
 		{
 			// There are some coops to be deregistered.
 			process_current_final_dereg_chain( lck );
 
 			// Because the processing takes some time there is no need
-			// to sleep before new check for m_final_dereg_chain_head.
+			// to sleep before new check for m_final_dereg_chain.
 			should_wait = false;
 		}
 
@@ -191,30 +184,14 @@ coop_repo_t::process_current_final_dereg_chain(
 	// There are some coops to be deregistered.
 	// Have to extract the current value of final dereg chain from
 	// the coop_repo instance.
-	coop_shptr_t head = std::exchange(
-			m_final_dereg_chain_head,
-			coop_shptr_t{} );
-	m_final_dereg_chain_tail = coop_shptr_t{};
-	m_final_dereg_chain_size = 0u;
+	coop_shptr_t head = m_final_dereg_chain.giveout_current_chain();
 
 	// All following actions has to be performed on unlocked mutex.
 	lck.unlock();
 
 	// Do final_deregister_coop for every item in the chain
 	// one by one.
-	while( head )
-	{
-		using namespace so_5::impl;
-
-		coop_shptr_t next =
-				coop_private_iface_t::giveout_next_in_final_dereg_chain(
-						*head );
-		auto & env = head->environment();
-		internal_env_iface_t{ env }.final_deregister_coop(
-				std::move(head) );
-
-		head = std::move(next);
-	}
+	so_5::impl::process_final_dereg_chain( std::move(head) );
 
 	// Have to reacquire the lock back.
 	lck.lock();

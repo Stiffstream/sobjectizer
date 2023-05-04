@@ -16,6 +16,8 @@
 #include <so_5/impl/run_stage.hpp>
 #include <so_5/impl/internal_env_iface.hpp>
 
+#include <so_5/impl/final_dereg_chain_helpers.hpp>
+
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
 #include <so_5/environment.hpp>
@@ -61,8 +63,7 @@ namespace reusable = ::so_5::env_infrastructures::st_reusable_stuff;
  *
  * Main thread can handle some events or can sleep and wait for new events.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 enum class main_thread_status_t
 	{
@@ -74,8 +75,7 @@ enum class main_thread_status_t
  * \brief A bunch of sync objects which need to be shared between
  * various parts of env_infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct main_thread_sync_objects_t
 	{
@@ -111,8 +111,7 @@ using shutdown_status_t = reusable::shutdown_status_t;
  * \brief Implementation of event_queue interface for this type of
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class event_queue_impl_t final : public so_5::event_queue_t
 	{
@@ -192,8 +191,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
  * \brief Implementation of coop_repository for
  * simple thread-safe single-threaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using coop_repo_t = reusable::coop_repo_t;
 
@@ -203,8 +201,7 @@ using coop_repo_t = reusable::coop_repo_t;
 /*!
  * \brief A special class for generation of names for dispatcher data sources.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct disp_ds_name_parts_t
 	{
@@ -222,8 +219,7 @@ struct disp_ds_name_parts_t
  * \tparam Activity_Tracker a type of activity tracker to be used
  * for run-time statistics.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 using default_dispatcher_t =
@@ -239,8 +235,7 @@ using default_dispatcher_t =
  * \brief Implementation of stats_controller for that type of
  * single-threaded environment.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using stats_controller_t =
 	reusable::stats_controller_t< so_5::details::actual_lock_holder_t<> >;
@@ -253,8 +248,7 @@ using stats_controller_t =
  *
  * \tparam Activity_Tracker A type for tracking activity of main working thread.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 class env_infrastructure_t
@@ -338,34 +332,11 @@ class env_infrastructure_t
 		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
 
 		/*!
-		 * \brief Number of items in the chain of coops for the final
-		 * deregistration.
-		 *
-		 * This value is necessary for stats.
+		 * \brief The chain of coops for the final deregistration.
 		 *
 		 * \since v.5.8.0
 		 */
-		std::size_t m_final_dereg_chain_size{ 0u };
-
-		/*!
-		 * \brief The head of the chain of coops for the final deregistration.
-		 *
-		 * It may be nullptr. It means that the chain is empty now.
-		 *
-		 * \since v.5.8.0
-		 */
-		coop_shptr_t m_final_dereg_chain_head;
-
-		/*!
-		 * \brief The tail of the chain of coops for the final deregistration.
-		 *
-		 * This value is used for fast addition of a new coop to the chain.
-		 *
-		 * It may be nullptr in the case when the chain is empty.
-		 *
-		 * \since v.5.8.0
-		 */
-		coop_shptr_t m_final_dereg_chain_tail;
+		so_5::impl::final_dereg_chain_holder_t m_final_dereg_chain;
 
 		//! Status of shutdown procedure.
 		shutdown_status_t m_shutdown_status{ shutdown_status_t::not_started };
@@ -488,14 +459,7 @@ env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 
-		++m_final_dereg_chain_size;
-		if( !m_final_dereg_chain_head )
-			m_final_dereg_chain_head = coop;
-		if( m_final_dereg_chain_tail )
-			so_5::impl::coop_private_iface_t::set_next_in_final_dereg_chain(
-					*m_final_dereg_chain_tail,
-					coop );
-		m_final_dereg_chain_tail = std::move(coop);
+		m_final_dereg_chain.append( std::move(coop) );
 
 		wakeup_if_waiting( m_sync_objects );
 	}
@@ -577,7 +541,7 @@ env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 		return environment_infrastructure_t::coop_repository_stats_t{
 				stats.m_total_coop_count,
 				stats.m_total_agent_count,
-				m_final_dereg_chain_size
+				m_final_dereg_chain.size()
 		};
 	}
 
@@ -708,31 +672,13 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
 		// the current final dereg demand.
-		while( m_final_dereg_chain_head )
+		while( !m_final_dereg_chain.empty() )
 			{
-				coop_shptr_t head = std::exchange(
-						m_final_dereg_chain_head,
-						coop_shptr_t{} );
-				m_final_dereg_chain_tail = coop_shptr_t{};
-				m_final_dereg_chain_size = 0u;
+				coop_shptr_t head = m_final_dereg_chain.giveout_current_chain();
 
 				helpers::unlock_do_and_lock_again( acquired_lock,
 					[&head] {
-						// Do final_deregister_coop for every item in the chain
-						// one by one.
-						while( head )
-						{
-							using namespace so_5::impl;
-
-							coop_shptr_t next =
-									coop_private_iface_t::giveout_next_in_final_dereg_chain(
-											*head );
-							auto & env = head->environment();
-							internal_env_iface_t{ env }.final_deregister_coop(
-									std::move(head) );
-
-							head = std::move(next);
-						}
+						so_5::impl::process_final_dereg_chain( std::move(head) );
 					} );
 			}
 	}
@@ -797,7 +743,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand(
 			{
 				// ... but we should go to sleep only if there is no
 				// pending final deregistration actions.
-				if( !m_final_dereg_chain_head )
+				if( m_final_dereg_chain.empty() )
 					{
 						// Tracking time for 'waiting' state must be turned on.
 						m_activity_tracker.wait_start_if_not_started();
