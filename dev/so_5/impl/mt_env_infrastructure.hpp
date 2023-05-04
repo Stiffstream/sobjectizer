@@ -168,6 +168,18 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 */
 		void
 		final_dereg_thread_body();
+
+		//FIXME: document this!
+		/*!
+		 * \attention
+		 * It's expected that m_final_dereg_chain_head isn't nullptr.
+		 *
+		 * \since v.5.8.0
+		 */
+		void
+		process_current_final_dereg_chain(
+			//! Lock object for acquired m_final_dereg_chain_lock.
+			std::unique_lock< std::mutex > & lck ) noexcept;
 	};
 
 //

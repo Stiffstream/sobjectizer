@@ -160,47 +160,64 @@ coop_repo_t::final_dereg_thread_body()
 		if( m_final_dereg_chain_head )
 		{
 			// There are some coops to be deregistered.
-			coop_shptr_t head = std::exchange(
-					m_final_dereg_chain_head,
-					coop_shptr_t{} );
-			m_final_dereg_chain_tail = coop_shptr_t{};
-			m_final_dereg_chain_size = 0u;
+			process_current_final_dereg_chain( lck );
 
-			// All following actions has to be performed on unlocked mutex.
-			lck.unlock();
-
-			// Don't expect exceptions here.
-			so_5::details::invoke_noexcept_code( [&] {
-					// Do final_deregister_coop for every item in the chain
-					// one by one.
-					while( head )
-					{
-						using namespace so_5::impl;
-
-						coop_shptr_t next =
-								coop_private_iface_t::giveout_next_in_final_dereg_chain(
-										*head );
-						auto & env = head->environment();
-						internal_env_iface_t{ env }.final_deregister_coop(
-								std::move(head) );
-
-						head = std::move(next);
-					}
-				} );
-
-			lck.lock();
-
+			// Because the processing takes some time there is no need
+			// to sleep before new check for m_final_dereg_chain_head.
 			should_wait = false;
 		}
 
 		if( m_final_dereg_thread_shutdown_flag )
-			should_continue = true;
+		{
+			// It's time to finish the work.
+			should_continue = false;
+		}
 		else if( should_wait )
 		{
 			// No coops to deregister. Have to wait.
 			m_final_dereg_chain_cond.wait( lck );
 		}
 	}
+}
+
+void
+coop_repo_t::process_current_final_dereg_chain(
+	std::unique_lock< std::mutex > & lck ) noexcept
+{
+	//
+	// NOTE: don't expect exceptions here.
+	//
+
+	// There are some coops to be deregistered.
+	// Have to extract the current value of final dereg chain from
+	// the coop_repo instance.
+	coop_shptr_t head = std::exchange(
+			m_final_dereg_chain_head,
+			coop_shptr_t{} );
+	m_final_dereg_chain_tail = coop_shptr_t{};
+	m_final_dereg_chain_size = 0u;
+
+	// All following actions has to be performed on unlocked mutex.
+	lck.unlock();
+
+	// Do final_deregister_coop for every item in the chain
+	// one by one.
+	while( head )
+	{
+		using namespace so_5::impl;
+
+		coop_shptr_t next =
+				coop_private_iface_t::giveout_next_in_final_dereg_chain(
+						*head );
+		auto & env = head->environment();
+		internal_env_iface_t{ env }.final_deregister_coop(
+				std::move(head) );
+
+		head = std::move(next);
+	}
+
+	// Have to reacquire the lock back.
+	lck.lock();
 }
 
 //
