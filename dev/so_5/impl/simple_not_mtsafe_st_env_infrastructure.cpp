@@ -16,6 +16,8 @@
 #include <so_5/impl/run_stage.hpp>
 #include <so_5/impl/internal_env_iface.hpp>
 
+#include <so_5/impl/final_dereg_chain_helpers.hpp>
+
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
 #include <so_5/environment.hpp>
@@ -50,8 +52,7 @@ using shutdown_status_t = reusable::shutdown_status_t;
  * \brief Implementation of event_queue interface for this type of
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class event_queue_impl_t final : public so_5::event_queue_t
 	{
@@ -106,8 +107,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
  * \brief Implementation of coop_repository for
  * simple thread-safe single-threaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using coop_repo_t = reusable::coop_repo_t;
 
@@ -117,8 +117,7 @@ using coop_repo_t = reusable::coop_repo_t;
 /*!
  * \brief A special class for generation of names for dispatcher data sources.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct disp_ds_name_parts_t
 	{
@@ -136,8 +135,7 @@ struct disp_ds_name_parts_t
  * \tparam Activity_Tracker a type of activity tracker to be used
  * for run-time statistics.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 using default_dispatcher_t =
@@ -153,8 +151,7 @@ using default_dispatcher_t =
  * \brief Implementation of stats_controller for that type of
  * single-threaded environment.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using stats_controller_t =
 	reusable::stats_controller_t< so_5::details::no_lock_holder_t >;
@@ -171,8 +168,7 @@ using stats_controller_t =
  *
  * \tparam Activity_Tracker A type for tracking activity of main working thread.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 class env_infrastructure_t
@@ -248,11 +244,12 @@ class env_infrastructure_t
 	private :
 		environment_t & m_env;
 
-		//! Type of container for final deregistration demands.
-		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
-
-		//! Queue for final deregistration demands.
-		final_dereg_coop_container_t m_final_dereg_coops;
+		/*!
+		 * \brief The chain of coops for the final deregistration.
+		 *
+		 * \since v.5.8.0
+		 */
+		so_5::impl::final_dereg_chain_holder_t m_final_dereg_chain;
 
 		//! Status of shutdown procedure.
 		shutdown_status_t m_shutdown_status{ shutdown_status_t::not_started };
@@ -345,7 +342,7 @@ template< typename Activity_Tracker >
 coop_unique_holder_t
 env_infrastructure_t< Activity_Tracker >::make_coop(
 	coop_handle_t parent,
-	disp_binder_shptr_t default_binder ) 
+	disp_binder_shptr_t default_binder )
 	{
 		return m_coop_repo.make_coop(
 				std::move(parent),
@@ -365,7 +362,7 @@ void
 env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 	coop_shptr_t coop ) noexcept
 	{
-		m_final_dereg_coops.emplace_back( std::move(coop) );
+		m_final_dereg_chain.append( std::move(coop) );
 	}
 
 template< typename Activity_Tracker >
@@ -435,7 +432,7 @@ env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 		return environment_infrastructure_t::coop_repository_stats_t{
 				stats.m_total_coop_count,
 				stats.m_total_agent_count,
-				m_final_dereg_coops.size()
+				m_final_dereg_chain.size()
 		};
 	}
 
@@ -560,17 +557,10 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any() noexcept
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
 		// the current final dereg demand.
-		while( !m_final_dereg_coops.empty() )
+		while( !m_final_dereg_chain.empty() )
 			{
-				final_dereg_coop_container_t coops;
-				swap( coops, m_final_dereg_coops );
-
-				for( auto & shptr : coops )
-					{
-						auto & env = shptr->environment();
-						so_5::impl::internal_env_iface_t{ env }
-								.final_deregister_coop( std::move(shptr) );
-					}
+				so_5::impl::process_final_dereg_chain(
+						m_final_dereg_chain.giveout_current_chain() );
 			}
 	}
 
@@ -615,7 +605,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand() noexcept
 			{
 				// ... but we should go to sleep only if there is no
 				// pending final deregistration actions.
-				if( m_final_dereg_coops.empty() )
+				if( m_final_dereg_chain.empty() )
 					{
 						// We must try to sleep for next timer but only if
 						// there is any timer.

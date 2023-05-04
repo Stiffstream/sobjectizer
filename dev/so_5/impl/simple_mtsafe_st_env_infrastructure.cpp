@@ -328,9 +328,6 @@ class env_infrastructure_t
 		//! All sync objects to be shared between different parts.
 		main_thread_sync_objects_t m_sync_objects;
 
-		//! Type of container for final deregistration demands.
-		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
-
 		/*!
 		 * \brief The chain of coops for the final deregistration.
 		 *
