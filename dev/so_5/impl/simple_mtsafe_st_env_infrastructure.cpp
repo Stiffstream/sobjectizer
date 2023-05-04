@@ -337,8 +337,35 @@ class env_infrastructure_t
 		//! Type of container for final deregistration demands.
 		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
 
-		//! Queue for final deregistration demands.
-		final_dereg_coop_container_t m_final_dereg_coops;
+		/*!
+		 * \brief Number of items in the chain of coops for the final
+		 * deregistration.
+		 *
+		 * This value is necessary for stats.
+		 *
+		 * \since v.5.8.0
+		 */
+		std::size_t m_final_dereg_chain_size{ 0u };
+
+		/*!
+		 * \brief The head of the chain of coops for the final deregistration.
+		 *
+		 * It may be nullptr. It means that the chain is empty now.
+		 *
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_final_dereg_chain_head;
+
+		/*!
+		 * \brief The tail of the chain of coops for the final deregistration.
+		 *
+		 * This value is used for fast addition of a new coop to the chain.
+		 *
+		 * It may be nullptr in the case when the chain is empty.
+		 *
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_final_dereg_chain_tail;
 
 		//! Status of shutdown procedure.
 		shutdown_status_t m_shutdown_status{ shutdown_status_t::not_started };
@@ -460,7 +487,15 @@ env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 	coop_shptr_t coop ) noexcept
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
-		m_final_dereg_coops.emplace_back( std::move(coop) );
+
+		++m_final_dereg_chain_size;
+		if( !m_final_dereg_chain_head )
+			m_final_dereg_chain_head = coop;
+		if( m_final_dereg_chain_tail )
+			so_5::impl::coop_private_iface_t::set_next_in_final_dereg_chain(
+					*m_final_dereg_chain_tail,
+					coop );
+		m_final_dereg_chain_tail = std::move(coop);
 
 		wakeup_if_waiting( m_sync_objects );
 	}
@@ -542,7 +577,7 @@ env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 		return environment_infrastructure_t::coop_repository_stats_t{
 				stats.m_total_coop_count,
 				stats.m_total_agent_count,
-				m_final_dereg_coops.size()
+				m_final_dereg_chain_size
 		};
 	}
 
@@ -673,19 +708,31 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
 		// the current final dereg demand.
-		while( !m_final_dereg_coops.empty() )
+		while( m_final_dereg_chain_head )
 			{
-				final_dereg_coop_container_t coops;
-				swap( coops, m_final_dereg_coops );
+				coop_shptr_t head = std::exchange(
+						m_final_dereg_chain_head,
+						coop_shptr_t{} );
+				m_final_dereg_chain_tail = coop_shptr_t{};
+				m_final_dereg_chain_size = 0u;
 
 				helpers::unlock_do_and_lock_again( acquired_lock,
-					[&coops] {
-						for( auto & shptr : coops )
-							{
-								auto & env = shptr->environment();
-								so_5::impl::internal_env_iface_t{ env }
-										.final_deregister_coop( std::move(shptr) );
-							}
+					[&head] {
+						// Do final_deregister_coop for every item in the chain
+						// one by one.
+						while( head )
+						{
+							using namespace so_5::impl;
+
+							coop_shptr_t next =
+									coop_private_iface_t::giveout_next_in_final_dereg_chain(
+											*head );
+							auto & env = head->environment();
+							internal_env_iface_t{ env }.final_deregister_coop(
+									std::move(head) );
+
+							head = std::move(next);
+						}
 					} );
 			}
 	}
@@ -750,7 +797,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand(
 			{
 				// ... but we should go to sleep only if there is no
 				// pending final deregistration actions.
-				if( m_final_dereg_coops.empty() )
+				if( !m_final_dereg_chain_head )
 					{
 						// Tracking time for 'waiting' state must be turned on.
 						m_activity_tracker.wait_start_if_not_started();

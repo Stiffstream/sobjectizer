@@ -126,20 +126,32 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 */
 		std::condition_variable m_final_dereg_chain_cond;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Number of items in the chain of coops for the final
+		 * deregistration.
+		 *
+		 * This value is necessary for stats.
+		 *
 		 * \since v.5.8.0
 		 */
 		std::size_t m_final_dereg_chain_size;
 
-		//FIXME: document this!
 		/*!
+		 * \brief The head of the chain of coops for the final deregistration.
+		 *
+		 * It may be nullptr. It means that the chain is empty now.
+		 *
 		 * \since v.5.8.0
 		 */
 		coop_shptr_t m_final_dereg_chain_head;
 
-		//FIXME: document this!
 		/*!
+		 * \brief The tail of the chain of coops for the final deregistration.
+		 *
+		 * This value is used for fast addition of a new coop to the chain.
+		 *
+		 * It may be nullptr in the case when the chain is empty.
+		 *
 		 * \since v.5.8.0
 		 */
 		coop_shptr_t m_final_dereg_chain_tail;
