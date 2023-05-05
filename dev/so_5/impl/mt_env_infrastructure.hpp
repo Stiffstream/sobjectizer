@@ -82,7 +82,7 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		bool
 		final_deregister_coop(
 			//! Cooperation to be deregistered.
-			coop_shptr_t coop );
+			coop_shptr_t coop ) noexcept;
 
 		//! Initiate start of the cooperation deregistration.
 		void
@@ -197,31 +197,31 @@ class mt_env_infrastructure_t
 			//! Run-time stats distribution mbox.
 			mbox_t stats_distribution_mbox );
 
-		virtual void
+		void
 		launch( env_init_t init_fn ) override;
 
-		virtual void
-		stop() override;
+		void
+		stop() noexcept override;
 
 		[[nodiscard]]
-		virtual coop_unique_holder_t
+		coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder ) override;
 
-		virtual coop_handle_t
+		coop_handle_t
 		register_coop(
 			coop_unique_holder_t coop ) override;
 
-		virtual void
+		void
 		ready_to_deregister_notify(
 			coop_shptr_t coop ) noexcept override;
 
-		virtual bool
+		bool
 		final_deregister_coop(
-			coop_shptr_t coop_name ) override;
+			coop_shptr_t coop_name ) noexcept override;
 
-		virtual so_5::timer_id_t
+		so_5::timer_id_t
 		schedule_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
@@ -229,26 +229,26 @@ class mt_env_infrastructure_t
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override;
 
-		virtual void
+		void
 		single_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
 			const mbox_t & mbox,
 			std::chrono::steady_clock::duration pause ) override;
 
-		virtual ::so_5::stats::controller_t &
+		::so_5::stats::controller_t &
 		stats_controller() noexcept override;
 
-		virtual ::so_5::stats::repository_t &
+		::so_5::stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual coop_repository_stats_t
+		coop_repository_stats_t
 		query_coop_repository_stats() override;
 
-		virtual timer_thread_stats_t
+		timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_shptr_t
+		disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :

@@ -1409,8 +1409,12 @@ class SO_5_TYPE environment_t
 		init() = 0;
 
 		//! Send a shutdown signal to the Run-Time.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 */
 		void
-		stop();
+		stop() noexcept;
 		/*!
 		 * \}
 		 */

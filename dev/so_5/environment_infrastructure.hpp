@@ -144,8 +144,12 @@ class SO_5_TYPE environment_infrastructure_t
 			env_init_t init_fn ) = 0;
 
 		//! Initiate a signal for shutdown of Environment.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 */
 		virtual void
-		stop() = 0;
+		stop() noexcept = 0;
 
 		//! Create an instance of a new coop.
 		/*!
@@ -176,13 +180,16 @@ class SO_5_TYPE environment_infrastructure_t
 
 		//! Do final actions of the cooperation deregistration.
 		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 *
 		 * \retval true there are some live cooperations.
 		 * \retval false there is no more live cooperations.
 		 */
 		virtual bool
 		final_deregister_coop(
 			//! Cooperation to be deregistered.
-			coop_shptr_t coop ) = 0;
+			coop_shptr_t coop ) noexcept = 0;
 
 		//! Initiate a timer (delayed or periodic message).
 		virtual so_5::timer_id_t

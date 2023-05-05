@@ -109,13 +109,16 @@ public:
 
 	//! Do final actions of the cooperation deregistration.
 	/*!
+	 * \note
+	 * This method is noexcept since v.5.8.0.
+	 *
 	 * \retval true there are some live cooperations.
 	 * \retval false there is no more live cooperations.
 	 */
 	final_deregistration_result_t
 	final_deregister_coop(
 		//! Cooperation name to be deregistered.
-		coop_shptr_t coop );
+		coop_shptr_t coop ) noexcept;
 
 	//! Deregisted all cooperations.
 	/*!
@@ -138,6 +141,7 @@ public:
 			already_in_shutdown_state
 		};
 
+	//FIXME: should this method be marked as noexcept?
 	/*!
 	 * \brief Try to switch repository to shutdown state.
 	 *

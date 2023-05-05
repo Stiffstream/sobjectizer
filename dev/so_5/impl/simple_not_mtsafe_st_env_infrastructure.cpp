@@ -64,7 +64,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
 				std::size_t m_demands_count;
 			};
 
-		virtual void
+		void
 		push( execution_demand_t demand ) override
 			{
 				m_demands.push_back( std::move(demand) );
@@ -187,31 +187,31 @@ class env_infrastructure_t
 			//! Mbox for distribution of run-time stats.
 			mbox_t stats_distribution_mbox );
 
-		virtual void
+		void
 		launch( env_init_t init_fn ) override;
 
-		virtual void
-		stop() override;
+		void
+		stop() noexcept override;
 
 		[[nodiscard]]
-		virtual coop_unique_holder_t
+		coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder ) override;
 
-		virtual coop_handle_t
+		coop_handle_t
 		register_coop(
 			coop_unique_holder_t coop ) override;
 
-		virtual void
+		void
 		ready_to_deregister_notify(
 			coop_shptr_t coop ) noexcept override;
 
-		virtual bool
+		bool
 		final_deregister_coop(
-			coop_shptr_t coop_name ) override;
+			coop_shptr_t coop_name ) noexcept override;
 
-		virtual so_5::timer_id_t
+		so_5::timer_id_t
 		schedule_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
@@ -219,26 +219,26 @@ class env_infrastructure_t
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override;
 
-		virtual void
+		void
 		single_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
 			const mbox_t & mbox,
 			std::chrono::steady_clock::duration pause ) override;
 
-		virtual stats::controller_t &
+		stats::controller_t &
 		stats_controller() noexcept override;
 
-		virtual stats::repository_t &
+		stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual so_5::environment_infrastructure_t::coop_repository_stats_t
+		so_5::environment_infrastructure_t::coop_repository_stats_t
 		query_coop_repository_stats() override;
 
-		virtual timer_thread_stats_t
+		timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_shptr_t
+		disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :
@@ -330,7 +330,7 @@ env_infrastructure_t< Activity_Tracker >::launch( env_init_t init_fn )
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::stop()
+env_infrastructure_t< Activity_Tracker >::stop() noexcept
 	{
 		if( shutdown_status_t::not_started == m_shutdown_status )
 			{
@@ -368,7 +368,7 @@ env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 template< typename Activity_Tracker >
 bool
 env_infrastructure_t< Activity_Tracker >::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		return m_coop_repo.final_deregister_coop( std::move(coop) )
 				.m_has_live_coop;

@@ -64,10 +64,14 @@ class SO_5_TYPE internal_env_iface_t
 			coop_shptr_t coop ) noexcept;
 
 		//! Do the final actions of a cooperation deregistration.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 */
 		void
 		final_deregister_coop(
 			//! Cooperation name to be deregistered.
-			coop_shptr_t coop );
+			coop_shptr_t coop ) noexcept;
 
 		//! Is message delivery tracing enabled?
 		bool

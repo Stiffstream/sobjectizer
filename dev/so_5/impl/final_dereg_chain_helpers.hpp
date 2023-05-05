@@ -128,7 +128,7 @@ class final_dereg_chain_holder_t
  * \since v.5.8.0
  */
 inline void
-process_final_dereg_chain( coop_shptr_t head )
+process_final_dereg_chain( coop_shptr_t head ) noexcept
 	{
 		// Do final_deregister_coop for every item in the chain
 		// one by one.

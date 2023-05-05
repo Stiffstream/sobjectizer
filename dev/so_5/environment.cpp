@@ -690,7 +690,7 @@ environment_t::run()
 }
 
 void
-environment_t::stop()
+environment_t::stop() noexcept
 {
 	// Since v.5.5.19.2 there is a new shutdown procedure:
 	const auto action = m_impl->m_stop_guards.initiate_stop();
@@ -900,9 +900,9 @@ internal_env_iface_t::ready_to_deregister_notify(
 
 void
 internal_env_iface_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 {
-	bool any_cooperation_alive = 
+	bool any_cooperation_alive =
 			m_env.m_impl->m_infrastructure->final_deregister_coop(
 					std::move(coop) );
 

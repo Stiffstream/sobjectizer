@@ -81,7 +81,7 @@ coop_repo_t::ready_to_deregister_notify(
 
 bool
 coop_repo_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 {
 	const auto result =
 			coop_repository_basis_t::final_deregister_coop( std::move(coop) );
@@ -221,7 +221,7 @@ mt_env_infrastructure_t::launch( env_init_t init_fn )
 	}
 
 void
-mt_env_infrastructure_t::stop()
+mt_env_infrastructure_t::stop() noexcept
 	{
 		// Sends shutdown signal for all agents.
 		m_coop_repo.start_deregistration();
@@ -232,9 +232,9 @@ coop_unique_holder_t
 mt_env_infrastructure_t::make_coop(
 	coop_handle_t parent,
 	disp_binder_shptr_t default_binder )
-{
-	return m_coop_repo.make_coop( std::move(parent), std::move(default_binder) );
-}
+	{
+		return m_coop_repo.make_coop( std::move(parent), std::move(default_binder) );
+	}
 
 coop_handle_t
 mt_env_infrastructure_t::register_coop(
@@ -252,7 +252,7 @@ mt_env_infrastructure_t::ready_to_deregister_notify(
 
 bool
 mt_env_infrastructure_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		return m_coop_repo.final_deregister_coop( std::move(coop) );
 	}
