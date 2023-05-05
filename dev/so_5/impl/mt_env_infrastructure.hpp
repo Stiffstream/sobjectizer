@@ -115,14 +115,21 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 * \name Stuff for final coop deregistration.
 		 * \{
 		 */
-		//FIXME: document this!
 		/*!
+		 * \brief Lock object for thread-safety of the chain of coops
+		 * ready for the final deregistration.
+		 *
 		 * \since v.5.8.0
 		 */
 		std::mutex m_final_dereg_chain_lock;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Notification object to inform that the chain of
+		 * coops for the final deregistration isn't empty anymore.
+		 *
+		 * \attention
+		 * It has to be used only when m_final_dereg_chain_lock is acquired.
+		 *
 		 * \since v.5.8.0
 		 */
 		std::condition_variable m_final_dereg_chain_cond;
@@ -134,8 +141,16 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 */
 		so_5::impl::final_dereg_chain_holder_t m_final_dereg_chain;
 
-		//FIXME: document this!
 		/*!
+		 * \brief The flag for shutting down the final deregistration thread.
+		 *
+		 * Value `true` means that the final deregistration thread has to
+		 * be finished.
+		 *
+		 * \attention
+		 * This value should be set/checked only when m_final_dereg_chain_lock
+		 * is acquired.
+		 *
 		 * \since v.5.8.0
 		 */
 		bool m_final_dereg_thread_shutdown_flag;
@@ -152,15 +167,18 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		 * \}
 		 */
 
-		//FIXME: document this!
 		/*!
+		 * \brief Method that implements the body of final deregistration thread.
+		 *
 		 * \since v.5.8.0
 		 */
 		void
 		final_dereg_thread_body();
 
-		//FIXME: document this!
 		/*!
+		 * \brief Method that performs the final deregistration for
+		 * coops in the m_final_dereg_chain.
+		 *
 		 * \attention
 		 * It's expected that m_final_dereg_chain isn't empty.
 		 *

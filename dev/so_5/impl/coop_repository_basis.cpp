@@ -256,7 +256,7 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 
 [[nodiscard]]
 coop_repository_basis_t::try_switch_to_shutdown_result_t
-coop_repository_basis_t::try_switch_to_shutdown()
+coop_repository_basis_t::try_switch_to_shutdown() noexcept
 	{
 		std::lock_guard< std::mutex > lock{ m_lock };
 

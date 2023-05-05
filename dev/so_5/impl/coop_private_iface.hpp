@@ -105,8 +105,14 @@ class coop_private_iface_t
 				return coop.m_dereg_reason;
 			}
 
-		//FIXME: document this!
 		/*!
+		 * \brief Set the next coop in the chain of coops for the final
+		 * deregistration.
+		 *
+		 * It's expected that \a coop is the last item in this chain at
+		 * the moment. After completion the \a next_in_chain will be the
+		 * last item in the chain.
+		 *
 		 * \since v.5.8.0
 		 */
 		static void
@@ -117,8 +123,13 @@ class coop_private_iface_t
 			coop.m_next_in_final_dereg_chain = std::move(next_in_chain);
 		}
 
-		//FIXME: document this!
 		/*!
+		 * \brief Extract a smart pointer to the next coop in the chain of
+		 * coops for the final deregistration.
+		 *
+		 * It may return empty coop_shptr_t if \a coop is the last item in
+		 * this chain.
+		 *
 		 * \since v.5.8.0
 		 */
 		[[nodiscard]]

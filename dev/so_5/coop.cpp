@@ -528,7 +528,7 @@ coop_impl_t::do_add_child(
 void
 coop_impl_t::do_remove_child(
 	coop_t & parent,
-	coop_t & child )
+	coop_t & child ) noexcept
 	{
 		{
 			// Modification of parent-child relationship must be performed

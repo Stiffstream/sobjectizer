@@ -361,12 +361,16 @@ class SO_5_TYPE coop_impl_t
 			coop_shptr_t child );
 
 		//! Perform removement of a child coop.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 */
 		static void
 		do_remove_child(
 			//! Parent coop.
 			coop_t & parent,
 			//! Child to be removed.
-			coop_t & child );
+			coop_t & child ) noexcept;
 	};
 
 } /* namespace impl */
@@ -421,7 +425,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			{}
 
 	public:
-		virtual ~coop_t() 
+		virtual ~coop_t()
 			{
 				impl::coop_impl_t::destroy_content( *this );
 			}
@@ -1166,9 +1170,17 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 		coop_shptr_t m_next_sibling;
 
-		//FIXME: add more description to the comment.
 		/*!
 		 * \brief The next coop in the chain for final deregistration actions.
+		 *
+		 * Since v.5.8.0 an intrusive list is used for holding the chain
+		 * of coops for the final deregistration. This field is used for
+		 * maintaining this intrusive list.
+		 *
+		 * This field is nullptr when the coop is registered (or not registered
+		 * yet). It may receive the actual value only during the deregistration
+		 * procedure (and this field may still be nullptr if there no more
+		 * coops that are ready for the final deregistration).
 		 *
 		 * \since v.5.8.0
 		 */
@@ -1253,7 +1265,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				impl::coop_impl_t::do_add_child( *this, std::move(child) );
 			}
 
-//FIXME: should this method be noexcept?
 		/*!
 		 * \brief Remove a child from the parent coop.
 		 *
@@ -1275,7 +1286,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		void
 		remove_child(
 			//! Child coop to be removed.
-			coop_t & child )
+			coop_t & child ) noexcept
 			{
 				impl::coop_impl_t::do_remove_child( *this, child );
 			}

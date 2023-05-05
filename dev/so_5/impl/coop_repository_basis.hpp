@@ -141,7 +141,6 @@ public:
 			already_in_shutdown_state
 		};
 
-	//FIXME: should this method be marked as noexcept?
 	/*!
 	 * \brief Try to switch repository to shutdown state.
 	 *
@@ -154,7 +153,7 @@ public:
 	 * v.5.6.0
 	 */
 	try_switch_to_shutdown_result_t
-	try_switch_to_shutdown();
+	try_switch_to_shutdown() noexcept;
 
 	/*!
 	 * \since

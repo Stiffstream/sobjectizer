@@ -23,8 +23,24 @@ namespace so_5::impl
 //
 // final_dereg_chain_holder_t
 //
-//FIXME: document this!
 /*!
+ * \brief Helper class for holding the current chain of coops for
+ * the final deregistration.
+ *
+ * This chain is an intrusive list (via coop_t::m_next_in_final_dereg_chain),
+ * but it's necessary to hold the head and the tail of this chain.
+ * Class final_dereg_chain_holder_t does exactly that: it holds the
+ * current head, the tail and the number of items it the chain.
+ *
+ * New items have to be added by append() method.
+ *
+ * When the current chain has to be processed it must be extracted
+ * from the holder by using giveout_current_chain() method.
+ *
+ * \attention
+ * This class isn't thread-safe. If thread-safety is necessary then
+ * it should be provided by a user of this class.
+ *
  * \note
  * This class isn't Copyable, not Moveable.
  *
@@ -123,8 +139,20 @@ class final_dereg_chain_holder_t
 //
 // process_final_dereg_chain
 //
-//FIXME: document this!
 /*!
+ * \brief Helper function that does proceesing of final dereg chain.
+ *
+ * Usage example:
+ * \code
+ * final_dereg_chain_holder_t holder;
+ * ...
+ * holder.append(coop);
+ * ...
+ * holder.append(coop);
+ * ...
+ * process_final_dereg_chain(holder.giveout_current_chain());
+ * \endcode
+ *
  * \since v.5.8.0
  */
 inline void
