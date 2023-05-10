@@ -118,6 +118,28 @@ class agent_queue_t final
 					m_disp_queue.schedule( this );
 			}
 
+		//! Push evt_start demand to the queue.
+		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				// Just delegate the work.
+				this->push( std::move(demand) );
+			}
+
+		//! Push evt_start demand to the queue.
+		/*!
+		 * \attention
+		 * This method is noexcept but it allocates and allocation
+		 * can throw. In that case the whole application will be
+		 * terminated.
+		 */
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				// Just delegate the work.
+				this->push( std::move(demand) );
+			}
+
 		//! Get the front demand from queue.
 		/*!
 		 * \attention This method must be called only on non-empty queue.
@@ -207,7 +229,7 @@ class agent_queue_t final
 		 * before the return from demand_handler_on_finish.
 		 *
 		 * Without waiting for queue emptyness it could lead to
-		 * dangling pointer to agent_queue in woring thread.
+		 * dangling pointer to agent_queue in worker thread.
 		 */
 		void
 		wait_for_emptyness() noexcept

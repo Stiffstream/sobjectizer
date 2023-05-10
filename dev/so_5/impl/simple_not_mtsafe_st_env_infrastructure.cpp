@@ -70,6 +70,29 @@ class event_queue_impl_t final : public so_5::event_queue_t
 				m_demands.push_back( std::move(demand) );
 			}
 
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 */
+		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				this->push( std::move(demand) );
+			}
+
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 *
+		 * \attention
+		 * Terminates the whole application if the push() throws.
+		 */
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				this->push( std::move(demand) );
+			}
+
 		stats_t
 		query_stats() const
 			{

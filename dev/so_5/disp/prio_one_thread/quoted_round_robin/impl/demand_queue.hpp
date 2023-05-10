@@ -124,13 +124,36 @@ class demand_queue_t
 				 * \}
 				 */
 
-				virtual void
+				void
 				push( execution_demand_t exec_demand ) override
 					{
 						demand_unique_ptr_t what{ new demand_t{
 								std::move( exec_demand ) } };
 
 						m_demand_queue->push( this, std::move( what ) );
+					}
+
+				/*!
+				 * \note
+				 * Delegates the work to the push() method.
+				 */
+				void
+				push_evt_start( execution_demand_t demand ) override
+					{
+						this->push( std::move(demand) );
+					}
+
+				/*!
+				 * \note
+				 * Delegates the work to the push() method.
+				 *
+				 * \attention
+				 * Terminates the whole application if the push() throws.
+				 */
+				void
+				push_evt_finish( execution_demand_t demand ) noexcept override
+					{
+						this->push( std::move(demand) );
 					}
 			};
 

@@ -36,8 +36,35 @@ class SO_5_TYPE event_queue_t
 		virtual ~event_queue_t() noexcept = default;
 
 		//! Enqueue new event to the queue.
+		/*!
+		 * \note
+		 * This method can throw and it's expected.
+		 */
 		virtual void
 		push( execution_demand_t demand ) = 0;
+
+		//FIXME: document this!
+		/*!
+		 * \note
+		 * This method can throw and it's expected.
+		 *
+		 * \since v.5.8.0
+		 */
+		virtual void
+		push_evt_start( execution_demand_t demand ) = 0;
+
+		//FIXME: document this!
+		/*!
+		 * \note
+		 * This method it expected to be noexcept, but if it can't be
+		 * implemented for a particular dispatcher then a call to
+		 * std::terminate() is appropriate on exception. Because
+		 * the normal work can't be continued anyway.
+		 *
+		 * \since v.5.8.0
+		 */
+		virtual void
+		push_evt_finish( execution_demand_t demand ) noexcept = 0;
 	};
 
 } /* namespace so_5 */

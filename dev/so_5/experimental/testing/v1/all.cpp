@@ -992,6 +992,20 @@ class special_event_queue_t final : public event_queue_t
 			}
 
 		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				// Demand must go into the original queue without transformations.
+				push_to_queue( std::move(demand) );
+			}
+
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				// Demand must go into the original queue without transformations.
+				push_to_queue( std::move(demand) );
+			}
+
+		void
 		switch_to_direct_mode()
 			{
 				// Cleanup of buffer should be performed when

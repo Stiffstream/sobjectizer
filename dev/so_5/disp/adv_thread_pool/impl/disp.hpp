@@ -165,6 +165,29 @@ class agent_queue_t final
 					m_disp_queue.schedule( this );
 			}
 
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 */
+		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				this->push( std::move(demand) );
+			}
+
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 *
+		 * \attention
+		 * Terminates the whole application if the push() throws.
+		 */
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				this->push( std::move(demand) );
+			}
+
 		//! Get the information about the front demand.
 		/*!
 		 * \attention This method must be called only on non-empty queue.

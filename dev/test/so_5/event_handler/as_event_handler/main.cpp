@@ -96,6 +96,18 @@ private:
 		so_5::send< so_5::mutable_msg< so_5::execution_demand_t > >(
 				m_demands, std::move(demand) );
 	}
+
+	void
+	push_evt_start( so_5::execution_demand_t demand ) override
+	{
+		this->push( std::move(demand) );
+	}
+
+	void
+	push_evt_finish( so_5::execution_demand_t demand ) noexcept override
+	{
+		this->push( std::move(demand) );
+	}
 };
 
 class a_test_t final : public so_5::agent_t

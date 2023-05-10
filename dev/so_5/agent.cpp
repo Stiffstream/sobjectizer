@@ -721,7 +721,7 @@ agent_t::so_bind_to_dispatcher(
 	impl::coop_private_iface_t::increment_usage_count( *m_agent_coop );
 
 	// A starting demand must be sent first.
-	actual_queue->push(
+	actual_queue->push_evt_start(
 			execution_demand_t(
 					this,
 					message_limit::control_block_t::none(),
@@ -862,7 +862,7 @@ agent_t::shutdown_agent() noexcept
 
 			// Final event must be pushed to queue.
 			so_5::details::invoke_noexcept_code( [&] {
-					m_event_queue->push(
+					m_event_queue->push_evt_finish(
 							execution_demand_t(
 									this,
 									message_limit::control_block_t::none(),
