@@ -46,12 +46,16 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 /*!
  * \brief A single execution demand.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 struct demand_t final : public execution_demand_t
 	{
 		//! Next demand in the queue.
+		/*!
+		 * \note
+		 * It's a dynamically allocated object that has to be deallocated
+		 * manually during the destruction of the queue.
+		 */
 		demand_t * m_next = nullptr;
 
 		//! Initializing constructor.
@@ -66,8 +70,7 @@ struct demand_t final : public execution_demand_t
 /*!
  * \brief An alias for unique_ptr to demand.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 
@@ -77,8 +80,7 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 /*!
  * \brief A demand queue with support of demands priorities.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 class demand_queue_t
 	{

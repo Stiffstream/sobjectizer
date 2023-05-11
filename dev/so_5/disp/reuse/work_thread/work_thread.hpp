@@ -51,8 +51,7 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
 //! Typedef for atomic demands counter.
 /*!
- * \since
- * v.5.5.7
+ * \since v.5.5.7
  */
 using demands_counter_t = std::atomic< std::size_t >;
 
@@ -75,8 +74,7 @@ namespace demand_queue_details
 /*!
  * \brief Common data for all implementations of demand_queue.
  *
- * \since 
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct common_data_t
 {
@@ -124,7 +122,7 @@ protected :
 	void
 	wait_started() {}
 
-	void 
+	void
 	wait_finished() {}
 };
 
@@ -154,7 +152,7 @@ protected :
 		m_waiting_stats.start();
 	}
 
-	void 
+	void
 	wait_finished()
 	{
 		m_waiting_stats.stop();
@@ -323,14 +321,13 @@ public:
 	}
 
 	/*!
-	 * \since
-	 * v.5.5.4
-	 *
 	 * \brief Get the count of demands in the queue.
 	 *
 	 * \note Since v.5.5.7 this method also uses external demands
 	 * counter. Addition of demands quantity inside demands queue and
 	 * the value of external counter is performed under the queue lock.
+	 *
+	 * \since v.5.5.4
 	 */
 	std::size_t
 	demands_count( const demands_counter_t & external_counter )
@@ -347,8 +344,7 @@ public:
 /*!
  * \brief An alias for demand_queue without activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using demand_queue_no_activity_tracking_t =
 	demand_queue_details::queue_template_t<
@@ -357,8 +353,7 @@ using demand_queue_no_activity_tracking_t =
 /*!
  * \brief An alias for demand_queue with activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using demand_queue_with_activity_tracking_t =
 	demand_queue_details::queue_template_t<
@@ -379,8 +374,7 @@ enum class status_t : int
 /*!
  * \brief Common data for all work thread implementations.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Demand_Queue >
 struct common_data_t
@@ -420,8 +414,7 @@ struct common_data_t
 /*!
  * \brief Part of implementation of work thread without activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 class no_activity_tracking_impl_t
 	: protected common_data_t< demand_queue_no_activity_tracking_t >

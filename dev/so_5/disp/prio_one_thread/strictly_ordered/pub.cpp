@@ -7,8 +7,7 @@
  * \brief Functions for creating and binding of the single thread dispatcher
  * with priority support.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 
 #include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>
@@ -74,8 +73,7 @@ send_thread_activity_stats(
  * \brief An implementation of dispatcher with one working
  * thread and support of demand priorities in form of template class.
  *
- * \since
- * v.5.5.8, v.5.5.18, v.5.6.0
+ * \since v.5.5.8, v.5.5.18, v.5.6.0
  */
 template< typename Work_Thread >
 class dispatcher_template_t final : public disp_binder_t
@@ -147,8 +145,7 @@ class dispatcher_template_t final : public disp_binder_t
 		/*!
 		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 *
-		 * \since
-		 * v.5.5.8
+		 * \since v.5.5.8
 		 */
 		class disp_data_source_t : public stats::source_t
 			{

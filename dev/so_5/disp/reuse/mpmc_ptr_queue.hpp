@@ -37,8 +37,7 @@ namespace reuse
  *
  * \tparam T type of object.
  *
- * \since
- * v.5.4.0
+ * \since v.5.4.0
  */
 template< class T >
 class mpmc_ptr_queue_t
@@ -129,6 +128,7 @@ class mpmc_ptr_queue_t
 						// Old non-empty queue must be stored for further processing.
 						// No need to wakup someone because the length of m_queue
 						// didn't changed.
+//FIXME: this call can throw, but we're in noexcept method!
 						m_queue.push_back( current );
 
 						return r;
@@ -165,10 +165,10 @@ class mpmc_ptr_queue_t
 		std::deque< T * > m_queue;
 
 		/*!
-		 * \since
-		 * v.5.5.15.1
-		 *
 		 * \brief Is some working thread is in wakeup process now.
+		 *
+		 * \since v.5.5.15.1
+		 *
 		 */
 		bool	m_wakeup_in_progress{ false };
 
@@ -176,8 +176,7 @@ class mpmc_ptr_queue_t
 		 * \brief Maximum count of working threads to be used with
 		 * that mpmc_queue.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		const std::size_t m_max_thread_count;
 
@@ -185,8 +184,7 @@ class mpmc_ptr_queue_t
 		 * \brief Threshold for wake up next working thread if there are
 		 * non-empty agent queues.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		const std::size_t m_next_thread_wakeup_threshold;
 
@@ -204,19 +202,18 @@ class mpmc_ptr_queue_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.15.1
-		 *
 		 * \brief An attempt to wakeup another sleeping thread is this necessary
 		 * and possible.
 		 *
 		 * \note Since v.5.5.16 there are some changes in wakeup conditions.
-		 * A working thread will be woken up if:
+		 * A working thread is awakened when:
 		 * - there are something in m_queue;
 		 * - there are waiting customers but no one of them is in wakeup now;
 		 * - count of items in m_queue is greater than
 		 *   m_next_thread_wakeup_threshold or there is no active customers at
 		 *   all.
+		 *
+		 * \since v.5.5.15.1
 		 */
 		void
 		try_wakeup_someone_if_possible()

@@ -7,8 +7,7 @@
  * \brief Functions for creating and binding of the single thread dispatcher
  * with priority support.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 
 #pragma once
@@ -37,8 +36,7 @@ namespace strictly_ordered {
 /*!
  * \brief Alias for namespace with traits of event queue.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
@@ -48,8 +46,7 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 /*!
  * \brief Parameters for a dispatcher.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 class disp_params_t
 	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
@@ -132,10 +129,9 @@ class dispatcher_handle_maker_t;
 //
 
 /*!
- * \since
- * v.5.6.0
- *
  * \brief A handle for %prio_one_thread::strictly_ordered dispatcher.
+ *
+ * \since v.5.6.0
  */
 class [[nodiscard]] dispatcher_handle_t
 	{
@@ -196,8 +192,7 @@ auto coop = env.make_coop(
 	common_thread_disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -226,8 +221,7 @@ auto coop = env.make_coop(
 	common_thread_disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher(
@@ -256,8 +250,7 @@ auto coop = env.make_coop(
 	common_thread_disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 inline dispatcher_handle_t
 make_dispatcher( environment_t & env )

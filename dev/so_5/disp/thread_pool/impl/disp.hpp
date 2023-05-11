@@ -5,8 +5,8 @@
 /*!
  * \file
  * \brief An implementation of thread pool dispatcher.
- * \since
- * v.5.4.0
+ *
+ * \since v.5.4.0
  */
 
 #pragma once
@@ -49,8 +49,8 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 //
 /*!
  * \brief Event queue for the agent (or cooperation).
- * \since
- * v.5.4.0
+ *
+ * \since v.5.4.0
  */
 class agent_queue_t final
 	:	public event_queue_t
@@ -63,6 +63,11 @@ class agent_queue_t final
 		struct demand_t : public execution_demand_t
 			{
 				//! Next item in queue.
+				/*!
+				 * \note
+				 * It's a dynamically allocated object that has to be deallocated
+				 * manually during the destruction of the queue.
+				 */
 				demand_t * m_next;
 
 				demand_t()
@@ -153,8 +158,7 @@ class agent_queue_t final
 		/*!
 		 * \brief Queue emptyness indication.
 		 *
-		 * \since
-		 * v.5.5.15.1
+		 * \since v.5.5.15.1
 		 */
 		enum class emptyness_t
 			{
@@ -165,8 +169,7 @@ class agent_queue_t final
 		/*!
 		 * \brief Indication of possibility of continuation of demands processing.
 		 *
-		 * \since
-		 * v.5.5.15.1
+		 * \since v.5.5.15.1
 		 */
 		enum class processing_continuation_t
 			{
@@ -178,8 +181,7 @@ class agent_queue_t final
 		/*!
 		 * \brief A result of erasing of the front demand from queue.
 		 *
-		 * \since
-		 * v.5.5.15.1
+		 * \since v.5.5.15.1
 		 */
 		struct pop_result_t
 			{
@@ -250,8 +252,7 @@ class agent_queue_t final
 		/*!
 		 * \brief Get the current size of the queue.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		std::size_t
 		size() const
@@ -284,11 +285,12 @@ class agent_queue_t final
 
 		/*!
 		 * \brief Current size of the queue.
-		 * \since
-		 * v.5.5.4
+		 *
+		 * \since v.5.5.4
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
+//FIXME: should this method be marked as noexcept? It seems that it should.
 		//! Helper method for deleting queue's head object.
 		inline std::unique_ptr< demand_t >
 		remove_head()
@@ -320,8 +322,7 @@ namespace work_thread_details
 /*!
  * \brief Main data for work_thread.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct common_data_t
 	{
@@ -351,8 +352,8 @@ struct common_data_t
 
 /*!
  * \brief Part of implementation of work thread without activity tracing.
- * \since
- * v.5.5.18
+ *
+ * \since v.5.5.18
  */
 class no_activity_tracking_impl_t : protected common_data_t
 	{
@@ -384,8 +385,8 @@ class no_activity_tracking_impl_t : protected common_data_t
 
 /*!
  * \brief Part of implementation of work thread with activity tracing.
- * \since
- * v.5.5.18
+ *
+ * \since v.5.5.18
  */
 class with_activity_tracking_impl_t : protected common_data_t
 	{
@@ -455,8 +456,8 @@ class with_activity_tracking_impl_t : protected common_data_t
 //
 /*!
  * \brief Implementation of work_thread in form of template class.
- * \since
- * v.5.5.18
+ *
+ * \since v.5.5.18
  */
 template< typename Impl >
 class work_thread_template_t final : public Impl
@@ -489,8 +490,7 @@ class work_thread_template_t final : public Impl
 		 * \note This method returns correct value only after start
 		 * of the thread.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		so_5::current_thread_id_t
 		thread_id() const
@@ -513,13 +513,12 @@ class work_thread_template_t final : public Impl
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.18
-		 *
 		 * \brief An attempt of extraction of non-empty agent queue.
 		 *
 		 * \note This is noexcept method because its logic can't survive
 		 * an exception from m_disp_queue->pop.
+		 *
+		 * \since v.5.5.18
 		 */
 		agent_queue_t *
 		pop_agent_queue() noexcept
@@ -536,15 +535,14 @@ class work_thread_template_t final : public Impl
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.15.1
-		 *
 		 * \brief Starts processing of demands from the queue specified.
 		 *
 		 * Starts from \a current_queue. Processes up to enabled number
 		 * of events from that queue. Then if the queue is not empty
 		 * tries to find another non-empty queue. If there is no such queue
 		 * then continue processing of \a current_queue.
+		 *
+		 * \since v.5.5.15.1
 		 */
 		void
 		do_queue_processing( agent_queue_t * current_queue )
@@ -604,8 +602,8 @@ class work_thread_template_t final : public Impl
 //
 /*!
  * \brief Type of work thread without activity tracking.
- * \since
- * v.5.5.18
+ *
+ * \since v.5.5.18
  */
 using work_thread_no_activity_tracking_t =
 		work_thread_details::work_thread_template_t<
@@ -616,8 +614,8 @@ using work_thread_no_activity_tracking_t =
 //
 /*!
  * \brief Type of work thread without activity tracking.
- * \since
- * v.5.5.18
+ *
+ * \since v.5.5.18
  */
 using work_thread_with_activity_tracking_t =
 		work_thread_details::work_thread_template_t<
@@ -629,8 +627,8 @@ using work_thread_with_activity_tracking_t =
 /*!
  * \brief Adaptation of common implementation of thread-pool-like dispatcher
  * to the specific of this thread-pool dispatcher.
- * \since
- * v.5.5.4
+ *
+ * \since v.5.5.4
  */
 struct adaptation_t
 	{
@@ -664,8 +662,7 @@ struct adaptation_t
  * This template depends on work_thread type (with or without activity
  * tracking).
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Work_Thread >
 using dispatcher_template_t =
