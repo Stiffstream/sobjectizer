@@ -195,6 +195,7 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 				this->m_thread_holder.unchecked_get().join();
 			}
 
+		[[nodiscard]]
 		so_5::current_thread_id_t
 		thread_id() const
 			{
@@ -219,6 +220,7 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 					{}
 			}
 
+		[[nodiscard]]
 		auto
 		pop_demand() -> decltype(std::declval<Demand_Queue>().pop())
 			{

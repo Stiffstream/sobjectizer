@@ -187,10 +187,13 @@ class demand_queue_t
 					lock.notify_one();
 			}
 
+//FIXME: can we just return an empty demand_unique_ptr_t instead of
+//throwing an instance of shutdown_ex_t?
 		//! Pop demand from the queue.
 		/*!
 		 * \throw shutdown_ex_t in the case when queue is shut down.
 		 */
+		[[nodiscard]]
 		demand_unique_ptr_t
 		pop()
 			{
