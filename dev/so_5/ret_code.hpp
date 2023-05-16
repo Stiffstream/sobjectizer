@@ -490,6 +490,12 @@ const int rc_nullptr_as_delivery_filter_pointer = 191;
  */
 const int rc_nullptr_as_result_of_user_mbox_factory = 192;
 
+//FIXME: document this!
+/*!
+ * \since v.5.8.0
+ */
+const int rc_no_preallocated_resources_for_agent = 193;
+
 //! \name Common error codes.
 //! \{
 
