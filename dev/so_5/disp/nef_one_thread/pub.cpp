@@ -196,7 +196,7 @@ class demand_queue_t
 			{
 				demand_unique_ptr_t to_be_deleted{ m_head };
 				m_head = m_head->m_next;
-				m_head->m_next = nullptr;
+				to_be_deleted->m_next = nullptr;
 
 				--m_size;
 

@@ -26,6 +26,7 @@
 #include <so_5/thread_helper_functions.hpp>
 
 #include <so_5/disp/one_thread/pub.hpp>
+#include <so_5/disp/nef_one_thread/pub.hpp>
 #include <so_5/disp/active_obj/pub.hpp>
 #include <so_5/disp/active_group/pub.hpp>
 #include <so_5/disp/thread_pool/pub.hpp>

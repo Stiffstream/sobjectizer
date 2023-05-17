@@ -20,6 +20,7 @@ using namespace std::chrono;
 enum class dispatcher_type_t
 {
 	one_thread,
+	nef_one_thread,
 	thread_pool,
 	adv_thread_pool,
 	prio_ot_strictly_ordered
@@ -74,6 +75,7 @@ try_parse_cmdline(
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-D, --dispatcher     type of dispatcher to be used:\n"
 							"                     one_thread,\n"
+							"                     nef_one_thread,\n"
 							"                     thread_pool,\n"
 							"                     adv_thread_pool,\n"
 							"                     prio_ot_strictly_ordered\n"
@@ -107,6 +109,8 @@ try_parse_cmdline(
 							"-D", "dispatcher type" );
 					if( "one_thread" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;
+					else if( "nef_one_thread" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::nef_one_thread;
 					else if( "thread_pool" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::thread_pool;
 					else if( "adv_thread_pool" == name )
@@ -236,17 +240,20 @@ class a_ring_member_t : public so_5::agent_t
 		unsigned int m_rounds_passed = 0;
 	};
 
+[[nodiscard]]
 const char *
 dispatcher_type_name( dispatcher_type_t t )
 	{
-		if( dispatcher_type_t::one_thread == t )
-			return "one_thread";
-		else if( dispatcher_type_t::thread_pool == t )
-			return "thread_pool";
-		else if( dispatcher_type_t::adv_thread_pool == t )
-			return "adv_thread_pool";
-		else
-			return "prio_ot_strictly_ordered";
+		const char * result = "<UNKNOWN>";
+		switch( t )
+			{
+			case dispatcher_type_t::one_thread: return "one_thread";
+			case dispatcher_type_t::nef_one_thread: return "nef_one_thread";
+			case dispatcher_type_t::thread_pool: return "thread_pool";
+			case dispatcher_type_t::adv_thread_pool: return "adv_thread_pool";
+			case dispatcher_type_t::prio_ot_strictly_ordered: return "prio_ot_strictly_ordered";
+			}
+		return result;
 	}
 
 const char *
@@ -345,6 +352,16 @@ create_disp_binder(
 		if( dispatcher_type_t::one_thread == t )
 		{
 			using namespace so_5::disp::one_thread;
+			auto disp_params = make_disp_params< disp_params_t >(
+					cfg,
+					[]{ return queue_traits::combined_lock_factory(); },
+					[]{ return queue_traits::simple_lock_factory(); },
+					[]( queue_traits::queue_params_t & ) {} );
+			return make_dispatcher( env, "disp", disp_params ).binder();
+		}
+		else if( dispatcher_type_t::nef_one_thread == t )
+		{
+			using namespace so_5::disp::nef_one_thread;
 			auto disp_params = make_disp_params< disp_params_t >(
 					cfg,
 					[]{ return queue_traits::combined_lock_factory(); },
