@@ -583,16 +583,18 @@ class dispatcher_template_t final : public disp_binder_t
 				auto evt_start_demand = std::make_unique< demand_t >();
 				auto evt_finish_demand = std::make_unique< demand_t >();
 
+				auto queue = std::make_unique< agent_queue_t >(
+						m_work_thread.demand_queue(),
+						std::move(evt_start_demand),
+						std::move(evt_finish_demand)
+					);
+
 				// All further operattions have to be performed under the lock.
 				std::lock_guard< std::mutex > lock{ m_agent_map_lock };
 
 				m_agents.emplace(
 						std::addressof(agent),
-						agent_queue_t{
-								m_work_thread.demand_queue(),
-								std::move(evt_start_demand),
-								std::move(evt_finish_demand)
-							} );
+						std::move(queue) );
 			}
 
 		void
@@ -623,7 +625,7 @@ class dispatcher_template_t final : public disp_binder_t
 									"nef_one_thread dispatcher has no info about an agent "
 									"in bind() method" );
 
-						return it->second;
+						return *(it->second);
 					}();
 
 				agent.so_bind_to_dispatcher( queue );
@@ -689,7 +691,7 @@ class dispatcher_template_t final : public disp_binder_t
 			};
 
 		//! Type of map from agent pointer to an individual event_queue.
-		using agent_map_t = std::map< agent_t *, agent_queue_t >;
+		using agent_map_t = std::map< agent_t *, std::unique_ptr<agent_queue_t> >;
 
 		//! Worker thread for the dispatcher.
 		Work_Thread m_work_thread;
