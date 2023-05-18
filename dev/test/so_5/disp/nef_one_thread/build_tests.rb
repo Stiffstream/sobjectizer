@@ -7,4 +7,5 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/simple/prj.ut.rb"
 	required_prj "#{path}/custom_work_thread/prj.ut.rb"
+	required_prj "#{path}/shutdown_on_bad_alloc/prj.ut.rb"
 }
