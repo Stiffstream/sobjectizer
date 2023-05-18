@@ -27,6 +27,11 @@ turn_should_throw_on() noexcept
 
 } /* namespace so_5::test::disp::custom_new */
 
+//
+// NOTE: the following code was borrowed from cppreference.com
+// https://en.cppreference.com/w/cpp/memory/new/operator_new
+//
+
 // no inline, required by [replacement.functions]/3
 void* operator new(std::size_t sz)
 	{
@@ -41,7 +46,7 @@ void* operator new(std::size_t sz)
 
 		throw std::bad_alloc{}; // required by [new.delete.single]/3
 	}
- 
+
 // no inline, required by [replacement.functions]/3
 void* operator new[](std::size_t sz)
 	{
@@ -56,23 +61,23 @@ void* operator new[](std::size_t sz)
 
 		throw std::bad_alloc{}; // required by [new.delete.single]/3
 	}
- 
+
 void operator delete(void* ptr) noexcept
 	{
 		std::free(ptr);
 	}
- 
-void operator delete(void* ptr, std::size_t size) noexcept
+
+void operator delete(void* ptr, std::size_t /*size*/) noexcept
 	{
 		std::free(ptr);
 	}
- 
+
 void operator delete[](void* ptr) noexcept
 	{
 		std::free(ptr);
 	}
- 
-void operator delete[](void* ptr, std::size_t size) noexcept
+
+void operator delete[](void* ptr, std::size_t /*size*/) noexcept
 	{
 		std::free(ptr);
 	}

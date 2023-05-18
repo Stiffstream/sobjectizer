@@ -187,9 +187,18 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.3.0
 		 * \brief Set exception reaction flag value.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::launch([](so_5::environment_t & env) {...},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		params.exception_reaction(so_5::exception_reaction_t::shutdown_sobjectizer_on_exception);
+		 * 		...
+		 * 	});
+		 * \endcode
+		 *
+		 * \since v.5.3.0
 		 */
 		environment_params_t &
 		exception_reaction( exception_reaction_t value )
