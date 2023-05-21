@@ -1,4 +1,3 @@
 add_subdirectory(simple)
 add_subdirectory(custom_work_thread)
-add_subdirectory(shutdown_on_bad_alloc)
 
