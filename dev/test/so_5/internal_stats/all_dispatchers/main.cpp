@@ -128,6 +128,7 @@ class a_controller_t : public so_5::agent_t
 
 				create_children_on_default_disp( *coop, workers );
 				create_children_on_one_thread_disp( *coop, workers );
+				create_children_on_nef_one_thread_disp( *coop, workers );
 				create_children_on_active_obj_disp( *coop, workers );
 				create_children_on_active_group_disp( *coop, workers );
 				create_children_on_thread_pool_disp_1( *coop, workers );
@@ -160,6 +161,18 @@ class a_controller_t : public so_5::agent_t
 			workers_vector_t & workers )
 			{
 				auto disp = so_5::disp::one_thread::make_dispatcher(
+						so_environment() );
+
+				create_children_on( coop, workers,
+						[disp=std::move(disp)] { return disp.binder(); } );
+			}
+
+		void
+		create_children_on_nef_one_thread_disp(
+			so_5::coop_t & coop,
+			workers_vector_t & workers )
+			{
+				auto disp = so_5::disp::nef_one_thread::make_dispatcher(
 						so_environment() );
 
 				create_children_on( coop, workers,
