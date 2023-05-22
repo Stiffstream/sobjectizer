@@ -56,6 +56,8 @@ environment_params_t::environment_params_t(
 	,	m_message_delivery_tracer( std::move( other.m_message_delivery_tracer ) )
 	,	m_message_delivery_tracer_filter(
 			std::move( other.m_message_delivery_tracer_filter ) )
+	,	m_default_disp_params(
+			std::move( other.m_default_disp_params ) )
 	,	m_work_thread_activity_tracking(
 			other.m_work_thread_activity_tracking )
 	,	m_queue_locks_defaults_manager( std::move( other.m_queue_locks_defaults_manager ) )
@@ -93,6 +95,8 @@ swap( environment_params_t & a, environment_params_t & b )
 	swap( a.m_error_logger, b.m_error_logger );
 	swap( a.m_message_delivery_tracer, b.m_message_delivery_tracer );
 	swap( a.m_message_delivery_tracer_filter, b.m_message_delivery_tracer_filter );
+
+	swap( a.m_default_disp_params, b.m_default_disp_params );
 
 	swap( a.m_work_thread_activity_tracking, b.m_work_thread_activity_tracking );
 
