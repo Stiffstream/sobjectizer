@@ -7,8 +7,7 @@
  * \brief A very simple not-multithreaded-safe single thread
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #include <so_5/impl/st_env_infrastructure_reuse.hpp>
@@ -670,8 +669,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand() noexcept
 /*!
  * Throws an exception if autoshutdown feature is disabled.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 void
 ensure_autoshutdown_enabled(

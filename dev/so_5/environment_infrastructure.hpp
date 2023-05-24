@@ -6,8 +6,7 @@
  * \file
  * \brief Interface of environment_infrastructure entity.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #pragma once
@@ -30,8 +29,7 @@ class environment_infrastructure_t;
 /*!
  * \brief A type for deleter for environment_infrastructure objects.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using environment_infrastructure_deleter_fnptr_t =
 	void (*)(environment_infrastructure_t *);
@@ -54,8 +52,7 @@ using environment_infrastructure_deleter_fnptr_t =
  * This class defines the interface of environment_infrastructure.
  * All environment_infrastructure implementations must inherit this interface.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class SO_5_TYPE environment_infrastructure_t
 	{
@@ -100,15 +97,14 @@ class SO_5_TYPE environment_infrastructure_t
 		// coop_repository_stats_t
 		//
 		/*!
-		 * \since
-		 * 5.5.19
-		 *
 		 * \brief Statistical data for run-time monitoring of coop repository
 		 * content.
 		 *
 		 * \note
 		 * Since v.5.6.0 there is only total count of coops without
 		 * separation to registered and deregistered coops count.
+		 *
+		 * \since 5.5.19
 		 */
 		struct coop_repository_stats_t
 			{
@@ -119,10 +115,9 @@ class SO_5_TYPE environment_infrastructure_t
 				std::size_t m_total_agent_count;
 
 				/*!
-				 * \since
-				 * v.5.5.12
-				 *
 				 * \brief Count of coops waiting for the final deregistration.
+				 *
+				 * \since v.5.5.12
 				 */
 				std::size_t m_final_dereg_coop_count;
 			};
@@ -153,8 +148,7 @@ class SO_5_TYPE environment_infrastructure_t
 
 		//! Create an instance of a new coop.
 		/*!
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		virtual coop_unique_holder_t
@@ -266,8 +260,7 @@ class SO_5_TYPE environment_infrastructure_t
 		} );
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using environment_infrastructure_unique_ptr_t =
 		std::unique_ptr<
@@ -292,8 +285,7 @@ using environment_infrastructure_unique_ptr_t =
  * 	mbox_t stats_distribution_mbox );
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using environment_infrastructure_factory_t =
 		std::function<

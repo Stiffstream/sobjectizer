@@ -103,8 +103,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Move constructor.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		environment_params_t( environment_params_t && other );
 		~environment_params_t();
@@ -112,8 +111,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Move operator.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		environment_params_t &
 		operator=( environment_params_t && other ) noexcept;
@@ -121,8 +119,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Swap operation.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		friend SO_5_FUNC void
 		swap( environment_params_t & a, environment_params_t & b ) noexcept;
@@ -176,9 +173,9 @@ class SO_5_TYPE environment_params_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.3.0
 		 * \brief Get exception reaction flag value.
+		 *
+		 * \since v.5.3.0
 		 */
 		inline exception_reaction_t
 		exception_reaction() const
@@ -211,8 +208,6 @@ class SO_5_TYPE environment_params_t
 		 */
 
 		/*!
-		 * \since
-		 * v.5.4.0
 		 * \brief Do not shutdown SO Environment when it is becomes empty.
 		 *
 		 * \par Description
@@ -223,6 +218,8 @@ class SO_5_TYPE environment_params_t
 		 * It disables autoshutdown of SO Environment. Event if there is
 		 * no more live cooperations SO Environment will work until
 		 * explisit call to environment_t::stop() method.
+		 *
+		 * \since v.5.4.0
 		 */
 		environment_params_t &
 		disable_autoshutdown()
@@ -232,11 +229,11 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.4.0
 		 * \brief Is autoshutdown disabled?
 		 *
 		 * \see disable_autoshutdown()
+		 *
+		 * \since v.5.4.0
 		 */
 		[[nodiscard]]
 		bool
@@ -246,9 +243,9 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.0
 		 * \brief Set error logger for the environment.
+		 *
+		 * \since v.5.5.0
 		 */
 		environment_params_t &
 		error_logger( error_logger_shptr_t logger )
@@ -269,8 +266,7 @@ class SO_5_TYPE environment_params_t
 		 * 	} );
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.5.9
+		 * \since v.5.5.9
 		 */
 		environment_params_t &
 		message_delivery_tracer( so_5::msg_tracing::tracer_unique_ptr_t tracer )
@@ -282,8 +278,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Set message tracer filter for the environment.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		environment_params_t &
 		message_delivery_tracer_filter(
@@ -294,8 +289,6 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.10
 		 * \brief Set parameters for the default dispatcher.
 		 *
 		 * \par Usage example:
@@ -310,6 +303,8 @@ class SO_5_TYPE environment_params_t
 						} ) );
 				} );
 			\endcode
+		 *
+		 * \since v.5.5.10
 		 */
 		environment_params_t &
 		default_disp_params( so_5::disp::one_thread::disp_params_t params )
@@ -319,9 +314,9 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.10
 		 * \brief Get the parameters for the default dispatcher.
+		 *
+		 * \since v.5.5.10
 		 */
 		const so_5::disp::one_thread::disp_params_t &
 		default_disp_params() const
@@ -331,8 +326,8 @@ class SO_5_TYPE environment_params_t
 
 		/*!
 		 * \brief Set activity tracking flag for the whole SObjectizer Environment.
-		 * \since
-		 * v.5.5.18
+		 *
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		work_thread_activity_tracking(
@@ -345,8 +340,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get activity tracking flag for the whole SObjectizer Environment.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t
 		work_thread_activity_tracking() const
@@ -356,8 +350,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Helper for turning work thread activity tracking on.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		turn_work_thread_activity_tracking_on()
@@ -368,8 +361,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Helper for turning work thread activity tracking off.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		turn_work_thread_activity_tracking_off()
@@ -380,8 +372,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Set manager for queue locks defaults.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		queue_locks_defaults_manager(
@@ -393,8 +384,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Get the current environment infrastructure factory.
 		/*!
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		const environment_infrastructure_factory_t &
 		infrastructure_factory() const
@@ -416,8 +406,8 @@ class SO_5_TYPE environment_params_t
 		 * 			so_5::env_infrastructures::simple_not_mtsafe::factory() );
 		 * 	} );
 		 * \endcode
-		 * \since
-		 * v.5.5.19
+		 *
+		 * \since v.5.5.19
 		 */
 		environment_params_t &
 		infrastructure_factory(
@@ -455,8 +445,7 @@ class SO_5_TYPE environment_params_t
 		 * The previous event_queue_hook object (if it was set earlier)
 		 * will just be dropped.
 		 *
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		void
 		event_queue_hook(
@@ -577,8 +566,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get message delivery tracer for the environment.
 		 *
-		 * \since
-		 * v.5.5.9
+		 * \since v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t
 		so5_giveout_message_delivery_tracer()
@@ -589,8 +577,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get message delivery tracer filter for the environment.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		so_5::msg_tracing::filter_shptr_t
 		so5_giveout_message_delivery_tracer_filter()
@@ -600,8 +587,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Take out queue locks defaults manager.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t
 		so5_giveout_queue_locks_defaults_manager()
@@ -611,8 +597,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Take out event_queue_hook object.
 		/*!
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t
 		so5_giveout_event_queue_hook()
@@ -662,8 +647,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Exception reaction flag for the whole SO Environment.
 		 *
-		 * \since
-		 * v.5.3.0
+		 * \since v.5.3.0
 		 */
 		exception_reaction_t m_exception_reaction;
 
@@ -672,59 +656,56 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \see disable_autoshutdown()
 		 *
-		 * \since
-		 * v.5.4.0
+		 * \since v.5.4.0
 		 */
 		bool m_autoshutdown_disabled;
 
 		/*!
 		 * \brief Error logger for the environment.
-		 * \since
-		 * v.5.5.0
+		 *
+		 * \since v.5.5.0
 		 */
 		error_logger_shptr_t m_error_logger;
 
 		/*!
 		 * \brief Tracer for message delivery.
-		 * \since
-		 * v.5.5.9
+		 *
+		 * \since v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
 
 		/*!
 		 * \brief Message delivery tracer filter to be used with environment.
-		 * \since
-		 * v.5.5.22
+		 *
+		 * \since v.5.5.22
 		 */
 		so_5::msg_tracing::filter_shptr_t m_message_delivery_tracer_filter;
 
 		/*!
 		 * \brief Parameters for the default dispatcher.
-		 * \since
-		 * v.5.5.10
+		 *
+		 * \since v.5.5.10
 		 */
 		so_5::disp::one_thread::disp_params_t m_default_disp_params;
 
 		/*!
 		 * \brief Work thread activity tracking for the whole Environment.
-		 * \since
-		 * v.5.5.18
+		 *
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t m_work_thread_activity_tracking;
 
 		/*!
 		 * \brief Manager for defaults of queue locks.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
 
 		/*!
 		 * \brief A factory for environment infrastructure entity.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		environment_infrastructure_factory_t m_infrastructure_factory;
 
@@ -735,8 +716,7 @@ class SO_5_TYPE environment_params_t
 		 * It can be a nullptr. It means that no event_queue_hook should
 		 * be used.
 		 *
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t m_event_queue_hook;
 
@@ -1020,9 +1000,6 @@ class SO_5_TYPE environment_t
 		 */
 
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
 		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
@@ -1059,6 +1036,8 @@ class SO_5_TYPE environment_t
 				so_5::make_unlimited_mchain_params().not_empty_notificator(
 					[&] { some_widget.send_notify(); } ) );
 			\endcode
+		 *
+		 * \since v.5.5.13
 		 */
 		mchain_t
 		create_mchain(
@@ -1091,8 +1070,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation. This cooperation
 		 * will use default dispatcher binders.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1116,8 +1094,7 @@ class SO_5_TYPE environment_t
 			coop->make_agent< a_some_agent_t >();
 			\endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1144,8 +1121,7 @@ class SO_5_TYPE environment_t
 		 * };
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1175,8 +1151,7 @@ class SO_5_TYPE environment_t
 		 * };
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1274,9 +1249,6 @@ class SO_5_TYPE environment_t
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
 		 *
-		 * \since
-		 * v.5.2.1
-		 *
 		 * It is just a helper methods for convience.
 		 *
 		 * Usage sample:
@@ -1287,6 +1259,8 @@ class SO_5_TYPE environment_t
 		   				"active_group",
 		   				"some_active_group" ) );
 		 * \endcode
+		 *
+		 * \since v.5.2.1
 		 */
 		template< class A >
 		coop_handle_t
@@ -1434,8 +1408,7 @@ class SO_5_TYPE environment_t
 		 * \note
 		 * Since v.5.6.0 this method is marked as noexcept.
 		 *
-		 * \since
-		 * v.5.2.3.
+		 * \since v.5.2.3
 		 */
 		void
 		call_exception_logger(
@@ -1447,8 +1420,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief An exception reaction for the whole SO Environment.
 		 *
-		 * \since
-		 * v.5.3.0
+		 * \since v.5.3.0
 		 */
 		exception_reaction_t
 		exception_reaction() const;
@@ -1456,8 +1428,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Get the error_logger object.
 		 *
-		 * \since
-		 * v.5.5.0
+		 * \since v.5.5.0
 		 */
 		error_logger_t &
 		error_logger() const;
@@ -1465,8 +1436,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Helper method for simplification of agents creation.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 *
 		 * \note Creates an instance of agent of type \a Agent by using
 		 * environment_t::make_agent() template function and adds it to
@@ -1500,8 +1470,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Access to controller of run-time monitoring.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		stats::controller_t &
 		stats_controller();
@@ -1509,8 +1478,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Access to repository of data sources for run-time monitoring.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		stats::repository_t &
 		stats_repository();
@@ -1531,8 +1499,7 @@ class SO_5_TYPE environment_t
 		 * \return The value returned from lambda-function. Or void if
 		 * the lambda-function returns void.
 		 *
-		 * \since
-		 * v.5.5.5
+		 * \since v.5.5.5
 		 *
 		 * \par Usage samples:
 			\code
@@ -1566,8 +1533,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Get activity tracking flag for the whole SObjectizer Environment.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t
 		work_thread_activity_tracking() const;
@@ -1581,8 +1547,7 @@ class SO_5_TYPE environment_t
 		 * Because of that this method can be changed or removed in 
 		 * future versions of SObjectizer.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		disp_binder_shptr_t
 		so_make_default_disp_binder();
@@ -1594,8 +1559,7 @@ class SO_5_TYPE environment_t
 		 * in environment_params_t. This methods returns <i>true</i> if
 		 * autoshutdown is turned off.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		bool
 		autoshutdown_disabled() const;
@@ -1639,8 +1603,7 @@ class SO_5_TYPE environment_t
 		 * so_5::mbox_t lambda(const so_5::mbox_creation_data_t &);
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		template< typename Lambda >
 		mbox_t
@@ -1711,8 +1674,7 @@ class SO_5_TYPE environment_t
 		 * it is possible to add the same stop_guard several times.
 		 * But it seems to be useless.
 		 *
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		stop_guard_t::setup_result_t
 		setup_stop_guard(
@@ -1757,8 +1719,8 @@ class SO_5_TYPE environment_t
 		 * 	so_5::stop_guard_shptr_t m_my_guard;
 		 * };
 		 * \endcode
-		 * \since
-		 * v.5.5.19.2
+		 *
+		 * \since v.5.5.19.2
 		 */
 		void
 		remove_stop_guard(
@@ -1810,8 +1772,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \throw exception_t if message delivery tracing is disabled.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		void
 		change_message_delivery_tracer_filter(
@@ -1842,8 +1803,7 @@ class SO_5_TYPE environment_t
 
 		//! Actual creation of a custom mbox.
 		/*!
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		mbox_t
 		do_make_custom_mbox(
@@ -1862,8 +1822,7 @@ class SO_5_TYPE environment_t
 		 * \brief Run controller for run-time monitoring
 		 * and call next run stage.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		void
 		imp_run_stats_controller_and_go_further();
@@ -1877,8 +1836,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Launch environment infrastructure and wait for finish.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		void
 		imp_run_infrastructure();
@@ -1893,8 +1851,7 @@ namespace details
 /*!
  * \brief Helper class for building and registering new cooperation.
  *
- * \since
- * v.5.5.5
+ * \since v.5.5.5
  */
 class introduce_coop_helper_t
 {
@@ -1995,8 +1952,7 @@ environment_t::introduce_coop( Args &&... args )
 /*!
  * \brief A simple way for creating child cooperation.
  *
- * \since
- * v.5.5.3
+ * \since v.5.5.3
  *
  * \par Usage sample
 	\code
@@ -2035,8 +1991,7 @@ create_child_coop(
  * \brief A simple way for creating child cooperation when there is
  * a reference to the parent cooperation object.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  *
  * \par Usage sample
 	\code
@@ -2072,8 +2027,7 @@ create_child_coop(
 /*!
  * \brief A simple way for creating and registering child cooperation.
  *
- * \since
- * v.5.5.5
+ * \since v.5.5.5
  *
  * \par Usage sample
 	\code
@@ -2114,8 +2068,7 @@ introduce_child_coop(
  * \brief A simple way for creating and registering child cooperation
  * when there is a reference to parent coop.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  *
  * \par Usage sample
 	\code
@@ -2175,8 +2128,7 @@ introduce_child_coop(
  * } );
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 inline disp_binder_shptr_t
 make_default_disp_binder( environment_t & env )
@@ -2197,8 +2149,7 @@ namespace low_level_api
  * \attention
  * Values of \a pause and \a period should be non-negative.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 [[nodiscard]] inline so_5::timer_id_t
 schedule_timer(
@@ -2236,8 +2187,7 @@ schedule_timer(
  * \attention
  * Value \a period should be non-negative.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 inline void
 single_timer(

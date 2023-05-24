@@ -6,8 +6,7 @@
  * \file
  * \brief Default implementation of multithreaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #include <so_5/impl/mt_env_infrastructure.hpp>

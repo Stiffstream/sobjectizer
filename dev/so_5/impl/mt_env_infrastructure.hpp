@@ -6,8 +6,7 @@
  * \file
  * \brief Default implementation of multithreaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #pragma once
@@ -39,8 +38,7 @@ namespace impl {
  * \brief Implementation of coop_repository for
  * multithreaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 	{
@@ -196,8 +194,7 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 /*!
  * \brief Default implementation of multithreaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class mt_env_infrastructure_t
 	: public environment_infrastructure_t
@@ -280,8 +277,7 @@ class mt_env_infrastructure_t
 		 * In v.5.6.0 the default dispatcher is created inside lauch() and
 		 * we have to store parameters for the default dispatcher somewhere.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		const disp::one_thread::disp_params_t m_default_dispatcher_params;
 

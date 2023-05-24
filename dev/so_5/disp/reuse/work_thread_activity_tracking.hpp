@@ -6,8 +6,7 @@
  * \file
  * \brief Various helpers to work with thread activity tracking stuff.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 
 #pragma once
@@ -25,8 +24,7 @@ namespace reuse {
  *
  * Indended to be used as mixin for various disp_params_t classes.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Params >
 class work_thread_activity_tracking_flag_mixin_t
@@ -62,8 +60,7 @@ class work_thread_activity_tracking_flag_mixin_t
 
 		//! Helper for turning work thread activity tracking on.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		Params &
 		turn_work_thread_activity_tracking_on() noexcept
@@ -74,8 +71,7 @@ class work_thread_activity_tracking_flag_mixin_t
 
 		//! Helper for turning work thread activity tracking off.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		Params &
 		turn_work_thread_activity_tracking_off() noexcept

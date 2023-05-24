@@ -7,8 +7,7 @@
  * \brief A very simple multithreaded-safe single thread
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #include <so_5/impl/st_env_infrastructure_reuse.hpp>

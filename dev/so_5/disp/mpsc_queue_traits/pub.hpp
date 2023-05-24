@@ -6,8 +6,7 @@
  * \file
  * \brief Various traits for MPSC queues.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 
 #pragma once
@@ -31,8 +30,7 @@ namespace mpsc_queue_traits {
 /*!
  * \brief An interface for lock for MPSC queue.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 class SO_5_TYPE lock_t
 	{
@@ -77,8 +75,7 @@ class SO_5_TYPE lock_t
 /*!
  * \brief An alias for unique_ptr for lock.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 using lock_unique_ptr_t = std::unique_ptr< lock_t >; 
 
@@ -88,8 +85,7 @@ using lock_unique_ptr_t = std::unique_ptr< lock_t >;
 /*!
  * \brief Type of lock factory.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 using lock_factory_t = std::function< lock_unique_ptr_t() >;
 
@@ -100,8 +96,7 @@ using lock_factory_t = std::function< lock_unique_ptr_t() >;
  * \brief Default timeout used by combined_lock for waiting on spinlock
  * before switching to mutex-based locking scheme.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 inline std::chrono::high_resolution_clock::duration
 default_combined_lock_waiting_time()
@@ -113,8 +108,7 @@ default_combined_lock_waiting_time()
  * \brief Factory for creation of combined queue lock with the specified
  * waiting time.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -145,8 +139,7 @@ combined_lock_factory(
 /*!
  * \brief Factory for creation of combined queue lock with default waiting time.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -174,8 +167,7 @@ combined_lock_factory()
  * \brief Factory for creation of very simple implementation based on
  * usage of mutex and condition_variable only.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  *
  * \par Usage example:
 	\code
@@ -202,8 +194,7 @@ simple_lock_factory();
 /*!
  * \brief An analog of std::unique_lock for MPSC queue lock.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 class unique_lock_t
 	{
@@ -242,8 +233,7 @@ class unique_lock_t
 /*!
  * \brief An analog of std::lock_guard for MPSC queue lock.
  *
- * \since
- * v.5.4.0
+ * \since v.5.4.0
  */
 class lock_guard_t
 	{
@@ -282,8 +272,7 @@ class lock_guard_t
 /*!
  * \brief Container for storing parameters for MPSC queue.
  *
- * \since
- * v.5.5.10
+ * \since v.5.5.10
  */
 class queue_params_t
 	{
