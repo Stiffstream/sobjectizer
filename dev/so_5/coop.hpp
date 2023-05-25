@@ -924,8 +924,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			agent_with_disp_binder_t(
 				agent_ref_t agent_ref,
 				disp_binder_shptr_t binder )
-				:	m_agent_ref{ std::move(agent_ref) }
-				,	m_binder{ std::move(binder) }
+				:	m_binder{ std::move(binder) }
+				,	m_agent_ref{ std::move(agent_ref) }
 			{}
 
 			//! Binder to a dispatcher.
