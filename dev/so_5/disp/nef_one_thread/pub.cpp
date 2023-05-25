@@ -233,9 +233,9 @@ class agent_queue_t final : public event_queue_t
 		agent_queue_t &
 		operator=( const agent_queue_t & ) = delete;
 
-		agent_queue_t( agent_queue_t && ) = default;
+		agent_queue_t( agent_queue_t && o ) = delete;
 		agent_queue_t &
-		operator=( agent_queue_t && ) = default;
+		operator=( agent_queue_t && o ) = delete;
 
 		void
 		push( execution_demand_t demand ) override
