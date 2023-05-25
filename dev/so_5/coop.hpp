@@ -913,6 +913,12 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 
 	protected:
 		//! Information about agent and its dispatcher binding.
+		/*!
+		 * \note
+		 * Order of fields in this structure is critically important:
+		 * the destructor of m_agent_ref must be invoked before the
+		 * destructor of m_binder.
+		 */
 		struct agent_with_disp_binder_t
 		{
 			agent_with_disp_binder_t(
@@ -922,11 +928,17 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				,	m_binder{ std::move(binder) }
 			{}
 
+			//! Binder to a dispatcher.
+			/*!
+			 * \attention
+			 * This member has to be defined before m_agent_ref.
+			 * In that case the destructor of m_binder will be called
+			 * after the destructor of m_agent_ref.
+			 */
+			disp_binder_shptr_t m_binder;
+
 			//! Agent.
 			agent_ref_t m_agent_ref;
-
-			//! Agent to dispatcher binder.
-			disp_binder_shptr_t m_binder;
 		};
 
 		//! Typedef for the agent information container.
