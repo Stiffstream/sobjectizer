@@ -870,6 +870,7 @@ internal_env_iface_t::create_ordinary_mpsc_mbox(
 	agent_t & single_consumer )
 {
 	return m_env.m_impl->m_mbox_core->create_ordinary_mpsc_mbox(
+			m_env,
 			single_consumer );
 }
 
@@ -878,6 +879,7 @@ internal_env_iface_t::create_limitless_mpsc_mbox(
 	agent_t & single_consumer )
 {
 	return m_env.m_impl->m_mbox_core->create_limitless_mpsc_mbox(
+			m_env,
 			single_consumer );
 }
 
