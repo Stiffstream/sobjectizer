@@ -873,6 +873,7 @@ internal_env_iface_t::create_mpsc_mbox(
 	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
 	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
+			m_env,
 			single_consumer,
 			limits_storage );
 }

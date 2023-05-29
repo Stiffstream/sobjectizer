@@ -124,10 +124,12 @@ class mpsc_mbox_template_t
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
+			environment_t & env,
 			agent_t * single_consumer,
 			Tracing_Args &&... tracing_args )
 			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
+			,	m_env{ env }
 			,	m_single_consumer{ single_consumer }
 			{}
 
@@ -284,7 +286,7 @@ class mpsc_mbox_template_t
 		environment_t &
 		environment() const noexcept override
 			{
-				return m_single_consumer->so_environment();
+				return m_env;
 			}
 
 	protected :
@@ -310,6 +312,22 @@ class mpsc_mbox_template_t
 		 * \brief ID of this mbox.
 		 */
 		const mbox_id_t m_id;
+
+		/*!
+		 * \brief Environment in that the mbox was created.
+		 *
+		 * \note
+		 * Previous versions of SObjectizer didn't hold this reference
+		 * in MPSC-mbox implementations. Instead, the reference was
+		 * obtained via m_single_consumer. But this approach lead to
+		 * access violation when MPSC-mbox's environment() method was
+		 * called after the deregistration of m_single_consumer.
+		 * Because of than the reference to SOEnv is stored inside
+		 * MPSC-mbox and is returned by environment() method.
+		 *
+		 * \since v.5.7.5
+		 */
+		environment_t & m_env;
 
 		//! The only consumer of this mbox's messages.
 		agent_t * m_single_consumer;

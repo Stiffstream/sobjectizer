@@ -101,6 +101,8 @@ class mbox_core_t
 		 */
 		mbox_t
 		create_mpsc_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
 			//! The only consumer for messages.
 			agent_t * single_consumer,
 			//! Pointer to limits for a new mbox.

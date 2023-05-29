@@ -75,6 +75,7 @@ make_actual_mbox(
 
 mbox_t
 mbox_core_t::create_mpsc_mbox(
+	environment_t & env,
 	agent_t * single_consumer,
 	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
@@ -86,12 +87,14 @@ mbox_core_t::create_mpsc_mbox(
 							limitful_mpsc_mbox_with_tracing_t >(
 						m_msg_tracing_stuff,
 						id,
+						env,
 						single_consumer )
 			: make_actual_mbox<
 							limitless_mpsc_mbox_without_tracing_t,
 							limitless_mpsc_mbox_with_tracing_t >(
 						m_msg_tracing_stuff,
 						id,
+						env,
 						single_consumer )
 			;
 

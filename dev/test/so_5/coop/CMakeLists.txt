@@ -1,4 +1,5 @@
 add_subdirectory(dereg_empty_coop)
+add_subdirectory(dereg_already_deregistered)
 add_subdirectory(reg_some_and_stop_1)
 add_subdirectory(reg_some_and_stop_2)
 add_subdirectory(reg_some_and_stop_3)
