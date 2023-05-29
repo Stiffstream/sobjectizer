@@ -51,13 +51,6 @@ class limitful_mpsc_mbox_mixin_t
 			}
 
 		[[nodiscard]]
-		environment_t &
-		query_environment_reference() const noexcept
-			{
-				return m_owner.so_environment();
-			}
-
-		[[nodiscard]]
 		abstract_message_sink_t &
 		message_sink_to_use(
 			const local_mbox_details::subscription_info_with_sink_t & info ) const noexcept
@@ -91,13 +84,6 @@ class limitless_mpsc_mbox_mixin_t
 		query_owner_reference() const noexcept
 			{
 				return m_actual_sink.owner_reference();
-			}
-
-		[[nodiscard]]
-		environment_t &
-		query_environment_reference() const noexcept
-			{
-				return m_actual_sink.owner_reference().so_environment();
 			}
 
 		[[nodiscard]]
@@ -175,11 +161,13 @@ class mpsc_mbox_template_t final
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
+			environment_t & env,
 			outliving_reference_t< agent_t > owner,
 			Tracing_Args &&... tracing_args )
 			:	Limits_Handling_Mixin{ owner }
 			,	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
+			,	m_env{ env }
 			{}
 
 		mbox_id_t
@@ -329,9 +317,7 @@ class mpsc_mbox_template_t final
 		environment_t &
 		environment() const noexcept override
 			{
-				// NOTE: query_environment_reference inherited from
-				// Limits_Handling_Mixin.
-				return this->query_environment_reference();
+				return m_env;
 			}
 
 	protected :
@@ -356,6 +342,22 @@ class mpsc_mbox_template_t final
 		 * \brief ID of this mbox.
 		 */
 		const mbox_id_t m_id;
+
+		/*!
+		 * \brief Environment in that the mbox was created.
+		 *
+		 * \note
+		 * Previous versions of SObjectizer didn't hold this reference
+		 * in MPSC-mbox implementations. Instead, the reference was
+		 * obtained via m_single_consumer. But this approach lead to
+		 * access violation when MPSC-mbox's environment() method was
+		 * called after the deregistration of m_single_consumer.
+		 * Because of than the reference to SOEnv is stored inside
+		 * MPSC-mbox and is returned by environment() method.
+		 *
+		 * \since v.5.7.5
+		 */
+		environment_t & m_env;
 
 		/*!
 		 * \brief Protection of object from modification.
