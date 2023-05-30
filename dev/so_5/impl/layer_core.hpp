@@ -89,7 +89,9 @@ class layer_core_t
 			//! SObjectizer Environment to work with.
 			environment_t & env,
 			//! Layers which are known before SObjectizer start.
-			const layer_map_t & so_layers );
+			//! Note: since v.5.7.5 is has to be a temporary object
+			//! that content will be thrown away just after processing.
+			layer_map_t && so_layers );
 
 		//! Get a layer.
 		/*!
