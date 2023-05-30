@@ -537,10 +537,11 @@ class SO_5_TYPE environment_params_t
 		 * \{
 		 */
 		//! Get map of default SObjectizer's layers.
-		const layer_map_t &
-		so5_layers_map() const
+		[[nodiscard]]
+		layer_map_t
+		so5_giveout_layers_map()
 		{
-			return m_so_layers;
+			return std::move( m_so_layers );
 		}
 
 		//! Get cooperation listener.

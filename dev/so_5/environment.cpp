@@ -451,7 +451,7 @@ struct environment_t::internals_t
 					m_mbox_core->create_mbox(env) ) )
 		,	m_layer_core(
 				env,
-				params.so5_layers_map() )
+				params.so5_giveout_layers_map() )
 		,	m_exception_reaction( params.exception_reaction() )
 		,	m_autoshutdown_disabled( params.autoshutdown_disabled() )
 		,	m_core_data_sources(
