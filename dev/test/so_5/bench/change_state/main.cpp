@@ -105,8 +105,8 @@ main( int argc, char ** argv )
 {
 	try
 	{
-		const unsigned int tick_count = 2 == static_cast< unsigned int >(
-				argc ? std::atoi( argv[1] ) : 1000);
+		const unsigned int tick_count =
+				static_cast< unsigned int >( 2 == argc ? std::atoi( argv[1] ) : 1000);
 
 		so_5::launch(
 			[tick_count]( so_5::environment_t & env )

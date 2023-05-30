@@ -54,7 +54,7 @@ typed_layer_ref_t::operator < ( const typed_layer_ref_t & tl ) const
 
 layer_core_t::layer_core_t(
 	environment_t & env,
-	const layer_map_t & so_layers )
+	layer_map_t && so_layers )
 	:
 		m_env( env ),
 		m_default_layers( so_layers.begin(), so_layers.end() )
@@ -64,6 +64,9 @@ layer_core_t::layer_core_t(
 		{
 			item.m_layer->bind_to_environment( &m_env );
 		} );
+
+	// The content of so_layers is no more needed.
+	so_layers.clear();
 }
 
 //! Find layer in container.
