@@ -36,6 +36,8 @@
 #include <so_5/message_handler_format_detector.hpp>
 #include <so_5/coop_handle.hpp>
 
+#include <so_5/disp_binder.hpp>
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -2668,6 +2670,24 @@ class SO_5_TYPE agent_t
 		 * \brief Priority of the agent.
 		 */
 		const priority_t m_priority;
+
+		/*!
+		 * \brief Binder for this agent.
+		 *
+		 * Since v.5.7.5 disp_binder for the agent is stored inside the agent.
+		 * It guarantees that disp_binder will be deleted after destruction
+		 * of the agent (if there is no circular references between the agent
+		 * and the disp_binder).
+		 *
+		 * This value will be set by coop_t when agent is being add to the
+		 * coop.
+		 *
+		 * \note
+		 * Access to that field provided by so_5::impl::internal_agent_iface_t.
+		 *
+		 * \since v.5.7.5
+		 */
+		disp_binder_shptr_t m_disp_binder;
 
 		//! Destroy all agent's subscriptions.
 		/*!

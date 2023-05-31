@@ -707,6 +707,30 @@ const int rc_agent_deactivated = 189;
  */
 const int rc_mpsc_mbox_expected = 190;
 
+/*!
+ * \brief The dispatcher binder is already set for the agent.
+ *
+ * Since v.5.7.5 disp_binder is stored inside the agent.
+ * Only one disp_binder can be set for an agent. An attempt to set
+ * disp_binder when the agent already has one is an error.
+ *
+ * \since v.5.7.5
+ */
+const int rc_disp_binder_already_set_for_agent = 194;
+
+/*!
+ * \brief The dispatcher binder is not set for the agent yet.
+ *
+ * Since v.5.7.5 disp_binder is stored inside the agent.
+ * A disp_binder must be set for an agent during addition of the agent
+ * to a coop. It means that if agent is added to coop the agent should have
+ * non-null pointer to the disp_binder. If this pointer is still null then
+ * it's an error.
+ *
+ * \since v.5.7.5
+ */
+const int rc_no_disp_binder_for_agent = 195;
+
 //! \name Common error codes.
 //! \{
 

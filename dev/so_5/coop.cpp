@@ -9,6 +9,7 @@
 #include <so_5/impl/agent_ptr_compare.hpp>
 
 #include <so_5/details/abort_on_fatal_error.hpp>
+#include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/exception.hpp>
 #include <so_5/environment.hpp>
@@ -54,8 +55,6 @@ void
 coop_impl_t::destroy_content(
 	coop_t & coop ) noexcept
 	{
-		using std::swap;
-
 		// Initiate deleting of agents by hand to guarantee that
 		// agents will be destroyed before return from coop_t
 		// destructor.
@@ -63,17 +62,12 @@ coop_impl_t::destroy_content(
 		// NOTE: because agents are stored here by smart references
 		// for some agents this operation will lead only to reference
 		// counter descrement. Not to deletion of agent.
-		decltype(coop.m_agent_array) agents;
-		swap( coop.m_agent_array, agents );
-
-		agents.clear();
+		coop.m_agent_array.clear();
 
 		// Now all user resources should be destroyed.
-		decltype(coop.m_resource_deleters) resources;
-		swap( coop.m_resource_deleters, resources );
-
-		for( auto & d : resources )
+		for( auto & d : coop.m_resource_deleters )
 			d();
+		coop.m_resource_deleters.clear();
 	}
 
 void
@@ -81,8 +75,15 @@ coop_impl_t::do_add_agent(
 	coop_t & coop,
 	agent_ref_t agent_ref )
 	{
-		coop.m_agent_array.emplace_back(
-				std::move(agent_ref), coop.m_coop_disp_binder );
+		internal_agent_iface_t agent_iface{ *agent_ref };
+		so_5::details::do_with_rollback_on_exception(
+				[&]() {
+					agent_iface.set_disp_binder( coop.m_coop_disp_binder );
+					coop.m_agent_array.emplace_back( std::move(agent_ref) );
+				},
+				[&agent_iface]() noexcept {
+					agent_iface.drop_disp_binder();
+				} );
 	}
 
 void
@@ -91,8 +92,15 @@ coop_impl_t::do_add_agent(
 	agent_ref_t agent_ref,
 	disp_binder_shptr_t disp_binder )
 	{
-		coop.m_agent_array.emplace_back(
-				std::move(agent_ref), std::move(disp_binder) );
+		internal_agent_iface_t agent_iface{ *agent_ref };
+		so_5::details::do_with_rollback_on_exception(
+				[&]() {
+					agent_iface.set_disp_binder( std::move(disp_binder) );
+					coop.m_agent_array.emplace_back( std::move(agent_ref) );
+				},
+				[&agent_iface]() noexcept {
+					agent_iface.drop_disp_binder();
+				} );
 	}
 
 namespace
@@ -261,16 +269,17 @@ class coop_impl_t::registration_performer_t
 						std::begin(m_coop.m_agent_array),
 						std::end(m_coop.m_agent_array),
 						[]( const auto & a, const auto & b ) noexcept {
-							return special_agent_ptr_compare(
-									*a.m_agent_ref, *b.m_agent_ref );
+							return special_agent_ptr_compare( *a, *b );
 						} );
 			}
 
 		void
 		bind_agents_to_coop()
 			{
-				for( auto & i : m_coop.m_agent_array )
-					internal_agent_iface_t{ *i.m_agent_ref }.bind_to_coop( m_coop );
+				for( const auto & agent_ref : m_coop.m_agent_array )
+				{
+					internal_agent_iface_t{ *agent_ref }.bind_to_coop( m_coop );
+				}
 			}
 
 		void
@@ -285,8 +294,10 @@ class coop_impl_t::registration_performer_t
 								it != m_coop.m_agent_array.end();
 								++it )
 							{
-								it->m_binder->preallocate_resources(
-										*(it->m_agent_ref) );
+								agent_t & agent = **it;
+								internal_agent_iface_t agent_iface{ agent };
+								agent_iface.query_disp_binder()
+										.preallocate_resources( agent );
 							}
 					}
 				catch( const std::exception & x )
@@ -296,8 +307,10 @@ class coop_impl_t::registration_performer_t
 								it2 != it;
 								++it2 )
 							{
-								it2->m_binder->undo_preallocation(
-										*(it2->m_agent_ref) );
+								agent_t & agent = **it2;
+								internal_agent_iface_t agent_iface{ agent };
+								agent_iface.query_disp_binder()
+										.undo_preallocation( agent );
 							}
 
 						SO_5_THROW_EXCEPTION(
@@ -314,8 +327,8 @@ class coop_impl_t::registration_performer_t
 			{
 				try
 					{
-						for( auto & info : m_coop.m_agent_array )
-							internal_agent_iface_t{ *info.m_agent_ref }
+						for( const auto & agent_ref : m_coop.m_agent_array )
+							internal_agent_iface_t{ *agent_ref }
 									.initiate_agent_definition();
 					}
 				catch( const exception_t & )
@@ -347,15 +360,22 @@ class coop_impl_t::registration_performer_t
 		void
 		bind_agents_to_disp() noexcept
 			{
-				for( auto & info : m_coop.m_agent_array )
-					info.m_binder->bind( *info.m_agent_ref );
+				for( const auto & agent_ref : m_coop.m_agent_array )
+					{
+						internal_agent_iface_t agent_iface{ *agent_ref };
+						agent_iface.query_disp_binder().bind( *agent_ref );
+					}
 			}
 
 		void
 		deallocate_disp_resources() noexcept
 			{
-				for( auto & info : m_coop.m_agent_array )
-					info.m_binder->undo_preallocation( *(info.m_agent_ref) );
+				for( const auto & agent_ref : m_coop.m_agent_array )
+					{
+						internal_agent_iface_t agent_iface{ *agent_ref };
+						agent_iface.query_disp_binder()
+								.undo_preallocation( *agent_ref );
+					}
 			}
 
 	public :
@@ -422,8 +442,10 @@ class coop_impl_t::deregistration_performer_t
 		void
 		shutdown_all_agents() noexcept
 			{
-				for( auto & info : m_coop.m_agent_array )
-					internal_agent_iface_t{ *info.m_agent_ref }.shutdown_agent();
+				for( const auto & agent_ref : m_coop.m_agent_array )
+					{
+						internal_agent_iface_t{ *agent_ref }.shutdown_agent();
+					}
 			}
 
 		void
@@ -475,8 +497,12 @@ coop_impl_t::do_final_deregistration_actions(
 	coop_t & coop )
 	{
 		// Agents should be unbound from their dispatchers.
-		for( auto & info : coop.m_agent_array )
-			info.m_binder->unbind( *info.m_agent_ref );
+		for( const auto & agent_ref : coop.m_agent_array )
+			{
+				agent_t & agent = *agent_ref;
+				internal_agent_iface_t agent_iface{ agent };
+				agent_iface.query_disp_binder().unbind( agent );
+			}
 
 		// Now the coop can be removed from it's parent.
 		// We don't except an exception here because m_parent should
