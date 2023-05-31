@@ -26,6 +26,15 @@ namespace so_5
 /*!
  * Dispatcher binders are used in the agent registration process to
  * binding of agents to desired dispatchers.
+ *
+ * \attention
+ * If an implementation of disp_binder_t interface stores smart
+ * pointers to agents in methods preallocate_resources() and bind()
+ * then it must drop (or reset) these stored smart references in
+ * undo_preallocation() and unbind() methods. Otherwise there will
+ * be circular references between disp_binder and agents and this
+ * will lead to memory leaks and other related problems (for
+ * example, destructors for agents/disp_binders won't be called).
  */
 class disp_binder_t
 	: private std::enable_shared_from_this< disp_binder_t >
