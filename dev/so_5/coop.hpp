@@ -937,25 +937,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 	protected:
-		//! Information about agent and its dispatcher binding.
-		struct agent_with_disp_binder_t
-		{
-			agent_with_disp_binder_t(
-				agent_ref_t agent_ref,
-				disp_binder_shptr_t binder )
-				:	m_agent_ref{ std::move(agent_ref) }
-				,	m_binder{ std::move(binder) }
-			{}
-
-			//! Agent.
-			agent_ref_t m_agent_ref;
-
-			//! Agent to dispatcher binder.
-			disp_binder_shptr_t m_binder;
-		};
-
 		//! Typedef for the agent information container.
-		using agent_array_t = std::vector< agent_with_disp_binder_t >;
+		using agent_array_t = std::vector< agent_ref_t >;
 
 		/*!
 		 * \since
