@@ -5,8 +5,8 @@
 /*!
  * \file
  * \brief Public interface of thread pool dispatcher.
- * \since
- * v.5.4.0
+ *
+ * \since v.5.4.0
  */
 
 #pragma once
@@ -35,8 +35,8 @@ namespace thread_pool
 
 /*!
  * \brief Alias for namespace with traits of event queue.
- * \since
- * v.5.5.11
+ *
+ * \since v.5.5.11
  */
 namespace queue_traits = so_5::disp::mpmc_queue_traits;
 
@@ -45,8 +45,8 @@ namespace queue_traits = so_5::disp::mpmc_queue_traits;
 //
 /*!
  * \brief Parameters for %thread_pool dispatcher.
- * \since
- * v.5.5.11
+ *
+ * \since v.5.5.11
  */
 class disp_params_t
 	:	public so_5::disp::reuse::work_thread_activity_tracking_flag_mixin_t< disp_params_t >
@@ -148,8 +148,8 @@ class disp_params_t
 //
 /*!
  * \brief Type of FIFO mechanism for agent's demands.
- * \since
- * v.5.4.0
+ *
+ * \since v.5.4.0
  */
 enum class fifo_t
 	{
@@ -173,8 +173,8 @@ enum class fifo_t
 //
 /*!
  * \brief Parameters for binding agents to %thread_pool dispatcher.
- * \since
- * v.5.5.11
+ *
+ * \since v.5.5.11
  */
 class bind_params_t
 	{
@@ -188,6 +188,7 @@ class bind_params_t
 			}
 
 		//! Get FIFO type.
+		[[nodiscard]]
 		fifo_t
 		query_fifo() const
 			{
@@ -203,6 +204,7 @@ class bind_params_t
 			}
 
 		//! Get maximum count of demands to do processed at once.
+		[[nodiscard]]
 		std::size_t
 		query_max_demands_at_once() const
 			{
@@ -227,9 +229,9 @@ class bind_params_t
  * Returns value of std::thread::hardware_concurrency() or 2 if
  * hardware_concurrency() returns 0.
  *
- * \since
- * v.5.4.0
+ * \since v.5.4.0
  */
+[[nodiscard]]
 inline std::size_t
 default_thread_pool_size()
 	{
@@ -253,8 +255,7 @@ class actual_dispatcher_iface_t;
  * This class contains a minimum that is necessary for implementation
  * of dispatcher_handle class.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class basic_dispatcher_iface_t
 	:	public std::enable_shared_from_this<actual_dispatcher_iface_t>
@@ -279,10 +280,9 @@ class dispatcher_handle_maker_t;
 //
 
 /*!
- * \since
- * v.5.6.0
- *
  * \brief A handle for %thread_pool dispatcher.
+ *
+ * \since v.5.6.0
  */
 class [[nodiscard]] dispatcher_handle_t
 	{
@@ -404,6 +404,7 @@ class [[nodiscard]] dispatcher_handle_t
 //
 // make_dispatcher
 //
+//FIXME: should be marked as nodiscard.
 /*!
  * \brief Create an instance %thread_pool dispatcher.
  *
@@ -424,8 +425,7 @@ auto coop = env.make_coop(
 	disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
@@ -455,9 +455,9 @@ auto coop = env.make_coop(
 	disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
+[[nodiscard]]
 inline dispatcher_handle_t
 make_dispatcher(
 	//! SObjectizer Environment to work in.
@@ -487,9 +487,9 @@ auto coop = env.make_coop(
 	disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
+[[nodiscard]]
 inline dispatcher_handle_t
 make_dispatcher(
 	//! SObjectizer Environment to work in.
@@ -520,9 +520,9 @@ auto coop = env.make_coop(
 	disp.binder() );
 \endcode
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
+[[nodiscard]]
 inline dispatcher_handle_t
 make_dispatcher(
 	//! SObjectizer Environment to work in.

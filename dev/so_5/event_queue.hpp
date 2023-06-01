@@ -37,14 +37,24 @@ class SO_5_TYPE event_queue_t
 
 		//! Enqueue new event to the queue.
 		/*!
+		 * Since v.5.8.0 this method will be used for all demands except
+		 * evt_start and evt_finish events. For these events
+		 * special methods push_evt_start() and push_evt_finish() are used.
+		 *
 		 * \note
 		 * This method can throw and it's expected.
 		 */
 		virtual void
 		push( execution_demand_t demand ) = 0;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Enqueue a demand for evt_start event.
+		 *
+		 * The first event for an agent is evt_start event. Since v.5.8.0
+		 * a demand for the first event is pushed to agent's event_queue
+		 * via this method. The ordinal push() method is used for all
+		 * other demands except the evt_start and evt_finish demands.
+		 *
 		 * \note
 		 * This method can throw and it's expected.
 		 *
@@ -53,8 +63,14 @@ class SO_5_TYPE event_queue_t
 		virtual void
 		push_evt_start( execution_demand_t demand ) = 0;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Enqueue a demand for evt_finish event.
+		 *
+		 * The last event for an agent is evt_finish event. Since v.5.8.0
+		 * a demand for the last event is pushed to agent's event_queue
+		 * via this method. The ordinal push() method is used for all
+		 * other demands except the evt_start and evt_finish demands.
+		 *
 		 * \note
 		 * This method it expected to be noexcept, but if it can't be
 		 * implemented for a particular dispatcher then a call to
