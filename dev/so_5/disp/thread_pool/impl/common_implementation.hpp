@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.4
- *
  * \file
  * \brief Reusable common implementation for thread-pool-like dispatchers.
+ *
+ * \since v.5.5.4
  */
 
 #pragma once
@@ -38,8 +37,8 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 //
 /*!
  * \brief Reusable common implementation for thread-pool-like dispatchers.
- * \since
- * v.5.5.4
+ *
+ * \since v.5.5.4
  */
 template<
 	typename Work_Thread,
@@ -68,8 +67,8 @@ class dispatcher_t final
 
 				/*!
 				 * \brief Description of that queue for run-time monitoring.
-				 * \since
-				 * v.5.5.4
+				 *
+				 * \since v.5.5.4
 				 */
 				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
@@ -88,10 +87,9 @@ class dispatcher_t final
 					{}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Update queue information for run-time monitoring.
+				 *
+				 * \since v.5.5.4
 				 */
 				void
 				update_queue_stats()
@@ -115,13 +113,13 @@ class dispatcher_t final
 				agent_queue_ref_t m_queue;
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Description of that queue for run-time monitoring.
 				 *
 				 * \note This description is created only if agent
 				 * uses individual FIFO.
+				 *
+				 * \since v.5.5.4
+				 *
 				 */
 				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
@@ -147,11 +145,11 @@ class dispatcher_t final
 					{}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Does agent use cooperation FIFO?
+				 *
+				 * \since v.5.5.4
 				 */
+				[[nodiscard]]
 				bool
 				cooperation_fifo() const
 					{
@@ -159,12 +157,11 @@ class dispatcher_t final
 					}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Update queue description with current information.
 				 *
 				 * \attention Must be called only if !cooperation_fifo().
+				 *
+				 * \since v.5.5.4
 				 */
 				void
 				update_queue_stats()
@@ -289,6 +286,7 @@ class dispatcher_t final
 			}
 
 		//! Get resources allocated for an agent.
+		[[nodiscard]]
 		event_queue_t *
 		query_resources_for_agent( agent_t & agent ) noexcept
 			{

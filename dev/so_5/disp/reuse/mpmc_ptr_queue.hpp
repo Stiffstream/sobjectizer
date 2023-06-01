@@ -93,6 +93,12 @@ class mpmc_ptr_queue_t
 								return r;
 							}
 
+						// Exception safety note: it seems that there should not be
+						// dynamic memory allocation because m_waiting_customers is
+						// reserved in the constructor and only push_back and pop_front
+						// are used. So if the actual count of worker threads equals
+						// to thread_count constructor's parameter, then there is
+						// no need to expand m_waiting_customers vector.
 						m_waiting_customers.push_back( &condition );
 
 						condition.wait();
@@ -107,10 +113,9 @@ class mpmc_ptr_queue_t
 
 		//! Switch the current non-empty queue to another one if it is possible.
 		/*!
-		 * \since
-		 * v.5.5.15.1
-		 *
 		 * \return nullptr is the case of dispatcher shutdown.
+		 *
+		 * \since v.5.5.15.1
 		 */
 		inline T *
 		try_switch_to_another( T * current ) noexcept

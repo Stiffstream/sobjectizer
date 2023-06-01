@@ -57,6 +57,7 @@ class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
 			agent_t & agent ) noexcept = 0;
 
 		//! Get resources allocated for an agent.
+		[[nodiscard]]
 		virtual event_queue_t *
 		query_resources_for_agent( agent_t & agent ) noexcept = 0;
 

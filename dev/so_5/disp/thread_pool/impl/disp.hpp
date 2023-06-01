@@ -290,10 +290,9 @@ class agent_queue_t final
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
-//FIXME: should this method be marked as noexcept? It seems that it should.
 		//! Helper method for deleting queue's head object.
 		inline std::unique_ptr< demand_t >
-		remove_head()
+		remove_head() noexcept
 			{
 				std::unique_ptr< demand_t > to_be_deleted{ m_head.m_next };
 				m_head.m_next = m_head.m_next->m_next;
@@ -310,7 +309,7 @@ class agent_queue_t final
 			const std::size_t processed )
 			{
 				return emptyness_t::not_empty == emptyness &&
-						processed < m_max_demands_at_once ? 
+						processed < m_max_demands_at_once ?
 						processing_continuation_t::enabled :
 						processing_continuation_t::disabled;
 			}
@@ -568,6 +567,7 @@ class work_thread_template_t final : public Impl
 
 
 		//! Processing of demands from agent queue.
+		[[nodiscard]]
 		agent_queue_t::emptyness_t
 		process_queue( agent_queue_t & queue )
 			{
@@ -592,7 +592,6 @@ class work_thread_template_t final : public Impl
 
 				return pop_result.m_emptyness;
 			}
-
 	};
 
 } /* namespace work_thread_details */
