@@ -681,7 +681,11 @@ class dispatcher_template_t final : public disp_binder_t
 								stats::suffixes::agent_count(),
 								agents_count );
 
-						//FIXME: send demands_count value!
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								stats::suffixes::work_thread_queue_size(),
+								disp.m_work_thread.demand_queue().size() );
 
 						send_thread_activity_stats(
 								mbox,
