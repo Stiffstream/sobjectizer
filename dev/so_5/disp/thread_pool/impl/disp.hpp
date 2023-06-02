@@ -88,12 +88,12 @@ class agent_queue_t final
 			const bind_params_t & params )
 			:	m_disp_queue( disp_queue )
 			,	m_max_demands_at_once( params.query_max_demands_at_once() )
-			,	m_tail( &m_head )
+			,	m_tail_demand( &m_head_demand )
 			{}
 
 		~agent_queue_t() override
 			{
-				while( m_head.m_next )
+				while( m_head_demand.m_next )
 					remove_head();
 			}
 
@@ -109,10 +109,10 @@ class agent_queue_t final
 				{
 					std::lock_guard< spinlock_t > lock( m_lock );
 
-					was_empty = (nullptr == m_head.m_next);
+					was_empty = (nullptr == m_head_demand.m_next);
 
-					m_tail->m_next = tail_demand.release();
-					m_tail = m_tail->m_next;
+					m_tail_demand->m_next = tail_demand.release();
+					m_tail_demand = m_tail_demand->m_next;
 
 					++m_size;
 				}
@@ -152,7 +152,7 @@ class agent_queue_t final
 		execution_demand_t &
 		front()
 			{
-				return *(m_head.m_next);
+				return *(m_head_demand.m_next);
 			}
 
 		/*!
@@ -210,11 +210,11 @@ class agent_queue_t final
 
 					old_head = remove_head();
 
-					const auto emptyness = m_head.m_next ?
+					const auto emptyness = m_head_demand.m_next ?
 							emptyness_t::not_empty : emptyness_t::empty;
 
 					if( emptyness_t::empty == emptyness )
-						m_tail = &m_head;
+						m_tail_demand = &m_head_demand;
 
 					return pop_result_t{
 							detect_continuation( emptyness, demands_processed ),
@@ -241,7 +241,7 @@ class agent_queue_t final
 					{
 						{
 							std::lock_guard< spinlock_t > lock( m_lock );
-							empty = (nullptr == m_head.m_next);
+							empty = (nullptr == m_head_demand.m_next);
 						}
 
 						if( !empty )
@@ -254,10 +254,44 @@ class agent_queue_t final
 		 *
 		 * \since v.5.5.4
 		 */
+		[[nodiscard]]
 		std::size_t
-		size() const
+		size() const noexcept
 			{
 				return m_size.load( std::memory_order_acquire );
+			}
+
+		/*!
+		 * \brief Give away a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		agent_queue_t *
+		intrusive_queue_giveout_next() noexcept
+			{
+				auto * r = m_intrusive_queue_next;
+				m_intrusive_queue_next = nullptr;
+				return r;
+			}
+
+		/*!
+		 * \brief Set a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		void
+		intrusive_queue_set_next( agent_queue_t * next ) noexcept
+			{
+				m_intrusive_queue_next = next;
 			}
 
 	private :
@@ -275,13 +309,13 @@ class agent_queue_t final
 		/*!
 		 * Never contains actual demand. Only m_next field is used.
 		 */
-		demand_t m_head;
+		demand_t m_head_demand;
 		//! Tail of the demand's queue.
 		/*!
-		 * Must point to m_head if queue is empty or to the very
+		 * Must point to m_head_demand if queue is empty or to the very
 		 * last queue item otherwise.
 		 */
-		demand_t * m_tail;
+		demand_t * m_tail_demand;
 
 		/*!
 		 * \brief Current size of the queue.
@@ -290,12 +324,22 @@ class agent_queue_t final
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
+		/*!
+		 * \brief The next item in intrusive queue of agent_queues.
+		 *
+		 * This field is necessary to implement interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t
+		 *
+		 * \since v.5.8.0
+		 */
+		agent_queue_t * m_intrusive_queue_next{ nullptr };
+
 		//! Helper method for deleting queue's head object.
 		inline std::unique_ptr< demand_t >
 		remove_head() noexcept
 			{
-				std::unique_ptr< demand_t > to_be_deleted{ m_head.m_next };
-				m_head.m_next = m_head.m_next->m_next;
+				std::unique_ptr< demand_t > to_be_deleted{ m_head_demand.m_next };
+				m_head_demand.m_next = m_head_demand.m_next->m_next;
 
 				--m_size;
 

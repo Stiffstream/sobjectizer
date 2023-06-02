@@ -110,20 +110,21 @@ class agent_queue_t final
 			//! adv-thread-pool dispatchers.
 			const bind_params_t & )
 			:	m_disp_queue( disp_queue )
-			,	m_tail( &m_head )
+			,	m_tail_demand( &m_head_demand )
 			,	m_active( false )
 			,	m_workers( 0 )
 			{}
 
 		~agent_queue_t() override
 			{
-				while( m_head.m_next )
+				while( m_head_demand.m_next )
 					delete_head();
 			}
 
 		//! Access to the queue's lock.
+		[[nodiscard]]
 		spinlock_t &
-		lock()
+		lock() noexcept
 			{
 				return m_lock;
 			}
@@ -139,12 +140,12 @@ class agent_queue_t final
 
 					std::lock_guard< spinlock_t > lock( m_lock );
 
-					m_tail->m_next = new_demand;
-					m_tail = m_tail->m_next;
+					m_tail_demand->m_next = new_demand;
+					m_tail_demand = m_tail_demand->m_next;
 
 					++m_size;
 
-					if( m_head.m_next == m_tail )
+					if( m_head_demand.m_next == m_tail_demand )
 						{
 							// Queue was empty. Need to detect
 							// necessity of queue activation.
@@ -192,6 +193,7 @@ class agent_queue_t final
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
+		[[nodiscard]]
 		execution_demand_t
 		peek_front()
 			{
@@ -200,7 +202,7 @@ class agent_queue_t final
 
 				m_active = false;
 
-				return m_head.m_next->m_demand;
+				return m_head_demand.m_next->m_demand;
 			}
 
 		//! Remove the front demand.
@@ -208,6 +210,7 @@ class agent_queue_t final
 		 * \retval true queue must be activated.
 		 * \retval false queue must not be activated.
 		 */
+		[[nodiscard]]
 		bool
 		worker_started(
 			//! Type of worker.
@@ -218,8 +221,8 @@ class agent_queue_t final
 				SO_5_CHECK_INVARIANT( !m_active, this );
 
 				delete_head();
-				if( !m_head.m_next )
-					m_tail = &m_head;
+				if( !m_head_demand.m_next )
+					m_tail_demand = &m_head_demand;
 
 				m_workers += type_of_worker;
 
@@ -236,6 +239,7 @@ class agent_queue_t final
 		 * \retval true queue must be activated.
 		 * \retval false queue must not be activated.
 		 */
+		[[nodiscard]]
 		bool
 		worker_finished(
 			//! Type of worker.
@@ -256,6 +260,7 @@ class agent_queue_t final
 			}
 
 		//! Check the presence of any worker at the moment.
+		[[nodiscard]]
 		bool
 		is_there_any_worker() const
 			{
@@ -263,6 +268,7 @@ class agent_queue_t final
 			}
 
 		//! Check the presence of thread unsafe worker.
+		[[nodiscard]]
 		bool
 		is_there_not_thread_safe_worker() const
 			{
@@ -270,10 +276,12 @@ class agent_queue_t final
 			}
 
 		//! Is empty queue?
+		[[nodiscard]]
 		bool
-		empty() const { return nullptr == m_head.m_next; }
+		empty() const { return nullptr == m_head_demand.m_next; }
 
 		//! Is active queue?
+		[[nodiscard]]
 		bool
 		active() const { return m_active; }
 
@@ -283,10 +291,44 @@ class agent_queue_t final
 		 * \since
 		 * v.5.5.4
 		 */
+		[[nodiscard]]
 		std::size_t
-		size() const
+		size() const noexcept
 			{
 				return m_size.load( std::memory_order_acquire );
+			}
+
+		/*!
+		 * \brief Give away a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		agent_queue_t *
+		intrusive_queue_giveout_next() noexcept
+			{
+				auto * r = m_intrusive_queue_next;
+				m_intrusive_queue_next = nullptr;
+				return r;
+			}
+
+		/*!
+		 * \brief Set a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		void
+		intrusive_queue_set_next( agent_queue_t * next ) noexcept
+			{
+				m_intrusive_queue_next = next;
 			}
 
 	private :
@@ -301,13 +343,13 @@ class agent_queue_t final
 		/*!
 		 * Never contains actual demand. Only m_next field is used.
 		 */
-		demand_t m_head;
+		demand_t m_head_demand;
 		//! Tail of the demand's queue.
 		/*!
-		 * Must point to m_head if queue is empty or to the very
+		 * Must point to m_head_demand if queue is empty or to the very
 		 * last queue item otherwise.
 		 */
-		demand_t * m_tail;
+		demand_t * m_tail_demand;
 
 		//! Is this queue activated?
 		/*!
@@ -326,12 +368,22 @@ class agent_queue_t final
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
 
+		/*!
+		 * \brief The next item in intrusive queue of agent_queues.
+		 *
+		 * This field is necessary to implement interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t
+		 *
+		 * \since v.5.8.0
+		 */
+		agent_queue_t * m_intrusive_queue_next{ nullptr };
+
 		//! Helper method for deleting queue's head object.
 		inline void
-		delete_head()
+		delete_head() noexcept
 			{
-				auto to_be_deleted = m_head.m_next;
-				m_head.m_next = m_head.m_next->m_next;
+				auto to_be_deleted = m_head_demand.m_next;
+				m_head_demand.m_next = m_head_demand.m_next->m_next;
 
 				--m_size;
 
