@@ -14,6 +14,7 @@
 #include <so_5/disp/mpmc_queue_traits/pub.hpp>
 
 #include <deque>
+#include <mutex>
 #include <vector>
 
 namespace so_5
