@@ -12,7 +12,7 @@
 
 #include <so_5/disp/nef_thread_pool/pub.hpp>
 
-#include <so_5/disp/nef_thread_pool/impl/disp.hpp>
+#include <so_5/disp/thread_pool/impl/work_thread_template.hpp>
 
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -32,6 +32,64 @@ namespace nef_thread_pool
 
 namespace impl
 {
+
+using so_5::disp::thread_pool::impl::agent_queue_t;
+using so_5::disp::thread_pool::impl::dispatcher_queue_t;
+using so_5::disp::thread_pool::impl::work_thread_no_activity_tracking_t;
+using so_5::disp::thread_pool::impl::work_thread_with_activity_tracking_t;
+
+//
+// adaptation_t
+//
+/*!
+ * \brief Adaptation of common implementation of thread-pool-like dispatcher
+ * to the specific of this thread-pool dispatcher.
+ *
+ * \since v.5.5.4
+ */
+struct adaptation_t
+	{
+		[[nodiscard]]
+		static constexpr std::string_view
+		dispatcher_type_name() noexcept
+			{
+				return { "nef_tp" }; // nef_thread_pool.
+			}
+
+		[[nodiscard]]
+		static bool
+		is_individual_fifo( const bind_params_t & /*params*/ ) noexcept
+			{
+				// NOTE: all agents use individual fifo.
+				return true;
+			}
+
+		static void
+		wait_for_queue_emptyness( agent_queue_t & queue ) noexcept
+			{
+				queue.wait_for_emptyness();
+			}
+	};
+
+//
+// dispatcher_template_t
+//
+/*!
+ * \brief Template for dispatcher.
+ *
+ * This template depends on work_thread type (with or without activity
+ * tracking).
+ *
+ * \since v.5.5.18
+ */
+template< typename Work_Thread >
+using dispatcher_template_t =
+		so_5::disp::thread_pool::common_implementation::dispatcher_t<
+				Work_Thread,
+				dispatcher_queue_t,
+				agent_queue_t,
+				bind_params_t,
+				adaptation_t >;
 
 //
 // actual_dispatcher_iface_t

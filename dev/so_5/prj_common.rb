@@ -139,6 +139,10 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				cpp_source 'pub.cpp'
 			}
 
+			sources_root( 'nef_thread_pool' ) {
+				cpp_source 'pub.cpp'
+			}
+
 			sources_root( 'prio_one_thread' ) {
 				sources_root( 'strictly_ordered' ) {
 					cpp_source 'pub.cpp'

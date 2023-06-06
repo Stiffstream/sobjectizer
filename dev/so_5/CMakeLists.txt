@@ -86,6 +86,7 @@ set(SO_5_SRC exception.cpp
 	disp/active_group/pub.cpp
 	disp/thread_pool/pub.cpp
 	disp/adv_thread_pool/pub.cpp
+	disp/nef_thread_pool/pub.cpp
 	disp/prio_one_thread/strictly_ordered/pub.cpp
 	disp/prio_one_thread/quoted_round_robin/pub.cpp
 	disp/prio_dedicated_threads/one_per_prio/pub.cpp
