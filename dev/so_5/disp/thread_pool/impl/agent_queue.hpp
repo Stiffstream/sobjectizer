@@ -15,6 +15,7 @@
 #include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
 
 #include <so_5/event_queue.hpp>
+#include <so_5/outliving.hpp>
 #include <so_5/spinlocks.hpp>
 
 namespace so_5
@@ -31,31 +32,13 @@ namespace impl
 
 using spinlock_t = so_5::default_spinlock_t;
 
-class agent_queue_t;
-
 //
-// dispatcher_queue_t
+// basic_event_queue_t
 //
-using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
-
-//
-// agent_queue_t
-//
-/*!
- * \brief Event queue for the agent (or cooperation).
- *
- * \note
- * This class isn't final since v.5.8.0
- *
- * \since v.5.4.0
- */
-class agent_queue_t
+class basic_event_queue_t
 	:	public event_queue_t
-	,	private so_5::atomic_refcounted_t
 	{
-		friend class so_5::intrusive_ptr_t< agent_queue_t >;
-
-	private :
+	protected :
 		//! Actual demand in event queue.
 		struct demand_t : public execution_demand_t
 			{
@@ -77,19 +60,13 @@ class agent_queue_t
 			};
 
 	public :
-		//! Constructor.
-		template< typename Bind_Params >
-		agent_queue_t(
-			//! Dispatcher queue to work with.
-			dispatcher_queue_t & disp_queue,
-			//! Parameters for the queue.
-			const Bind_Params & params )
-			:	m_disp_queue( disp_queue )
-			,	m_max_demands_at_once( params.query_max_demands_at_once() )
+		basic_event_queue_t(
+			std::size_t max_demands_at_once )
+			:	m_max_demands_at_once( max_demands_at_once )
 			,	m_tail_demand( &m_head_demand )
 			{}
 
-		~agent_queue_t() override
+		~basic_event_queue_t() override
 			{
 				while( m_head_demand.m_next )
 					remove_head();
@@ -105,8 +82,7 @@ class agent_queue_t
 		 * \since v.5.8.0
 		 */
 		void
-		push_preallocated( std::unique_ptr< demand_t > tail_demand )
-			noexcept( noexcept( this->m_disp_queue.schedule(this) ) )
+		push_preallocated( std::unique_ptr< demand_t > tail_demand ) noexcept
 			{
 				bool was_empty;
 
@@ -124,7 +100,7 @@ class agent_queue_t
 				// Scheduling of the queue must be done when queue lock
 				// is unlocked.
 				if( was_empty )
-					m_disp_queue.schedule( this );
+					this->schedule_on_disp_queue();
 			}
 
 		//! Push next demand to queue.
@@ -275,44 +251,12 @@ class agent_queue_t
 				return m_size.load( std::memory_order_acquire );
 			}
 
-		/*!
-		 * \brief Give away a pointer to the next agent_queue.
-		 *
-		 * \note
-		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
-		 *
-		 * \since v.5.8.0
-		 */
-		[[nodiscard]]
-		agent_queue_t *
-		intrusive_queue_giveout_next() noexcept
-			{
-				auto * r = m_intrusive_queue_next;
-				m_intrusive_queue_next = nullptr;
-				return r;
-			}
-
-		/*!
-		 * \brief Set a pointer to the next agent_queue.
-		 *
-		 * \note
-		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
-		 *
-		 * \since v.5.8.0
-		 */
-		void
-		intrusive_queue_set_next( agent_queue_t * next ) noexcept
-			{
-				m_intrusive_queue_next = next;
-			}
+	protected:
+		//FIXME: document this
+		virtual void
+		schedule_on_disp_queue() noexcept = 0;
 
 	private :
-		//! Dispatcher queue for scheduling processing of events from
-		//! this queue.
-		dispatcher_queue_t & m_disp_queue;
-
 		//! Maximum count of demands to be processed consequently.
 		const std::size_t m_max_demands_at_once;
 
@@ -337,16 +281,6 @@ class agent_queue_t
 		 * \since v.5.5.4
 		 */
 		std::atomic< std::size_t > m_size = { 0 };
-
-		/*!
-		 * \brief The next item in intrusive queue of agent_queues.
-		 *
-		 * This field is necessary to implement interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t
-		 *
-		 * \since v.5.8.0
-		 */
-		agent_queue_t * m_intrusive_queue_next{ nullptr };
 
 		//! Helper method for deleting queue's head object.
 		inline std::unique_ptr< demand_t >

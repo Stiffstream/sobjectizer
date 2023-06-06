@@ -140,7 +140,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			}
 
 			sources_root( 'nef_thread_pool' ) {
-				cpp_source 'pub.cpp'
+#				cpp_source 'pub.cpp'
 			}
 
 			sources_root( 'prio_one_thread' ) {

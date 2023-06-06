@@ -31,6 +31,7 @@
 #include <so_5/disp/active_group/pub.hpp>
 #include <so_5/disp/thread_pool/pub.hpp>
 #include <so_5/disp/adv_thread_pool/pub.hpp>
+#include <so_5/disp/nef_thread_pool/pub.hpp>
 #include <so_5/disp/prio_one_thread/strictly_ordered/pub.hpp>
 #include <so_5/disp/prio_one_thread/quoted_round_robin/pub.hpp>
 #include <so_5/disp/prio_dedicated_threads/one_per_prio/pub.hpp>

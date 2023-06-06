@@ -48,6 +48,8 @@ template< class T >
 class mpmc_ptr_queue_t
 	{
 	public :
+		using item_t = T;
+
 		mpmc_ptr_queue_t(
 			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params,
 			std::size_t thread_count )

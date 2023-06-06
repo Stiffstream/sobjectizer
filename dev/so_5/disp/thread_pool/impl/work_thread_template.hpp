@@ -37,16 +37,22 @@ namespace impl
 namespace work_thread_details
 {
 
-/*!
- * \brief Main data for work_thread.
- *
- * \since v.5.5.18
- */
-struct common_data_t
+//FIXME: document this!
+template< typename Disp_Queue >
+struct common_data_template_dependent_t
 	{
 		//! Dispatcher's queue.
-		dispatcher_queue_t * m_disp_queue;
+		Disp_Queue * m_disp_queue;
 
+		common_data_template_dependent_t(
+			Disp_Queue & disp_queue )
+			:	m_disp_queue{ std::addressof(disp_queue) }
+			{}
+	};
+
+//FIXME: document this!
+struct common_data_template_independent_t
+	{
 		//! ID of thread.
 		/*!
 		 * Receives actual value inside body().
@@ -59,12 +65,32 @@ struct common_data_t
 		//! Waiting object for long wait.
 		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
+		common_data_template_independent_t(
+			work_thread_holder_t thread_holder,
+			so_5::disp::mpmc_queue_traits::condition_unique_ptr_t condition )
+			:	m_thread_holder{ std::move(thread_holder) }
+			,	m_condition{ std::move(condition) }
+			{}
+	};
+
+/*!
+ * \brief Main data for work_thread.
+ *
+ * \since v.5.5.18
+ */
+template< typename Disp_Queue >
+struct common_data_t
+	:	public common_data_template_dependent_t< Disp_Queue >
+	,	public common_data_template_independent_t
+	{
 		common_data_t(
-			dispatcher_queue_t & queue,
+			Disp_Queue & queue,
 			work_thread_holder_t thread_holder )
-			:	m_disp_queue( &queue )
-			,	m_thread_holder{ std::move(thread_holder) }
-			,	m_condition{ queue.allocate_condition() }
+			:	common_data_template_dependent_t< Disp_Queue >{ queue }
+			,	common_data_template_independent_t{
+					std::move(thread_holder),
+					queue.allocate_condition()
+				}
 			{}
 	};
 
@@ -73,14 +99,17 @@ struct common_data_t
  *
  * \since v.5.5.18
  */
-class no_activity_tracking_impl_t : protected common_data_t
+template< typename Disp_Queue >
+class no_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 	{
 	public :
+		using disp_queue_t = Disp_Queue;
+
 		//! Initializing constructor.
 		no_activity_tracking_impl_t(
-			dispatcher_queue_t & queue,
+			Disp_Queue & queue,
 			work_thread_holder_t thread_holder )
-			:	common_data_t( queue, std::move(thread_holder) )
+			:	common_data_t< Disp_Queue >( queue, std::move(thread_holder) )
 			{}
 
 		template< typename L >
@@ -106,16 +135,19 @@ class no_activity_tracking_impl_t : protected common_data_t
  *
  * \since v.5.5.18
  */
-class with_activity_tracking_impl_t : protected common_data_t
+template< typename Disp_Queue >
+class with_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 	{
 		using activity_tracking_traits = so_5::stats::activity_tracking_stuff::traits;
 
 	public :
+		using disp_queue_t = Disp_Queue;
+
 		//! Initializing constructor.
 		with_activity_tracking_impl_t(
-			dispatcher_queue_t & queue,
+			Disp_Queue & queue,
 			work_thread_holder_t thread_holder )
-			:	common_data_t( queue, std::move(thread_holder) )
+			:	common_data_t< Disp_Queue >( queue, std::move(thread_holder) )
 			{}
 
 		template< typename L >
@@ -181,9 +213,15 @@ template< typename Impl >
 class work_thread_template_t final : public Impl
 	{
 	public :
+		using disp_queue_t = typename Impl::disp_queue_t;
+
+	private:
+		using agent_queue_t = typename disp_queue_t::item_t;
+
+	public:
 		//! Initializing constructor.
 		work_thread_template_t(
-			dispatcher_queue_t & queue,
+			disp_queue_t & queue,
 			work_thread_holder_t thread_holder )
 			:	Impl( queue, std::move(thread_holder) )
 			{}
@@ -288,11 +326,11 @@ class work_thread_template_t final : public Impl
 
 		//! Processing of demands from agent queue.
 		[[nodiscard]]
-		agent_queue_t::emptyness_t
+		typename agent_queue_t::emptyness_t
 		process_queue( agent_queue_t & queue )
 			{
 				std::size_t demands_processed = 0;
-				agent_queue_t::pop_result_t pop_result;
+				typename agent_queue_t::pop_result_t pop_result;
 
 				do
 					{
@@ -324,9 +362,10 @@ class work_thread_template_t final : public Impl
  *
  * \since v.5.5.18
  */
+template< typename Disp_Queue >
 using work_thread_no_activity_tracking_t =
 		work_thread_details::work_thread_template_t<
-				work_thread_details::no_activity_tracking_impl_t >;
+				work_thread_details::no_activity_tracking_impl_t< Disp_Queue > >;
 
 //
 // work_thread_with_activity_tracking_t
@@ -336,9 +375,10 @@ using work_thread_no_activity_tracking_t =
  *
  * \since v.5.5.18
  */
+template< typename Disp_Queue >
 using work_thread_with_activity_tracking_t =
 		work_thread_details::work_thread_template_t<
-				work_thread_details::with_activity_tracking_impl_t >;
+				work_thread_details::with_activity_tracking_impl_t< Disp_Queue > >;
 
 } /* namespace impl */
 

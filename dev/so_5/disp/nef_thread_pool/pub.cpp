@@ -33,10 +33,109 @@ namespace nef_thread_pool
 namespace impl
 {
 
-using so_5::disp::thread_pool::impl::agent_queue_t;
-using so_5::disp::thread_pool::impl::dispatcher_queue_t;
 using so_5::disp::thread_pool::impl::work_thread_no_activity_tracking_t;
 using so_5::disp::thread_pool::impl::work_thread_with_activity_tracking_t;
+
+class agent_queue_with_preallocated_finish_demand_t;
+
+//
+// dispatcher_queue_t
+//
+using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t<
+		agent_queue_with_preallocated_finish_demand_t >;
+
+//
+// agent_queue_with_preallocated_finish_demand_t
+//
+//FIXME: document this!
+class agent_queue_with_preallocated_finish_demand_t final
+	:	public so_5::disp::thread_pool::impl::basic_event_queue_t
+	,	private so_5::atomic_refcounted_t
+	{
+		friend class so_5::intrusive_ptr_t< agent_queue_t >;
+
+		using base_type_t = so_5::disp::thread_pool::impl::basic_event_queue_t;
+
+	public:
+		agent_queue_with_preallocated_finish_demand_t(
+			//! Dispatcher queue to work with.
+			dispatcher_queue_t & disp_queue,
+			//! Parameters for the queue.
+			const bind_params_t & params )
+			:	base_type_t{ params.max_demands_at_once() }
+			,	m_disp_queue{ disp_queue }
+			,	m_finish_demand{ std::make_unique< base_type_t::demand_t >() }
+			{}
+
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				// It's assumed that m_finish_demand isn't empty.
+				*(m_finish_demand) = std::move(demand);
+
+				// Just delegate the work.
+				this->push_preallocated( std::move(m_finish_demand) );
+			}
+
+		/*!
+		 * \brief Give away a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		agent_queue_with_preallocated_finish_demand_t *
+		intrusive_queue_giveout_next() noexcept
+			{
+				auto * r = m_intrusive_queue_next;
+				m_intrusive_queue_next = nullptr;
+				return r;
+			}
+
+		/*!
+		 * \brief Set a pointer to the next agent_queue.
+		 *
+		 * \note
+		 * This method is a part of interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 *
+		 * \since v.5.8.0
+		 */
+		void
+		intrusive_queue_set_next(
+			agent_queue_with_preallocated_finish_demand_t * next ) noexcept
+			{
+				m_intrusive_queue_next = next;
+			}
+
+	protected:
+		//FIXME: document this
+		void
+		schedule_on_disp_queue() noexcept override
+			{
+				m_disp_queue.schedule( this );
+			}
+
+	private :
+		//FIXME: document this!
+		dispatcher_queue_t & m_disp_queue;
+
+		//FIXME: document this!
+		std::unique_ptr< base_type_t::demand_t > m_finish_demand;
+
+		/*!
+		 * \brief The next item in intrusive queue of agent_queues.
+		 *
+		 * This field is necessary to implement interface required by
+		 * so_5::disp::reuse::mpmc_ptr_queue_t
+		 *
+		 * \since v.5.8.0
+		 */
+		agent_queue_with_preallocated_finish_demand_t * m_intrusive_queue_next{ nullptr };
+	};
 
 //
 // adaptation_t
@@ -65,7 +164,8 @@ struct adaptation_t
 			}
 
 		static void
-		wait_for_queue_emptyness( agent_queue_t & queue ) noexcept
+		wait_for_queue_emptyness(
+			agent_queue_with_preallocated_finish_demand_t & queue ) noexcept
 			{
 				queue.wait_for_emptyness();
 			}
@@ -87,7 +187,7 @@ using dispatcher_template_t =
 		so_5::disp::thread_pool::common_implementation::dispatcher_t<
 				Work_Thread,
 				dispatcher_queue_t,
-				agent_queue_t,
+				agent_queue_with_preallocated_finish_demand_t,
 				bind_params_t,
 				adaptation_t >;
 

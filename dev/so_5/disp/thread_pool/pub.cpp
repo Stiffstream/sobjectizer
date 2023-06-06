@@ -251,11 +251,17 @@ make_dispatcher(
 
 		using dispatcher_no_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_no_activity_tracking_t >;
+						impl::work_thread_no_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		using dispatcher_with_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_with_activity_tracking_t >;
+						impl::work_thread_with_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		auto binder = so_5::disp::reuse::make_actual_dispatcher<
 						impl::actual_dispatcher_iface_t,
