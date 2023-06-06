@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <so_5/disp/thread_pool/impl/basic_event_queue.hpp>
 #include <so_5/disp/thread_pool/impl/work_thread_template.hpp>
 
 #include <so_5/disp/thread_pool/pub.hpp>

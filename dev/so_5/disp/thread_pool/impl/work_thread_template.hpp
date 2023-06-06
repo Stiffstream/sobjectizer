@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <so_5/disp/thread_pool/impl/agent_queue.hpp>
-
 #include <so_5/stats/impl/activity_tracking.hpp>
 
 #include <so_5/disp/abstract_work_thread.hpp>

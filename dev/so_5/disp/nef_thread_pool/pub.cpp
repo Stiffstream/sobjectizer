@@ -13,6 +13,7 @@
 #include <so_5/disp/nef_thread_pool/pub.hpp>
 
 #include <so_5/disp/thread_pool/impl/work_thread_template.hpp>
+#include <so_5/disp/thread_pool/impl/basic_event_queue.hpp>
 
 #include <so_5/disp/reuse/make_actual_dispatcher.hpp>
 
@@ -52,7 +53,7 @@ class agent_queue_with_preallocated_finish_demand_t final
 	:	public so_5::disp::thread_pool::impl::basic_event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
-		friend class so_5::intrusive_ptr_t< agent_queue_t >;
+		friend class so_5::intrusive_ptr_t< agent_queue_with_preallocated_finish_demand_t >;
 
 		using base_type_t = so_5::disp::thread_pool::impl::basic_event_queue_t;
 
@@ -62,7 +63,7 @@ class agent_queue_with_preallocated_finish_demand_t final
 			dispatcher_queue_t & disp_queue,
 			//! Parameters for the queue.
 			const bind_params_t & params )
-			:	base_type_t{ params.max_demands_at_once() }
+			:	base_type_t{ params.query_max_demands_at_once() }
 			,	m_disp_queue{ disp_queue }
 			,	m_finish_demand{ std::make_unique< base_type_t::demand_t >() }
 			{}
@@ -410,11 +411,17 @@ make_dispatcher(
 
 		using dispatcher_no_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_no_activity_tracking_t >;
+						impl::work_thread_no_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		using dispatcher_with_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_with_activity_tracking_t >;
+						impl::work_thread_with_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		auto binder = so_5::disp::reuse::make_actual_dispatcher<
 						impl::actual_dispatcher_iface_t,

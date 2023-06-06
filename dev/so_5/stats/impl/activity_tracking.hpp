@@ -11,12 +11,13 @@
 
 #pragma once
 
+#include <so_5/stats/work_thread_activity.hpp>
+
 #include <so_5/types.hpp>
 #include <so_5/spinlocks.hpp>
 #include <so_5/outliving.hpp>
 
-#include <so_5/stats/work_thread_activity.hpp>
-
+#include <mutex>
 #include <string_view>
 
 namespace so_5
