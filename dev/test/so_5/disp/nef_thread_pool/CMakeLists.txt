@@ -1,4 +1,5 @@
 add_subdirectory(simple)
 add_subdirectory(shutdown_on_bad_alloc)
 add_subdirectory(unique_thread_id)
+add_subdirectory(max_demands_at_once)
 
