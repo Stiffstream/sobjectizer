@@ -14,7 +14,7 @@
 #include <so_5/event_queue.hpp>
 
 #include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
-#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/queue_of_queues.hpp>
 #include <so_5/disp/reuse/thread_pool_stats.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>

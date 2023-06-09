@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/queue_of_queues.hpp>
 
 #include <so_5/event_queue.hpp>
 #include <so_5/outliving.hpp>

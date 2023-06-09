@@ -42,7 +42,7 @@ class agent_queue_with_preallocated_finish_demand_t;
 //
 // dispatcher_queue_t
 //
-using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t<
+using dispatcher_queue_t = so_5::disp::reuse::queue_of_queues_t<
 		agent_queue_with_preallocated_finish_demand_t >;
 
 //
@@ -83,7 +83,7 @@ class agent_queue_with_preallocated_finish_demand_t final
 		 *
 		 * \note
 		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 * so_5::disp::reuse::queue_of_queues_t.
 		 *
 		 * \since v.5.8.0
 		 */
@@ -101,7 +101,7 @@ class agent_queue_with_preallocated_finish_demand_t final
 		 *
 		 * \note
 		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 * so_5::disp::reuse::queue_of_queues_t.
 		 *
 		 * \since v.5.8.0
 		 */
@@ -131,7 +131,7 @@ class agent_queue_with_preallocated_finish_demand_t final
 		 * \brief The next item in intrusive queue of agent_queues.
 		 *
 		 * This field is necessary to implement interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t
+		 * so_5::disp::reuse::queue_of_queues_t
 		 *
 		 * \since v.5.8.0
 		 */

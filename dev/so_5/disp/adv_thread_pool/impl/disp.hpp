@@ -19,7 +19,7 @@
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
-#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/queue_of_queues.hpp>
 
 #include <so_5/disp/thread_pool/impl/common_implementation.hpp>
 
@@ -61,7 +61,7 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 //
 // dispatcher_queue_t
 //
-using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
+using dispatcher_queue_t = so_5::disp::reuse::queue_of_queues_t< agent_queue_t >;
 
 //
 // agent_queue_t
@@ -303,7 +303,7 @@ class agent_queue_t final
 		 *
 		 * \note
 		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 * so_5::disp::reuse::queue_of_queues_t.
 		 *
 		 * \since v.5.8.0
 		 */
@@ -321,7 +321,7 @@ class agent_queue_t final
 		 *
 		 * \note
 		 * This method is a part of interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t.
+		 * so_5::disp::reuse::queue_of_queues_t.
 		 *
 		 * \since v.5.8.0
 		 */
@@ -372,7 +372,7 @@ class agent_queue_t final
 		 * \brief The next item in intrusive queue of agent_queues.
 		 *
 		 * This field is necessary to implement interface required by
-		 * so_5::disp::reuse::mpmc_ptr_queue_t
+		 * so_5::disp::reuse::queue_of_queues_t.
 		 *
 		 * \since v.5.8.0
 		 */

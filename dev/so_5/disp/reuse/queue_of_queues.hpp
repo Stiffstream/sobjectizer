@@ -4,9 +4,9 @@
 
 /*!
  * \file
- * \brief Multi-producer/Multi-consumer queue of pointers.
- * \since
- * v.5.4.0
+ * \brief Multi-producer/Multi-consumer queue of pointers to event queues.
+ *
+ * \since v.5.4.0, v.5.8.0
  */
 
 #pragma once
@@ -27,10 +27,10 @@ namespace reuse
 {
 
 //
-// mpmc_ptr_queue_t
+// queue_of_queues_t
 //
 /*!
- * \brief Multi-producer/Multi-consumer queue of pointers.
+ * \brief Multi-producer/Multi-consumer queue of pointers to event queues.
  *
  * \note
  * Since v.5.8.0 this type implements intrusive queue and requires that
@@ -40,17 +40,17 @@ namespace reuse
  * void intrusive_queue_set_next( T * next ) noexcept;
  * \endcode
  *
- * \tparam T type of object.
+ * \tparam T type of event queue.
  *
- * \since v.5.4.0
+ * \since v.5.4.0, v.5.8.0
  */
 template< class T >
-class mpmc_ptr_queue_t
+class queue_of_queues_t
 	{
 	public :
 		using item_t = T;
 
-		mpmc_ptr_queue_t(
+		queue_of_queues_t(
 			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params,
 			std::size_t thread_count )
 			:	m_lock{ queue_params.lock_factory()() }
