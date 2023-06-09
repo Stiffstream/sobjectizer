@@ -12,8 +12,8 @@ MxxRu::Cpp::composite_target {
 	add_test[ 'active_group/build_tests.rb' ]
 
 	add_test[ 'thread_pool/build_tests.rb' ]
-
 	add_test[ 'adv_thread_pool/build_tests.rb' ]
+	add_test[ 'nef_thread_pool/build_tests.rb' ]
 
 	add_test[ 'private_dispatchers/build_tests.rb' ]
 
