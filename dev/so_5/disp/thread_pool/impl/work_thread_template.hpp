@@ -35,7 +35,11 @@ namespace impl
 namespace work_thread_details
 {
 
-//FIXME: document this!
+/*!
+ * \brief Part of %common_data_t that depends on a template parameter.
+ *
+ * Intended to be used as a mixin for common_data_t type.
+ */
 template< typename Disp_Queue >
 struct common_data_template_dependent_t
 	{
@@ -48,7 +52,11 @@ struct common_data_template_dependent_t
 			{}
 	};
 
-//FIXME: document this!
+/*!
+ * \brief Part of %common_data_t that doesn't depend on a template parameter.
+ *
+ * Intended to be used as a mixin for common_data_t type.
+ */
 struct common_data_template_independent_t
 	{
 		//! ID of thread.
@@ -101,7 +109,11 @@ template< typename Disp_Queue >
 class no_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 	{
 	public :
-		//FIXME: document this!
+		/*!
+		 * \brief Mandatory alias for Disp_Queue.
+		 *
+		 * This alias is then be used by the work_thread_template_t template.
+		 */
 		using disp_queue_t = Disp_Queue;
 
 		//! Initializing constructor.
@@ -140,7 +152,11 @@ class with_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 		using activity_tracking_traits = so_5::stats::activity_tracking_stuff::traits;
 
 	public :
-		//FIXME: document this!
+		/*!
+		 * \brief Mandatory alias for Disp_Queue.
+		 *
+		 * This alias is then be used by the work_thread_template_t template.
+		 */
 		using disp_queue_t = Disp_Queue;
 
 		//! Initializing constructor.

@@ -53,7 +53,7 @@ class agent_queue_t
 		friend class so_5::intrusive_ptr_t< agent_queue_t >;
 
 	public :
-		//! Constructor.
+		//! Initializing constructor.
 		agent_queue_t(
 			//! Dispatcher queue to work with.
 			outliving_reference_t< dispatcher_queue_t > disp_queue,
@@ -99,7 +99,6 @@ class agent_queue_t
 			}
 
 	protected:
-		//FIXME: document this
 		void
 		schedule_on_disp_queue() noexcept override
 			{
@@ -107,7 +106,7 @@ class agent_queue_t
 			}
 
 	private :
-		//FIXME: document this!
+		//! Dispatcher queue with that the agent queue has to be used.
 		dispatcher_queue_t & m_disp_queue;
 
 		/*!

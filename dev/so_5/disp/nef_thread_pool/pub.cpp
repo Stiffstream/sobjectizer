@@ -48,16 +48,29 @@ using dispatcher_queue_t = so_5::disp::reuse::queue_of_queues_t<
 //
 // agent_queue_with_preallocated_finish_demand_t
 //
-//FIXME: document this!
+/*!
+ * \brief Specail implementation of event queue for nef-thread-pool dispatcher.
+ *
+ * An instance of agent_queue_with_preallocated_finish_demand_t creates
+ * a separate demand for evt_finish event in the constructor and uses it
+ * then in push_evt_finish().
+ *
+ * \attention
+ * It's expected that an instance of agent_queue_with_preallocated_finish_demand_t
+ * will be used for just one agent. It guarantees that push_evt_finish()
+ * will be called at most once.
+ */
 class agent_queue_with_preallocated_finish_demand_t final
 	:	public so_5::disp::thread_pool::impl::basic_event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
 		friend class so_5::intrusive_ptr_t< agent_queue_with_preallocated_finish_demand_t >;
 
+		//! Short alias for the main base type.
 		using base_type_t = so_5::disp::thread_pool::impl::basic_event_queue_t;
 
 	public:
+		//! Initializing constructor.
 		agent_queue_with_preallocated_finish_demand_t(
 			//! Dispatcher queue to work with.
 			outliving_reference_t< dispatcher_queue_t > disp_queue,
@@ -68,6 +81,11 @@ class agent_queue_with_preallocated_finish_demand_t final
 			,	m_finish_demand{ std::make_unique< base_type_t::demand_t >() }
 			{}
 
+		/*!
+		 * \note
+		 * Uses preallocated demand in m_finish_demand. Leaves m_finish_demand
+		 * empty after the completion.
+		 */
 		void
 		push_evt_finish( execution_demand_t demand ) noexcept override
 			{
@@ -113,7 +131,6 @@ class agent_queue_with_preallocated_finish_demand_t final
 			}
 
 	protected:
-		//FIXME: document this
 		void
 		schedule_on_disp_queue() noexcept override
 			{
@@ -121,10 +138,14 @@ class agent_queue_with_preallocated_finish_demand_t final
 			}
 
 	private :
-		//FIXME: document this!
+		//! Dispatcher queue with that the agent queue has to be used.
 		dispatcher_queue_t & m_disp_queue;
 
-		//FIXME: document this!
+		//! A preallocated demand for evt_finish.
+		/*!
+		 * It will be created empty in the agent queue's constructor.
+		 * The content will be set for it in push_evt_finish() method.
+		 */
 		std::unique_ptr< base_type_t::demand_t > m_finish_demand;
 
 		/*!

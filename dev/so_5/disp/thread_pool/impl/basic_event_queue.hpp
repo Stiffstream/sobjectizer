@@ -252,7 +252,13 @@ class basic_event_queue_t
 			}
 
 	protected:
-		//FIXME: document this
+		/*!
+		 * \brief Perform scheduling of processing of this event queue
+		 *
+		 * This method should be overrided in a derived class to call
+		 * schedule() method for an appropriate dispatcher queue.
+		 * See so_5::disp::reuse::queue_of_queues_t::schedule().
+		 */
 		virtual void
 		schedule_on_disp_queue() noexcept = 0;
 

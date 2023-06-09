@@ -387,7 +387,6 @@ class [[nodiscard]] dispatcher_handle_t
 //
 // make_dispatcher
 //
-//FIXME: should be marked as nodiscard.
 /*!
  * \brief Create an instance %thread_pool dispatcher.
  *
@@ -410,6 +409,7 @@ auto coop = env.make_coop(
  *
  * \since v.5.6.0
  */
+[[nodiscard]]
 SO_5_FUNC dispatcher_handle_t
 make_dispatcher(
 	//! SObjectizer Environment to work in.

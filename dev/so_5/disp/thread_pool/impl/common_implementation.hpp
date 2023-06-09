@@ -38,18 +38,32 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 /*!
  * \brief Reusable common implementation for thread-pool-like dispatchers.
  *
+ * \tparam Work_Thread type of worker thread to be used.
+ *
+ * \tparam Dispatcher_Queue type of dispatcher queue. A single instance of
+ * dispatcher queue will be used for scheduling separate agent queues.
+ * It'e expected to be so_5::disp::reuse::queue_params_t.
+ *
+ * \tparam Bind_Params type of bind_params_t with parameters for binding
+ * just one agent to the dispatcher.
+ *
+ * \tparam Adaptations type with static method. This method adapts the
+ * behavoir of Dispatcher_Queue (and corresponding agent queues) to the
+ * needs of the dispatcher. See so_5::disp::thread_pool::impl::adaptation_t
+ * or so_5::disp::adv_thread_pool::impl::adaptation_t as examples.
+ *
  * \since v.5.5.4
  */
 template<
 	typename Work_Thread,
 	typename Dispatcher_Queue,
-	typename Params,
+	typename Bind_Params,
 	typename Adaptations >
 class dispatcher_t final
 	:	public tp_stats::stats_supplier_t
 	{
 	private :
-		//FIXME: document this!
+		//! A short alias for agent queue type.
 		using agent_queue_t = typename Dispatcher_Queue::item_t;
 
 		using agent_queue_ref_t = so_5::intrusive_ptr_t< agent_queue_t >;
@@ -240,7 +254,7 @@ class dispatcher_t final
 		void
 		preallocate_resources_for_agent(
 			agent_t & agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -345,7 +359,7 @@ class dispatcher_t final
 		void
 		bind_agent_with_inidividual_fifo(
 			agent_ref_t agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				auto queue = make_new_agent_queue( params );
 
@@ -365,7 +379,7 @@ class dispatcher_t final
 		void
 		bind_agent_with_cooperation_fifo(
 			agent_ref_t agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				const auto id = agent->so_coop().id();
 
@@ -398,7 +412,7 @@ class dispatcher_t final
 		//! Helper method for creating event queue for agents/cooperations.
 		agent_queue_ref_t
 		make_new_agent_queue(
-			const Params & params )
+			const Bind_Params & params )
 			{
 				return agent_queue_ref_t(
 						new agent_queue_t{ outliving_mutable(m_queue), params } );
