@@ -43,8 +43,8 @@ struct common_data_template_dependent_t
 		Disp_Queue * m_disp_queue;
 
 		common_data_template_dependent_t(
-			Disp_Queue & disp_queue )
-			:	m_disp_queue{ std::addressof(disp_queue) }
+			outliving_reference_t< Disp_Queue > disp_queue )
+			:	m_disp_queue{ std::addressof(disp_queue.get()) }
 			{}
 	};
 
@@ -82,12 +82,12 @@ struct common_data_t
 	,	public common_data_template_independent_t
 	{
 		common_data_t(
-			Disp_Queue & queue,
+			outliving_reference_t< Disp_Queue > queue,
 			work_thread_holder_t thread_holder )
 			:	common_data_template_dependent_t< Disp_Queue >{ queue }
 			,	common_data_template_independent_t{
 					std::move(thread_holder),
-					queue.allocate_condition()
+					queue.get().allocate_condition()
 				}
 			{}
 	};
@@ -106,7 +106,7 @@ class no_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 
 		//! Initializing constructor.
 		no_activity_tracking_impl_t(
-			Disp_Queue & queue,
+			outliving_reference_t< Disp_Queue > queue,
 			work_thread_holder_t thread_holder )
 			:	common_data_t< Disp_Queue >( queue, std::move(thread_holder) )
 			{}
@@ -145,7 +145,7 @@ class with_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 
 		//! Initializing constructor.
 		with_activity_tracking_impl_t(
-			Disp_Queue & queue,
+			outliving_reference_t< Disp_Queue > queue,
 			work_thread_holder_t thread_holder )
 			:	common_data_t< Disp_Queue >( queue, std::move(thread_holder) )
 			{}
@@ -221,7 +221,7 @@ class work_thread_template_t final : public Impl
 	public:
 		//! Initializing constructor.
 		work_thread_template_t(
-			disp_queue_t & queue,
+			outliving_reference_t< disp_queue_t > queue,
 			work_thread_holder_t thread_holder )
 			:	Impl( queue, std::move(thread_holder) )
 			{}

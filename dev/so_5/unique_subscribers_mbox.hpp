@@ -380,7 +380,7 @@ make_unique_subscribers_mbox( so_5::environment_t & env )
 							result = mbox_t{ new T{
 									data.m_id,
 									data.m_env,
-									data.m_tracer.get()
+									data.m_tracer
 							} };
 						}
 					else

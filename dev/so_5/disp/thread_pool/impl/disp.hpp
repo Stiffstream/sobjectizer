@@ -55,15 +55,14 @@ class agent_queue_t
 	public :
 		//! Constructor.
 		agent_queue_t(
-			//FIXME: outliving_reference_t has to be used!
 			//! Dispatcher queue to work with.
-			dispatcher_queue_t & disp_queue,
+			outliving_reference_t< dispatcher_queue_t > disp_queue,
 			//! Parameters for the queue.
 			const bind_params_t & params )
 			:	basic_event_queue_t{
 					params.query_max_demands_at_once()
 				}
-			,	m_disp_queue{ disp_queue }
+			,	m_disp_queue{ disp_queue.get() }
 			{}
 
 		/*!

@@ -86,10 +86,12 @@ namespace so_5 {
  * outliving_reference_t has no copy operator! It is CopyConstructible,
  * but not CopyAssingable class.
  *
+ * \note
+ * There is no implicit type conversion operator since v.5.8.0.
+ *
  * \tparam T type for reference.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename T >
 class outliving_reference_t
@@ -112,8 +114,6 @@ public :
 		{}
 
 	outliving_reference_t & operator=(outliving_reference_t const &o) = delete;
-
-	operator T&() const noexcept { return this->get(); }
 
 	T & get() const noexcept { return *m_ptr; }
 };

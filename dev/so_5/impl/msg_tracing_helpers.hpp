@@ -17,6 +17,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/agent.hpp>
+#include <so_5/outliving.hpp>
 
 #include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/message_limit_action_msg_tracer.hpp>
@@ -648,8 +649,9 @@ class tracing_enabled_base
 		so_5::msg_tracing::holder_t & m_tracer;
 
 	public :
-		tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
-			:	m_tracer( tracer )
+		tracing_enabled_base(
+			outliving_reference_t< so_5::msg_tracing::holder_t > tracer )
+			:	m_tracer( tracer.get() )
 			{}
 
 		so_5::msg_tracing::holder_t &
@@ -985,8 +987,9 @@ class mchain_tracing_enabled_base
 			}
 
 	public :
-		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
-			:	m_tracer( tracer )
+		mchain_tracing_enabled_base(
+			outliving_reference_t< so_5::msg_tracing::holder_t > tracer )
+			:	m_tracer( tracer.get() )
 			{}
 
 		so_5::msg_tracing::holder_t &

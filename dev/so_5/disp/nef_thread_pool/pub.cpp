@@ -60,11 +60,11 @@ class agent_queue_with_preallocated_finish_demand_t final
 	public:
 		agent_queue_with_preallocated_finish_demand_t(
 			//! Dispatcher queue to work with.
-			dispatcher_queue_t & disp_queue,
+			outliving_reference_t< dispatcher_queue_t > disp_queue,
 			//! Parameters for the queue.
 			const bind_params_t & params )
 			:	base_type_t{ params.query_max_demands_at_once() }
-			,	m_disp_queue{ disp_queue }
+			,	m_disp_queue{ disp_queue.get() }
 			,	m_finish_demand{ std::make_unique< base_type_t::demand_t >() }
 			{}
 

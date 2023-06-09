@@ -338,7 +338,7 @@ class default_dispatcher_t
 		Activity_Tracker &
 		activity_tracker() noexcept
 			{
-				return m_activity_tracker;
+				return m_activity_tracker.get();
 			}
 
 	private :

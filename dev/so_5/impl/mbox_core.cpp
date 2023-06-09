@@ -109,7 +109,7 @@ make_actual_mbox(
 			result.reset( new M1{ std::forward<A>(args)... } );
 		else
 			result.reset(
-					new M2{ std::forward<A>(args)..., msg_tracing_stuff.get() } );
+					new M2{ std::forward<A>(args)..., msg_tracing_stuff } );
 
 		return result;
 	}
@@ -181,7 +181,7 @@ mbox_core_t::create_custom_mbox(
 			mbox_creation_data_t{
 					outliving_mutable(env),
 					id,
-					outliving_mutable(m_msg_tracing_stuff)
+					m_msg_tracing_stuff
 			} );
 }
 

@@ -204,7 +204,7 @@ class dispatcher_t final
 
 					m_threads.emplace_back( std::unique_ptr< Work_Thread >(
 								new Work_Thread{
-										m_queue,
+										outliving_mutable(m_queue),
 										std::move(work_thread_holder)
 								} ) );
 				}
@@ -401,7 +401,7 @@ class dispatcher_t final
 			const Params & params )
 			{
 				return agent_queue_ref_t(
-						new agent_queue_t{ m_queue, params } );
+						new agent_queue_t{ outliving_mutable(m_queue), params } );
 			}
 
 		/*!

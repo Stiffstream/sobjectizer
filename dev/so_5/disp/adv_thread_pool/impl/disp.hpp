@@ -104,12 +104,12 @@ class agent_queue_t final
 		//! Constructor.
 		agent_queue_t(
 			//! Dispatcher queue to work with.
-			dispatcher_queue_t & disp_queue,
+			outliving_reference_t< dispatcher_queue_t > disp_queue,
 			//! Dummy argument. It is necessary here because of
 			//! common implementation for thread-pool and
 			//! adv-thread-pool dispatchers.
 			const bind_params_t & )
-			:	m_disp_queue( disp_queue )
+			:	m_disp_queue( disp_queue.get() )
 			,	m_tail_demand( &m_head_demand )
 			,	m_active( false )
 			,	m_workers( 0 )
@@ -428,11 +428,11 @@ struct common_data_t
 		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t m_condition;
 
 		common_data_t(
-			dispatcher_queue_t & queue,
+			outliving_reference_t< dispatcher_queue_t > queue,
 			work_thread_holder_t thread_holder )
-			:	m_disp_queue( &queue )
+			:	m_disp_queue( std::addressof( queue.get() ) )
 			,	m_thread_holder{ std::move(thread_holder) }
-			,	m_condition{ queue.allocate_condition() }
+			,	m_condition{ queue.get().allocate_condition() }
 			{}
 	};
 
@@ -447,7 +447,7 @@ class no_activity_tracking_impl_t : protected common_data_t
 	public :
 		//! Initializing constructor.
 		no_activity_tracking_impl_t(
-			dispatcher_queue_t & queue,
+			outliving_reference_t< dispatcher_queue_t > queue,
 			work_thread_holder_t thread_holder )
 			:	common_data_t( queue, std::move(thread_holder) )
 			{}
@@ -483,7 +483,7 @@ class with_activity_tracking_impl_t : protected common_data_t
 	public :
 		//! Initializing constructor.
 		with_activity_tracking_impl_t(
-			dispatcher_queue_t & queue,
+			outliving_reference_t< dispatcher_queue_t > queue,
 			work_thread_holder_t thread_holder )
 			:	common_data_t( queue, std::move(thread_holder) )
 			{}
@@ -556,7 +556,7 @@ class work_thread_template_t final : public Impl
 	public :
 		//! Initializing constructor.
 		work_thread_template_t(
-			dispatcher_queue_t & queue,
+			outliving_reference_t< dispatcher_queue_t > queue,
 			work_thread_holder_t thread_holder )
 			:	Impl( queue, std::move(thread_holder) )
 			{}
