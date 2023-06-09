@@ -43,14 +43,16 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 template<
 	typename Work_Thread,
 	typename Dispatcher_Queue,
-	typename Agent_Queue,
 	typename Params,
 	typename Adaptations >
 class dispatcher_t final
 	:	public tp_stats::stats_supplier_t
 	{
 	private :
-		using agent_queue_ref_t = so_5::intrusive_ptr_t< Agent_Queue >;
+		//FIXME: document this!
+		using agent_queue_t = typename Dispatcher_Queue::item_t;
+
+		using agent_queue_ref_t = so_5::intrusive_ptr_t< agent_queue_t >;
 
 		//! Data for one cooperation.
 		struct cooperation_data_t
@@ -399,7 +401,7 @@ class dispatcher_t final
 			const Params & params )
 			{
 				return agent_queue_ref_t(
-						new Agent_Queue{ m_queue, params } );
+						new agent_queue_t{ m_queue, params } );
 			}
 
 		/*!

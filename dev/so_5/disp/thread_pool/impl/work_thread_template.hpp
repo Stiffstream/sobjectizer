@@ -101,6 +101,7 @@ template< typename Disp_Queue >
 class no_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 	{
 	public :
+		//FIXME: document this!
 		using disp_queue_t = Disp_Queue;
 
 		//! Initializing constructor.
@@ -139,6 +140,7 @@ class with_activity_tracking_impl_t : protected common_data_t< Disp_Queue >
 		using activity_tracking_traits = so_5::stats::activity_tracking_stuff::traits;
 
 	public :
+		//FIXME: document this!
 		using disp_queue_t = Disp_Queue;
 
 		//! Initializing constructor.

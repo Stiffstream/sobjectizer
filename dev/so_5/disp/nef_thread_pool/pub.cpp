@@ -188,7 +188,6 @@ using dispatcher_template_t =
 		so_5::disp::thread_pool::common_implementation::dispatcher_t<
 				Work_Thread,
 				dispatcher_queue_t,
-				agent_queue_with_preallocated_finish_demand_t,
 				bind_params_t,
 				adaptation_t >;
 

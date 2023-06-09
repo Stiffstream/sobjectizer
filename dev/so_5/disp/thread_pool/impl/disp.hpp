@@ -170,7 +170,6 @@ using dispatcher_template_t =
 		common_implementation::dispatcher_t<
 				Work_Thread,
 				dispatcher_queue_t,
-				agent_queue_t,
 				bind_params_t,
 				adaptation_t >;
 
