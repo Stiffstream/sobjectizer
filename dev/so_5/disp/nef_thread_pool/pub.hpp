@@ -20,6 +20,7 @@
 
 #include <so_5/disp/reuse/work_thread_activity_tracking.hpp>
 #include <so_5/disp/reuse/work_thread_factory_params.hpp>
+#include <so_5/disp/reuse/default_thread_pool_size.hpp>
 
 #include <string_view>
 #include <thread>
@@ -176,31 +177,10 @@ class bind_params_t
 		std::size_t m_max_demands_at_once = { 1 };
 	};
 
-//FIXME: should this function be reused between thread_pool, adv_thread_pool
-//and nef_thread_pool dispatchers?
-
 //
 // default_thread_pool_size
 //
-/*!
- * \brief A helper function for detecting default thread count for
- * thread pool.
- *
- * Returns value of std::thread::hardware_concurrency() or 2 if
- * hardware_concurrency() returns 0.
- *
- * \since v.5.8.0
- */
-[[nodiscard]]
-inline std::size_t
-default_thread_pool_size()
-	{
-		auto c = std::thread::hardware_concurrency();
-		if( !c )
-			c = 2;
-
-		return c;
-	}
+using so_5::disp::reuse::default_thread_pool_size;
 
 namespace impl {
 
