@@ -80,8 +80,22 @@ class final_dereg_chain_holder_t
 
 	public:
 		final_dereg_chain_holder_t() = default;
-		//FIXME: should here be a check that the chain is empty?
+#if 1
 		~final_dereg_chain_holder_t() = default;
+#else
+		//NOTE: this code was kept here for testing purposes.
+		~final_dereg_chain_holder_t()
+			{
+				if( 0u != m_final_dereg_chain_size )
+					{
+						std::cerr << "*** ~final_dereg_chain_holder_t: "
+								"unexpected m_final_dereg_chain_size: "
+								<< m_final_dereg_chain_size
+								<< std::endl;
+						std::abort();
+					}
+			}
+#endif
 
 		final_dereg_chain_holder_t(
 			const final_dereg_chain_holder_t & ) = delete;
