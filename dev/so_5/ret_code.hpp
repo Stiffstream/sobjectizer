@@ -482,16 +482,29 @@ const int rc_mpsc_mbox_expected = 190;
  */
 const int rc_nullptr_as_delivery_filter_pointer = 191;
 
-//FIXME: a more detailed description has to be provided.
 /*!
  * \brief nullptr returned by user-provided mbox factory.
+ *
+ * The so_5::environment_t::introduce_named_mbox() gets a user-provided
+ * mbox factory. This factory is called by SObjectizer Environment
+ * to create a new instance of the named mbox. This factory must return
+ * a valid so_5::mbox_t. If the returned so_5::mbox_t contains
+ * nullptr it's an error and this error code will be used in an
+ * exception thrown by so_5::environment_t::introduce_named_mbox().
  *
  * \since v.5.8.0
  */
 const int rc_nullptr_as_result_of_user_mbox_factory = 192;
 
-//FIXME: document this!
 /*!
+ * \brief There are no resources that must have been in place for an agent in
+ * advance.
+ *
+ * Some dispatchers (like so_5::disp::nef_one_thread) preallocates
+ * resources necessary for normal agent work. If those resource are not
+ * found for an agent for some reason it's an error and exception with
+ * this error code is thrown.
+ *
  * \since v.5.8.0
  */
 const int rc_no_preallocated_resources_for_agent = 193;

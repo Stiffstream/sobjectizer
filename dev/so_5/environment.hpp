@@ -891,7 +891,6 @@ class SO_5_TYPE environment_t
 			//! Mbox name.
 			nonempty_name_t mbox_name );
 
-		//FIXME: more description and examples have to be added.
 		/*!
 		 * \brief Introduce named mbox with user-provided factory.
 		 *
@@ -966,11 +965,36 @@ class SO_5_TYPE environment_t
 		 * the already created mbox will be returned without calling
 		 * \a mbox_factory.
 		 *
+		 * \attention
+		 * The \a mbox_factory should return a valid so_5::mbox_t.
+		 * If \a mbox_factory returns empty so_5::mbox_t (nullptr), then
+		 * introduce_named_mbox() will throw an exception with
+		 * so_5::rc_nullptr_as_result_of_user_mbox_factory error code.
+		 * If \a mbox_factory can't create a valid so_5::mbox_t it
+		 * has to thrown a user-defined exception. This exception
+		 * will be let out from introduce_named_mbox(). For example:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * try
+		 * {
+		 * 	auto mbox = env.introduce_named_mbox(
+		 * 			so_5::mbox_namespace_name_t{"b"},
+		 * 			"alice",
+		 * 			[&]() {
+		 * 				auto mbox = try_to_get_new_mbox();
+		 * 				if(!mbox)
+		 * 					throw my_exception{...};
+		 * 				return mbox;
+		 * 			});
+		 * }
+		 * catch( const my_exception & x ) { ... }
+		 * \endcode
+		 *
 		 * \note
 		 * If several parallel calls to introduce_named_mbox() with the same
 		 * parameters are made at the same time then \a mbox_factory can
 		 * be called several times (at most once for every introduce_named_mbox()
-		 * invocation). But only the one result of those calls will be used,
+		 * invocation). But only one result of those calls will be used,
 		 * all other returned values will be discarded.
 		 *
 		 * \attention

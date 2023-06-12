@@ -130,11 +130,54 @@ UT_UNIT_TEST( nested_factory_call )
 	UT_CHECK_EQ( first_id, third_id );
 }
 
+UT_UNIT_TEST( exception_from_factory )
+{
+	run_with_time_limit( [&] {
+			so_5::launch( [&](so_5::environment_t & env) {
+						try
+						{
+							auto m1 = env.introduce_named_mbox(
+									so_5::mbox_namespace_name_t{ "global" },
+									"demo",
+									[]() -> so_5::mbox_t {
+										throw std::runtime_error{ "Oops!" };
+									} );
+
+							// We can't be here!
+							std::cerr << "An exception has to be thrown by "
+									"introduce_named_mbox call, aborting..."
+									<< std::endl;
+
+							std::abort();
+						}
+						catch( const std::runtime_error & x )
+						{
+							if( std::string_view{ "Oops!" } != x.what() )
+							{
+								std::cerr << "Unexpected exception caught: "
+										<< x.what() << std::endl
+										<< "Aborting..."
+										<< std::endl;
+
+								std::abort();
+							}
+						}
+
+						std::ignore = env.introduce_named_mbox(
+								so_5::mbox_namespace_name_t{ "global" },
+								"demo",
+								[&env]() { return env.create_mbox(); } );
+					} );
+		},
+		5 );
+}
+
 int main()
 {
 	UT_RUN_UNIT_TEST( mbox_namespace_name )
 	UT_RUN_UNIT_TEST( all_different_names )
 	UT_RUN_UNIT_TEST( duplicate_names )
 	UT_RUN_UNIT_TEST( nested_factory_call )
+	UT_RUN_UNIT_TEST( exception_from_factory )
 }
 
