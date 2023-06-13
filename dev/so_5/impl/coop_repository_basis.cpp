@@ -14,7 +14,6 @@
 #include <so_5/environment.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
-#include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <cstdlib>
 #include <algorithm>

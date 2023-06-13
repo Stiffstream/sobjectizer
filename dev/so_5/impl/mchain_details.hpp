@@ -20,6 +20,7 @@
 #include <so_5/exception.hpp>
 #include <so_5/error_logger.hpp>
 
+#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/at_scope_exit.hpp>
 #include <so_5/details/safe_cv_wait_for.hpp>
 

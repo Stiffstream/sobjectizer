@@ -21,7 +21,6 @@
 #include <so_5/error_logger.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
-#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/at_scope_exit.hpp>
 
 #include <so_5/fwd.hpp>
@@ -1015,9 +1014,12 @@ class SO_5_TYPE agent_t
 		 * \note Since v.5.3.0 default implementation calls
 		 * coop_t::exception_reaction() for agent's cooperation
 		 * object.
+		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
 		 */
 		virtual exception_reaction_t
-		so_exception_reaction() const;
+		so_exception_reaction() const noexcept;
 
 		/*!
 		 * \brief Switching agent to special state in case of unhandled

@@ -699,7 +699,7 @@ environment_t::call_exception_logger(
 }
 
 exception_reaction_t
-environment_t::exception_reaction() const
+environment_t::exception_reaction() const noexcept
 {
 	return m_impl->m_exception_reaction;
 }

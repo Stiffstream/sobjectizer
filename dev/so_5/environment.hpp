@@ -175,10 +175,13 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get exception reaction flag value.
 		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
 		 * \since v.5.3.0
 		 */
 		inline exception_reaction_t
-		exception_reaction() const
+		exception_reaction() const noexcept
 		{
 			return m_exception_reaction;
 		}
@@ -195,10 +198,13 @@ class SO_5_TYPE environment_params_t
 		 * 	});
 		 * \endcode
 		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
 		 * \since v.5.3.0
 		 */
 		environment_params_t &
-		exception_reaction( exception_reaction_t value )
+		exception_reaction( exception_reaction_t value ) noexcept
 		{
 			m_exception_reaction = value;
 			return *this;
@@ -1445,10 +1451,13 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief An exception reaction for the whole SO Environment.
 		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
 		 * \since v.5.3.0
 		 */
 		exception_reaction_t
-		exception_reaction() const;
+		exception_reaction() const noexcept;
 
 		/*!
 		 * \brief Get the error_logger object.

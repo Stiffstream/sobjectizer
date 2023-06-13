@@ -8,7 +8,6 @@
 #include <so_5/impl/internal_agent_iface.hpp>
 #include <so_5/impl/agent_ptr_compare.hpp>
 
-#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/exception.hpp>
