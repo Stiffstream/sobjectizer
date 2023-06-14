@@ -1028,6 +1028,11 @@ class SO_5_TYPE agent_t
 		 * \note
 		 * Since v.5.7.3 it's implemented via so_deactivate_agent().
 		 *
+		 * \attention
+		 * The method is not noexcept, it can throw an exception. So additional
+		 * care has to be taken when it's called in catch-block and/or in
+		 * noexcept contexts.
+		 *
 		 * \since 5.2.3
 		 */
 		void
