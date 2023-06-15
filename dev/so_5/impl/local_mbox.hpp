@@ -475,7 +475,7 @@ public :
 
 	//! Move operator.
 	subscriber_adaptive_container_t &
-	operator=( const subscriber_adaptive_container_t && o ) noexcept
+	operator=( subscriber_adaptive_container_t && o ) noexcept
 		{
 			subscriber_adaptive_container_t tmp{ std::move(o) };
 			swap( *this, tmp );
