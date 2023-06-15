@@ -700,7 +700,7 @@ factory( params_t && infrastructure_params )
 
 			environment_infrastructure_t * obj = nullptr;
 
-			const auto & timer_manager_factory =
+			auto timer_manager_factory =
 					infrastructure_params.timer_manager();
 
 			// Create environment infrastructure object in dependence of
