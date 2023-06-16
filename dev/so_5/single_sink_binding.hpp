@@ -242,9 +242,16 @@ class single_sink_binding_t
 						m_info->m_source->unsubscribe_event_handler(
 								m_info->m_msg_type,
 								m_info->m_sink_owner->sink() );
-
-						m_info = std::nullopt;
 					}
+				// NOTE: initially this call was inside if(),
+				// but it led to problem with GCC-13.1 with -Werror,
+				// -Wall, -Wpedantic. GCC-13.1 complained sometimes
+				// (test/so_5/mbox/sink_binding/single_sink_too_deep/main.cpp)
+				// about the use of uninitialized pointer somewhere inside
+				// implementation of std::unique_ptr.
+				// It seems to be a bug in the compiler. As a workaround
+				// a call to `reset` is moved outside of if().
+				m_info.reset();
 			}
 
 		/*!
