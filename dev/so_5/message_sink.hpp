@@ -133,6 +133,27 @@ class SO_5_TYPE abstract_message_sink_t
 			//! Message delivery tracer to be used inside overlimit reaction.
 			//! NOTE: it will be nullptr when message delivery tracing if off.
 			const message_limit::impl::action_msg_tracer_t * tracer ) = 0;
+
+		[[nodiscard]]
+		static bool
+		special_sink_ptr_compare(
+			const abstract_message_sink_t * a,
+			const abstract_message_sink_t * b ) noexcept
+			{
+				// Use std::less for compare pointers.
+				// NOTE: it's UB to compare pointers that do not belong to the same array.
+				using ptr_comparator_t = std::less< const abstract_message_sink_t * >;
+
+				const auto priority_getter = [](auto * sink) noexcept {
+						return sink == nullptr ? so_5::priority_t::p_min : sink->sink_priority();
+					};
+				const auto p1 = priority_getter( a );
+				const auto p2 = priority_getter( b );
+
+				// NOTE: there should be inversion -- sink with higher
+				// priority must be first.
+				return ( p1 > p2 || (p1 == p2 && ptr_comparator_t{}( a, b ) ) );
+			}
 	};
 
 //

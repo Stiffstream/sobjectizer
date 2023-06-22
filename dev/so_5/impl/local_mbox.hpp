@@ -24,7 +24,6 @@
 
 #include <so_5/impl/local_mbox_basic_subscription_info.hpp>
 
-#include <so_5/impl/message_sink_ptr_compare.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
 
 #include <so_5/details/invoke_noexcept_code.hpp>
@@ -99,7 +98,7 @@ class subscriber_adaptive_container_t
 				const subscribers_vector_item_t & a,
 				const subscribers_vector_item_t & b ) const noexcept
 				{
-					return special_message_sink_ptr_compare(
+					return abstract_message_sink_t::special_sink_ptr_compare(
 							a.m_sink_as_key,
 							b.m_sink_as_key );
 				}
@@ -115,7 +114,7 @@ class subscriber_adaptive_container_t
 			operator()(
 				abstract_message_sink_t * a, abstract_message_sink_t * b ) const noexcept
 				{
-					return special_message_sink_ptr_compare( a, b );
+					return abstract_message_sink_t::special_sink_ptr_compare( a, b );
 				}
 		};
 
