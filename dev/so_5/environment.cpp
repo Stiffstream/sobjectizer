@@ -37,6 +37,7 @@ environment_params_t::environment_params_t()
 	,	m_exception_reaction( abort_on_exception )
 	,	m_autoshutdown_disabled( false )
 	,	m_error_logger( create_stderr_logger() )
+	,	m_default_disp_params{ so_5::disp::one_thread::disp_params_t{} }
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_infrastructure_factory( env_infrastructures::default_mt::factory() )

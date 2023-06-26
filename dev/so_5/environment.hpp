@@ -9,11 +9,6 @@
 
 #pragma once
 
-#include <functional>
-#include <chrono>
-#include <memory>
-#include <type_traits>
-
 #include <so_5/compiler_features.hpp>
 #include <so_5/coop.hpp>
 #include <so_5/coop_listener.hpp>
@@ -40,7 +35,14 @@
 #include <so_5/stats/repository.hpp>
 
 #include <so_5/disp/one_thread/params.hpp>
+#include <so_5/disp/nef_one_thread/params.hpp>
 #include <so_5/disp/abstract_work_thread.hpp>
+
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <type_traits>
+#include <variant>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -94,6 +96,12 @@ struct single_timer_params_t
 class SO_5_TYPE environment_params_t
 {
 	public:
+		//FIXME: document this!
+		using default_disp_params_t = std::variant<
+				disp::one_thread::disp_params_t,
+				disp::nef_one_thread::disp_params_t
+			>;
+
 		/*!
 		 * \brief Constructor.
 		 *
@@ -294,8 +302,10 @@ class SO_5_TYPE environment_params_t
 			return *this;
 		}
 
+		//FIXME: modify description!
 		/*!
-		 * \brief Set parameters for the default dispatcher.
+		 * \brief Set parameters for the default dispatcher when one_thread
+		 * must be used as the default dispatcher.
 		 *
 		 * \par Usage example:
 			\code
@@ -320,11 +330,38 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \brief Set parameters for the default dispatcher when
+		 * nef_one_thread must be used as the default dispatcher.
+		 *
+		 * \par Usage example:
+			\code
+			so_5::launch( []( so_5::environment_t & env ) { ... },
+				[]( so_5::environment_params_t & env_params ) {
+					using namespace so_5::disp::nef_one_thread;
+					// Event queue for the default dispatcher must use mutex as lock.
+					env_params.default_disp_params( disp_params_t{}.tune_queue_params(
+						[]( queue_traits::queue_params_t & queue_params ) {
+							queue_params.lock_factory( queue_traits::simple_lock_factory() );
+						} ) );
+				} );
+			\endcode
+		 *
+		 * \since v.5.8.0
+		 */
+		environment_params_t &
+		default_disp_params( so_5::disp::nef_one_thread::disp_params_t params )
+		{
+			m_default_disp_params = std::move(params);
+			return *this;
+		}
+
+		//FIXME: modify description!
+		/*!
 		 * \brief Get the parameters for the default dispatcher.
 		 *
 		 * \since v.5.5.10
 		 */
-		const so_5::disp::one_thread::disp_params_t &
+		const default_disp_params_t &
 		default_disp_params() const
 		{
 			return m_default_disp_params;
@@ -688,12 +725,13 @@ class SO_5_TYPE environment_params_t
 		 */
 		so_5::msg_tracing::filter_shptr_t m_message_delivery_tracer_filter;
 
+		//FIXME: modify description!
 		/*!
 		 * \brief Parameters for the default dispatcher.
 		 *
 		 * \since v.5.5.10
 		 */
-		so_5::disp::one_thread::disp_params_t m_default_disp_params;
+		default_disp_params_t m_default_disp_params;
 
 		/*!
 		 * \brief Work thread activity tracking for the whole Environment.

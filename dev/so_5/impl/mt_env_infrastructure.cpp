@@ -201,7 +201,7 @@ coop_repo_t::process_current_final_dereg_chain(
 //
 mt_env_infrastructure_t::mt_env_infrastructure_t(
 	environment_t & env,
-	so_5::disp::one_thread::disp_params_t default_disp_params,
+	environment_params_t::default_disp_params_t default_disp_params,
 	timer_thread_unique_ptr_t timer_thread,
 	coop_listener_unique_ptr_t coop_listener,
 	mbox_t stats_distribution_mbox )
@@ -311,11 +311,86 @@ mt_env_infrastructure_t::query_timer_thread_stats()
 		return m_timer_thread->query_stats();
 	}
 
+namespace {
+
+//! Helper class to be used with std::visit.
+struct binder_getter_t
+	{
+		[[nodiscard]]
+		disp_binder_shptr_t
+		operator()( so_5::disp::one_thread::dispatcher_handle_t & handle ) const
+			{
+				return handle.binder();
+			}
+
+		[[nodiscard]]
+		disp_binder_shptr_t
+		operator()( so_5::disp::nef_one_thread::dispatcher_handle_t & handle ) const
+			{
+				return handle.binder();
+			}
+	};
+
+} /* namespace anonymous */
+
 disp_binder_shptr_t
 mt_env_infrastructure_t::make_default_disp_binder()
 	{
-		return m_default_dispatcher.binder();
+		return std::visit( binder_getter_t{}, m_default_dispatcher );
 	}
+
+namespace {
+
+//! Helper class to be used with std::visit.
+struct dispatcher_maker_t
+	{
+		environment_t & m_env;
+
+		explicit dispatcher_maker_t( environment_t & env ) : m_env{ env }
+			{}
+
+		[[nodiscard]]
+		mt_env_infrastructure_t::default_dispatcher_holder_t
+		operator()( const so_5::disp::one_thread::disp_params_t & params ) const
+			{
+				return {
+						so_5::disp::one_thread::make_dispatcher(
+								m_env,
+								std::string{ "DEFAULT" },
+								params )
+					};
+			}
+
+		[[nodiscard]]
+		mt_env_infrastructure_t::default_dispatcher_holder_t
+		operator()( const so_5::disp::nef_one_thread::disp_params_t & params ) const
+			{
+				return {
+						so_5::disp::nef_one_thread::make_dispatcher(
+								m_env,
+								std::string{ "DEFAULT" },
+								params )
+					};
+			}
+	};
+
+//! Helper class to be used with std::visit.
+struct handle_reseter_t
+	{
+		void
+		operator()( so_5::disp::one_thread::dispatcher_handle_t & handle ) const
+			{
+				handle.reset();
+			}
+
+		void
+		operator()( so_5::disp::nef_one_thread::dispatcher_handle_t & handle ) const
+			{
+				handle.reset();
+			}
+	};
+
+} /* namespace anonymous */
 
 void
 mt_env_infrastructure_t::run_default_dispatcher_and_go_further(
@@ -325,14 +400,13 @@ mt_env_infrastructure_t::run_default_dispatcher_and_go_further(
 				"run_default_dispatcher",
 				[this] {
 					// Default dispatcher should be created.
-					m_default_dispatcher = so_5::disp::one_thread::make_dispatcher(
-							m_env,
-							std::string{ "DEFAULT" },
+					m_default_dispatcher = std::visit(
+							dispatcher_maker_t{ m_env },
 							m_default_dispatcher_params );
 				},
 				[this] {
 					// Default dispatcher is no more needed.
-					m_default_dispatcher.reset();
+					std::visit( handle_reseter_t{}, m_default_dispatcher );
 				},
 				[this, init_fn] {
 					run_timer_thread_and_go_further( std::move(init_fn) );

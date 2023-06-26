@@ -15,6 +15,7 @@
 #include <so_5/mchain.hpp>
 
 #include <so_5/disp/one_thread/pub.hpp>
+#include <so_5/disp/nef_one_thread/pub.hpp>
 
 #include <so_5/impl/coop_repository_basis.hpp>
 #include <so_5/impl/final_dereg_chain_helpers.hpp>
@@ -22,6 +23,8 @@
 #include <so_5/stats/impl/std_controller.hpp>
 
 #include <so_5/timers.hpp>
+
+#include <variant>
 
 namespace so_5 {
 
@@ -200,11 +203,24 @@ class mt_env_infrastructure_t
 	: public environment_infrastructure_t
 	{
 	public :
+		//! Type for a holder of actual default dispatcher handle.
+		/*!
+		 * \note
+		 * This type has to be declared as public type. Otherwise it is
+		 * necessary to add several helper classes as friends to
+		 * mt_env_infrastructure_t.
+		 */
+		using default_dispatcher_holder_t = std::variant<
+				so_5::disp::one_thread::dispatcher_handle_t,
+				so_5::disp::nef_one_thread::dispatcher_handle_t
+			>;
+
+		//! Initializing constructor.
 		mt_env_infrastructure_t(
 			//! Environment to work in.
 			environment_t & env,
 			//! Parameters for the default dispatcher,
-			so_5::disp::one_thread::disp_params_t default_disp_params,
+			environment_params_t::default_disp_params_t default_disp_params,
 			//! Timer thread to be used by environment.
 			timer_thread_unique_ptr_t timer_thread,
 			//! Cooperation action listener.
@@ -267,6 +283,7 @@ class mt_env_infrastructure_t
 		make_default_disp_binder() override;
 
 	private :
+		//! SOEnv for that this infrastructure was created.
 		environment_t & m_env;
 
 		//! Parameters for the default dispatcher.
@@ -277,9 +294,13 @@ class mt_env_infrastructure_t
 		 * In v.5.6.0 the default dispatcher is created inside lauch() and
 		 * we have to store parameters for the default dispatcher somewhere.
 		 *
+		 * \note
+		 * Since v.5.8.0 it main contain parameters for one_thread-dispatcher
+		 * or nef_one_thread-dispatcher.
+		 *
 		 * \since v.5.6.0
 		 */
-		const disp::one_thread::disp_params_t m_default_dispatcher_params;
+		const environment_params_t::default_disp_params_t m_default_dispatcher_params;
 
 		//! Default dispatcher.
 		/*!
@@ -290,7 +311,7 @@ class mt_env_infrastructure_t
 		 * It means that default dispatcher exists only while
 		 * lauch() is running.
 		 */
-		disp::one_thread::dispatcher_handle_t m_default_dispatcher;
+		default_dispatcher_holder_t m_default_dispatcher;
 
 		//! Timer thread to be used by the environment.
 		timer_thread_unique_ptr_t m_timer_thread;
