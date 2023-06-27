@@ -96,7 +96,11 @@ struct single_timer_params_t
 class SO_5_TYPE environment_params_t
 {
 	public:
-		//FIXME: document this!
+		/*!
+		 * \brief A sum type for holding parameters for the default disp.
+		 *
+		 * \since v.5.8.0
+		 */
 		using default_disp_params_t = std::variant<
 				disp::one_thread::disp_params_t,
 				disp::nef_one_thread::disp_params_t
@@ -754,7 +758,6 @@ class SO_5_TYPE environment_params_t
 		 */
 		so_5::msg_tracing::filter_shptr_t m_message_delivery_tracer_filter;
 
-		//FIXME: modify description!
 		/*!
 		 * \brief Parameters for the default dispatcher.
 		 *
