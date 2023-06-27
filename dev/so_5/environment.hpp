@@ -302,9 +302,8 @@ class SO_5_TYPE environment_params_t
 			return *this;
 		}
 
-		//FIXME: modify description!
 		/*!
-		 * \brief Set parameters for the default dispatcher when one_thread
+		 * \brief Set parameters for a case when one_thread-disp
 		 * must be used as the default dispatcher.
 		 *
 		 * \par Usage example:
@@ -320,6 +319,10 @@ class SO_5_TYPE environment_params_t
 				} );
 			\endcode
 		 *
+		 * \note
+		 * If some parameters have already been set, the old parameters will be
+		 * replaced by new ones.
+		 *
 		 * \since v.5.5.10
 		 */
 		environment_params_t &
@@ -330,8 +333,8 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \brief Set parameters for the default dispatcher when
-		 * nef_one_thread must be used as the default dispatcher.
+		 * \brief Set parameters for a case when
+		 * nef_one_thread-disp must be used as the default dispatcher.
 		 *
 		 * \par Usage example:
 			\code
@@ -346,6 +349,10 @@ class SO_5_TYPE environment_params_t
 				} );
 			\endcode
 		 *
+		 * \note
+		 * If some parameters have already been set, the old parameters will be
+		 * replaced by new ones.
+		 *
 		 * \since v.5.8.0
 		 */
 		environment_params_t &
@@ -355,9 +362,31 @@ class SO_5_TYPE environment_params_t
 			return *this;
 		}
 
-		//FIXME: modify description!
 		/*!
 		 * \brief Get the parameters for the default dispatcher.
+		 *
+		 * \attention
+		 * The returned reference will be invalidated by any subsequent
+		 * calls to default_disp_params-setters.
+		 *
+		 * \note
+		 * Since v.5.8.0 it returns a sum type with parameters for different
+		 * types of dispatchers. Therefore, the returned value has to be examined
+		 * accordingly, for example:
+		 * \code
+		 * so_5::environment_params_t & params = ...
+		 * const auto & disp_params = params.default_disp_params();
+		 * if( const auto * one_thread =
+		 * 	std::get_if< so_5::disp::one_thread::disp_params_t >( &disp_params ) )
+		 * {
+		 * 	... // Handling.
+		 * }
+		 * else if( const auto * nef_one_thread =
+		 * 	std::get_if< so_5::disp::nef_one_thread::disp_params_t >( &disp_params ) )
+		 * {
+		 * 	... // Handling.
+		 * }
+		 * \endcode
 		 *
 		 * \since v.5.5.10
 		 */

@@ -43,7 +43,13 @@ so_5::event_queue_t::push_evt_start() and
 so_5::event_queue_t::push_evt_finish() are introduced.
 
 Two new dispatchers added: so_5::disp::nef_one_thread and
-so_5::disp::nef_thread_pool.
+so_5::disp::nef_thread_pool. The so_5::disp::nef_one_thread dispatcher
+can be used as the default dispatcher if the standard multi-theaded
+environment-infrastructure is used.
+
+The so_5::environment_params_t::default_disp_params(void) getter now returns
+a sum type (parameters for so_5::disp::one_thread or so_5::disp::nef_one_thread
+dispatchers).
 
 \section so_5__5_7_5 5.7.5 "Licancabur"
 
