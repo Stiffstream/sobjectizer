@@ -2,7 +2,7 @@
  * \file
  * \brief Implementation of unique_subscribers mbox.
  *
- * \since so5extra-1.5.0, so-5.8.0
+ * \since so5extra-1.5.0, v.5.8.0
  */
 
 #pragma once
@@ -41,7 +41,7 @@ using subscriber_info_t = so_5::impl::local_mbox_details::subscription_info_with
 /*!
  * \brief A coolection of data required for local mbox implementation.
  *
- * \since v.1.5.0
+ * \since so5extra-1.5.0
  */
 struct data_t
 	{
@@ -75,7 +75,7 @@ struct data_t
  * \tparam Tracing_Base base class with implementation of message
  * delivery tracing methods.
  *
- * \since so5extra-1.5.0, so-5.8.0
+ * \since so5extra-1.5.0, v.5.8.0
  */
 template<
 	typename Mutex,
@@ -359,7 +359,7 @@ class actual_mbox_t final
  * std::mutex or so_5::null_mutex_t (or any other type which can be used
  * with std::lock_quard).
  *
- * \since so-5.8.0
+ * \since v.5.8.0
  */
 template<
 	typename Lock_Type = std::mutex >

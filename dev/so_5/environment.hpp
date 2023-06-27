@@ -1008,6 +1008,27 @@ class SO_5_TYPE environment_t
 		 * };
 		 * \endcode
 		 *
+		 * The `introduce_named_mbox` work the following way:
+		 *
+		 *
+		 * - it checks for the existence of a mbox with the given name in the
+		 *   specified namespace. If such a mbox is found it will be returned and
+		 *   \a mbox_factory is not called;
+		 * - otherwise, the \a mbox_factory is called;
+		 * - after the completion of \a mbox_factory the existence of a mbox with
+		 *   the given name is checked again;
+		 * - if there is still no such a mbox, then the mbox obtained from \a
+		 *   mbox_factory is stored inside the SOEnv and returned as the result
+		 *   of the `introduce_named_mbox` method;
+		 * - but if a mbox is found (it may have been created a little earlier by
+		 *   a parallel call to the `introduce_named_mbox`), then the the value
+		 *   returned by \a mbox_factory is discarded and the existing named mbox
+		 *   is returned.
+		 *
+		 * It means then the \a mbox_factory is used if there is no a mbox with
+		 * the name specified yet. If such a mbox is already exists then the
+		 * already created mbox will be returned without calling \a mbox_factory.
+		 *
 		 * Note that named mboxes created by this method live in separate
 		 * namespaces and those namespaces aren't intersect with "the default"
 		 * namespace used by the create_mbox(nonempty_name_t) method. It means
@@ -1035,11 +1056,6 @@ class SO_5_TYPE environment_t
 		 * assert(my_mbox1->id() != my_mbox2->id());
 		 * assert(my_mbox2->id() == my_duplicate->id());
 		 * \endcode
-		 *
-		 * The \a mbox_factory is used if there is no a mbox with the
-		 * name specified yet. If such a mbox is already exists then
-		 * the already created mbox will be returned without calling
-		 * \a mbox_factory.
 		 *
 		 * \attention
 		 * The \a mbox_factory should return a valid so_5::mbox_t.
