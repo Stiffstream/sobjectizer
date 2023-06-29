@@ -6,8 +6,7 @@
  * \file
  * \brief Cooperation of agents.
  * 
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 
 #pragma once
@@ -73,9 +72,9 @@ const int user_defined_reason = 0x1000;
 // coop_dereg_reason_t
 //
 /*!
- * \since
- * v.5.2.3
+ * \brief It's a kind of strong typedef for coop's deregistration reason.
  *
+ * \since v.5.2.3
  */
 class coop_dereg_reason_t
 	{
@@ -99,9 +98,6 @@ class coop_dereg_reason_t
 // coop_reg_notificator_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Type of cooperation registration notificator.
  *
  * Cooperation notificator should be a function with the following
@@ -114,6 +110,8 @@ notificator(
 	// Coop's handle.
 	const coop_handle_t & coop );
 \endcode
+ *
+ * \since v.5.2.3
  */
 using coop_reg_notificator_t =
 		std::function< void(environment_t &, const coop_handle_t &) >;
@@ -122,10 +120,9 @@ using coop_reg_notificator_t =
 // coop_reg_notificators_container_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Container for cooperation registration notificators.
+ *
+ * \since v.5.2.3
  */
 class SO_5_TYPE coop_reg_notificators_container_t
 	:	public atomic_refcounted_t
@@ -153,10 +150,9 @@ class SO_5_TYPE coop_reg_notificators_container_t
 // coop_reg_notificators_container_ref_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Typedef for smart pointer to notificators_container.
+ *
+ * \since v.5.2.3
  */
 using coop_reg_notificators_container_ref_t =
 		intrusive_ptr_t< coop_reg_notificators_container_t >;
@@ -165,9 +161,6 @@ using coop_reg_notificators_container_ref_t =
 // coop_dereg_notificator_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Type of cooperation deregistration notificator.
  *
  * Cooperation notificator should be a function with the following
@@ -182,6 +175,8 @@ notificator(
 	// Reason of deregistration.
 	const so_5::coop_dereg_reason_t & reason );
 \endcode
+ *
+ * \since v.5.2.3
  */
 using coop_dereg_notificator_t = std::function<
 		void(
@@ -193,10 +188,9 @@ using coop_dereg_notificator_t = std::function<
 // coop_dereg_notificators_container_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Container for cooperation deregistration notificators.
+ *
+ * \since v.5.2.3
  */
 class SO_5_TYPE coop_dereg_notificators_container_t
 	:	public atomic_refcounted_t
@@ -225,10 +219,9 @@ class SO_5_TYPE coop_dereg_notificators_container_t
 // coop_dereg_notificators_container_ref_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief Typedef for smart pointer to notificators_container.
+ *
+ * \since v.5.2.3
  */
 using coop_dereg_notificators_container_ref_t =
 		intrusive_ptr_t< coop_dereg_notificators_container_t >;
@@ -250,8 +243,7 @@ class coop_private_iface_t;
  * warnings coop_t is just a colletion of data. All coop's logic is
  * implemented by coop_impl_t.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class SO_5_TYPE coop_impl_t
 	{
@@ -361,12 +353,16 @@ class SO_5_TYPE coop_impl_t
 			coop_shptr_t child );
 
 		//! Perform removement of a child coop.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 */
 		static void
 		do_remove_child(
 			//! Parent coop.
 			coop_t & parent,
 			//! Child to be removed.
-			coop_t & child );
+			coop_t & child ) noexcept;
 	};
 
 } /* namespace impl */
@@ -421,7 +417,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			{}
 
 	public:
-		virtual ~coop_t() 
+		virtual ~coop_t()
 			{
 				impl::coop_impl_t::destroy_content( *this );
 			}
@@ -429,8 +425,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		/*!
 		 * \brief Get handle for this coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_handle_t
@@ -442,18 +437,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		/*!
 		 * \brief Get the ID of coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_id_t
 		id() const noexcept { return m_id; }
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Access to SO Environment for which cooperation is bound.
+		 *
+		 * \since v.5.3.0
 		 */
 		[[nodiscard]]
 		environment_t &
@@ -511,9 +504,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Add notificator about cooperation registration event.
 		 *
 		 * Notificator should be a function or functional object with the
@@ -574,6 +564,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * functor. Because of that a check in performed during compile time.  An
 		 * attempt to pass non-noexcept function or functor to
 		 * add_reg_notificator will lead to compilation error.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< typename Lambda >
 		void
@@ -595,9 +587,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Add notificator about cooperation deregistration event.
 		 *
 		 * Notificator should be a function or functional object with the
@@ -664,6 +653,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * functor. Because of that a check in performed during compile time. An
 		 * attempt to pass non-noexcept function or functor to
 		 * add_dereg_notificator will lead to compilation error.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< typename Lambda >
 		void
@@ -693,10 +684,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Take a user resouce under cooperation control.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< class T >
 		T *
@@ -719,13 +709,12 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Set exception reaction for that cooperation.
 		 *
 		 * This value will be used by agents and children cooperation if
 		 * they use inherit_exception_reaction value.
+		 *
+		 * \since v.5.3.0
 		 */
 		void
 		set_exception_reaction(
@@ -735,9 +724,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Get the current exception rection flag for that cooperation.
 		 *
 		 * It uses the following logic:
@@ -747,6 +733,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * - otherwise if there is a parent cooperation than parent coop's
 		 *   exception_reaction value returned;
 		 * - otherwise SO Environment's exception_reaction is returned.
+		 *
+		 * \since v.5.3.0
 		 */
 		[[nodiscard]]
 		exception_reaction_t
@@ -759,9 +747,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 */
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Helper method for simplification of agents creation.
 		 *
 		 * \note Creates an instance of agent of type \a Agent and adds it to
@@ -782,6 +767,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
 		 coop->make_agent< their_agent >( "bye", ya->so_direct_mbox() );
 		 \endcode
+		 *
+		 * \since v.5.5.4
 		 */
 		template< class Agent, typename... Args >
 		Agent *
@@ -793,9 +780,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Helper method for simplification of agents creation and
 		 * binding to the specified dispatcher.
 		 *
@@ -818,6 +802,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 // For the case of constructor like thier_agent(environment_t&, std::string, mbox_t).
 		 coop->make_agent_with_binder< their_agent >( disp.binder(), "bye", ya->so_direct_mbox() );
 		 \endcode
+		 *
+		 * \since v.5.5.4
 		 */
 		template< class Agent, typename... Args >
 		Agent *
@@ -834,10 +820,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Get agent count in the cooperation.
+		 *
+		 * \since v.5.5.4
 		 */
 		std::size_t
 		query_agent_count() const noexcept
@@ -846,28 +831,23 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.16
-		 *
 		 * \brief Get agent count in the cooperation.
 		 * \note Just an alias for query_agent_count().
+		 *
+		 * \since v.5.5.16
 		 */
 		std::size_t
 		size() const noexcept { return query_agent_count(); }
 
 		/*!
-		 * \since
-		 * v.5.5.16
-		 *
 		 * \brief Get the capacity of vector for holding agents list.
+		 *
+		 * \since v.5.5.16
 		 */
 		std::size_t
 		capacity() const noexcept { return m_agent_array.capacity(); }
 
 		/*!
-		 * \since
-		 * v.5.5.16
-		 *
 		 * \brief Reserve a space for vector for holding agents list.
 		 *
 		 * This method can help avoid reallocations of agents list during
@@ -879,14 +859,13 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 					coop.make_agent< some_type >( some_args );
 			} );
 		 * \endcode
+		 *
+		 * \since v.5.5.16
 		 */
 		void
 		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Deregister the cooperation with the specified reason.
 		 *
 		 * \par Usage example:
@@ -899,6 +878,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * This method is marked as noexcept because there is no way
 		 * to recover if any exception is raised here.
 		 *
+		 * \since v.5.5.8
 		 */
 		void
 		deregister(
@@ -911,9 +891,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Deregistr the cooperation normally.
 		 *
 		 * This method is just a shorthand for:
@@ -925,6 +902,8 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \note
 		 * This method is marked as noexcept because there is no way
 		 * to recover if any exception is raised here.
+		 *
+		 * \since v.5.5.8
 		 */
 		void
 		deregister_normally() noexcept
@@ -937,10 +916,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		using agent_array_t = std::vector< agent_ref_t >;
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Registration status.
+		 *
+		 * \since v.5.2.3
 		 */
 		enum class registration_status_t
 		{
@@ -994,10 +972,9 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 			};
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Type of container for user resource deleters.
+		 *
+		 * \since v.5.2.3
 		 */
 		using resource_deleter_vector_t = std::vector< resource_deleter_t >;
 
@@ -1034,18 +1011,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		atomic_counter_t m_reference_count{ 0l };
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Notificators for registration event.
+		 *
+		 * \since v.5.2.3
 		 */
 		coop_reg_notificators_container_ref_t m_reg_notificators;
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Notificators for deregistration event.
+		 *
+		 * \since v.5.2.3
 		 */
 		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
@@ -1070,9 +1045,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		std::mutex m_lock;
 		
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief The registration status of cooperation.
 		 *
 		 * By default cooperation has NOT_REGISTERED status.
@@ -1082,37 +1054,37 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * And then changed to DEREGISTERING when m_reference_count
 		 * becames zero and final deregistration demand would be
 		 * put to deregistration thread.
+		 *
+		 * \since v.5.2.3
 		 */
 		registration_status_t m_registration_status{
 				registration_status_t::coop_not_registered };
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Container of user resource deleters.
+		 *
+		 * \since v.5.2.3
+		 *
 		 */
 		resource_deleter_vector_t m_resource_deleters;
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Deregistration reason.
 		 *
 		 * Receives actual value only in deregister() method.
+		 *
+		 * \since v.5.2.3
 		 */
 		coop_dereg_reason_t m_dereg_reason;
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief A reaction to non-handled exception.
 		 *
 		 * By default inherit_exception_reaction is used. It means that
 		 * actual exception reaction should be provided by parent coop
 		 * or by SO Environment.
+		 *
+		 * \since v.5.3.0
 		 */
 		exception_reaction_t m_exception_reaction{
 				inherit_exception_reaction };
@@ -1120,8 +1092,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		/*!
 		 * \brief The head of list of children coops.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		coop_shptr_t m_first_child;
 
@@ -1133,8 +1104,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \note
 		 * This field will be used only by parent coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		coop_shptr_t m_prev_sibling;
 
@@ -1146,10 +1116,25 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * \note
 		 * This field will be used only by parent coop.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		coop_shptr_t m_next_sibling;
+
+		/*!
+		 * \brief The next coop in the chain for final deregistration actions.
+		 *
+		 * Since v.5.8.0 an intrusive list is used for holding the chain
+		 * of coops for the final deregistration. This field is used for
+		 * maintaining this intrusive list.
+		 *
+		 * This field is nullptr when the coop is registered (or not registered
+		 * yet). It may receive the actual value only during the deregistration
+		 * procedure (and this field may still be nullptr if there no more
+		 * coops that are ready for the final deregistration).
+		 *
+		 * \since v.5.8.0
+		 */
+		coop_shptr_t m_next_in_final_dereg_chain;
 
 		/*!
 		 * \brief Increment usage count for the coop.
@@ -1219,8 +1204,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * fields m_prev_sibling and m_next_sibling of the child coop
 		 * are modified.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		void
 		add_child(
@@ -1245,13 +1229,12 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * to child coop. This allows to avoid construction of temporary
 		 * shared_ptr object.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		void
 		remove_child(
 			//! Child coop to be removed.
-			coop_t & child )
+			coop_t & child ) noexcept
 			{
 				impl::coop_impl_t::do_remove_child( *this, child );
 			}
@@ -1263,8 +1246,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 * access to m_first_child, m_prev_sibling and m_next_sibling from
 		 * another coop object will be prohibited.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		template< typename Lambda >
 		void
@@ -1295,8 +1277,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
  * Class coop_unique_holder_t is an replacement for coop_unique_ptr_t
  * from previous versions of SObjectizer, but it holds shared_ptr inside.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class coop_unique_holder_t
 	{
@@ -1322,7 +1303,7 @@ class coop_unique_holder_t
 		operator=( const coop_unique_holder_t & ) = delete;
 
 		coop_unique_holder_t &
-		operator=( coop_unique_holder_t && ) = default;
+		operator=( coop_unique_holder_t && ) noexcept = default;
 
 		friend void
 		swap( coop_unique_holder_t & a, coop_unique_holder_t & b ) noexcept

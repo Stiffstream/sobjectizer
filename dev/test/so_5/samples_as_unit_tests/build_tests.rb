@@ -95,5 +95,17 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/custom_direct_mbox.ut.rb"
   required_prj "#{path}/custom_direct_mbox-static.ut.rb"
+
+  required_prj "#{path}/single_sink_binding.ut.rb"
+  required_prj "#{path}/single_sink_binding-static.ut.rb"
+
+  required_prj "#{path}/unique_subscribers_mbox.ut.rb"
+  required_prj "#{path}/unique_subscribers_mbox-static.ut.rb"
+
+  required_prj "#{path}/introduce_named_mbox.ut.rb"
+  required_prj "#{path}/introduce_named_mbox-static.ut.rb"
+
+  required_prj "#{path}/child_soenv.ut.rb"
+  required_prj "#{path}/child_soenv-static.ut.rb"
 }
 

@@ -127,19 +127,18 @@ public :
 	void
 	subscribe_event_handler(
 		const std::type_index & type_index,
-		const so_5::message_limit::control_block_t * limit,
-		so_5::agent_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) override
 	{
 		m_actual_mbox->subscribe_event_handler(
-				type_index, limit, subscriber );
+				type_index, subscriber );
 	}
 
 	void
-	unsubscribe_event_handlers(
+	unsubscribe_event_handler(
 		const std::type_index & type_index,
-		so_5::agent_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) noexcept override
 	{
-		m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
+		m_actual_mbox->unsubscribe_event_handler( type_index, subscriber );
 	}
 
 	std::string
@@ -156,9 +155,10 @@ public :
 
 	void
 	do_deliver_message(
+		so_5::message_delivery_mode_t delivery_mode,
 		const std::type_index & msg_type,
 		const so_5::message_ref_t & message,
-		unsigned int overlimit_reaction_deep ) override
+		unsigned int redirection_deep ) override
 	{
 		auto envelope = std::make_unique< Envelope >(
 				m_trace,
@@ -166,16 +166,17 @@ public :
 				message );
 
 		m_actual_mbox->do_deliver_message(
+				delivery_mode,
 				msg_type,
 				so_5::message_ref_t{ std::move(envelope) },
-				overlimit_reaction_deep );
+				redirection_deep );
 	}
 
 	void
 	set_delivery_filter(
 		const std::type_index & msg_type,
 		const so_5::delivery_filter_t & filter,
-		so_5::agent_t & subscriber ) override
+		so_5::abstract_message_sink_t & subscriber ) override
 	{
 		m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 	}
@@ -183,7 +184,7 @@ public :
 	void
 	drop_delivery_filter(
 		const std::type_index & msg_type,
-		so_5::agent_t & subscriber ) noexcept override
+		so_5::abstract_message_sink_t & subscriber ) noexcept override
 	{
 		m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 	}
@@ -192,23 +193,6 @@ public :
 	environment() const noexcept override
 	{
 		return m_actual_mbox->environment();
-	}
-
-protected :
-	void
-	do_deliver_message_from_timer(
-		const std::type_index & msg_type,
-		const so_5::message_ref_t & message ) override
-	{
-		auto envelope = std::make_unique< Envelope >(
-				m_trace,
-				allocate_counter(),
-				message );
-
-		delegate_deliver_message_from_timer(
-				*m_actual_mbox,
-				msg_type,
-				so_5::message_ref_t{ std::move(envelope) } );
 	}
 };
 

@@ -81,10 +81,12 @@ set(SO_5_SRC exception.cpp
 	disp/mpsc_queue_traits/pub.cpp
 	disp/mpmc_queue_traits/pub.cpp
 	disp/one_thread/pub.cpp
+	disp/nef_one_thread/pub.cpp
 	disp/active_obj/pub.cpp
 	disp/active_group/pub.cpp
 	disp/thread_pool/pub.cpp
 	disp/adv_thread_pool/pub.cpp
+	disp/nef_thread_pool/pub.cpp
 	disp/prio_one_thread/strictly_ordered/pub.cpp
 	disp/prio_one_thread/quoted_round_robin/pub.cpp
 	disp/prio_dedicated_threads/one_per_prio/pub.cpp

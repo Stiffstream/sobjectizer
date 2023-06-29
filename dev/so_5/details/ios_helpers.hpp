@@ -63,6 +63,9 @@ operator<<( std::ostream & to, const length_limited_string & v )
  * v.5.5.4
  *
  * \brief Helper for showing pointer value.
+ *
+ * \note
+ * It's safe to pass a nullptr to `pointer` instance.
  */
 struct pointer
 	{

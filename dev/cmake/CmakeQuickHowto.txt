@@ -117,5 +117,4 @@ not change Configuration=Release argument)
   ctest --force-new-ctest-process
   :: or msbuild /m /p:Configuration=Release RUN_TESTS.vcxproj
 
-If You certain that You know better way to use cmake crossaplatform - let me know.
-san@masterspline.eu or tell SObjectizer's core developers.
+If You certain that You know better way to use cmake crossaplatform - let us know.

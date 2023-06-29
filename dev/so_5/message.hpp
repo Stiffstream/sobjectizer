@@ -61,7 +61,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		message_t &
 		operator=( const message_t & other );
 		message_t &
-		operator=( message_t && other );
+		operator=( message_t && other ) noexcept;
 
 		virtual ~message_t() noexcept = default;
 
@@ -951,6 +951,12 @@ struct overlimit_context_t
 		 */
 		const mbox_id_t m_mbox_id;
 
+		//! Delivery mode for message delivery attempt.
+		/*!
+		 * \since v.5.8.0
+		 */
+		const message_delivery_mode_t m_delivery_mode;
+
 		//! Receiver of the message (or enveloped message).
 		const agent_t & m_receiver;
 
@@ -982,6 +988,7 @@ struct overlimit_context_t
 		inline
 		overlimit_context_t(
 			mbox_id_t mbox_id,
+			message_delivery_mode_t delivery_mode,
 			const agent_t & receiver,
 			const control_block_t & limit,
 			unsigned int reaction_deep,
@@ -989,6 +996,7 @@ struct overlimit_context_t
 			const message_ref_t & message,
 			const impl::action_msg_tracer_t * msg_tracer )
 			:	m_mbox_id( mbox_id )
+			,	m_delivery_mode{ delivery_mode }
 			,	m_receiver( receiver )
 			,	m_limit( limit )
 			,	m_reaction_deep( reaction_deep )

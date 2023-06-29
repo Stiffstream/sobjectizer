@@ -673,10 +673,38 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief A helper function for creating redirect_indicator.
+		 *
+		 * The \a dest_getter should be a functor (or just function) with the
+		 * following prototype:
+		 * \code
+		 * so_5::mbox_t dest_getter();
+		 * \endcode
+		 *
+		 * \par Usage example:
+		 * \code
+		 * class main_message_handler : public so_5::agent_t {
+		 * 	// Destination for message for an overload case.
+		 * 	// NOTE: this mbox isn't known in the constructor.
+		 * 	so_5::mbox_t overload_dest_;
+		 * 	...
+		 * public:
+		 * 	main_message_handler(context_t ctx)
+		 * 		:	so_5::agent_t{ ctx
+		 * 				+ limit_then_redirect<data_message>( 10,
+		 * 					[this]() { return overload_dest_; } )
+		 * 			}
+		 * 	{}
+		 *
+		 * 	// Setter for overload_dest.
+		 * 	void set_overload_dest(const so_5::mbox_t & dest) {
+		 * 		overload_dest_ = dest;
+		 * 	}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * \since v.5.5.4
 		 */
 		template< typename Msg, typename Lambda >
 		[[nodiscard]]
@@ -898,14 +926,6 @@ struct message_limit_methods_mixin_t
 						std::forward<Args>( args )... );
 			}
 	};
-
-namespace impl
-{
-
-// Forward declaration.
-class info_storage_t;
-
-} /* namespace impl */
 
 } /* namespace message_limit */
 

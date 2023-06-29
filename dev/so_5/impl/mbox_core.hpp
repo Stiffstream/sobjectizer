@@ -9,14 +9,8 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <map>
-#include <vector>
-#include <functional>
-#include <mutex>
-
 #include <so_5/mbox.hpp>
+#include <so_5/mbox_namespace_name.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/nonempty_name.hpp>
 
@@ -28,13 +22,19 @@
 
 #include <so_5/custom_mbox.hpp>
 
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <tuple>
+#include <vector>
+
 namespace so_5
 {
 
 namespace impl
 {
-
-class mbox_core_ref_t;
 
 //
 // mbox_core_stats_t
@@ -52,17 +52,85 @@ struct mbox_core_stats_t
 	};
 
 //
+// full_named_mbox_id_t
+//
+/*!
+ * \brief Full name for a named mbox.
+ *
+ * The full name includes mbox namespace and the name of the mbox.
+ *
+ * \note
+ * The mbox namespace may be empty if named was created as ordinary
+ * named mbox (via environment_t::create_mbox()).
+ *
+ * \since v.5.8.0
+ */
+struct full_named_mbox_id_t
+	{
+		/*!
+		 * \brief Name of mbox namespace in that the mbox is defined.
+		 *
+		 * May be empty for ordinary named mbox.
+		 */
+		std::string m_namespace;
+
+		/*!
+		 * \brief Own name of the mbox.
+		 *
+		 * \attention
+		 * Can't be empty.
+		 */
+		std::string m_name;
+
+		//! Initializing constructor.
+		full_named_mbox_id_t(
+			std::string mbox_namespace,
+			std::string mbox_name )
+			:	m_namespace{ std::move(mbox_namespace) }
+			,	m_name{ std::move(mbox_name) }
+			{}
+	};
+
+[[nodiscard]]
+inline bool
+operator<(
+	const full_named_mbox_id_t & a,
+	const full_named_mbox_id_t & b )
+	{
+		return std::tie(a.m_namespace, a.m_name) <
+				std::tie(b.m_namespace, b.m_name);
+	}
+
+//
+// default_global_mbox_namespace
+//
+/*!
+ * \brief Helper function that returns name of the default global
+ * namespace for named mboxes.
+ *
+ * \note
+ * This default global namespace has empty name in the current version
+ * of SObjectizer.
+ *
+ * \since v.5.8.0
+ */
+[[nodiscard]]
+inline std::string
+default_global_mbox_namespace()
+	{
+		return {};
+	}
+
+//
 // mbox_core_t
 //
 
 /*!
  * \brief A utility class for the work with mboxes.
  */
-class mbox_core_t
-	:
-		private atomic_refcounted_t
+class mbox_core_t final : private atomic_refcounted_t
 {
-		friend class mbox_core_ref_t;
+		friend class intrusive_ptr_t< mbox_core_t >;
 
 		mbox_core_t( const mbox_core_t & ) = delete;
 		mbox_core_t & operator=( const mbox_core_t & ) = delete;
@@ -76,6 +144,7 @@ class mbox_core_t
 		/*!
 			\note always creates a new mbox.
 		*/
+		[[nodiscard]]
 		mbox_t
 		create_mbox( environment_t & env );
 
@@ -86,6 +155,7 @@ class mbox_core_t
 			will return a new mbox_t, which links to 
 			the present mbox (with this name).
 		*/
+		[[nodiscard]]
 		mbox_t
 		create_mbox(
 			//! Environment for which the mbox is created.
@@ -94,20 +164,30 @@ class mbox_core_t
 			nonempty_name_t mbox_name );
 
 		/*!
-		 * \since
-		 * v.5.4.0
+		 * \brief Create mpsc_mbox that handles message limits.
 		 *
-		 * \brief Create anonymous mpsc_mbox.
+		 * \since v.5.8.0
 		 */
+		[[nodiscard]]
 		mbox_t
-		create_mpsc_mbox(
+		create_ordinary_mpsc_mbox(
 			//! Environment for which the mbox is created.
 			environment_t & env,
-			//! The only consumer for messages.
-			agent_t * single_consumer,
-			//! Pointer to limits for a new mbox.
-			//! It can be nullptr, that means that limits shouldn't be used.
-			const so_5::message_limit::impl::info_storage_t * limits_storage );
+			//! The only consumer for the mbox.
+			agent_t & owner );
+
+		/*!
+		 * \brief Create mpsc_mbox that ignores message limits.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		create_limitless_mpsc_mbox(
+			//! Environment for which the mbox is created.
+			environment_t & env,
+			//! The only consumer for the mbox.
+			agent_t & owner );
 
 		//! Remove a reference to the named mbox.
 		/*!
@@ -116,7 +196,7 @@ class mbox_core_t
 		void
 		destroy_mbox(
 			//! Mbox name.
-			const std::string & name );
+			const full_named_mbox_id_t & name ) noexcept;
 
 		/*!
 		 * \brief Create a custom mbox.
@@ -124,12 +204,28 @@ class mbox_core_t
 		 * \since
 		 * v.5.5.19.2
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_custom_mbox(
 			//! Environment for which the mbox is created.
 			environment_t & env,
 			//! Creator for new mbox.
 			::so_5::custom_mbox_details::creator_iface_t & creator );
+
+		/*!
+		 * \brief Introduce named mbox with user-provided factory.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		introduce_named_mbox(
+			//! Name of mbox_namespace for a new mbox.
+			mbox_namespace_name_t mbox_namespace,
+			//! Name for a new mbox.
+			nonempty_name_t mbox_name,
+			//! Factory for new mbox.
+			const std::function< mbox_t() > & mbox_factory );
 
 		/*!
 		 * \since
@@ -179,11 +275,6 @@ class mbox_core_t
 		//! Named mbox information.
 		struct named_mbox_info_t
 		{
-			named_mbox_info_t()
-				:
-					m_external_ref_count( 0 )
-			{}
-
 			named_mbox_info_t( mbox_t mbox )
 				:
 					m_external_ref_count( 1 ),
@@ -198,8 +289,10 @@ class mbox_core_t
 
 		//! Typedef for the map from the mbox name to the mbox information.
 		using named_mboxes_dictionary_t = std::map<
-				std::string,
-				named_mbox_info_t >;
+				full_named_mbox_id_t,
+				named_mbox_info_t,
+				std::less<> // It's important.
+			>;
 
 		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
@@ -211,105 +304,17 @@ class mbox_core_t
 		 * \brief A counter for mbox ID generation.
 		 */
 		std::atomic< mbox_id_t > m_mbox_id_counter;
-
-		/*!
-		 * \since
-		 * v.5.2.0
-		 *
-		 * \brief Low-level implementation of named mbox creation.
-		 */
-		mbox_t
-		create_named_mbox(
-			//! Mbox name.
-			nonempty_name_t nonempty_name,
-			//! Functional object to create new instance of mbox.
-			//! Must have a prototype: mbox_t factory().
-			const std::function< mbox_t() > & factory );
 };
 
 //! Smart reference to the mbox_core_t.
-class mbox_core_ref_t
-{
-	public:
-		mbox_core_ref_t();
-
-		explicit mbox_core_ref_t(
-			mbox_core_t * mbox_core );
-
-		mbox_core_ref_t(
-			const mbox_core_ref_t & mbox_core_ref );
-
-		void
-		operator = ( const mbox_core_ref_t & mbox_core_ref );
-
-		~mbox_core_ref_t();
-
-		inline const mbox_core_t *
-		get() const
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t *
-		get()
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline const mbox_core_t *
-		operator -> () const
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t *
-		operator -> ()
-		{
-			return m_mbox_core_ptr;
-		}
-
-		inline mbox_core_t &
-		operator * ()
-		{
-			return *m_mbox_core_ptr;
-		}
-
-
-		inline const mbox_core_t &
-		operator * () const
-		{
-			return *m_mbox_core_ptr;
-		}
-
-		inline bool
-		operator == ( const mbox_core_ref_t & mbox_core_ref ) const
-		{
-			return m_mbox_core_ptr ==
-				mbox_core_ref.m_mbox_core_ptr;
-		}
-
-		inline bool
-		operator < ( const mbox_core_ref_t & mbox_core_ref ) const
-		{
-			return m_mbox_core_ptr <
-				mbox_core_ref.m_mbox_core_ptr;
-		}
-
-	private:
-		//! Increment reference count to the mbox_core.
-		void
-		inc_mbox_core_ref_count();
-
-		//! Decrement reference count to the mbox_core.
-		/*!
-		 * If a reference count become 0 then mbox_core is destroyed.
-		 */
-		void
-		dec_mbox_core_ref_count();
-
-		mbox_core_t * m_mbox_core_ptr;
-};
+/*!
+ * \note
+ * It was a separate class until v.5.8.0.
+ * Since v.5.8.0 it's just a typedef for intrusive_ptr_t.
+ */
+using mbox_core_ref_t = intrusive_ptr_t< mbox_core_t >;
 
 } /* namespace impl */
 
 } /* namespace so_5 */
+

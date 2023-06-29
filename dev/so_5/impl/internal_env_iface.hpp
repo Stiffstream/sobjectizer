@@ -43,14 +43,19 @@ class SO_5_TYPE internal_env_iface_t
 			:	m_env( env )
 			{}
 
-		//! Create multi-producer/single-consumer mbox.
+		//! Create multi-producer/single-consumer mbox that handles message limits.
+		[[nodiscard]]
 		mbox_t
-		create_mpsc_mbox(
+		create_ordinary_mpsc_mbox(
 			//! The only consumer for the messages.
-			agent_t * single_consumer,
-			//! Pointer to limits for a new mbox.
-			//! It can be nullptr, that means that limits shouldn't be used.
-			const so_5::message_limit::impl::info_storage_t * limits_storage );
+			agent_t & single_consumer );
+
+		//! Create multi-producer/single-consumer mbox that ignores message limits.
+		[[nodiscard]]
+		mbox_t
+		create_limitless_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t & single_consumer );
 
 		//! Notification about readiness to the deregistration.
 		void
@@ -59,10 +64,14 @@ class SO_5_TYPE internal_env_iface_t
 			coop_shptr_t coop ) noexcept;
 
 		//! Do the final actions of a cooperation deregistration.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0
+		 */
 		void
 		final_deregister_coop(
 			//! Cooperation name to be deregistered.
-			coop_shptr_t coop );
+			coop_shptr_t coop ) noexcept;
 
 		//! Is message delivery tracing enabled?
 		bool

@@ -35,6 +35,11 @@
 
 #include <so_5/all.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 enum color_t
 	{
 		BLUE = 0,
@@ -217,14 +222,14 @@ void init( so_5::environment_t & env, int meetings )
 				so_5::disp::active_obj::make_dispatcher( env ).binder(),
 				[meetings]( so_5::coop_t & coop )
 				{
-					color_t creature_colors[ creature_count ] =
-						{ BLUE, RED, YELLOW, BLUE };
+					std::array< color_t, std::size_t{creature_count} > creature_colors{
+							BLUE, RED, YELLOW, BLUE };
 
 					auto a_meeting_place = coop.make_agent< a_meeting_place_t >(
 							creature_count,
 							meetings );
 					
-					for( int i = 0; i != creature_count; ++i )
+					for( std::size_t i = 0; i != creature_colors.size(); ++i )
 						{
 							coop.make_agent< a_creature_t >(
 									a_meeting_place->so_direct_mbox(),

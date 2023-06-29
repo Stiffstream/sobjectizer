@@ -10,6 +10,11 @@
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 class a_test_t final : public so_5::agent_t
 {
 	state_t first{ this, "first" };

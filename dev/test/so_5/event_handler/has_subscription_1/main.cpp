@@ -31,68 +31,68 @@ public :
 	so_define_agent() override
 	{
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-				"subscription must be absent" );
+				"(1) subscription must be absent (msg_1, direct, default)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox()),
-				"subscription must be absent" );
+				"(1) subscription must be absent (msg_1, direct)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-				"subscription must be absent" );
+				"(1) subscription must be absent (msg_1, direct, st_dummy)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-				"subscription must be absent" );
+				"(1) subscription must be absent (msg_1, direct, st_dummy_2)" );
 
 		so_subscribe_self().event( [](mhood_t< msg_1 >){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-				"subscription must be present" );
+				"(2) subscription must be present (msg_1, direct, default)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox()),
-				"subscription must be present" );
+				"(2) subscription must be present (msg_1, direct)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-				"subscription must be absent" );
+				"(2) subscription must be absent (msg_1, direct, st_dummy)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-				"subscription must be absent" );
+				"(2) subscription must be absent (msg_1, direct, st_dummy_2)" );
 
 		so_subscribe_self().in(st_dummy).event( [](mhood_t<msg_1>){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-				"subscription must be present" );
+				"(3) subscription must be present (msg_1, direct, default)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox()),
-				"subscription must be present" );
+				"(3) subscription must be present (msg_1, direct)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-				"subscription must be present" );
+				"(3) subscription must be present (msg_1, direct, st_dummy)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-				"subscription must be absent" );
+				"(3) subscription must be absent (msg_1, direct, st_dummy_2)" );
 
 		so_subscribe_self().in(st_dummy_2).event( [](mhood_t<msg_1>){} );
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-				"subscription must be present" );
+				"(4) subscription must be present (msg_1, direct, default)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox()),
-				"subscription must be present" );
+				"(4) subscription must be present (msg_1, direct)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-				"subscription must be present" );
+				"(4) subscription must be present (msg_1, direct, st_dummy)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-				"subscription must be present" );
+				"(4) subscription must be present (msg_1, direct, st_dummy_2)" );
 
 		so_drop_subscription<msg_1>(so_direct_mbox(), st_dummy);
 
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-				"subscription must be present" );
+				"(5) subscription must be present (msg_1, direct, default)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox()),
-				"subscription must be present" );
+				"(5) subscription must be present (msg_1, direct)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-				"subscription must be absent" );
+				"(5) subscription must be absent (msg_1, direct, st_dummy)" );
 		ensure( so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-				"subscription must be present" );
+				"(5) subscription must be present (msg_1, direct, st_dummy_2)" );
 
 		so_drop_subscription_for_all_states<msg_1>(so_direct_mbox());
 
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), so_default_state()),
-					"subscription must be absent" );
+				"(6) subscription must be absent (msg_1, direct, default)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox()),
-					"subscription must be absent" );
+				"(6) subscription must be absent (msg_1, direct)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy),
-			"subscription must be absent" );
+				"(6) subscription must be absent (msg_1, direct, st_dummy)" );
 		ensure( !so_has_subscription<msg_1>(so_direct_mbox(), st_dummy_2),
-			"subscription must be absent" );
+				"(6) subscription must be absent (msg_1, direct, st_dummy_2)" );
 	}
 
 	virtual void

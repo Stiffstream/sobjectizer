@@ -89,7 +89,7 @@ class SO_5_TYPE handler_invoker_t
 		handler_invoker_t & operator=( const handler_invoker_t & ) = default;
 
 		handler_invoker_t( handler_invoker_t && ) = default;
-		handler_invoker_t & operator=( handler_invoker_t && ) = default;
+		handler_invoker_t & operator=( handler_invoker_t && ) noexcept = default;
 
 		~handler_invoker_t() = default;
 
@@ -181,7 +181,7 @@ class SO_5_TYPE envelope_t : public message_t
 		envelope_t & operator=( const envelope_t & ) = default;
 
 		envelope_t( envelope_t && ) = default;
-		envelope_t & operator=( envelope_t && ) = default;
+		envelope_t & operator=( envelope_t && ) noexcept = default;
 
 		virtual ~envelope_t() override = default;
 

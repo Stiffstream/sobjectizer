@@ -14,7 +14,6 @@
 #include <so_5/environment.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
-#include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <cstdlib>
 #include <algorithm>
@@ -172,7 +171,7 @@ coop_repository_basis_t::register_coop(
 
 coop_repository_basis_t::final_deregistration_result_t
 coop_repository_basis_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		// Count of live agent and coops should be decremented.
 		{
@@ -182,37 +181,34 @@ coop_repository_basis_t::final_deregister_coop(
 			--m_total_coops;
 		}
 
-		// We don't expect exceptions from the following actions.
-		so_5::details::invoke_noexcept_code( [&] {
-				// Coop should perform its final actions.
-				coop_private_iface_t::do_final_deregistration_actions( *coop );
+		// Coop should perform its final actions.
+		coop_private_iface_t::do_final_deregistration_actions( *coop );
 
-				// Now the coop object should be released.
-				// But before that we should store some values from it
-				// to process dereg notifications.
-				const auto handle = coop->handle();
-				const auto dereg_reason =
-						coop_private_iface_t::dereg_reason( *coop );
-				const auto dereg_notificators =
-						coop_private_iface_t::giveout_dereg_notificators( *coop );
+		// Now the coop object should be released.
+		// But before that we should store some values from it
+		// to process dereg notifications.
+		const auto handle = coop->handle();
+		const auto dereg_reason =
+				coop_private_iface_t::dereg_reason( *coop );
+		const auto dereg_notificators =
+				coop_private_iface_t::giveout_dereg_notificators( *coop );
 
-				// Release the coop.
-				coop.reset();
+		// Release the coop.
+		coop.reset();
 
-				// Coop's dereg notificators can be processed now.
-				if( dereg_notificators )
-					dereg_notificators->call_all(
-							m_env.get(),
-							handle,
-							dereg_reason );
+		// Coop's dereg notificators can be processed now.
+		if( dereg_notificators )
+			dereg_notificators->call_all(
+					m_env.get(),
+					handle,
+					dereg_reason );
 
-				// Coop's listener should be notified.
-				if( m_coop_listener )
-					m_coop_listener->on_deregistered(
-							m_env.get(),
-							handle,
-							dereg_reason );
-			} );
+		// Coop's listener should be notified.
+		if( m_coop_listener )
+			m_coop_listener->on_deregistered(
+					m_env.get(),
+					handle,
+					dereg_reason );
 
 		// This additional lock is necessary because a new coop
 		// can be registered while final deregistration actions
@@ -259,7 +255,7 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 
 [[nodiscard]]
 coop_repository_basis_t::try_switch_to_shutdown_result_t
-coop_repository_basis_t::try_switch_to_shutdown()
+coop_repository_basis_t::try_switch_to_shutdown() noexcept
 	{
 		std::lock_guard< std::mutex > lock{ m_lock };
 

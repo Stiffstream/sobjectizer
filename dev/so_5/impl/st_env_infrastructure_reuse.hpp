@@ -7,8 +7,7 @@
  * \brief Reusable stuff to be used in implementations of
  * various single thread environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #pragma once
@@ -47,8 +46,7 @@ namespace stats = ::so_5::stats;
 /*!
  * \brief Status of shutdown procedure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 enum class shutdown_status_t
 	{
@@ -69,8 +67,7 @@ enum class shutdown_status_t
  * \brief An implementation of work thread activity tracking stuff for
  * the case when activity tracking is not used.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct fake_activity_tracker_t final
 	{
@@ -94,8 +91,7 @@ struct fake_activity_tracker_t final
  * all actions with activity tracker will be done on the context of
  * single thread.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class real_activity_tracker_t final
 	{
@@ -159,8 +155,7 @@ send_thread_activity_stats(
  * \brief Implementation of coop_repository for
  * single-threaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class coop_repo_t final
 	:	public ::so_5::impl::coop_repository_basis_t
@@ -204,8 +199,7 @@ class coop_repo_t final
  *
  * \tparam Event_Queue_Type An actual type of event queue.
  *
- * \since
- * v.5.5.19, v.5.6.0
+ * \since v.5.5.19, v.5.6.0
  */
 template< typename Event_Queue_Type >
 class default_dispatcher_basis_t : public disp_binder_t
@@ -318,8 +312,7 @@ class default_dispatcher_basis_t : public disp_binder_t
  * This type is not marked as final because it can be used as a base
  * class in external projects (like so_5_extra).
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 template<
 	typename Event_Queue_Type,
@@ -345,7 +338,7 @@ class default_dispatcher_t
 		Activity_Tracker &
 		activity_tracker() noexcept
 			{
-				return m_activity_tracker;
+				return m_activity_tracker.get();
 			}
 
 	private :
@@ -353,8 +346,7 @@ class default_dispatcher_t
 		/*!
 		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		class disp_data_source_t final : public stats::source_t
 			{
@@ -417,8 +409,7 @@ class default_dispatcher_t
 /*!
  * \brief Implementation of elapsed_timers_collector interface.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class actual_elapsed_timers_collector_t final
 	:	public timer_manager_t::elapsed_timers_collector_t
@@ -488,7 +479,7 @@ class actual_elapsed_timers_collector_t final
 					{
 						// Old container must be utilized.
 						demands_container_t demands;
-						demands.swap( m_demands );
+						swap( demands, m_demands );
 					}
 			}
 	};
@@ -506,8 +497,7 @@ class actual_elapsed_timers_collector_t final
  *
  * It means that actual delivery is performed in accept() method.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class direct_delivery_elapsed_timers_collector_t final
 	:	public timer_manager_t::elapsed_timers_collector_t
@@ -535,8 +525,7 @@ class direct_delivery_elapsed_timers_collector_t final
  * Expected to be so_5::details::actual_lock_holder_t or
  * so_5::details::no_lock_holder_t.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Lock_Holder >
 class stats_controller_t final

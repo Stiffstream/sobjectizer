@@ -6,8 +6,7 @@
  * \file
  * \brief Default implementation of multithreaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #include <so_5/impl/mt_env_infrastructure.hpp>
@@ -28,19 +27,6 @@ namespace default_mt {
 
 namespace impl {
 
-namespace {
-
-struct msg_final_coop_dereg final : public so_5::message_t
-	{
-		coop_shptr_t m_coop;
-
-		msg_final_coop_dereg( coop_shptr_t coop )
-			:	m_coop{ std::move(coop) }
-			{}
-	};
-
-} /* namespace anonymous */
-
 //
 // coop_repo_t
 //
@@ -48,26 +34,14 @@ coop_repo_t::coop_repo_t(
 	outliving_reference_t< environment_t > env,
 	coop_listener_unique_ptr_t coop_listener )
 	:	coop_repository_basis_t( env, std::move(coop_listener) )
+	,	m_final_dereg_thread_shutdown_flag{ false }
 	{}
 
 void
 coop_repo_t::start()
 {
-	// mchain for final coop deregs must be created.
-	m_final_dereg_chain = environment().create_mchain(
-			make_unlimited_mchain_params().disable_msg_tracing() );
 	// A separate thread for doing the final dereg must be started.
-	m_final_dereg_thread = std::thread{ [this] {
-		// Process dereg demands until chain will be closed.
-		receive( from( m_final_dereg_chain ).handle_all(),
-			[]( mutable_mhood_t<msg_final_coop_dereg> cmd ) {
-				// NOTE: we should call final_deregister_coop from
-				// environment because only this call handles autoshutdown flag.
-				auto & env = cmd->m_coop->environment();
-				so_5::impl::internal_env_iface_t{ env }.final_deregister_coop(
-						std::move(cmd->m_coop) );
-			} );
-	} };
+	m_final_dereg_thread = std::thread{ [this] { final_dereg_thread_body(); } };
 }
 
 void
@@ -80,9 +54,11 @@ coop_repo_t::finish()
 	wait_all_coop_to_deregister();
 
 	// Notify a dedicated thread and wait while it will be stopped.
-	// NOTE: use exceptions_enabled because finish() allowed to throw
-	// exceptions.
-	close_retain_content( so_5::exceptions_enabled, m_final_dereg_chain );
+	{
+		std::lock_guard< std::mutex > lock{ m_final_dereg_chain_lock };
+		m_final_dereg_thread_shutdown_flag = true;
+		m_final_dereg_chain_cond.notify_one();
+	}
 	m_final_dereg_thread.join();
 }
 
@@ -90,13 +66,21 @@ void
 coop_repo_t::ready_to_deregister_notify(
 	coop_shptr_t coop )
 {
-	so_5::send< mutable_msg< msg_final_coop_dereg > >(
-			m_final_dereg_chain, std::move(coop) );
+	std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
+
+	// Update the final_dereg_chain.
+	m_final_dereg_chain.append( std::move(coop) );
+
+	if( 1u == m_final_dereg_chain.size() )
+	{
+		// Final deregistration thread may wait, have to wake it up.
+		m_final_dereg_chain_cond.notify_one();
+	}
 }
 
 bool
 coop_repo_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 {
 	const auto result =
 			coop_repository_basis_t::final_deregister_coop( std::move(coop) );
@@ -140,7 +124,10 @@ coop_repo_t::wait_all_coop_to_deregister()
 environment_infrastructure_t::coop_repository_stats_t
 coop_repo_t::query_stats()
 {
-	const auto final_dereg_coops = m_final_dereg_chain->size();
+	const auto final_dereg_coops = [this]() {
+			std::lock_guard< std::mutex > lck{ m_final_dereg_chain_lock };
+			return m_final_dereg_chain.size();
+		}();
 
 	const auto basis_stats = coop_repository_basis_t::query_stats();
 
@@ -151,12 +138,70 @@ coop_repo_t::query_stats()
 		};
 }
 
+void
+coop_repo_t::final_dereg_thread_body()
+{
+	std::unique_lock< std::mutex > lck{ m_final_dereg_chain_lock };
+
+	for( bool should_continue = true; should_continue; )
+	{
+		bool should_wait = true;
+
+		// If there are some waiting coops they have to be processed even
+		// if m_final_dereg_thread_shutdown_flag is set.
+		if( !m_final_dereg_chain.empty() )
+		{
+			// There are some coops to be deregistered.
+			process_current_final_dereg_chain( lck );
+
+			// Because the processing takes some time there is no need
+			// to sleep before new check for m_final_dereg_chain.
+			should_wait = false;
+		}
+
+		if( m_final_dereg_thread_shutdown_flag )
+		{
+			// It's time to finish the work.
+			should_continue = false;
+		}
+		else if( should_wait )
+		{
+			// No coops to deregister. Have to wait.
+			m_final_dereg_chain_cond.wait( lck );
+		}
+	}
+}
+
+void
+coop_repo_t::process_current_final_dereg_chain(
+	std::unique_lock< std::mutex > & lck ) noexcept
+{
+	//
+	// NOTE: don't expect exceptions here.
+	//
+
+	// There are some coops to be deregistered.
+	// Have to extract the current value of final dereg chain from
+	// the coop_repo instance.
+	coop_shptr_t head = m_final_dereg_chain.giveout_current_chain();
+
+	// All following actions has to be performed on unlocked mutex.
+	lck.unlock();
+
+	// Do final_deregister_coop for every item in the chain
+	// one by one.
+	so_5::impl::process_final_dereg_chain( std::move(head) );
+
+	// Have to reacquire the lock back.
+	lck.lock();
+}
+
 //
 // mt_env_infrastructure_t
 //
 mt_env_infrastructure_t::mt_env_infrastructure_t(
 	environment_t & env,
-	so_5::disp::one_thread::disp_params_t default_disp_params,
+	environment_params_t::default_disp_params_t default_disp_params,
 	timer_thread_unique_ptr_t timer_thread,
 	coop_listener_unique_ptr_t coop_listener,
 	mbox_t stats_distribution_mbox )
@@ -175,7 +220,7 @@ mt_env_infrastructure_t::launch( env_init_t init_fn )
 	}
 
 void
-mt_env_infrastructure_t::stop()
+mt_env_infrastructure_t::stop() noexcept
 	{
 		// Sends shutdown signal for all agents.
 		m_coop_repo.start_deregistration();
@@ -186,9 +231,9 @@ coop_unique_holder_t
 mt_env_infrastructure_t::make_coop(
 	coop_handle_t parent,
 	disp_binder_shptr_t default_binder )
-{
-	return m_coop_repo.make_coop( std::move(parent), std::move(default_binder) );
-}
+	{
+		return m_coop_repo.make_coop( std::move(parent), std::move(default_binder) );
+	}
 
 coop_handle_t
 mt_env_infrastructure_t::register_coop(
@@ -206,7 +251,7 @@ mt_env_infrastructure_t::ready_to_deregister_notify(
 
 bool
 mt_env_infrastructure_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		return m_coop_repo.final_deregister_coop( std::move(coop) );
 	}
@@ -266,11 +311,86 @@ mt_env_infrastructure_t::query_timer_thread_stats()
 		return m_timer_thread->query_stats();
 	}
 
+namespace {
+
+//! Helper class to be used with std::visit.
+struct binder_getter_t
+	{
+		[[nodiscard]]
+		disp_binder_shptr_t
+		operator()( so_5::disp::one_thread::dispatcher_handle_t & handle ) const
+			{
+				return handle.binder();
+			}
+
+		[[nodiscard]]
+		disp_binder_shptr_t
+		operator()( so_5::disp::nef_one_thread::dispatcher_handle_t & handle ) const
+			{
+				return handle.binder();
+			}
+	};
+
+} /* namespace anonymous */
+
 disp_binder_shptr_t
 mt_env_infrastructure_t::make_default_disp_binder()
 	{
-		return m_default_dispatcher.binder();
+		return std::visit( binder_getter_t{}, m_default_dispatcher );
 	}
+
+namespace {
+
+//! Helper class to be used with std::visit.
+struct dispatcher_maker_t
+	{
+		environment_t & m_env;
+
+		explicit dispatcher_maker_t( environment_t & env ) : m_env{ env }
+			{}
+
+		[[nodiscard]]
+		mt_env_infrastructure_t::default_dispatcher_holder_t
+		operator()( const so_5::disp::one_thread::disp_params_t & params ) const
+			{
+				return {
+						so_5::disp::one_thread::make_dispatcher(
+								m_env,
+								std::string{ "DEFAULT" },
+								params )
+					};
+			}
+
+		[[nodiscard]]
+		mt_env_infrastructure_t::default_dispatcher_holder_t
+		operator()( const so_5::disp::nef_one_thread::disp_params_t & params ) const
+			{
+				return {
+						so_5::disp::nef_one_thread::make_dispatcher(
+								m_env,
+								std::string{ "DEFAULT" },
+								params )
+					};
+			}
+	};
+
+//! Helper class to be used with std::visit.
+struct handle_reseter_t
+	{
+		void
+		operator()( so_5::disp::one_thread::dispatcher_handle_t & handle ) const
+			{
+				handle.reset();
+			}
+
+		void
+		operator()( so_5::disp::nef_one_thread::dispatcher_handle_t & handle ) const
+			{
+				handle.reset();
+			}
+	};
+
+} /* namespace anonymous */
 
 void
 mt_env_infrastructure_t::run_default_dispatcher_and_go_further(
@@ -280,14 +400,13 @@ mt_env_infrastructure_t::run_default_dispatcher_and_go_further(
 				"run_default_dispatcher",
 				[this] {
 					// Default dispatcher should be created.
-					m_default_dispatcher = so_5::disp::one_thread::make_dispatcher(
-							m_env,
-							std::string{ "DEFAULT" },
+					m_default_dispatcher = std::visit(
+							dispatcher_maker_t{ m_env },
 							m_default_dispatcher_params );
 				},
 				[this] {
 					// Default dispatcher is no more needed.
-					m_default_dispatcher.reset();
+					std::visit( handle_reseter_t{}, m_default_dispatcher );
 				},
 				[this, init_fn] {
 					run_timer_thread_and_go_further( std::move(init_fn) );

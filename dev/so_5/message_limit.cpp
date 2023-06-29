@@ -34,14 +34,6 @@ namespace message_limit
 namespace impl
 {
 
-/*!
- * \since
- * v.5.5.4
- *
- * \brief Maximum overlimit reaction deep.
- */
-const unsigned int max_overlimit_reaction_deep = 32;
-
 SO_5_FUNC
 void
 drop_message_reaction( const overlimit_context_t & ctx )
@@ -74,7 +66,7 @@ redirect_reaction(
 	const overlimit_context_t & ctx,
 	const mbox_t & to )
 	{
-		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
+		if( ctx.m_reaction_deep >= max_redirection_deep )
 			{
 				// NOTE: this fragment can throw but it isn't a problem
 				// because redirect_reaction() is called during message
@@ -83,8 +75,8 @@ redirect_reaction(
 				SO_5_LOG_ERROR(
 						ctx.m_receiver.so_environment().error_logger(),
 						logger )
-					logger << "maximum message reaction deep exceeded on "
-							"redirection; message will be ignored; "
+					logger << "maximum message redirection deep exceeded on "
+							"overlimit redirect_reaction; message will be ignored; "
 						<< " msg_type: " << ctx.m_msg_type.name()
 						<< ", limit: " << ctx.m_limit.m_limit
 						<< ", agent: " << &(ctx.m_receiver)
@@ -97,7 +89,12 @@ redirect_reaction(
 							&ctx.m_receiver,
 							to );
 
+				// Since v.5.8.0 nonblocking delivery mode
+				// has to be used for redirection.
+				// Otherwise the timer thread can be blocked if
+				// the destination is a full mchain.
 				to->do_deliver_message(
+						message_delivery_mode_t::nonblocking,
 						ctx.m_msg_type,
 						ctx.m_message,
 						ctx.m_reaction_deep + 1 );
@@ -112,7 +109,7 @@ transform_reaction(
 	const std::type_index & msg_type,
 	const message_ref_t & message )
 	{
-		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
+		if( ctx.m_reaction_deep >= max_redirection_deep )
 			{
 				// NOTE: this fragment can throw but it isn't a problem
 				// because transform_reaction() is called during message
@@ -121,8 +118,8 @@ transform_reaction(
 				SO_5_LOG_ERROR(
 						ctx.m_receiver.so_environment().error_logger(),
 						logger )
-					logger << "maximum message reaction deep exceeded on "
-							"transformation; message will be ignored;"
+					logger << "maximum message redirection deep exceeded on "
+							"overlimit transform_reaction; message will be ignored;"
 						<< " original_msg_type: " << ctx.m_msg_type.name()
 						<< ", limit: " << ctx.m_limit.m_limit
 						<< ", agent: " << &(ctx.m_receiver)
@@ -138,7 +135,12 @@ transform_reaction(
 							msg_type,
 							message );
 
+				// Since v.5.8.0 nonblocking delivery mode
+				// has to be used for redirection.
+				// Otherwise the timer thread can be blocked if
+				// the destination is a full mchain.
 				to->do_deliver_message(
+						message_delivery_mode_t::nonblocking,
 						msg_type,
 						message,
 						ctx.m_reaction_deep + 1 );

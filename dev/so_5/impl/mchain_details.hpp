@@ -20,6 +20,7 @@
 #include <so_5/exception.hpp>
 #include <so_5/error_logger.hpp>
 
+#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/at_scope_exit.hpp>
 #include <so_5/details/safe_cv_wait_for.hpp>
 
@@ -346,8 +347,7 @@ class mchain_template
 		void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
-			const so_5::message_limit::control_block_t * /*limit*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_subscriptions,
@@ -355,9 +355,9 @@ class mchain_template
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{}
 
 		std::string
@@ -377,13 +377,25 @@ class mchain_template
 
 		void
 		do_deliver_message(
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
+			unsigned int /*redirection_deep*/ ) override
 			{
-				this->try_to_store_message_to_queue(
-							msg_type,
-							message );
+				switch( delivery_mode )
+					{
+					case message_delivery_mode_t::ordinary:
+						this->try_to_store_message_to_queue_ordinary_mode(
+								msg_type,
+								message );
+					break;
+
+					case message_delivery_mode_t::nonblocking:
+						this->try_to_store_message_to_queue_nonblocking_mode(
+								msg_type,
+								message );
+					break;
+					}
 			}
 
 		/*!
@@ -394,7 +406,7 @@ class mchain_template
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_delivery_filters,
@@ -404,7 +416,7 @@ class mchain_template
 		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) noexcept override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{}
 
 		[[nodiscard]]
@@ -566,16 +578,6 @@ class mchain_template
 			}
 
 		void
-		do_deliver_message_from_timer(
-			const std::type_index & msg_type,
-			const message_ref_t & message ) override
-			{
-				try_to_store_message_from_timer_to_queue(
-						msg_type,
-						message );
-			}
-
-		void
 		actual_close( close_mode_t mode ) override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
@@ -663,10 +665,10 @@ class mchain_template
 		 * \note
 		 * This implementation must be used for ordinary delivery operations.
 		 * For delivery operations from timer thread another method must be
-		 * called (see try_to_store_message_from_timer_to_queue()).
+		 * called (see try_to_store_message_to_queue_nonblocking_mode()).
 		 */
 		void
-		try_to_store_message_to_queue(
+		try_to_store_message_to_queue_ordinary_mode(
 			const std::type_index & msg_type,
 			const message_ref_t & message )
 			{
@@ -772,7 +774,7 @@ class mchain_template
 		 * v.5.5.18
 		 */
 		void
-		try_to_store_message_from_timer_to_queue(
+		try_to_store_message_to_queue_nonblocking_mode(
 			const std::type_index & msg_type,
 			const message_ref_t & message )
 			{
@@ -882,8 +884,8 @@ class mchain_template
 		 * last part of storing a message into chain.
 		 *
 		 * \note
-		 * Intended to be called from try_to_store_message_to_queue()
-		 * and try_to_store_message_from_timer_to_queue().
+		 * Intended to be called from try_to_store_message_to_queue_ordinary_mode()
+		 * and try_to_store_message_to_queue_nonblocking_mode().
 		 *
 		 * \since
 		 * v.5.5.18

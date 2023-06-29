@@ -13,9 +13,10 @@
 #include <so_5/types.hpp>
 #include <so_5/compiler_features.hpp>
 
+#include <functional>
+#include <memory>
 #include <type_traits>
 #include <utility>
-#include <memory>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -165,11 +166,20 @@ class intrusive_ptr_t
 			dismiss_object();
 		}
 
+		//! Swap values.
+		friend void
+		swap( intrusive_ptr_t & a, intrusive_ptr_t & b ) noexcept
+		{
+			using std::swap;
+			swap( a.m_obj, b.m_obj );
+		}
+
 		//! Copy operator.
 		intrusive_ptr_t &
 		operator=( const intrusive_ptr_t & o ) noexcept
 		{
-			intrusive_ptr_t( o ).swap( *this );
+			intrusive_ptr_t tmp( o );
+			swap( tmp, *this );
 			return *this;
 		}
 
@@ -177,15 +187,9 @@ class intrusive_ptr_t
 		intrusive_ptr_t &
 		operator=( intrusive_ptr_t && o ) noexcept
 		{
-			intrusive_ptr_t( std::move(o) ).swap( *this );
+			intrusive_ptr_t tmp( std::move(o) );
+			swap( tmp, *this );
 			return *this;
-		}
-
-		//! Swap values.
-		void
-		swap( intrusive_ptr_t & o ) noexcept
-		{
-			std::swap( m_obj, o.m_obj );
 		}
 
 		/*!
@@ -220,6 +224,8 @@ class intrusive_ptr_t
 			\retval true if *this manages an object. 
 			\retval false otherwise.
 		*/
+		[[nodiscard]]
+		explicit
 		operator bool() const noexcept
 		{
 			return nullptr != m_obj;
@@ -229,18 +235,21 @@ class intrusive_ptr_t
 		 * \name Access to object.
 		 * \{
 		 */
+		[[nodiscard]]
 		T *
 		get() const noexcept
 		{
 			return m_obj;
 		}
 
+		[[nodiscard]]
 		T *
 		operator->() const noexcept
 		{
 			return m_obj;
 		}
 
+		[[nodiscard]]
 		T &
 		operator*() const noexcept
 		{
@@ -254,24 +263,16 @@ class intrusive_ptr_t
 		 * \name Comparision
 		 * \{
 		 */
+		[[nodiscard]]
 		bool operator==( const intrusive_ptr_t & o ) const
 		{
-			T * p1 = get();
-			T * p2 = o.get();
-			if( p1 != nullptr && p2 != nullptr )
-				return (*p1) == (*p2);
-			else
-				return p1 == p2;
+			return get() == o.get();
 		}
 
+		[[nodiscard]]
 		bool operator<( const intrusive_ptr_t & o ) const
 		{
-			T * p1 = get();
-			T * p2 = o.get();
-			if( p1 != nullptr && p2 != nullptr )
-				return (*p1) < (*p2);
-			else
-				return p1 < p2;
+			return std::less<T*>{}( get(), o.get() );
 		}
 		/*!
 		 * \}

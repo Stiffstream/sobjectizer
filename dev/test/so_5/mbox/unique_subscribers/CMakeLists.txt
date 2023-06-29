@@ -1,0 +1,5 @@
+add_subdirectory(delivery_filter)
+add_subdirectory(repeated_subscribe)
+add_subdirectory(simple)
+add_subdirectory(simple_null_mutex)
+

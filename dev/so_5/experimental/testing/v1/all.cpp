@@ -992,6 +992,20 @@ class special_event_queue_t final : public event_queue_t
 			}
 
 		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				// Demand must go into the original queue without transformations.
+				push_to_queue( std::move(demand) );
+			}
+
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				// Demand must go into the original queue without transformations.
+				push_to_queue( std::move(demand) );
+			}
+
+		void
 		switch_to_direct_mode()
 			{
 				// Cleanup of buffer should be performed when
@@ -1203,12 +1217,14 @@ namespace impl {
 
 void
 setup_special_queue_hook(
-	testing_env_t::internals_t & internals,
+	outliving_reference_t< testing_env_t::internals_t > internals,
 	environment_params_t & to )
 	{
-		to.event_queue_hook( event_queue_hook_unique_ptr_t{
-				&internals.m_special_hook,
-				event_queue_hook_t::noop_deleter } );
+		to.event_queue_hook(
+				event_queue_hook_unique_ptr_t{
+						std::addressof( internals.get().m_special_hook ),
+						event_queue_hook_t::noop_deleter
+				} );
 	}
 
 [[nodiscard]]
@@ -1225,7 +1241,7 @@ make_tuned_params(
 [[nodiscard]]
 environment_params_t
 make_special_params(
-	testing_env_t::internals_t & internals,
+	outliving_reference_t< testing_env_t::internals_t > internals,
 	environment_params_t && params )
 	{
 		setup_special_queue_hook( internals, params );

@@ -29,27 +29,6 @@ const int rc_environment_error = 1;
 //! Trying to switch to the unknown state.
 const int rc_agent_unknown_state = 10;
 
-//! Agent is already bound to the SObjectizer Environment.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_agent_is_already_bind_to_env = 11;
-
-//! Agent is already bound to the dispatcher.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_agent_is_already_bind_to_disp = 12;
-
-//! Dispatcher with that name is not found.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_named_disp_not_found = 13;
-
 //! Agent is not bound to a cooperation.
 const int rc_agent_has_no_cooperation = 14;
 
@@ -95,34 +74,6 @@ const int rc_initial_substate_already_defined = 19;
 //! \name Error codes for cooperations of agents.
 //! \{
 
-//! A zero pointer is detected.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_zero_ptr_to_coop = 20;
-
-//! Cooperation name is not unique.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_coop_with_specified_name_is_already_registered = 21;
-
-//! Cooperation has the null reference to an agent or dispatcher binding.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_coop_has_references_to_null_agents_or_binders = 22;
-
-//! There is no registered cooperation with that name.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_coop_has_not_found_among_registered_coop = 23;
-
 //! Cooperation couldn't be registered.
 const int rc_coop_define_agent_failed = 24;
 
@@ -148,35 +99,8 @@ const int rc_unable_to_register_coop_during_shutdown = 28;
 //! \name Error codes for dispatchers.
 //! \{
 
-//! Unable to start a dispatcher.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_disp_start_failed = 30;
-
 //! Unable to create a dispatcher.
 const int rc_disp_create_failed = 31;
-
-//! The expected type of dispatcher and the actual type of the 
-//! agent dispatcher are not the same.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_disp_type_mismatch = 32;
-
-/*!
- * \since
- * v.5.4.0
- *
- * \brief New dispatcher cannot be added because of illegal
- * state of SObjectizer Environment.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_disp_cannot_be_added = 34;
 
 //! \}
 
@@ -186,51 +110,8 @@ const int rc_disp_cannot_be_added = 34;
 //! A handler for that event/mbox/state is already registered.
 const int rc_evt_handler_already_provided = 40;
 
-//! A handler for that event/mbox/state is not registered and cannot be
-//! deregistered.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_no_event_handler_provided = 41;
-
-//! Unable to deregister that handler.
-/*!
- * There is a handler for the event/mbox/state, but it is another handler.
- * Not the one is specified for the deregistration.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_event_handler_match_error = 42;
-
 //! Agent doesn't own this state.
 const int rc_agent_is_not_the_state_owner = 43;
-
-//! An interceptor for the event/mbox/state is already registered.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_intercept_handler_already_provided = 44;
-
-//! An interceptor for the event/mbox/state is not registered and
-//! cannot be deregistered.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_no_interception_handler_provided = 45;
-
-//! Unable to deregister this interceptor.
-/*!
- * There is an interceptor for the event/mbox/state, but it is another handler.
- * Not the one is specified for the deregistration.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_interception_handler_match_error = 46;
 
 /*!
  * \since
@@ -262,20 +143,6 @@ const int rc_several_limits_for_one_message_type = 49;
 //! \name Error codes for mboxes.
 //! \{
 
-//! The mbox name is not unique.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_mbox_duplicating_name = 80;
-
-//! The name of mbox is unknown.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_mbox_unable_to_find_mbox = 81;
-
 //! Null message data.
 /*!
  * \since
@@ -287,109 +154,6 @@ const int rc_mbox_unable_to_find_mbox = 81;
  */
 const int rc_null_message_data = 82;
 
-/*!
- * \since
- * v.5.3.0
- *
- * \brief No handlers for service request found.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_no_svc_handlers = 83;
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief There are more then one handler for service request.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_more_than_one_svc_handler = 84;
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief Service request has not been handled. Service handler 
- * is disabled in the current agent state.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_svc_not_handled = 85;
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief Service request result has not beed received yet.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_svc_result_not_received_yet = 86;
-
-/*!
- * \since
- * v.5.3.0
- *
- * \brief Unable to cast service call description object to
- * the appropriate type.
- *
- * This error is possible when type of service request doesn't match
- * actual type of request handler. For example:
- *
- *
-\code
-// Actual service type.
-int a_some_svc_t::evt_query_state( mhood_t< msg_query_state > )
-	{ ... }
-
-// Service request call with wrong return type.
-mbox.get_one< std::string >().wait_forever().sync_get<msg_query_state>();
-\endcode
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_msg_service_request_bad_cast = 87;
-
-/*!
- * \since
- * v.5.5.4.
- *
- * \brief Unable to transform service request as part of overlimit reaction.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_svc_request_cannot_be_transfomred_on_overlimit = 88;
-
-/*!
- * \since
- * v.5.5.5
- *
- * \brief Delivery filter is not applicable to MPSC-mboxes.
- *
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_delivery_filter_cannot_be_used_on_mpsc_mbox = 89;
-
-//! \}
-
-//! \name Error codes for delayed or repeated events.
-//! \{
-
-//! Unable to schedule a timer event.
-/*!
- * \deprecated No more used, will be removed in some future version.
- */
-[[deprecated]]
-const int rc_unable_to_schedule_timer_act = 90;
 //! \}
 
 //! \name Error codes for layers.
@@ -706,6 +470,44 @@ const int rc_agent_deactivated = 189;
  * \since v.5.7.4
  */
 const int rc_mpsc_mbox_expected = 190;
+
+/*!
+ * \brief nullptr can't be passed as delivery_filter.
+ *
+ * An attempt to pass nullptr pointer to a delivery_filter (or empty
+ * delivery_filter_unique_ptr_t) to a method/function that expects
+ * an actual instance of delivery_filter.
+ *
+ * \since v.5.8.0
+ */
+const int rc_nullptr_as_delivery_filter_pointer = 191;
+
+/*!
+ * \brief nullptr returned by user-provided mbox factory.
+ *
+ * The so_5::environment_t::introduce_named_mbox() gets a user-provided
+ * mbox factory. This factory is called by SObjectizer Environment
+ * to create a new instance of the named mbox. This factory must return
+ * a valid so_5::mbox_t. If the returned so_5::mbox_t contains
+ * nullptr it's an error and this error code will be used in an
+ * exception thrown by so_5::environment_t::introduce_named_mbox().
+ *
+ * \since v.5.8.0
+ */
+const int rc_nullptr_as_result_of_user_mbox_factory = 192;
+
+/*!
+ * \brief There are no resources that must have been in place for an agent in
+ * advance.
+ *
+ * Some dispatchers (like so_5::disp::nef_one_thread) preallocates
+ * resources necessary for normal agent work. If those resource are not
+ * found for an agent for some reason it's an error and exception with
+ * this error code is thrown.
+ *
+ * \since v.5.8.0
+ */
+const int rc_no_preallocated_resources_for_agent = 193;
 
 /*!
  * \brief The dispatcher binder is already set for the agent.

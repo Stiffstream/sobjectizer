@@ -7,8 +7,7 @@
  * \brief A working thread for dispatcher with one common working
  * thread and support of demands priority.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 
 #pragma once
@@ -42,8 +41,7 @@ namespace work_thread_details {
 /*!
  * \brief A common data for all work thread implementations.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Demand_Queue >
 struct common_data_t
@@ -75,8 +73,7 @@ struct common_data_t
 /*!
  * \brief A part of implementation of work thread without activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Demand_Queue >
 class no_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
@@ -110,8 +107,7 @@ class no_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
 /*!
  * \brief A part of implementation of work thread with activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Demand_Queue >
 class with_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
@@ -169,8 +165,7 @@ class with_activity_tracking_impl_t : protected common_data_t< Demand_Queue >
  * \brief A working thread for dispatcher with one common working
  * thread and support of demands priority.
  *
- * \since
- * v.5.5.8, v.5.5.18
+ * \since v.5.5.8, v.5.5.18
  */
 template<
 	typename Demand_Queue,
@@ -200,6 +195,7 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 				this->m_thread_holder.unchecked_get().join();
 			}
 
+		[[nodiscard]]
 		so_5::current_thread_id_t
 		thread_id() const
 			{
@@ -224,6 +220,7 @@ class work_thread_template_t : public Work_Thread< Demand_Queue >
 					{}
 			}
 
+		[[nodiscard]]
 		auto
 		pop_demand() -> decltype(std::declval<Demand_Queue>().pop())
 			{

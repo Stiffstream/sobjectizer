@@ -27,8 +27,8 @@ class a_receiver_t final : public agent_t
 	public :
 		a_receiver_t( context_t ctx, string case_name, predicate_t pred )
 			:	agent_t{ ctx }
-			,	m_case_name( move(case_name) )
-			,	m_pred( move(pred) )
+			,	m_case_name( std::move(case_name) )
+			,	m_pred( std::move(pred) )
 			{
 				so_subscribe_self().event( &a_receiver_t::on_your_turn );
 			}

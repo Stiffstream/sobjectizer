@@ -47,9 +47,52 @@ mbox_core_t::create_mbox(
 	environment_t & env,
 	nonempty_name_t mbox_name )
 {
-	return create_named_mbox(
-			std::move(mbox_name),
-			[&env, this]() { return create_mbox(env); } );
+	mbox_t result; // Will be created later,
+
+	full_named_mbox_id_t key{
+			default_global_mbox_namespace(),
+			mbox_name.giveout_value()
+		};
+	// NOTE: mbox_name can't be used anymore!
+
+	std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+	named_mboxes_dictionary_t::iterator it =
+		m_named_mboxes_dictionary.find( key );
+
+	if( m_named_mboxes_dictionary.end() != it )
+	{
+		// For strong exception safety create a new instance
+		// of named_local_mbox first...
+		result = mbox_t{
+				new named_local_mbox_t( key, it->second.m_mbox, *this )
+			};
+
+		// ... now the count of references can be incremented safely
+		// (exceptions is no more expected).
+		++(it->second.m_external_ref_count);
+	}
+	else
+	{
+		// There is no mbox with such name. New mbox should be created.
+		// NOTE: it's safe to call create_mbox(env) when mbox_core is
+		// locked because create_mbox(env) doesn't to lock the mbox_core.
+		mbox_t mbox_ref = create_mbox( env );
+
+		// For strong exception safety create a new instance
+		// of named_local_mbox first...
+		result = mbox_t{
+				new named_local_mbox_t( key, mbox_ref, *this )
+			};
+
+		// ...now we can update the dictionary. If there will be an exception
+		// then all new object will be destroyed automatically.
+		m_named_mboxes_dictionary.emplace(
+				key,
+				named_mbox_info_t( mbox_ref ) );
+	}
+
+	return result;
 }
 
 namespace {
@@ -66,7 +109,7 @@ make_actual_mbox(
 			result.reset( new M1{ std::forward<A>(args)... } );
 		else
 			result.reset(
-					new M2{ std::forward<A>(args)..., msg_tracing_stuff.get() } );
+					new M2{ std::forward<A>(args)..., msg_tracing_stuff } );
 
 		return result;
 	}
@@ -74,36 +117,46 @@ make_actual_mbox(
 } /* namespace anonymous */
 
 mbox_t
-mbox_core_t::create_mpsc_mbox(
+mbox_core_t::create_ordinary_mpsc_mbox(
 	environment_t & env,
-	agent_t * single_consumer,
-	const so_5::message_limit::impl::info_storage_t * limits_storage )
+	agent_t & owner )
 {
 	const auto id = ++m_mbox_id_counter;
 
-	std::unique_ptr< abstract_message_box_t > actual_mbox = limits_storage
-			? make_actual_mbox<
-							limitful_mpsc_mbox_without_tracing_t,
-							limitful_mpsc_mbox_with_tracing_t >(
-						m_msg_tracing_stuff,
-						id,
-						env,
-						single_consumer )
-			: make_actual_mbox<
+	std::unique_ptr< abstract_message_box_t > actual_mbox =
+			make_actual_mbox<
+							ordinary_mpsc_mbox_without_tracing_t,
+							ordinary_mpsc_mbox_with_tracing_t >(
+					m_msg_tracing_stuff,
+					id,
+					env,
+					outliving_mutable( owner ) );
+
+	return mbox_t{ actual_mbox.release() };
+}
+
+mbox_t
+mbox_core_t::create_limitless_mpsc_mbox(
+	environment_t & env,
+	agent_t & owner )
+{
+	const auto id = ++m_mbox_id_counter;
+
+	std::unique_ptr< abstract_message_box_t > actual_mbox =
+			make_actual_mbox<
 							limitless_mpsc_mbox_without_tracing_t,
 							limitless_mpsc_mbox_with_tracing_t >(
-						m_msg_tracing_stuff,
-						id,
-						env,
-						single_consumer )
-			;
+					m_msg_tracing_stuff,
+					id,
+					env,
+					outliving_mutable( owner ) );
 
 	return mbox_t{ actual_mbox.release() };
 }
 
 void
 mbox_core_t::destroy_mbox(
-	const std::string & name )
+	const full_named_mbox_id_t & name ) noexcept
 {
 	std::lock_guard< std::mutex > lock( m_dictionary_lock );
 
@@ -128,8 +181,99 @@ mbox_core_t::create_custom_mbox(
 			mbox_creation_data_t{
 					outliving_mutable(env),
 					id,
-					outliving_mutable(m_msg_tracing_stuff)
+					m_msg_tracing_stuff
 			} );
+}
+
+mbox_t
+mbox_core_t::introduce_named_mbox(
+	mbox_namespace_name_t mbox_namespace,
+	nonempty_name_t mbox_name,
+	const std::function< mbox_t() > & mbox_factory )
+{
+	mbox_t result;
+
+	full_named_mbox_id_t key{
+			std::string{ mbox_namespace.query_name() },
+			mbox_name.giveout_value()
+		};
+	// NOTE: mbox_name can't be used anymore!
+
+	// Step 1. Check the presense of this mbox.
+	// It's important to do that step on locked object.
+	{
+		std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+		named_mboxes_dictionary_t::iterator it =
+			m_named_mboxes_dictionary.find( key );
+
+		if( m_named_mboxes_dictionary.end() != it )
+		{
+			// For strong exception safety create a new instance
+			// of named_local_mbox first...
+			result = mbox_t{
+					new named_local_mbox_t( key, it->second.m_mbox, *this )
+				};
+
+			// ... now the count of references can be incremented safely
+			// (exceptions is no more expected).
+			++(it->second.m_external_ref_count);
+		}
+	}
+
+	if( !result )
+	{
+		// Step 2. Create a new instance on mbox.
+		// It's important to call mbox_factory when mbox_core isn't locked.
+		auto fresh_mbox = mbox_factory();
+		if( !fresh_mbox )
+			SO_5_THROW_EXCEPTION(
+					rc_nullptr_as_result_of_user_mbox_factory,
+					"user-provided mbox_factory returns nullptr" );
+
+		// Step 3. Try to register the fresh_mbox.
+		// It has to be done on locked object.
+		{
+			std::lock_guard< std::mutex > lock( m_dictionary_lock );
+
+			// Another search. This is necessary because the name may have been
+			// created while mbox_factory() was running.
+			named_mboxes_dictionary_t::iterator it =
+				m_named_mboxes_dictionary.find( key );
+
+			if( m_named_mboxes_dictionary.end() != it )
+			{
+				// Yes, the name has been created while we were inside
+				// mbox_factory() call. The fresh_mbox has to be discarded.
+				//
+				// For strong exception safety create a new instance
+				// of named_local_mbox first...
+				result = mbox_t{
+						new named_local_mbox_t( key, it->second.m_mbox, *this )
+					};
+
+				// ... now the count of references can be incremented safely
+				// (exceptions is no more expected).
+				++(it->second.m_external_ref_count);
+			}
+			else
+			{
+				// For strong exception safety create a new instance
+				// of named_local_mbox first...
+				result = mbox_t{
+						new named_local_mbox_t( key, fresh_mbox, *this )
+					};
+
+				// ...now we can update the dictionary. If there will be an
+				// exception then all new object will be destroyed automatically.
+				m_named_mboxes_dictionary.emplace(
+						key,
+						named_mbox_info_t( fresh_mbox ) );
+			}
+		}
+	}
+
+	return result;
 }
 
 mchain_t
@@ -165,98 +309,6 @@ mbox_core_t::query_stats()
 mbox_core_t::allocate_mbox_id() noexcept
 {
 	return ++m_mbox_id_counter;
-}
-
-mbox_t
-mbox_core_t::create_named_mbox(
-	nonempty_name_t nonempty_name,
-	const std::function< mbox_t() > & factory )
-{
-	const std::string & name = nonempty_name.query_name();
-	std::lock_guard< std::mutex > lock( m_dictionary_lock );
-
-	named_mboxes_dictionary_t::iterator it =
-		m_named_mboxes_dictionary.find( name );
-
-	if( m_named_mboxes_dictionary.end() != it )
-	{
-		++(it->second.m_external_ref_count);
-		return mbox_t(
-			new named_local_mbox_t(
-				name,
-				it->second.m_mbox,
-				*this ) );
-	}
-
-	// There is no mbox with such name. New mbox should be created.
-	mbox_t mbox_ref = factory();
-
-	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
-
-	return mbox_t( new named_local_mbox_t( name, mbox_ref, *this ) );
-}
-
-//
-// mbox_core_ref_t
-//
-
-mbox_core_ref_t::mbox_core_ref_t()
-	:
-		m_mbox_core_ptr( nullptr )
-{
-}
-
-mbox_core_ref_t::mbox_core_ref_t(
-	mbox_core_t * mbox_core )
-	:
-		m_mbox_core_ptr( mbox_core )
-{
-	inc_mbox_core_ref_count();
-}
-
-mbox_core_ref_t::mbox_core_ref_t(
-	const mbox_core_ref_t & mbox_core_ref )
-	:
-		m_mbox_core_ptr( mbox_core_ref.m_mbox_core_ptr )
-{
-	inc_mbox_core_ref_count();
-}
-
-void
-mbox_core_ref_t::operator = (
-	const mbox_core_ref_t & mbox_core_ref )
-{
-	if( &mbox_core_ref != this )
-	{
-		dec_mbox_core_ref_count();
-
-		m_mbox_core_ptr = mbox_core_ref.m_mbox_core_ptr;
-		inc_mbox_core_ref_count();
-	}
-
-}
-
-mbox_core_ref_t::~mbox_core_ref_t()
-{
-	dec_mbox_core_ref_count();
-}
-
-inline void
-mbox_core_ref_t::dec_mbox_core_ref_count()
-{
-	if( m_mbox_core_ptr &&
-		0 == m_mbox_core_ptr->dec_ref_count() )
-	{
-		delete m_mbox_core_ptr;
-		m_mbox_core_ptr = nullptr;
-	}
-}
-
-inline void
-mbox_core_ref_t::inc_mbox_core_ref_count()
-{
-	if( m_mbox_core_ptr )
-		m_mbox_core_ptr->inc_ref_count();
 }
 
 } /* namespace impl */

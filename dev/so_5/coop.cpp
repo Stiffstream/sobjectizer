@@ -8,7 +8,6 @@
 #include <so_5/impl/internal_agent_iface.hpp>
 #include <so_5/impl/agent_ptr_compare.hpp>
 
-#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/rollback_on_exception.hpp>
 
 #include <so_5/exception.hpp>
@@ -64,9 +63,15 @@ coop_impl_t::destroy_content(
 		// counter descrement. Not to deletion of agent.
 		coop.m_agent_array.clear();
 
-		// Now all user resources should be destroyed.
+		// Don't expect exceptions here because all resource deleters have
+		// to be noexcept.
 		for( auto & d : coop.m_resource_deleters )
+		{
+			static_assert( noexcept( d() ),
+					"resource deleter is expected to be noexcept" );
+
 			d();
+		}
 		coop.m_resource_deleters.clear();
 	}
 
@@ -554,7 +559,7 @@ coop_impl_t::do_add_child(
 void
 coop_impl_t::do_remove_child(
 	coop_t & parent,
-	coop_t & child )
+	coop_t & child ) noexcept
 	{
 		{
 			// Modification of parent-child relationship must be performed

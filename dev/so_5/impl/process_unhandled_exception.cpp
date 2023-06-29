@@ -36,9 +36,13 @@ switch_agent_to_special_state_and_deregister_coop(
 	//! Agent who is the producer of the exception.
 	so_5::agent_t & a_exception_producer ) noexcept
 	{
-		const coop_handle_t coop = a_exception_producer.so_coop();
+		// Declared here because it'll be used in catch section.
+		coop_handle_t coop;
 		try
 		{
+			// agent_t::so_coop() isn't noexcept method, so it has to be
+			// called inside try section.
+			coop = a_exception_producer.so_coop();
 			a_exception_producer.so_switch_to_awaiting_deregistration_state();
 			a_exception_producer.so_environment().deregister_coop(
 					coop,
@@ -46,6 +50,8 @@ switch_agent_to_special_state_and_deregister_coop(
 		}
 		catch( const std::exception & x )
 		{
+			// The work can't continued, but information about the problem has to
+			// be logged.
 			so_5::details::abort_on_fatal_error( [&] {
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 				{
@@ -74,11 +80,16 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
 	{
 		try
 		{
+			// NOTE: so_switch_to_awaiting_deregistration_state() isn't noexcept,
+			// so call it inside try section to catch and log a possible
+			// exception.
 			a_exception_producer.so_switch_to_awaiting_deregistration_state();
 			a_exception_producer.so_environment().stop();
 		}
 		catch( const std::exception & x )
 		{
+			// The work can't continued, but information about the problem has to
+			// be logged.
 			so_5::details::abort_on_fatal_error( [&] {
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 				{

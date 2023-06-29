@@ -1,0 +1,5 @@
+add_subdirectory(simple)
+add_subdirectory(unique_thread_id)
+add_subdirectory(max_demands_at_once)
+add_subdirectory(custom_work_thread)
+

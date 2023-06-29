@@ -50,7 +50,6 @@ class storage_t : public subscription_storage_t
 	{
 	public :
 		storage_t(
-			agent_t * owner,
 			std::size_t initial_capacity );
 		~storage_t() override;
 
@@ -58,7 +57,7 @@ class storage_t : public subscription_storage_t
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const message_limit::control_block_t * limit,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -68,15 +67,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) override;
+			const std::type_index & msg_type ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -88,7 +87,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -124,7 +123,7 @@ class storage_t : public subscription_storage_t
 		subscr_info_vector_t m_events;
 
 		void
-		destroy_all_subscriptions();
+		destroy_all_subscriptions() noexcept;
 	};
 
 namespace
@@ -149,9 +148,7 @@ namespace
 } /* namespace anonymous */
 
 storage_t::storage_t(
-	agent_t * owner,
 	std::size_t initial_capacity )
-	:	subscription_storage_t( owner )
 	{
 		m_events.reserve( initial_capacity );
 	}
@@ -165,7 +162,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const message_limit::control_block_t * limit,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -188,7 +185,13 @@ storage_t::create_event_subscription(
 
 		// Just add subscription to the end.
 		m_events.emplace_back(
-				mbox, msg_type, target_state, method, thread_safety, handler_kind );
+				mbox,
+				msg_type,
+				message_sink,
+				target_state,
+				method,
+				thread_safety,
+				handler_kind );
 
 		// Note: since v.5.5.9 mbox subscription is initiated even if
 		// it is MPSC mboxes. It is important for the case of message
@@ -207,8 +210,7 @@ storage_t::create_event_subscription(
 					[&] {
 						mbox->subscribe_event_handler(
 								msg_type,
-								limit,
-								*owner() );
+								message_sink );
 					},
 					[&] {
 						m_events.pop_back();
@@ -220,7 +222,7 @@ void
 storage_t::drop_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		using namespace std;
 
@@ -230,9 +232,13 @@ storage_t::drop_subscription(
 				m_events, mbox_id, msg_type, target_state );
 		if( existed_position != m_events.end() )
 			{
+				// This value may be necessary for unsubscription.
+				abstract_message_sink_t & message_sink = existed_position->m_message_sink.get();
+
+				// Item is no more needed.
 				m_events.erase( existed_position );
 
-				// Note v.5.5.9 unsubscribe_event_handlers is called for
+				// Note v.5.5.9 unsubscribe_event_handler is called for
 				// mbox even if it is MPSC mbox. It is necessary for the case
 				// of message delivery tracing.
 
@@ -245,7 +251,7 @@ storage_t::drop_subscription(
 						// If we are here then there is no more references
 						// to the mbox. And mbox must not hold reference
 						// to the agent.
-						mbox->unsubscribe_event_handlers( msg_type, *owner() );
+						mbox->unsubscribe_event_handler( msg_type, message_sink );
 					}
 			}
 	}
@@ -253,32 +259,34 @@ storage_t::drop_subscription(
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
-	const std::type_index & msg_type )
+	const std::type_index & msg_type ) noexcept
 	{
 		using namespace std;
 
-		const auto mbox_id = mbox->id();
+		const auto predicate = is_same_mbox_msg{ mbox->id(), msg_type };
+		if( auto it =
+				find_if( begin( m_events ), end( m_events ), predicate );
+				it != end( m_events ) )
+			{
+				// There are subscriptions to be removed.
+				// Have to store message_sink reference because it has to
+				// be passed to unsubscribe_event_handler.
+				auto & message_sink = it->m_message_sink.get();
 
-		const auto old_size = m_events.size();
+				// Remove all items that match the predicate.
+				m_events.erase(
+						remove_if( it, end( m_events ), predicate ),
+						end( m_events ) );
 
-		m_events.erase(
-				remove_if( begin( m_events ), end( m_events ),
-						[mbox_id, &msg_type]( const info_t & i ) {
-							return i.m_mbox->id() == mbox_id &&
-									i.m_msg_type == msg_type;
-						} ),
-				end( m_events ) );
-
-		// Note: since v.5.5.9 mbox unsubscription is initiated even if
-		// it is MPSC mboxes. It is important for the case of message
-		// delivery tracing.
-
-		if( old_size != m_events.size() )
-			mbox->unsubscribe_event_handlers( msg_type, *owner() );
+				// Note: since v.5.5.9 mbox unsubscription is initiated even if
+				// it is MPSC mboxes. It is important for the case of message
+				// delivery tracing.
+				mbox->unsubscribe_event_handler( msg_type, message_sink );
+			}
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		destroy_all_subscriptions();
 	}
@@ -308,7 +316,7 @@ storage_t::debug_dump( std::ostream & to ) const
 	}
 
 void
-storage_t::destroy_all_subscriptions()
+storage_t::destroy_all_subscriptions() noexcept
 	{
 		if( m_events.empty() )
 			// Nothing to do at empty subscription list.
@@ -316,57 +324,53 @@ storage_t::destroy_all_subscriptions()
 
 		using namespace std;
 
-		struct mbox_msg_type_pair_t
-			{
-				abstract_message_box_t * m_mbox;
-				const type_index * m_msg_type;
-
-				bool
-				operator<( const mbox_msg_type_pair_t & o ) const
-					{
-						return m_mbox < o.m_mbox ||
-								( m_mbox == o.m_mbox &&
-								 (*m_msg_type) < (*o.m_msg_type) );
-					}
-
-				bool
-				operator==( const mbox_msg_type_pair_t & o ) const
-					{
-						return m_mbox == o.m_mbox &&
-								(*m_msg_type) == (*o.m_msg_type);
-					}
-			};
-
-		// First step: collect all pointers to mbox-es.
-		vector< mbox_msg_type_pair_t > mboxes;
-		mboxes.reserve( m_events.size() );
-
-		transform(
-				begin( m_events ), end( m_events ),
-				back_inserter( mboxes ),
-				[]( info_t & i ) {
-					return mbox_msg_type_pair_t{ i.m_mbox.get(), &i.m_msg_type };
+		// Step one.
+		//
+		// Sort all event_info to have all subscriptions for the
+		// same (mbox, msg_type) one after another.
+		sort( begin( m_events ), end( m_events ),
+				[]( const auto & a, const auto & b )
+				{
+					return a.m_mbox->id() < b.m_mbox->id() ||
+							( a.m_mbox->id() == b.m_mbox->id() &&
+							 a.m_msg_type < b.m_msg_type );
 				} );
 
-		// Second step: remove duplicates.
-		sort( begin( mboxes ), end( mboxes ) );
-		mboxes.erase(
-				unique( begin( mboxes ), end( mboxes ) ),
-				end( mboxes ) );
+		// Step two.
+		//
+		// Destroy all subscriptions for unique (mbox, msg_type).
+		const auto total_items = m_events.size();
+		for( std::size_t i = 0u; i < total_items; )
+			{
+				auto & current_info = m_events[ i ];
+				current_info.m_mbox->unsubscribe_event_handler(
+						current_info.m_msg_type,
+						current_info.m_message_sink );
 
-		// Third step: destroy subscription in mboxes.
-		for( auto m : mboxes )
-			m.m_mbox->unsubscribe_event_handlers( *m.m_msg_type, *owner() );
+				// We should skip all consequtive items with the same
+				// (mbox, msg_type) pairs.
+				std::size_t j = 1u;
+				for( ; (i+j) < total_items; ++j )
+					{
+						const auto & next_info = m_events[ i+j ];
+						if( current_info.m_mbox->id() != next_info.m_mbox->id() ||
+								current_info.m_msg_type != next_info.m_msg_type )
+							break;
+					}
 
-		// Fourth step: cleanup subscription vector.
+				i += j;
+			}
+
+		// Third step.
+		//
+		// Cleanup subscription vector.
 		drop_content();
 	}
 
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
-		subscr_info_vector_t empty_events;
-		m_events.swap( empty_events );
+		m_events.clear();
 	}
 
 subscription_storage_common::subscr_info_vector_t
@@ -396,14 +400,12 @@ SO_5_FUNC subscription_storage_factory_t
 vector_based_subscription_storage_factory(
 	std::size_t initial_capacity )
 	{
-		return [initial_capacity]( agent_t * owner ) {
+		return [initial_capacity]() {
 			return impl::subscription_storage_unique_ptr_t(
 					new impl::vector_based_subscr_storage::storage_t(
-							owner,
 							initial_capacity ) );
 		};
 	}
 
 } /* namespace so_5 */
-
 

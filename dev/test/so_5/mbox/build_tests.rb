@@ -8,6 +8,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/subscribe_when_deregistered/prj.ut.rb" )
 	required_prj( "#{path}/drop_subscription/prj.ut.rb" )
 	required_prj( "#{path}/drop_subscr_when_demand_in_queue/prj.ut.rb" )
+	required_prj( "#{path}/drop_subscr_on_dereg/prj.ut.rb" )
 	required_prj( "#{path}/adaptive_subscr_storage/prj.ut.rb" )
 	required_prj( "#{path}/mpsc_mbox/prj.ut.rb" )
 	required_prj( "#{path}/mpsc_mbox_illegal_subscriber/prj.ut.rb" )
@@ -18,4 +19,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/custom_mbox_simple/prj.ut.rb" )
 	required_prj( "#{path}/make_new_direct_mbox/prj.ut.rb" )
 	required_prj( "#{path}/custom_direct_mbox_factory/prj.ut.rb" )
+	required_prj( "#{path}/sink_binding/build_tests.rb" )
+	required_prj( "#{path}/unique_subscribers/build_tests.rb" )
+	required_prj( "#{path}/introduce_named_mbox/build_tests.rb" )
 }

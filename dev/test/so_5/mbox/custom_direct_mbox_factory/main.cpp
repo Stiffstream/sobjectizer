@@ -63,22 +63,20 @@ class test_mbox_t final : public so_5::abstract_message_box_t
 		void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			const ::so_5::message_limit::control_block_t * limit,
-			::so_5::agent_t & subscriber ) override
+			::so_5::abstract_message_sink_t & subscriber ) override
 			{
 				m_protocol.append( "subscribe;" );
 				m_target->subscribe_event_handler(
 						type_index,
-						limit,
 						subscriber );
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_index,
-			::so_5::agent_t & subscriber ) override
+			::so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
-				m_target->unsubscribe_event_handlers(
+				m_target->unsubscribe_event_handler(
 						type_index,
 						subscriber );
 				m_protocol.append( "unsubscribe;" );
@@ -98,22 +96,24 @@ class test_mbox_t final : public so_5::abstract_message_box_t
 
 		void
 		do_deliver_message(
+			so_5::message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const ::so_5::message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
+			unsigned int redirection_deep ) override
 			{
 				m_protocol.append( "deliver;" );
 				m_target->do_deliver_message(
+						delivery_mode,
 						msg_type,
 						message,
-						overlimit_reaction_deep );
+						redirection_deep );
 			}
 
 		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const ::so_5::delivery_filter_t & filter,
-			::so_5::agent_t & subscriber ) override
+			::so_5::abstract_message_sink_t & subscriber ) override
 			{
 				m_protocol.append( "set_delivery_filter;" );
 				m_target->set_delivery_filter(
@@ -125,7 +125,7 @@ class test_mbox_t final : public so_5::abstract_message_box_t
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			::so_5::agent_t & subscriber ) noexcept override
+			::so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
 				m_target->drop_delivery_filter(
 						msg_type,

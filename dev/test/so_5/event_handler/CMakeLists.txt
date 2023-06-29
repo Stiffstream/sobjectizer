@@ -26,3 +26,5 @@ add_subdirectory(deactivate_try_resubscribe)
 add_subdirectory(deactivate_agent_evt_finish)
 
 add_subdirectory(thread_safety_check)
+add_subdirectory(as_event_handler)
+

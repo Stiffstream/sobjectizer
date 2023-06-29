@@ -119,6 +119,10 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 				cpp_source 'pub.cpp'
 			}
 
+			sources_root( 'nef_one_thread' ) {
+				cpp_source 'pub.cpp'
+			}
+
 			sources_root( 'active_obj' ) {
 				cpp_source 'pub.cpp'
 			}
@@ -132,6 +136,10 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 			}
 
 			sources_root( 'adv_thread_pool' ) {
+				cpp_source 'pub.cpp'
+			}
+
+			sources_root( 'nef_thread_pool' ) {
 				cpp_source 'pub.cpp'
 			}
 

@@ -17,11 +17,11 @@ namespace impl
 //
 
 named_local_mbox_t::named_local_mbox_t(
-	const std::string & name,
+	full_named_mbox_id_t name,
 	const mbox_t & mbox,
 	impl::mbox_core_t & mbox_core )
 	:
-		m_name( name ),
+		m_name( std::move(name) ),
 		m_mbox_core( &mbox_core ),
 		m_mbox( mbox )
 {
@@ -41,24 +41,26 @@ named_local_mbox_t::id() const
 void
 named_local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
-	const so_5::message_limit::control_block_t * limit,
-	agent_t & subscriber )
+	abstract_message_sink_t & subscriber )
 {
-	m_mbox->subscribe_event_handler( type_wrapper, limit, subscriber );
+	m_mbox->subscribe_event_handler( type_wrapper, subscriber );
 }
 
 void
-named_local_mbox_t::unsubscribe_event_handlers(
+named_local_mbox_t::unsubscribe_event_handler(
 	const std::type_index & type_wrapper,
-	agent_t & subscriber )
+	abstract_message_sink_t & subscriber ) noexcept
 {
-	return m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
+	return m_mbox->unsubscribe_event_handler( type_wrapper, subscriber );
 }
 
 std::string
 named_local_mbox_t::query_name() const
 {
-	return m_name;
+	if( default_global_mbox_namespace() == m_name.m_namespace )
+		return m_name.m_name;
+	else
+		return m_name.m_namespace + "::" + m_name.m_name;
 }
 
 mbox_type_t
@@ -69,18 +71,23 @@ named_local_mbox_t::type() const
 
 void
 named_local_mbox_t::do_deliver_message(
+	message_delivery_mode_t delivery_mode,
 	const std::type_index & msg_type,
 	const message_ref_t & message,
-	unsigned int overlimit_reaction_deep )
+	unsigned int redirection_deep )
 {
-	m_mbox->do_deliver_message( msg_type, message, overlimit_reaction_deep );
+	m_mbox->do_deliver_message(
+			delivery_mode,
+			msg_type,
+			message,
+			redirection_deep );
 }
 
 void
 named_local_mbox_t::set_delivery_filter(
 	const std::type_index & msg_type,
 	const delivery_filter_t & filter,
-	agent_t & subscriber )
+	abstract_message_sink_t & subscriber )
 {
 	m_mbox->set_delivery_filter( msg_type, filter, subscriber );
 }
@@ -88,7 +95,7 @@ named_local_mbox_t::set_delivery_filter(
 void
 named_local_mbox_t::drop_delivery_filter(
 	const std::type_index & msg_type,
-	agent_t & subscriber ) noexcept
+	abstract_message_sink_t & subscriber ) noexcept
 {
 	m_mbox->drop_delivery_filter( msg_type, subscriber );
 }

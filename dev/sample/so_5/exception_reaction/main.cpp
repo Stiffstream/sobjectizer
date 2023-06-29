@@ -20,7 +20,7 @@ class a_hello_t final : public so_5::agent_t
 			throw std::runtime_error( "sample exception" );
 		}
 
-		so_5::exception_reaction_t so_exception_reaction() const override
+		so_5::exception_reaction_t so_exception_reaction() const noexcept override
 		{
 			return so_5::shutdown_sobjectizer_on_exception;
 		}

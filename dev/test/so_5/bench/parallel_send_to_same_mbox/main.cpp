@@ -14,6 +14,11 @@
 
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 struct msg_send : public so_5::signal_t {};
 
 struct msg_complete : public so_5::signal_t {};

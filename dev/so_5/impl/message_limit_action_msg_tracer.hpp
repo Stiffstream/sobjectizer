@@ -35,22 +35,30 @@ class action_msg_tracer_t
 		~action_msg_tracer_t() {}
 
 	public :
+		//! Execution demand for agent will be pushed to the queue by a sink.
+		virtual void
+		push_to_queue(
+			//! The sink that pushes an execution demand.
+			const abstract_message_sink_t * sink,
+			//! The owner of the sink and the target for execution queue.
+			const agent_t * sink_owner ) const noexcept = 0;
+
 		//! Application will be aborted as result of overlimit.
 		virtual void
 		reaction_abort_app(
-			//! Agent-receiver for the problematic message.
+			//! Receiver for the problematic message.
 			const agent_t * subscriber ) const noexcept = 0;
 
 		//! Message will be dropped as result of overlimit.
 		virtual void
 		reaction_drop_message(
-			//! Agent-receiver for the problematic message.
+			//! Receiver for the problematic message.
 			const agent_t * subscriber ) const noexcept = 0;
 
 		//! Message will be redirected to another mbox.
 		virtual void
 		reaction_redirect_message(
-			//! Agent-receiver for the problematic message.
+			//! Receiver for the problematic message.
 			const agent_t * subscriber,
 			//! A new destination for the message.
 			const mbox_t & target ) const noexcept = 0;
@@ -58,7 +66,7 @@ class action_msg_tracer_t
 		//! Message will be transformed and redirected.
 		virtual void
 		reaction_transform(
-			//! Agent-receiver for the problematic message.
+			//! Receiver for the problematic message.
 			const agent_t * subscriber,
 			//! A new destination for transformed message.
 			const mbox_t & target,

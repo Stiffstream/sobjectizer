@@ -65,7 +65,7 @@ template< typename M, typename... Args >
 stage_result_t< M >
 make_result( Args &&... args )
 {
-	return stage_result_t< M >::make(forward< Args >(args)...);
+	return stage_result_t< M >::make(std::forward< Args >(args)...);
 }
 
 //
@@ -118,7 +118,7 @@ public :
 	using func_type = function< typename traits::output(const typename traits::input &) >;
 
 	stage_handler_t( func_type handler )
-		: m_handler( move(handler) )
+		: m_handler( std::move(handler) )
 	{}
 
 	template< typename Callable >
@@ -148,8 +148,8 @@ public :
 		stage_handler_t< In, Out > handler,
 		mbox_t next_stage )
 		:	agent_t{ ctx }
-		,	m_handler{ move( handler ) }
-		,	m_next{ move(next_stage) }
+		,	m_handler{ std::move( handler ) }
+		,	m_next{ std::move(next_stage) }
 	{}
 
 	void so_define_agent() override
@@ -189,7 +189,7 @@ public :
 		stage_handler_t< In, void > handler,
 		mbox_t next_stage )
 		:	agent_t{ ctx }
-		,	m_handler{ move( handler ) }
+		,	m_handler{ std::move( handler ) }
 	{
 		if( next_stage )
 			throw std::runtime_error( "sink point cannot have next stage" );
@@ -221,7 +221,7 @@ public :
 		context_t ctx,
 		vector< mbox_t > && next_stages )
 		:	agent_t{ ctx }
-		,	m_next_stages( move(next_stages) )
+		,	m_next_stages( std::move(next_stages) )
 	{}
 
 	void so_define_agent() override
@@ -356,9 +356,9 @@ move_sink_builder_to(
 	stage_t< In, Out > && first,
 	Rest &&... rest )
 {
-	receiver.emplace_back( move( first.m_builder ) );
+	receiver.emplace_back( std::move( first.m_builder ) );
 	if constexpr( 0u != sizeof...(rest) )
-		move_sink_builder_to<In>( receiver, forward< Rest >(rest)... );
+		move_sink_builder_to<In>( receiver, std::forward< Rest >(rest)... );
 }
 
 template< typename In, typename Out, typename... Rest >
@@ -369,7 +369,7 @@ collect_sink_builders( stage_t< In, Out > && first, Rest &&... stages )
 	receiver.reserve( 1 + sizeof...(stages) );
 	move_sink_builder_to<In>(
 			receiver,
-			move(first),
+			std::move(first),
 			std::forward<Rest>(stages)... );
 
 	return receiver;
@@ -384,7 +384,7 @@ broadcast( stage_t< In, Out > && first, Rest &&... stages )
 {
 	stage_builder_t builder{
 		[broadcasts = collect_sink_builders(
-				move(first), forward< Rest >(stages)...)]
+				std::move(first), std::forward< Rest >(stages)...)]
 		( coop_t & coop, mbox_t ) -> mbox_t
 		{
 			vector< mbox_t > mboxes;
@@ -434,11 +434,11 @@ make_pipeline(
 	// Optional args to be passed to so_5::create_child_coop function.
 	Args &&... args )
 {
-	auto coop = create_child_coop( owner, forward< Args >(args)... );
+	auto coop = create_child_coop( owner, std::forward< Args >(args)... );
 
 	auto mbox = sink.m_builder( *coop, mbox_t{} );
 
-	owner.so_environment().register_coop( move(coop) );
+	owner.so_environment().register_coop( std::move(coop) );
 
 	return mbox;
 }

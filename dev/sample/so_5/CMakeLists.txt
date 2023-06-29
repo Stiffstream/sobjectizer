@@ -75,3 +75,9 @@ add_subdirectory(custom_work_thread_factory)
 
 add_subdirectory(custom_direct_mbox)
 
+add_subdirectory(single_sink_binding)
+
+add_subdirectory(unique_subscribers_mbox)
+add_subdirectory(introduce_named_mbox)
+add_subdirectory(child_soenv)
+

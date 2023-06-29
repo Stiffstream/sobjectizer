@@ -1,6 +1,7 @@
 add_subdirectory(subscribe_when_deregistered)
 add_subdirectory(drop_subscription)
 add_subdirectory(drop_subscr_when_demand_in_queue)
+add_subdirectory(drop_subscr_on_dereg)
 add_subdirectory(adaptive_subscr_storage)
 add_subdirectory(mpsc_mbox)
 add_subdirectory(mpsc_mbox_illegal_subscriber)
@@ -11,3 +12,10 @@ add_subdirectory(local_mbox_growth)
 add_subdirectory(custom_mbox_simple)
 add_subdirectory(make_new_direct_mbox)
 add_subdirectory(custom_direct_mbox_factory)
+
+add_subdirectory(unique_subscribers)
+
+add_subdirectory(sink_binding)
+
+add_subdirectory(introduce_named_mbox)
+

@@ -7,14 +7,15 @@
  * \brief A very simple multithreaded-safe single thread
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #include <so_5/impl/st_env_infrastructure_reuse.hpp>
 
 #include <so_5/impl/run_stage.hpp>
 #include <so_5/impl/internal_env_iface.hpp>
+
+#include <so_5/impl/final_dereg_chain_helpers.hpp>
 
 #include <so_5/disp/reuse/data_source_prefix_helpers.hpp>
 
@@ -61,8 +62,7 @@ namespace reusable = ::so_5::env_infrastructures::st_reusable_stuff;
  *
  * Main thread can handle some events or can sleep and wait for new events.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 enum class main_thread_status_t
 	{
@@ -74,8 +74,7 @@ enum class main_thread_status_t
  * \brief A bunch of sync objects which need to be shared between
  * various parts of env_infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct main_thread_sync_objects_t
 	{
@@ -111,8 +110,7 @@ using shutdown_status_t = reusable::shutdown_status_t;
  * \brief Implementation of event_queue interface for this type of
  * environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class event_queue_impl_t final : public so_5::event_queue_t
 	{
@@ -132,7 +130,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
 		 * \note
 		 * This method locks the main mutex by itself.
 		 */
-		virtual void
+		void
 		push( execution_demand_t demand ) override
 			{
 				std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
@@ -140,6 +138,29 @@ class event_queue_impl_t final : public so_5::event_queue_t
 				m_demands.push_back( std::move(demand) );
 
 				wakeup_if_waiting( m_sync_objects );
+			}
+
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 */
+		void
+		push_evt_start( execution_demand_t demand ) override
+			{
+				this->push( std::move(demand) );
+			}
+
+		/*!
+		 * \note
+		 * Delegates the work to the push() method.
+		 *
+		 * \attention
+		 * Terminates the whole application if the push() throws.
+		 */
+		void
+		push_evt_finish( execution_demand_t demand ) noexcept override
+			{
+				this->push( std::move(demand) );
 			}
 
 		/*!
@@ -192,8 +213,7 @@ class event_queue_impl_t final : public so_5::event_queue_t
  * \brief Implementation of coop_repository for
  * simple thread-safe single-threaded environment infrastructure.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using coop_repo_t = reusable::coop_repo_t;
 
@@ -203,8 +223,7 @@ using coop_repo_t = reusable::coop_repo_t;
 /*!
  * \brief A special class for generation of names for dispatcher data sources.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct disp_ds_name_parts_t
 	{
@@ -222,8 +241,7 @@ struct disp_ds_name_parts_t
  * \tparam Activity_Tracker a type of activity tracker to be used
  * for run-time statistics.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 using default_dispatcher_t =
@@ -239,8 +257,7 @@ using default_dispatcher_t =
  * \brief Implementation of stats_controller for that type of
  * single-threaded environment.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 using stats_controller_t =
 	reusable::stats_controller_t< so_5::details::actual_lock_holder_t<> >;
@@ -253,8 +270,7 @@ using stats_controller_t =
  *
  * \tparam Activity_Tracker A type for tracking activity of main working thread.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Activity_Tracker >
 class env_infrastructure_t
@@ -273,32 +289,32 @@ class env_infrastructure_t
 			//! Mbox for distribution of run-time stats.
 			mbox_t stats_distribution_mbox );
 
-		virtual void
+		void
 		launch( env_init_t init_fn ) override;
 
-		virtual void
-		stop() override;
+		void
+		stop() noexcept override;
 
 		[[nodiscard]]
-		virtual coop_unique_holder_t
+		coop_unique_holder_t
 		make_coop(
 			coop_handle_t parent,
 			disp_binder_shptr_t default_binder ) override;
 
 		[[nodiscard]]
-		virtual coop_handle_t
+		coop_handle_t
 		register_coop(
 			coop_unique_holder_t coop ) override;
 
-		virtual void
+		void
 		ready_to_deregister_notify(
 			coop_shptr_t coop ) noexcept override;
 
-		virtual bool
+		bool
 		final_deregister_coop(
-			coop_shptr_t coop ) override;
+			coop_shptr_t coop ) noexcept override;
 
-		virtual so_5::timer_id_t
+		so_5::timer_id_t
 		schedule_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
@@ -306,26 +322,26 @@ class env_infrastructure_t
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override;
 
-		virtual void
+		void
 		single_timer(
 			const std::type_index & type_wrapper,
 			const message_ref_t & msg,
 			const mbox_t & mbox,
 			std::chrono::steady_clock::duration pause ) override;
 
-		virtual stats::controller_t &
+		stats::controller_t &
 		stats_controller() noexcept override;
 
-		virtual stats::repository_t &
+		stats::repository_t &
 		stats_repository() noexcept override;
 
-		virtual so_5::environment_infrastructure_t::coop_repository_stats_t
+		so_5::environment_infrastructure_t::coop_repository_stats_t
 		query_coop_repository_stats() override;
 
-		virtual timer_thread_stats_t
+		timer_thread_stats_t
 		query_timer_thread_stats() override;
 
-		virtual disp_binder_shptr_t
+		disp_binder_shptr_t
 		make_default_disp_binder() override;
 
 	private :
@@ -334,11 +350,12 @@ class env_infrastructure_t
 		//! All sync objects to be shared between different parts.
 		main_thread_sync_objects_t m_sync_objects;
 
-		//! Type of container for final deregistration demands.
-		using final_dereg_coop_container_t = std::deque< coop_shptr_t >;
-
-		//! Queue for final deregistration demands.
-		final_dereg_coop_container_t m_final_dereg_coops;
+		/*!
+		 * \brief The chain of coops for the final deregistration.
+		 *
+		 * \since v.5.8.0
+		 */
+		so_5::impl::final_dereg_chain_holder_t m_final_dereg_chain;
 
 		//! Status of shutdown procedure.
 		shutdown_status_t m_shutdown_status{ shutdown_status_t::not_started };
@@ -424,7 +441,7 @@ env_infrastructure_t< Activity_Tracker >::launch( env_init_t init_fn )
 
 template< typename Activity_Tracker >
 void
-env_infrastructure_t< Activity_Tracker >::stop()
+env_infrastructure_t< Activity_Tracker >::stop() noexcept
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
 
@@ -460,7 +477,8 @@ env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 	coop_shptr_t coop ) noexcept
 	{
 		std::lock_guard< std::mutex > lock( m_sync_objects.m_lock );
-		m_final_dereg_coops.emplace_back( std::move(coop) );
+
+		m_final_dereg_chain.append( std::move(coop) );
 
 		wakeup_if_waiting( m_sync_objects );
 	}
@@ -468,7 +486,7 @@ env_infrastructure_t< Activity_Tracker >::ready_to_deregister_notify(
 template< typename Activity_Tracker >
 bool
 env_infrastructure_t< Activity_Tracker >::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 	{
 		return m_coop_repo.final_deregister_coop( std::move(coop) )
 				.m_has_live_coop;
@@ -542,7 +560,7 @@ env_infrastructure_t< Activity_Tracker >::query_coop_repository_stats()
 		return environment_infrastructure_t::coop_repository_stats_t{
 				stats.m_total_coop_count,
 				stats.m_total_agent_count,
-				m_final_dereg_coops.size()
+				m_final_dereg_chain.size()
 		};
 	}
 
@@ -673,19 +691,13 @@ env_infrastructure_t< Activity_Tracker >::process_final_deregs_if_any(
 		// This loop is necessary because it is possible that new
 		// final dereg demand will be added during processing of
 		// the current final dereg demand.
-		while( !m_final_dereg_coops.empty() )
+		while( !m_final_dereg_chain.empty() )
 			{
-				final_dereg_coop_container_t coops;
-				coops.swap( m_final_dereg_coops );
+				coop_shptr_t head = m_final_dereg_chain.giveout_current_chain();
 
 				helpers::unlock_do_and_lock_again( acquired_lock,
-					[&coops] {
-						for( auto & shptr : coops )
-							{
-								auto & env = shptr->environment();
-								so_5::impl::internal_env_iface_t{ env }
-										.final_deregister_coop( std::move(shptr) );
-							}
+					[&head] {
+						so_5::impl::process_final_dereg_chain( std::move(head) );
 					} );
 			}
 	}
@@ -750,7 +762,7 @@ env_infrastructure_t< Activity_Tracker >::try_handle_next_demand(
 			{
 				// ... but we should go to sleep only if there is no
 				// pending final deregistration actions.
-				if( m_final_dereg_coops.empty() )
+				if( m_final_dereg_chain.empty() )
 					{
 						// Tracking time for 'waiting' state must be turned on.
 						m_activity_tracker.wait_start_if_not_started();
@@ -802,7 +814,7 @@ factory( params_t && infrastructure_params )
 		{
 			environment_infrastructure_t * obj = nullptr;
 
-			const auto & timer_manager_factory =
+			auto timer_manager_factory =
 					infrastructure_params.timer_manager();
 
 			// Create environment infrastructure object in dependence of

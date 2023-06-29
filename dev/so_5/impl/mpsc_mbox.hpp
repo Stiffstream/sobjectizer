@@ -21,9 +21,8 @@
 #include <so_5/message_limit.hpp>
 
 #include <so_5/impl/local_mbox_basic_subscription_info.hpp>
-
+#include <so_5/impl/message_sink_without_message_limit.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
-#include <so_5/impl/message_limit_internals.hpp>
 
 #include <type_traits>
 
@@ -33,63 +32,105 @@ namespace so_5
 namespace impl
 {
 
-//
-// mpsc_mbox_with_message_limits_t
-//
 /*!
- * \brief Helper class to be used in limitful-MPSC mbox.
+ * \brief Mixin to be used in implementation of MPSC mbox with message limits.
  *
- * Method message_limits_pointer() just returns an actual value of the argument.
- * It makes MPSC mbox limitful.
- *
- * \since v.5.7.4
+ * It returns a reference to a sink from subscription_info_with_sink_t object
+ * in message_sink_to_use() method.
  */
-struct mpsc_mbox_with_message_limits_t
+class limitful_mpsc_mbox_mixin_t
 	{
+		agent_t & m_owner;
+
+	protected:
 		[[nodiscard]]
-		static const so_5::message_limit::control_block_t *
-		message_limits_pointer(
-			const so_5::message_limit::control_block_t * limits ) noexcept
+		agent_t &
+		query_owner_reference() const noexcept
 			{
-				return limits;
+				return m_owner;
 			}
+
+		[[nodiscard]]
+		abstract_message_sink_t &
+		message_sink_to_use(
+			const local_mbox_details::subscription_info_with_sink_t & info ) const noexcept
+			{
+				return info.sink_reference();
+			}
+
+	public:
+		limitful_mpsc_mbox_mixin_t(
+			outliving_reference_t< agent_t > owner )
+			:	m_owner{ owner.get() }
+		{}
 	};
 
-//
-// mpsc_mbox_without_message_limits_t
-//
 /*!
- * \brief Helper class to be used in limitless-MPSC mbox.
+ * \brief Mixin to be used in implementation of MPSC mbox without message limits.
  *
- * Method message_limits_pointer() always returns nullptr.
- * It makes MPSC mbox limitless.
+ * Holds an actual instance of message_sink_without_message_limit_t.
  *
- * \since v.5.7.4
+ * It ignores \a info parameter to message_sink_to_use() method and returns
+ * a reference to m_actual_sink.
  */
-struct mpsc_mbox_without_message_limits_t
+class limitless_mpsc_mbox_mixin_t
 	{
+		//! Actual message sink to be used.
+		message_sink_without_message_limit_t m_actual_sink;
+
+	protected:
 		[[nodiscard]]
-		static const so_5::message_limit::control_block_t *
-		message_limits_pointer(
-			const so_5::message_limit::control_block_t * /*limits*/ ) noexcept
+		agent_t &
+		query_owner_reference() const noexcept
 			{
-				return nullptr;
+				return m_actual_sink.owner_reference();
 			}
+
+		[[nodiscard]]
+		abstract_message_sink_t &
+		message_sink_to_use(
+			const local_mbox_details::subscription_info_with_sink_t & /*info*/ ) noexcept
+			{
+				return m_actual_sink;
+			}
+
+	public:
+		limitless_mpsc_mbox_mixin_t(
+			outliving_reference_t< agent_t > owner )
+			:	m_actual_sink{ owner }
+		{}
 	};
 
-//
-// mpsc_mbox_message_limits_usage_t
-//
+namespace
+{
+
 /*!
- * \brief Indicator for using message limits by MPSC mbox.
+ * \brief Helper the ensures that sink can be used with agent.
  *
- * \since v.5.7.4
+ * It throws if:
+ *
+ * - \a sink is not a message_sink_for_agent_t (or derived class);
+ * - \a sink is created for a different owner.
  */
-enum class mpsc_mbox_message_limits_usage_t
+void
+ensure_sink_for_same_owner(
+	agent_t & actual_owner,
+	abstract_message_sink_t & sink )
 	{
-		use,
-		dont_use
-	};
+		auto * p = dynamic_cast<message_sink_for_agent_t *>( std::addressof(sink) );
+		if( !p )
+			SO_5_THROW_EXCEPTION(
+					rc_illegal_subscriber_for_mpsc_mbox,
+					"unexpected type of message_sink is used for subscription "
+					"to agent's direct mbox" );
+
+		if( std::addressof(actual_owner) != p->owner_pointer() )
+			SO_5_THROW_EXCEPTION(
+					rc_illegal_subscriber_for_mpsc_mbox,
+					"the only one consumer can create subscription to mpsc_mbox" );
+	}
+
+} /* namespace anonymous */
 
 //
 // mpsc_mbox_template_t
@@ -110,27 +151,23 @@ enum class mpsc_mbox_message_limits_usage_t
  */
 template<
 	typename Tracing_Base,
-	mpsc_mbox_message_limits_usage_t message_limits_usage >
-class mpsc_mbox_template_t
+	typename Limits_Handling_Mixin >
+class mpsc_mbox_template_t final
 	:	public abstract_message_box_t
+	,	private Limits_Handling_Mixin
 	,	protected Tracing_Base
 	{
-		using limits_selector_t = std::conditional_t<
-				mpsc_mbox_message_limits_usage_t::use == message_limits_usage,
-				mpsc_mbox_with_message_limits_t,
-				mpsc_mbox_without_message_limits_t >;
-
 	public:
 		template< typename... Tracing_Args >
 		mpsc_mbox_template_t(
 			mbox_id_t id,
 			environment_t & env,
-			agent_t * single_consumer,
+			outliving_reference_t< agent_t > owner,
 			Tracing_Args &&... tracing_args )
-			:	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
+			:	Limits_Handling_Mixin{ owner }
+			,	Tracing_Base{ std::forward< Tracing_Args >( tracing_args )... }
 			,	m_id{ id }
 			,	m_env{ env }
-			,	m_single_consumer{ single_consumer }
 			{}
 
 		mbox_id_t
@@ -142,45 +179,49 @@ class mpsc_mbox_template_t
 		void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
-			const message_limit::control_block_t * limit,
-			agent_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can create subscription to mpsc_mbox" );
+				ensure_sink_for_same_owner(
+						this->query_owner_reference(),
+						subscriber );
 
 				insert_or_modify_subscription(
 						msg_type,
 						[&] {
-							return subscription_info_t{
-									limits_selector_t::message_limits_pointer( limit )
-								};
+							return subscription_info_t{ subscriber };
 						},
 						[&]( subscription_info_t & info ) {
-							info.set_limit(
-									limits_selector_t::message_limits_pointer( limit ) );
+							info.set_sink( subscriber );
 						} );
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can remove subscription to mpsc_mbox" );
+				// ensure_sink_for_same_owner can't be used here because
+				// we're in noexcept method.
+				// So let's check the possiblity of unsubscription right here.
+				{
+					auto * p = dynamic_cast<message_sink_for_agent_t *>(
+							std::addressof(subscriber) );
+					if( !p )
+						return;
+
+					if( std::addressof(this->query_owner_reference()) !=
+							p->owner_pointer() )
+						return;
+				}
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,
 						[]( subscription_info_t & info ) {
-							info.drop_limit();
+							info.drop_sink();
 						} );
 			}
 
@@ -188,9 +229,7 @@ class mpsc_mbox_template_t
 		query_name() const override
 			{
 				std::ostringstream s;
-				s << "<mbox:type=MPSC:id="
-						<< m_id << ":consumer=" << m_single_consumer
-						<< ">";
+				s << "<mbox:type=MPSC:id=" << m_id << ">";
 
 				return s.str();
 			}
@@ -203,15 +242,19 @@ class mpsc_mbox_template_t
 
 		void
 		do_deliver_message(
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override
+			unsigned int redirection_deep ) override
 			{
 				typename Tracing_Base::deliver_op_tracer tracer{
 						*this, // as Tracing_Base
 						*this, // as abstract_message_box_t
 						"deliver_message",
-						msg_type, message, overlimit_reaction_deep };
+						delivery_mode,
+						msg_type,
+						message,
+						redirection_deep };
 
 				this->do_delivery(
 					msg_type,
@@ -219,26 +262,19 @@ class mpsc_mbox_template_t
 					tracer,
 					[&]( const subscription_info_t & info )
 					{
-						using namespace so_5::message_limit::impl;
-
-						try_to_deliver_to_agent(
+						// NOTE: method message_sink_to_use is inherited from
+						// Limits_Handling_Mixin. In the case of
+						// limitful_mpsc_mbox_mixin_t this method returns a reference
+						// to a separate sink with message limit info. In the case of
+						// limitless_mpsc_mbox_mixin_t it will be a reference to the
+						// single message sink without information about limits.
+						this->message_sink_to_use( info ).push_event(
 								this->m_id,
-								*(this->m_single_consumer),
-								info.limit(),
+								delivery_mode,
 								msg_type,
 								message,
-								overlimit_reaction_deep,
-								tracer.overlimit_tracer(),
-								[&] {
-									tracer.push_to_queue( this->m_single_consumer );
-
-									agent_t::call_push_event(
-											*(this->m_single_consumer),
-											info.limit(),
-											this->m_id,
-											msg_type,
-											message );
-								} );
+								redirection_deep,
+								tracer.overlimit_tracer() );
 					} );
 			}
 
@@ -246,19 +282,18 @@ class mpsc_mbox_template_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			agent_t & subscriber ) override
+			abstract_message_sink_t & subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
 
-				if( &subscriber != m_single_consumer )
-					SO_5_THROW_EXCEPTION(
-							rc_illegal_subscriber_for_mpsc_mbox,
-							"the only one consumer can create subscription to mpsc_mbox" );
+				ensure_sink_for_same_owner(
+						this->query_owner_reference(),
+						subscriber );
 
 				insert_or_modify_subscription(
 						msg_type,
 						[&] {
-							return subscription_info_t{ &filter };
+							return subscription_info_t{ filter };
 						},
 						[&]( subscription_info_t & info ) {
 							info.set_filter( filter );
@@ -268,13 +303,9 @@ class mpsc_mbox_template_t
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
-
-				if( &subscriber != m_single_consumer )
-					// Nothing to do (we can't throw an exception here).
-					return;
 
 				modify_and_remove_subscription_if_needed(
 						msg_type,
@@ -295,14 +326,13 @@ class mpsc_mbox_template_t
 		 *
 		 * \since v.5.7.4
 		 */
-		using subscription_info_t = local_mbox_details::basic_subscription_info_t;
+		using subscription_info_t = local_mbox_details::subscription_info_with_sink_t;
 
 		/*!
 		 * \brief Type of dictionary for information about the current
 		 * subscriptions.
 		 *
-		 * \since
-		 * v.5.7.1
+		 * \since v.5.7.1
 		 */
 		using subscriptions_map_t = std::map<
 				std::type_index,
@@ -329,22 +359,17 @@ class mpsc_mbox_template_t
 		 */
 		environment_t & m_env;
 
-		//! The only consumer of this mbox's messages.
-		agent_t * m_single_consumer;
-
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Protection of object from modification.
+		 *
+		 * \since v.5.5.9
 		 */
 		default_rw_spinlock_t m_lock;
 
 		/*!
 		 * \brief Information about the current subscriptions.
 		 *
-		 * \since
-		 * v.5.7.1
+		 * \since v.5.7.1
 		 */
 		subscriptions_map_t m_subscriptions;
 
@@ -424,7 +449,6 @@ class mpsc_mbox_template_t
 						// delivery attempt.
 						const auto delivery_status =
 								it->second.must_be_delivered(
-										*m_single_consumer,
 										message,
 										[]( const message_ref_t & m ) -> message_t & {
 											return *m;
@@ -437,7 +461,10 @@ class mpsc_mbox_template_t
 						else
 							{
 								tracer.message_rejected(
-										m_single_consumer, delivery_status );
+										// It's safe to pass nullptr as a pointer
+										// to the subscriber.
+										nullptr,
+										delivery_status );
 							}
 					}
 				else
@@ -448,48 +475,49 @@ class mpsc_mbox_template_t
 	};
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \since v.5.5.9, v.5.7.4, v.5.8.0
  *
- * \brief Alias for mpsc_mbox without message delivery tracing and message limits.
+ * \brief Alias for mpsc_mbox without message delivery tracing.
  */
-using limitful_mpsc_mbox_without_tracing_t =
+using ordinary_mpsc_mbox_without_tracing_t =
 	mpsc_mbox_template_t<
 			msg_tracing_helpers::tracing_disabled_base,
-			mpsc_mbox_message_limits_usage_t::use
+			limitful_mpsc_mbox_mixin_t
 	>;
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \since v.5.5.9, v.5.7.4, v.5.8.0
  *
- * \brief Alias for mpsc_mbox with message delivery tracing and message limits.
+ * \brief Alias for mpsc_mbox with message delivery tracing.
  */
-using limitful_mpsc_mbox_with_tracing_t =
+using ordinary_mpsc_mbox_with_tracing_t =
 	mpsc_mbox_template_t<
 			msg_tracing_helpers::tracing_enabled_base,
-			mpsc_mbox_message_limits_usage_t::use
+			limitful_mpsc_mbox_mixin_t
 	>;
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \brief Alias for mpsc_mbox without message delivery tracing that
+ * ignores message limits.
  *
- * \brief Alias for mpsc_mbox without message delivery tracing and without
- * message limits.
+ * \since v.5.8.0
  */
 using limitless_mpsc_mbox_without_tracing_t =
 	mpsc_mbox_template_t<
 			msg_tracing_helpers::tracing_disabled_base,
-			mpsc_mbox_message_limits_usage_t::dont_use
+			limitless_mpsc_mbox_mixin_t
 	>;
 
 /*!
- * \since v.5.5.9, v.5.7.4
+ * \brief Alias for mpsc_mbox with message delivery tracing that
+ * ignores message limits.
  *
- * \brief Alias for mpsc_mbox with message delivery tracing and without message limits.
+ * \since v.5.8.0
  */
 using limitless_mpsc_mbox_with_tracing_t =
 	mpsc_mbox_template_t<
 			msg_tracing_helpers::tracing_enabled_base,
-			mpsc_mbox_message_limits_usage_t::dont_use
+			limitless_mpsc_mbox_mixin_t
 	>;
 
 } /* namespace impl */

@@ -11,6 +11,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -45,7 +46,7 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		operator=( exception_t & o ) = default;
 
 		exception_t &
-		operator=( exception_t && o ) = default;
+		operator=( exception_t && o ) noexcept = default;
 
 		//! Error code getter.
 		int
@@ -55,7 +56,7 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		raise(
 			const char * file_name,
 			unsigned int line_number,
-			const std::string & error_descr,
+			std::string_view error_descr,
 			int error_code );
 
 	private:

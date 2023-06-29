@@ -199,7 +199,7 @@ class unique_message_holder_impl_t
 
 		unique_message_holder_impl_t &
 		operator=(
-			unique_message_holder_impl_t && ) = default;
+			unique_message_holder_impl_t && ) noexcept = default;
 
 		//! Extracts the smart pointer to the message.
 		/*!
@@ -407,6 +407,25 @@ using accessor_selector_t =
  * so_5::message_holder_t<status_data> msg1;
  * so_5::message_holder_t<so_5::immutable_msg<status_data>> msg2;
  * so_5::message_holder_t<so_5::mutable_msg<status_data>> msg3;
+ * \endcode
+ *
+ * This is an example of how immutable and mutable preallocated messages
+ * can be used with message_holder_t:
+ * \code
+ * class preallocated_messages_owner final : public so_5::agent_t {
+ * 	so_5::message_holder_t<some_message> first_;
+ * 	so_5::message_holder_t<so_5::mutable_msg<another_message>> second_;
+ * ...
+ * 	void on_some_event(mhood_t<some_event>) {
+ * 		// It is time to send preallocated messages.
+ *
+ * 		// This message will be sent as immutable message.
+ * 		so_5::send(dest, first_);
+ *
+ * 		// This message will be sent as mutable message.
+ * 		so_5::send(dest, std::move(second_));
+ * 	}
+ * };
  * \endcode
  *
  * \par Methods of message_holder_t class

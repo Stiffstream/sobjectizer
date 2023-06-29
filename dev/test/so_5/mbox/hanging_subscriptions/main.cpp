@@ -33,31 +33,34 @@ class test_mbox_t : public so_5::abstract_message_box_t
 
 		virtual void
 		do_deliver_message(
+			so_5::message_delivery_mode_t delivery_mode,
 			const std::type_index & type_index,
 			const so_5::message_ref_t & message_ref,
-			unsigned int overlimit_reaction_deep ) override
+			unsigned int redirection_deep ) override
 			{
 				m_actual_mbox->do_deliver_message(
-						type_index, message_ref, overlimit_reaction_deep );
+						delivery_mode,
+						type_index,
+						message_ref,
+						redirection_deep );
 			}
 
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			const so_5::message_limit::control_block_t * limit,
-			so_5::agent_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) override
 			{
 				++subscriptions;
-				m_actual_mbox->subscribe_event_handler( type_index, limit, subscriber );
+				m_actual_mbox->subscribe_event_handler( type_index, subscriber );
 			}
 
 		virtual void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_index,
-			so_5::agent_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
 				++unsubscriptions;
-				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
+				m_actual_mbox->unsubscribe_event_handler( type_index, subscriber );
 			}
 
 		virtual std::string
@@ -73,7 +76,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const so_5::delivery_filter_t & filter,
-			so_5::agent_t & subscriber ) override
+			so_5::abstract_message_sink_t & subscriber ) override
 			{
 				m_actual_mbox->set_delivery_filter( msg_type, filter, subscriber );
 			}
@@ -81,7 +84,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			so_5::agent_t & subscriber ) noexcept override
+			so_5::abstract_message_sink_t & subscriber ) noexcept override
 			{
 				m_actual_mbox->drop_delivery_filter( msg_type, subscriber );
 			}

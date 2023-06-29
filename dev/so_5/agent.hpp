@@ -21,7 +21,6 @@
 #include <so_5/error_logger.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
-#include <so_5/details/abort_on_fatal_error.hpp>
 #include <so_5/details/at_scope_exit.hpp>
 
 #include <so_5/fwd.hpp>
@@ -460,6 +459,48 @@ class subscription_bind_t
 		ensure_handler_can_be_used_with_mbox(
 			const so_5::details::msg_type_and_handler_pair_t & handler ) const;
 };
+
+/*!
+ * \brief Internal namespace with details of agent_t implementation.
+ *
+ * \attention
+ * Nothing from that namespace can be used in user code. All of this is an
+ * implementation detail and is subject to change without any prior notice.
+ *
+ * \since v.5.8.0
+ */
+namespace impl::agent_impl
+{
+
+/*!
+ * \brief A helper class for temporary setting and then dropping
+ * the ID of the current working thread.
+ *
+ * \note New working thread_id is set only if it is not an
+ * null thread_id.
+ *
+ * \since v.5.4.0
+ */
+struct working_thread_id_sentinel_t
+	{
+		so_5::current_thread_id_t & m_id;
+
+		working_thread_id_sentinel_t(
+			so_5::current_thread_id_t & id_var,
+			so_5::current_thread_id_t value_to_set )
+			:	m_id( id_var )
+			{
+				if( value_to_set != null_current_thread_id() )
+					m_id = value_to_set;
+			}
+		~working_thread_id_sentinel_t()
+			{
+				if( m_id != null_current_thread_id() )
+					m_id = null_current_thread_id();
+			}
+	};
+
+} /* namespace impl::agent_impl */
 
 //
 // agent_t
@@ -973,9 +1014,12 @@ class SO_5_TYPE agent_t
 		 * \note Since v.5.3.0 default implementation calls
 		 * coop_t::exception_reaction() for agent's cooperation
 		 * object.
+		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
 		 */
 		virtual exception_reaction_t
-		so_exception_reaction() const;
+		so_exception_reaction() const noexcept;
 
 		/*!
 		 * \brief Switching agent to special state in case of unhandled
@@ -983,6 +1027,11 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note
 		 * Since v.5.7.3 it's implemented via so_deactivate_agent().
+		 *
+		 * \attention
+		 * The method is not noexcept, it can throw an exception. So additional
+		 * care has to be taken when it's called in catch-block and/or in
+		 * noexcept contexts.
 		 *
 		 * \since 5.2.3
 		 */
@@ -999,11 +1048,11 @@ class SO_5_TYPE agent_t
 			agent_t & agent,
 			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
-			std::type_index msg_type,
+			const std::type_index & msg_type,
 			const message_ref_t & message )
-		{
-			agent.push_event( limit, mbox_id, msg_type, message );
-		}
+			{
+				agent.push_event( limit, mbox_id, msg_type, message );
+			}
 
 		/*!
 		 * \since
@@ -2279,7 +2328,7 @@ class SO_5_TYPE agent_t
 			\endcode
 		*/
 		environment_t &
-		so_environment() const;
+		so_environment() const noexcept;
 
 		/*!
 		 * \brief Get a handle of agent's coop.
@@ -2495,19 +2544,97 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Get the priority of the agent.
+		 *
+		 * \since v.5.5.8
 		 */
+		[[nodiscard]]
 		priority_t
-		so_priority() const
+		so_priority() const noexcept
 			{
 				return m_priority;
 			}
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \brief Helper method that allows to run a block of code as
+		 * non-thread-safe event handler.
+		 *
+		 * \attention
+		 * This is a low-level method. Using it may destroy all thread-safety
+		 * guarantees provided by SObjectizer. Please use it only when you know
+		 * what your are doing. All responsibility rests with the user.
+		 *
+		 * Use of this method may be necessary when an agent is bound to a
+		 * special dispatcher that runs not only the agent's event-handlers, but
+		 * also other callbacks on the same worker thread.
+		 *
+		 * A good example of such a dispatcher is so5extra's asio_one_thread
+		 * dispatcher. It guarantees that an IO completion handler is called on
+		 * the same worker thread as agent's event-handlers. For example:
+		 * \code
+		 * class agent_that_uses_asio : public so_5::agent_t
+		 * {
+		 * 	state_t st_not_ready{this};
+		 * 	state_t st_ready{this};
+		 *
+		 * 	asio::io_context & io_ctx_;
+		 *
+		 * public:
+		 * 	agent_that_uses_asio(context_t ctx, asio::io_context & io_ctx)
+		 * 		:	so_5::agent_t{std::move(ctx)}
+		 * 		,	io_ctx_{io_ctx}
+		 * 	{}
+		 * 	...
+		 * 	void so_define_agent() override
+		 * 	{
+		 * 		st_not_ready.activate();
+		 * 		...
+		 * 	}
+		 *
+		 * 	void so_evt_start() override
+		 * 	{
+		 * 		auto resolver = std::make_shared<asio::ip::tcp::resolver>(io_ctx_);
+		 * 		resolver->async_resolve("some.host.name", "",
+		 * 				asio::ip::tcp::numeric_service | asio::ip::tcp::address_configured,
+		 * 				// IO completion handler to be run on agent's worker thread.
+		 * 				[resolver, this](auto ec, auto results) {
+		 * 					// It's necessary to wrap the block of code, otherwise
+		 * 					// modification of the agent's state (or managing of subscriptions)
+		 * 					// will be prohibited because SObjectizer doesn't see
+		 * 					// the IO completion handler as event handler.
+		 * 					so_low_level_exec_as_event_handler( [&]() {
+		 * 							...
+		 * 							st_ready.activate();
+		 * 						});
+		 * 				});
+		 * 	}
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * Using this method inside a running event-handler (non-thread-safe and
+		 * especially thread-safe) is undefined behavior. SObjectizer can't check
+		 * such a case without a significant performance penalty, so there won't
+		 * be any warnings or errors from SObjectizer's side, anything can
+		 * happen.
+		 *
+		 * \since v.5.8.0
+		 */
+		template< typename Lambda >
+		decltype(auto)
+		so_low_level_exec_as_event_handler(
+			Lambda && lambda ) noexcept( noexcept(lambda()) )
+			{
+				impl::agent_impl::working_thread_id_sentinel_t sentinel{
+						m_working_thread_id,
+						query_current_thread_id()
+					};
+
+				return lambda();
+			}
 
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
@@ -2549,7 +2676,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \brief Type of function for searching event handler.
 		 */
-		using handler_finder_t = 
+		using handler_finder_t =
 			const impl::event_handler_data_t *(*)(
 					execution_demand_t & /* demand */,
 					const char * /* context_marker */ );
@@ -2566,29 +2693,24 @@ class SO_5_TYPE agent_t
 		handler_finder_t m_handler_finder;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief All agent's subscriptions.
+		 *
+		 * \since v.5.4.0
 		 */
 		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
 		/*!
-		 * \since
-		 * v.5.5.4
+		 * \brief Holder of message sinks for that agent.
 		 *
-		 * \brief Run-time information for message limits.
+		 * If message limits are defined for the agent it will be an actual
+		 * storage with separate sinks for every (message_type, message_limit).
 		 *
-		 * Created only of message limits are described in agent's
-		 * tuning options.
+		 * If message limits are not defined then it will be a special storage
+		 * with just one message sink (that sink will be used for all subscriptions).
 		 *
-		 * \attention This attribute must be initialized before the
-		 * \a m_direct_mbox attribute. It is because the value of
-		 * \a m_message_limits is used in \a m_direct_mbox creation.
-		 * Because of that \a m_message_limits is declared before
-		 * \a m_direct_mbox.
+		 * \since v.5.8.0
 		 */
-		std::unique_ptr< message_limit::impl::info_storage_t > m_message_limits;
+		std::unique_ptr< impl::sinks_storage_t > m_message_sinks;
 
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
@@ -2747,21 +2869,14 @@ class SO_5_TYPE agent_t
 		 */
 
 		/*!
-		 * \since
-		 * v.5.5.4
+		 * \brief Helper function that returns a message sink to be used
+		 * for subscriptions for specified message type.
 		 *
-		 * \brief Detect limit for that message type.
-		 *
-		 * \note
-		 * Since v.5.7.1 it isn't a const method.
-		 *
-		 * \return nullptr if message limits are not used.
-		 *
-		 * \throw exception_t if message limits are used but the limit
-		 * for that message type is not found.
+		 * \since v.5.8.0
 		 */
-		const message_limit::control_block_t *
-		detect_limit_for_message_type(
+		[[nodiscard]]
+		abstract_message_sink_t &
+		detect_sink_for_message_type(
 			const std::type_index & msg_type );
 
 		/*!
@@ -2823,7 +2938,6 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
-
 		/*!
 		 * \name Event handling implementation details.
 		 * \{
@@ -2837,7 +2951,7 @@ class SO_5_TYPE agent_t
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.
-			std::type_index msg_type,
+			const std::type_index & msg_type,
 			//! Event message.
 			const message_ref_t & message );
 		/*!
@@ -3183,45 +3297,6 @@ make_agent_ref( Derived * agent )
 		return { agent };
 	}
 
-/*!
- * \since
- * v.5.5.5
- *
- * \brief Template-based implementations of delivery filters.
- */
-namespace delivery_filter_templates
-{
-
-/*!
- * \since
- * v.5.5.5
- *
- * \brief An implementation of delivery filter represented by lambda-function
- * like object.
- *
- * \tparam Lambda type of lambda-function or functional object.
- */
-template< typename Lambda, typename Message >
-class lambda_as_filter_t : public delivery_filter_t
-	{
-		Lambda m_filter;
-
-	public :
-		lambda_as_filter_t( Lambda && filter )
-			:	m_filter( std::forward< Lambda >( filter ) )
-			{}
-
-		bool
-		check(
-			const agent_t & /*receiver*/,
-			message_t & msg ) const noexcept override
-			{
-				return m_filter(message_payload_type< Message >::payload_reference( msg ));
-			}
-	};
-
-} /* namespace delivery_filter_templates */
-
 template< typename Lambda >
 void
 agent_t::so_set_delivery_filter(
@@ -3229,7 +3304,6 @@ agent_t::so_set_delivery_filter(
 	Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
-		using namespace delivery_filter_templates;
 
 		using lambda_type = std::remove_reference_t<Lambda >;
 		using argument_type =
@@ -3241,7 +3315,7 @@ agent_t::so_set_delivery_filter(
 				mbox,
 				message_payload_type< argument_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{
-					new lambda_as_filter_t< lambda_type, argument_type >(
+					new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
@@ -3253,7 +3327,6 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 	Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
-		using namespace delivery_filter_templates;
 
 		using lambda_type = std::remove_reference_t<Lambda >;
 		using argument_type =
@@ -3267,7 +3340,7 @@ agent_t::so_set_delivery_filter_for_mutable_msg(
 				mbox,
 				message_payload_type< subscription_type >::subscription_type_index(),
 				delivery_filter_unique_ptr_t{
-					new lambda_as_filter_t< lambda_type, argument_type >(
+					new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
 							std::move( lambda ) )
 				} );
 	}

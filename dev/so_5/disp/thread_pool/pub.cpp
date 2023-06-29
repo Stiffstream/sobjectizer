@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.4.0
- *
  * \file
  * \brief Public interface of thread pool dispatcher.
+ *
+ * \since v.5.4.0
  */
 
 #include <so_5/disp/thread_pool/pub.hpp>
@@ -41,8 +40,7 @@ namespace impl
  *
  * This interface defines a set of methods necessary for binder.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
 	{
@@ -59,6 +57,7 @@ class actual_dispatcher_iface_t : public basic_dispatcher_iface_t
 			agent_t & agent ) noexcept = 0;
 
 		//! Get resources allocated for an agent.
+		[[nodiscard]]
 		virtual event_queue_t *
 		query_resources_for_agent( agent_t & agent ) noexcept = 0;
 
@@ -79,8 +78,7 @@ using actual_dispatcher_iface_shptr_t =
 /*!
  * \brief Actual implementation of dispatcher binder for %thread_pool dispatcher.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class actual_binder_t final : public disp_binder_t
 	{
@@ -133,8 +131,7 @@ class actual_binder_t final : public disp_binder_t
 /*!
  * \brief Actual implementation of binder for %thread_pool dispatcher.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 template< typename Work_Thread >
 class actual_dispatcher_implementation_t final
@@ -228,8 +225,7 @@ using namespace so_5::disp::thread_pool::impl;
  * \brief Sets the thread count to default value if used do not
  * specify actual thread count.
  *
- * \since
- * v.5.5.11
+ * \since v.5.5.11
  */
 inline void
 adjust_thread_count( disp_params_t & params )
@@ -255,11 +251,17 @@ make_dispatcher(
 
 		using dispatcher_no_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_no_activity_tracking_t >;
+						impl::work_thread_no_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		using dispatcher_with_activity_tracking_t =
 				impl::actual_dispatcher_implementation_t<
-						impl::work_thread_with_activity_tracking_t >;
+						impl::work_thread_with_activity_tracking_t<
+								impl::dispatcher_queue_t
+						>
+				>;
 
 		auto binder = so_5::disp::reuse::make_actual_dispatcher<
 						impl::actual_dispatcher_iface_t,

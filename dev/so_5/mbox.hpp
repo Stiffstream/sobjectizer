@@ -23,6 +23,7 @@
 
 #include <so_5/mbox_fwd.hpp>
 #include <so_5/message.hpp>
+#include <so_5/message_sink.hpp>
 #include <so_5/mhood.hpp>
 
 namespace so_5
@@ -77,7 +78,7 @@ class SO_5_TYPE delivery_filter_t
 		virtual bool
 		check(
 			//! Receiver of the message.
-			const agent_t & receiver,
+			const abstract_message_sink_t & receiver,
 			//! Message itself.
 			message_t & msg ) const noexcept = 0;
 	};
@@ -93,6 +94,53 @@ class SO_5_TYPE delivery_filter_t
  */
 using delivery_filter_unique_ptr_t =
 	std::unique_ptr< delivery_filter_t >;
+
+namespace low_level_api
+{
+
+/*!
+ * \brief Helper function that throws if a pointer to delivery_filter is null.
+ *
+ * \since v.5.8.0
+ */
+inline void
+ensure_not_null( const delivery_filter_unique_ptr_t & ptr )
+	{
+		if( !ptr )
+			SO_5_THROW_EXCEPTION( rc_nullptr_as_delivery_filter_pointer,
+					"a pointer to delivery_filter can't be nullptr" );
+	}
+
+/*!
+ * \brief An implementation of delivery filter represented by lambda-function
+ * like object.
+ *
+ * NOTE. This template is moved into low_level_api namespace in v.5.8.0.
+ *
+ * \tparam Lambda type of lambda-function or functional object.
+ *
+ * \since v.5.5.5, v.5.8.0
+ */
+template< typename Lambda, typename Message >
+class lambda_as_filter_t : public delivery_filter_t
+	{
+		Lambda m_filter;
+
+	public :
+		lambda_as_filter_t( Lambda && filter )
+			:	m_filter( std::forward< Lambda >( filter ) )
+			{}
+
+		bool
+		check(
+			const abstract_message_sink_t & /*receiver*/,
+			message_t & msg ) const noexcept override
+			{
+				return m_filter(message_payload_type< Message >::payload_reference( msg ));
+			}
+	};
+
+} /* namespace low_level_api */
 
 //
 // mbox_type_t
@@ -167,18 +215,16 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		subscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
-			//! Optional message limit for that message type.
-			const message_limit::control_block_t * limit,
-			//! Agent-subscriber.
-			agent_t & subscriber ) = 0;
+			//! Subscriber.
+			abstract_message_sink_t & subscriber ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
-			//! Agent-subscriber.
-			agent_t & subscriber ) = 0;
+			//! Subscriber.
+			abstract_message_sink_t & subscriber ) noexcept = 0;
 
 		//! Get the mbox name.
 		[[nodiscard]]
@@ -200,30 +246,19 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		type() const = 0;
 
 		/*!
-		 * \name Comparision.
-		 * \{
-		 */
-		[[nodiscard]]
-		bool operator==( const abstract_message_box_t & o ) const noexcept
-		{
-			return id() == o.id();
-		}
-
-		[[nodiscard]]
-		bool operator<( const abstract_message_box_t & o ) const noexcept
-		{
-			return id() < o.id();
-		}
-		/*!
-		 * \}
-		 */
-
-		/*!
 		 * \since
 		 * v.5.5.4
 		 *
 		 * \brief Deliver message for all subscribers with respect to message
 		 * limits.
+		 *
+		 * A message delivery from timer thread is somewhat different from
+		 * an ordinary message delivery. Especially in the case when
+		 * target mbox is a message chain. If that message chain is
+		 * full and some kind of overflow reaction is specified (like waiting
+		 * for some time or throwing an exception) then it can lead to
+		 * undesired behaviour of the whole application. To take care about
+		 * these cases a new method is introduced.
 		 *
 		 * \note
 		 * Since v.5.6.0 this method is used for deliverance of ordinary
@@ -231,12 +266,14 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 */
 		virtual void
 		do_deliver_message(
+			//! Can the delivery blocks the current thread?
+			message_delivery_mode_t delivery_mode,
 			//! Type of the message to deliver.
 			const std::type_index & msg_type,
 			//! A message instance to be delivered.
 			const message_ref_t & message,
 			//! Current deep of overlimit reaction recursion.
-			unsigned int overlimit_reaction_deep ) = 0;
+			unsigned int redirection_deep ) = 0;
 
 		/*!
 		 * \name Methods for working with delivery filters.
@@ -260,7 +297,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 			//! A caller must guaranted the validity of this reference.
 			const delivery_filter_t & filter,
 			//! A subscriber for the message.
-			agent_t & subscriber ) = 0;
+			abstract_message_sink_t & subscriber ) = 0;
 
 		/*!
 		 * \since
@@ -271,7 +308,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept = 0;
+			abstract_message_sink_t & subscriber ) noexcept = 0;
 		/*!
 		 * \}
 		 */
@@ -284,77 +321,35 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		[[nodiscard]]
 		virtual so_5::environment_t &
 		environment() const noexcept = 0;
-
-	protected :
-		/*!
-		 * \since
-		 * v.5.5.18
-		 * 
-		 * \brief Special method for message delivery from a timer thread.
-		 *
-		 * A message delivery from timer thread is somewhat different from
-		 * an ordinary message delivery. Especially in the case when
-		 * target mbox is a message chain. If that message chain is
-		 * full and some kind of overflow reaction is specified (like waiting
-		 * for some time or throwing an exception) then it can lead to
-		 * undesired behaviour of the whole application. To take care about
-		 * these cases a new method is introduced.
-		 *
-		 * Note that implementation of that method in abstract_message_box_t
-		 * class is just a proxy for do_deliver_message() method. It is done
-		 * to keep compatibility with previous versions of SObjectizer.
-		 * The actual implementation of that method is present only in
-		 * message chains.
-		 */
-		virtual void
-		do_deliver_message_from_timer(
-			//! Type of the message to deliver.
-			const std::type_index & msg_type,
-			//! A message instance to be delivered.
-			const message_ref_t & message );
-
-		/*!
-		 * \brief Helper for calling do_deliver_message_from_timer in
-		 * derived classes.
-		 *
-		 * Sometimes an user want to implement its own mbox on top
-		 * of an existing mbox. Something like that:
-		 * \code
-		 * class my_custom_mbox : public so_5::abstract_message_box_t
-		 * {
-		 * 	// Actual mbox to perform all work.
-		 * 	const so_5::mbox_t actual_mbox_;
-		 * 	...
-		 * 	void do_deliver_message_from_timer(
-		 * 		const std::type_index & msg_type,
-		 * 		const so_5::message_ref_t & message )
-		 * 	{
-		 * 		... // Do some specific stuff.
-		 * 		// Work should be delegated to actual_mbox_ but we
-		 * 		// can't simply call actual_mbox_->do_deliver_message_from_timer()
-		 * 		// because it is a protected method.
-		 * 		// But we can call delegate_deliver_message_from_timer():
-		 * 		delegate_deliver_message_from_timer(
-		 * 				actual_mbox_, msg_type, message );
-		 * 	}
-		 * };
-		 * \endcode
-		 * 
-		 * \since
-		 * v.5.5.23
-		 */
-		static void
-		delegate_deliver_message_from_timer(
-			//! Mbox to be used for message delivery.
-			abstract_message_box_t & mbox,
-			//! Type of the message to deliver.
-			const std::type_index & msg_type,
-			//! A message instance to be delivered.
-			const message_ref_t & message )
-		{
-			mbox.do_deliver_message_from_timer( msg_type, message );
-		}
 };
+
+//
+// wrap_to_msink
+//
+/*!
+ * \brief Helper for wrapping an existing mbox into message_sink.
+ *
+ * Usage example:
+ * \code
+ * const so_5::mbox_t source = ...;
+ * const so_5::mbox_t dest = ...;
+ *
+ * so_5::single_sink_binding_t source_to_dest_binding;
+ * source_to_dest_binding.bind<my_message>(
+ * 	// Source mbox has to be specified as is.
+ * 	source,
+ * 	// The destination has to be wrapped into a msink.
+ * 	so_5::wrap_to_msink(dest));
+ * \endcode
+ *
+ * \attention
+ * The \a mbox is expected to be not-null.
+ */
+[[nodiscard]]
+msink_t SO_5_FUNC
+wrap_to_msink(
+	const mbox_t & mbox,
+	priority_t sink_priority = prio::p0 );
 
 namespace low_level_api {
 
@@ -377,6 +372,8 @@ namespace low_level_api {
 template< class Message >
 void
 deliver_message(
+	//! Can the delivery blocks the current thread?
+	message_delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -388,6 +385,7 @@ deliver_message(
 		ensure_message_with_actual_data( msg.get() );
 
 		target.do_deliver_message(
+			delivery_mode,
 			std::move(subscription_type),
 			message_ref_t{ msg.release() },
 			1u );
@@ -408,6 +406,8 @@ deliver_message(
  */
 inline void
 deliver_message(
+	//! Can the delivery blocks the current thread?
+	message_delivery_mode_t delivery_mode,
 	//! Destination for message.
 	abstract_message_box_t & target,
 	//! Subscription type for that message.
@@ -416,6 +416,7 @@ deliver_message(
 	message_ref_t msg )
 	{
 		target.do_deliver_message(
+				delivery_mode,
 				std::move(subscription_type),
 				std::move(msg),
 				1u );
@@ -437,12 +438,15 @@ deliver_message(
 template< class Message >
 void
 deliver_signal(
+	//! Can the delivery blocks the current thread?
+	message_delivery_mode_t delivery_mode,
 	//! Destination for signal.
 	abstract_message_box_t & target )
 	{
 		ensure_signal< Message >();
 
 		target.do_deliver_message(
+			delivery_mode,
 			message_payload_type< Message >::subscription_type_index(),
 			message_ref_t(),
 			1u );

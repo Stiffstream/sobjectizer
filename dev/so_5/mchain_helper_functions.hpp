@@ -282,10 +282,10 @@ class auto_closer_t
 			:	m_close_mode{ close_mode }
 			{}
 
-		auto_closer_t( auto_closer_t && o )
+		auto_closer_t( auto_closer_t && o ) noexcept
 			:	m_close_mode{ o.m_close_mode }
 			{
-				m_chains.swap( o.m_chains );
+				swap( m_chains, o.m_chains );
 			}
 
 		~auto_closer_t()
@@ -300,12 +300,13 @@ class auto_closer_t
 		friend inline void
 		swap( auto_closer_t & a, auto_closer_t & b ) noexcept
 			{
-				std::swap( a.m_close_mode, b.m_close_mode );
-				a.m_chains.swap( b.m_chains );
+				using std::swap;
+				swap( a.m_close_mode, b.m_close_mode );
+				swap( a.m_chains, b.m_chains );
 			}
 
 		auto_closer_t &
-		operator=( auto_closer_t && o )
+		operator=( auto_closer_t && o ) noexcept
 			{
 				auto_closer_t tmp{ std::move(o) };
 				swap( *this, tmp );
@@ -546,16 +547,18 @@ class mchain_master_handle_t
 		operator=( mchain_master_handle_t && handle ) noexcept
 			{
 				mchain_master_handle_t tmp( std::move(handle) );
-				this->swap(tmp);
+				swap( tmp, *this );
 				return *this;
 			}
 
 		//! Swap operation.
-		void
-		swap( mchain_master_handle_t & other ) noexcept
+		friend void
+		swap( mchain_master_handle_t & a,
+			mchain_master_handle_t & b ) noexcept
 			{
-				m_chain.swap( other.m_chain );
-				std::swap( m_close_mode, other.m_close_mode );
+				using std::swap;
+				swap( a.m_chain, b.m_chain );
+				swap( a.m_close_mode, b.m_close_mode );
 			}
 
 		//! Get the mchain.

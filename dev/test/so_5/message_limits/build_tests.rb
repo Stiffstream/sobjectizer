@@ -32,5 +32,12 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/another_direct_mbox/prj.ut.rb"
 
 	required_prj "#{path}/wont_compile_runner/prj.ut.rb"
+
+	required_prj "#{path}/redirect_from_timer_to_full_mchain/prj.ut.rb"
+	required_prj "#{path}/transform_from_timer_to_full_mchain/prj.ut.rb"
+
+	required_prj "#{path}/any_unspecified_msg_and_state_time_limit/prj.ut.rb"
+
+	required_prj "#{path}/subscription_unsubscription_1/prj.ut.rb"
 }
 

@@ -288,7 +288,7 @@ struct request_scheduling_data
 			};
 
 		// Processors and queues for them.
-		priority_data m_processors[ so_5::prio::total_priorities_count ];
+		std::array< priority_data, so_5::prio::total_priorities_count > m_processors;
 
 		// Helper for access information for the specified priority.
 		priority_data &

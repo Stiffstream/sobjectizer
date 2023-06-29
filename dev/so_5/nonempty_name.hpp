@@ -45,16 +45,18 @@ class nonempty_name_t
 				SO_5_THROW_EXCEPTION( rc_empty_name, "empty string as argument" );
 		}
 
-		nonempty_name_t( nonempty_name_t && o )
+		nonempty_name_t( nonempty_name_t && o ) noexcept
 			:	m_nonempty_name( std::move(o.m_nonempty_name) )
 		{}
 
-		friend void swap( nonempty_name_t & a, nonempty_name_t & b )
+		friend void
+		swap( nonempty_name_t & a, nonempty_name_t & b ) noexcept
 		{
-			a.m_nonempty_name.swap( b.m_nonempty_name );
+			swap( a.m_nonempty_name, b.m_nonempty_name );
 		}
 
-		nonempty_name_t & operator=( nonempty_name_t && o )
+		nonempty_name_t &
+		operator=( nonempty_name_t && o ) noexcept
 		{
 			nonempty_name_t tmp( std::move(o) );
 			swap( *this, o );
@@ -62,8 +64,9 @@ class nonempty_name_t
 		}
 
 		//! Get the value.
+		[[nodiscard]]
 		inline const std::string &
-		query_name() const
+		query_name() const noexcept
 		{
 			return m_nonempty_name;
 		}
@@ -77,12 +80,12 @@ class nonempty_name_t
 		 * \since
 		 * v.5.5.19
 		 */
+		[[nodiscard]]
 		std::string
 		giveout_value()
+			noexcept( noexcept( std::string{ std::move(m_nonempty_name) } ) )
 		{
-			std::string r;
-			r.swap( m_nonempty_name );
-			return r;
+			return std::move(m_nonempty_name);
 		}
 
 	private:

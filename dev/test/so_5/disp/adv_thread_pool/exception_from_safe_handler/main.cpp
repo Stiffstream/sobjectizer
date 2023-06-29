@@ -28,7 +28,7 @@ public:
 	}
 
 	so_5::exception_reaction_t
-	so_exception_reaction() const override
+	so_exception_reaction() const noexcept override
 	{
 		return so_5::deregister_coop_on_exception;
 	}

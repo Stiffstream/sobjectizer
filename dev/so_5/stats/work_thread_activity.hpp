@@ -4,10 +4,9 @@
 
 /*!
  * \file
- * \since
- * v.5.5.18
- *
  * \brief Data types for work thread's activity stats.
+ *
+ * \since v.5.5.18
  */
 
 #pragma once
@@ -26,8 +25,7 @@ namespace stats
 /*!
  * \brief An alias for clock type to be used for statistics.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using clock_type_t = std::conditional<
 				std::chrono::high_resolution_clock::is_steady,
@@ -41,16 +39,14 @@ static_assert( clock_type_t::is_steady,
 /*!
  * \brief An alias for type for representing time duration.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using duration_t = clock_type_t::duration;
 
 /*!
  * \brief Statistics of some activity.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct activity_stats_t
 	{
@@ -67,8 +63,7 @@ struct activity_stats_t
 /*!
  * \brief Helper for printing value of activity_stats.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 inline std::ostream &
 operator<<( std::ostream & to, const activity_stats_t & what )
@@ -88,8 +83,7 @@ operator<<( std::ostream & to, const activity_stats_t & what )
 /*!
  * \brief Stats for a work thread activity.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct work_thread_activity_stats_t
 	{
@@ -109,8 +103,7 @@ namespace details
  * Uses modified moving average (also known as running moving average)
  * which is calculated as: MMA(t) = (last + (N-1)*MMA(t-1))/N.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 inline duration_t
 calc_avg_time(
@@ -128,8 +121,7 @@ calc_avg_time(
 /*!
  * \brief Helper function for simplification of current stats update.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 inline void
 update_stats_from_duration(
@@ -145,8 +137,7 @@ update_stats_from_duration(
 /*!
  * \brief Helper function for simplification of current stats update.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 inline void
 update_stats_from_current_time(

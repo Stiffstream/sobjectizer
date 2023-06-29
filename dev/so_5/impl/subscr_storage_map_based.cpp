@@ -45,14 +45,14 @@ namespace map_based_subscr_storage
 class storage_t : public subscription_storage_t
 	{
 	public :
-		storage_t( agent_t * owner );
+		storage_t();
 		~storage_t() override;
 
 		void
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const message_limit::control_block_t * limit,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -62,15 +62,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox,
 			const std::type_index & msg_type,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) override;
+			const std::type_index & msg_type ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -82,7 +82,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -138,6 +138,15 @@ class storage_t : public subscription_storage_t
 				 * subscriptions in destructor.
 				 */
 				const mbox_t m_mbox;
+
+				/*!
+				 * Message sink used for that mbox.
+				 */
+				const std::reference_wrapper< abstract_message_sink_t > m_message_sink;
+
+				/*!
+				 * Event handler for that subscription.
+				 */
 				const event_handler_data_t m_handler;
 			};
 
@@ -148,12 +157,13 @@ class storage_t : public subscription_storage_t
 		subscr_map_t m_events;
 
 		void
-		destroy_all_subscriptions();
+		destroy_all_subscriptions() noexcept;
 	};
 
 namespace
 {
 	template< class C >
+	[[nodiscard]]
 	auto
 	find( C & c,
 		const mbox_id_t & mbox_id,
@@ -170,6 +180,7 @@ namespace
 			const std::type_index & m_type;
 
 			template< class K >
+			[[nodiscard]]
 			bool
 			operator()( const K & k ) const
 				{
@@ -178,21 +189,21 @@ namespace
 		};
 
 	template< class M, class IT >
-	bool is_known_mbox_msg_pair( M & s, IT it )
+	[[nodiscard]]
+	bool
+	is_known_mbox_msg_pair( M & s, IT it )
 		{
 			const is_same_mbox_msg predicate{
 					it->first.m_mbox_id, it->first.m_msg_type };
 
 			if( it != s.begin() )
 				{
-					IT prev = it;
-					--prev;
+					IT prev = std::prev( it );
 					if( predicate( prev->first ) )
 						return true;
 				}
 
-			IT next = it;
-			++next;
+			IT next = std::next( it );
 			if( next != s.end() )
 				return predicate( next->first );
 
@@ -201,8 +212,7 @@ namespace
 
 } /* namespace anonymous */
 
-storage_t::storage_t( agent_t * owner )
-	:	subscription_storage_t( owner )
+storage_t::storage_t()
 	{}
 
 storage_t::~storage_t()
@@ -214,7 +224,7 @@ void
 storage_t::create_event_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const message_limit::control_block_t * limit,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -237,17 +247,17 @@ storage_t::create_event_subscription(
 
 		// Just add subscription to the end.
 		auto ins_result = m_events.emplace(
-				subscr_map_t::value_type {
-						key_t { mbox_id, msg_type, &target_state },
-						value_t {
-								mbox,
-								event_handler_data_t {
-										method,
-										thread_safety,
-										handler_kind
-								}
-						}
-				} );
+					key_t { mbox_id, msg_type, &target_state },
+					value_t {
+							mbox,
+							std::ref( message_sink ),
+							event_handler_data_t {
+									method,
+									thread_safety,
+									handler_kind
+							}
+					}
+				);
 
 		// Note: since v.5.5.9 mbox subscription is initiated even if
 		// it is MPSC mboxes. It is important for the case of message
@@ -261,8 +271,7 @@ storage_t::create_event_subscription(
 					[&] {
 						mbox->subscribe_event_handler(
 								msg_type,
-								limit,
-								*owner() );
+								message_sink );
 					},
 					[&] {
 						m_events.erase( ins_result.first );
@@ -274,13 +283,13 @@ void
 storage_t::drop_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		auto existed_position = find(
 				m_events, mbox->id(), msg_type, target_state );
 		if( existed_position != m_events.end() )
 			{
-				// Note v.5.5.9 unsubscribe_event_handlers is called for
+				// Note v.5.5.9 unsubscribe_event_handler is called for
 				// mbox even if it is MPSC mbox. It is necessary for the case
 				// of message delivery tracing.
 
@@ -290,11 +299,15 @@ storage_t::drop_subscription(
 				bool must_unsubscribe_mbox =
 						!is_known_mbox_msg_pair( m_events, existed_position );
 
+				// Store a reference to message_sink for a case if
+				// unsubscribe_event_handler has to be called.
+				abstract_message_sink_t & sink = existed_position->second.m_message_sink.get();
+
 				m_events.erase( existed_position );
 
 				if( must_unsubscribe_mbox )
 					{
-						mbox->unsubscribe_event_handlers( msg_type, *owner() );
+						mbox->unsubscribe_event_handler( msg_type, sink );
 					}
 			}
 	}
@@ -302,7 +315,7 @@ storage_t::drop_subscription(
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox,
-	const std::type_index & msg_type )
+	const std::type_index & msg_type ) noexcept
 	{
 		const is_same_mbox_msg is_same{ mbox->id(), msg_type };
 
@@ -317,6 +330,11 @@ storage_t::drop_subscription_for_all_states(
 
 		if( events_found )
 			{
+				// Store a reference to message_sink because it's required
+				// for unsubscribe_event_handler call.
+				abstract_message_sink_t & sink = lower_bound->second.m_message_sink.get();
+
+				// Erase all subscribed event handlers.
 				do
 					{
 						m_events.erase( lower_bound++ );
@@ -327,12 +345,12 @@ storage_t::drop_subscription_for_all_states(
 				// it is MPSC mboxes. It is important for the case of message
 				// delivery tracing.
 
-				mbox->unsubscribe_event_handlers( msg_type, *owner() );
+				mbox->unsubscribe_event_handler( msg_type, sink );
 			}
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		destroy_all_subscriptions();
 	}
@@ -362,7 +380,7 @@ storage_t::debug_dump( std::ostream & to ) const
 	}
 
 void
-storage_t::destroy_all_subscriptions()
+storage_t::destroy_all_subscriptions() noexcept
 	{
 		using namespace std;
 
@@ -375,9 +393,9 @@ storage_t::destroy_all_subscriptions()
 						cur->first.m_mbox_id,
 						cur->first.m_msg_type }( it->first ) )
 					{
-						cur->second.m_mbox->unsubscribe_event_handlers(
+						cur->second.m_mbox->unsubscribe_event_handler(
 								cur->first.m_msg_type,
-								*owner() );
+								cur->second.m_message_sink.get() );
 					}
 
 				m_events.erase( cur );
@@ -385,10 +403,9 @@ storage_t::destroy_all_subscriptions()
 	}
 
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
-		subscr_map_t empty_map;
-		m_events.swap( empty_map );
+		m_events.clear();
 	}
 
 subscription_storage_common::subscr_info_vector_t
@@ -410,6 +427,7 @@ storage_t::query_content() const
 							return subscr_info_t(
 									e.second.m_mbox,
 									e.first.m_msg_type,
+									e.second.m_message_sink.get(),
 									*(e.first.m_state),
 									e.second.m_handler.m_method,
 									e.second.m_handler.m_thread_safety,
@@ -440,11 +458,12 @@ storage_t::setup_content(
 							},
 							value_t {
 								i.m_mbox,
+								i.m_message_sink,
 								i.m_handler
 							} };
 				} );
 
-		m_events.swap( events );
+		swap( m_events, events );
 	}
 
 std::size_t
@@ -460,9 +479,9 @@ storage_t::query_subscriptions_count() const
 SO_5_FUNC subscription_storage_factory_t
 map_based_subscription_storage_factory()
 	{
-		return []( agent_t * owner ) {
+		return []() {
 			return impl::subscription_storage_unique_ptr_t(
-					new impl::map_based_subscr_storage::storage_t( owner ) );
+					new impl::map_based_subscr_storage::storage_t() );
 		};
 	}
 

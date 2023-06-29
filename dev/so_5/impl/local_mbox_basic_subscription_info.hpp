@@ -16,8 +16,6 @@
 #include <so_5/agent.hpp>
 #include <so_5/enveloped_msg.hpp>
 
-#include <so_5/impl/message_limit_internals.hpp>
-
 namespace so_5
 {
 
@@ -28,12 +26,18 @@ namespace local_mbox_details
 {
 
 /*!
- * \since
- * v.5.7.4
- *
  * \brief An information block about one subscription to one message type.
+ *
+ * This class is intended to be used for cases when there is no actual
+ * reference to a sink. The presence/absence of a subscription is controlled
+ * by m_state member (and subscription_defined()/subscription_dropped() methods).
+ *
+ * Delivery filter can be present, in that case a pointer to delivery filter
+ * will be stored inside the instance of that class.
+ *
+ * \since v.5.7.4
  */
-class basic_subscription_info_t
+class subscription_info_without_sink_t
 {
 protected:
 	/*!
@@ -47,9 +51,6 @@ protected:
 		subscriptions_and_filter
 	};
 
-	//! Optional message limit for that subscription.
-	const so_5::message_limit::control_block_t * m_limit;
-
 	/*!
 	 * \brief Delivery filter for that message for that subscription.
 	 */
@@ -61,72 +62,57 @@ protected:
 	state_t m_state;
 
 public :
+	/*!
+	 * \brief Helper type that tells that subscription is present.
+	 */
+	struct subscription_present_t {};
+
 	//! Default constructor. Creates an empty object.
-	basic_subscription_info_t()
-		:	m_limit( nullptr )
-		,	m_filter( nullptr )
+	subscription_info_without_sink_t()
+		:	m_filter( nullptr )
 		,	m_state( state_t::nothing )
 	{}
 
 	//! Constructor for the case when info is being
 	//! created during event subscription.
-	basic_subscription_info_t(
-		//! Optional limit info. Can be nullptr if limits have not to be used at all
-		//! (for example, for limitless MPSC mboxes).
-		const so_5::message_limit::control_block_t * limit )
-		:	m_limit( limit )
-		,	m_filter( nullptr )
+	subscription_info_without_sink_t(
+		subscription_present_t /*subscription_presence*/ )
+		:	m_filter( nullptr )
 		,	m_state( state_t::only_subscriptions )
 	{}
 
 	//! Constructor for the case when subscriber info is being
 	//! created during setting a delivery filter.
-	basic_subscription_info_t(
-		const delivery_filter_t * filter )
-		:	m_limit( nullptr )
-		,	m_filter( filter )
+	subscription_info_without_sink_t(
+		const delivery_filter_t & filter )
+		:	m_filter( std::addressof(filter) )
 		,	m_state( state_t::only_filter )
 	{}
 
+	[[nodiscard]]
 	bool
 	empty() const
 	{
 		return state_t::nothing == m_state;
 	}
 
-	const message_limit::control_block_t *
-	limit() const
-	{
-		return m_limit;
-	}
-
-	//! Set the message limit for the subscriber.
 	/*!
-	 * Setting the message limit means that there are subscriptions
-	 * for the agent.
-	 *
-	 * \note The message limit can be nullptr.
+	 * \brief Inform about addition of a subscription.
 	 */
 	void
-	set_limit( const message_limit::control_block_t * limit )
+	subscription_defined()
 	{
-		m_limit = limit;
-
 		m_state = ( state_t::nothing == m_state ?
 				state_t::only_subscriptions :
 				state_t::subscriptions_and_filter );
 	}
 
-	//! Drop the message limit for the subscriber.
 	/*!
-	 * Dropping the message limit means that there is no more
-	 * subscription for the agent.
+	 * \brief Inform about removal of a subscription.
 	 */
 	void
-	drop_limit()
+	subscription_dropped()
 	{
-		m_limit = nullptr;
-
 		m_state = ( state_t::only_subscriptions == m_state ?
 				state_t::nothing : state_t::only_filter );
 	}
@@ -154,9 +140,10 @@ public :
 
 	//! Must a message be delivered to the subscriber?
 	template< typename Msg_Ref_Extractor >
+	[[nodiscard]]
 	delivery_possibility_t
 	must_be_delivered(
-		agent_t & subscriber,
+		abstract_message_sink_t & subscriber,
 		const message_ref_t & msg,
 		Msg_Ref_Extractor msg_extractor ) const
 	{
@@ -185,6 +172,166 @@ public :
 		}
 
 		return need_deliver;
+	}
+};
+
+/*!
+ * \brief An information block about one subscription to one message type
+ * with presence of message_sink.
+ *
+ * This class is intended to be used for cases when actual
+ * reference to a sink has to be stored if subscription is present.
+ *
+ * Delivery filter can be present, in that case a pointer to delivery filter
+ * will be stored inside the instance of that class.
+ *
+ * \since v.5.7.4
+ */
+class subscription_info_with_sink_t
+{
+protected:
+	/*!
+	 * \brief Message sink for a subscriber.
+	 *
+	 * nullptr means that there is no subscriber.
+	 */
+	abstract_message_sink_t * m_sink;
+
+	/*!
+	 * \brief Delivery filter for that message for that subscription.
+	 *
+	 * nullptr means that there is no delivery filter.
+	 */
+	const delivery_filter_t * m_filter;
+
+public :
+	//! Default constructor. Creates an empty object.
+	subscription_info_with_sink_t()
+		:	m_sink{ nullptr }
+		,	m_filter{ nullptr }
+	{}
+
+	//! Constructor for the case when info is being
+	//! created during event subscription.
+	subscription_info_with_sink_t(
+		abstract_message_sink_t & sink )
+		:	m_sink{ std::addressof(sink) }
+		,	m_filter{ nullptr }
+	{}
+
+	//! Constructor for the case when subscriber info is being
+	//! created during setting a delivery filter.
+	subscription_info_with_sink_t(
+		const delivery_filter_t & filter )
+		:	m_sink{ nullptr }
+		,	m_filter{ std::addressof(filter) }
+	{}
+
+	//! Constructor for the case when info is being
+	//! created when subscriber and delivery_filter are known.
+	subscription_info_with_sink_t(
+		abstract_message_sink_t & sink,
+		const delivery_filter_t & filter )
+		:	m_sink{ std::addressof(sink) }
+		,	m_filter{ std::addressof(filter) }
+	{}
+
+	[[nodiscard]]
+	bool
+	empty() const noexcept
+	{
+		return !m_sink && !m_filter;
+	}
+
+	/*!
+	 * \brief Inform about addition of a subscription.
+	 */
+	void
+	set_sink( abstract_message_sink_t & sink )
+	{
+		m_sink = std::addressof(sink);
+	}
+
+	/*!
+	 * \brief Inform about removal of a subscription.
+	 */
+	void
+	drop_sink()
+	{
+		m_sink = nullptr;
+	}
+
+	//! Set the delivery filter for the subscriber.
+	void
+	set_filter( const delivery_filter_t & filter )
+	{
+		m_filter = std::addressof(filter);
+	}
+
+	//! Drop the delivery filter for the subscriber.
+	void
+	drop_filter()
+	{
+		m_filter = nullptr;
+	}
+
+	//! Must a message be delivered to the subscriber?
+	template< typename Msg_Ref_Extractor >
+	[[nodiscard]]
+	delivery_possibility_t
+	must_be_delivered(
+		const message_ref_t & msg,
+		Msg_Ref_Extractor msg_extractor ) const
+	{
+		// For the case when there are actual subscriptions.
+		// We assume that will be in 99.9% cases.
+		auto need_deliver = delivery_possibility_t::must_be_delivered;
+
+		if( !m_sink )
+			// Only filter, no actual subscriptions.
+			// No message delivery for that case.
+			need_deliver = delivery_possibility_t::no_subscription;
+		else if( m_filter )
+		{
+			// Delivery must be checked by delivery filter.
+			// But message must be extracted from an envelope first.
+			auto opt_msg = so_5::enveloped_msg::message_to_be_inspected( msg );
+			if( opt_msg )
+			{
+				message_t & actual_msg = msg_extractor( *opt_msg );
+				need_deliver = m_filter->check( *m_sink, actual_msg ) ?
+						delivery_possibility_t::must_be_delivered :
+						delivery_possibility_t::disabled_by_delivery_filter;
+			}
+			else
+				need_deliver = delivery_possibility_t::hidden_by_envelope;
+		}
+
+		return need_deliver;
+	}
+
+	/*!
+	 * \brief Get a reference to the subscribed sink.
+	 *
+	 * \attention
+	 * It's UB to try to access a sink if sink isn't set.
+	 * There is no checking for performance reasons.
+	 */
+	[[nodiscard]]
+	abstract_message_sink_t &
+	sink_reference() const noexcept
+	{
+		return *m_sink;
+	}
+
+	/*!
+	 * \brief Get a pointer to the subscribed sink.
+	 */
+	[[nodiscard]]
+	abstract_message_sink_t *
+	sink_pointer() const noexcept
+	{
+		return m_sink;
 	}
 };
 

@@ -114,7 +114,9 @@ struct key_t
  */
 struct hash_t
 	{
-		std::size_t operator()( const key_t * ptr ) const noexcept
+		[[nodiscard]]
+		std::size_t
+		operator()( const key_t * ptr ) const noexcept
 			{
 				// This details have been borrowed from documentation fo
 				// boost::hash_combine function:
@@ -143,7 +145,9 @@ struct hash_t
  */
 struct equal_to_t
 	{
-		bool operator()( const key_t * a, const key_t * b ) const
+		[[nodiscard]]
+		bool
+		operator()( const key_t * a, const key_t * b ) const
 			{
 				return (*a) == (*b);
 			}
@@ -152,7 +156,9 @@ struct equal_to_t
 namespace
 {
 	template< class S >
-	bool is_known_mbox_msg_pair(
+	[[nodiscard]]
+	bool
+	is_known_mbox_msg_pair(
 		S & s,
 		typename S::iterator it )
 	{
@@ -201,14 +207,14 @@ namespace
 class storage_t : public subscription_storage_t
 	{
 	public :
-		storage_t( agent_t * owner );
+		storage_t();
 		~storage_t() override;
 
 		virtual void
 		create_event_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const message_limit::control_block_t * limit,
+			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
@@ -218,15 +224,15 @@ class storage_t : public subscription_storage_t
 		drop_subscription(
 			const mbox_t & mbox_ref,
 			const std::type_index & type_index,
-			const state_t & target_state ) override;
+			const state_t & target_state ) noexcept override;
 
 		void
 		drop_subscription_for_all_states(
 			const mbox_t & mbox_ref,
-			const std::type_index & type_index ) override;
+			const std::type_index & type_index ) noexcept override;
 
 		void
-		drop_all_subscriptions() override;
+		drop_all_subscriptions() noexcept override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -238,7 +244,7 @@ class storage_t : public subscription_storage_t
 		debug_dump( std::ostream & to ) const override;
 
 		void
-		drop_content() override;
+		drop_content() noexcept override;
 
 		subscription_storage_common::subscr_info_vector_t
 		query_content() const override;
@@ -251,8 +257,16 @@ class storage_t : public subscription_storage_t
 		query_subscriptions_count() const override;
 
 	private :
+		//! Information about mbox and message_sink used for
+		//! subscription to that mbox.
+		struct mbox_with_sink_info_t
+			{
+				mbox_t m_mbox;
+				std::reference_wrapper< abstract_message_sink_t > m_message_sink;
+			};
+
 		//! Type of subscription map.
-		using map_t = std::map< key_t, mbox_t >;
+		using map_t = std::map< key_t, mbox_with_sink_info_t >;
 
 		//! Map of subscriptions.
 		/*!
@@ -273,11 +287,10 @@ class storage_t : public subscription_storage_t
 		hash_table_t m_hash_table;
 
 		void
-		destroy_all_subscriptions();
+		destroy_all_subscriptions() noexcept;
 	};
 
-storage_t::storage_t( agent_t * owner )
-	:	subscription_storage_t( owner )
+storage_t::storage_t()
 	{}
 
 storage_t::~storage_t()
@@ -287,9 +300,9 @@ storage_t::~storage_t()
 
 void
 storage_t::create_event_subscription(
-	const mbox_t & mbox_ref,
+	const mbox_t & mbox,
 	const std::type_index & type_index,
-	const message_limit::control_block_t * limit,
+	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
@@ -297,15 +310,17 @@ storage_t::create_event_subscription(
 	{
 		using namespace subscription_storage_common;
 
-		key_t key( mbox_ref->id(), type_index, target_state );
+		key_t key{ mbox->id(), type_index, target_state };
 
-		auto insertion_result = m_map.emplace( key, mbox_ref );
+		auto insertion_result = m_map.emplace(
+				key,
+				mbox_with_sink_info_t{ mbox, std::ref(message_sink) } );
 
 		if( !insertion_result.second )
 			SO_5_THROW_EXCEPTION(
 				rc_evt_handler_already_provided,
 				"agent is already subscribed to message, " +
-				make_subscription_description( mbox_ref, type_index, target_state ) );
+				make_subscription_description( mbox, type_index, target_state ) );
 
 		so_5::details::do_with_rollback_on_exception(
 			[&] {
@@ -321,8 +336,8 @@ storage_t::create_event_subscription(
 			// Mbox must create subscription.
 			so_5::details::do_with_rollback_on_exception(
 				[&] {
-					mbox_ref->subscribe_event_handler(
-							type_index, limit, *owner() );
+					mbox->subscribe_event_handler(
+							type_index, message_sink );
 				},
 				[&] {
 					m_hash_table.erase( &(insertion_result.first->first) );
@@ -335,7 +350,7 @@ void
 storage_t::drop_subscription(
 	const mbox_t & mbox_ref,
 	const std::type_index & type_index,
-	const state_t & target_state )
+	const state_t & target_state ) noexcept
 	{
 		key_t key( mbox_ref->id(), type_index, target_state );
 
@@ -345,12 +360,16 @@ storage_t::drop_subscription(
 		{
 			bool mbox_msg_known = is_known_mbox_msg_pair( m_map, it );
 
+			// A reference to message_sink has to be stored for a case when
+			// unsubscribe_event_handler has to be called.
+			abstract_message_sink_t & sink = it->second.m_message_sink.get();
+
 			m_hash_table.erase( &(it->first) );
 			m_map.erase( it );
 
 			if( !mbox_msg_known )
 			{
-				mbox_ref->unsubscribe_event_handlers( type_index, *owner() );
+				mbox_ref->unsubscribe_event_handler( type_index, sink );
 			}
 		}
 	}
@@ -358,7 +377,7 @@ storage_t::drop_subscription(
 void
 storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox_ref,
-	const std::type_index & type_index )
+	const std::type_index & type_index ) noexcept
 	{
 		const key_t key( mbox_ref->id(), type_index );
 
@@ -370,6 +389,11 @@ storage_t::drop_subscription_for_all_states(
 		const bool found = need_erase();
 		if( found )
 		{
+			// A reference to message_sink is necessary for calling
+			// unsubscribe_event_handler. Store it here before removing
+			// items from m_hash_table and m_map.
+			abstract_message_sink_t & sink = it->second.m_message_sink.get();
+
 			do
 				{
 					m_hash_table.erase( &(it->first) );
@@ -377,12 +401,12 @@ storage_t::drop_subscription_for_all_states(
 				}
 			while( need_erase() );
 
-			mbox_ref->unsubscribe_event_handlers( type_index, *owner() );
+			mbox_ref->unsubscribe_event_handler( type_index, sink );
 		}
 	}
 
 void
-storage_t::drop_all_subscriptions()
+storage_t::drop_all_subscriptions() noexcept
 	{
 		destroy_all_subscriptions();
 	}
@@ -412,36 +436,36 @@ storage_t::debug_dump( std::ostream & to ) const
 	}
 
 void
-storage_t::destroy_all_subscriptions()
+storage_t::destroy_all_subscriptions() noexcept
 	{
 		{
 			const map_t::value_type * previous = nullptr;
 			for( auto & i : m_map )
-			{
-				// Optimisation: for several consequtive keys with
-				// the same (mbox, msg_type) pair it is necessary to
-				// call unsubscribe_event_handlers only once.
-				if( !previous ||
-						!previous->first.is_same_mbox_msg_pair( i.first ) )
-					i.second->unsubscribe_event_handlers(
-						i.first.m_msg_type,
-						*owner() );
+				{
+					// Optimisation: for several consequtive keys with
+					// the same (mbox, msg_type) pair it is necessary to
+					// call unsubscribe_event_handler only once.
+					if( !previous ||
+							!previous->first.is_same_mbox_msg_pair( i.first ) )
+						{
+							i.second.m_mbox->unsubscribe_event_handler(
+								i.first.m_msg_type,
+								i.second.m_message_sink.get() );
+						}
 
-				previous = &i;
-			}
+					previous = &i;
+				}
 		}
 
 		drop_content();
 	}
 
 void
-storage_t::drop_content()
+storage_t::drop_content() noexcept
 	{
-		hash_table_t tmp_hash_table;
-		m_hash_table.swap( tmp_hash_table );
+		m_hash_table.clear();
 
-		map_t tmp_map;
-		m_map.swap( tmp_map );
+		m_map.clear();
 	}
 
 subscription_storage_common::subscr_info_vector_t
@@ -463,8 +487,9 @@ storage_t::query_content() const
 							auto map_item = m_map.find( *(i.first) );
 
 							return subscr_info_t {
-									map_item->second,
+									map_item->second.m_mbox,
 									map_item->first.m_msg_type,
+									map_item->second.m_message_sink.get(),
 									*(map_item->first.m_state),
 									i.second.m_method,
 									i.second.m_thread_safety,
@@ -491,13 +516,18 @@ storage_t::setup_content(
 			{
 				key_t k{ i.m_mbox->id(), i.m_msg_type, *(i.m_state) };
 
-				auto ins_result = fresh_map.emplace( k, i.m_mbox );
+				auto ins_result = fresh_map.emplace(
+						k,
+						mbox_with_sink_info_t{
+								i.m_mbox,
+								i.m_message_sink
+						} );
 
 				fresh_table.emplace( &(ins_result.first->first), i.m_handler );
 			} );
 
-		m_map.swap( fresh_map );
-		m_hash_table.swap( fresh_table );
+		swap( m_map, fresh_map );
+		swap( m_hash_table, fresh_table );
 	}
 
 std::size_t
@@ -513,9 +543,9 @@ storage_t::query_subscriptions_count() const
 SO_5_FUNC subscription_storage_factory_t
 hash_table_based_subscription_storage_factory()
 	{
-		return []( agent_t * owner ) {
+		return []() {
 			return impl::subscription_storage_unique_ptr_t(
-					new impl::hash_table_subscr_storage::storage_t( owner ) );
+					new impl::hash_table_subscr_storage::storage_t() );
 		};
 	}
 

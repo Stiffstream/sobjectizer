@@ -37,6 +37,7 @@ environment_params_t::environment_params_t()
 	,	m_exception_reaction( abort_on_exception )
 	,	m_autoshutdown_disabled( false )
 	,	m_error_logger( create_stderr_logger() )
+	,	m_default_disp_params{ so_5::disp::one_thread::disp_params_t{} }
 	,	m_work_thread_activity_tracking(
 			work_thread_activity_tracking_t::unspecified )
 	,	m_infrastructure_factory( env_infrastructures::default_mt::factory() )
@@ -71,7 +72,7 @@ environment_params_t::~environment_params_t()
 }
 
 environment_params_t &
-environment_params_t::operator=( environment_params_t && other )
+environment_params_t::operator=( environment_params_t && other ) noexcept
 {
 	environment_params_t tmp( std::move( other ) );
 	swap( *this, tmp );
@@ -80,7 +81,7 @@ environment_params_t::operator=( environment_params_t && other )
 }
 
 SO_5_FUNC void
-swap( environment_params_t & a, environment_params_t & b )
+swap( environment_params_t & a, environment_params_t & b ) noexcept
 {
 	using std::swap;
 
@@ -148,8 +149,8 @@ namespace
 
 /*!
  * \brief A bunch of data sources for core objects.
- * \since
- * v.5.5.4
+ *
+ * \since v.5.5.4
  */
 class core_data_sources_t
 	{
@@ -184,8 +185,7 @@ class core_data_sources_t
  * \brief Helper function for creation of appropriate manager
  * object if necessary.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 queue_locks_defaults_manager_unique_ptr_t
 ensure_locks_defaults_manager_exists(
@@ -208,8 +208,7 @@ ensure_locks_defaults_manager_exists(
  *
  * Do nothing.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class default_event_queue_hook_t final : public event_queue_hook_t
 	{
@@ -235,8 +234,7 @@ class default_event_queue_hook_t final : public event_queue_hook_t
  * \brief Helper function for creation of appropriate event_queue_hook
  * object if necessary.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 [[nodiscard]]
 event_queue_hook_unique_ptr_t
@@ -285,21 +283,19 @@ ensure_work_thread_factory_exists(
 // environment_t::internals_t
 //
 /*!
- * \since
- * v.5.5.0
+ * \since v.5.5.0
  *
  * \brief Internal details of SObjectizer Environment object.
  */
 struct environment_t::internals_t
 {
 	/*!
-	 * \since
-	 * v.5.5.0
-	 *
 	 * \brief Error logger object for this environment.
 	 *
 	 * \attention Must be the first attribute of the object!
 	 * It must be created and initilized first and destroyed last.
+	 *
+	 * \since v.5.5.0
 	 */
 	error_logger_shptr_t m_error_logger;
 
@@ -310,8 +306,7 @@ struct environment_t::internals_t
 	 * before m_mbox_core because a reference to that object will be passed
 	 * to the constructor of m_mbox_core.
 	 *
-	 * \since
-	 * v.5.5.22
+	 * \since v.5.5.22
 	 */
 	so_5::msg_tracing::impl::std_holder_t m_msg_tracing_stuff;
 
@@ -321,8 +316,7 @@ struct environment_t::internals_t
 	/*!
 	 * \brief A repository of stop_guards.
 	 *
-	 * \since
-	 * v.5.5.19.2
+	 * \since v.5.5.19.2
 	 */
 	impl::stop_guard_repository_t m_stop_guards;
 
@@ -332,8 +326,7 @@ struct environment_t::internals_t
 	 * Note: infrastructure takes care about coop repository,
 	 * timer threads/managers and default dispatcher.
 	 *
-	 * \since
-	 * v.5.5.19
+	 * \since v.5.5.19
 	 */
 	environment_infrastructure_unique_ptr_t m_infrastructure;
 
@@ -342,8 +335,8 @@ struct environment_t::internals_t
 
 	/*!
 	 * \brief An exception reaction for the whole SO Environment.
-	 * \since
-	 * v.5.3.0
+	 *
+	 * \since v.5.3.0
 	 */
 	const exception_reaction_t m_exception_reaction;
 
@@ -352,8 +345,7 @@ struct environment_t::internals_t
 	 *
 	 * \see environment_params_t::disable_autoshutdown()
 	 *
-	 * \since
-	 * v.5.4.0
+	 * \since v.5.4.0
 	 */
 	const bool m_autoshutdown_disabled;
 
@@ -367,23 +359,21 @@ struct environment_t::internals_t
 	 * of environment_infrastructure. Because of that m_core_data_sources
 	 * declared and created after m_infrastructure.
 	 * 
-	 * \since
-	 * v.5.5.4
+	 * \since v.5.5.4
 	 */
 	core_data_sources_t m_core_data_sources;
 
 	/*!
 	 * \brief Work thread activity tracking for the whole Environment.
-	 * \since
-	 * v.5.5.18
+	 *
+	 * \since v.5.5.18
 	 */
 	work_thread_activity_tracking_t m_work_thread_activity_tracking;
 
 	/*!
 	 * \brief Manager for defaults of queue locks.
 	 *
-	 * \since
-	 * v.5.5.18
+	 * \since v.5.5.18
 	 */
 	queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
 
@@ -394,8 +384,7 @@ struct environment_t::internals_t
 	 * If there is no event_queue_hook in environment_params_t then
 	 * an instance of default_event_queue_hook_t will be created and used.
 	 *
-	 * \since
-	 * v.5.5.24
+	 * \since v.5.5.24
 	 */
 	event_queue_hook_unique_ptr_t m_event_queue_hook;
 
@@ -418,16 +407,14 @@ struct environment_t::internals_t
 	 * Manipulations with m_event_exception_logger are performed
 	 * only under that lock.
 	 *
-	 * \since
-	 * v.5.6.0
+	 * \since v.5.6.0
 	 */
 	std::mutex m_event_exception_logger_lock;
 
 	/*!
 	 * \brief Logger for exceptions thrown from event-handlers.
 	 *
-	 * \since
-	 * v.5.6.0
+	 * \since v.5.6.0
 	 */
 	event_exception_logger_unique_ptr_t m_event_exception_logger;
 
@@ -506,6 +493,18 @@ environment_t::create_mbox(
 	nonempty_name_t nonempty_name )
 {
 	return m_impl->m_mbox_core->create_mbox( *this, std::move(nonempty_name) );
+}
+
+mbox_t
+environment_t::introduce_named_mbox(
+	mbox_namespace_name_t mbox_namespace,
+	nonempty_name_t mbox_name,
+	const std::function< mbox_t() > & mbox_factory )
+{
+	return m_impl->m_mbox_core->introduce_named_mbox(
+			std::move(mbox_namespace),
+			std::move(mbox_name),
+			mbox_factory );
 }
 
 mchain_t
@@ -682,7 +681,7 @@ environment_t::run()
 }
 
 void
-environment_t::stop()
+environment_t::stop() noexcept
 {
 	// Since v.5.5.19.2 there is a new shutdown procedure:
 	const auto action = m_impl->m_stop_guards.initiate_stop();
@@ -701,7 +700,7 @@ environment_t::call_exception_logger(
 }
 
 exception_reaction_t
-environment_t::exception_reaction() const
+environment_t::exception_reaction() const noexcept
 {
 	return m_impl->m_exception_reaction;
 }
@@ -868,14 +867,21 @@ namespace impl
 {
 
 mbox_t
-internal_env_iface_t::create_mpsc_mbox(
-	agent_t * single_consumer,
-	const so_5::message_limit::impl::info_storage_t * limits_storage )
+internal_env_iface_t::create_ordinary_mpsc_mbox(
+	agent_t & single_consumer )
 {
-	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
+	return m_env.m_impl->m_mbox_core->create_ordinary_mpsc_mbox(
 			m_env,
-			single_consumer,
-			limits_storage );
+			single_consumer );
+}
+
+mbox_t
+internal_env_iface_t::create_limitless_mpsc_mbox(
+	agent_t & single_consumer )
+{
+	return m_env.m_impl->m_mbox_core->create_limitless_mpsc_mbox(
+			m_env,
+			single_consumer );
 }
 
 void
@@ -887,9 +893,9 @@ internal_env_iface_t::ready_to_deregister_notify(
 
 void
 internal_env_iface_t::final_deregister_coop(
-	coop_shptr_t coop )
+	coop_shptr_t coop ) noexcept
 {
-	bool any_cooperation_alive = 
+	bool any_cooperation_alive =
 			m_env.m_impl->m_infrastructure->final_deregister_coop(
 					std::move(coop) );
 

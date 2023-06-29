@@ -17,6 +17,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/mchain.hpp>
 #include <so_5/agent.hpp>
+#include <so_5/outliving.hpp>
 
 #include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/message_limit_action_msg_tracer.hpp>
@@ -60,6 +61,9 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		virtual optional<const agent_t *>
 		agent() const noexcept override;
 
+		virtual optional<const abstract_message_sink_t *>
+		message_sink() const noexcept override;
+
 		virtual optional<std::type_index>
 		msg_type() const noexcept override;
 
@@ -83,6 +87,9 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 
 		void
 		set_agent( const agent_t * agent ) noexcept;
+
+		void
+		set_message_sink( const abstract_message_sink_t * message_sink ) noexcept;
 
 		void
 		set_msg_type( const std::type_index & msg_type ) noexcept;
@@ -109,6 +116,7 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 	private :
 		optional<current_thread_id_t> m_tid;
 		optional<const agent_t *> m_agent;
+		optional<const abstract_message_sink_t *> m_message_sink;
 		optional<std::type_index> m_msg_type;
 		optional<so_5::msg_tracing::msg_source_t> m_msg_source;
 		optional<so_5::msg_tracing::message_or_signal_flag_t> m_message_or_signal;
@@ -117,12 +125,12 @@ class SO_5_TYPE actual_trace_data_t : public so_5::msg_tracing::trace_data_t
 		optional<const so_5::impl::event_handler_data_t *> m_event_handler_data_ptr;
 	};
 
-struct overlimit_deep
+struct redirection_deep
 	{
 		unsigned int m_deep;
 
 		// Note: this constructor is necessary for compatibility with MSVC++2013.
-		overlimit_deep( unsigned int deep ) : m_deep{ deep } {}
+		redirection_deep( unsigned int deep ) : m_deep{ deep } {}
 	};
 
 struct mbox_identification
@@ -322,6 +330,18 @@ fill_trace_data_1(
 	}
 
 inline void
+make_trace_to_1( std::ostream & s, const abstract_message_sink_t * sink )
+	{
+		s << "[msg_sink_ptr=" << pointer{sink} << "]";
+	}
+
+inline void
+fill_trace_data_1( actual_trace_data_t & d, const abstract_message_sink_t * sink )
+	{
+		d.set_message_sink( sink );
+	}
+
+inline void
 make_trace_to_1( std::ostream & s, const agent_t * agent )
 	{
 		s << "[agent_ptr=" << pointer{agent} << "]";
@@ -423,15 +443,15 @@ fill_trace_data_1(
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const overlimit_deep limit )
+make_trace_to_1( std::ostream & s, const redirection_deep limit )
 	{
-		s << "[overlimit_deep=" << limit.m_deep << "]";
+		s << "[redirection_deep=" << limit.m_deep << "]";
 	}
 
 inline void
 fill_trace_data_1(
 	actual_trace_data_t & /*d*/,
-	const overlimit_deep /*limit*/ )
+	const redirection_deep /*limit*/ )
 	{
 		// Just for compilation.
 	}
@@ -476,6 +496,37 @@ inline void
 fill_trace_data_1(
 	actual_trace_data_t & /*d*/,
 	chain_size /*size*/ )
+	{
+		// Just for compilation.
+	}
+
+inline void
+make_trace_to_1(
+	std::ostream & s,
+	message_delivery_mode_t mode )
+	{
+		const auto mode_to_str = []( auto m ) -> const char * {
+				const char * r = "unknown";
+				switch( m )
+					{
+					case message_delivery_mode_t::ordinary:
+						r = "ordinary";
+					break;
+
+					case message_delivery_mode_t::nonblocking:
+						r = "nonblocking";
+					break;
+					}
+				return r;
+			};
+
+		s << "[delivery_mode=" << mode_to_str( mode ) << "]";
+	}
+
+inline void
+fill_trace_data_1(
+	actual_trace_data_t & /*d*/,
+	message_delivery_mode_t /*mode*/ )
 	{
 		// Just for compilation.
 	}
@@ -554,6 +605,7 @@ struct tracing_disabled_base
 					const tracing_disabled_base &,
 					const abstract_message_box_t &,
 					const char *,
+					message_delivery_mode_t,
 					const std::type_index &,
 					const message_ref_t &,
 					const unsigned int )
@@ -571,11 +623,9 @@ struct tracing_disabled_base
 				no_subscribers() const {}
 
 				void
-				push_to_queue( const agent_t * ) const {}
-
-				void
 				message_rejected(
-					const agent_t *,
+					// NOTE: it can be nullptr.
+					const abstract_message_sink_t *,
 					const delivery_possibility_t ) const {}
 
 				const so_5::message_limit::impl::action_msg_tracer_t *
@@ -599,8 +649,9 @@ class tracing_enabled_base
 		so_5::msg_tracing::holder_t & m_tracer;
 
 	public :
-		tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
-			:	m_tracer( tracer )
+		tracing_enabled_base(
+			outliving_reference_t< so_5::msg_tracing::holder_t > tracer )
+			:	m_tracer( tracer.get() )
 			{}
 
 		so_5::msg_tracing::holder_t &
@@ -621,24 +672,27 @@ class tracing_enabled_base
 				so_5::msg_tracing::holder_t & m_tracer;
 				const abstract_message_box_t & m_mbox;
 				const char * m_op_name;
+				const message_delivery_mode_t m_delivery_mode;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
-				const details::overlimit_deep m_overlimit_deep;
+				const details::redirection_deep m_redirection_deep;
 
 			public :
 				deliver_op_tracer(
 					const tracing_enabled_base & tracing_base,
 					const abstract_message_box_t & mbox,
 					const char * op_name,
+					message_delivery_mode_t delivery_mode,
 					const std::type_index & msg_type,
 					const message_ref_t & message,
-					const unsigned int overlimit_reaction_deep )
+					const unsigned int redirection_deep )
 					:	m_tracer( tracing_base.tracer() )
 					,	m_mbox( mbox )
 					,	m_op_name( op_name )
+					,	m_delivery_mode( delivery_mode )
 					,	m_msg_type( msg_type )
 					,	m_message( message )
-					,	m_overlimit_deep( overlimit_reaction_deep )
+					,	m_redirection_deep( redirection_deep )
 					{
 					}
 
@@ -655,8 +709,9 @@ class tracing_enabled_base
 								details::composed_action_name{
 										m_op_name, action_name_suffix },
 								details::original_msg_type{ m_msg_type },
+								m_delivery_mode,
 								m_message,
-								m_overlimit_deep,
+								m_redirection_deep,
 								std::forward< Args >(args)... );
 					}
 
@@ -667,14 +722,9 @@ class tracing_enabled_base
 					}
 
 				void
-				push_to_queue( const agent_t * subscriber ) const
-					{
-						make_trace( "push_to_queue", subscriber );
-					}
-
-				void
 				message_rejected(
-					const agent_t * subscriber,
+					// NOTE: it can be nullptr.
+					const abstract_message_sink_t * subscriber,
 					const delivery_possibility_t status ) const
 					{
 						switch( status )
@@ -701,21 +751,29 @@ class tracing_enabled_base
 				overlimit_tracer() const { return this; }
 
 			protected :
-				virtual void
+				void
+				push_to_queue(
+					const abstract_message_sink_t * sink,
+					const agent_t * sink_owner ) const noexcept override
+					{
+						make_trace( "push_to_queue", sink, sink_owner );
+					}
+
+				void
 				reaction_abort_app(
 					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.abort", subscriber );
 					}
 
-				virtual void
+				void
 				reaction_drop_message(
 					const agent_t * subscriber ) const noexcept override
 					{
 						make_trace( "overlimit.drop", subscriber );
 					}
 
-				virtual void
+				void
 				reaction_redirect_message(
 					const agent_t * subscriber,
 					const mbox_t & target ) const noexcept override
@@ -727,7 +785,7 @@ class tracing_enabled_base
 								details::mbox_as_msg_destination{ *target } );
 					}
 
-				virtual void
+				void
 				reaction_transform(
 					const agent_t * subscriber,
 					const mbox_t & target,
@@ -929,8 +987,9 @@ class mchain_tracing_enabled_base
 			}
 
 	public :
-		mchain_tracing_enabled_base( so_5::msg_tracing::holder_t & tracer )
-			:	m_tracer( tracer )
+		mchain_tracing_enabled_base(
+			outliving_reference_t< so_5::msg_tracing::holder_t > tracer )
+			:	m_tracer( tracer.get() )
 			{}
 
 		so_5::msg_tracing::holder_t &

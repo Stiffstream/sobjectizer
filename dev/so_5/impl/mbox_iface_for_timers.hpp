@@ -40,7 +40,11 @@ class mbox_iface_for_timers_t
 			//! A message instance to be delivered.
 			const message_ref_t & message )
 			{
-				m_mb.do_deliver_message_from_timer( msg_type, message );
+				m_mb.do_deliver_message(
+						message_delivery_mode_t::nonblocking,
+						msg_type,
+						message,
+						1u /* redirection_deep */ );
 			}
 
 	private :

@@ -81,10 +81,10 @@ class SO_5_TYPE timer_id_t
 			{}
 
 		//! Swapping.
-		void
-		swap( timer_id_t & o ) noexcept
+		friend void
+		swap( timer_id_t & a, timer_id_t & b ) noexcept
 			{
-				m_timer.swap( o.m_timer );
+				swap( a.m_timer, b.m_timer );
 			}
 
 		//! Is this timer event is active?

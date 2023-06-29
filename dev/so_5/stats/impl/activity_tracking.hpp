@@ -4,20 +4,20 @@
 
 /*!
  * \file
- * \since
- * v.5.5.18
- *
  * \brief Details for implementation of activity tracking.
+ *
+ * \since v.5.5.18
  */
 
 #pragma once
+
+#include <so_5/stats/work_thread_activity.hpp>
 
 #include <so_5/types.hpp>
 #include <so_5/spinlocks.hpp>
 #include <so_5/outliving.hpp>
 
-#include <so_5/stats/work_thread_activity.hpp>
-
+#include <mutex>
 #include <string_view>
 
 namespace so_5
@@ -29,10 +29,9 @@ namespace stats
 namespace activity_tracking_stuff {
 
 /*!
- * \since
- * v.5.5.18
- *
  * \brief Various traits of activity tracking implementation.
+ *
+ * \since v.5.5.18
  */
 struct traits
 	{
@@ -47,8 +46,7 @@ struct traits
  * This class is inteded to be used with different lock policies for
  * stats_collector_t.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename L >
 struct no_actual_lock
@@ -61,8 +59,7 @@ struct no_actual_lock
  *
  * Performs actual locking on start/stop and take_activity operations.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Lock_Holder >
 struct default_lock_policy
@@ -76,8 +73,7 @@ struct default_lock_policy
  *
  * Performs actual locking only on take_activity operation.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Lock_Holder >
 struct no_lock_at_start_stop_policy
@@ -89,8 +85,7 @@ struct no_lock_at_start_stop_policy
 /*!
  * \brief Base for the case of internal stats lock.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 class internal_lock
 	{
@@ -108,8 +103,7 @@ class internal_lock
 /*!
  * \brief Base for the case of externals stats lock.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template<
 	typename Lock_Type = traits::lock_t,
@@ -147,8 +141,7 @@ class real_activity_tracker_t final
 	};
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 struct null_lock
 	{
@@ -162,8 +155,7 @@ struct null_lock
 /*!
  * \brief Helper for collecting activity stats.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Lock_Holder >
 class stats_collector_t : protected Lock_Holder
@@ -259,8 +251,7 @@ class stats_collector_t : protected Lock_Holder
  * to activity tracking flag in dispatcher params and in Environment's
  * params.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template<
 	typename Common_Disp_Iface_Type,

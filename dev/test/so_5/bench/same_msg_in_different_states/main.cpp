@@ -12,6 +12,11 @@
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 struct msg_tick : public so_5::signal_t {};
 
 class a_test_t

@@ -24,23 +24,41 @@ UT_UNIT_TEST( default_disp_params_on_move_ctor )
 	so_5::environment_params_t params;
 
 	{
-		UT_CHECK_EQ( true,
-				so_5::work_thread_activity_tracking_t::unspecified ==
-						params.default_disp_params().work_thread_activity_tracking() );
+		{
+			const auto & disp_params = params.default_disp_params();
+			UT_CHECK_EQ( 0u, disp_params.index() );
+
+			const auto & one_thread_params = std::get<0>( disp_params );
+			UT_CHECK_EQ( true,
+					so_5::work_thread_activity_tracking_t::unspecified ==
+							one_thread_params.work_thread_activity_tracking() );
+		}
 
 		params.default_disp_params(
 				so_5::disp::one_thread::disp_params_t{}
 						.turn_work_thread_activity_tracking_on() );
 
-		UT_CHECK_EQ( true,
-				so_5::work_thread_activity_tracking_t::on ==
-						params.default_disp_params().work_thread_activity_tracking() );
+		{
+			const auto & disp_params = params.default_disp_params();
+			UT_CHECK_EQ( 0u, disp_params.index() );
+
+			const auto & one_thread_params = std::get<0>( disp_params );
+			UT_CHECK_EQ( true,
+					so_5::work_thread_activity_tracking_t::on ==
+							one_thread_params.work_thread_activity_tracking() );
+		}
 	}
 
 	so_5::environment_params_t p2{ std::move(params) };
-	UT_CHECK_EQ( true,
-			so_5::work_thread_activity_tracking_t::on ==
-					p2.default_disp_params().work_thread_activity_tracking() );
+	{
+		const auto & disp_params = p2.default_disp_params();
+		UT_CHECK_EQ( 0u, disp_params.index() );
+
+		const auto & one_thread_params = std::get<0>( disp_params );
+		UT_CHECK_EQ( true,
+				so_5::work_thread_activity_tracking_t::on ==
+						one_thread_params.work_thread_activity_tracking() );
+	}
 }
 
 UT_UNIT_TEST( default_disp_params_on_move_op )
@@ -48,24 +66,42 @@ UT_UNIT_TEST( default_disp_params_on_move_op )
 	so_5::environment_params_t params;
 
 	{
-		UT_CHECK_EQ( true,
-				so_5::work_thread_activity_tracking_t::unspecified ==
-						params.default_disp_params().work_thread_activity_tracking() );
+		{
+			const auto & disp_params = params.default_disp_params();
+			UT_CHECK_EQ( 0u, disp_params.index() );
+
+			const auto & one_thread_params = std::get<0>( disp_params );
+			UT_CHECK_EQ( true,
+					so_5::work_thread_activity_tracking_t::unspecified ==
+							one_thread_params.work_thread_activity_tracking() );
+		}
 
 		params.default_disp_params(
 				so_5::disp::one_thread::disp_params_t{}
 						.turn_work_thread_activity_tracking_on() );
 
-		UT_CHECK_EQ( true,
-				so_5::work_thread_activity_tracking_t::on ==
-						params.default_disp_params().work_thread_activity_tracking() );
+		{
+			const auto & disp_params = params.default_disp_params();
+			UT_CHECK_EQ( 0u, disp_params.index() );
+
+			const auto & one_thread_params = std::get<0>( disp_params );
+			UT_CHECK_EQ( true,
+					so_5::work_thread_activity_tracking_t::on ==
+							one_thread_params.work_thread_activity_tracking() );
+		}
 	}
 
 	so_5::environment_params_t p2;
 	p2 = std::move(params);
-	UT_CHECK_EQ( true,
-			so_5::work_thread_activity_tracking_t::on ==
-					p2.default_disp_params().work_thread_activity_tracking() );
+	{
+		const auto & disp_params = p2.default_disp_params();
+		UT_CHECK_EQ( 0u, disp_params.index() );
+
+		const auto & one_thread_params = std::get<0>( disp_params );
+		UT_CHECK_EQ( true,
+				so_5::work_thread_activity_tracking_t::on ==
+						one_thread_params.work_thread_activity_tracking() );
+	}
 }
 
 int

@@ -25,8 +25,8 @@ class skynet final : public agent_t
 public :
 	skynet( context_t ctx, disp_handle disp, mbox_t parent, number num, unsigned int size )
 		:	agent_t{ ctx }
-		,	m_disp{ move(disp) }
-		,	m_parent{ move(parent) }
+		,	m_disp{ std::move(disp) }
+		,	m_parent{ std::move(parent) }
 		,	m_num{ num }
 		,	m_size{ size }
 	{}

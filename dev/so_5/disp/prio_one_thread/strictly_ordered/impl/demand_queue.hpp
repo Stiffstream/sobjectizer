@@ -23,6 +23,11 @@
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+
 namespace so_5 {
 
 namespace disp {
@@ -41,12 +46,16 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 /*!
  * \brief A single execution demand.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 struct demand_t final : public execution_demand_t
 	{
 		//! Next demand in the queue.
+		/*!
+		 * \note
+		 * It's a dynamically allocated object that has to be deallocated
+		 * manually during the destruction of the queue.
+		 */
 		demand_t * m_next = nullptr;
 
 		//! Initializing constructor.
@@ -61,8 +70,7 @@ struct demand_t final : public execution_demand_t
 /*!
  * \brief An alias for unique_ptr to demand.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 
@@ -72,8 +80,7 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 /*!
  * \brief A demand queue with support of demands priorities.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  */
 class demand_queue_t
 	{
@@ -105,13 +112,36 @@ class demand_queue_t
 				 * \}
 				 */
 
-				virtual void
+				void
 				push( execution_demand_t exec_demand ) override
 					{
 						demand_unique_ptr_t what{ new demand_t{
 								std::move( exec_demand ) } };
 
 						m_demand_queue->push( this, std::move( what ) );
+					}
+
+				/*!
+				 * \note
+				 * Delegates the work to the push() method.
+				 */
+				void
+				push_evt_start( execution_demand_t demand ) override
+					{
+						this->push( std::move(demand) );
+					}
+
+				/*!
+				 * \note
+				 * Delegates the work to the push() method.
+				 *
+				 * \attention
+				 * Terminates the whole application if the push() throws.
+				 */
+				void
+				push_evt_finish( execution_demand_t demand ) noexcept override
+					{
+						this->push( std::move(demand) );
 					}
 			};
 
@@ -161,6 +191,7 @@ class demand_queue_t
 		/*!
 		 * \throw shutdown_ex_t in the case when queue is shut down.
 		 */
+		[[nodiscard]]
 		demand_unique_ptr_t
 		pop()
 			{
@@ -318,4 +349,8 @@ class demand_queue_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#if defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic pop
+#endif
 

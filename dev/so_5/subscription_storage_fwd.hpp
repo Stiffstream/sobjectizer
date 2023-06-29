@@ -12,10 +12,12 @@
 
 #pragma once
 
+#include <so_5/declspec.hpp>
+
+#include <so_5/fwd.hpp>
+
 #include <memory>
 #include <functional>
-
-#include <so_5/declspec.hpp>
 
 namespace so_5
 {
@@ -44,7 +46,7 @@ using subscription_storage_unique_ptr_t =
  */
 using subscription_storage_factory_t =
 		std::function<
-				impl::subscription_storage_unique_ptr_t( agent_t * ) >;
+				impl::subscription_storage_unique_ptr_t() >;
 
 /*!
  * \since

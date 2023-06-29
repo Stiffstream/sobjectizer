@@ -11,11 +11,11 @@
 #include <so_5/impl/internal_env_iface.hpp>
 #include <so_5/impl/coop_private_iface.hpp>
 
-#include <so_5/impl/subscription_storage_iface.hpp>
-#include <so_5/impl/process_unhandled_exception.hpp>
-#include <so_5/impl/message_limit_internals.hpp>
 #include <so_5/impl/delivery_filter_storage.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
+#include <so_5/impl/process_unhandled_exception.hpp>
+#include <so_5/impl/std_message_sinks.hpp>
+#include <so_5/impl/subscription_storage_iface.hpp>
 
 #include <so_5/impl/enveloped_msg_details.hpp>
 
@@ -32,35 +32,6 @@ namespace so_5
 
 namespace
 {
-
-/*!
- * \since
- * v.5.4.0
- *
- * \brief A helper class for temporary setting and then dropping
- * the ID of the current working thread.
- *
- * \note New working thread_id is set only if it is not an
- * null thread_id.
- */
-struct working_thread_id_sentinel_t
-	{
-		so_5::current_thread_id_t & m_id;
-
-		working_thread_id_sentinel_t(
-			so_5::current_thread_id_t & id_var,
-			so_5::current_thread_id_t value_to_set )
-			:	m_id( id_var )
-			{
-				if( value_to_set != null_current_thread_id() )
-					m_id = value_to_set;
-			}
-		~working_thread_id_sentinel_t()
-			{
-				if( m_id != null_current_thread_id() )
-					m_id = null_current_thread_id();
-			}
-	};
 
 /*!
  * \since
@@ -84,7 +55,7 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 struct state_t::time_limit_t
 {
-	struct timeout : public signal_t {};
+	struct msg_timeout final : public signal_t {};
 
 	duration_t m_limit;
 	const state_t & m_state_to_switch;
@@ -112,21 +83,19 @@ struct state_t::time_limit_t
 			// New unique mbox is necessary for time limit.
 			m_unique_mbox = impl::internal_env_iface_t{ agent.so_environment() }
 					// A new MPSC mbox will be used for that.
-					.create_mpsc_mbox(
+					.create_limitless_mpsc_mbox(
 							// New MPSC mbox will be directly connected to target agent.
-							&agent,
-							// Message limits will not be used.
-							nullptr );
+							agent );
 
-			// A subscription must be created for timeout signal.
+			// A subscription must be created for msg_timeout signal.
 			agent.so_subscribe( m_unique_mbox )
 					.in( current_state )
-					.event( [&agent, this](mhood_t<timeout>) {
+					.event( [&agent, this](mhood_t<msg_timeout>) {
 						agent.so_change_state( m_state_to_switch );
 					} );
 
 			// Delayed timeout signal must be sent.
-			m_timer = send_periodic< timeout >(
+			m_timer = send_periodic< msg_timeout >(
 					m_unique_mbox,
 					m_limit,
 					duration_t::zero() );
@@ -147,7 +116,8 @@ struct state_t::time_limit_t
 			if( m_unique_mbox )
 			{
 				// Old subscription must be removed.
-				agent.so_drop_subscription< timeout >( m_unique_mbox, current_state );
+				agent.so_drop_subscription< msg_timeout >(
+						m_unique_mbox, current_state );
 				// Unique mbox is no more needed.
 				m_unique_mbox = mbox_t{};
 			}
@@ -534,9 +504,10 @@ agent_t::agent_t(
 				&agent_t::handler_finder_msg_tracing_enabled :
 				&agent_t::handler_finder_msg_tracing_disabled )
 	,	m_subscriptions(
-			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
-	,	m_message_limits(
-			message_limit::impl::create_info_storage_if_necessary(
+			ctx.options().query_subscription_storage_factory()() )
+	,	m_message_sinks(
+			impl::create_sinks_storage_if_necessary(
+				partially_constructed_agent_ptr_t( self_ptr() ),
 				ctx.options().giveout_message_limits() ) )
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
@@ -544,9 +515,8 @@ agent_t::agent_t(
 			make_direct_mbox_with_respect_to_custom_factory(
 				partially_constructed_agent_ptr_t( self_ptr() ),
 				ctx.options(),
-				impl::internal_env_iface_t( ctx.env() ).create_mpsc_mbox(
-						self_ptr(),
-						m_message_limits.get() )
+				impl::internal_env_iface_t( ctx.env() ).create_ordinary_mpsc_mbox(
+						*self_ptr() )
 			)
 		)
 		// It is necessary to enable agent subscription in the
@@ -582,10 +552,13 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 	state_t::path_t path;
 	m_current_state_ptr->fill_path( path );
 
-	auto e = begin(path) + static_cast< state_t::path_t::difference_type >(
-			m_current_state_ptr->nested_level() ) + 1;
+	const auto past_the_end = [&path, this]() {
+			auto r = begin(path);
+			std::advance( r, m_current_state_ptr->nested_level() + 1u );
+			return r;
+		}();
 
-	return e != std::find( begin(path), e, &state_to_check );
+	return past_the_end != std::find( begin(path), past_the_end, &state_to_check );
 }
 
 void
@@ -607,7 +580,7 @@ agent_t::so_add_destroyable_listener(
 }
 
 exception_reaction_t
-agent_t::so_exception_reaction() const
+agent_t::so_exception_reaction() const noexcept
 {
 	if( m_agent_coop )
 		return m_agent_coop->exception_reaction();
@@ -631,9 +604,8 @@ agent_t::so_direct_mbox() const
 mbox_t
 agent_t::so_make_new_direct_mbox()
 {
-	return impl::internal_env_iface_t{ so_environment() }.create_mpsc_mbox(
-			self_ptr(),
-			m_message_limits.get() );
+	return impl::internal_env_iface_t{ so_environment() }.create_ordinary_mpsc_mbox(
+			*self_ptr() );
 }
 
 const state_t &
@@ -693,7 +665,7 @@ agent_t::so_deactivate_agent()
 void
 agent_t::so_initiate_agent_definition()
 {
-	working_thread_id_sentinel_t sentinel(
+	impl::agent_impl::working_thread_id_sentinel_t sentinel(
 			m_working_thread_id,
 			so_5::query_current_thread_id() );
 
@@ -715,7 +687,7 @@ agent_t::so_was_defined() const
 }
 
 environment_t &
-agent_t::so_environment() const
+agent_t::so_environment() const noexcept
 {
 	return m_env;
 }
@@ -749,7 +721,7 @@ agent_t::so_bind_to_dispatcher(
 	impl::coop_private_iface_t::increment_usage_count( *m_agent_coop );
 
 	// A starting demand must be sent first.
-	actual_queue->push(
+	actual_queue->push_evt_start(
 			execution_demand_t(
 					this,
 					message_limit::control_block_t::none(),
@@ -890,7 +862,7 @@ agent_t::shutdown_agent() noexcept
 
 			// Final event must be pushed to queue.
 			so_5::details::invoke_noexcept_code( [&] {
-					m_event_queue->push(
+					m_event_queue->push_evt_finish(
 							execution_demand_t(
 									this,
 									message_limit::control_block_t::none(),
@@ -947,7 +919,7 @@ agent_t::so_create_event_subscription(
 	m_subscriptions->create_event_subscription(
 			mbox_ref,
 			msg_type,
-			detect_limit_for_message_type( msg_type ),
+			detect_sink_for_message_type( msg_type ),
 			target_state,
 			method,
 			thread_safety,
@@ -972,7 +944,7 @@ agent_t::so_create_deadletter_subscription(
 	m_subscriptions->create_event_subscription(
 			mbox,
 			msg_type,
-			detect_limit_for_message_type( msg_type ),
+			detect_sink_for_message_type( msg_type ),
 			deadletter_state,
 			method,
 			thread_safety,
@@ -993,24 +965,20 @@ agent_t::so_destroy_deadletter_subscription(
 	m_subscriptions->drop_subscription( mbox, msg_type, deadletter_state );
 }
 
-const message_limit::control_block_t *
-agent_t::detect_limit_for_message_type(
+abstract_message_sink_t &
+agent_t::detect_sink_for_message_type(
 	const std::type_index & msg_type )
 {
-	const message_limit::control_block_t * result = nullptr;
+	auto * result = m_message_sinks->find_or_create( msg_type );
 
-	if( m_message_limits )
-	{
-		result = m_message_limits->find_or_create( msg_type );
-		if( !result )
-			SO_5_THROW_EXCEPTION(
-					so_5::rc_message_has_no_limit_defined,
-					std::string( "an attempt to subscribe to message type without "
-					"predefined limit for that type, type: " ) +
-					msg_type.name() );
-	}
+	if( !result )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_message_has_no_limit_defined,
+				std::string( "message type without "
+				"predefined limit for that type, type: " ) +
+				msg_type.name() );
 
-	return result;
+	return *result;
 }
 
 void
@@ -1113,7 +1081,7 @@ void
 agent_t::push_event(
 	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
-	std::type_index msg_type,
+	const std::type_index & msg_type,
 	const message_ref_t & message )
 {
 	const auto handler = select_demand_handler_for_message( *this, message );
@@ -1138,7 +1106,7 @@ agent_t::demand_handler_on_start(
 {
 	d.m_receiver->ensure_binding_finished();
 
-	working_thread_id_sentinel_t sentinel(
+	impl::agent_impl::working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
 
@@ -1181,7 +1149,7 @@ agent_t::demand_handler_on_finish(
 	{
 		// Sentinel must finish its work before decrementing
 		// reference count to cooperation.
-		working_thread_id_sentinel_t sentinel(
+		impl::agent_impl::working_thread_id_sentinel_t sentinel(
 				d.m_receiver->m_working_thread_id,
 				working_thread_id );
 
@@ -1263,7 +1231,7 @@ agent_t::process_message(
 	thread_safety_t thread_safety,
 	event_handler_method_t method )
 {
-	working_thread_id_sentinel_t sentinel{
+	impl::agent_impl::working_thread_id_sentinel_t sentinel{
 			d.m_receiver->m_working_thread_id,
 			// v.5.7.3
 			// If event_handler is thread_safe-handler then null_thread_id
@@ -1359,7 +1327,7 @@ agent_t::drop_all_delivery_filters() noexcept
 {
 	if( m_delivery_filters )
 	{
-		m_delivery_filters->drop_all( *this );
+		m_delivery_filters->drop_all();
 		m_delivery_filters.reset();
 	}
 }
@@ -1378,6 +1346,10 @@ agent_t::do_set_delivery_filter(
 				so_5::rc_agent_deactivated,
 				"new delivery filter can't be set for deactivated agent" );
 
+	// Message sink for that message type have to be obtained with
+	// the respect to message limits.
+	auto & target_sink = detect_sink_for_message_type( msg_type );
+
 	if( !m_delivery_filters )
 		m_delivery_filters.reset( new impl::delivery_filter_storage_t() );
 
@@ -1385,7 +1357,7 @@ agent_t::do_set_delivery_filter(
 			mbox,
 			msg_type,
 			std::move(filter),
-			*this );
+			outliving_mutable( target_sink ) );
 }
 
 void
@@ -1396,7 +1368,7 @@ agent_t::do_drop_delivery_filter(
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 
 	if( m_delivery_filters )
-		m_delivery_filters->drop_delivery_filter( mbox, msg_type, *this );
+		m_delivery_filters->drop_delivery_filter( mbox, msg_type );
 }
 
 const impl::event_handler_data_t *

@@ -50,7 +50,7 @@ main()
 
 				std::cout << " Completed." << std::endl;
 			},
-			600 );
+			20 );
 	}
 	catch( const std::exception & ex )
 	{

@@ -1,12 +1,14 @@
 add_subdirectory(binder)
 
 add_subdirectory(one_thread)
+add_subdirectory(nef_one_thread)
+
 add_subdirectory(active_obj)
 add_subdirectory(active_group)
 
 add_subdirectory(thread_pool)
-
 add_subdirectory(adv_thread_pool)
+add_subdirectory(nef_thread_pool)
 
 add_subdirectory(private_dispatchers)
 

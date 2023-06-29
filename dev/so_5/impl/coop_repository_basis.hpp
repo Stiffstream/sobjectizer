@@ -109,13 +109,16 @@ public:
 
 	//! Do final actions of the cooperation deregistration.
 	/*!
+	 * \note
+	 * This method is noexcept since v.5.8.0.
+	 *
 	 * \retval true there are some live cooperations.
 	 * \retval false there is no more live cooperations.
 	 */
 	final_deregistration_result_t
 	final_deregister_coop(
 		//! Cooperation name to be deregistered.
-		coop_shptr_t coop );
+		coop_shptr_t coop ) noexcept;
 
 	//! Deregisted all cooperations.
 	/*!
@@ -150,7 +153,7 @@ public:
 	 * v.5.6.0
 	 */
 	try_switch_to_shutdown_result_t
-	try_switch_to_shutdown();
+	try_switch_to_shutdown() noexcept;
 
 	/*!
 	 * \since

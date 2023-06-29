@@ -9,44 +9,40 @@
 
 #pragma once
 
-#include <functional>
-#include <chrono>
-#include <memory>
-#include <type_traits>
-
 #include <so_5/compiler_features.hpp>
-#include <so_5/declspec.hpp>
-#include <so_5/exception.hpp>
-#include <so_5/error_logger.hpp>
-#include <so_5/compiler_features.hpp>
-#include <so_5/msg_tracing.hpp>
-
-#include <so_5/custom_mbox.hpp>
-
-#include <so_5/stop_guard.hpp>
-
-#include <so_5/nonempty_name.hpp>
-#include <so_5/mbox.hpp>
-#include <so_5/mchain.hpp>
-#include <so_5/message.hpp>
 #include <so_5/coop.hpp>
-#include <so_5/disp_binder.hpp>
-#include <so_5/so_layer.hpp>
 #include <so_5/coop_listener.hpp>
+#include <so_5/custom_mbox.hpp>
+#include <so_5/declspec.hpp>
+#include <so_5/disp_binder.hpp>
+#include <so_5/environment_infrastructure.hpp>
+#include <so_5/error_logger.hpp>
 #include <so_5/event_exception_logger.hpp>
 #include <so_5/event_queue_hook.hpp>
-
+#include <so_5/exception.hpp>
+#include <so_5/mbox.hpp>
+#include <so_5/mbox_namespace_name.hpp>
+#include <so_5/mchain.hpp>
+#include <so_5/message.hpp>
+#include <so_5/msg_tracing.hpp>
+#include <so_5/nonempty_name.hpp>
+#include <so_5/queue_locks_defaults_manager.hpp>
+#include <so_5/so_layer.hpp>
+#include <so_5/stop_guard.hpp>
 #include <so_5/timers.hpp>
 
 #include <so_5/stats/controller.hpp>
 #include <so_5/stats/repository.hpp>
 
-#include <so_5/queue_locks_defaults_manager.hpp>
-
-#include <so_5/environment_infrastructure.hpp>
-
 #include <so_5/disp/one_thread/params.hpp>
+#include <so_5/disp/nef_one_thread/params.hpp>
 #include <so_5/disp/abstract_work_thread.hpp>
+
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <type_traits>
+#include <variant>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -101,6 +97,16 @@ class SO_5_TYPE environment_params_t
 {
 	public:
 		/*!
+		 * \brief A sum type for holding parameters for the default disp.
+		 *
+		 * \since v.5.8.0
+		 */
+		using default_disp_params_t = std::variant<
+				disp::one_thread::disp_params_t,
+				disp::nef_one_thread::disp_params_t
+			>;
+
+		/*!
 		 * \brief Constructor.
 		 *
 		 * Sets default values for parameters.
@@ -109,8 +115,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Move constructor.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		environment_params_t( environment_params_t && other );
 		~environment_params_t();
@@ -118,20 +123,18 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Move operator.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		environment_params_t &
-		operator=( environment_params_t && other );
+		operator=( environment_params_t && other ) noexcept;
 
 		/*!
 		 * \brief Swap operation.
 		 *
-		 * \since
-		 * v.5.2.3
+		 * \since v.5.2.3
 		 */
 		friend SO_5_FUNC void
-		swap( environment_params_t & a, environment_params_t & b );
+		swap( environment_params_t & a, environment_params_t & b ) noexcept;
 
 		//! Set the timer_thread factory.
 		/*!
@@ -182,23 +185,38 @@ class SO_5_TYPE environment_params_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.3.0
 		 * \brief Get exception reaction flag value.
+		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
+		 * \since v.5.3.0
 		 */
 		inline exception_reaction_t
-		exception_reaction() const
+		exception_reaction() const noexcept
 		{
 			return m_exception_reaction;
 		}
 
 		/*!
-		 * \since
-		 * v.5.3.0
 		 * \brief Set exception reaction flag value.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::launch([](so_5::environment_t & env) {...},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		params.exception_reaction(so_5::exception_reaction_t::shutdown_sobjectizer_on_exception);
+		 * 		...
+		 * 	});
+		 * \endcode
+		 *
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
+		 * \since v.5.3.0
 		 */
 		environment_params_t &
-		exception_reaction( exception_reaction_t value )
+		exception_reaction( exception_reaction_t value ) noexcept
 		{
 			m_exception_reaction = value;
 			return *this;
@@ -208,8 +226,6 @@ class SO_5_TYPE environment_params_t
 		 */
 
 		/*!
-		 * \since
-		 * v.5.4.0
 		 * \brief Do not shutdown SO Environment when it is becomes empty.
 		 *
 		 * \par Description
@@ -220,6 +236,8 @@ class SO_5_TYPE environment_params_t
 		 * It disables autoshutdown of SO Environment. Event if there is
 		 * no more live cooperations SO Environment will work until
 		 * explisit call to environment_t::stop() method.
+		 *
+		 * \since v.5.4.0
 		 */
 		environment_params_t &
 		disable_autoshutdown()
@@ -229,11 +247,11 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.4.0
 		 * \brief Is autoshutdown disabled?
 		 *
 		 * \see disable_autoshutdown()
+		 *
+		 * \since v.5.4.0
 		 */
 		[[nodiscard]]
 		bool
@@ -243,9 +261,9 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.0
 		 * \brief Set error logger for the environment.
+		 *
+		 * \since v.5.5.0
 		 */
 		environment_params_t &
 		error_logger( error_logger_shptr_t logger )
@@ -266,8 +284,7 @@ class SO_5_TYPE environment_params_t
 		 * 	} );
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.5.9
+		 * \since v.5.5.9
 		 */
 		environment_params_t &
 		message_delivery_tracer( so_5::msg_tracing::tracer_unique_ptr_t tracer )
@@ -279,8 +296,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Set message tracer filter for the environment.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		environment_params_t &
 		message_delivery_tracer_filter(
@@ -291,9 +307,8 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.10
-		 * \brief Set parameters for the default dispatcher.
+		 * \brief Set parameters for a case when one_thread-disp
+		 * must be used as the default dispatcher.
 		 *
 		 * \par Usage example:
 			\code
@@ -307,6 +322,12 @@ class SO_5_TYPE environment_params_t
 						} ) );
 				} );
 			\endcode
+		 *
+		 * \note
+		 * If some parameters have already been set, the old parameters will be
+		 * replaced by new ones.
+		 *
+		 * \since v.5.5.10
 		 */
 		environment_params_t &
 		default_disp_params( so_5::disp::one_thread::disp_params_t params )
@@ -316,11 +337,64 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.10
-		 * \brief Get the parameters for the default dispatcher.
+		 * \brief Set parameters for a case when
+		 * nef_one_thread-disp must be used as the default dispatcher.
+		 *
+		 * \par Usage example:
+			\code
+			so_5::launch( []( so_5::environment_t & env ) { ... },
+				[]( so_5::environment_params_t & env_params ) {
+					using namespace so_5::disp::nef_one_thread;
+					// Event queue for the default dispatcher must use mutex as lock.
+					env_params.default_disp_params( disp_params_t{}.tune_queue_params(
+						[]( queue_traits::queue_params_t & queue_params ) {
+							queue_params.lock_factory( queue_traits::simple_lock_factory() );
+						} ) );
+				} );
+			\endcode
+		 *
+		 * \note
+		 * If some parameters have already been set, the old parameters will be
+		 * replaced by new ones.
+		 *
+		 * \since v.5.8.0
 		 */
-		const so_5::disp::one_thread::disp_params_t &
+		environment_params_t &
+		default_disp_params( so_5::disp::nef_one_thread::disp_params_t params )
+		{
+			m_default_disp_params = std::move(params);
+			return *this;
+		}
+
+		/*!
+		 * \brief Get the parameters for the default dispatcher.
+		 *
+		 * \attention
+		 * The returned reference will be invalidated by any subsequent
+		 * calls to default_disp_params-setters.
+		 *
+		 * \note
+		 * Since v.5.8.0 it returns a sum type with parameters for different
+		 * types of dispatchers. Therefore, the returned value has to be examined
+		 * accordingly, for example:
+		 * \code
+		 * so_5::environment_params_t & params = ...
+		 * const auto & disp_params = params.default_disp_params();
+		 * if( const auto * one_thread =
+		 * 	std::get_if< so_5::disp::one_thread::disp_params_t >( &disp_params ) )
+		 * {
+		 * 	... // Handling.
+		 * }
+		 * else if( const auto * nef_one_thread =
+		 * 	std::get_if< so_5::disp::nef_one_thread::disp_params_t >( &disp_params ) )
+		 * {
+		 * 	... // Handling.
+		 * }
+		 * \endcode
+		 *
+		 * \since v.5.5.10
+		 */
+		const default_disp_params_t &
 		default_disp_params() const
 		{
 			return m_default_disp_params;
@@ -328,8 +402,8 @@ class SO_5_TYPE environment_params_t
 
 		/*!
 		 * \brief Set activity tracking flag for the whole SObjectizer Environment.
-		 * \since
-		 * v.5.5.18
+		 *
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		work_thread_activity_tracking(
@@ -342,8 +416,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get activity tracking flag for the whole SObjectizer Environment.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t
 		work_thread_activity_tracking() const
@@ -353,8 +426,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Helper for turning work thread activity tracking on.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		turn_work_thread_activity_tracking_on()
@@ -365,8 +437,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Helper for turning work thread activity tracking off.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		turn_work_thread_activity_tracking_off()
@@ -377,8 +448,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Set manager for queue locks defaults.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		environment_params_t &
 		queue_locks_defaults_manager(
@@ -390,8 +460,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Get the current environment infrastructure factory.
 		/*!
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		const environment_infrastructure_factory_t &
 		infrastructure_factory() const
@@ -413,8 +482,8 @@ class SO_5_TYPE environment_params_t
 		 * 			so_5::env_infrastructures::simple_not_mtsafe::factory() );
 		 * 	} );
 		 * \endcode
-		 * \since
-		 * v.5.5.19
+		 *
+		 * \since v.5.5.19
 		 */
 		environment_params_t &
 		infrastructure_factory(
@@ -452,8 +521,7 @@ class SO_5_TYPE environment_params_t
 		 * The previous event_queue_hook object (if it was set earlier)
 		 * will just be dropped.
 		 *
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		void
 		event_queue_hook(
@@ -575,8 +643,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get message delivery tracer for the environment.
 		 *
-		 * \since
-		 * v.5.5.9
+		 * \since v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t
 		so5_giveout_message_delivery_tracer()
@@ -587,8 +654,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Get message delivery tracer filter for the environment.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		so_5::msg_tracing::filter_shptr_t
 		so5_giveout_message_delivery_tracer_filter()
@@ -598,8 +664,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Take out queue locks defaults manager.
 		/*!
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t
 		so5_giveout_queue_locks_defaults_manager()
@@ -609,8 +674,7 @@ class SO_5_TYPE environment_params_t
 
 		//! Take out event_queue_hook object.
 		/*!
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t
 		so5_giveout_event_queue_hook()
@@ -660,8 +724,7 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \brief Exception reaction flag for the whole SO Environment.
 		 *
-		 * \since
-		 * v.5.3.0
+		 * \since v.5.3.0
 		 */
 		exception_reaction_t m_exception_reaction;
 
@@ -670,59 +733,56 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \see disable_autoshutdown()
 		 *
-		 * \since
-		 * v.5.4.0
+		 * \since v.5.4.0
 		 */
 		bool m_autoshutdown_disabled;
 
 		/*!
 		 * \brief Error logger for the environment.
-		 * \since
-		 * v.5.5.0
+		 *
+		 * \since v.5.5.0
 		 */
 		error_logger_shptr_t m_error_logger;
 
 		/*!
 		 * \brief Tracer for message delivery.
-		 * \since
-		 * v.5.5.9
+		 *
+		 * \since v.5.5.9
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
 
 		/*!
 		 * \brief Message delivery tracer filter to be used with environment.
-		 * \since
-		 * v.5.5.22
+		 *
+		 * \since v.5.5.22
 		 */
 		so_5::msg_tracing::filter_shptr_t m_message_delivery_tracer_filter;
 
 		/*!
 		 * \brief Parameters for the default dispatcher.
-		 * \since
-		 * v.5.5.10
+		 *
+		 * \since v.5.5.10
 		 */
-		so_5::disp::one_thread::disp_params_t m_default_disp_params;
+		default_disp_params_t m_default_disp_params;
 
 		/*!
 		 * \brief Work thread activity tracking for the whole Environment.
-		 * \since
-		 * v.5.5.18
+		 *
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t m_work_thread_activity_tracking;
 
 		/*!
 		 * \brief Manager for defaults of queue locks.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		queue_locks_defaults_manager_unique_ptr_t m_queue_locks_defaults_manager;
 
 		/*!
 		 * \brief A factory for environment infrastructure entity.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		environment_infrastructure_factory_t m_infrastructure_factory;
 
@@ -733,8 +793,7 @@ class SO_5_TYPE environment_params_t
 		 * It can be a nullptr. It means that no event_queue_hook should
 		 * be used.
 		 *
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		event_queue_hook_unique_ptr_t m_event_queue_hook;
 
@@ -844,22 +903,210 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 
-		//! Create an anonymous mbox with the default mutex.
+		//! Create an anonymous MPMC mbox.
 		/*!
+		 * Usage example:
+		 * \code
+		 * class my_agent final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	my_agent(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox()}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
 		 *	\note always creates a new mbox.
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_mbox();
 
-		//! Create named mbox.
+		//! Create named MPMC mbox.
 		/*!
 		 * If \a mbox_name is unique then a new mbox will be created.
 		 * If not the reference to existing mbox will be returned.
+		 *
+		 * Usage example:
+		 * \code
+		 * class first_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	first_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox("message-board")}
+		 * 	{}
+		 * 	...
+		 * };
+		 *
+		 * class second_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	second_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().create_mbox("message-board")}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 * In this example both agents will use the same mbox instance.
+		 *
+		 * \attention
+		 * Mboxes created by this method live in a separate namespace,
+		 * they are not mixed with named mboxes introduced via
+		 * introduce_named_mbox() method.
 		 */
+		[[nodiscard]]
 		mbox_t
 		create_mbox(
 			//! Mbox name.
 			nonempty_name_t mbox_name );
+
+		/*!
+		 * \brief Introduce named mbox with user-provided factory.
+		 *
+		 * This method allows a user to create own named mbox.
+		 *
+		 * The create_mbox(nonempty_name_t) method always creates a standard
+		 * MPMC mbox. This isn't always desirable. For example, a user may want
+		 * to have a named unique_subscribers mbox. The introduce_named_mbox()
+		 * allows to achieve this:
+		 * \code
+		 * class first_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	first_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().introduce_named_mbox(
+		 * 				so_5::mbox_namespace_name_t{"demo"},
+		 * 				"message-board",
+		 * 				[this]() { return so_5::make_unique_subscribers_mbox(so_environment()); } )
+		 * 			}
+		 * 	{}
+		 * 	...
+		 * };
+		 *
+		 * class second_participant final : public so_5::agent_t {
+		 * 	const so_5::mbox_t broadcast_mbox_;
+		 * 	...
+		 * public:
+		 * 	second_participant(context_t ctx)
+		 * 		: so_5::agent_t{std::move(ctx)}
+		 * 		, broadcast_mbox_{so_environment().introduce_named_mbox(
+		 * 				so_5::mbox_namespace_name_t{"demo"},
+		 * 				"message-board",
+		 * 				[this]() { return so_5::make_unique_subscribers_mbox(so_environment()); } )
+		 * 			}
+		 * 	{}
+		 * 	...
+		 * };
+		 * \endcode
+		 *
+		 * The `introduce_named_mbox` work the following way:
+		 *
+		 *
+		 * - it checks for the existence of a mbox with the given name in the
+		 *   specified namespace. If such a mbox is found it will be returned and
+		 *   \a mbox_factory is not called;
+		 * - otherwise, the \a mbox_factory is called;
+		 * - after the completion of \a mbox_factory the existence of a mbox with
+		 *   the given name is checked again;
+		 * - if there is still no such a mbox, then the mbox obtained from \a
+		 *   mbox_factory is stored inside the SOEnv and returned as the result
+		 *   of the `introduce_named_mbox` method;
+		 * - but if a mbox is found (it may have been created a little earlier by
+		 *   a parallel call to the `introduce_named_mbox`), then the the value
+		 *   returned by \a mbox_factory is discarded and the existing named mbox
+		 *   is returned.
+		 *
+		 * It means then the \a mbox_factory is used if there is no a mbox with
+		 * the name specified yet. If such a mbox is already exists then the
+		 * already created mbox will be returned without calling \a mbox_factory.
+		 *
+		 * Note that named mboxes created by this method live in separate
+		 * namespaces and those namespaces aren't intersect with "the default"
+		 * namespace used by the create_mbox(nonempty_name_t) method. It means
+		 * that a user can create named mboxes with the same name in different
+		 * namespaces and they will be different mboxes:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * auto std_mbox = env.create_mbox("alice");
+		 * auto my_mbox1 = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"a"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 * auto my_mbox2 = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"b"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 * // NOTE: it's just a reference to my_mbox2.
+		 * auto my_duplicate = env.introduce_named_mbox(
+		 * 	so_5::mbox_namespace_name_t{"b"},
+		 * 	"alice",
+		 * 	[&env]() { return env.create_mbox(); });
+		 *
+		 * assert(std_mbox->id() != my_mbox1->id());
+		 * assert(std_mbox->id() != my_mbox2->id());
+		 * assert(my_mbox1->id() != my_mbox2->id());
+		 * assert(my_mbox2->id() == my_duplicate->id());
+		 * \endcode
+		 *
+		 * \attention
+		 * The \a mbox_factory should return a valid so_5::mbox_t.
+		 * If \a mbox_factory returns empty so_5::mbox_t (nullptr), then
+		 * introduce_named_mbox() will throw an exception with
+		 * so_5::rc_nullptr_as_result_of_user_mbox_factory error code.
+		 * If \a mbox_factory can't create a valid so_5::mbox_t it
+		 * has to thrown a user-defined exception. This exception
+		 * will be let out from introduce_named_mbox(). For example:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * try
+		 * {
+		 * 	auto mbox = env.introduce_named_mbox(
+		 * 			so_5::mbox_namespace_name_t{"b"},
+		 * 			"alice",
+		 * 			[&]() {
+		 * 				auto mbox = try_to_get_new_mbox();
+		 * 				if(!mbox)
+		 * 					throw my_exception{...};
+		 * 				return mbox;
+		 * 			});
+		 * }
+		 * catch( const my_exception & x ) { ... }
+		 * \endcode
+		 *
+		 * \note
+		 * If several parallel calls to introduce_named_mbox() with the same
+		 * parameters are made at the same time then \a mbox_factory can
+		 * be called several times (at most once for every introduce_named_mbox()
+		 * invocation). But only one result of those calls will be used,
+		 * all other returned values will be discarded.
+		 *
+		 * \attention
+		 * The \a mbox_factory can be called in parallel (so \a mbox_factory
+		 * should support this behavior).
+		 * The \a mbox_factory can safely call environment_t's methods
+		 * like create_mbox() and so on.
+		 *
+		 * \since v.5.8.0
+		 */
+		[[nodiscard]]
+		mbox_t
+		introduce_named_mbox(
+			//! Name of mbox_namespace for a new mbox.
+			mbox_namespace_name_t mbox_namespace,
+			//! Name for a new mbox.
+			nonempty_name_t mbox_name,
+			//! Factory for new mbox.
+			const std::function< mbox_t() > & mbox_factory );
+
 		/*!
 		 * \}
 		 */
@@ -870,9 +1117,6 @@ class SO_5_TYPE environment_t
 		 */
 
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
 		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
@@ -909,6 +1153,8 @@ class SO_5_TYPE environment_t
 				so_5::make_unlimited_mchain_params().not_empty_notificator(
 					[&] { some_widget.send_notify(); } ) );
 			\endcode
+		 *
+		 * \since v.5.5.13
 		 */
 		mchain_t
 		create_mchain(
@@ -941,8 +1187,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation. This cooperation
 		 * will use default dispatcher binders.
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -966,8 +1211,7 @@ class SO_5_TYPE environment_t
 			coop->make_agent< a_some_agent_t >();
 			\endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -994,8 +1238,7 @@ class SO_5_TYPE environment_t
 		 * };
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1025,8 +1268,7 @@ class SO_5_TYPE environment_t
 		 * };
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_unique_holder_t
@@ -1049,6 +1291,50 @@ class SO_5_TYPE environment_t
 		 *
 		 * If all these actions are successful then the cooperation is
 		 * marked as registered.
+		 *
+		 * \par Usage examples
+		 *
+		 * Very simple case.
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * env.register_coop(std::move(simple_coop));
+		 * \endcode
+		 *
+		 * More complex case with storing coop_handle and using it for
+		 * coop deregistration:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * so_5::coop_handle_t coop_handle;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * coop_handle = env.register_coop(std::move(simple_coop));
+		 * ...
+		 * // Some time later.
+		 * env.deregister_coop(coop_handle, so_5::dereg_reason::normal);
+		 * \endcode
+		 *
+		 * A typical scenario for register_coop() when an instance of coop
+		 * is created by a separate function:
+		 * \code
+		 * [[nodiscard]] so_5::coop_unique_holder_t create_coop(
+		 * 		so_5::environment_t & env)
+		 * {
+		 * 	auto coop = env.make_coop();
+		 * 	coop->make_agent<some_agent_type>(...);
+		 * 	... // Some other actions like creation of additional agents.
+		 *
+		 * 	// Now the coop can be returned back.
+		 * 	return coop;
+		 * }
+		 *
+		 * so_5::environment_t & env = ...;
+		 * ...
+		 * env.register_coop(create_coop(env));
+		 * \endcode
 		 */
 		coop_handle_t
 		register_coop(
@@ -1080,9 +1366,6 @@ class SO_5_TYPE environment_t
 		 * \brief Register single agent as a cooperation with specified
 		 * dispatcher binder.
 		 *
-		 * \since
-		 * v.5.2.1
-		 *
 		 * It is just a helper methods for convience.
 		 *
 		 * Usage sample:
@@ -1093,6 +1376,8 @@ class SO_5_TYPE environment_t
 		   				"active_group",
 		   				"some_active_group" ) );
 		 * \endcode
+		 *
+		 * \since v.5.2.1
 		 */
 		template< class A >
 		coop_handle_t
@@ -1124,6 +1409,19 @@ class SO_5_TYPE environment_t
 		 *
 		 * After the cooperation deregistration agents are unbound from
 		 * dispatchers.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::environment_t & env = ...;
+		 * so_5::coop_handle_t coop_handle;
+		 *
+		 * auto simple_coop = env.make_coop();
+		 * simple_coop->make_agent<some_agent_type>(...);
+		 * coop_handle = env.register_coop(std::move(simple_coop));
+		 * ...
+		 * // Some time later.
+		 * env.deregister_coop(coop_handle, so_5::dereg_reason::normal);
+		 * \endcode
 		 *
 		 * \note
 		 * This method is marked as noexcept because there is no way
@@ -1211,8 +1509,12 @@ class SO_5_TYPE environment_t
 		init() = 0;
 
 		//! Send a shutdown signal to the Run-Time.
+		/*!
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 */
 		void
-		stop();
+		stop() noexcept;
 		/*!
 		 * \}
 		 */
@@ -1223,8 +1525,7 @@ class SO_5_TYPE environment_t
 		 * \note
 		 * Since v.5.6.0 this method is marked as noexcept.
 		 *
-		 * \since
-		 * v.5.2.3.
+		 * \since v.5.2.3
 		 */
 		void
 		call_exception_logger(
@@ -1236,17 +1537,18 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief An exception reaction for the whole SO Environment.
 		 *
-		 * \since
-		 * v.5.3.0
+		 * \note
+		 * This method is noexcept since v.5.8.0.
+		 *
+		 * \since v.5.3.0
 		 */
 		exception_reaction_t
-		exception_reaction() const;
+		exception_reaction() const noexcept;
 
 		/*!
 		 * \brief Get the error_logger object.
 		 *
-		 * \since
-		 * v.5.5.0
+		 * \since v.5.5.0
 		 */
 		error_logger_t &
 		error_logger() const;
@@ -1254,8 +1556,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Helper method for simplification of agents creation.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 *
 		 * \note Creates an instance of agent of type \a Agent by using
 		 * environment_t::make_agent() template function and adds it to
@@ -1289,8 +1590,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Access to controller of run-time monitoring.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		stats::controller_t &
 		stats_controller();
@@ -1298,8 +1598,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Access to repository of data sources for run-time monitoring.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		stats::repository_t &
 		stats_repository();
@@ -1320,8 +1619,7 @@ class SO_5_TYPE environment_t
 		 * \return The value returned from lambda-function. Or void if
 		 * the lambda-function returns void.
 		 *
-		 * \since
-		 * v.5.5.5
+		 * \since v.5.5.5
 		 *
 		 * \par Usage samples:
 			\code
@@ -1355,8 +1653,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Get activity tracking flag for the whole SObjectizer Environment.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		work_thread_activity_tracking_t
 		work_thread_activity_tracking() const;
@@ -1370,8 +1667,7 @@ class SO_5_TYPE environment_t
 		 * Because of that this method can be changed or removed in 
 		 * future versions of SObjectizer.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		disp_binder_shptr_t
 		so_make_default_disp_binder();
@@ -1383,8 +1679,7 @@ class SO_5_TYPE environment_t
 		 * in environment_params_t. This methods returns <i>true</i> if
 		 * autoshutdown is turned off.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		bool
 		autoshutdown_disabled() const;
@@ -1428,8 +1723,7 @@ class SO_5_TYPE environment_t
 		 * so_5::mbox_t lambda(const so_5::mbox_creation_data_t &);
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		template< typename Lambda >
 		mbox_t
@@ -1500,8 +1794,7 @@ class SO_5_TYPE environment_t
 		 * it is possible to add the same stop_guard several times.
 		 * But it seems to be useless.
 		 *
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		stop_guard_t::setup_result_t
 		setup_stop_guard(
@@ -1546,8 +1839,8 @@ class SO_5_TYPE environment_t
 		 * 	so_5::stop_guard_shptr_t m_my_guard;
 		 * };
 		 * \endcode
-		 * \since
-		 * v.5.5.19.2
+		 *
+		 * \since v.5.5.19.2
 		 */
 		void
 		remove_stop_guard(
@@ -1599,8 +1892,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \throw exception_t if message delivery tracing is disabled.
 		 *
-		 * \since
-		 * v.5.5.22
+		 * \since v.5.5.22
 		 */
 		void
 		change_message_delivery_tracer_filter(
@@ -1631,8 +1923,7 @@ class SO_5_TYPE environment_t
 
 		//! Actual creation of a custom mbox.
 		/*!
-		 * \since
-		 * v.5.5.19.2
+		 * \since v.5.5.19.2
 		 */
 		mbox_t
 		do_make_custom_mbox(
@@ -1651,8 +1942,7 @@ class SO_5_TYPE environment_t
 		 * \brief Run controller for run-time monitoring
 		 * and call next run stage.
 		 *
-		 * \since
-		 * v.5.5.4
+		 * \since v.5.5.4
 		 */
 		void
 		imp_run_stats_controller_and_go_further();
@@ -1666,8 +1956,7 @@ class SO_5_TYPE environment_t
 		/*!
 		 * \brief Launch environment infrastructure and wait for finish.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		void
 		imp_run_infrastructure();
@@ -1682,8 +1971,7 @@ namespace details
 /*!
  * \brief Helper class for building and registering new cooperation.
  *
- * \since
- * v.5.5.5
+ * \since v.5.5.5
  */
 class introduce_coop_helper_t
 {
@@ -1784,8 +2072,7 @@ environment_t::introduce_coop( Args &&... args )
 /*!
  * \brief A simple way for creating child cooperation.
  *
- * \since
- * v.5.5.3
+ * \since v.5.5.3
  *
  * \par Usage sample
 	\code
@@ -1824,8 +2111,7 @@ create_child_coop(
  * \brief A simple way for creating child cooperation when there is
  * a reference to the parent cooperation object.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  *
  * \par Usage sample
 	\code
@@ -1861,8 +2147,7 @@ create_child_coop(
 /*!
  * \brief A simple way for creating and registering child cooperation.
  *
- * \since
- * v.5.5.5
+ * \since v.5.5.5
  *
  * \par Usage sample
 	\code
@@ -1903,8 +2188,7 @@ introduce_child_coop(
  * \brief A simple way for creating and registering child cooperation
  * when there is a reference to parent coop.
  *
- * \since
- * v.5.5.8
+ * \since v.5.5.8
  *
  * \par Usage sample
 	\code
@@ -1964,8 +2248,7 @@ introduce_child_coop(
  * } );
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 inline disp_binder_shptr_t
 make_default_disp_binder( environment_t & env )
@@ -1986,8 +2269,7 @@ namespace low_level_api
  * \attention
  * Values of \a pause and \a period should be non-negative.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 [[nodiscard]] inline so_5::timer_id_t
 schedule_timer(
@@ -2025,8 +2307,7 @@ schedule_timer(
  * \attention
  * Value \a period should be non-negative.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 inline void
 single_timer(

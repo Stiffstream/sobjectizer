@@ -33,14 +33,13 @@ namespace impl
  * local mboxes should have only one instance inside
  * SObjectizer Environment.
 */
-class named_local_mbox_t
-	:
-		public abstract_message_box_t
-{
+class named_local_mbox_t final
+	: public abstract_message_box_t
+	{
 		friend class impl::mbox_core_t;
 
 		named_local_mbox_t(
-			const std::string & name,
+			full_named_mbox_id_t full_name,
 			const mbox_t & mbox,
 			impl::mbox_core_t & mbox_core );
 
@@ -53,13 +52,12 @@ class named_local_mbox_t
 		void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			const so_5::message_limit::control_block_t * limit,
-			agent_t & subscriber ) override;
+			abstract_message_sink_t & subscriber ) override;
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & type_wrapper,
-			agent_t & subscriber ) override;
+			abstract_message_sink_t & subscriber ) noexcept override;
 
 		std::string
 		query_name() const override;
@@ -69,35 +67,37 @@ class named_local_mbox_t
 
 		void
 		do_deliver_message(
+			message_delivery_mode_t delivery_mode,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) override;
+			unsigned int redirection_deep ) override;
 
 		void
 		set_delivery_filter(
 			const std::type_index & msg_type,
 			const delivery_filter_t & filter,
-			agent_t & subscriber ) override;
+			abstract_message_sink_t & subscriber ) override;
 
 		void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept override;
+			abstract_message_sink_t & subscriber ) noexcept override;
 
 		environment_t &
 		environment() const noexcept override;
 
 	private:
 		//! Mbox name.
-		const std::string m_name;
+		const full_named_mbox_id_t m_name;
 
 		//! An utility for this mbox.
 		impl::mbox_core_ref_t m_mbox_core;
 
 		//! Actual mbox.
 		mbox_t m_mbox;
-};
+	};
 
 } /* namespace impl */
 
 } /* namespace so_5 */
+

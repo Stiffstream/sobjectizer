@@ -30,6 +30,7 @@
 #include <so_5/impl/thread_join_stuff.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
+#include <so_5/details/invoke_noexcept_code.hpp>
 
 namespace so_5
 {
@@ -50,8 +51,7 @@ namespace queue_traits = so_5::disp::mpsc_queue_traits;
 
 //! Typedef for atomic demands counter.
 /*!
- * \since
- * v.5.5.7
+ * \since v.5.5.7
  */
 using demands_counter_t = std::atomic< std::size_t >;
 
@@ -74,8 +74,7 @@ namespace demand_queue_details
 /*!
  * \brief Common data for all implementations of demand_queue.
  *
- * \since 
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct common_data_t
 {
@@ -123,7 +122,7 @@ protected :
 	void
 	wait_started() {}
 
-	void 
+	void
 	wait_finished() {}
 };
 
@@ -153,7 +152,7 @@ protected :
 		m_waiting_stats.start();
 	}
 
-	void 
+	void
 	wait_finished()
 	{
 		m_waiting_stats.stop();
@@ -213,6 +212,29 @@ public:
 			}
 		}
 	}
+
+	/*!
+	 * \note
+	 * Delegates the work to the push() method.
+	 */
+	void
+	push_evt_start( execution_demand_t demand ) override
+		{
+			this->push( std::move(demand) );
+		}
+
+	/*!
+	 * \note
+	 * Delegates the work to the push() method.
+	 *
+	 * \attention
+	 * Terminates the whole application if the push() throws.
+	 */
+	void
+	push_evt_finish( execution_demand_t demand ) noexcept override
+		{
+			this->push( std::move(demand) );
+		}
 	/*!
 	 * \}
 	 */
@@ -241,7 +263,7 @@ public:
 		{
 			if( this->m_in_service && !this->m_demands.empty() )
 			{
-				demands.swap( this->m_demands );
+				swap( demands, this->m_demands );
 
 				// It's time to update external counter.
 				external_counter.store( demands.size(), std::memory_order_release );
@@ -299,14 +321,13 @@ public:
 	}
 
 	/*!
-	 * \since
-	 * v.5.5.4
-	 *
 	 * \brief Get the count of demands in the queue.
 	 *
 	 * \note Since v.5.5.7 this method also uses external demands
 	 * counter. Addition of demands quantity inside demands queue and
 	 * the value of external counter is performed under the queue lock.
+	 *
+	 * \since v.5.5.4
 	 */
 	std::size_t
 	demands_count( const demands_counter_t & external_counter )
@@ -323,8 +344,7 @@ public:
 /*!
  * \brief An alias for demand_queue without activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using demand_queue_no_activity_tracking_t =
 	demand_queue_details::queue_template_t<
@@ -333,8 +353,7 @@ using demand_queue_no_activity_tracking_t =
 /*!
  * \brief An alias for demand_queue with activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 using demand_queue_with_activity_tracking_t =
 	demand_queue_details::queue_template_t<
@@ -355,8 +374,7 @@ enum class status_t : int
 /*!
  * \brief Common data for all work thread implementations.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 template< typename Demand_Queue >
 struct common_data_t
@@ -396,8 +414,7 @@ struct common_data_t
 /*!
  * \brief Part of implementation of work thread without activity tracking.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 class no_activity_tracking_impl_t
 	: protected common_data_t< demand_queue_no_activity_tracking_t >
@@ -573,7 +590,7 @@ public :
 	void
 	start()
 	{
-		// NOTE: those actions have to be rollbacked in work thread can't
+		// NOTE: those actions have to be rollbacked if work thread can't
 		// be started.
 		this->m_queue.start_service();
 		this->m_status = status_t::working;
@@ -584,12 +601,11 @@ public :
 							[this]() { this->body(); } );
 				},
 				[this]() {
-					this->m_status = status_t::stopped;
-					//FIXME: this call can throw too.
-					// We don't known what to do with at the moment.
-					// This case has to be addressed in some future
-					// version of SObjectizer.
-					this->m_queue.stop_service();
+					// We can't recover if that code throws.
+					so_5::details::invoke_noexcept_code( [this]() {
+							this->m_status = status_t::stopped;
+							this->m_queue.stop_service();
+						} );
 				} );
 	}
 

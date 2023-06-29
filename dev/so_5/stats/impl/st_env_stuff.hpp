@@ -102,8 +102,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		void
 		subscribe_event_handler(
 			const std::type_index & /*type_index*/,
-			const message_limit::control_block_t * /*limit*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to subscribe_event_handler() is illegal for "
@@ -111,13 +110,11 @@ class next_turn_mbox_t final : public abstract_message_box_t
 			}
 
 		void
-		unsubscribe_event_handlers(
+		unsubscribe_event_handler(
 			const std::type_index & /*type_index*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{
-				SO_5_THROW_EXCEPTION( rc_not_implemented,
-						"call to unsubscribe_event_handler() is illegal for "
-						"next_turn_mbox_t" );
+				// Do nothing because it's a noexcept method since v.5.8.0.
 			}
 
 		std::string
@@ -134,9 +131,10 @@ class next_turn_mbox_t final : public abstract_message_box_t
 
 		void
 		do_deliver_message(
+			message_delivery_mode_t /*delivery_mode*/,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int /*overlimit_reaction_deep*/ ) override
+			unsigned int /*redirection_deep*/ ) override
 			{
 				static const auto & next_turn_msg_type =
 						typeid(next_turn_handler_t::next_turn);
@@ -158,7 +156,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
 			const delivery_filter_t & /*filter*/,
-			agent_t & /*subscriber*/ ) override
+			abstract_message_sink_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to set_delivery_filter() is illegal for "
@@ -168,7 +166,7 @@ class next_turn_mbox_t final : public abstract_message_box_t
 		void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			agent_t & /*subscriber*/ ) noexcept override
+			abstract_message_sink_t & /*subscriber*/ ) noexcept override
 			{
 				SO_5_THROW_EXCEPTION( rc_not_implemented,
 						"call to drop_delivery_filter() is illegal for "

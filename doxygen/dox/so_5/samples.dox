@@ -206,6 +206,10 @@
  * \example so_5/named_dispatchers_layer/main.cpp
  * \example so_5/custom_work_thread_factory/main.cpp
  * \example so_5/custom_direct_mbox/main.cpp
+ * \example so_5/single_sink_binding/main.cpp
+ * \example so_5/unique_subscribers_mbox/main.cpp
+ * \example so_5/introduce_named_mbox/main.cpp
+ * \example so_5/child_soenv/main.cpp
  */
 
 // vim:ft=cpp.doxygen

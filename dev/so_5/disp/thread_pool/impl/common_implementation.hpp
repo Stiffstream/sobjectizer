@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.4
- *
  * \file
  * \brief Reusable common implementation for thread-pool-like dispatchers.
+ *
+ * \since v.5.5.4
  */
 
 #pragma once
@@ -15,7 +14,7 @@
 #include <so_5/event_queue.hpp>
 
 #include <so_5/disp/reuse/actual_work_thread_factory_to_use.hpp>
-#include <so_5/disp/reuse/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/queue_of_queues.hpp>
 #include <so_5/disp/reuse/thread_pool_stats.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
@@ -38,20 +37,36 @@ namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 //
 /*!
  * \brief Reusable common implementation for thread-pool-like dispatchers.
- * \since
- * v.5.5.4
+ *
+ * \tparam Work_Thread type of worker thread to be used.
+ *
+ * \tparam Dispatcher_Queue type of dispatcher queue. A single instance of
+ * dispatcher queue will be used for scheduling separate agent queues.
+ * It'e expected to be so_5::disp::reuse::queue_params_t.
+ *
+ * \tparam Bind_Params type of bind_params_t with parameters for binding
+ * just one agent to the dispatcher.
+ *
+ * \tparam Adaptations type with static method. This method adapts the
+ * behavoir of Dispatcher_Queue (and corresponding agent queues) to the
+ * needs of the dispatcher. See so_5::disp::thread_pool::impl::adaptation_t
+ * or so_5::disp::adv_thread_pool::impl::adaptation_t as examples.
+ *
+ * \since v.5.5.4
  */
 template<
 	typename Work_Thread,
 	typename Dispatcher_Queue,
-	typename Agent_Queue,
-	typename Params,
+	typename Bind_Params,
 	typename Adaptations >
 class dispatcher_t final
 	:	public tp_stats::stats_supplier_t
 	{
 	private :
-		using agent_queue_ref_t = so_5::intrusive_ptr_t< Agent_Queue >;
+		//! A short alias for agent queue type.
+		using agent_queue_t = typename Dispatcher_Queue::item_t;
+
+		using agent_queue_ref_t = so_5::intrusive_ptr_t< agent_queue_t >;
 
 		//! Data for one cooperation.
 		struct cooperation_data_t
@@ -68,8 +83,8 @@ class dispatcher_t final
 
 				/*!
 				 * \brief Description of that queue for run-time monitoring.
-				 * \since
-				 * v.5.5.4
+				 *
+				 * \since v.5.5.4
 				 */
 				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
@@ -88,10 +103,9 @@ class dispatcher_t final
 					{}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Update queue information for run-time monitoring.
+				 *
+				 * \since v.5.5.4
 				 */
 				void
 				update_queue_stats()
@@ -115,13 +129,13 @@ class dispatcher_t final
 				agent_queue_ref_t m_queue;
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Description of that queue for run-time monitoring.
 				 *
 				 * \note This description is created only if agent
 				 * uses individual FIFO.
+				 *
+				 * \since v.5.5.4
+				 *
 				 */
 				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
@@ -147,11 +161,11 @@ class dispatcher_t final
 					{}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Does agent use cooperation FIFO?
+				 *
+				 * \since v.5.5.4
 				 */
+				[[nodiscard]]
 				bool
 				cooperation_fifo() const
 					{
@@ -159,12 +173,11 @@ class dispatcher_t final
 					}
 
 				/*!
-				 * \since
-				 * v.5.5.4
-				 *
 				 * \brief Update queue description with current information.
 				 *
 				 * \attention Must be called only if !cooperation_fifo().
+				 *
+				 * \since v.5.5.4
 				 */
 				void
 				update_queue_stats()
@@ -205,7 +218,7 @@ class dispatcher_t final
 
 					m_threads.emplace_back( std::unique_ptr< Work_Thread >(
 								new Work_Thread{
-										m_queue,
+										outliving_mutable(m_queue),
 										std::move(work_thread_holder)
 								} ) );
 				}
@@ -241,7 +254,7 @@ class dispatcher_t final
 		void
 		preallocate_resources_for_agent(
 			agent_t & agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -289,6 +302,7 @@ class dispatcher_t final
 			}
 
 		//! Get resources allocated for an agent.
+		[[nodiscard]]
 		event_queue_t *
 		query_resources_for_agent( agent_t & agent ) noexcept
 			{
@@ -345,7 +359,7 @@ class dispatcher_t final
 		void
 		bind_agent_with_inidividual_fifo(
 			agent_ref_t agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				auto queue = make_new_agent_queue( params );
 
@@ -365,7 +379,7 @@ class dispatcher_t final
 		void
 		bind_agent_with_cooperation_fifo(
 			agent_ref_t agent,
-			const Params & params )
+			const Bind_Params & params )
 			{
 				const auto id = agent->so_coop().id();
 
@@ -398,10 +412,10 @@ class dispatcher_t final
 		//! Helper method for creating event queue for agents/cooperations.
 		agent_queue_ref_t
 		make_new_agent_queue(
-			const Params & params )
+			const Bind_Params & params )
 			{
 				return agent_queue_ref_t(
-						new Agent_Queue{ m_queue, params } );
+						new agent_queue_t{ outliving_mutable(m_queue), params } );
 			}
 
 		/*!
