@@ -12,7 +12,7 @@
 * [There are more useful stuff in a companion project so5extra](#there-are-more-useful-stuff-in-a-companion-project-so5extra)
 * [Limitations](#limitations)
 * [Obtaining and building](#obtaining-and-building)
-	* [SObjectizer-5.7 requires C  17!](#sobjectizer-57-requires-c17)
+	* [SObjectizer-5.8 requires Cpp-17!](#sobjectizer-58-requires-c17)
 	* [Building via Mxx_ru](#building-via-mxx_ru)
 	* [Building via CMake](#building-via-cmake)
 	* [Building for Android](#building-for-android)
@@ -611,14 +611,14 @@ Android is possible by CMake only. See the corresponding section below.
 SObjectizer can also be installed and used via **vcpkg** and **Conan**
 dependency managers. See the appropriate sections below.
 
-## SObjectizer-5.7 requires C++17!
+## SObjectizer-5.8 requires C++17!
 
-The 5.7-branch of SObjectizer requires C++17.
+The 5.8-branch of SObjectizer requires C++17.
 
 If you need support for C++14 or C++11 try to look to older versions of
 SObjectizer on [SourceForge](https://sourceforge.net/projects/sobjectizer).  Or
 contact [stiffstream](https://stiffstream.com/en/services.html) to discuss
-porting of SObjectizer-5.7 to older C++ standards.
+porting of SObjectizer-5.8 to older C++ standards.
 
 ## Building via Mxx_ru
 
@@ -848,7 +848,7 @@ To use SObjectizer via Conan it is necessary to add SObjectizer to
 
 ```
 [requires]
-sobjectizer/5.7.2.3
+sobjectizer/5.8.0
 ```
 
 It also may be necessary to specify `shared` option for SObjectizer. For example, for build SObjectizer as a static library:
