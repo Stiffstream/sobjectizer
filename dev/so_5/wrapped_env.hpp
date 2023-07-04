@@ -191,11 +191,27 @@ class SO_5_TYPE wrapped_env_t
 			environment_params_t && params );
 
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
 		 * \brief A constructor which receives already prepared
 		 * environment's params.
+		 *
+		 * Usage example:
+		 * \code
+		 * #include <so_5/all.hpp>
+		 *
+		 * so_5::environment_params_t make_params() {
+		 *     so_5::environment_params_t result;
+		 *     ... // Parameters' tuning.
+		 *     return result;
+		 * }
+		 *
+		 * int main() {
+		 *     so_5::wrapped_env_t sobj{ make_params() }; // SObjectizer is started on separate thread here.
+		 *     ... // Some actions.
+		 *     return 0; // SObjectizer will be stopped automatically here.
+		 * }
+		 * \endcode
+		 *
+		 * \since v.5.5.13
 		 */
 		wrapped_env_t(
 			//! Environment's params.

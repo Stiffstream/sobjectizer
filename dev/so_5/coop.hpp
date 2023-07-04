@@ -480,6 +480,23 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		/*!
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
+		 *
+		 * Usage example:
+		 * \code
+		 * [[nodiscard]] std::unique_ptr<my_agent> make_agent(so_5::environment_t & env) {
+		 * 	... // Some preparation.
+		 * 	return std::make_unique<my_agent>(...);
+		 * }
+		 * ...
+		 * so_5::environment_t & env = ...;
+		 * auto coop_obj = env.make_coop();
+		 * // Add a new agent and bind it to a separate one_thread dispatcher.
+		 * coop_obj->add_agent(
+		 * 	make_agent(env),
+		 * 	so_5::disp::one_thread::make_dispatcher(env).binder());
+		 * ...
+		 * env.register_coop(std::move(coop_obj));
+		 * \endcode
 		 */
 		template< class Agent >
 		inline Agent *

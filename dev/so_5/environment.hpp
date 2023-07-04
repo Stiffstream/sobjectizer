@@ -235,7 +235,7 @@ class SO_5_TYPE environment_params_t
 		 * If it is not appropriate then this method must be called.
 		 * It disables autoshutdown of SO Environment. Event if there is
 		 * no more live cooperations SO Environment will work until
-		 * explisit call to environment_t::stop() method.
+		 * explicit call to environment_t::stop() method.
 		 *
 		 * \since v.5.4.0
 		 */
@@ -1184,6 +1184,17 @@ class SO_5_TYPE environment_t
 
 		//! Create a cooperation.
 		/*!
+		 * Usage example:
+		 * \code
+		 * so_5::environmet_t & env = ...;
+		 * // A binder for the default dispatcher will be used.
+		 * auto coop = env.make_coop();
+		 * coop.make_agent<first_agent>(...);
+		 * coop.make_agent<second_agent>(...);
+		 * // Registration of the coop.
+		 * env.register_coop(std::move(coop));
+		 * \endcode
+		 *
 		 * \return A new cooperation. This cooperation
 		 * will use default dispatcher binders.
 		 *
@@ -1370,11 +1381,11 @@ class SO_5_TYPE environment_t
 		 *
 		 * Usage sample:
 		 * \code
-		   so_env.register_agent_as_coop(
-					std::make_unique<my_agent>(...),
-		   		so_5::disp::active_group::create_disp_binder(
-		   				"active_group",
-		   				"some_active_group" ) );
+		 * so_5::environment_t & env = ...;
+		 * env.register_agent_as_coop(
+		 * 		std::make_unique<my_agent>(...),
+		 * 		so_5::disp::active_group::make_dispatcher(env)
+		 * 				.binder("some_active_group") );
 		 * \endcode
 		 *
 		 * \since v.5.2.1

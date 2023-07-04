@@ -1084,7 +1084,7 @@ class SO_5_TYPE agent_t
 		 * 			std::cout << "hello from the direct mbox" << std::endl;
 		 * 		} );
 		 *
-		 * 		const new_mbox = so_make_new_direct_mbox();
+		 * 		const auto new_mbox = so_make_new_direct_mbox();
 		 * 		so_subscribe( new_mbox ).event( [](mhood_t<hello) {
 		 * 			std::cout << "hello from a new mbox" << std::endl;
 		 * 		}
@@ -2399,10 +2399,29 @@ class SO_5_TYPE agent_t
 			execution_demand_t & demand );
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief A helper method for deregistering agent's coop.
+		 *
+		 * Usage example:
+		 * \code
+		 * class demo : public so_5::agent_t {
+		 * ...
+		 *     void on_some_event(mhood_t<some_msg> cmd) {
+		 *         try {
+		 *             ... // Some processing.
+		 *             if(no_more_work_left())
+		 *                 // Normal deregistration of the coop.
+		 *                 so_deregister_agent_coop_normally();
+		 *         }
+		 *         catch(...) {
+		 *             // Some error.
+		 *             // Deregister the coop with special 'exit code'.
+		 *             so_deregister_agent_coop(so_5::dereg_reason::user_defined_reason+10);
+		 *         }
+		 *     }
+		 * };
+		 * \endcode
+		 *
+		 * \since v.5.4.0
 		 */
 		void
 		so_deregister_agent_coop( int dereg_reason );
