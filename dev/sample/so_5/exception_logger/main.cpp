@@ -38,8 +38,7 @@ class a_hello_t final : public so_5::agent_t
 		void so_evt_start() override
 		{
 			so_environment().install_exception_logger(
-				so_5::event_exception_logger_unique_ptr_t(
-					new sample_event_exception_logger_t ) );
+				std::make_unique<sample_event_exception_logger_t>() );
 
 			throw std::runtime_error( "sample exception" );
 		}
