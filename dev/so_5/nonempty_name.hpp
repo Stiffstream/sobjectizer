@@ -31,6 +31,10 @@ class nonempty_name_t
 		nonempty_name_t( const nonempty_name_t & ) = delete;
 		nonempty_name_t & operator=( const nonempty_name_t & ) = delete;
 
+	private:
+		//! Value.
+		std::string m_nonempty_name;
+
 	public:
 		//! Constructor with check for the empty value.
 		nonempty_name_t( const char * name )
@@ -87,10 +91,6 @@ class nonempty_name_t
 		{
 			return std::move(m_nonempty_name);
 		}
-
-	private:
-		//! Value.
-		std::string m_nonempty_name;
 };
 
 } /* namespace so_5 */
