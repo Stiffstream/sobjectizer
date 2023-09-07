@@ -113,11 +113,18 @@ struct execution_demand_t
 // execution_hint_t
 //
 /*!
- * \since
- * v.5.4.0
- *
  * \brief A hint for a dispatcher for execution of event
  * for the concrete execution_demand.
+ *
+ * An instance of execution hint can be in two "states":
+ *
+ * - holds actual event handler. In that case an invocation of
+ *   exec() method will decrement message limit counter and then
+ *   will call the event handler;
+ * - empty. In that case an invocation of exec() method will only
+ *   decrement message limit counter and nothing more.
+ *
+ * \since v.5.4.0
  */
 class execution_hint_t
 {
