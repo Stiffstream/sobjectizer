@@ -871,7 +871,10 @@ struct make_message_instance_impl
 			{
 				ensure_not_signal< Msg >();
 
-				return std::unique_ptr< E >( new E( std::forward< Args >(args)... ) );
+				auto r = std::unique_ptr< E >( new E( std::forward< Args >(args)... ) );
+				mark_as_mutable_if_necessary< Msg >( *r );
+
+				return r;
 			}
 	};
 
