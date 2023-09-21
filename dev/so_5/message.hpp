@@ -815,50 +815,6 @@ struct message_payload_type< user_type_message_t< T > >
 namespace details
 {
 
-template< typename Msg >
-typename std::enable_if<
-	message_mutability_t::mutable_message ==
-			::so_5::details::message_mutability_traits<Msg>::mutability >::type
-mark_as_mutable_if_necessary( message_t & msg )
-	{
-		change_message_mutability( msg, message_mutability_t::mutable_message );
-	}
-
-/*!
- * \since
- * v.5.6.0
- */
-template< typename Msg >
-typename std::enable_if<
-	message_mutability_t::mutable_message ==
-			::so_5::details::message_mutability_traits<Msg>::mutability >::type
-mark_as_mutable_if_necessary( message_ref_t & msg )
-	{
-		change_message_mutability( *msg, message_mutability_t::mutable_message );
-	}
-
-template< typename Msg >
-typename std::enable_if<
-	message_mutability_t::mutable_message !=
-			::so_5::details::message_mutability_traits<Msg>::mutability >::type
-mark_as_mutable_if_necessary( message_t & /*msg*/ )
-	{
-		// Nothing to do.
-	}
-
-/*!
- * \since
- * v.5.6.0
- */
-template< typename Msg >
-typename std::enable_if<
-	message_mutability_t::mutable_message !=
-			::so_5::details::message_mutability_traits<Msg>::mutability >::type
-mark_as_mutable_if_necessary( message_ref_t & /*msg*/ )
-	{
-		// Nothing to do.
-	}
-
 template< bool is_signal, typename Msg >
 struct make_message_instance_impl
 	{
@@ -872,7 +828,13 @@ struct make_message_instance_impl
 				ensure_not_signal< Msg >();
 
 				auto r = std::unique_ptr< E >( new E( std::forward< Args >(args)... ) );
-				mark_as_mutable_if_necessary< Msg >( *r );
+				if constexpr( message_mutability_t::mutable_message ==
+						message_mutability_traits<Msg>::mutability )
+					{
+						change_message_mutability(
+								*r,
+								message_mutability_t::mutable_message );
+					}
 
 				return r;
 			}

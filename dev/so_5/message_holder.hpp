@@ -678,10 +678,11 @@ class message_holder_t
 			{
 				using namespace details;
 
+				// Mutability of a message will be changed appropriately
+				// in make_message_instance.
 				intrusive_ptr_t< envelope_type > msg{
 					make_message_instance< Msg >( std::forward<Args>(args)... )
 				};
-				mark_as_mutable_if_necessary< Msg >( *msg );
 
 				return msg;
 			}

@@ -39,11 +39,11 @@ namespace impl
 					// it will be std::unique_ptr<Envelope>, where Envelope
 					// can be a different type. But Envelope is derived from
 					// so_5::message_t.
+					// Mutability of a message will be changed appropriately
+					// in make_message_instance.
 					auto msg_instance =
 						so_5::details::make_message_instance< Message >(
 								std::forward< Args >( args )...);
-					so_5::details::mark_as_mutable_if_necessary< Message >(
-							*msg_instance );
 
 					return msg_instance;
 				}

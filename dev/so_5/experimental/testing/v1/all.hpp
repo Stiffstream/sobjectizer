@@ -823,12 +823,12 @@ class step_definition_proxy_t
 
 				// Make an instance of a message.
 				// This instance will be captured by lambda function.
+				// Mutability of a message will be changed appropriately
+				// in make_message_instance.
 				message_ref_t msg{
 					so_5::details::make_message_instance<Msg_Type>(
 							std::forward<Args>(args)... )
 				};
-				// Mutability of a message should be changed appropriately.
-				so_5::details::mark_as_mutable_if_necessary<Msg_Type>( msg );
 
 				// Now we can create a lambda-function that will send
 				// the message instance at the appropriate time.
