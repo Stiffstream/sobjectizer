@@ -802,7 +802,7 @@ struct message_limit_methods_mixin_t
 		static transformed_message_t< Msg >
 		make_transformed( mbox_t mbox, Args &&... args )
 			{
-				return transformed_message_t< Msg >::make(
+				return ::so_5::make_transformed< Msg >(
 						std::move( mbox ),
 						std::forward<Args>( args )... );
 			}

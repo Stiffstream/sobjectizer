@@ -141,5 +141,19 @@ class transformed_message_t
 		message_ref_t m_message;
 	};
 
+//
+// make_transformed
+//
+//FIXME: document this!
+template< typename Msg, typename... Args >
+[[nodiscard]]
+transformed_message_t< Msg >
+make_transformed( mbox_t mbox, Args &&... args )
+	{
+		return transformed_message_t< Msg >::make(
+				std::move( mbox ),
+				std::forward<Args>( args )... );
+	}
+
 } /* namespace so_5 */
 
