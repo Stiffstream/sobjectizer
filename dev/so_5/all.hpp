@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.4.0
- *
  * \file
  * \brief A helper header file for including all public SObjectizer stuff.
+ *
+ * \since v.5.4.0
  */
 
 #pragma once

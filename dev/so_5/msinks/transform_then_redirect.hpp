@@ -1,9 +1,41 @@
-namespace transform_then_redirect_sink_impl
+/*
+ * SObjectizer-5
+ */
+
+/*!
+ * \file
+ * \brief Stuff for thransform_then_redirect message sink.
+ *
+ * \since v.5.8.1
+ */
+
+#pragma once
+
+#include <so_5/message_sink.hpp>
+#include <so_5/transformed_message.hpp>
+#include <so_5/environment.hpp>
+
+#include <so_5/details/lambda_traits.hpp>
+
+#include <so_5/outliving.hpp>
+
+#include <optional>
+#include <type_traits>
+
+namespace so_5
 {
 
+namespace msinks
+{
+
+namespace transform_then_redirect_impl
+{
+
+//FIXME: document this!
 template< typename Msg >
 void
 deliver_transformation_result(
+	message_delivery_mode_t delivery_mode,
 	transformed_message_t< Msg > & r,
 	unsigned int redirection_deep )
 	{
@@ -14,19 +46,28 @@ deliver_transformation_result(
 				redirection_deep );
 	}
 
+//FIXME: document this!
 template< typename Msg >
 void
 deliver_transformation_result(
-	std::optional< transformed_message_t< Msg > > r,
+	message_delivery_mode_t delivery_mode,
+	std::optional< transformed_message_t< Msg > > & r,
 	unsigned int redirection_deep )
 	{
 		if( r.has_value() )
-			deliver_transformation_result( *r );
+			{
+				deliver_transformation_result(
+						delivery_mode,
+						*r,
+						redirection_deep );
+			}
 	}
 
+//FIXME: document this!
 template< typename Dummy >
 void
 deliver_transformation_result(
+	message_delivery_mode_t delivery_mode,
 	const Dummy &,
 	unsigned int redirection_deep )
 	{
@@ -36,13 +77,13 @@ deliver_transformation_result(
 				"std::optional<so_5::transformed_message_t<Msg>>" );
 	}
 
-} /* namespace transform_then_redirect_sink_impl */
-
+//FIXME: document this!
 template< typename Transformer >
-class tranform_then_redirect_sink_t final : public abstract_message_sink_t
+class msg_transform_then_redirect_sink_t final
+	:	public abstract_message_sink_t
 	{
-		payload_t = typename so_5::details::lambda_traits::
-				argument_type_if_lambda< Lambda >::type;
+		using payload_t = typename so_5::details::lambda_traits::
+				argument_type_if_lambda< Transformer >::type;
 
 		outliving_reference_t< so_5::environment_t > m_env;
 
@@ -50,7 +91,7 @@ class tranform_then_redirect_sink_t final : public abstract_message_sink_t
 
 	public:
 		template< typename Transformer_T >
-		tranform_then_redirect_sink_t(
+		msg_transform_then_redirect_sink_t(
 			outliving_reference_t< so_5::environment_t > env,
 			Transformer_T && transformer )
 			:	m_env{ env }
@@ -154,26 +195,36 @@ class tranform_then_redirect_sink_t final : public abstract_message_sink_t
 								*(message.get()) );
 				auto r = m_transformer( payload );
 
-				using transform_then_redirect_sink_impl::deliver_transformation_result;
-				deliver_transformation_result( r, redirection_deep + 1u );
+				deliver_transformation_result(
+						delivery_mode,
+						r,
+						redirection_deep + 1u );
 			}
 	};
 
-template< Transformer_Lambda >
+} /* namespace transform_then_redirect_impl */
+
+template< typename Transformer_Lambda >
 [[nodiscard]]
 msink_t
 transform_then_redirect(
 	so_5::environment_t & env,
 	Transformer_Lambda && transformer )
 	{
+		using namespace transform_then_redirect_impl;
+
 		using transformer_t = std::decay_t< Transformer_Lambda >;
-		using sink_t = transform_then_redirect_sink_t< transformer_t >;
+		using sink_t = msg_transform_then_redirect_sink_t< transformer_t >;
 		using sink_owner_t = simple_sink_owner_t< sink_t >;
 
 		return {
 				std::make_unique< sink_owner_t >(
-						env,
+						outliving_mutable( env ),
 						std::forward<Transformer_Lambda>(transformer) )
 			};
 	}
+
+} /* namespace msinks */
+
+} /* namespace so_5 */
 
