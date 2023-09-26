@@ -67,9 +67,9 @@ deliver_transformation_result(
 template< typename Dummy >
 void
 deliver_transformation_result(
-	message_delivery_mode_t delivery_mode,
+	message_delivery_mode_t /*delivery_mode*/,
 	const Dummy &,
-	unsigned int redirection_deep )
+	unsigned int /*redirection_deep*/ )
 	{
 		static_assert( so_5::details::always_false<Dummy>::value,
 				"Transformer for transform_then_redirect_sink should "
