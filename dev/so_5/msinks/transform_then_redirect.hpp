@@ -79,19 +79,17 @@ deliver_transformation_result(
 
 //FIXME: document this!
 template< typename Transformer >
-class msg_transform_then_redirect_sink_t final
+class basic_transform_then_redirect_sink_t
 	:	public abstract_message_sink_t
 	{
-		using payload_t = typename so_5::details::lambda_traits::
-				argument_type_if_lambda< Transformer >::type;
-
+	protected:
 		outliving_reference_t< so_5::environment_t > m_env;
 
 		Transformer m_transformer;
 
 	public:
 		template< typename Transformer_T >
-		msg_transform_then_redirect_sink_t(
+		basic_transform_then_redirect_sink_t(
 			outliving_reference_t< so_5::environment_t > env,
 			Transformer_T && transformer )
 			:	m_env{ env }
@@ -100,7 +98,7 @@ class msg_transform_then_redirect_sink_t final
 
 		[[nodiscard]]
 		environment_t &
-		environment() const noexcept override
+		environment() const noexcept final
 			{
 				return m_env.get();
 			}
@@ -108,7 +106,7 @@ class msg_transform_then_redirect_sink_t final
 		//FIXME: should this value be specified in the constructor?
 		[[nodiscard]]
 		priority_t
-		sink_priority() const noexcept override
+		sink_priority() const noexcept final
 			{
 				return prio::p0;
 			}
@@ -120,7 +118,7 @@ class msg_transform_then_redirect_sink_t final
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int redirection_deep,
-			const message_limit::impl::action_msg_tracer_t * /*tracer*/ )
+			const message_limit::impl::action_msg_tracer_t * /*tracer*/ ) final
 			{
 				if( redirection_deep >= max_redirection_deep )
 					{
@@ -180,16 +178,37 @@ class msg_transform_then_redirect_sink_t final
 					}
 			}
 
+		virtual void
+		call_transformer_then_go_further(
+			message_delivery_mode_t delivery_mode,
+			const message_ref_t & message,
+			unsigned int redirection_deep ) = 0;
+	};
+
+//FIXME: document this!
+template< typename Transformer >
+class msg_transform_then_redirect_sink_t final
+	:	public basic_transform_then_redirect_sink_t< Transformer >
+	{
+		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
+
+		using payload_t = typename so_5::details::lambda_traits::
+				argument_type_if_lambda< Transformer >::type;
+
+	public:
+		using base_type_t::base_type_t;
+
+	private:
 		void
 		call_transformer_then_go_further(
 			message_delivery_mode_t delivery_mode,
 			const message_ref_t & message,
-			unsigned int redirection_deep )
+			unsigned int redirection_deep ) override
 			{
 				const auto & payload =
 						message_payload_type< payload_t >::payload_reference(
 								*(message.get()) );
-				auto r = m_transformer( payload );
+				auto r = this->m_transformer( payload );
 
 				deliver_transformation_result(
 						delivery_mode,
@@ -201,112 +220,21 @@ class msg_transform_then_redirect_sink_t final
 //FIXME: document this!
 template< typename Signal, typename Transformer >
 class signal_transform_then_redirect_sink_t final
-	:	public abstract_message_sink_t
+	:	public basic_transform_then_redirect_sink_t< Transformer >
 	{
-		outliving_reference_t< so_5::environment_t > m_env;
-
-		Transformer m_transformer;
+		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
 
 	public:
-		template< typename Transformer_T >
-		signal_transform_then_redirect_sink_t(
-			outliving_reference_t< so_5::environment_t > env,
-			Transformer_T && transformer )
-			:	m_env{ env }
-			,	m_transformer{ std::forward<Transformer_T>(transformer) }
-			{}
-
-		[[nodiscard]]
-		environment_t &
-		environment() const noexcept override
-			{
-				return m_env.get();
-			}
-
-		//FIXME: should this value be specified in the constructor?
-		[[nodiscard]]
-		priority_t
-		sink_priority() const noexcept override
-			{
-				return prio::p0;
-			}
-
-		void
-		push_event(
-			mbox_id_t mbox_id,
-			message_delivery_mode_t delivery_mode,
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int redirection_deep,
-			const message_limit::impl::action_msg_tracer_t * /*tracer*/ )
-			{
-//FIXME: should there be a runtime check that
-//message_payload_type<Signal>::subscription_type == msg_type?
-				if( redirection_deep >= max_redirection_deep )
-					{
-						// NOTE: this fragment can throw but it isn't a problem
-						// because push_event() is called during message
-						// delivery process and exceptions are expected in that
-						// process.
-						SO_5_LOG_ERROR(
-								this->environment().error_logger(),
-								logger )
-							logger << "maximum message redirection deep exceeded on "
-									"tranform_then_redirect_sink_t::push_event; "
-									"message will be ignored;"
-								<< " msg_type: " << msg_type.name()
-								<< ", mbox_id: " << mbox_id;
-					}
-				else
-					{
-						this->handle_envelope_then_go_further(
-								delivery_mode,
-								message,
-								// redirection_deep has to be increased.
-								redirection_deep + 1u );
-					}
-			}
+		using base_type_t::base_type_t;
 
 	private:
-		void
-		handle_envelope_then_go_further(
-			message_delivery_mode_t delivery_mode,
-			const message_ref_t & message,
-			unsigned int redirection_deep )
-			{
-				// Envelopes should be handled a special way.
-				// Payload must be extrected and checked for presence.
-				if( message_t::kind_t::enveloped_msg == message_kind( message ) )
-					{
-						const auto opt_payload = ::so_5::enveloped_msg::
-								extract_payload_for_message_transformation( message );
-
-						// Payload can be optional. Se we will perform
-						// transformation only if payload is present.
-						if( opt_payload )
-							{
-								call_transformer_then_go_further(
-										delivery_mode,
-										opt_payload->message(),
-										redirection_deep );
-							}
-					}
-				else
-					{
-						call_transformer_then_go_further(
-								delivery_mode,
-								message,
-								redirection_deep );
-					}
-			}
-
 		void
 		call_transformer_then_go_further(
 			message_delivery_mode_t delivery_mode,
 			const message_ref_t & /*message*/,
-			unsigned int redirection_deep )
+			unsigned int redirection_deep ) override
 			{
-				auto r = m_transformer();
+				auto r = this->m_transformer();
 
 				deliver_transformation_result(
 						delivery_mode,
