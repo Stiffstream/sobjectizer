@@ -9,5 +9,6 @@ add_subdirectory(multi_sink_simple)
 add_subdirectory(multi_sink_with_delivery_filter)
 add_subdirectory(multi_sink_unbind)
 add_subdirectory(multi_sink_mutable)
+add_subdirectory(multi_sink_mutable_2)
 add_subdirectory(multi_sink_mutable_with_dr)
 
