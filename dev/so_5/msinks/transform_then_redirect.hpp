@@ -186,14 +186,28 @@ class basic_transform_then_redirect_sink_t
 	};
 
 //FIXME: document this!
-template< typename Transformer >
+template<
+	typename Expected_Msg,
+	typename Transformer_Arg,
+	typename Transformer >
 class msg_transform_then_redirect_sink_t final
 	:	public basic_transform_then_redirect_sink_t< Transformer >
 	{
-		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
+		using payload_t =
+				typename message_payload_type< Expected_Msg >::payload_type;
 
-		using payload_t = typename so_5::details::lambda_traits::
-				argument_type_if_lambda< Transformer >::type;
+		using payload_reference_t = std::conditional_t<
+				is_mutable_message< Expected_Msg >::value,
+				payload_t &,
+				const payload_t &
+			>;
+
+		static_assert(
+				std::is_same_v< payload_t, Transformer_Arg >,
+				"transformer must receive exactly the same type as "
+				"message payload type" );
+
+		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
 
 	public:
 		using base_type_t::base_type_t;
@@ -205,9 +219,8 @@ class msg_transform_then_redirect_sink_t final
 			const message_ref_t & message,
 			unsigned int redirection_deep ) override
 			{
-				const auto & payload =
-						message_payload_type< payload_t >::payload_reference(
-								*(message.get()) );
+				payload_reference_t payload = message_payload_type< Expected_Msg >::
+						payload_reference( *message.get() );
 				auto r = this->m_transformer( payload );
 
 				deliver_transformation_result(
@@ -256,7 +269,45 @@ transform_then_redirect(
 		using namespace transform_then_redirect_impl;
 
 		using transformer_t = std::decay_t< Transformer_Lambda >;
-		using sink_t = msg_transform_then_redirect_sink_t< transformer_t >;
+		using lambda_traits_t =
+				so_5::details::lambda_traits::traits< transformer_t >;
+		using transformer_arg_t =
+				std::remove_cv_t< typename lambda_traits_t::argument_type >;
+		using sink_t = msg_transform_then_redirect_sink_t<
+				transformer_arg_t, // As expected msg type.
+				transformer_arg_t, // As argument type.
+				transformer_t >;
+		using sink_owner_t = simple_sink_owner_t< sink_t >;
+
+		return {
+				std::make_unique< sink_owner_t >(
+						outliving_mutable( env ),
+						std::forward<Transformer_Lambda>(transformer) )
+			};
+	}
+
+//FIXME: document this!
+template< typename Expected_Msg, typename Transformer_Lambda >
+[[nodiscard]]
+std::enable_if_t< !is_signal<Expected_Msg>::value, msink_t >
+transform_then_redirect(
+	so_5::environment_t & env,
+	Transformer_Lambda && transformer )
+	{
+		// Just for a case (it's a bit paranoid).
+		ensure_not_signal< Expected_Msg >();
+
+		using namespace transform_then_redirect_impl;
+
+		using transformer_t = std::decay_t< Transformer_Lambda >;
+		using lambda_traits_t =
+				so_5::details::lambda_traits::traits< transformer_t >;
+		using transformer_arg_t =
+				std::remove_cv_t< typename lambda_traits_t::argument_type >;
+		using sink_t = msg_transform_then_redirect_sink_t<
+				Expected_Msg, // As expected msg type.
+				transformer_arg_t, // As argument type.
+				transformer_t >;
 		using sink_owner_t = simple_sink_owner_t< sink_t >;
 
 		return {
@@ -269,11 +320,12 @@ transform_then_redirect(
 //FIXME: document this!
 template< typename Signal, typename Transformer_Lambda >
 [[nodiscard]]
-msink_t
+std::enable_if_t< is_signal<Signal>::value, msink_t >
 transform_then_redirect(
 	so_5::environment_t & env,
 	Transformer_Lambda && transformer )
 	{
+		// Just for a case (it's a bit paranoid).
 		ensure_signal< Signal >();
 
 		using namespace transform_then_redirect_impl;
