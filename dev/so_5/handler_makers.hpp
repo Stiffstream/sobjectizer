@@ -188,7 +188,7 @@ struct event_handler_arg_maker< mutable_msg<Msg> >
 };
 
 /*
- * Disable usage of mutable_msg<Msg> as parameter of an event handler.
+ * Disable usage of immutable_msg<Msg> as parameter of an event handler.
  */
 template< typename Msg >
 struct event_handler_arg_maker< immutable_msg<Msg> >
