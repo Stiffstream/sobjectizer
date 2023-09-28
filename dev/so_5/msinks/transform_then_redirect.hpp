@@ -188,7 +188,6 @@ class basic_transform_then_redirect_sink_t
 //FIXME: document this!
 template<
 	typename Expected_Msg,
-	typename Transformer_Arg,
 	typename Transformer >
 class msg_transform_then_redirect_sink_t final
 	:	public basic_transform_then_redirect_sink_t< Transformer >
@@ -201,11 +200,6 @@ class msg_transform_then_redirect_sink_t final
 				payload_t &,
 				const payload_t &
 			>;
-
-		static_assert(
-				std::is_same_v< payload_t, Transformer_Arg >,
-				"transformer must receive exactly the same type as "
-				"message payload type" );
 
 		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
 
@@ -275,8 +269,8 @@ transform_then_redirect(
 				std::remove_cv_t< typename lambda_traits_t::argument_type >;
 		using sink_t = msg_transform_then_redirect_sink_t<
 				transformer_arg_t, // As expected msg type.
-				transformer_arg_t, // As argument type.
 				transformer_t >;
+//FIXME: should here be checks against so_5::mutable_msg<M> and so_5::immutable_msg<M>?
 		using sink_owner_t = simple_sink_owner_t< sink_t >;
 
 		return {
@@ -300,13 +294,8 @@ transform_then_redirect(
 		using namespace transform_then_redirect_impl;
 
 		using transformer_t = std::decay_t< Transformer_Lambda >;
-		using lambda_traits_t =
-				so_5::details::lambda_traits::traits< transformer_t >;
-		using transformer_arg_t =
-				std::remove_cv_t< typename lambda_traits_t::argument_type >;
 		using sink_t = msg_transform_then_redirect_sink_t<
 				Expected_Msg, // As expected msg type.
-				transformer_arg_t, // As argument type.
 				transformer_t >;
 		using sink_owner_t = simple_sink_owner_t< sink_t >;
 

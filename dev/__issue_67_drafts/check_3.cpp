@@ -112,7 +112,7 @@ introduce_coop( so_5::environment_t & env )
 								so_5::mutable_msg<msg_full>
 							>(
 								coop.environment(),
-								[d = part_two->so_direct_mbox()]( msg_full & msg ) {
+								[d = part_two->so_direct_mbox()]( auto & msg ) {
 									return so_5::make_transformed< msg_part_two >(
 											d,
 											msg.m_two );
