@@ -7,6 +7,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/check_1.rb"
 	required_prj "#{path}/check_1_1.rb"
+	required_prj "#{path}/check_1_2.rb"
 
 	required_prj "#{path}/check_2.rb"
 	required_prj "#{path}/check_2_1.rb"

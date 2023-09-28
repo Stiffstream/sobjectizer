@@ -37,6 +37,7 @@ template<
 void
 ensure_valid_argument_for_delivery_filter()
 	{
+//FIXME: can we check that Delivery_Filter_Arg_Type is a value type or const reference?
 		static_assert(
 				std::is_same_v< Subscription_Type, Delivery_Filter_Arg_Type >,
 				"delivery filter lambda expects a different message type" );
