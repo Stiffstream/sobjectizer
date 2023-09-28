@@ -13,4 +13,5 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/check_3.rb"
 	required_prj "#{path}/check_3_1.rb"
+	required_prj "#{path}/check_3_2.rb"
 }
