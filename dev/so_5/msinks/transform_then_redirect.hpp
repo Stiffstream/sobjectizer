@@ -4,7 +4,7 @@
 
 /*!
  * \file
- * \brief Stuff for thransform_then_redirect message sink.
+ * \brief Stuff for transform_then_redirect message sink.
  *
  * \since v.5.8.1
  */
