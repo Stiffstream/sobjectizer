@@ -351,10 +351,14 @@ run_tests()
 		// msg_res_1
 		//
 		run_test_case_for_msg_pair< msg_res_1 >();
+		run_test_case_for_msg_pair< so_5::immutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair< so_5::mutable_msg<msg_res_1> >();
 
 		// msg_res_2
 		//
 		run_test_case_for_msg_pair< msg_res_2 >();
+		run_test_case_for_msg_pair< so_5::immutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair< so_5::mutable_msg<msg_res_2> >();
 
 		// msg_res_3
 		//
