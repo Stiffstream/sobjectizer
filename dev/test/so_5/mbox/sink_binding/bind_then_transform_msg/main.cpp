@@ -469,7 +469,15 @@ run_test_case_for_msg_pair()
 						Source_Msg, Result_Msg,
 						implicit_type_no_optional_no_dr_t >();
 				run_test_case<
+						so_5::multi_sink_binding_t<>,
+						Source_Msg, Result_Msg,
+						implicit_type_no_optional_no_dr_t >();
+				run_test_case<
 						so_5::single_sink_binding_t,
+						Source_Msg, Result_Msg,
+						implicit_type_no_optional_with_dr_t >();
+				run_test_case<
+						so_5::multi_sink_binding_t<>,
 						Source_Msg, Result_Msg,
 						implicit_type_no_optional_with_dr_t >();
 				run_test_case<
@@ -477,23 +485,47 @@ run_test_case_for_msg_pair()
 						Source_Msg, Result_Msg,
 						implicit_type_with_optional_no_dr_t >();
 				run_test_case<
+						so_5::multi_sink_binding_t<>,
+						Source_Msg, Result_Msg,
+						implicit_type_with_optional_no_dr_t >();
+				run_test_case<
 						so_5::single_sink_binding_t,
+						Source_Msg, Result_Msg,
+						implicit_type_with_optional_with_dr_t >();
+				run_test_case<
+						so_5::multi_sink_binding_t<>,
 						Source_Msg, Result_Msg,
 						implicit_type_with_optional_with_dr_t >();
 			}
 
 		run_test_case<
-				so_5::multi_sink_binding_t<>,
+				so_5::single_sink_binding_t,
 				Source_Msg, Result_Msg,
 				explicit_type_no_optional_no_dr_t >();
 		run_test_case<
 				so_5::multi_sink_binding_t<>,
 				Source_Msg, Result_Msg,
+				explicit_type_no_optional_no_dr_t >();
+		run_test_case<
+				so_5::single_sink_binding_t,
+				Source_Msg, Result_Msg,
 				explicit_type_no_optional_with_dr_t >();
 		run_test_case<
 				so_5::multi_sink_binding_t<>,
 				Source_Msg, Result_Msg,
+				explicit_type_no_optional_with_dr_t >();
+		run_test_case<
+				so_5::single_sink_binding_t,
+				Source_Msg, Result_Msg,
 				explicit_type_with_optional_no_dr_t >();
+		run_test_case<
+				so_5::multi_sink_binding_t<>,
+				Source_Msg, Result_Msg,
+				explicit_type_with_optional_no_dr_t >();
+		run_test_case<
+				so_5::single_sink_binding_t,
+				Source_Msg, Result_Msg,
+				explicit_type_with_optional_with_dr_t >();
 		run_test_case<
 				so_5::multi_sink_binding_t<>,
 				Source_Msg, Result_Msg,
