@@ -12,6 +12,7 @@
 #pragma once
 
 #include <so_5/message.hpp>
+#include <so_5/message_holder.hpp>
 #include <so_5/mbox.hpp>
 
 namespace so_5
@@ -100,6 +101,23 @@ class transformed_message_t
 				ensure_signal< Msg >();
 			}
 
+		//FIXME: document this!
+		template<
+			typename Msg_In_Holder,
+			message_ownership_t Ownership >
+		transformed_message_t(
+			mbox_t mbox,
+			message_holder_t< Msg_In_Holder, Ownership > msg_holder )
+			:	m_mbox{ std::move(mbox) }
+			,	m_message{ msg_holder.make_reference() }
+			{
+				static_assert(
+						std::is_same_v<
+								typename message_payload_type< Msg >::envelope_type,
+								typename message_payload_type< Msg_In_Holder >::envelope_type >,
+						"message_holder has to hold a message of the same type" );
+			}
+
 		//! Destination message box.
 		const mbox_t &
 		mbox() const { return m_mbox; }
@@ -153,6 +171,22 @@ make_transformed( mbox_t mbox, Args &&... args )
 		return transformed_message_t< Msg >::make(
 				std::move( mbox ),
 				std::forward<Args>( args )... );
+	}
+
+//FIXME: document this!
+template<
+	typename Msg,
+	message_ownership_t Ownership >
+[[nodiscard]]
+transformed_message_t< Msg >
+make_transformed(
+	mbox_t mbox,
+	message_holder_t< Msg, Ownership > msg_holder )
+	{
+		return transformed_message_t< Msg >{
+				std::move( mbox ),
+				std::move( msg_holder )
+			};
 	}
 
 } /* namespace so_5 */
