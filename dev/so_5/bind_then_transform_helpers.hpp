@@ -83,5 +83,26 @@ bind_then_transform(
 						std::forward<Transformer>(transformer) ) );
 	}
 
+//FIXME: document this!
+template<
+	typename Expected_Msg,
+	typename Binding,
+	typename Transformer,
+	typename Delivery_Filter >
+void
+bind_then_transform(
+	Binding & binding,
+	const so_5::mbox_t & src_mbox,
+	Transformer && transformer,
+	Delivery_Filter && delivery_filter )
+	{
+		binding.template bind< Expected_Msg >(
+				src_mbox,
+				so_5::msinks::transform_then_redirect< Expected_Msg >(
+						src_mbox->environment(),
+						std::forward<Transformer>(transformer) ),
+				std::forward<Delivery_Filter>(delivery_filter) );
+	}
+
 } /* namespace so_5 */
 
