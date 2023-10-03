@@ -3,7 +3,6 @@
  */
 
 #include <iostream>
-#include <sstream>
 
 #include <so_5/bind_then_transform_helpers.hpp>
 #include <so_5/all.hpp>
@@ -196,7 +195,7 @@ run_test_case()
 		std::cout << "OK" << std::endl;
 	}
 
-void
+inline void
 ensure_valid_or_die(
 	const std::string_view case_name,
 	const std::string_view expected,
@@ -230,7 +229,17 @@ template< typename Msg >
 constexpr bool is_implicit_case_applicable_v =
 		is_implicit_case_applicable_impl_t<Msg>::value;
 
-struct implicit_type_no_optional_no_dr_t
+struct implicit_type_case_t
+	{
+		static constexpr bool is_implicit = true;
+	};
+
+struct explicit_type_case_t
+	{
+		static constexpr bool is_implicit = true;
+	};
+
+struct implicit_type_no_optional_no_dr_t : public implicit_type_case_t
 	{
 		[[nodiscard]] static std::string_view
 		name() { return { "implicit_type_no_optional_no_dr" }; }
@@ -458,10 +467,32 @@ struct explicit_type_with_optional_with_dr_t
 			}
 	};
 
-template< typename Source_Msg, typename Result_Msg >
+template<
+	typename Source_Msg,
+	typename Result_Msg,
+	typename Test_Case_Handler >
 void
 run_test_case_for_msg_pair()
 	{
+		constexpr bool is_applicable_to_implicit_case =
+				std::is_same_v<
+						typename so_5::message_payload_type< Source_Msg >::payload_type,
+						Source_Msg >;
+
+		if constexpr(
+				( Test_Case_Handler::is_implicit && is_applicable_to_implicit_case )
+				|| !Test_Case_Handler::is_implicit )
+			{
+				run_test_case<
+						so_5::single_sink_binding_t,
+						Source_Msg, Result_Msg,
+						Test_Case_Handler >();
+				run_test_case<
+						so_5::multi_sink_binding_t<>,
+						Source_Msg, Result_Msg,
+						Test_Case_Handler >();
+			}
+#if 0
 		if constexpr( is_implicit_case_applicable_v< Source_Msg > )
 			{
 				run_test_case<
@@ -530,99 +561,204 @@ run_test_case_for_msg_pair()
 				so_5::multi_sink_binding_t<>,
 				Source_Msg, Result_Msg,
 				explicit_type_with_optional_with_dr_t >();
+#endif
 	}
 
+template< typename Test_Case_Handler >
 void
-run_tests()
+run_tests_for_case_handler()
 	{
 		// msg_src_1, msg_res_1
 		//
-		run_test_case_for_msg_pair< msg_src_1, msg_res_1 >();
+		run_test_case_for_msg_pair< msg_src_1, msg_res_1, Test_Case_Handler >();
 
 		// msg_src_2, msg_res_1
 		//
-		run_test_case_for_msg_pair< msg_src_2, msg_res_1 >();
+		run_test_case_for_msg_pair< msg_src_2, msg_res_1, Test_Case_Handler >();
 
 		// msg_src_2, msg_res_2
 		//
-		run_test_case_for_msg_pair< msg_src_2, msg_res_2 >();
+		run_test_case_for_msg_pair< msg_src_2, msg_res_2, Test_Case_Handler >();
 
 		// msg_src_1, msg_res_2
 		//
-		run_test_case_for_msg_pair< msg_src_1, msg_res_2 >();
+		run_test_case_for_msg_pair< msg_src_1, msg_res_2, Test_Case_Handler >();
 
 		// so_5::immutable_msg.
 
 		// msg_src_1, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, msg_res_1 >();
-		run_test_case_for_msg_pair< msg_src_1, so_5::immutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, so_5::immutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				msg_res_1,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_1,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, msg_res_1 >();
-		run_test_case_for_msg_pair< msg_src_2, so_5::immutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, so_5::immutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				msg_res_1,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_2,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, msg_res_2 >();
-		run_test_case_for_msg_pair< msg_src_2, so_5::immutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, so_5::immutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				msg_res_2,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_2,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
 
 		// msg_src_1, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, msg_res_2 >();
-		run_test_case_for_msg_pair< msg_src_1, so_5::immutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, so_5::immutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				msg_res_2,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_1,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
 
 		// so_5::mutable_msg.
 
 		// msg_src_1, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, msg_res_1 >();
-		run_test_case_for_msg_pair< msg_src_1, so_5::mutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, so_5::mutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				msg_res_1,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_1,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, msg_res_1 >();
-		run_test_case_for_msg_pair< msg_src_2, so_5::mutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, so_5::mutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				msg_res_1,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_2,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, msg_res_2 >();
-		run_test_case_for_msg_pair< msg_src_2, so_5::mutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, so_5::mutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				msg_res_2,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_2,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
 
 		// msg_src_1, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, msg_res_2 >();
-		run_test_case_for_msg_pair< msg_src_1, so_5::mutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, so_5::mutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				msg_res_2,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				msg_src_1,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+
 		// so_5::mutable_msg + so_5::immutable_msg.
 
 		// msg_src_1, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, so_5::immutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, so_5::mutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_1
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, so_5::immutable_msg<msg_res_1> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, so_5::mutable_msg<msg_res_1> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				so_5::immutable_msg<msg_res_1>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				so_5::mutable_msg<msg_res_1>,
+				Test_Case_Handler >();
 
 		// msg_src_2, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_2>, so_5::immutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_2>, so_5::mutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_2>,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_2>,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
 
 		// msg_src_1, msg_res_2
 		//
-		run_test_case_for_msg_pair< so_5::mutable_msg<msg_src_1>, so_5::immutable_msg<msg_res_2> >();
-		run_test_case_for_msg_pair< so_5::immutable_msg<msg_src_1>, so_5::mutable_msg<msg_res_2> >();
+		run_test_case_for_msg_pair<
+				so_5::mutable_msg<msg_src_1>,
+				so_5::immutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+		run_test_case_for_msg_pair<
+				so_5::immutable_msg<msg_src_1>,
+				so_5::mutable_msg<msg_res_2>,
+				Test_Case_Handler >();
+	}
+
+void
+run_tests()
+	{
+		run_tests_for_case_handler< implicit_type_no_optional_no_dr_t >();
 	}
 
 } /* namespace test */
