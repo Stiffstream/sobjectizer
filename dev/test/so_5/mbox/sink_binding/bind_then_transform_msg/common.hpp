@@ -430,7 +430,7 @@ struct implicit_type_case_t
 
 struct explicit_type_case_t
 	{
-		static constexpr bool is_implicit = true;
+		static constexpr bool is_implicit = false;
 	};
 
 } /* namespace test */
