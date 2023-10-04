@@ -605,6 +605,9 @@ class message_holder_t
 				details::message_mutability_traits<Msg>::mutability,
 				details::message_holder_details::impl_selector_t<Msg, Ownership> >;
 
+		static_assert( !is_signal< Msg >::value,
+				"message_holder_t can't be used with signals" );
+
 	public :
 		using payload_type = typename base_type::payload_type;
 		using envelope_type = typename base_type::envelope_type;
