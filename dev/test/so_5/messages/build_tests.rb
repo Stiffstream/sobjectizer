@@ -14,6 +14,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/store_and_resend_later/prj.ut.rb" )
 	required_prj( "#{path}/lambda_handlers/prj.ut.rb" )
 	required_prj( "#{path}/signal_redirection/prj.ut.rb" )
+	required_prj( "#{path}/make_transformed_message_holder/prj.ut.rb" )
 
 	required_prj( "#{path}/user_type_msgs/build_tests.rb" )
 }
