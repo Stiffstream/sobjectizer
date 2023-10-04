@@ -8,6 +8,7 @@ set(UNITTEST_SRCFILES
   expl_no_opt_with_dr.cpp
   expl_with_opt_no_dr.cpp
   expl_with_opt_with_dr.cpp
+  message_holder_no_opt_no_dr.cpp
   main.cpp
 )
 include(${CMAKE_SOURCE_DIR}/cmake/unittest.cmake)
