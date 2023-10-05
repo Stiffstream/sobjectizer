@@ -31,7 +31,19 @@ namespace msinks
 namespace transform_then_redirect_impl
 {
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for calling do_deliver_message for sending a
+ * transformation result.
+ *
+ * This function is used when tranformation function returns just
+ * so_5::transformed_message_t.
+ *
+ * \attention
+ * \a redirection_deep is not incremented. It's expected that this
+ * value is already processed by the caller.
+ *
+ * \since v.5.8.1
+ */
 template< typename Msg >
 void
 deliver_transformation_result(
@@ -46,7 +58,22 @@ deliver_transformation_result(
 				redirection_deep );
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for calling do_deliver_message for sending a
+ * transformation result.
+ *
+ * This function is used when tranformation function returns
+ * std::optional<so_5::transformed_message_t>.
+ *
+ * \note
+ * Delivery attempt will be performed only if \a r contains a value.
+ *
+ * \attention
+ * \a redirection_deep is not incremented. It's expected that this
+ * value is already processed by the caller.
+ *
+ * \since v.5.8.1
+ */
 template< typename Msg >
 void
 deliver_transformation_result(
@@ -63,7 +90,15 @@ deliver_transformation_result(
 			}
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for causing a compilation error.
+ *
+ * This function will be selected by a compiler if transformation
+ * function neither returns so_5::transformed_message_t nor
+ * std::optional<so_5::transformed_message_t>.
+ *
+ * \since v.5.8.1
+ */
 template< typename Dummy >
 void
 deliver_transformation_result(
@@ -77,20 +112,50 @@ deliver_transformation_result(
 				"std::optional<so_5::transformed_message_t<Msg>>" );
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Base class for all implementation of transform_then_redirect sinks.
+ *
+ * Holds a reference to SObjectizer Environment.
+ * This reference is necessary for implementation of inherited environment() method.
+ *
+ * Holds the tranformer.
+ *
+ * Implements all inherited methods with respect to enveloped messages and so on.
+ *
+ * Introduces a new virtual method call_transformer_then_go_further() that has to
+ * be implemented in derived classes.
+ *
+ * \note
+ * This implementation always returns so_5::prio::p0 as sink priority.
+ *
+ * \tparam Transformer type of message tranformer.
+ *
+ * \since v.5.8.1
+ */
 template< typename Transformer >
 class basic_transform_then_redirect_sink_t
 	:	public abstract_message_sink_t
 	{
 	protected:
+		//! SObjectizer Environment in that we're working.
 		outliving_reference_t< so_5::environment_t > m_env;
 
+		//! Functor to be used for transformation.
 		Transformer m_transformer;
 
 	public:
+		/*!
+		 * \brief Initializing constructor.
+		 *
+		 * \tparam Transformer_T type of the transformed. It's expected to be
+		 * the same type as \a Transformer, but we're using template constructor
+		 * here to have a possibility to use perfect forwarding.
+		 */
 		template< typename Transformer_T >
 		basic_transform_then_redirect_sink_t(
+			//! SObjectizer Environment to work in.
 			outliving_reference_t< so_5::environment_t > env,
+			//! Functor to be used for transformation.
 			Transformer_T && transformer )
 			:	m_env{ env }
 			,	m_transformer{ std::forward<Transformer_T>(transformer) }
@@ -103,7 +168,6 @@ class basic_transform_then_redirect_sink_t
 				return m_env.get();
 			}
 
-		//FIXME: should this value be specified in the constructor?
 		[[nodiscard]]
 		priority_t
 		sink_priority() const noexcept final
@@ -178,35 +242,74 @@ class basic_transform_then_redirect_sink_t
 					}
 			}
 
+		/*!
+		 * \brief Method that does actual transformation and redirection
+		 * of the message.
+		 *
+		 * It's called when envelopes already processed and \a message points
+		 * to the actual payload (if it's not a signal).
+		 *
+		 * \note
+		 * The value of \a redirection_deep is already checked and incremented.
+		 */
 		virtual void
 		call_transformer_then_go_further(
+			//! Delivery mode to be used. This is the value form push_event() method.
 			message_delivery_mode_t delivery_mode,
+			//! Reference to payload to be transformed.
+			//! It has to be nullptr for a signal.
 			const message_ref_t & message,
+			//! Value of redirection deep to be used for delivery of transformation
+			//! result.
 			unsigned int redirection_deep ) = 0;
 	};
 
-//FIXME: document this!
+/*!
+ * \brief Implementation of tranformation sink for a case when
+ * a message has to be transformed.
+ *
+ * \tparam Expected_Msg type of source message. It can be M,
+ * so_5::immutable_msg<M> or so_5::mutable_msg<M>.
+ *
+ * \tparam Transformer type of message tranformer.
+ *
+ * \since v.5.8.1
+ */
 template<
 	typename Expected_Msg,
 	typename Transformer >
 class msg_transform_then_redirect_sink_t final
 	:	public basic_transform_then_redirect_sink_t< Transformer >
 	{
+		//! Type of a payload of the message.
 		using payload_t =
 				typename message_payload_type< Expected_Msg >::payload_type;
 
+		//! Type of a reference to the message payload.
+		/*!
+		 * In the case of an immutable message it should be const reference.
+		 * In the case of a mutable message it should be non-nonst reference.
+		 */
 		using payload_reference_t = std::conditional_t<
 				is_mutable_message< Expected_Msg >::value,
 				payload_t &,
 				const payload_t &
 			>;
 
+		//! Short alias for the base type.
 		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
 
 	public:
+		// Just reuse the constructor(s).
 		using base_type_t::base_type_t;
 
 	private:
+		/*!
+		 * \brief Actual implementation of transformation and delivery of the result.
+		 *
+		 * Extracts the payload from \a message. Calls the transformer and delivers
+		 * the result (if result is present).
+		 */
 		void
 		call_transformer_then_go_further(
 			message_delivery_mode_t delivery_mode,
@@ -224,17 +327,34 @@ class msg_transform_then_redirect_sink_t final
 			}
 	};
 
-//FIXME: document this!
+/*!
+ * \brief Implementation of tranformation sink for a case when
+ * a message has to be transformed.
+ *
+ * \tparam Signal type of source signal.
+ *
+ * \tparam Transformer type of message tranformer.
+ *
+ * \since v.5.8.1
+ */
 template< typename Signal, typename Transformer >
 class signal_transform_then_redirect_sink_t final
 	:	public basic_transform_then_redirect_sink_t< Transformer >
 	{
+		//! Short alias for the base type.
 		using base_type_t = basic_transform_then_redirect_sink_t< Transformer >;
 
 	public:
+		// Just reuse the constructor(s).
 		using base_type_t::base_type_t;
 
 	private:
+		/*!
+		 * \brief Actual implementation of transformation and delivery of the result.
+		 *
+		 * Extracts the payload from \a message. Calls the transformer and delivers
+		 * the result (if result is present).
+		 */
 		void
 		call_transformer_then_go_further(
 			message_delivery_mode_t delivery_mode,
