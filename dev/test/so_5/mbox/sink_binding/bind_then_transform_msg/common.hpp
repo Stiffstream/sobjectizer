@@ -12,12 +12,14 @@ namespace test {
 
 struct msg_src_1 final : public so_5::message_t
 	{
+		const so_5::mbox_t m_dest;
+
 		int m_a;
 		int m_b;
 		int m_c;
 
-		msg_src_1( int a, int b, int c )
-			: m_a{ a }, m_b{ b }, m_c{ c }
+		msg_src_1( so_5::mbox_t dest, int a, int b, int c )
+			: m_dest{ std::move(dest) }, m_a{ a }, m_b{ b }, m_c{ c }
 			{}
 	};
 
@@ -31,12 +33,14 @@ struct msg_res_1 final : public so_5::message_t
 
 struct msg_src_2
 	{
+		const so_5::mbox_t m_dest;
+
 		int m_a;
 		int m_b;
 		int m_c;
 
-		msg_src_2( int a, int b, int c )
-			: m_a{ a }, m_b{ b }, m_c{ c }
+		msg_src_2( so_5::mbox_t dest, int a, int b, int c )
+			: m_dest{ std::move(dest) }, m_a{ a }, m_b{ b }, m_c{ c }
 			{}
 	};
 
@@ -147,10 +151,10 @@ class a_sender_t final : public so_5::agent_t
 			Test_Case_Handler::template tune_binding< Source_Msg, Result_Msg >(
 					binding, src_mbox, m_receiver );
 
-			so_5::send< Source_Msg >( src_mbox, 1, 2, 3 );
-			so_5::send< Source_Msg >( src_mbox, 2, 3, 4 );
-			so_5::send< Source_Msg >( src_mbox, 3, 4, 5 );
-			so_5::send< Source_Msg >( src_mbox, 4, 5, 6 );
+			so_5::send< Source_Msg >( src_mbox, m_receiver, 1, 2, 3 );
+			so_5::send< Source_Msg >( src_mbox, m_receiver, 2, 3, 4 );
+			so_5::send< Source_Msg >( src_mbox, m_receiver, 3, 4, 5 );
+			so_5::send< Source_Msg >( src_mbox, m_receiver, 4, 5, 6 );
 
 			so_5::send< msg_complete >( m_receiver );
 		}

@@ -15,6 +15,8 @@ MxxRu::Cpp::exe_target {
   cpp_source "expl_with_opt_no_dr.cpp"
   cpp_source "expl_with_opt_with_dr.cpp"
   cpp_source "message_holder_no_opt_no_dr.cpp"
+  cpp_source "impl_free_func_no_opt_no_dr.cpp"
+  cpp_source "impl_free_func_with_opt_no_dr.cpp"
   cpp_source "main.cpp"
 }
 
