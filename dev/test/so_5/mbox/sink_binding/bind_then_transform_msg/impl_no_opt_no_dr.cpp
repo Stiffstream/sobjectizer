@@ -12,7 +12,7 @@ struct implicit_type_no_optional_no_dr_t : public implicit_type_case_t
 		static void
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
-				so_5::bind_then_transform(
+				so_5::bind_transformer(
 						binding,
 						from,
 						[to]( const Source_Msg & src ) {

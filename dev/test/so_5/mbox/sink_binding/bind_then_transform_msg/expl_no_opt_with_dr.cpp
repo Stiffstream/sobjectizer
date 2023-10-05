@@ -11,7 +11,7 @@ struct explicit_type_no_optional_with_dr_t : public explicit_type_case_t
 		static void
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
-				so_5::bind_then_transform< Source_Msg >(
+				so_5::bind_transformer< Source_Msg >(
 						binding,
 						from,
 						[to]( auto && src ) {

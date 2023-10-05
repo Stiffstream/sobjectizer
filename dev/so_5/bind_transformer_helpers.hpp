@@ -27,7 +27,7 @@ namespace bind_then_redirect_impl
 //FIXME: document this!
 template< typename Binding, typename Transformer >
 void
-bind_then_transform(
+bind_transformer(
 	Binding & binding,
 	const so_5::mbox_t & src_mbox,
 	Transformer && transformer )
@@ -48,7 +48,7 @@ bind_then_transform(
 //FIXME: document this!
 template< typename Binding, typename Transformer, typename Delivery_Filter >
 void
-bind_then_transform(
+bind_transformer(
 	Binding & binding,
 	const so_5::mbox_t & src_mbox,
 	Transformer && transformer,
@@ -71,7 +71,7 @@ bind_then_transform(
 //FIXME: document this!
 template< typename Expected_Msg, typename Binding, typename Transformer >
 void
-bind_then_transform(
+bind_transformer(
 	Binding & binding,
 	const so_5::mbox_t & src_mbox,
 	Transformer && transformer )
@@ -90,7 +90,7 @@ template<
 	typename Transformer,
 	typename Delivery_Filter >
 void
-bind_then_transform(
+bind_transformer(
 	Binding & binding,
 	const so_5::mbox_t & src_mbox,
 	Transformer && transformer,

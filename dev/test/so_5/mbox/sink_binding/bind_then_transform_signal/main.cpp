@@ -1,11 +1,11 @@
 /*
- * Test cases for bind_then_transform and signals.
+ * Test cases for bind_transformer and signals.
  */
 
 #include <iostream>
 #include <sstream>
 
-#include <so_5/bind_then_transform_helpers.hpp>
+#include <so_5/bind_transformer_helpers.hpp>
 #include <so_5/all.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
@@ -174,7 +174,7 @@ struct explicit_type_no_optional_t
 		static void
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
-				so_5::bind_then_transform< msg_signal >(
+				so_5::bind_transformer< msg_signal >(
 						binding,
 						from,
 						[to]() {
@@ -206,7 +206,7 @@ struct explicit_type_with_optional_t
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
 				using ret_val_t = std::optional< so_5::transformed_message_t< Result_Msg > >;
-				so_5::bind_then_transform< msg_signal >(
+				so_5::bind_transformer< msg_signal >(
 						binding,
 						from,
 						[to, counter=int{0}]() mutable -> ret_val_t {
@@ -241,7 +241,7 @@ struct transform_to_singal_no_optional_t
 		static void
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
-				so_5::bind_then_transform< msg_signal >(
+				so_5::bind_transformer< msg_signal >(
 						binding,
 						from,
 						[to]() {
@@ -273,7 +273,7 @@ struct transform_to_singal_with_optional_t
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
 				using ret_val_t = std::optional< so_5::transformed_message_t< Result_Msg > >;
-				so_5::bind_then_transform< msg_signal >(
+				so_5::bind_transformer< msg_signal >(
 						binding,
 						from,
 						[to, counter=int{0}]() mutable -> ret_val_t {

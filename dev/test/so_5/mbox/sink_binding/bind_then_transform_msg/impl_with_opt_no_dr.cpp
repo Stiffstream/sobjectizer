@@ -12,7 +12,7 @@ struct implicit_type_with_optional_no_dr_t : public implicit_type_case_t
 		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
 			{
 				using ret_val_t = std::optional< so_5::transformed_message_t< Result_Msg > >;
-				so_5::bind_then_transform(
+				so_5::bind_transformer(
 						binding,
 						from,
 						[to]( const Source_Msg & src ) -> ret_val_t {

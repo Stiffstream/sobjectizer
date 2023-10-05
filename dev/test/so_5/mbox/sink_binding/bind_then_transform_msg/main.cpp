@@ -1,5 +1,5 @@
 /*
- * Test cases for bind_then_transform and messages.
+ * Test cases for bind_transformer and messages.
  */
 
 #include "common.hpp"
