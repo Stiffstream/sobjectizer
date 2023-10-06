@@ -22,4 +22,5 @@ MxxRu::Cpp::composite_target {
   required_prj( "#{path}/bind_then_transform_msg/prj.ut.rb" )
   required_prj( "#{path}/bind_then_transform_signal/prj.ut.rb" )
   required_prj( "#{path}/transformer_redirect_deep/prj.ut.rb" )
+  required_prj( "#{path}/transformer_and_envelope/prj.ut.rb" )
 }

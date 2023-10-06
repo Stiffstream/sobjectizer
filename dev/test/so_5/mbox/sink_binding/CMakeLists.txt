@@ -15,4 +15,5 @@ add_subdirectory(multi_sink_mutable_with_dr)
 add_subdirectory(bind_then_transform_msg)
 add_subdirectory(bind_then_transform_signal)
 add_subdirectory(transformer_redirect_deep)
+add_subdirectory(transformer_and_envelope)
 
