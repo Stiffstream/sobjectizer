@@ -136,7 +136,12 @@ class lambda_as_filter_t : public delivery_filter_t
 			const abstract_message_sink_t & /*receiver*/,
 			message_t & msg ) const noexcept override
 			{
-				return m_filter(message_payload_type< Message >::payload_reference( msg ));
+				// Delivery filter should receive a const reference.
+				// But message_payload_type::payload_reference returns non-const
+				// reference.
+				const Message & payload_ref =
+						message_payload_type< Message >::payload_reference( msg );
+				return m_filter( payload_ref );
 			}
 	};
 
