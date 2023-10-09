@@ -116,10 +116,10 @@ do_test( so_5::environment_t & env )
 		so_5::bind_transformer< msg_source >(
 				binding,
 				src,
-				[dest]( const auto & src ) {
+				[dest]( const auto & msg ) {
 					return so_5::make_transformed< msg_result >(
 							dest->as_mbox(),
-							"<" + src.m_v + ">" );
+							"<" + msg.m_v + ">" );
 				} );
 
 		std::string log;

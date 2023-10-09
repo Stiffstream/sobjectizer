@@ -24,6 +24,55 @@ namespace so_5
 namespace sink_bindings_details
 {
 
+//FIXME: document this!
+/*!
+ * \brief Helper metafunction to check delivery filter lambda.
+ *
+ * A delivery filter lambda can be specified in two forms:
+ * \code
+ * // The first: explicit message type as argument.
+ * [](const some_msg & msg) -> bool {...}
+ *
+ * // The second: auto detection of a message type.
+ * [](const auto & msg) -> bool {...}
+ * \endcode
+ *
+ * In the first case the type of message can be checked and error
+ * can be raised at the compile-time if a delivery filter is specified
+ * for a different message type. For example:
+ * \code
+ * struct msg_A {...};
+ * struct msg_B {...};
+ *
+ * // NOTE: it's an error!
+ * binding.bind<msg_A>(source, dest, [](const msg_B & msg) {...});
+ * \endcode
+ *
+ * This helper metafunction allows to check if delivery filter lambda
+ * have an argument with explicitly specified type.
+ *
+ * \since v.5.8.1
+ */
+template< typename Lambda, typename = void >
+struct lambda_with_detectable_arg_type_t : public std::false_type {};
+
+/*!
+ * \brief Specialization for a case when delivery filter lambda has an argument
+ * with explicitly specified type.
+ *
+ * \since v.5.8.1
+ */
+template< typename Lambda >
+struct lambda_with_detectable_arg_type_t<
+		Lambda,
+		typename std::void_t<
+				typename so_5::details::lambda_traits::argument_type_if_lambda< Lambda >::type >
+	> : public std::true_type
+	{
+		using argument_t =
+			typename so_5::details::lambda_traits::argument_type_if_lambda< Lambda >::type;
+	};
+
 /*!
  * @brief Helper to have more information in compiler output if static_assert
  * fails.
@@ -37,7 +86,6 @@ template<
 void
 ensure_valid_argument_for_delivery_filter()
 	{
-//FIXME: can we check that Delivery_Filter_Arg_Type is a value type or const reference?
 		static_assert(
 				std::is_same_v< Subscription_Type, Delivery_Filter_Arg_Type >,
 				"delivery filter lambda expects a different message type" );
@@ -478,22 +526,46 @@ class single_sink_binding_t
 			//! Filter to be used.
 			Lambda && filter )
 			{
-				using namespace so_5::details::lambda_traits;
-
 				using lambda_type = std::remove_reference_t< Lambda >;
-				using argument_type =
-						typename argument_type_if_lambda< lambda_type >::type;
 
-				// For cases when Msg is mutable_msg<M>.
-				sink_bindings_details::ensure_valid_argument_for_delivery_filter<
-						typename so_5::message_payload_type<Msg>::payload_type,
-						argument_type
-					>();
+				using detectable_arg_type =
+						sink_bindings_details::lambda_with_detectable_arg_type_t< lambda_type >;
 
-				delivery_filter_unique_ptr_t filter_holder{
-						new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
-								std::move(filter) )
-					};
+				delivery_filter_unique_ptr_t filter_holder;
+
+				if constexpr( detectable_arg_type::value )
+					{
+						// Type of filter lambda can be checked by a static_assert.
+						using argument_type = typename detectable_arg_type::argument_t;
+
+						// Try to check delivery filter lambda argument type
+						// at the compile time.
+						sink_bindings_details::ensure_valid_argument_for_delivery_filter<
+								typename so_5::message_payload_type<Msg>::payload_type,
+								argument_type
+							>();
+
+						filter_holder.reset(
+								new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
+										std::move(filter) )
+							);
+
+					}
+				else
+					{
+						// Assume that filter lambda is in form:
+						//
+						// [](const auto & msg) -> bool {...}
+						//
+						// so we don't know the type of the argument.
+
+						using argument_type = typename message_payload_type< Msg >::payload_type;
+
+						filter_holder.reset(
+								new low_level_api::lambda_as_filter_t< lambda_type, argument_type >(
+										std::move(filter) )
+							);
+					}
 
 				this->bind< Msg >( source, sink_owner, std::move(filter_holder) );
 			}
