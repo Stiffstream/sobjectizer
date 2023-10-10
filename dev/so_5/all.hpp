@@ -39,3 +39,5 @@
 
 #include <so_5/unique_subscribers_mbox.hpp>
 
+#include <so_5/bind_transformer_helpers.hpp>
+

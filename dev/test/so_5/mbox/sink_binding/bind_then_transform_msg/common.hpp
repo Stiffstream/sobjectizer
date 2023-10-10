@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include <so_5/bind_transformer_helpers.hpp>
 #include <so_5/all.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
