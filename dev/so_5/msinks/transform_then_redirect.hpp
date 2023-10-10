@@ -19,6 +19,8 @@
 
 #include <so_5/outliving.hpp>
 
+#include <so_5/impl/msg_tracing_helpers.hpp>
+
 #include <optional>
 #include <type_traits>
 
@@ -30,6 +32,81 @@ namespace msinks
 
 namespace transform_then_redirect_impl
 {
+
+/*!
+ * \brief Internal function to be used in %deliver_transformation_result.
+ *
+ * Performs message delivery tracing if msg_tracing is enabled.
+ *
+ * Should be used when transformation result is present and has to be
+ * delivered to the destination mbox.
+ *
+ * \note
+ * This function isn't a template and should minimize code size when
+ * a template deliver_transformation_result is instantiated.
+ */
+inline void
+trace_deliver_transformation_result_if_enabled(
+	environment_t & env,
+	const std::type_index & transformed_msg_type,
+	const abstract_message_box_t & dest_mbox,
+	message_delivery_mode_t delivery_mode,
+	unsigned int redirection_deep )
+	{
+		so_5::impl::internal_env_iface_t internal_env{ env };
+		if( internal_env.is_msg_tracing_enabled() )
+			{
+				namespace tracing = so_5::impl::msg_tracing_helpers::details;
+
+				tracing::make_trace(
+						// It's safe to use _nonchecked() because
+						// is_msg_tracing_enabled() returns true.
+						internal_env.msg_tracing_stuff_nonchecked(),
+						tracing::composed_action_name{
+								"msinks::transform_then_redirect",
+								"deliver_transformed"
+						},
+						tracing::type_of_transformed_msg{ transformed_msg_type },
+						tracing::mbox_as_msg_destination{ dest_mbox },
+						delivery_mode,
+						tracing::redirection_deep{ redirection_deep } );
+			}
+	}
+
+/*!
+ * \brief Internal function to be used in %deliver_transformation_result.
+ *
+ * Performs message delivery tracing if msg_tracing is enabled.
+ *
+ * Should be used when transformer returns an empty optional.
+ *
+ * \note
+ * This function isn't a template and should minimize code size when
+ * a template deliver_transformation_result is instantiated.
+ */
+inline void
+trace_no_transformation_result_if_enabled(
+	environment_t & env,
+	message_delivery_mode_t delivery_mode,
+	unsigned int redirection_deep )
+	{
+		so_5::impl::internal_env_iface_t internal_env{ env };
+		if( internal_env.is_msg_tracing_enabled() )
+			{
+				namespace tracing = so_5::impl::msg_tracing_helpers::details;
+
+				tracing::make_trace(
+						// It's safe to use _nonchecked() because
+						// is_msg_tracing_enabled() returns true.
+						internal_env.msg_tracing_stuff_nonchecked(),
+						tracing::composed_action_name{
+								"msinks::transform_then_redirect",
+								"no_transformation_result"
+						},
+						delivery_mode,
+						tracing::redirection_deep{ redirection_deep } );
+			}
+	}
 
 /*!
  * \brief Helper function for calling do_deliver_message for sending a
@@ -47,10 +124,18 @@ namespace transform_then_redirect_impl
 template< typename Msg >
 void
 deliver_transformation_result(
+	environment_t & env,
 	message_delivery_mode_t delivery_mode,
 	transformed_message_t< Msg > & r,
 	unsigned int redirection_deep )
 	{
+		trace_deliver_transformation_result_if_enabled(
+				env,
+				r.msg_type(),
+				*(r.mbox()),
+				delivery_mode,
+				redirection_deep );
+
 		r.mbox()->do_deliver_message(
 				delivery_mode,
 				r.msg_type(),
@@ -77,6 +162,7 @@ deliver_transformation_result(
 template< typename Msg >
 void
 deliver_transformation_result(
+	environment_t & env,
 	message_delivery_mode_t delivery_mode,
 	std::optional< transformed_message_t< Msg > > & r,
 	unsigned int redirection_deep )
@@ -84,8 +170,16 @@ deliver_transformation_result(
 		if( r.has_value() )
 			{
 				deliver_transformation_result(
+						env,
 						delivery_mode,
 						*r,
+						redirection_deep );
+			}
+		else
+			{
+				trace_no_transformation_result_if_enabled(
+						env,
+						delivery_mode,
 						redirection_deep );
 			}
 	}
@@ -102,6 +196,7 @@ deliver_transformation_result(
 template< typename Dummy >
 void
 deliver_transformation_result(
+	environment_t & /*env*/,
 	message_delivery_mode_t /*delivery_mode*/,
 	const Dummy &,
 	unsigned int /*redirection_deep*/ )
@@ -321,6 +416,7 @@ class msg_transform_then_redirect_sink_t final
 				auto r = this->m_transformer( payload );
 
 				deliver_transformation_result(
+						this->m_env.get(),
 						delivery_mode,
 						r,
 						redirection_deep );
@@ -364,6 +460,7 @@ class signal_transform_then_redirect_sink_t final
 				auto r = this->m_transformer();
 
 				deliver_transformation_result(
+						this->m_env.get(),
 						delivery_mode,
 						r,
 						redirection_deep );

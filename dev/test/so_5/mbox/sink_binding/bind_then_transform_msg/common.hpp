@@ -190,7 +190,12 @@ run_test_case()
 								auto * receiver = coop.make_agent< receiver_t >();
 								coop.make_agent< sender_t >( receiver->so_direct_mbox() );
 							} );
-					} );
+					}/*,
+					[]( so_5::environment_params_t & params )
+					{
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_cout_tracer() );
+					}*/ );
 			},
 			5 );
 

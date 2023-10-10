@@ -152,6 +152,10 @@ main()
 					[]( so_5::environment_t & env )
 					{
 						test::do_test( env );
+					},
+					[]( so_5::environment_params_t & params ) {
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_cout_tracer() );
 					} );
 			},
 			5 );
