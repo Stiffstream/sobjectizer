@@ -68,11 +68,21 @@ struct message_maker< true, Result, Msg >
 //
 // transformed_message_t
 //
-//FIXME: Update the documentation for this class.
 /*!
  * \brief A result of message transformation.
  *
- * \tparam Msg Type of result (transformed) message.
+ * This template class is intended to store the result of
+ * message transformation and redirection procedure performed by
+ * so_5::agent_t::limit_then_transform, so_5::bind_transformer and
+ * so_5::msinks::transform_then_redirect.
+ *
+ * An instance of this class is usually created by the static member
+ * function make() or by a free function so_5::make_transformed.
+ *
+ * \tparam Msg Type of result (transformed) message. If `Msg` is the
+ * message type, then `Msg`, `so_5::immutable_msg<Msg>` or
+ * `so_5::mutable_msg<Msg>` can be used. If `Msg` is the signal type then
+ * `Msg` or `so_5::immutable_msg<Msg>` is allowed.
  *
  * \since v.5.8.1
  */
@@ -101,7 +111,11 @@ class transformed_message_t
 				ensure_signal< Msg >();
 			}
 
-		//FIXME: document this!
+		//! Initializing constructor for the case when Msg is already
+		//! exists as a %message_holder_t instance.
+		/*!
+		 * \since v.5.8.1
+		 */
 		template<
 			typename Msg_In_Holder,
 			message_ownership_t Ownership >
@@ -162,25 +176,108 @@ class transformed_message_t
 //
 // make_transformed
 //
-//FIXME: document this!
+/*!
+ * \brief Helper function for creation of an instance of %transformed_message_t.
+ *
+ * It's just a simple way of calling transformed_message_t<Msg>::make().
+ *
+ * Usage example:
+ * \code
+ * // For a case of messages.
+ * struct my_source_msg { ... };
+ * struct my_result_msg { ... };
+ *
+ * so_5::bind_transformer< my_source_msg >(binding, src_mbox,
+ * 	[dest_mbox](const auto & msg) {
+ * 		// We can make a mutable message.
+ * 		return so_5::make_transformed< so_5::mutable_msg< my_result_msg > >(
+ * 				dest_mbox, // The first parameter is the destination mbox.
+ * 				... // Remaining parameters will be forwarded to
+ * 				    // the so_5::transformed_message_t< so_5::mutable_msg<my_result_msg> > constructor.
+ * 			);
+ * 	});
+ *
+ * // For a case of signals.
+ * struct my_source_sig { ... };
+ * struct my_result_sig { ... };
+ *
+ * so_5::bind_transformer< my_source_sig >(binding, src_mbox,
+ * 	[dest_mbox]() { // NOTE: no args for transformer lambda!
+ * 		return so_5::make_transformed< my_result_sig >(
+ * 				dest_mbox // The first parameter is the destination mbox.
+ * 				// No more parameters for a signal.
+ * 			);
+ * 	});
+ * \endcode
+ *
+ * \tparam Msg type of the transformed (result) message.
+ *
+ * \tparam Args type of arguments to be passed to the
+ * transformed_message_t<Msg>::make(). If \a Msg is a signal type
+ * then \a Args has to be an empty type list.
+ */
 template< typename Msg, typename... Args >
 [[nodiscard]]
 transformed_message_t< Msg >
-make_transformed( mbox_t mbox, Args &&... args )
+make_transformed(
+	//! The destination mbox.
+	mbox_t mbox,
+	//! Parameters to be used for constructing an instance of \a Msg type.
+	//! This can be an empty parameters list.
+	Args &&... args )
 	{
 		return transformed_message_t< Msg >::make(
 				std::move( mbox ),
 				std::forward<Args>( args )... );
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for creation of an instance of %transformed_message_t.
+ *
+ * It's just a simple way of calling transformed_message_t<Msg>::make().
+ *
+ * \note
+ * This function has to be used when the result message is
+ * represented as so_5::message_holder_t.
+ *
+ * Usage example:
+ * \code
+ * // For a case of messages.
+ * struct my_source_msg { ... };
+ * struct my_result_msg { ... };
+ *
+ * so_5::bind_transformer< my_source_msg >(binding, src_mbox,
+ * 	[dest_mbox](const auto & msg) {
+ * 		// We can make a mutable message.
+ * 		auto result = so_5::message_holder_t< so_5::mutable_msg<my_result_msg> >::make(
+ * 			... // Parameters to be used for my_result_msg construction.
+ * 			);
+ * 		return so_5::make_transformed(
+ * 				dest_mbox, // The first parameter is the destination mbox.
+ * 				std::move(result) // The transformed message.
+ * 			);
+ * 	});
+ * \endcode
+ *
+ * \attention
+ * This function can't be used for signals because signals are not
+ * supported by so_5::message_holder_t.
+ *
+ * \tparam Msg type of the transformed (result) message.
+ *
+ * \tparam Ownership ownership of message instance in \a msg_holder (see
+ * so_5::message_ownership_t for more details).
+ */
 template<
 	typename Msg,
 	message_ownership_t Ownership >
 [[nodiscard]]
 transformed_message_t< Msg >
 make_transformed(
+	//! The destination mbox.
 	mbox_t mbox,
+	//! Already constructed message.
+	//! It is expected that \a msg_holder isn't an empty holder.
 	message_holder_t< Msg, Ownership > msg_holder )
 	{
 		return transformed_message_t< Msg >{

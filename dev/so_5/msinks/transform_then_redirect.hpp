@@ -699,8 +699,9 @@ transform_then_redirect(
  * The \a transformer is expected to return a so_5::transformed_message_t
  * or std::optional<so_5::transformed_message_t>.
  *
- * \tparam Expected_Msg type of the source signal. When `Sig` is the source
- * signal type then `Sig` or `so_5::immutable_msg<Sig>` is allowed.
+ * \tparam Expected_Msg type of the source signal. When `Expected_Msg` is the
+ * source signal type then `Expected_Msg` or
+ * `so_5::immutable_msg<Expected_Msg>` is allowed.
  *
  * \tparam Transformer_Lambda type of transformer functor (a lambda or free function).
  *

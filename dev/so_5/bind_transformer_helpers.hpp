@@ -289,8 +289,8 @@ bind_transformer(
  *
  * \tparam Expected_Msg type of the source message or signal. If `Msg` is the
  * message type, then `Msg`, `so_5::immutable_msg<Msg>` or
- * `so_5::mutable_msg<Msg>` can be used. If `Sig` is the signal type then
- * `Sig` or `so_5::immutable_msg<Sig>` is allowed.
+ * `so_5::mutable_msg<Msg>` can be used. If `Msg` is the signal type then
+ * `Msg` or `so_5::immutable_msg<Msg>` is allowed.
  *
  * \tparam Binding type of binding object. It's expected to be
  * so_5::single_sink_binding_t, so_5::multi_sink_binding_t or a similar
