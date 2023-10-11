@@ -195,6 +195,37 @@ struct explicit_type_no_optional_t
 			}
 	};
 
+struct explicit_type_no_optional2_t
+	{
+		[[nodiscard]] static std::string_view
+		name() { return { "explicit_type_no_optional2" }; }
+
+		template< typename Result_Msg, typename Binding >
+		static void
+		tune_binding( Binding & binding, const so_5::mbox_t & from, const so_5::mbox_t & to )
+			{
+				so_5::bind_transformer< so_5::immutable_msg<msg_signal> >(
+						binding,
+						from,
+						[to]() {
+							return so_5::make_transformed< Result_Msg >( to, "T" );
+						} );
+			}
+
+		static void
+		check_result( std::string_view log )
+			{
+				ensure_valid_or_die( name(), "T;T;T;", log );
+			}
+
+		template< typename Mhood >
+		static void
+		on_res( std::string & log, Mhood && cmd )
+			{
+				log += cmd->m_v;
+			}
+	};
+
 struct explicit_type_with_optional_t
 	{
 		[[nodiscard]] static std::string_view
@@ -308,6 +339,10 @@ run_test_case_for_msg_pair()
 						so_5::single_sink_binding_t,
 						Result_Msg,
 						explicit_type_no_optional_t >();
+				run_test_case<
+						so_5::single_sink_binding_t,
+						Result_Msg,
+						explicit_type_no_optional2_t >();
 				run_test_case<
 						so_5::multi_sink_binding_t<>,
 						Result_Msg,
