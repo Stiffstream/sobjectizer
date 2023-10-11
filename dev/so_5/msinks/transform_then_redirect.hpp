@@ -469,12 +469,86 @@ class signal_transform_then_redirect_sink_t final
 
 } /* namespace transform_then_redirect_impl */
 
-//FIXME: document this!
+/*!
+ * \brief Factory function that creates an instance of transform_then_redirect
+ * msink.
+ *
+ * \attention
+ * It's much simpler to use so_5::bind_transformer<Binding, Transformer>() function
+ * that calls this factory under the hood.
+ *
+ * Type of source message is automatically deduced from the type of
+ * \a transformer argument.
+ *
+ * Usage example:
+ * \code
+ * struct part { ... };
+ * struct compound {
+ * 	part m_first;
+ * 	part m_second;
+ * };
+ *
+ * ...
+ * so_5::mbox_t src_mbox = ...;
+ * so_5::mbox_t dest_mbox = ...;
+ *
+ * so_5::single_sink_binding_t binding;
+ * binding.bind<compound>(src_mbox,
+ * 	so_5::msinks::transform_then_redirect(
+ * 		src_mbox->environment(),
+ * 		[dest_mbox](const compound & msg) {
+ * 			return so_5::make_transformed<part>(
+ * 				dest_mbox, // Destination for the transformed message.
+ * 				msg.m_first // Initializer for the new `part` instance.
+ * 			);
+ * 		}));
+ * \endcode
+ *
+ * The \a transformer is expected to return a so_5::transformed_message_t
+ * or std::optional<so_5::transformed_message_t>:
+ * \code
+ * binding.bind(src_mbox,
+ * 	so_5::msinks::transform_then_redirect(
+ * 		src_mbox->environment(),
+ * 		[dest_mbox](const compound & msg)
+ * 			-> std::optional<so_5::transformed_message_t<part>>
+ * 		{
+ * 			if(should_message_be_transformed(msg)) {
+ * 				return {
+ * 					so_5::make_transformed<part>(
+ * 						dest_mbox, // Destination for the transformed message.
+ * 						msg.m_first // Initializer for the new `part` instance.
+ * 				) };
+ * 			}
+ * 			else
+ * 				return std::nullopt; // No transformation.
+ * 		}));
+ * \endcode
+ *
+ * \note
+ * Because the type of the source message is deduced from \a transformer
+ * argument this factory function can't be used for transforming mutable messages
+ * and signals.
+ *
+ * \attention
+ * The \a transformer can't have an argument in the form of `const auto &`:
+ * \code
+ * // Compilation error is expected here because the type of
+ * // the transformer argument can't be deduced.
+ * so_5::msinks::transform_then_redirect(env, [](const auto & msg) {...});
+ * \endcode
+ *
+ * \tparam Transformer_Lambda type of transformer functor (a lambda or free function).
+ * \since v.5.8.1
+ */
 template< typename Transformer_Lambda >
 [[nodiscard]]
 msink_t
 transform_then_redirect(
+	//! SObjectizer Environment for that a new msink will be created.
 	so_5::environment_t & env,
+	//! Transformer that produced so_5::transformed_message_t instance or
+	//! std::optional<so_5::transformed_message_t> instance.
 	Transformer_Lambda && transformer )
 	{
 		using namespace transform_then_redirect_impl;
@@ -487,7 +561,6 @@ transform_then_redirect(
 		using sink_t = msg_transform_then_redirect_sink_t<
 				transformer_arg_t, // As expected msg type.
 				transformer_t >;
-//FIXME: should here be checks against so_5::mutable_msg<M> and so_5::immutable_msg<M>?
 		using sink_owner_t = simple_sink_owner_t< sink_t >;
 
 		return {
@@ -497,12 +570,80 @@ transform_then_redirect(
 			};
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Factory function that creates an instance of transform_then_redirect
+ * msink.
+ *
+ * \attention
+ * It's much simpler to use so_5::bind_transformer<Expected_Msg, Binding,
+ * Transformer>() function that calls this factory under the hood.
+ *
+ * Type of source message is specified explicitly and because of
+ * that this factory function can be used for mutable messages too.
+ *
+ * Usage example:
+ * \code
+ * struct part { ... };
+ * struct compound {
+ * 	part m_first;
+ * 	part m_second;
+ * };
+ *
+ * ...
+ * so_5::mbox_t src_mbox = ...;
+ * so_5::mbox_t dest_mbox = ...;
+ *
+ * so_5::single_sink_binding_t binding;
+ * binding.bind< so_5::mutable_msg<compound> >(src_mbox,
+ * 	so_5::msinks::transform_then_redirect< so_5::mutable_msg<compound> >(
+ * 		src_mbox->environment(),
+ * 		[dest_mbox](compound & msg) { // or [dest_mbox](auto & msg)
+ * 			return so_5::make_transformed<part>(
+ * 				dest_mbox, // Destination for the transformed message.
+ * 				std::move(msg.m_first) // Initializer for the new `part` instance.
+ * 			);
+ * 		}));
+ * \endcode
+ *
+ * The \a transformer is expected to return a so_5::transformed_message_t
+ * or std::optional<so_5::transformed_message_t>:
+ * \code
+ * binding.bind< so_5::mutable_msg<compound> >(src_mbox,
+ * 	so_5::msinks::transform_then_redirect< so_5::mutable_msg<compound> >(
+ * 		src_mbox->environment(),
+ * 		[dest_mbox](compound & msg)
+ * 			-> std::optional<so_5::transformed_message_t<part>>
+ * 		{
+ * 			if(should_message_be_transformed(msg)) {
+ * 				return {
+ * 					so_5::make_transformed<part>(
+ * 						dest_mbox, // Destination for the transformed message.
+ * 						std::move(msg.m_first) // Initializer for the new `part` instance.
+ * 				) };
+ * 			}
+ * 			else
+ * 				return std::nullopt; // No transformation.
+ * 		}));
+ * \endcode
+ *
+ * \attention
+ * This factory function can't be used for signals.
+ *
+ * \tparam Expected_Msg type of the source message or signal. When `Msg` is the
+ * source message type, then `Msg`, `so_5::immutable_msg<Msg>` or
+ * `so_5::mutable_msg<Msg>` can be used.
+ *
+ * \tparam Transformer_Lambda type of transformer functor (a lambda or free function).
+ * \since v.5.8.1
+ */
 template< typename Expected_Msg, typename Transformer_Lambda >
 [[nodiscard]]
 std::enable_if_t< !is_signal<Expected_Msg>::value, msink_t >
 transform_then_redirect(
+	//! SObjectizer Environment for that a new msink will be created.
 	so_5::environment_t & env,
+	//! Transformer that produced so_5::transformed_message_t instance or
+	//! std::optional<so_5::transformed_message_t> instance.
 	Transformer_Lambda && transformer )
 	{
 		// Just for a case (it's a bit paranoid).
@@ -523,12 +664,56 @@ transform_then_redirect(
 			};
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Factory function that creates an instance of transform_then_redirect
+ * msink.
+ *
+ * \attention
+ * It's much simpler to use so_5::bind_transformer<Expected_Msg, Binding,
+ * Transformer>() function that calls this factory under the hood.
+ *
+ * \attention
+ * This overload of %transform_then_redirect factory function can
+ * only be used with signals.
+ *
+ * Usage example:
+ * \code
+ * struct first_signal final : public so_5::signal_t {};
+ * struct second_signal final : public so_5::signal_t {};
+ *
+ * ...
+ * so_5::mbox_t src_mbox = ...;
+ * so_5::mbox_t dest_mbox = ...;
+ *
+ * so_5::single_sink_binding_t binding;
+ * binding.bind< first_signal >(src_mbox,
+ * 	so_5::msinks::transform_then_redirect< first_signal >(
+ * 		src_mbox->environment(),
+ * 		[dest_mbox]() {
+ * 			return so_5::make_transformed<second_signal>(
+ * 				dest_mbox // Destination for the transformed message.
+ * 			);
+ * 		}));
+ * \endcode
+ *
+ * The \a transformer is expected to return a so_5::transformed_message_t
+ * or std::optional<so_5::transformed_message_t>.
+ *
+ * \tparam Expected_Msg type of the source signal. When `Sig` is the source
+ * signal type then `Sig` or `so_5::immutable_msg<Sig>` is allowed.
+ *
+ * \tparam Transformer_Lambda type of transformer functor (a lambda or free function).
+ *
+ * \since v.5.8.1
+ */
 template< typename Signal, typename Transformer_Lambda >
 [[nodiscard]]
 std::enable_if_t< is_signal<Signal>::value, msink_t >
 transform_then_redirect(
+	//! SObjectizer Environment for that a new msink will be created.
 	so_5::environment_t & env,
+	//! Transformer that produced so_5::transformed_message_t instance or
+	//! std::optional<so_5::transformed_message_t> instance.
 	Transformer_Lambda && transformer )
 	{
 		// Just for a case (it's a bit paranoid).

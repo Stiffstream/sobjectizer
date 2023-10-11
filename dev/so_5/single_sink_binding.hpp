@@ -24,7 +24,6 @@ namespace so_5
 namespace sink_bindings_details
 {
 
-//FIXME: document this!
 /*!
  * \brief Helper metafunction to check delivery filter lambda.
  *
