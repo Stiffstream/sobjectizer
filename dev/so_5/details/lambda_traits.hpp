@@ -205,37 +205,13 @@ namespace impl
 /*!
  * \brief A checker for lambda likeness.
  */
-#if 0
-template< typename L >
-class has_func_call_operator
-	{
-	private :
-		template< typename P, P > struct checker;
-
-		template< typename D > static std::true_type test(
-				checker< decltype(&D::operator()), &D::operator()> * );
-
-		template< typename D > static std::false_type test(...);
-
-		using actual_type = typename std::decay<L>::type;
-
-	public :
-		static constexpr const bool value =
-			std::is_same< std::true_type, decltype(test<actual_type>(nullptr)) >::value;
-	};
-#else
 template< typename L, typename = void >
 struct has_func_call_operator : public std::false_type {};
 
 template< typename L >
-struct has_func_call_operator< L,
-//		std::void_t< decltype(std::declval< typename std::decay<L>::type >()()) >
-		std::void_t< decltype(&L::operator()) >
-	>
+struct has_func_call_operator< L, std::void_t< decltype(&L::operator()) > >
 	: public std::true_type
 	{};
-
-#endif
 
 /*!
  * \brief A detector of lambda argument type if the checked type is lambda.
@@ -259,17 +235,9 @@ struct argument_if_lambda< true, L >
 /*!
  * \brief A detector of lambda argument type if the checked type is lambda.
  */
-#if 0
-template< class L >
-struct argument_type_if_lambda
-	:	public impl::argument_if_lambda<
-			impl::has_func_call_operator< L >::value, L >
-	{};
-#else
 template< class L >
 using argument_type_if_lambda = impl::argument_if_lambda<
 		impl::has_func_call_operator< L >::value, L >;
-#endif
 
 /*!
  * \brief A detector that type is a lambda or functional object.
