@@ -1,216 +1,72 @@
 /*!
- * \example so_5/chstate/main.cpp
- */
-
-/*!
- * \example so_5/chstate_msg_tracing/main.cpp
- */
-
-/*!
- * \example so_5/coop_listener/main.cpp
- */
-
-/*!
- * \example so_5/coop_notification/main.cpp
- */
-
-/*!
- * \example so_5/coop_user_resources/main.cpp
- */
-
-/*!
- * \example so_5/disp/main.cpp
- */
-
-/*!
- * \example so_5/exception_reaction/main.cpp
- */
-
-/*!
- * \example so_5/exception_logger/main.cpp
- */
-
-/*!
- * \example so_5/hello_all/main.cpp
- */
-
-/*!
- * \example so_5/hello_delay/main.cpp
- */
-
-/*!
- * \example so_5/hello_evt_handler/main.cpp
- */
-
-/*!
- * \example so_5/hello_evt_lambda/main.cpp
- */
-
-/*!
- * \example so_5/hello_periodic/main.cpp
- */
-
-/*!
- * \example so_5/hello_world/main.cpp
- */
-
-/*!
- * \example so_5/hello_world_simple_not_mtsafe/main.cpp
- */
-
-/*!
- * \example so_5/ping_pong_minimal/main.cpp
- */
-
-/*!
- * \example so_5/ping_pong/main.cpp
- */
-
-/*!
- * \example so_5/ping_pong_with_owner/main.cpp
- */
-
-/*!
- * \example so_5/hardwork_imit/main.cpp
- */
-
-/*!
- * \example so_5/many_timers/main.cpp
- */
-
-/*!
- * \example so_5/custom_error_logger/main.cpp
- */
-
-/*!
- * \example so_5/dining_philosophers/main.cpp
- */
-
-/*!
- * \example so_5/dining_philosophers_2/main.cpp
- */
-
-/*!
- * \example so_5/subscriptions/main.cpp
- */
-
-/*!
+ * \example so_5/adv_thread_pool_fifo/main.cpp
+ * \example so_5/bind_transformer/main.cpp
+ * \example so_5/blinking_led/main.cpp
  * \example so_5/chameneos_prealloc_msgs/main.cpp
- */
-
-/*!
  * \example so_5/chameneos_simple/main.cpp
- */
-
-/*!
- * \example so_5/parent_coop/main.cpp
- */
-
-/*!
- * \example so_5/simple_message_deadline/main.cpp
- */
-
-/*!
- * \example so_5/dispatcher_hello/main.cpp
- */
-
-/*!
- * \example so_5/dispatcher_restarts/main.cpp
- */
-
-/*!
- * \example so_5/dispatcher_for_children/main.cpp
- */
-
-/*!
- * \example so_5/redirect_and_transform/main.cpp
- */
-
-/*!
- * \example so_5/queue_size_stats/main.cpp
- */
-
-/*!
+ * \example so_5/child_soenv/main.cpp
+ * \example so_5/chstate/main.cpp
+ * \example so_5/chstate_msg_tracing/main.cpp
+ * \example so_5/coop_listener/main.cpp
+ * \example so_5/coop_notification/main.cpp
+ * \example so_5/coop_user_resources/main.cpp
+ * \example so_5/custom_direct_mbox/main.cpp
+ * \example so_5/custom_error_logger/main.cpp
+ * \example so_5/custom_work_thread_factory/main.cpp
+ * \example so_5/deadletter_handler/main.cpp
+ * \example so_5/default_message_limits/main.cpp
  * \example so_5/delivery_filters/main.cpp
- */
-
-/*!
- * \example so_5/make_pipeline/main.cpp
- */
-
-/*!
+ * \example so_5/dining_philosophers/main.cpp
+ * \example so_5/dining_philosophers_2/main.cpp
+ * \example so_5/disp/main.cpp
+ * \example so_5/dispatcher_for_children/main.cpp
+ * \example so_5/dispatcher_hello/main.cpp
+ * \example so_5/dispatcher_restarts/main.cpp
+ * \example so_5/exception_logger/main.cpp
+ * \example so_5/exception_reaction/main.cpp
+ * \example so_5/hardwork_imit/main.cpp
+ * \example so_5/hello_all/main.cpp
+ * \example so_5/hello_delay/main.cpp
+ * \example so_5/hello_evt_handler/main.cpp
+ * \example so_5/hello_evt_lambda/main.cpp
+ * \example so_5/hello_periodic/main.cpp
+ * \example so_5/hello_world/main.cpp
+ * \example so_5/hello_world_simple_not_mtsafe/main.cpp
+ * \example so_5/intercom_statechart/main.cpp
+ * \example so_5/introduce_named_mbox/main.cpp
  * \example so_5/machine_control/main.cpp
- */
-
-/*!
- * \example so_5/news_board/main.cpp
- */
-
-/*!
- * \example so_5/prio_work_stealing/main.cpp
- */
-
-/*!
- * \example so_5/wrapped_env_demo/main.cpp
- */
-
-/*!
+ * \example so_5/make_agent_ref/main.cpp
+ * \example so_5/make_new_direct_mbox/main.cpp
+ * \example so_5/make_pipeline/main.cpp
+ * \example so_5/many_timers/main.cpp
+ * \example so_5/mchain_fibonacci/main.cpp
  * \example so_5/mchain_handler_formats/main.cpp
- */
-
-/*!
  * \example so_5/mchain_multi_consumers/main.cpp
- */
-
-/*!
+ * \example so_5/mchain_select/main.cpp
+ * \example so_5/modify_resend_as_immutable/main.cpp
+ * \example so_5/mutable_msg_agents/main.cpp
+ * \example so_5/named_dispatchers_layer/main.cpp
+ * \example so_5/news_board/main.cpp
+ * \example so_5/nohandler_msg_tracing/main.cpp
+ * \example so_5/parent_coop/main.cpp
+ * \example so_5/ping_pong/main.cpp
+ * \example so_5/ping_pong_minimal/main.cpp
+ * \example so_5/ping_pong_with_owner/main.cpp
+ * \example so_5/prio_work_stealing/main.cpp
+ * \example so_5/producer_consumer_mchain/main.cpp
+ * \example so_5/queue_size_stats/main.cpp
+ * \example so_5/redirect_and_transform/main.cpp
+ * \example so_5/selective_msg_tracing/main.cpp
+ * \example so_5/simple_message_deadline/main.cpp
+ * \example so_5/single_sink_binding/main.cpp
+ * \example so_5/state_deep_history/main.cpp
+ * \example so_5/stop_guard/main.cpp
+ * \example so_5/subscriptions/main.cpp
+ * \example so_5/two_handlers/main.cpp
+ * \example so_5/unique_subscribers_mbox/main.cpp
+ * \example so_5/wrapped_env_demo/main.cpp
  * \example so_5/wrapped_env_demo_2/main.cpp
  * \example so_5/wrapped_env_demo_3/main.cpp
- */
-
-/*!
- * \example so_5/producer_consumer_mchain/main.cpp
- */
-
-/*!
- * \example so_5/blinking_led/main.cpp
- */
-
-/*!
- * \example so_5/intercom_statechart/main.cpp
- */
-
-/*!
- * \example so_5/state_deep_history/main.cpp
- */
-
-/*!
- * \example so_5/adv_thread_pool_fifo/main.cpp
- */
-
-/*!
- * \example so_5/mchain_select/main.cpp
- */
-
-/*!
- * \example so_5/mutable_msg_agents/main.cpp
- * \example so_5/modify_resend_as_immutable/main.cpp
- * \example so_5/two_handlers/main.cpp
- * \example so_5/stop_guard/main.cpp
- * \example so_5/deadletter_handler/main.cpp
- * \example so_5/selective_msg_tracing/main.cpp
- * \example so_5/nohandler_msg_tracing/main.cpp
- * \example so_5/make_new_direct_mbox/main.cpp
- * \example so_5/mchain_fibonacci/main.cpp
- * \example so_5/make_agent_ref/main.cpp
- * \example so_5/default_message_limits/main.cpp
- * \example so_5/named_dispatchers_layer/main.cpp
- * \example so_5/custom_work_thread_factory/main.cpp
- * \example so_5/custom_direct_mbox/main.cpp
- * \example so_5/single_sink_binding/main.cpp
- * \example so_5/unique_subscribers_mbox/main.cpp
- * \example so_5/introduce_named_mbox/main.cpp
- * \example so_5/child_soenv/main.cpp
- * \example so_5/bind_transformer/main.cpp
  */
 
 // vim:ft=cpp.doxygen
