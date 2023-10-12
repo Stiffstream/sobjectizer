@@ -701,7 +701,7 @@ struct message_payload_type_impl
 
 		//! Helper for getting message mutability flag.
 		[[nodiscard]]
-		inline static message_mutability_t
+		inline static constexpr message_mutability_t
 		mutability()
 			{
 				return mutability_traits::mutability;
@@ -780,7 +780,7 @@ struct message_payload_type_impl< T, false >
 
 		//! Helper for getting message mutability flag.
 		[[nodiscard]]
-		inline static message_mutability_t
+		inline static constexpr message_mutability_t
 		mutability()
 			{
 				return mutability_traits::mutability;

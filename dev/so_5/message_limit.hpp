@@ -403,6 +403,100 @@ transform_reaction(
 	//! An instance of new message.
 	const message_ref_t & message );
 
+//FIXME: document this!
+template<
+	typename Message_Type,
+	message_mutability_t Message_Mutability,
+	typename Lambda >
+[[nodiscard]]
+action_t
+make_action_for_message_transformer(
+	Lambda && transformator )
+	{
+		using msg_payload_t = std::conditional_t<
+				message_mutability_t::mutable_message == Message_Mutability,
+				// No const if message is mutable.
+				typename message_payload_type< Message_Type >::payload_type,
+				// Const if message is immutable.
+				std::add_const_t<
+						typename message_payload_type< Message_Type >::payload_type >
+			>;
+
+		action_t act = [transformator]( const overlimit_context_t & ctx ) {
+				const auto actual_transform =
+						[&]( const message_ref_t & msg_to_transform ) {
+							msg_payload_t & msg =
+									message_payload_type< Message_Type >::payload_reference(
+											*msg_to_transform.get() );
+							auto r = transformator( msg );
+							impl::transform_reaction(
+									ctx, r.mbox(), r.msg_type(), r.message() );
+						};
+
+				// Envelopes should be handled a special way.
+				// Payload must be extrected and checked for presence.
+				if( message_t::kind_t::enveloped_msg == message_kind(
+							ctx.m_message ) )
+					{
+						const auto opt_payload = ::so_5::enveloped_msg::
+								extract_payload_for_message_transformation(
+										ctx.m_message );
+
+						// Payload can be optional. Se we will perform
+						// transformation only if payload is present.
+						if( opt_payload )
+							{
+								actual_transform( opt_payload->message() );
+							}
+					}
+				else
+					{
+						actual_transform( ctx.m_message );
+					}
+			};
+
+		return act;
+	}
+
+//FIXME: document this!
+template< typename Source, typename Lambda >
+[[nodiscard]]
+action_t
+make_action_for_signal_transformer(
+	Lambda && transformator )
+	{
+		action_t act = [transformator]( const overlimit_context_t & ctx ) {
+				const auto actual_transform = [&]() {
+						auto r = transformator();
+						impl::transform_reaction(
+								ctx, r.mbox(), r.msg_type(), r.message() );
+					};
+
+				// Envelopes should be handled a special way.
+				// Payload must be extrected and checked for presence.
+				if( message_t::kind_t::enveloped_msg == message_kind(
+						ctx.m_message ) )
+					{
+						const auto opt_payload = ::so_5::enveloped_msg::
+								extract_payload_for_message_transformation(
+										ctx.m_message );
+
+						// Payload can be optional. Se we will perform
+						// transformation only if payload is present.
+						if( opt_payload )
+							{
+								actual_transform();
+							}
+					}
+				else
+					{
+						actual_transform();
+					}
+
+			};
+
+		return act;
+	}
 
 } /* namespace impl */
 
@@ -636,9 +730,6 @@ struct message_limit_methods_mixin_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief A helper function for creating transform_indicator.
 		 *
 		 * \note Must be used for message transformation, signals cannot be
@@ -664,112 +755,75 @@ struct message_limit_methods_mixin_t
 				...
 			};
 		 * \endcode
+		 *
+		 * \since v.5.5.4
 		 */
-		template<
-				typename Lambda,
-				typename Arg = typename so_5::details::lambda_traits::
-						argument_type_if_lambda< Lambda >::type >
+		template< typename Lambda >
 		[[nodiscard]]
-		static transform_indicator_t< Arg >
+		static auto
 		limit_then_transform(
 			unsigned int limit,
-			Lambda transformator )
+			Lambda && transformator )
 			{
-				ensure_not_signal< Arg >();
-				static_assert( !std::is_same_v< Arg, any_unspecified_message >,
+				using Message_Type = typename so_5::details::lambda_traits::
+						argument_type_if_lambda< Lambda >::type;
+
+				ensure_not_signal< Message_Type >();
+				static_assert( !std::is_same_v< Message_Type, any_unspecified_message >,
 						"limit_then_transform can't be used for any_unspecified_message" );
 
-				action_t act = [transformator]( const overlimit_context_t & ctx ) {
-						const auto actual_transform =
-								[&]( const message_ref_t & msg_to_transform ) {
-									const auto & msg =
-											message_payload_type< Arg >::payload_reference(
-													*msg_to_transform.get() );
-									auto r = transformator( msg );
-									impl::transform_reaction(
-											ctx, r.mbox(), r.msg_type(), r.message() );
-								};
+				action_t act = impl::make_action_for_message_transformer<
+							Message_Type,
+							message_mutability_t::immutable_message,
+							Lambda
+						>( std::forward<Lambda>(transformator) );
 
-						// Envelopes should be handled a special way.
-						// Payload must be extrected and checked for presence.
-						if( message_t::kind_t::enveloped_msg == message_kind(
-									ctx.m_message ) )
-							{
-								const auto opt_payload = ::so_5::enveloped_msg::
-										extract_payload_for_message_transformation(
-												ctx.m_message );
-
-								// Payload can be optional. Se we will perform
-								// transformation only if payload is present.
-								if( opt_payload )
-									{
-										actual_transform( opt_payload->message() );
-									}
-							}
-						else
-							{
-								actual_transform( ctx.m_message );
-							}
-					};
-
-				return transform_indicator_t< Arg >{ limit, std::move( act ) };
+				return transform_indicator_t< Message_Type >{ limit, std::move( act ) };
 			}
 
+		//FIXME: update the documentation to this method!
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief A helper function for creating transform_indicator.
 		 *
 		 * Must be used for signal transformation. Type of signal must be
 		 * explicitely specified.
+		 *
+		 * \since v.5.5.4
 		 */
 		template< typename Source, typename Lambda >
 		[[nodiscard]]
 		static transform_indicator_t< Source >
 		limit_then_transform(
 			unsigned int limit,
-			Lambda transformator )
+			Lambda && transformator )
 			{
-				ensure_signal< Source >();
+				if constexpr( is_signal< Source >::value )
+				{
+					action_t act = impl::make_action_for_signal_transformer< Lambda >(
+							std::forward<Lambda>(transformator) );
 
-				action_t act = [transformator]( const overlimit_context_t & ctx ) {
-						const auto actual_transform = [&]() {
-								auto r = transformator();
-								impl::transform_reaction(
-										ctx, r.mbox(), r.msg_type(), r.message() );
-							};
+					return transform_indicator_t< Source >{ limit, std::move( act ) };
+				}
+				else
+				{
+					// Expect that Source is a message, or so_5::mutable_msg<Source>,
+					// or so_5::immutable_msg<Source>.
+					using payload_t = typename message_payload_type< Source >::payload_type;
 
-						// Envelopes should be handled a special way.
-						// Payload must be extrected and checked for presence.
-						if( message_t::kind_t::enveloped_msg == message_kind(
-								ctx.m_message ) )
-							{
-								const auto opt_payload = ::so_5::enveloped_msg::
-										extract_payload_for_message_transformation(
-												ctx.m_message );
+					ensure_not_signal< payload_t >();
+					static_assert( !std::is_same_v< payload_t, any_unspecified_message >,
+						"limit_then_transform can't be used for any_unspecified_message" );
+					action_t act = impl::make_action_for_message_transformer<
+								payload_t,
+								message_payload_type< Source >::mutability(),
+								Lambda
+							>( std::forward<Lambda>(transformator) );
 
-								// Payload can be optional. Se we will perform
-								// transformation only if payload is present.
-								if( opt_payload )
-									{
-										actual_transform();
-									}
-							}
-						else
-							{
-								actual_transform();
-							}
-
-					};
-
-				return transform_indicator_t< Source >{ limit, std::move( act ) };
+					return transform_indicator_t< Source >{ limit, std::move( act ) };
+				}
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Helper method for creating message transformation result.
 		 *
 		 * \par Usage examples:
@@ -796,6 +850,8 @@ struct message_limit_methods_mixin_t
 				...
 				};
 			\endcode
+		 *
+		 * \since v.5.5.4
 		 */
 		template< typename Msg, typename... Args >
 		[[nodiscard]]
