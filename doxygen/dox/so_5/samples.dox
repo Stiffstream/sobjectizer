@@ -210,6 +210,7 @@
  * \example so_5/unique_subscribers_mbox/main.cpp
  * \example so_5/introduce_named_mbox/main.cpp
  * \example so_5/child_soenv/main.cpp
+ * \example so_5/bind_transformer/main.cpp
  */
 
 // vim:ft=cpp.doxygen

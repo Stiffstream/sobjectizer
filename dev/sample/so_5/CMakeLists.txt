@@ -80,4 +80,5 @@ add_subdirectory(single_sink_binding)
 add_subdirectory(unique_subscribers_mbox)
 add_subdirectory(introduce_named_mbox)
 add_subdirectory(child_soenv)
+add_subdirectory(bind_transformer)
 

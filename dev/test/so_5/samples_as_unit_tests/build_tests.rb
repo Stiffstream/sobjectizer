@@ -107,5 +107,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/child_soenv.ut.rb"
   required_prj "#{path}/child_soenv-static.ut.rb"
+
+  required_prj "#{path}/bind_transformer.ut.rb"
+  required_prj "#{path}/bind_transformer-static.ut.rb"
 }
 
