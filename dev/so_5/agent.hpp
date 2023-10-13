@@ -56,10 +56,9 @@ namespace so_5
 // exception_reaction_t
 //
 /*!
- * \since
- * v.5.2.3
- *
  * \brief A reaction of SObjectizer to an exception from agent event.
+ *
+ * \since v.5.2.3
  */
 enum exception_reaction_t
 {
@@ -74,10 +73,9 @@ enum exception_reaction_t
 	//! Exception should be ignored and agent should continue its work.
 	ignore_exception = 4,
 	/*!
-	 * \since
-	 * v.5.3.0
-	 *
 	 * \brief Exception reaction should be inherited from SO Environment.
+	 *
+	 * \since v.5.3.0
 	 */
 	inherit_exception_reaction = 5
 };
@@ -189,10 +187,6 @@ class subscription_bind_t
 
 		//! Make subscription to the message.
 		/*!
-		 * \since
-		 * v.5.5.14
-		 *
-		 * 
 		 * \note Can be used for message and signal handlers.
 		 *
 		 * \par Usage example
@@ -217,6 +211,8 @@ class subscription_bind_t
 				void accelerate( so_5::mhood_t< int > & cmd ) { ... }
 			};
 		 * \endcode
+		 *
+		 * \since v.5.5.14
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -231,9 +227,6 @@ class subscription_bind_t
 			thread_safety_t thread_safety = not_thread_safe );
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Make subscription to the message by lambda-function.
 		 *
 		 * \attention Only lambda-function in the forms:
@@ -265,6 +258,8 @@ class subscription_bind_t
 				...
 			};
 		 * \endcode
+		 *
+		 * \since v.5.3.0
 		 */
 		template< class Lambda >
 		typename std::enable_if<
@@ -277,9 +272,6 @@ class subscription_bind_t
 			thread_safety_t thread_safety = not_thread_safe );
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief An instruction for switching agent to the specified
 		 * state and transfering event proceessing to new state.
 		 *
@@ -325,6 +317,8 @@ class subscription_bind_t
 		 * \note Since v.5.5.22.1 actual execution of transfer_to_state operation
 		 * can raise so_5::exception_t with so_5::rc_transfer_to_state_loop
 		 * error code if a loop in transfer_to_state is detected.
+		 *
+		 * \since v.5.5.15
 		 */
 		template< typename Msg >
 		subscription_bind_t &
@@ -332,9 +326,6 @@ class subscription_bind_t
 			const state_t & target_state );
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Suppress processing of event in this state.
 		 *
 		 * \note This method is useful because the event is not passed to
@@ -370,15 +361,14 @@ class subscription_bind_t
 				}
 			};
 		 * \endcode
+		 *
+		 * \since v.5.5.15
 		 */
 		template< typename Msg >
 		subscription_bind_t &
 		suppress();
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Define handler which only switches agent to the specified
 		 * state.
 		 *
@@ -401,6 +391,8 @@ class subscription_bind_t
 					.just_switch_to< some_signal >( S2 );
 			}
 		 * \endcode
+		 *
+		 * \since v.5.5.15
 		 */
 		template< typename Msg >
 		subscription_bind_t &
@@ -414,26 +406,23 @@ class subscription_bind_t
 		mbox_t m_mbox_ref;
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Type of vector of states.
+		 *
+		 * \since v.5.3.0
 		 */
 		typedef std::vector< const state_t * > state_vector_t;
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief States of agents the event to be subscribed in.
+		 *
+		 * \since v.5.3.0
 		 */
 		state_vector_t m_states;
 
 		/*!
-		 * \since
-		 * v.5.3.0
-		 *
 		 * \brief Create subscription of event for all states.
+		 *
+		 * \since v.5.3.0
 		 */
 		void
 		create_subscription_for_states(
@@ -452,8 +441,7 @@ class subscription_bind_t
 		 * \throw so_5::exception_t if m_mbox_ref is a MPMC mbox and
 		 * \a handler is for mutable message.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		void
 		ensure_handler_can_be_used_with_mbox(
@@ -506,6 +494,8 @@ struct working_thread_id_sentinel_t
 // agent_t
 //
 
+//FIXME: new methods so_this_agent_disp_binder() and so_this_coop_default_disp_binder()
+//have to be mentioned in this comment.
 //! A base class for agents.
 /*!
 	An agent in SObjctizer must be derived from the agent_t.
@@ -682,62 +672,54 @@ class SO_5_TYPE agent_t
 
 	public:
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Short alias for agent_context.
+		 *
+		 * \since v.5.5.4
 		 */
 		using context_t = so_5::agent_context_t;
 		/*!
-		 * \since
-		 * v.5.5.13
-		 *
 		 * \brief Short alias for %so_5::state_t.
+		 *
+		 * \since v.5.5.13
 		 */
 		using state_t = so_5::state_t;
 		/*!
-		 * \since
-		 * v.5.5.14
-		 *
 		 * \brief Short alias for %so_5::mhood_t.
+		 *
+		 * \since v.5.5.14
 		 */
 		template< typename T >
 		using mhood_t = so_5::mhood_t< T >;
 		/*!
-		 * \since
-		 * v.5.5.19
-		 *
 		 * \brief Short alias for %so_5::mutable_mhood_t.
+		 *
+		 * \since v.5.5.19
 		 */
 		template< typename T >
 		using mutable_mhood_t = so_5::mutable_mhood_t< T >;
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Short alias for %so_5::initial_substate_of.
+		 *
+		 * \since v.5.5.15
 		 */
 		using initial_substate_of = so_5::initial_substate_of;
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Short alias for %so_5::substate_of.
+		 *
+		 * \since v.5.5.15
 		 */
 		using substate_of = so_5::substate_of;
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Short alias for %so_5::state_t::history_t::shallow.
+		 *
+		 * \since v.5.5.15
 		 */
 		static constexpr const state_t::history_t shallow_history =
 				state_t::history_t::shallow;
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Short alias for %so_5::state_t::history_t::deep.
+		 *
+		 * \since v.5.5.15
 		 */
 		static constexpr const state_t::history_t deep_history =
 				state_t::history_t::deep;
@@ -752,9 +734,6 @@ class SO_5_TYPE agent_t
 			environment_t & env );
 
 		/*!
-		 * \since
-		 * v.5.5.3
-		 *
 		 * \brief Constructor which allows specification of
 		 * agent's tuning options.
 		 *
@@ -771,15 +750,14 @@ class SO_5_TYPE agent_t
 				{...}
 		 }
 		 \endcode
+		 *
+		 * \since v.5.5.3
 		 */
 		agent_t(
 			environment_t & env,
 			agent_tuning_options_t tuning_options );
 
 		/*!
-		 * \since
-		 * v.5.5.4
-		 *
 		 * \brief Constructor which simplifies agent construction with
 		 * or without agent's tuning options.
 		 *
@@ -806,6 +784,8 @@ class SO_5_TYPE agent_t
 		 auto a = coop->make_agent< my_agent >();
 		 auto b = coop->make_agent< my_more_specific_agent >();
 		 * \endcode
+		 *
+		 * \since v.5.5.4
 		 */
 		explicit agent_t( context_t ctx );
 
@@ -944,9 +924,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Is a state activated?
 		 *
 		 * \note Since v.5.5.15 a state can have substates. For example
@@ -979,6 +956,7 @@ class SO_5_TYPE agent_t
 		 * \return \a true if state \a state_to_check is the current state
 		 * or if the current state is a substate of \a state_to_check.
 		 *
+		 * \since v.5.5.15
 		 */
 		bool
 		so_is_active_state( const state_t & state_to_check ) const noexcept;
@@ -1001,9 +979,6 @@ class SO_5_TYPE agent_t
 			agent_state_listener_unique_ptr_t state_listener );
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief A reaction from SObjectizer to an exception from
 		 * agent's event.
 		 *
@@ -1017,6 +992,8 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note
 		 * This method is noexcept since v.5.8.0.
+		 *
+		 * \since v.5.2.3
 		 */
 		virtual exception_reaction_t
 		so_exception_reaction() const noexcept;
@@ -1055,10 +1032,9 @@ class SO_5_TYPE agent_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Get the agent's direct mbox.
+		 *
+		 * \since v.5.4.0
 		 */
 		const mbox_t &
 		so_direct_mbox() const;
@@ -1100,17 +1076,15 @@ class SO_5_TYPE agent_t
 		 hello from a new mbox
 		 \endverbatim
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		mbox_t
 		so_make_new_direct_mbox();
 
 		/*!
-		 * \since
-		 * v.5.5.3
-		 *
 		 * \brief Create tuning options object with default values.
+		 *
+		 * \since v.5.5.3
 		 */
 		inline static agent_tuning_options_t
 		tuning_options()
@@ -1377,9 +1351,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.1
-		 *
 		 * \brief Initiate subscription to agent's direct mbox.
 		 *
 		 * Note that is just a short form of:
@@ -1425,6 +1396,8 @@ class SO_5_TYPE agent_t
 					.event( &a_sample_t::evt_some_handler_3 );
 			}
 			\endcode
+		 *
+		 * \since v.5.5.1
 		 */
 		inline subscription_bind_t
 		so_subscribe_self()
@@ -1469,8 +1442,7 @@ class SO_5_TYPE agent_t
 		 * \note
 		 * It is safe to try to destroy nonexistent subscription.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		void
 		so_destroy_event_subscription(
@@ -1488,9 +1460,6 @@ class SO_5_TYPE agent_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Drop subscription for the state specified.
 		 *
 		 * This overload is indended to be used when there is an event-handler in
@@ -1522,6 +1491,8 @@ class SO_5_TYPE agent_t
 		 * for this message type with different method pointer.
 		 * The pointer to event routine is necessary only to
 		 * detect MSG type.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -1547,9 +1518,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.3
-		 *
 		 * \brief Drop subscription for the state specified.
 		 *
 		 * Usage example:
@@ -1571,6 +1539,8 @@ class SO_5_TYPE agent_t
 		 * \endcode
 		 *
 		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \since v.5.5.3
 		 */
 		template< class Message >
 		inline void
@@ -1585,9 +1555,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Drop subscription for the default agent state.
 		 *
 		 * This overload is indended to be used when there is an event-handler in
@@ -1619,6 +1586,8 @@ class SO_5_TYPE agent_t
 		 * for this message type with different method pointer.
 		 * The pointer to event routine is necessary only to
 		 * detect Msg type.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -1644,9 +1613,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.3
-		 *
 		 * \brief Drop subscription for the default agent state.
 		 *
 		 * Usage example:
@@ -1668,6 +1634,8 @@ class SO_5_TYPE agent_t
 		 * \endcode
 		 *
 		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \since v.5.5.3
 		 */
 		template< class Message >
 		inline void
@@ -1681,9 +1649,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Drop subscription for all states.
 		 *
 		 * Usage example:
@@ -1726,6 +1691,8 @@ class SO_5_TYPE agent_t
 		 * \note
 		 * Since v.5.5.21 this method also drops the subscription
 		 * for a deadletter handler for that type of message/signal.
+		 *
+		 * \since v.5.2.3
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -1750,9 +1717,6 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
-		 * \since
-		 * v.5.5.3
-		 *
 		 * \brief Drop subscription for all states.
 		 *
 		 * Usage example:
@@ -1785,6 +1749,8 @@ class SO_5_TYPE agent_t
 		 * \note
 		 * Since v.5.5.21 this method also drops the subscription
 		 * for a deadletter handler for that type of message/signal.
+		 *
+		 * \since v.5.5.3
 		 */
 		template< class Message >
 		inline void
@@ -1825,8 +1791,7 @@ class SO_5_TYPE agent_t
 		 * \tparam Message a type of message/signal subscription to which
 		 * must be checked.
 		 *
-		 * \since
-		 * v.5.5.19.5
+		 * \since v.5.5.19.5
 		 */
 		template< class Message >
 		bool
@@ -1871,8 +1836,7 @@ class SO_5_TYPE agent_t
 		 * \tparam Message a type of message/signal subscription to which
 		 * must be checked.
 		 *
-		 * \since
-		 * v.5.5.19.5
+		 * \since v.5.5.19.5
 		 */
 		template< class Message >
 		bool
@@ -1913,8 +1877,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \return true if subscription is present for \a target_state.
 		 *
-		 * \since
-		 * v.5.5.19.5
+		 * \since v.5.5.19.5
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -1969,8 +1932,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \return true if subscription is present for the default state.
 		 *
-		 * \since
-		 * v.5.5.19.5
+		 * \since v.5.5.19.5
 		 */
 		template< typename Method_Pointer >
 		typename std::enable_if<
@@ -2017,8 +1979,7 @@ class SO_5_TYPE agent_t
 		 * of a deadletter handler for type \a msg_type from \a mbox is
 		 * already exists.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		void
 		so_create_deadletter_subscription(
@@ -2046,8 +2007,7 @@ class SO_5_TYPE agent_t
 		 * It is safe to call this method if there is no such
 		 * deadletter handler. It will do nothing in such case.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		void
 		so_destroy_deadletter_subscription(
@@ -2100,8 +2060,7 @@ class SO_5_TYPE agent_t
 		 * of a deadletter handler for type \a msg_type from \a mbox is
 		 * already exists.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		template< typename Event_Handler >
 		void
@@ -2150,8 +2109,7 @@ class SO_5_TYPE agent_t
 		 * \tparam Message Type of a message or signal for deadletter
 		 * handler.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		template< typename Message >
 		void
@@ -2192,8 +2150,7 @@ class SO_5_TYPE agent_t
 		 * \tparam Message Type of a message or signal for deadletter
 		 * handler.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		template< typename Message >
 		bool
@@ -2216,9 +2173,6 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief A correct initiation of so_define_agent method call.
 		 *
 		 * Before the actual so_define_agent() method it is necessary
@@ -2227,6 +2181,8 @@ class SO_5_TYPE agent_t
 		 *
 		 * Because of that this method must be called during cooperation
 		 * registration procedure instead of direct call of so_define_agent().
+		 *
+		 * \since v.5.4.0
 		 */
 		void
 		so_initiate_agent_definition();
@@ -2356,17 +2312,13 @@ class SO_5_TYPE agent_t
 		 * };
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		[[nodiscard]]
 		coop_handle_t
 		so_coop() const;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Binding agent to the dispatcher.
 		 *
 		 * This is an actual start of agent's work in SObjectizer.
@@ -2375,6 +2327,8 @@ class SO_5_TYPE agent_t
 		 * This method was a de-facto noexcept in previous versions of
 		 * SObjectizer. But didn't marked as noexcept because of need of
 		 * support old C++ compilers. Since v.5.6.0 it is officially noexcept.
+		 *
+		 * \since v.5.4.0
 		 */
 		void
 		so_bind_to_dispatcher(
@@ -2382,9 +2336,6 @@ class SO_5_TYPE agent_t
 			event_queue_t & queue ) noexcept;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Create execution hint for the specified demand.
 		 *
 		 * The hint returned is intendent for the immediately usage.
@@ -2392,6 +2343,8 @@ class SO_5_TYPE agent_t
 		 * the future. It is because internal state of the agent
 		 * can be changed and some references from hint object to
 		 * agent's internals become invalid.
+		 *
+		 * \since v.5.4.0
 		 */
 		static execution_hint_t
 		so_create_execution_hint(
@@ -2427,9 +2380,6 @@ class SO_5_TYPE agent_t
 		so_deregister_agent_coop( int dereg_reason );
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief A helper method for deregistering agent's coop
 		 * in case of normal deregistration.
 		 *
@@ -2437,6 +2387,8 @@ class SO_5_TYPE agent_t
 			\code
 			so_deregister_agent_coop( so_5::dereg_reason::normal );
 			\endcode
+		 *
+		 * \since v.5.4.0
 		 */
 		void
 		so_deregister_agent_coop_normally();
@@ -2446,9 +2398,6 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Set a delivery filter.
 		 *
 		 * \note
@@ -2456,6 +2405,8 @@ class SO_5_TYPE agent_t
 		 * In that case \a Message should be in form `so_5::mutable_msg<Message>`.
 		 *
 		 * \tparam Message type of message to be filtered.
+		 *
+		 * \since v.5.5.5
 		 */
 		template< typename Message >
 		void
@@ -2475,9 +2426,6 @@ class SO_5_TYPE agent_t
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Set a delivery filter.
 		 *
 		 * \tparam Lambda type of lambda-function or functional object which
@@ -2493,6 +2441,8 @@ class SO_5_TYPE agent_t
 			...
 		 }
 		 \endcode
+		 *
+		 * \since v.5.5.5
 		 */
 		template< typename Lambda >
 		void
@@ -2504,8 +2454,6 @@ class SO_5_TYPE agent_t
 			Lambda && lambda );
 
 		/*!
-		 * \since v.5.7.4
-		 *
 		 * \brief Set a delivery filter for a mutable message.
 		 *
 		 * \tparam Lambda type of lambda-function or functional object which
@@ -2525,6 +2473,8 @@ class SO_5_TYPE agent_t
 			...
 		 }
 		 \endcode
+		 *
+		 * \since v.5.7.4
 		 */
 		template< typename Lambda >
 		void
@@ -2536,12 +2486,11 @@ class SO_5_TYPE agent_t
 			Lambda && lambda );
 
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Drop a delivery filter.
 		 *
 		 * \tparam Message type of message filtered.
+		 *
+		 * \since v.5.5.5
 		 */
 		template< typename Message >
 		void
@@ -2664,8 +2613,7 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \brief Enumeration of possible agent statuses.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		enum class agent_status_t : char
 		{
@@ -2681,8 +2629,7 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \brief Current agent status.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		agent_status_t m_current_status;
 
@@ -2690,10 +2637,9 @@ class SO_5_TYPE agent_t
 		impl::state_listener_controller_t m_state_listener_controller;
 
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Type of function for searching event handler.
+		 *
+		 * \since v.5.5.9
 		 */
 		using handler_finder_t =
 			const impl::event_handler_data_t *(*)(
@@ -2701,13 +2647,12 @@ class SO_5_TYPE agent_t
 					const char * /* context_marker */ );
 
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Function for searching event handler.
 		 *
 		 * \note The value is set only once in the constructor and
 		 * doesn't changed anymore.
+		 *
+		 * \since v.5.5.9
 		 */
 		handler_finder_t m_handler_finder;
 
@@ -2735,9 +2680,6 @@ class SO_5_TYPE agent_t
 		environment_t & m_env;
 
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Event queue operation protector.
 		 *
 		 * Initially m_event_queue is NULL. It is changed to actual value
@@ -2753,13 +2695,12 @@ class SO_5_TYPE agent_t
 		 * push_event() acquire it in read-mode and shutdown_agent() acquires it
 		 * in write-mode. It means that shutdown_agent() cannot get access to
 		 * m_event_queue until there is working push_event().
+		 *
+		 * \since v.5.5.8
 		 */
 		default_rw_spinlock_t m_event_queue_lock;
 
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief A pointer to event_queue.
 		 *
 		 * After binding to the dispatcher is it pointed to the actual
@@ -2769,25 +2710,25 @@ class SO_5_TYPE agent_t
 		 *
 		 * \attention Access to m_event_queue value must be done only
 		 * under acquired m_event_queue_lock.
+		 *
+		 * \since v.5.5.8
 		 */
 		event_queue_t * m_event_queue;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief A direct mbox for the agent.
+		 *
+		 * \since v.5.4.0
 		 */
 		const mbox_t m_direct_mbox;
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Working thread id.
 		 *
 		 * Some actions like managing subscriptions and changing states
 		 * are enabled only on working thread id.
+		 *
+		 * \since v.5.4.0
 		 */
 		so_5::current_thread_id_t m_working_thread_id;
 
@@ -2795,20 +2736,18 @@ class SO_5_TYPE agent_t
 		coop_t * m_agent_coop;
 
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Delivery filters for that agents.
 		 *
 		 * \note Storage is created only when necessary.
+		 *
+		 * \since v.5.5.5
 		 */
 		std::unique_ptr< impl::delivery_filter_storage_t > m_delivery_filters;
 
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Priority of the agent.
+		 *
+		 * \since v.5.5.8
 		 */
 		const priority_t m_priority;
 
@@ -2870,11 +2809,9 @@ class SO_5_TYPE agent_t
 
 		//! Agent shutdown deriver.
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
-		 *
 		 * Method destroys all agent subscriptions.
+		 *
+		 * \since v.5.2.3
 		 */
 		void
 		shutdown_agent() noexcept;
@@ -2899,10 +2836,9 @@ class SO_5_TYPE agent_t
 			const std::type_index & msg_type );
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Remove subscription for the state specified.
+		 *
+		 * \since v.5.2.3
 		 */
 		void
 		do_drop_subscription(
@@ -2914,10 +2850,9 @@ class SO_5_TYPE agent_t
 			const state_t & target_state );
 
 		/*!
-		 * \since
-		 * v.5.2.3
-		 *
 		 * \brief Remove subscription for all states.
+		 *
+		 * \since v.5.2.3
 		 */
 		void
 		do_drop_subscription_for_all_states(
@@ -2929,8 +2864,7 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \brief Check the presence of a subscription.
 		 *
-		 * \since
-		 * v.5.5.19.5
+		 * \since v.5.5.19.5
 		 */
 		bool
 		do_check_subscription_presence(
@@ -2944,8 +2878,7 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \brief Check the presence of a deadletter handler.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		bool
 		do_check_deadletter_presence(
@@ -2985,10 +2918,9 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 		/*!
-		 * \since
-		 * v.5.2.0
-		 *
 		 * \brief Calls so_evt_start method for agent.
+		 *
+		 * \since v.5.2.0
 		 */
 		static void
 		demand_handler_on_start(
@@ -2996,29 +2928,26 @@ class SO_5_TYPE agent_t
 			execution_demand_t & d );
 
 		/*!
-		 * \since
-		 * v.5.5.8
-		 *
 		 * \brief Ensures that all agents from cooperation are
 		 * bound to dispatchers.
+		 *
+		 * \since v.5.5.8
 		 */
 		void
 		ensure_binding_finished();
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \note This method is necessary for GCC on Cygwin.
+		 *
+		 * \since v.5.4.0
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_start_ptr() noexcept;
 
 		/*!
-		 * \since
-		 * v.5.2.0
-		 *
 		 * \brief Calls so_evt_finish method for agent.
+		 *
+		 * \since v.5.2.0
 		 */
 		static void
 		demand_handler_on_finish(
@@ -3026,19 +2955,17 @@ class SO_5_TYPE agent_t
 			execution_demand_t & d );
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \note This method is necessary for GCC on Cygwin.
+		 *
+		 * \since v.5.4.0
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_finish_ptr() noexcept;
 
 		/*!
-		 * \since
-		 * v.5.2.0
-		 *
 		 * \brief Calls event handler for message.
+		 *
+		 * \since v.5.2.0
 		 */
 		static void
 		demand_handler_on_message(
@@ -3046,19 +2973,17 @@ class SO_5_TYPE agent_t
 			execution_demand_t & d );
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \note This method is necessary for GCC on Cygwin.
+		 *
+		 * \since v.5.4.0
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_message_ptr() noexcept;
 
 		/*!
-		 * \since
-		 * v.5.5.23
-		 *
 		 * \brief Handles the enveloped message.
+		 *
+		 * \since v.5.5.23
 		 */
 		static void
 		demand_handler_on_enveloped_msg(
@@ -3066,8 +2991,7 @@ class SO_5_TYPE agent_t
 			execution_demand_t & d );
 
 		/*!
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_enveloped_msg_ptr() noexcept;
@@ -3077,9 +3001,6 @@ class SO_5_TYPE agent_t
 
 	private :
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Actual implementation of message handling.
 		 *
 		 * \note Since v.5.5.17.1 argument \a method is passed as copy.
@@ -3099,6 +3020,8 @@ class SO_5_TYPE agent_t
 		 * the work of process_message (due to unsubscription inside the
 		 * event handler) and if pass \a method by a reference then
 		 * that reference can become invalid.
+		 *
+		 * \since v.5.4.0
 		 */
 		static void
 		process_message(
@@ -3115,8 +3038,7 @@ class SO_5_TYPE agent_t
 		 * for that message type if not found and special hook will
 		 * be called for the envelope.
 		 *
-		 * \since
-		 * v.5.5.23
+		 * \since v.5.5.23
 		 */
 		static void
 		process_enveloped_msg(
@@ -3125,30 +3047,27 @@ class SO_5_TYPE agent_t
 			const impl::event_handler_data_t * handler_data );
 
 		/*!
-		 * \since
-		 * v.5.4.0
-		 *
 		 * \brief Enables operation only if it is performed on agent's
 		 * working thread.
+		 *
+		 * \since v.5.4.0
 		 */
 		void
 		ensure_operation_is_on_working_thread(
 			const char * operation_name ) const;
 
 		/*!
-		 * \since
-		 * v.5.5.0
-		 *
 		 * \brief Drops all delivery filters.
+		 *
+		 * \since v.5.5.0
 		 */
 		void
 		drop_all_delivery_filters() noexcept;
 
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Set a delivery filter.
+		 *
+		 * \since v.5.5.5
 		 */
 		void
 		do_set_delivery_filter(
@@ -3157,10 +3076,9 @@ class SO_5_TYPE agent_t
 			delivery_filter_unique_ptr_t filter );
 
 		/*!
-		 * \since
-		 * v.5.5.5
-		 *
 		 * \brief Drop a delivery filter.
+		 *
+		 * \since v.5.5.5
 		 */
 		void
 		do_drop_delivery_filter(
@@ -3168,11 +3086,10 @@ class SO_5_TYPE agent_t
 			const std::type_index & msg_type ) noexcept;
 
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Handler finder for the case when message delivery
 		 * tracing is disabled.
+		 *
+		 * \since v.5.5.9
 		 */
 		static const impl::event_handler_data_t *
 		handler_finder_msg_tracing_disabled(
@@ -3180,11 +3097,10 @@ class SO_5_TYPE agent_t
 			const char * context_marker );
 
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
 		 * \brief Handler finder for the case when message delivery
 		 * tracing is enabled.
+		 *
+		 * \since v.5.5.9
 		 */
 		static const impl::event_handler_data_t *
 		handler_finder_msg_tracing_enabled(
@@ -3192,11 +3108,10 @@ class SO_5_TYPE agent_t
 			const char * context_marker );
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Actual search for event handler with respect
 		 * to parent-child relationship between agent states.
+		 *
+		 * \since v.5.5.15
 		 */
 		static const impl::event_handler_data_t *
 		find_event_handler_for_current_state(
@@ -3207,8 +3122,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \return nullptr if event handler is not found.
 		 *
-		 * \since
-		 * v.5.5.21
+		 * \since v.5.5.21
 		 */
 		static const impl::event_handler_data_t *
 		find_deadletter_handler(
@@ -3232,10 +3146,9 @@ class SO_5_TYPE agent_t
 			const state_t & state_to_be_set );
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Actual action for switching agent state.
+		 *
+		 * \since v.5.5.15
 		 */
 		void
 		do_state_switch(
@@ -3243,9 +3156,6 @@ class SO_5_TYPE agent_t
 			const state_t & state_to_be_set ) noexcept;
 
 		/*!
-		 * \since
-		 * v.5.5.15
-		 *
 		 * \brief Return agent to the default state.
 		 *
 		 * \note This method is called just before invocation of
@@ -3256,6 +3166,8 @@ class SO_5_TYPE agent_t
 		 * \attention State switch is not performed if agent is already
 		 * in default state or if it waits deregistration after unhandled
 		 * exception.
+		 *
+		 * \since v.5.5.15
 		 */
 		void
 		return_to_default_state_if_possible() noexcept;
@@ -3302,8 +3214,7 @@ class SO_5_TYPE agent_t
  * }
  * \endcode
  *
- * \since
- * v.5.7.1
+ * \since v.5.7.1
  */
 template< typename Derived >
 [[nodiscard]]
@@ -3834,9 +3745,6 @@ state_t::subscribe_message_handler(
 }
 
 /*!
- * \since
- * v.5.5.1
- *
  * \brief A shortcat for switching the agent state.
  *
  * \par Usage example.
@@ -3860,6 +3768,8 @@ state_t::subscribe_message_handler(
 		...
 	};
 	\endcode
+ *
+ * \since v.5.5.1
  */
 inline void
 operator>>=( agent_t * agent, const state_t & new_state )
