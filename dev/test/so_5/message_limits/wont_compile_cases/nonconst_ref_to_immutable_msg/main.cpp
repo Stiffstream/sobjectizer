@@ -15,14 +15,16 @@
 namespace test
 {
 
+struct msg_dummy {};
+
 class a_test_t : public so_5::agent_t
 {
 public :
 	a_test_t(
 		so_5::environment_t & env )
 		:	so_5::agent_t( env
-				+ limit_then_transform( 2,
-					[this]( const any_unspecified_message & ) {
+				+ limit_then_transform< msg_dummy >( 2,
+					[this]( msg_dummy & ) {
 						return make_transformed< std::string >(
 								so_direct_mbox(),
 								"Hello, World!" );

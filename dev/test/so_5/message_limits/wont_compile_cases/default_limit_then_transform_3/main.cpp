@@ -21,8 +21,8 @@ public :
 	a_test_t(
 		so_5::environment_t & env )
 		:	so_5::agent_t( env
-				+ limit_then_transform( 2,
-					[this]( const any_unspecified_message & ) {
+				+ limit_then_transform< so_5::immutable_msg< any_unspecified_message > >( 2,
+					[this]( const auto & ) {
 						return make_transformed< std::string >(
 								so_direct_mbox(),
 								"Hello, World!" );
