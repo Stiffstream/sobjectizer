@@ -403,7 +403,23 @@ transform_reaction(
 	//! An instance of new message.
 	const message_ref_t & message );
 
-//FIXME: document this!
+/*!
+ * \brief Helper function to make an action that performs message transformation.
+ *
+ * Wraps \a transformator into an instance of type action_t.
+ *
+ * \tparam Message_Type type of message to be transformed. This type should be
+ * a type of payload without so_5::immutable_msg or so_5::mutable_msg
+ * modifications.
+ *
+ * \tparam Message_Mutability mutability of message. It's required to detect
+ * actual type of reference (Message_Type& or const Message_Type&) to be passed
+ * to \a transformator.
+ *
+ * \tparam Lambda type of \a transformator.
+ *
+ * \since v.5.8.1
+ */
 template<
 	typename Message_Type,
 	message_mutability_t Message_Mutability,
@@ -458,7 +474,17 @@ make_action_for_message_transformer(
 		return act;
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Helper function to make an action that performs signal transformation.
+ *
+ * Wraps \a transformator into an instance of type action_t.
+ *
+ * \tparam Source type of signal to be transformed.
+ *
+ * \tparam Lambda type of \a transformator.
+ *
+ * \since v.5.8.1
+ */
 template< typename Source, typename Lambda >
 [[nodiscard]]
 action_t
@@ -742,7 +768,7 @@ struct message_limit_methods_mixin_t
 			{
 			public :
 				a_request_processor_t( context_t ctx )
-					:	so_5::agent_t( ctx 
+					:	so_5::agent_t( ctx
 							// Limit count of requests in the queue.
 							// If queue is full then request must be transformed
 							// to negative reply.
@@ -781,14 +807,40 @@ struct message_limit_methods_mixin_t
 				return transform_indicator_t< Message_Type >{ limit, std::move( act ) };
 			}
 
-		//FIXME: update the documentation to this method!
 		/*!
 		 * \brief A helper function for creating transform_indicator.
 		 *
-		 * Must be used for signal transformation. Type of signal must be
-		 * explicitely specified.
+		 * This method has to be used in cases when the type of source message/signal
+		 * should be specified explicitly. For example:
 		 *
-		 * \since v.5.5.4
+		 * \par Usage example:
+		 * \code
+			class a_request_processor_t : public so_5::agent_t
+			{
+			public :
+				a_request_processor_t( context_t ctx, const so_5::mbox_t & status_mbox )
+					:	so_5::agent_t( ctx
+							// Limit count of requests in the queue.
+							// If queue is full then request must be transformed
+							// to negative reply.
+							+ limit_then_transform< so_5::mutable_msg< request > >( 3,
+								[]( request & evt ) { // NOTE: non-const reference to evt.
+									return make_transformed< reply >(
+											evt.m_reply_to, evt.m_id, false );
+								} )
+
+							// Limit count of ask_status in the queue.
+							// The ask_status is a signal.
+							+ limit_then_transform< ask_status >( 1,
+								[status_mbox]() { // NOTE: no arguments for the transformation lambda.
+									return make_transformed< busy >( status_mbox );
+								} ) )
+					{...}
+				...
+			};
+		 * \endcode
+		 *
+		 * \since v.5.5.4, v.5.8.1
 		 */
 		template< typename Source, typename Lambda >
 		[[nodiscard]]
