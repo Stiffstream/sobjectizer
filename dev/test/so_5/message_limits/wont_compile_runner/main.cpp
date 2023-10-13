@@ -15,6 +15,7 @@ int main()
 			, name( "default_limit_then_transform_3" )
 			, name( "default_limit_then_transform_4" )
 			, name( "nonconst_ref_to_immutable_msg" )
+			, name( "nonconst_ref_to_immutable_msg_2" )
 		});
 
 		return 0;
