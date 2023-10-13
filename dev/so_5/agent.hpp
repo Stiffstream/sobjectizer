@@ -2604,6 +2604,14 @@ class SO_5_TYPE agent_t
 				return lambda();
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		disp_binder_shptr_t
+		so_this_agent_disp_binder() const
+			{
+				return m_disp_binder;
+			}
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
