@@ -882,8 +882,14 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		void
 		reserve( std::size_t v ) { m_agent_array.reserve( v ); }
 		
+		//FIXME: Should be moved to a protected/private part in v.5.9!
 		/*!
 		 * \brief Deregister the cooperation with the specified reason.
+		 *
+		 * \attention
+		 * This method is intended for internal use by SObjectizer implementation.
+		 * It's a historical accident that this method remains public. It will be
+		 * made private in v.5.9. Do not use it!
 		 *
 		 * \par Usage example:
 			\code
@@ -907,8 +913,16 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 						coop_dereg_reason_t{ reason } );
 			}
 
+		//FIXME: Should be removed in v.5.9!
 		/*!
+		 * \deprecated This method is going to be removed in v.5.9.
+		 *
 		 * \brief Deregistr the cooperation normally.
+		 *
+		 * \attention
+		 * This method is intended for internal use by SObjectizer implementation.
+		 * It's a historical accident that this method remains public. It will be
+		 * removed in v.5.9. Do not use it!
 		 *
 		 * This method is just a shorthand for:
 			\code
@@ -922,6 +936,7 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 		 *
 		 * \since v.5.5.8
 		 */
+		[[deprecated]]
 		void
 		deregister_normally() noexcept
 			{
