@@ -821,6 +821,18 @@ agent_t::so_deregister_agent_coop_normally()
 	so_deregister_agent_coop( dereg_reason::normal );
 }
 
+disp_binder_shptr_t
+agent_t::so_this_coop_disp_binder() const
+{
+	if( !m_agent_coop )
+		SO_5_THROW_EXCEPTION(
+				rc_agent_has_no_cooperation,
+				"agent_t::so_this_coop_disp_binder() can be completed "
+				"because agent is not bound to any cooperation" );
+
+	return m_agent_coop->coop_disp_binder();
+}
+
 void
 agent_t::destroy_all_subscriptions_and_filters() noexcept
 {

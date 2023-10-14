@@ -943,6 +943,14 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				this->deregister( dereg_reason::normal );
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		disp_binder_shptr_t
+		coop_disp_binder() const noexcept /*FIXME: conditional noexcept?*/
+			{
+				return m_coop_disp_binder;
+			}
+
 	protected:
 		//! Typedef for the agent information container.
 		using agent_array_t = std::vector< agent_ref_t >;

@@ -2612,6 +2612,11 @@ class SO_5_TYPE agent_t
 				return m_disp_binder;
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		disp_binder_shptr_t
+		so_this_coop_disp_binder() const;
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 

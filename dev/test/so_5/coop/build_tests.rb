@@ -33,5 +33,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/msg_loss_at_registration/prj.ut.rb" )
 	required_prj( "#{path}/destruction_order_1/prj.ut.rb" )
 	required_prj( "#{path}/this_agent_disp_binder/prj.ut.rb" )
+	required_prj( "#{path}/coop_disp_binder/prj.ut.rb" )
 }
 
