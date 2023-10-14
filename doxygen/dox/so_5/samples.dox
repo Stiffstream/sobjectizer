@@ -16,10 +16,9 @@
  * \example so_5/deadletter_handler/main.cpp
  * \example so_5/default_message_limits/main.cpp
  * \example so_5/delivery_filters/main.cpp
- * \example so_5/dining_philosophers/main.cpp
- * \example so_5/dining_philosophers_2/main.cpp
  * \example so_5/disp/main.cpp
  * \example so_5/dispatcher_for_children/main.cpp
+ * \example so_5/dispatcher_for_children_2/main.cpp
  * \example so_5/dispatcher_hello/main.cpp
  * \example so_5/dispatcher_restarts/main.cpp
  * \example so_5/exception_logger/main.cpp
@@ -64,7 +63,6 @@
  * \example so_5/subscriptions/main.cpp
  * \example so_5/two_handlers/main.cpp
  * \example so_5/unique_subscribers_mbox/main.cpp
- * \example so_5/wrapped_env_demo/main.cpp
  * \example so_5/wrapped_env_demo_2/main.cpp
  * \example so_5/wrapped_env_demo_3/main.cpp
  */

@@ -68,6 +68,8 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/dispatcher_for_children.ut.rb"
   required_prj "#{path}/dispatcher_for_children-static.ut.rb"
+  required_prj "#{path}/dispatcher_for_children_2.ut.rb"
+  required_prj "#{path}/dispatcher_for_children_2-static.ut.rb"
 
   required_prj "#{path}/dispatcher_hello.ut.rb"
   required_prj "#{path}/dispatcher_hello-static.ut.rb"
