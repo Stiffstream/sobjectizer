@@ -494,8 +494,6 @@ struct working_thread_id_sentinel_t
 // agent_t
 //
 
-//FIXME: new methods so_this_agent_disp_binder() and so_this_coop_default_disp_binder()
-//have to be mentioned in this comment.
 //! A base class for agents.
 /*!
 	An agent in SObjctizer must be derived from the agent_t.
@@ -653,6 +651,19 @@ struct working_thread_id_sentinel_t
 	an agent. In such case there would not be work thread id. And
 	operations like changing agent state or creation of subscription
 	would be prohibited after agent registration.
+
+	<b>Accessing dispatcher binders</b>
+
+	Since v.5.8.1 there are two methods that allow to get a dispatcher binder
+	related to the agent or agent's coop:
+
+	- so_this_agent_disp_binder(). It returns the dispatcher binder that is
+	  used for binding the agent itself;
+	- so_this_coop_disp_binder(). It returns the dispatcher binder that is the
+	  default disp binder for the agent's coop.
+
+	Please note that binders returned by so_this_agent_disp_binder() and
+	so_this_coop_disp_binder() may be different binders.
 */
 class SO_5_TYPE agent_t
 	:	private atomic_refcounted_t
@@ -2604,7 +2615,34 @@ class SO_5_TYPE agent_t
 				return lambda();
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Returns the dispatcher binder that is used for binding this
+		 * agent.
+		 *
+		 * \attention
+		 * It's safe to use this method only while the agent is registered
+		 * in a SObjectizer Environment -- from the start of so_evt_start() until
+		 * the completion so_evt_finish(). The calling of this method when agent
+		 * it not registered (e.g. before the invocation of so_evt_start() or
+		 * after the completion of so_evt_finish()) may lead to undefined behavior.
+		 *
+		 * This method is intended to simplify creation of children cooperations:
+		 * \code
+		 * void parent_agent::evt_some_command(mhood_t<msg_command> cmd) {
+		 * 	...
+		 * 	// A new child coop has to be created and bound to the same
+		 * 	// dispatcher as the parent agent.
+		 * 	so_5::introduce_child_coop( *this,
+		 * 		// Get the binder of the parent.
+		 * 		so_this_agent_disp_binder(),
+		 * 		[&](so_5::coop_t & coop) {
+		 * 			... // Creation of children agents.
+		 * 		} );
+		 * }
+		 * \endcode
+		 *
+		 * \since v.5.8.1
+		 */
 		[[nodiscard]]
 		disp_binder_shptr_t
 		so_this_agent_disp_binder() const
@@ -2612,7 +2650,60 @@ class SO_5_TYPE agent_t
 				return m_disp_binder;
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Returns the dispatcher binder that is used as the default
+		 * binder for the agent's coop.
+		 *
+		 * \attention
+		 * It's safe to use this method only while the agent is registered
+		 * in a SObjectizer Environment -- from the start of so_evt_start() until
+		 * the completion so_evt_finish(). The calling of this method when agent
+		 * it not registered (e.g. before the invocation of so_evt_start() or
+		 * after the completion of so_evt_finish()) may lead to undefined behavior.
+		 *
+		 * This method is intended to simplify creation of children cooperations:
+		 * \code
+		 * void parent_agent::evt_some_command(mhood_t<msg_command> cmd) {
+		 * 	...
+		 * 	// A new child coop has to be created and bound to the same
+		 * 	// dispatcher as the parent agent.
+		 * 	so_5::introduce_child_coop( *this,
+		 * 		// Get the binder of the parent's coop.
+		 * 		so_this_coop_disp_binder(),
+		 * 		[&](so_5::coop_t & coop) {
+		 * 			... // Creation of children agents.
+		 * 		} );
+		 * }
+		 * \endcode
+		 *
+		 * \note
+		 * This method may return a different binder that so_this_agent_disp_binder()
+		 * in a case when the agent was bound by a separate dispatcher. For example:
+		 * \code
+		 * // The parent coop will use thread_pool dispatcher as
+		 * // the default dispatcher.
+		 * env.introduce_coop(
+		 * 	so_5::disp::thread_pool::make_dispatcher( env, 8u )
+		 * 		.binder( []( auto & params ) {
+		 * 				// Every agent will have a separate event queue.
+		 * 				params.fifo( so_5::disp::thread_pool::fifo_t::individual );
+		 * 			} ),
+		 * 	[&]( so_5::coop_t & coop ) {
+		 * 		// The parent agent itself will use a separate dispatcher.
+		 * 		coop.make_agent_with_binder< parent_agent >(
+		 * 			so_5::disp::one_thread::make_dispatcher( env ).binder(),
+		 * 			... );
+		 *
+		 * 		... // Creation of other agents.
+		 * 	} );
+		 * \endcode
+		 * In that case use of so_this_agent_disp_binder() instead of
+		 * so_this_coop_disp_binder() will bind children agents to the
+		 * parent's one_thread dispatcher instead of coop's thread_pool
+		 * dispatcher.
+		 *
+		 * \since v.5.8.1
+		 */
 		[[nodiscard]]
 		disp_binder_shptr_t
 		so_this_coop_disp_binder() const;
