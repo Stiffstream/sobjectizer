@@ -2,6 +2,17 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_1 5.8.1 "Alpamayo"
+
+New functions so_5::msinks::transform_then_redirect() and new
+helpers so_5::bind_transformer().
+
+New methods so_5::agent_t::so_this_agent_disp_binder() and
+so_5::agent_t::so_this_coop_disp_binder().
+
+BugFix: the so_5::agent_t::limit_then_transform() now can be used with
+mutable messages.
+
 \section so_5__5_8_0 5.8.0 "Nevado de Chani"
 
 \attention
