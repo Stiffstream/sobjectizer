@@ -818,14 +818,14 @@ class step_definition_proxy_t
 			{
 				// Deduce actual mbox of the recevier.
 				// This mbox will be captured by lambda function.
-				auto to = so_5::send_functions_details::arg_to_mbox(
+				auto target_mbox = so_5::send_functions_details::arg_to_mbox(
 						std::forward<Target>(target) );
 
 				// Make an instance of a message.
 				// This instance will be captured by lambda function.
 				// Mutability of a message will be changed appropriately
 				// in make_message_instance.
-				message_ref_t msg{
+				message_ref_t msg_instance{
 					so_5::details::make_message_instance<Msg_Type>(
 							std::forward<Args>(args)... )
 				};
@@ -833,7 +833,8 @@ class step_definition_proxy_t
 				// Now we can create a lambda-function that will send
 				// the message instance at the appropriate time.
 				m_step->add_preactivate_action(
-						[to = std::move(to), msg = std::move(msg)]() noexcept {
+						[to = std::move(target_mbox),
+						msg = std::move(msg_instance)]() noexcept {
 							using namespace so_5::low_level_api;
 							deliver_message(
 									so_5::message_delivery_mode_t::ordinary,
@@ -1636,12 +1637,12 @@ operator&(
 inline trigger_holder_t<incident_status_t::handled>
 operator&(
 	trigger_holder_t<incident_status_t::handled> && old_holder,
-	store_agent_state_name_t data )
+	store_agent_state_name_t data_to_store )
 	{
 		auto trigger_ptr = old_holder.giveout_trigger();
 		auto * target_agent = &(trigger_ptr->target_agent());
 		trigger_ptr->set_completion(
-				[data = std::move(data), target_agent](
+				[data = std::move(data_to_store), target_agent](
 					const trigger_completion_context_t & ctx ) noexcept
 				{
 					ctx.m_scenario_accessor.scenario().store_state_name(
