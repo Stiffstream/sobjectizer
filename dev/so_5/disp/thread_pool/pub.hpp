@@ -158,6 +158,11 @@ enum class fifo_t
 		/*!
 		 * It means that agents from the same cooperation for which this
 		 * FIFO mechanism is used will be worked on the same thread.
+		 *
+		 * If the same disp_binder with fifo_t::cooperation is used for
+		 * several cooperations then each coop will have a separate
+		 * event queue (thus agents from different coops may work on
+		 * different worker threads).
 		 */
 		cooperation,
 		//! A FIFO for demands only for one agent.
