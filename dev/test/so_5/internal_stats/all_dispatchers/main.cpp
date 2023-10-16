@@ -164,7 +164,7 @@ class a_controller_t : public so_5::agent_t
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -176,7 +176,7 @@ class a_controller_t : public so_5::agent_t
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -188,7 +188,7 @@ class a_controller_t : public so_5::agent_t
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -202,8 +202,8 @@ class a_controller_t : public so_5::agent_t
 				unsigned int group_no = 0;
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp), &group_no] {
-							return disp.binder( "group#" +
+						[d=std::move(disp), &group_no] {
+							return d.binder( "group#" +
 									std::to_string( ++group_no ) );
 						} );
 			}
@@ -217,7 +217,7 @@ class a_controller_t : public so_5::agent_t
 						so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -230,8 +230,8 @@ class a_controller_t : public so_5::agent_t
 				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] {
-								return disp.binder(
+						[d=std::move(disp)] {
+								return d.binder(
 									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
@@ -246,9 +246,7 @@ class a_controller_t : public so_5::agent_t
 				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] {
-								return disp.binder();
-						} );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -261,8 +259,8 @@ class a_controller_t : public so_5::agent_t
 				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] {
-								return disp.binder(
+						[d=std::move(disp)] {
+								return d.binder(
 									bind_params_t{}.fifo( fifo_t::individual ) );
 						} );
 			}
@@ -276,7 +274,7 @@ class a_controller_t : public so_5::agent_t
 					make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -289,7 +287,7 @@ class a_controller_t : public so_5::agent_t
 				auto disp = make_dispatcher( so_environment(), quotes_t{ 20 } );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		void
@@ -302,7 +300,7 @@ class a_controller_t : public so_5::agent_t
 				auto disp = make_dispatcher( so_environment() );
 
 				create_children_on( coop, workers,
-						[disp=std::move(disp)] { return disp.binder(); } );
+						[d=std::move(disp)] { return d.binder(); } );
 			}
 
 		template< typename LAMBDA >
