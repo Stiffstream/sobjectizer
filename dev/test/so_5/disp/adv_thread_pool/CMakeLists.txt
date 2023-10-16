@@ -1,5 +1,6 @@
 add_subdirectory(chstate_in_safe)
 add_subdirectory(cooperation_fifo)
+add_subdirectory(cooperation_fifo_2)
 add_subdirectory(individual_fifo)
 add_subdirectory(simple)
 add_subdirectory(subscr_in_safe)
