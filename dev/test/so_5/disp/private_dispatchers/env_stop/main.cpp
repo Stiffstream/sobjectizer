@@ -37,8 +37,8 @@ make_coop( so_5::environment_t & env, Dispatcher_Handle disp )
 		void event( handler_t lambda )
 		{
 			so_subscribe_self().event(
-				[lambda = std::move(lambda)]( mhood_t<msg_hello> ) {
-					lambda();
+				[l = std::move(lambda)]( mhood_t<msg_hello> ) {
+					l();
 				} );
 		}
 

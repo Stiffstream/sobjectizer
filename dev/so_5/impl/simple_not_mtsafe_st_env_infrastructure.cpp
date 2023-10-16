@@ -489,8 +489,8 @@ env_infrastructure_t< Activity_Tracker >::run_default_dispatcher_and_go_further(
 				[this] {
 					m_default_disp.reset();
 				},
-				[this, init_fn=std::move(init_fn)] {
-					run_user_supplied_init_and_do_main_loop( std::move(init_fn) );
+				[this, init_func=std::move(init_fn)] {
+					run_user_supplied_init_and_do_main_loop( std::move(init_func) );
 				} );
 	}
 
