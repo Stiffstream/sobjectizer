@@ -943,29 +943,6 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 				this->deregister( dereg_reason::normal );
 			}
 
-		/*!
-		 * \brief Return the default dispatcher binder for the coop.
-		 *
-		 * \code
-		 * env.introduce_coop(
-		 * 	// (1) Make the default dispatcher for the coop.
-		 * 	so_5::disp::active_obj::make_dispatcher( env ).binder(),
-		 * 	[]( so_5::coop_t & coop ) {
-		 * 		auto binder = coop_disp_binder(); // Will get binder created at (1).
-		 * 		...
-		 * 	} );
-		 * \endcode
-		 *
-		 * \since v.5.8.1
-		 */
-		[[nodiscard]]
-		disp_binder_shptr_t
-		coop_disp_binder() const
-			noexcept( noexcept( disp_binder_shptr_t{ m_coop_disp_binder } ) )
-			{
-				return m_coop_disp_binder;
-			}
-
 	protected:
 		//! Typedef for the agent information container.
 		using agent_array_t = std::vector< agent_ref_t >;
@@ -1315,6 +1292,33 @@ class coop_t : public std::enable_shared_from_this<coop_t>
 					child = child->m_next_sibling.get();
 				}
 			}
+
+	public:
+		//NOTE: this method is defined after all protected stuff
+		//to avoid compilation error with GCC-9.
+		/*!
+		 * \brief Return the default dispatcher binder for the coop.
+		 *
+		 * \code
+		 * env.introduce_coop(
+		 * 	// (1) Make the default dispatcher for the coop.
+		 * 	so_5::disp::active_obj::make_dispatcher( env ).binder(),
+		 * 	[]( so_5::coop_t & coop ) {
+		 * 		auto binder = coop_disp_binder(); // Will get binder created at (1).
+		 * 		...
+		 * 	} );
+		 * \endcode
+		 *
+		 * \since v.5.8.1
+		 */
+		[[nodiscard]]
+		disp_binder_shptr_t
+		coop_disp_binder() const
+			noexcept( noexcept( disp_binder_shptr_t{ this->m_coop_disp_binder } ) )
+			{
+				return m_coop_disp_binder;
+			}
+
 	};
 
 //
