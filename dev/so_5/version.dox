@@ -2,6 +2,8 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_2 5.8.2 "Sabancaya"
+
 \section so_5__5_8_1 5.8.1 "Alpamayo"
 
 New functions so_5::msinks::transform_then_redirect() and new
