@@ -12,11 +12,16 @@
 
 #include <so_5/wrapped_env.hpp>
 
-#include <thread>
-#include <mutex>
+#include <so_5/details/invoke_noexcept_code.hpp>
+
 #include <condition_variable>
+#include <exception>
+#include <mutex>
+#include <thread>
 
 namespace so_5 {
+
+using wrapped_env_details::init_style_t;
 
 namespace
 {
@@ -35,23 +40,47 @@ class actual_environment_t : public environment_t
 			//! Initialization routine.
 			so_5::generic_simple_init_t init,
 			//! SObjectizer Environment parameters.
-			environment_params_t && env_params )
+			environment_params_t && env_params,
+			//! How initialization is performed.
+			init_style_t init_style )
 			:	environment_t( std::move( env_params ) )
 			,	m_init( std::move(init) )
+			,	m_init_style{ init_style }
 			{}
 
-		virtual void
+		void
 		init() override
 			{
-				{
-					std::lock_guard< std::mutex > lock{ m_status_lock };
-					m_status = status_t::started;
-					m_status_cond.notify_all();
-				}
+				// Don't expect that this code throws, but if it does
+				// we can't complete our work correctly, so it's better
+				// to crash the application.
+				so_5::details::invoke_noexcept_code( [this]{
+						{
+							std::lock_guard< std::mutex > lock{ m_status_lock };
+							m_status = status_t::started;
+							m_status_cond.notify_all();
+						}
 
-				m_init( *this );
+						switch( m_init_style )
+							{
+							case init_style_t::async:
+								call_init_functor_async_style();
+							break;
+
+							case init_style_t::sync:
+								call_init_functor_sync_style();
+							break;
+							}
+
+						{
+							std::lock_guard< std::mutex > lock{ m_status_lock };
+							m_status = status_t::init_functor_completed;
+							m_status_cond.notify_all();
+						}
+					} );
 			}
 
+		//FIXME: extend the description of this method!
 		void
 		ensure_started()
 			{
@@ -61,19 +90,38 @@ class actual_environment_t : public environment_t
 				 * infinite waiting on join() in wrapped_env_t.
 				 */
 				std::unique_lock< std::mutex > lock{ m_status_lock };
-				m_status_cond.wait( lock,
-					[this]{ return status_t::started == m_status; } );
+				if( status_t::not_started == m_status )
+					{
+						m_status_cond.wait( lock,
+							[this]{ return status_t::not_started != m_status; } );
+					}
+
+				//FIXME: document this!
+				if( init_style_t::sync == m_init_style &&
+						status_t::init_functor_completed != m_status )
+					{
+						m_status_cond.wait( lock, [this]{
+								return status_t::init_functor_completed == m_status;
+							} );
+					}
 			}
 
 	private:
 		//! Initialization routine.
 		so_5::generic_simple_init_t m_init;
 
+		//FIXME: document this!
+		const init_style_t m_init_style;
+
 		//! Status of environment.
 		enum class status_t
 			{
+				//! init() is not called yet.
 				not_started,
-				started
+				//! init() is called and is about to call init-functor.
+				started,
+				//! init-functor completed its work.
+				init_functor_completed
 			};
 
 		//! Status of environment.
@@ -83,6 +131,32 @@ class actual_environment_t : public environment_t
 		std::mutex m_status_lock;
 		//! Condition for waiting on status.
 		std::condition_variable m_status_cond;
+
+		//FIXME: document this!
+		std::exception_ptr m_exception_from_init_functor;
+
+		//FIXME: document this!
+		void
+		call_init_functor_async_style()
+			{
+				m_init( *this );
+			}
+
+		//FIXME: document this!
+		void
+		call_init_functor_sync_style() noexcept
+			{
+				try
+					{
+						m_init( *this );
+					}
+				catch( ... )
+					{
+						// Assume that these actions won't throw.
+						std::lock_guard< std::mutex > lock{ m_status_lock };
+						m_exception_from_init_functor = std::current_exception();
+					}
+			}
 	};
 
 } /* namespace anonymous */
@@ -104,14 +178,17 @@ struct wrapped_env_t::details_t
 		//! Initializing constructor.
 		details_t(
 			so_5::generic_simple_init_t init_func,
-			environment_params_t && params )
-			:	m_env{ std::move( init_func ), std::move( params ) }
+			environment_params_t && params,
+			init_style_t init_style )
+			:	m_env{ std::move( init_func ), std::move( params ), init_style }
 			{}
 
 		void
 		start()
 			{
 				m_env_thread = std::thread{ [this]{ m_env.run(); } };
+
+				//FIXME: document how long ensure_started can wait.
 				m_env.ensure_started();
 			}
 
@@ -131,12 +208,14 @@ namespace
 std::unique_ptr< wrapped_env_t::details_t >
 make_details_object(
 	so_5::generic_simple_init_t init_func,
-	environment_params_t && params )
+	environment_params_t && params,
+	init_style_t init_style )
 	{
 		return std::unique_ptr< wrapped_env_t::details_t >(
 				new wrapped_env_t::details_t{
 						std::move( init_func ),
-						std::move( params )
+						std::move( params ),
+						init_style
 				} );
 	}
 
@@ -157,6 +236,20 @@ make_params_via_tuner( so_5::generic_simple_so_env_params_tuner_t tuner )
 
 } /* namespace anonymous */
 
+wrapped_env_t::wrapped_env_t(
+	so_5::generic_simple_init_t init_func,
+	environment_params_t && params,
+	wrapped_env_details::init_style_t init_style )
+	:	m_impl{
+			make_details_object(
+					std::move( init_func ),
+					make_necessary_tuning( std::move( params ) ),
+					init_style )
+		}
+	{
+		m_impl->start();
+	}
+
 wrapped_env_t::wrapped_env_t()
 	:	wrapped_env_t{ []( environment_t & ) {}, environment_params_t{} }
 	{}
@@ -165,7 +258,7 @@ wrapped_env_t::wrapped_env_t(
 	so_5::generic_simple_init_t init_func )
 	:	wrapped_env_t{
 			std::move( init_func ),
-			make_necessary_tuning( environment_params_t{} ) }
+			environment_params_t{} }
 	{}
 
 wrapped_env_t::wrapped_env_t(
@@ -179,18 +272,36 @@ wrapped_env_t::wrapped_env_t(
 wrapped_env_t::wrapped_env_t(
 	so_5::generic_simple_init_t init_func,
 	environment_params_t && params )
-	:	m_impl{ make_details_object(
+	:	wrapped_env_t{
 			std::move( init_func ),
-			make_necessary_tuning( std::move( params ) ) ) }
-	{
-		m_impl->start();
-	}
+			std::move( params ),
+			init_style_t::async }
+	{}
+
+wrapped_env_t::wrapped_env_t(
+	wait_init_completion_t wait_init_completion_indicator,
+	so_5::generic_simple_init_t init_func )
+	:	wrapped_env_t{
+			wait_init_completion_indicator,
+			std::move( init_func ),
+			environment_params_t{} }
+	{}
+
+wrapped_env_t::wrapped_env_t(
+	wait_init_completion_t /*wait_init_completion_indicator*/,
+	so_5::generic_simple_init_t init_func,
+	environment_params_t && params )
+	:	wrapped_env_t{
+			std::move( init_func ),
+			std::move( params ),
+			init_style_t::sync }
+	{}
 
 wrapped_env_t::wrapped_env_t(
 	environment_params_t && params )
 	:	wrapped_env_t{
 			[]( environment_t & ) {},
-			make_necessary_tuning( std::move( params ) ) }
+			std::move( params ) }
 	{}
 
 wrapped_env_t::~wrapped_env_t()

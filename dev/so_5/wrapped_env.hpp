@@ -25,6 +25,18 @@ namespace so_5 {
 	#pragma warning(disable: 4251)
 #endif
 
+namespace wrapped_env_details
+{
+
+//FIXME: document this!
+enum class init_style_t
+	{
+		sync,
+		async
+	};
+
+} /* namespace wrapped_env_details */
+
 /*!
  * \since
  * v.5.5.9
@@ -156,7 +168,21 @@ namespace so_5 {
  */
 class SO_5_TYPE wrapped_env_t
 	{
+		//FIXME: document this!
+		wrapped_env_t(
+			so_5::generic_simple_init_t init_func,
+			environment_params_t && params,
+			wrapped_env_details::init_style_t init_style );
+
 	public :
+		//FIXME: document this!
+		enum class wait_init_completion_t { sync };
+
+		//FIXME: document this!
+		static constexpr wait_init_completion_t wait_init_completion{
+				wait_init_completion_t::sync
+			};
+
 		wrapped_env_t( const wrapped_env_t & ) = delete;
 		wrapped_env_t( wrapped_env_t && ) = delete;
 
@@ -185,6 +211,24 @@ class SO_5_TYPE wrapped_env_t
 		//! A constructor which receives initialization function and
 		//! already prepared environment's params.
 		wrapped_env_t(
+			//! Initialization function.
+			so_5::generic_simple_init_t init_func,
+			//! Environment's params.
+			environment_params_t && params );
+
+		//FIXME: document this!
+		//! A constructor which receives only initialization function.
+		/*!
+		 * Default environment parameters will be used.
+		 */
+		wrapped_env_t(
+			wait_init_completion_t wait_init_completion_indicator,
+			//! Initialization function.
+			so_5::generic_simple_init_t init_func );
+
+		//FIXME: document this!
+		wrapped_env_t(
+			wait_init_completion_t wait_init_completion_indicator,
 			//! Initialization function.
 			so_5::generic_simple_init_t init_func,
 			//! Environment's params.
