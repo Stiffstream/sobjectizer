@@ -2,6 +2,7 @@ add_subdirectory(simple)
 add_subdirectory(external_stop_then_join)
 add_subdirectory(async_start)
 add_subdirectory(simple_sync_start)
+add_subdirectory(exception_from_sync_start)
 add_subdirectory(add_coop_after_start)
 add_subdirectory(work_thread_activity_on)
 

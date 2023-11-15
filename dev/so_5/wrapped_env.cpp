@@ -72,11 +72,26 @@ class actual_environment_t : public environment_t
 							break;
 							}
 
+						//FIXME: document this!
+						bool should_stop = false;
+
 						{
 							std::lock_guard< std::mutex > lock{ m_status_lock };
+
+							// If exception was caught then we have to stop
+							// the environment.
+							should_stop = static_cast<bool>( m_exception_from_init_functor );
+
 							m_status = status_t::init_functor_completed;
 							m_status_cond.notify_all();
 						}
+
+						if( should_stop )
+							{
+								// The environment has to be stopped because
+								// of an exception.
+								this->stop();
+							}
 					} );
 			}
 
@@ -97,12 +112,20 @@ class actual_environment_t : public environment_t
 					}
 
 				//FIXME: document this!
-				if( init_style_t::sync == m_init_style &&
-						status_t::init_functor_completed != m_status )
+				if( init_style_t::sync == m_init_style )
 					{
-						m_status_cond.wait( lock, [this]{
-								return status_t::init_functor_completed == m_status;
-							} );
+						if( status_t::init_functor_completed != m_status )
+							{
+								m_status_cond.wait( lock, [this]{
+										return status_t::init_functor_completed == m_status;
+									} );
+							}
+
+						if( m_exception_from_init_functor )
+							{
+								std::rethrow_exception(
+										std::move( m_exception_from_init_functor ) );
+							}
 					}
 			}
 
@@ -183,6 +206,14 @@ struct wrapped_env_t::details_t
 			:	m_env{ std::move( init_func ), std::move( params ), init_style }
 			{}
 
+		~details_t()
+			{
+				// Since v.5.8.2 it may be necessary to call join() in the destructor
+				// in the case when init_style_t::sync is used and an exception
+				// is thrown from init-functor.
+				join();
+			}
+
 		void
 		start()
 			{
@@ -193,13 +224,16 @@ struct wrapped_env_t::details_t
 			}
 
 		void
-		stop()
+		stop() noexcept
 			{
 				m_env.stop();
 			}
 
 		void
-		join() { if( m_env_thread.joinable() ) m_env_thread.join(); }
+		join() noexcept
+			{
+				if( m_env_thread.joinable() ) m_env_thread.join();
+			}
 	};
 
 namespace
@@ -295,6 +329,16 @@ wrapped_env_t::wrapped_env_t(
 			std::move( init_func ),
 			std::move( params ),
 			init_style_t::sync }
+	{}
+
+wrapped_env_t::wrapped_env_t(
+	wait_init_completion_t wait_init_completion_indicator,
+	so_5::generic_simple_init_t init_func,
+	so_5::generic_simple_so_env_params_tuner_t params_tuner )
+	:	wrapped_env_t{
+			wait_init_completion_indicator,
+			std::move( init_func ),
+			make_params_via_tuner( std::move( params_tuner ) ) }
 	{}
 
 wrapped_env_t::wrapped_env_t(
