@@ -234,6 +234,16 @@ class SO_5_TYPE wrapped_env_t
 			//! Environment's params.
 			environment_params_t && params );
 
+		//FIXME: document this!
+		//! A constructor which receives initialization function and
+		//! a function for environment's params tuning.
+		wrapped_env_t(
+			wait_init_completion_t wait_init_completion_indicator,
+			//! Initialization function.
+			so_5::generic_simple_init_t init_func,
+			//! Function for environment's params tuning.
+			so_5::generic_simple_so_env_params_tuner_t params_tuner );
+
 		/*!
 		 * \brief A constructor which receives already prepared
 		 * environment's params.

@@ -72,11 +72,20 @@ class actual_environment_t : public environment_t
 							break;
 							}
 
+						//FIXME: document this!
+						bool should_stop = false;
 						{
 							std::lock_guard< std::mutex > lock{ m_status_lock };
+							should_stop = static_cast<bool>( m_exception_from_init_functor );
+
 							m_status = status_t::init_functor_completed;
 							m_status_cond.notify_all();
 						}
+
+						if( should_stop )
+							{
+								this->stop();
+							}
 					} );
 			}
 
@@ -97,12 +106,20 @@ class actual_environment_t : public environment_t
 					}
 
 				//FIXME: document this!
-				if( init_style_t::sync == m_init_style &&
-						status_t::init_functor_completed != m_status )
+				if( init_style_t::sync == m_init_style )
 					{
-						m_status_cond.wait( lock, [this]{
-								return status_t::init_functor_completed == m_status;
-							} );
+						if( status_t::init_functor_completed != m_status )
+							{
+								m_status_cond.wait( lock, [this]{
+										return status_t::init_functor_completed == m_status;
+									} );
+							}
+
+						if( m_exception_from_init_functor )
+							{
+								std::rethrow_exception(
+										std::move(m_exception_from_init_functor) );
+							}
 					}
 			}
 
@@ -182,6 +199,14 @@ struct wrapped_env_t::details_t
 			init_style_t init_style )
 			:	m_env{ std::move( init_func ), std::move( params ), init_style }
 			{}
+
+		~details_t()
+			{
+				if( m_env_thread.joinable() )
+					{
+						m_env_thread.join();
+					}
+			}
 
 		void
 		start()
@@ -298,6 +323,16 @@ wrapped_env_t::wrapped_env_t(
 	{}
 
 wrapped_env_t::wrapped_env_t(
+	wait_init_completion_t wait_init_completion_indicator,
+	so_5::generic_simple_init_t init_func,
+	so_5::generic_simple_so_env_params_tuner_t params_tuner )
+	:	wrapped_env_t{
+			wait_init_completion_indicator,
+			std::move( init_func ),
+			make_params_via_tuner( std::move( params_tuner ) ) }
+	{}
+
+wrapped_env_t::wrapped_env_t(
 	environment_params_t && params )
 	:	wrapped_env_t{
 			[]( environment_t & ) {},
@@ -335,5 +370,4 @@ wrapped_env_t::stop_then_join()
 	}
 
 } /* namespace so_5 */
-
 
