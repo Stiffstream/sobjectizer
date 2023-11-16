@@ -72,7 +72,9 @@ class actual_environment_t : public environment_t
 							break;
 							}
 
-						//FIXME: document this!
+						// If an exception was caught then the whole
+						// environment has to be stopped after changing
+						// the status.
 						bool should_stop = false;
 
 						{
@@ -95,7 +97,20 @@ class actual_environment_t : public environment_t
 					} );
 			}
 
-		//FIXME: extend the description of this method!
+		/*!
+		 * @brief Wait for change of the status.
+		 *
+		 * This method blocks the caller thread while m_status is
+		 * status_t::not_started.
+		 *
+		 * Since v.5.8.2 this method throws if:
+		 *
+		 * - init_style_t::sync is used;
+		 * - an exception is throw from init-functor.
+		 *
+		 * In that case an exception is caught and then rethrown from
+		 * ensure_started() method.
+		 */
 		void
 		ensure_started()
 			{
@@ -111,7 +126,8 @@ class actual_environment_t : public environment_t
 							[this]{ return status_t::not_started != m_status; } );
 					}
 
-				//FIXME: document this!
+				// If sync mode is used that we have to wait while
+				// m_status becomes init_functor_completed.
 				if( init_style_t::sync == m_init_style )
 					{
 						if( status_t::init_functor_completed != m_status )
@@ -121,6 +137,8 @@ class actual_environment_t : public environment_t
 									} );
 							}
 
+						// If exception was thrown from init-functor then it
+						// has to be rethrown now.
 						if( m_exception_from_init_functor )
 							{
 								std::rethrow_exception(
@@ -133,7 +151,10 @@ class actual_environment_t : public environment_t
 		//! Initialization routine.
 		so_5::generic_simple_init_t m_init;
 
-		//FIXME: document this!
+		//! Style of initialization (asynchronous or synchronous).
+		/*!
+		 * \since v.5.8.2
+		 */
 		const init_style_t m_init_style;
 
 		//! Status of environment.
@@ -155,17 +176,42 @@ class actual_environment_t : public environment_t
 		//! Condition for waiting on status.
 		std::condition_variable m_status_cond;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Exception from init-functor.
+		 *
+		 * In sync mode an exception throw from init-functor has to be
+		 * rethrown in ensure_started() method. To do this it's necessary
+		 * to store an instance of that exception. This member is
+		 * intended to hold an exception caught from init-functor.
+		 *
+		 * If this member is empty after completion of the
+		 * call_init_functor_sync_style() then it's assumed an exception
+		 * wasn't thrown.
+		 *
+		 * \since v.5.8.2
+		 */
 		std::exception_ptr m_exception_from_init_functor;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Helper for calling init-functor in asynchronous mode.
+		 *
+		 * Doesn't handle exceptions.
+		 *
+		 * \since v.5.8.2
+		 */
 		void
 		call_init_functor_async_style()
 			{
 				m_init( *this );
 			}
 
-		//FIXME: document this!
+		/*!
+		 * \brief Helper for calling init-functor in synchronous mode.
+		 *
+		 * Catches an exception if it's thrown from init-functor.
+		 *
+		 * \since v.5.8.2
+		 */
 		void
 		call_init_functor_sync_style() noexcept
 			{
@@ -219,7 +265,8 @@ struct wrapped_env_t::details_t
 			{
 				m_env_thread = std::thread{ [this]{ m_env.run(); } };
 
-				//FIXME: document how long ensure_started can wait.
+				// Since v.5.8.2 this call may block the current thread
+				// until init-functor completes. It also may throw.
 				m_env.ensure_started();
 			}
 
