@@ -1437,6 +1437,44 @@ class SO_5_TYPE environment_t
 		 * \note
 		 * This method is marked as noexcept because there is no way
 		 * to recover if any exception is raised here.
+		 *
+		 * \attention
+		 * It's safe to pass an empty coop_handle_t to deregister_coop().
+		 * It's also safe to pass a coop_handle of a coop that is already deregistered.
+		 * For example, this is not an error:
+		 * \code
+		 * class demo {
+		 * 	so_5::environment_t & m_env;
+		 * 	so_5::coop_handle_t m_child_coop;
+		 * 	...
+		 * public:
+		 * 	demo(
+		 * 		so_5::environment_t & env,
+		 * 		so_5::coop_handle_t child_coop)
+		 * 		: m_env{env}
+		 * 		, m_child_coop{std::move(child_coop)}
+		 * 	{}
+		 *
+		 * 	~demo() {
+		 * 		// Force the deregistration of the child coop.
+		 * 		// Don't care if drop_child() has already been called.
+		 * 		m_env.deregister_coop(m_child_coop, so_5::dereg_reason::normal);
+		 * 	}
+		 * 	...
+		 * 	void drop_child() {
+		 * 		m_env.deregister_coop(m_child_coop, so_5::dereg_reason::normal);
+		 * 	}
+		 * };
+		 * ...
+		 * void some_action(so_5::environment_t & env) {
+		 * 	...
+		 * 	coop_handle = env.register_coop(...);
+		 * 	demo holder{env, coop_handle};
+		 * 	...
+		 * 	holder.drop_child(); // The first call to deregister_coop.
+		 * 	...
+		 * } // Another call to deregister_coop in the destructor of demo object.
+		 * \endcode
 		 */
 		void
 		deregister_coop(
