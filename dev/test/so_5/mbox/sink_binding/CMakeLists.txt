@@ -1,4 +1,5 @@
 add_subdirectory(simple)
+add_subdirectory(simple_2)
 add_subdirectory(simple_with_delivery_filter)
 add_subdirectory(simple_with_delivery_filter_2)
 add_subdirectory(single_sink_clear)
@@ -7,6 +8,7 @@ add_subdirectory(single_sink_mutable)
 add_subdirectory(single_sink_mutable_with_dr)
 
 add_subdirectory(multi_sink_simple)
+add_subdirectory(multi_sink_simple_2)
 add_subdirectory(multi_sink_with_delivery_filter)
 add_subdirectory(multi_sink_with_delivery_filter_2)
 add_subdirectory(multi_sink_unbind)
