@@ -91,7 +91,7 @@ try_parse_cmdline(
 						tmp_cfg.m_cooperations, ++current, last,
 						"-c", "count of cooperations" );
 
-			else if( is_arg( *current, "-a", "--arents" ) )
+			else if( is_arg( *current, "-a", "--agents" ) )
 				mandatory_arg_to_value(
 						tmp_cfg.m_agents, ++current, last,
 						"-a", "count of agents in cooperation" );
