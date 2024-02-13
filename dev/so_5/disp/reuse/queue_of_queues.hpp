@@ -199,12 +199,12 @@ class queue_of_queues_t
 		std::size_t m_queue_size{};
 
 		/*!
-		 * \brief Is some working thread is in wakeup process now.
+		 * \brief Is some working thread in wakeup process now?
 		 *
 		 * \since v.5.5.15.1
 		 *
 		 */
-		bool	m_wakeup_in_progress{ false };
+		bool m_wakeup_in_progress{ false };
 
 		/*!
 		 * \brief Maximum count of working threads to be used with
@@ -236,7 +236,7 @@ class queue_of_queues_t
 			}
 
 		/*!
-		 * \brief An attempt to wakeup another sleeping thread is this necessary
+		 * \brief An attempt to wakeup another sleeping thread if it's necessary
 		 * and possible.
 		 *
 		 * \note Since v.5.5.16 there are some changes in wakeup conditions.
