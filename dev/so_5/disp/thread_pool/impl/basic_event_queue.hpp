@@ -84,18 +84,18 @@ class basic_event_queue_t
 		void
 		push_preallocated( std::unique_ptr< demand_t > tail_demand ) noexcept
 			{
-				bool was_empty;
-
-				{
+				const bool was_empty = [&]() noexcept {
 					std::lock_guard< spinlock_t > lock( m_lock );
 
-					was_empty = (nullptr == m_head_demand.m_next);
+					const bool queue_was_empty = (nullptr == m_head_demand.m_next);
 
 					m_tail_demand->m_next = tail_demand.release();
 					m_tail_demand = m_tail_demand->m_next;
 
 					++m_size;
-				}
+
+					return queue_was_empty;
+				}();
 
 				// Scheduling of the queue must be done when queue lock
 				// is unlocked.
