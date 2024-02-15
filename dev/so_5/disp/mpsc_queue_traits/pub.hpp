@@ -108,25 +108,20 @@ default_combined_lock_waiting_time()
  * \brief Factory for creation of combined queue lock with the specified
  * waiting time.
  *
- * \since v.5.5.10
- *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another one_thread dispatcher with combined_lock for
-			// event queue protection.
-			using namespace so_5::disp::one_thread;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						// Switching to mutex will be after waiting for 500us.
-						queue_params.lock_factory( queue_traits::combined_lock_factory(
-							std::chrono::microseconds(500) ) );
-					} ) ) );
-		} );
+	auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
+		env,
+		"file_handler",
+		so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
+			[]( so_5::disp::one_thread::queue_traits::queue_params_t & p ) {
+				p.lock_factory( so_5::disp::one_thread::queue_traits::combined_lock_factory(
+					// Switch to mutex after 125us of busy waiting.
+					std::chrono::microseconds{125}) );
+			} ) );
 	\endcode
+ *
+ * \since v.5.5.10
  */
 SO_5_FUNC lock_factory_t
 combined_lock_factory(
@@ -140,22 +135,6 @@ combined_lock_factory(
  * \brief Factory for creation of combined queue lock with default waiting time.
  *
  * \since v.5.5.10
- *
- * \par Usage example:
-	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another one_thread dispatcher with combined_lock for
-			// event queue protection.
-			using namespace so_5::disp::one_thread;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						queue_params.lock_factory( queue_traits::combined_lock_factory() );
-					} ) ) );
-		} );
-	\endcode
  */
 inline lock_factory_t
 combined_lock_factory()
@@ -171,18 +150,13 @@ combined_lock_factory()
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another one_thread dispatcher with simple_lock for
-			// event queue protection.
-			using namespace so_5::disp::one_thread;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						queue_params.lock_factory( queue_traits::simple_lock_factory() );
-					} ) ) );
-		} );
+	auto one_thread_disp = so_5::disp::one_thread::make_dispatcher(
+		env,
+		"file_handler",
+		so_5::disp::one_thread::disp_params_t{}.tune_queue_params(
+			[]( so_5::disp::one_thread::queue_traits::queue_params_t & p ) {
+				p.lock_factory( so_5::disp::one_thread::queue_traits::simple_lock_factory() );
+			} ) );
 	\endcode
  */
 SO_5_FUNC lock_factory_t

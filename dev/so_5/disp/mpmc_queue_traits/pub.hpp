@@ -148,20 +148,17 @@ default_combined_lock_waiting_time()
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another thread_pool dispatcher with combined_lock for
-			// event queue protection.
-			using namespace so_5::disp::thread_pool;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						// Switching to mutex will be after waiting for 500us.
-						queue_params.lock_factory( queue_traits::combined_lock_factory(
-							std::chrono::microseconds(500) ) );
-					} ) ) );
-		} );
+	using namespace so_5::disp::thread_pool;
+	auto disp = make_dispatcher(
+		env,
+		"db_workers_pool",
+		disp_params_t{}
+			.thread_count( 16 )
+			.tune_queue_params( []( queue_traits::queue_params_t & params ) {
+					params.lock_factory( queue_traits::combined_lock_factory(
+						// Switch to mutex after 125us of busy waiting.
+						std::chrono::microseconds{125} ) );
+				} ) );
 	\endcode
  *
  * \since
@@ -180,18 +177,15 @@ combined_lock_factory(
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another thread_pool dispatcher with combined_lock for
-			// event queue protection.
-			using namespace so_5::disp::thread_pool;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						queue_params.lock_factory( queue_traits::combined_lock_factory() );
-					} ) ) );
-		} );
+	using namespace so_5::disp::thread_pool;
+	auto disp = make_dispatcher(
+		env,
+		"db_workers_pool",
+		disp_params_t{}
+			.thread_count( 16 )
+			.tune_queue_params( []( queue_traits::queue_params_t & params ) {
+					params.lock_factory( queue_traits::combined_lock_factory() );
+				} ) );
 	\endcode
  *
  * \since
@@ -210,18 +204,15 @@ combined_lock_factory()
  *
  * \par Usage example:
 	\code
-	so_5::launch( []( so_5::environment_t & env ) { ... },
-		[]( so_5::environment_params_t & params ) {
-			// Add another thread_pool dispatcher with simple_lock for
-			// event queue protection.
-			using namespace so_5::disp::thread_pool;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						queue_params.lock_factory( queue_traits::simple_lock_factory() );
-					} ) ) );
-		} );
+	using namespace so_5::disp::thread_pool;
+	auto disp = make_dispatcher(
+		env,
+		"db_workers_pool",
+		disp_params_t{}
+			.thread_count( 16 )
+			.tune_queue_params( []( queue_traits::queue_params_t & params ) {
+					params.lock_factory( queue_traits::simple_lock_factory() );
+				} ) );
 	\endcode
  *
  * \since

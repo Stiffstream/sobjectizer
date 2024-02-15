@@ -166,8 +166,7 @@ void init( so_5::environment_t & env )
 
 void params_setter( so_5::environment_params_t & params )
 {
-	params.add_named_dispatcher( "active_obj",
-			so_5::disp::active_obj::create_disp() );
+	params.disable_autoshutdown();
 }
 
 int main()
@@ -192,8 +191,7 @@ int main()
 		},
 		[]( so_5::environment_params_t & params )
 		{
-			params.add_named_dispatcher( "active_obj",
-					so_5::disp::active_obj::create_disp() );
+			params.disable_autoshutdown();
 		} );
 
 	return 0;
