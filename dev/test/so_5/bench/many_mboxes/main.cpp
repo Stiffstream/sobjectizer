@@ -24,7 +24,8 @@ enum class subscr_storage_type_t
 	{
 		vector_based,
 		map_based,
-		hash_table_based
+		hash_table_based,
+		flat_set_based
 	};
 
 const char *
@@ -34,8 +35,10 @@ subscr_storage_name( subscr_storage_type_t type )
 			return "vector_based";
 		else if( subscr_storage_type_t::map_based == type )
 			return "map_based";
-		else
+		else if( subscr_storage_type_t::hash_table_based == type )
 			return "hash_table_based";
+		else
+			return "flat_set_based";
 	}
 
 struct cfg_t
@@ -73,9 +76,9 @@ try_parse_cmdline(
 							"-i, --iterations       count of iterations for every "
 									"message type\n"
 							"-s, --storage-type     type of subscription storage\n"
-							"                       allowed values: vector, map, hash\n"
-							"-V, --vector-capacity  initial capacity of vector-based"
-									"subscription storage\n"
+							"                       allowed values: vector, map, hash, flat_set\n"
+							"-V, --vector-capacity  initial capacity of vector-based and "
+									"flat-set-based subscription storage\n"
 							"-h, --help        show this description\n"
 							<< std::endl;
 					std::exit(1);
@@ -99,7 +102,7 @@ try_parse_cmdline(
 			else if( is_arg( *current, "-V", "--vector-capacity" ) )
 				mandatory_arg_to_value(
 						tmp_cfg.m_vector_subscr_storage_capacity, ++current, last,
-						"-V", "initial capacity on vector-based"
+						"-V", "initial capacity on vector-based and flat-set-based"
 								"subscription storage" );
 			else if( is_arg( *current, "-s", "--storage-type" ) )
 				{
@@ -112,6 +115,8 @@ try_parse_cmdline(
 						tmp_cfg.m_subscr_storage = subscr_storage_type_t::map_based;
 					else if( "hash" == type )
 						tmp_cfg.m_subscr_storage = subscr_storage_type_t::hash_table_based;
+					else if( "flat_set" == type )
+						tmp_cfg.m_subscr_storage = subscr_storage_type_t::flat_set_based;
 					else
 						throw std::runtime_error(
 								std::string( "unsupported subscription storage type: " ) +
@@ -452,8 +457,11 @@ factory_by_cfg( const cfg_t & cfg )
 					cfg.m_vector_subscr_storage_capacity );
 		else if( subscr_storage_type_t::map_based == type )
 			return map_based_subscription_storage_factory();
-		else
+		else if( subscr_storage_type_t::hash_table_based == type )
 			return hash_table_based_subscription_storage_factory();
+		else
+			return flat_set_based_subscription_storage_factory(
+					cfg.m_vector_subscr_storage_capacity );
 	}
 
 int

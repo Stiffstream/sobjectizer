@@ -333,6 +333,26 @@ do_test()
 					threshold,
 					map_based_subscription_storage_factory(),
 					vector_based_subscription_storage_factory( threshold ) ) }
+	,	{ "flat_set+hash_table",
+			adaptive_subscription_storage_factory(
+					threshold,
+					flat_set_based_subscription_storage_factory( threshold ),
+					hash_table_based_subscription_storage_factory() ) }
+	,	{ "hash_table+flat_set",
+			adaptive_subscription_storage_factory(
+					threshold,
+					hash_table_based_subscription_storage_factory(),
+					flat_set_based_subscription_storage_factory( threshold ) ) }
+	,	{ "flat_set+map",
+			adaptive_subscription_storage_factory(
+					threshold,
+					flat_set_based_subscription_storage_factory( threshold ),
+					map_based_subscription_storage_factory() ) }
+	,	{ "map+flat_set",
+			adaptive_subscription_storage_factory(
+					threshold,
+					map_based_subscription_storage_factory(),
+					flat_set_based_subscription_storage_factory( threshold ) ) }
 	}; 
 
 	for( auto & f : factories )

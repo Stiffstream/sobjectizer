@@ -196,5 +196,10 @@ adaptive_subscription_storage_factory(
 	//! A factory for creating large storage.
 	const subscription_storage_factory_t & large_storage_factory );
 
+//FIXME: document this!
+SO_5_FUNC subscription_storage_factory_t
+flat_set_based_subscription_storage_factory(
+	std::size_t initial_capacity );
+
 } /* namespace so_5 */
 

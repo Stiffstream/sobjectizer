@@ -188,6 +188,9 @@ do_test()
 	,	{ "adaptive[2]", so_5::adaptive_subscription_storage_factory( 2 ) }
 	,	{ "adaptive[3]", so_5::adaptive_subscription_storage_factory( 3 ) }
 	,	{ "adaptive[8]", so_5::adaptive_subscription_storage_factory( 8 ) }
+	,	{ "flat_set[1]", so_5::flat_set_based_subscription_storage_factory( 1 ) }
+	,	{ "flat_set[8]", so_5::flat_set_based_subscription_storage_factory( 8 ) }
+	,	{ "flat_set[16]", so_5::flat_set_based_subscription_storage_factory( 16 ) }
 	,	{ "default", so_5::default_subscription_storage_factory() }
 	}; 
 

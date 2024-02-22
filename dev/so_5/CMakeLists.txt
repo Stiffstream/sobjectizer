@@ -57,6 +57,7 @@ set(SO_5_SRC exception.cpp
 	impl/msg_tracing_helpers.cpp
 	impl/subscription_storage_iface.cpp
 	impl/subscr_storage_vector_based.cpp
+	impl/subscr_storage_flat_set_based.cpp
 	impl/subscr_storage_map_based.cpp
 	impl/subscr_storage_hash_table_based.cpp
 	impl/subscr_storage_adaptive.cpp
