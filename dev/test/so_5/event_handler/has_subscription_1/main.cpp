@@ -12,8 +12,13 @@
 
 #include <so_5/all.hpp>
 
+#include "../subscr_storage_factories.hpp"
+
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
+
+namespace test
+{
 
 class a_test_t : public so_5::agent_t
 {
@@ -23,8 +28,8 @@ class a_test_t : public so_5::agent_t
 	state_t st_dummy_2{ this };
 
 public :
-	a_test_t( context_t ctx )
-		:	so_5::agent_t( ctx )
+	a_test_t( context_t ctx, so_5::subscription_storage_factory_t factory )
+		:	so_5::agent_t( ctx + factory )
 	{}
 
 	void
@@ -102,22 +107,34 @@ public :
 	}
 };
 
+} /* namespace test */
+
+using namespace test;
+
 int
 main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				so_5::launch( []( so_5::environment_t & env ) {
-						env.introduce_coop( []( so_5::coop_t & coop ) {
-								coop.make_agent< a_test_t >();
-							} );
-					} );
-			},
-			20,
-			"so_has_subscription test" );
+		const auto factories = build_subscr_storage_factories();
+		for( const auto & [n, f] : factories )
+		{
+			run_with_time_limit(
+				[&n, f]()
+				{
+					std::cout << n << ": " << std::flush;
+
+					so_5::launch( [f]( so_5::environment_t & env ) {
+							env.introduce_coop( [f]( so_5::coop_t & coop ) {
+									coop.make_agent< a_test_t >(f);
+								} );
+						} );
+
+					std::cout << "OK" << std::endl;
+				},
+				20,
+				n );
+		}
 	}
 	catch( const std::exception & ex )
 	{
