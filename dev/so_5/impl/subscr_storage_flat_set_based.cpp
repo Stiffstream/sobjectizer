@@ -97,7 +97,6 @@ class storage_t : public subscription_storage_t
 		using subscr_info_vector_t =
 				subscription_storage_common::subscr_info_vector_t;
 
-		//FIXME: is this predicate really needed?
 		//! A helper predicate for searching the same mbox and message type pairs.
 		struct is_same_mbox_msg_t
 			{
@@ -130,11 +129,21 @@ class storage_t : public subscription_storage_t
 				[[nodiscard]] bool
 				operator()( const key_info_t & a, const key_info_t & b ) const noexcept
 					{
-						//FIXME: comparision of pointers!
-						//It has to be changed to the use of std::less for pointers,
-						//or to casting into std::uintptr_t.
-						return std::tie( a.m_mbox_id, a.m_msg_type, a.m_state ) <
-								std::tie( b.m_mbox_id, b.m_msg_type, b.m_state );
+						if( a.m_mbox_id < b.m_mbox_id )
+							return true;
+						else if( a.m_mbox_id == b.m_mbox_id )
+							{
+								if( a.m_msg_type < b.m_msg_type )
+									return true;
+								else if( a.m_msg_type == b.m_msg_type )
+									{
+										// NOTE: it's UB to compare two arbitrary pointers.
+										using ptr_comparator_t = std::less< const state_t * >;
+										return ptr_comparator_t{}( a.m_state, b.m_state );
+									}
+							}
+
+						return false;
 					}
 
 				[[nodiscard]] bool
