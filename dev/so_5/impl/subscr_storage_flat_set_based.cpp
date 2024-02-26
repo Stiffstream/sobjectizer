@@ -33,9 +33,15 @@ namespace impl
 namespace flat_set_based_subscr_storage
 {
 
-//FIXME: add more information to the comment!
 /*!
  * \brief A flat-set based storage for agent's subscriptions information.
+ *
+ * This implementation uses a sorted vector (aka "flat_set") of subscr_info_t.
+ * Binary search is used for searching subscription, create and drop subscription
+ * operations.
+ *
+ * An std::vector is used as underlying storage. It will grow as necessary. Initial
+ * capacity is specified in the constructor.
  *
  * \since v.5.8.2
  */
@@ -98,6 +104,11 @@ class storage_t : public subscription_storage_t
 				subscription_storage_common::subscr_info_vector_t;
 
 		//! A helper predicate for searching the same mbox and message type pairs.
+		/*!
+		 * This predicate is useful when the pointer to target state has be
+		 * be ignored. For example, when we have to remove all subscriptions
+		 * for all states.
+		 */
 		struct is_same_mbox_msg_t
 			{
 				const mbox_id_t m_id;
@@ -111,7 +122,13 @@ class storage_t : public subscription_storage_t
 					}
 			};
 
-		//FIXME: document this!
+		/*!
+		 * @brief Helper type for storing only key information about a subscription.
+		 *
+		 * For fast search in a vector of subscriptions we have to deal with
+		 * only a few of key fields of subscr_info_t. This helper type allows to
+		 * agregate all those fields in a (rather) small object.
+		 */
 		struct key_info_t
 			{
 				mbox_id_t m_mbox_id;
@@ -123,6 +140,9 @@ class storage_t : public subscription_storage_t
 		/*!
 		 * This predicate is intended to be used for adding new subscription
 		 * and removing of an existing subscription.
+		 *
+		 * It has several operator() to be used for comparison if different
+		 * applications.
 		 */
 		struct key_info_comparator_t
 			{
@@ -169,7 +189,20 @@ class storage_t : public subscription_storage_t
 		void
 		destroy_all_subscriptions() noexcept;
 
-		//FIXME: document this!
+		/*!
+		 * @brief Helper for checking presence of subscriptions for the same
+		 * message from the same mbox.
+		 *
+		 * Accepts a valid iterator and returns true if there are at least one
+		 * item around it (one to the left or/and one to the right) that
+		 * has the same mbox_id and msg_type.
+		 *
+		 * This helper handles case when @a it points to the first or
+		 * the right item of m_events.
+		 *
+		 * @attention
+		 * The @a it should not be "past the end" iterator.
+		 */
 		[[nodiscard]] bool
 		check_presence_of_mbox_msg_type_info_around_it(
 			subscr_info_vector_t::iterator it,
@@ -179,7 +212,12 @@ class storage_t : public subscription_storage_t
 namespace
 {
 
-//FIXME: document this!
+/*!
+ * @brief Helper to check if two objects are for the same subscription.
+ *
+ * @note
+ * Only mbox_id, msg_type and target_state are compared.
+ */
 [[nodiscard]] bool
 is_equal(
 	const subscription_storage_common::subscr_info_t & a,
@@ -191,7 +229,12 @@ is_equal(
 			;
 }
 
-//FIXME: document this!
+/*!
+ * @brief Helper to check if subscription information the same.
+ *
+ * @note
+ * Only mbox_id, msg_type and target_state are compared.
+ */
 [[nodiscard]] bool
 is_equal(
 	const subscription_storage_common::subscr_info_t & a,
@@ -340,10 +383,11 @@ storage_t::drop_subscription_for_all_states(
 		using namespace std;
 
 		const auto predicate = is_same_mbox_msg_t{ mbox->id(), msg_type };
-		if( auto it =
-				//FIXME: it has to be implemented via std::lower_bound.
-				std::find_if( begin( m_events ), end( m_events ), predicate );
-				it != end( m_events ) )
+		if( auto it = std::lower_bound( m_events.begin(), m_events.end(),
+					// NOTE: use NULL instead of actual pointer to a state.
+					key_info_t{ mbox->id(), msg_type, nullptr },
+					key_info_comparator_t{} );
+				it != m_events.end() && predicate( *it ) )
 			{
 				// There are subscriptions to be removed.
 				// Have to store message_sink reference because it has to

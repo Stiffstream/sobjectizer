@@ -49,9 +49,6 @@ using subscription_storage_factory_t =
 				impl::subscription_storage_unique_ptr_t() >;
 
 /*!
- * \since
- * v.5.5.3
- *
  * \brief Factory for default subscription storage object.
  *
  * \note Creates adaptive storage with vector-based storage for
@@ -62,14 +59,12 @@ using subscription_storage_factory_t =
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 default_subscription_storage_factory();
 
 /*!
- * \since
- * v.5.5.3
- *
  * \brief Factory for default subscription storage based on std::unordered_map.
  *
  * \note This storage is efficient only in the cases of very large amount
@@ -80,15 +75,13 @@ default_subscription_storage_factory();
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 hash_table_based_subscription_storage_factory();
 
 /*!
- * \since
- * v.5.5.3
- *
- * \brief Factory for subscription storage based on std::vector.
+ * \brief Factory for subscription storage based on unsorted std::vector.
  *
  * \note Uses very simple working scheme: all subscriptions are stored in the
  * linear vector and simpliest linear search is used for seaching and
@@ -99,6 +92,7 @@ hash_table_based_subscription_storage_factory();
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 vector_based_subscription_storage_factory(
@@ -106,9 +100,6 @@ vector_based_subscription_storage_factory(
 	std::size_t initial_capacity );
 
 /*!
- * \since
- * v.5.5.3
- *
  * \brief Factory for subscription storage based on std::map.
  *
  * \note Uses std::map as an underlying storage. And very efficient when count
@@ -119,14 +110,12 @@ vector_based_subscription_storage_factory(
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 map_based_subscription_storage_factory();
 
 /*!
- * \since
- * v.5.5.3
- *
  * \brief Factory for adaptive subscription storage.
  *
  * \par Description
@@ -138,6 +127,7 @@ map_based_subscription_storage_factory();
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
@@ -147,9 +137,6 @@ adaptive_subscription_storage_factory(
 	std::size_t threshold );
 
 /*!
- * \since
- * v.5.5.3
- *
  * \brief Factory for adaptive subscription storage.
  *
  * \par Description
@@ -184,6 +171,7 @@ so_5::adaptive_subscription_storage_factory(
  * See \ref so_5_5_3__subscr_storage_selection for more details about selection
  * of appropriate subscription storage type.
  *
+ * \since v.5.5.3
  */
 SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
@@ -196,9 +184,22 @@ adaptive_subscription_storage_factory(
 	//! A factory for creating large storage.
 	const subscription_storage_factory_t & large_storage_factory );
 
-//FIXME: document this!
+/*!
+ * \brief Factory for subscription storage based on sorted std::vector.
+ *
+ * The capacity of the storage is not fixed, the underlaying vector will
+ * grow as needed (note that the current implementation never shrinks it down).
+ *
+ * \note
+ * Uses very simple working scheme: all subscriptions are stored in a
+ * sorted vector (aka "flat_set") and binary search is used for seaching and
+ * manipulating of subscriptions.
+ *
+ * \since v.5.5.3
+ */
 SO_5_FUNC subscription_storage_factory_t
 flat_set_based_subscription_storage_factory(
+	//! Initial storage capacity.
 	std::size_t initial_capacity );
 
 } /* namespace so_5 */
