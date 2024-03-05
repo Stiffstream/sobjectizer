@@ -11,4 +11,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/some_actions_after_stop/prj.ut.rb"
 	required_prj "#{path}/stop_in_progress_nothrow/prj.ut.rb"
 	required_prj "#{path}/stop_in_progress_throw/prj.ut.rb"
+	required_prj "#{path}/parallel_stop/prj.ut.rb"
 }

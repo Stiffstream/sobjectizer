@@ -151,7 +151,9 @@ class stop_guard_repository_t
 					// The second stage: calling stop() for all stop_guards.
 					// If guards is empty then nothing will be called.
 					for( auto & g : guards )
+					{
 						g->stop();
+					}
 
 					// The third stage: check for possibitility to complete
 					// the stop operation right now.
