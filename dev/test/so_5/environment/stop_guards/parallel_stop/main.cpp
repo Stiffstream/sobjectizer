@@ -105,7 +105,7 @@ public:
 	}
 
 	void
-	so_evt_start()
+	so_evt_start() override
 	{
 		so_environment().setup_stop_guard( m_stop_guard );
 	}
@@ -128,7 +128,7 @@ private:
 	}
 
 	void
-	evt_stop_called( mhood_t< worker_t::stop_called > cmd )
+	evt_stop_called( mhood_t< worker_t::stop_called > )
 	{
 		++m_workers_stopped;
 		if( m_total_workers == m_workers_stopped )
