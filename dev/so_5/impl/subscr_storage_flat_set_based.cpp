@@ -447,8 +447,6 @@ storage_t::destroy_all_subscriptions() noexcept
 			// Nothing to do at empty subscription list.
 			return;
 
-		using namespace std;
-
 		// Destroy all subscriptions for unique (mbox, msg_type).
 		const auto total_items = m_events.size();
 		for( std::size_t i = 0u; i < total_items; )

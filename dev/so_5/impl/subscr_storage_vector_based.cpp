@@ -174,14 +174,26 @@ storage_t::create_event_subscription(
 		const auto mbox_id = mbox->id();
 
 		// Check that this subscription is new.
-		auto existed_position = find(
-				m_events, mbox_id, msg_type, target_state );
+		bool has_subscriptions_from_that_mbox = false;
+		for( auto it = m_events.begin(), it_end = m_events.end();
+				it != it_end; ++it )
+			{
+				if( it->m_mbox->id() == mbox_id &&
+						it->m_msg_type == msg_type )
+					{
+						has_subscriptions_from_that_mbox = true;
+						if( it->m_state == std::addressof(target_state) )
+							SO_5_THROW_EXCEPTION(
+								rc_evt_handler_already_provided,
+								"agent is already subscribed to message, " +
+								make_subscription_description(
+										mbox,
+										msg_type,
+										target_state ) );
+					}
+			}
 
-		if( existed_position != m_events.end() )
-			SO_5_THROW_EXCEPTION(
-				rc_evt_handler_already_provided,
-				"agent is already subscribed to message, " +
-				make_subscription_description( mbox, msg_type, target_state ) );
+		// If we're here then there is no such a subscription yet.
 
 		// Just add subscription to the end.
 		m_events.emplace_back(
@@ -196,14 +208,7 @@ storage_t::create_event_subscription(
 		// Note: since v.5.5.9 mbox subscription is initiated even if
 		// it is MPSC mboxes. It is important for the case of message
 		// delivery tracing.
-
-		// If there is no subscription for that mbox it must be created.
-		// Last item in m_events should not be checked becase it is
-		// description of the just added subscription.
-		auto last_to_check = --end( m_events );
-		if( last_to_check == find_if(
-				begin( m_events ), last_to_check,
-				is_same_mbox_msg{ mbox_id, msg_type } ) )
+		if( !has_subscriptions_from_that_mbox )
 			{
 				// Mbox must create subscription.
 				so_5::details::do_with_rollback_on_exception(
@@ -228,25 +233,49 @@ storage_t::drop_subscription(
 
 		const auto mbox_id = mbox->id();
 
-		auto existed_position = find(
-				m_events, mbox_id, msg_type, target_state );
-		if( existed_position != m_events.end() )
+		// Try to find a subscription. And calculate number of subscriptions
+		// from the same mbox for same msg_type.
+		std::size_t number_of_subscriptions{};
+		subscr_info_vector_t::iterator it = m_events.begin();
+		subscr_info_vector_t::iterator it_end = m_events.end();
+
+		for(; it != it_end; ++it )
+			{
+				if( it->m_mbox->id() == mbox_id &&
+						it->m_msg_type == msg_type )
+					{
+						++number_of_subscriptions;
+						if( it->m_state == std::addressof(target_state) )
+							// Subscription found.
+							break;
+					}
+			}
+		if( it != it_end )
 			{
 				// This value may be necessary for unsubscription.
-				abstract_message_sink_t & message_sink = existed_position->m_message_sink.get();
+				abstract_message_sink_t & message_sink = it->m_message_sink.get();
 
 				// Item is no more needed.
-				m_events.erase( existed_position );
+				it = m_events.erase( it );
+				--number_of_subscriptions;
 
 				// Note v.5.5.9 unsubscribe_event_handler is called for
 				// mbox even if it is MPSC mbox. It is necessary for the case
 				// of message delivery tracing.
 
+				// We have to check presence of other subscriptions from this mbox
+				// for the same msg_type.
+				if( !number_of_subscriptions )
+					{
+						// Maybe there are subscriptions in the right part of m_events?
+						if( m_events.end() != std::find_if( it, m_events.end(),
+								is_same_mbox_msg{ mbox_id, msg_type } ) )
+							number_of_subscriptions = 1;
+					}
+
 				// If there is no more subscriptions to that mbox then
 				// the mbox must remove information about that agent.
-				if( end( m_events ) == find_if(
-						begin( m_events ), end( m_events ),
-						is_same_mbox_msg{ mbox_id, msg_type } ) )
+				if( !number_of_subscriptions )
 					{
 						// If we are here then there is no more references
 						// to the mbox. And mbox must not hold reference
