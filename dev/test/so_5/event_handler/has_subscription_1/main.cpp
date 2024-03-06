@@ -117,10 +117,12 @@ main()
 	try
 	{
 		const auto factories = build_subscr_storage_factories();
-		for( const auto & [n, f] : factories )
+		for( const auto & pair : factories )
 		{
+			const auto & n = pair.first;
+			const auto & f = pair.second;
 			run_with_time_limit(
-				[&n, f]()
+				[&]()
 				{
 					std::cout << n << ": " << std::flush;
 
