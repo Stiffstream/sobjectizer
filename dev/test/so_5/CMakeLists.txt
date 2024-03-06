@@ -63,4 +63,5 @@ add_subdirectory(bench/skynet1m)
 add_subdirectory(bench/prepared_receive)
 add_subdirectory(bench/prepared_select)
 add_subdirectory(bench/named_mboxes)
+add_subdirectory(bench/subscribe_unsubscribe)
 
