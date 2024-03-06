@@ -53,7 +53,11 @@ class stop_guard_repository_t
 			};
 
 		stop_guard_repository_t()
-			{}
+			{
+				constexpr std::size_t initial_capacity = 4;
+				m_guards.reserve( initial_capacity );
+				m_container_for_shutdown.reserve( initial_capacity );
+			}
 		stop_guard_repository_t( const stop_guard_repository_t & ) = delete;
 		stop_guard_repository_t( stop_guard_repository_t && ) = delete;
 
@@ -77,6 +81,16 @@ class stop_guard_repository_t
 						ret_value = stop_guard_t::setup_result_t::stop_already_in_progress;
 					else
 						{
+							// Ensure that m_container_for_shutdown has enough space for
+							// updated content of m_guards.
+							if( m_guards.size() + 1 > m_container_for_shutdown.capacity() )
+								// Just double the capacity.
+								// NOTE: don't care about exceptions. If this operation
+								// it's not a problem because nothing has been changed yet.
+								m_container_for_shutdown.reserve(
+										m_container_for_shutdown.capacity() * 2u );
+
+							// Now we can modify the main container.
 							auto it = std::lower_bound(
 									std::begin(m_guards), std::end(m_guards), guard );
 							m_guards.insert( it, std::move(guard) );
@@ -134,24 +148,39 @@ class stop_guard_repository_t
 				return so_5::details::invoke_noexcept_code( [&] {
 					auto ret_value = action_t::wait_for_completion;
 
-					// Copy of actual guards at this moment.
-					guards_container_t guards;
-
 					// The first stage: change status and take a copy
 					// of actual guards list if necessary.
+					bool need_call_stop = false;
 					this->lock_and_perform( [&] {
 						if( status_t::not_started == m_status )
 							{
+								// We expect that there won't be exceptions because:
+								//
+								// 1. m_container_for_shutdown has enough capacity to
+								//    hold all values from m_guards without additional
+								//    allocations.
+								// 2. std::shared_ptr::operator= is noexcept.
+								m_container_for_shutdown = m_guards;
 								// The stop operation is not started yet.
 								m_status = status_t::start_in_progress;
-								guards = m_guards;
+
+								need_call_stop = true;
 							}
 					} );
 
 					// The second stage: calling stop() for all stop_guards.
-					// If guards is empty then nothing will be called.
-					for( auto & g : guards )
-						g->stop();
+					if( need_call_stop )
+					{
+						for( auto & g : m_container_for_shutdown )
+						{
+							g->stop();
+						}
+
+						// We don't need the content of m_container_for_shutdown anymore.
+						// It seems that modifying m_container_for_shutdown here is safe,
+						// because only one thread can be in this place.
+						m_container_for_shutdown.clear();
+					}
 
 					// The third stage: check for possibitility to complete
 					// the stop operation right now.
@@ -191,6 +220,34 @@ class stop_guard_repository_t
 
 		//! List of actual stop_guards.
 		guards_container_t m_guards;
+
+		//! Additional container to be used on shutdown operation.
+		/*!
+		 * We need a copy of m_guards in initiate_stop(). But the initiate_stop()
+		 * method is noexcept and we can't just create a copy of m_guards this way:
+		 *
+		 * \code
+		 * guards_container_t guards_to_stop = m_guards;
+		 * \endcode
+		 *
+		 * because it will require allocations and allocations may throw.
+		 *
+		 * To make initiate_stop() noexcept we have to reserve space for that
+		 * a copy earlier. The m_container_for_shutdown is used for that purpose.
+		 *
+		 * Every time a new item added to m_guards the capacity of m_container_for_shutdown
+		 * is checked. If there is no enough space to copy m_guards to
+		 * m_container_for_shutdown then the capacity of m_container_for_shutdown
+		 * is increased. Thus we always have space in m_container_for_shutdown
+		 * to make a full copy of m_guards.
+		 *
+		 * \note
+		 * In the current implementation of SObjectizer the capacity of
+		 * m_container_for_shutdown is always growth but never descreases.
+		 *
+		 * \since v.5.8.2
+		 */
+		guards_container_t m_container_for_shutdown;
 	};
 
 } /* namespace impl */
