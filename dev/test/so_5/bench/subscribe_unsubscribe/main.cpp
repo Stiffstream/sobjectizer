@@ -15,7 +15,6 @@
 #include <test/3rd_party/various_helpers/benchmark_helpers.hpp>
 #include <test/3rd_party/various_helpers/cmd_line_args_helpers.hpp>
 
-//FIXME: does it really needed?
 #if defined(__clang__) && (__clang_major__ >= 16)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
@@ -206,7 +205,7 @@ class a_worker_t
 			}
 
 		void
-		so_define_agent()
+		so_define_agent() override
 			{
 				so_subscribe_self().event( &a_worker_t::evt_next_loop );
 			}
@@ -220,7 +219,7 @@ class a_worker_t
 		void
 		make_subscription()
 			{
-				so_subscribe_self().event( [this](mhood_t<Signal>) {
+				so_subscribe_self().event( [](mhood_t<Signal>) {
 						/* Nothing to do */
 					} );
 			}
@@ -409,7 +408,7 @@ class a_first_worker_t final : public a_worker_t
 		void
 		evt_custom_next_loop( mhood_t< msg_next_loop > cmd )
 			{
-				const bool do_actions = [this, &cmd]() {
+				const bool do_actions = [this]() {
 						if( 0u == m_loop_index )
 						{
 							// Start of the benchmark.

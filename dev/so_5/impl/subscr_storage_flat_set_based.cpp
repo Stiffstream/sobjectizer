@@ -334,8 +334,6 @@ storage_t::drop_subscription(
 	{
 		using namespace std;
 
-		const auto mbox_id = mbox->id();
-
 		auto existed_position = std::lower_bound(
 				m_events.begin(), m_events.end(),
 				key_info_t{ mbox->id(), msg_type, std::addressof(target_state) },
