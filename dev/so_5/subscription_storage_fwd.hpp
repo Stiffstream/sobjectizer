@@ -61,6 +61,7 @@ using subscription_storage_factory_t =
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 default_subscription_storage_factory();
 
@@ -77,6 +78,7 @@ default_subscription_storage_factory();
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 hash_table_based_subscription_storage_factory();
 
@@ -94,6 +96,7 @@ hash_table_based_subscription_storage_factory();
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 vector_based_subscription_storage_factory(
 	//! Initial storage capacity.
@@ -112,6 +115,7 @@ vector_based_subscription_storage_factory(
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 map_based_subscription_storage_factory();
 
@@ -129,6 +133,7 @@ map_based_subscription_storage_factory();
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
 	//! Threshold for switching from small storage to the large one
@@ -173,6 +178,7 @@ so_5::adaptive_subscription_storage_factory(
  *
  * \since v.5.5.3
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
 	//! Threshold for switching from small storage to the large one
@@ -195,8 +201,9 @@ adaptive_subscription_storage_factory(
  * sorted vector (aka "flat_set") and binary search is used for seaching and
  * manipulating of subscriptions.
  *
- * \since v.5.5.3
+ * \since v.5.8.2
  */
+[[nodiscard]]
 SO_5_FUNC subscription_storage_factory_t
 flat_set_based_subscription_storage_factory(
 	//! Initial storage capacity.
