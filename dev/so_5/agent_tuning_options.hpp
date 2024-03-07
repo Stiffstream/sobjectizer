@@ -59,10 +59,12 @@ using custom_direct_mbox_factory_t = std::function<
 // agent_tuning_options_t
 //
 /*!
- * \since
- * v.5.5.3
- *
  * \brief A collector for agent tuning options.
+ *
+ * \attention
+ * This class isn't thread-safe.
+ *
+ * \since v.5.5.3
  */
 class agent_tuning_options_t
 	{
@@ -81,18 +83,27 @@ class agent_tuning_options_t
 				swap( a.m_priority, b.m_priority );
 				swap( a.m_custom_direct_mbox_factory,
 						b.m_custom_direct_mbox_factory );
+				swap( a.m_is_user_provided_subscription_storage_factory,
+						b.m_is_user_provided_subscription_storage_factory );
 			}
 
 		//! Set factory for subscription storage creation.
 		agent_tuning_options_t &
 		subscription_storage_factory(
 			subscription_storage_factory_t factory )
+			noexcept( noexcept(m_subscription_storage_factory = std::move(factory)) )
 			{
 				m_subscription_storage_factory = std::move( factory );
+				m_is_user_provided_subscription_storage_factory = true;
 
 				return *this;
 			}
 
+		//FIXME(v.5.9.0): this method has to be changed to this one:
+		//
+		// std::optional<subscription_storage_factory_t>
+		// query_subscription_storage_factory() const.
+		//
 		[[nodiscard]]
 		const subscription_storage_factory_t &
 		query_subscription_storage_factory() const noexcept
@@ -100,6 +111,22 @@ class agent_tuning_options_t
 				return m_subscription_storage_factory;
 			}
 
+		/*!
+		 * \brief Does a user provide a specific subscription_storage_factory?
+		 *
+		 * \retval false If subscription_storage_factory wasn't specified by a user.
+		 * \retval true If the subscription_storage_factory was specified by a user.
+		 *
+		 * \since v.5.8.2
+		 */
+		[[nodiscard]]
+		bool
+		is_user_provided_subscription_storage_factory() const noexcept
+			{
+				return m_is_user_provided_subscription_storage_factory;
+			}
+
+		//FIXME(v.5.9.0): should this method be removed?
 		//! Default subscription storage factory.
 		static subscription_storage_factory_t
 		default_subscription_storage_factory()
@@ -175,6 +202,10 @@ class agent_tuning_options_t
 			}
 
 	private :
+		//FIXME(v.5.9.0): this member has to be changed to:
+		//
+		// std::optional<subscription_storage_factory_t> m_subscription_storage_factory;
+		//
 		subscription_storage_factory_t m_subscription_storage_factory =
 				default_subscription_storage_factory();
 
@@ -194,6 +225,16 @@ class agent_tuning_options_t
 		 * \since v.5.7.4
 		 */
 		custom_direct_mbox_factory_t m_custom_direct_mbox_factory;
+
+		//FIXME(v.5.9.0): this member has to be removed.
+		/*!
+		 * \brief Does a user provide a specific subscription_storage_factory?
+		 *
+		 * This member is set to `true` in subscription_storage_factory() setter.
+		 *
+		 * \since v.5.8.2
+		 */
+		bool m_is_user_provided_subscription_storage_factory{ false };
 	};
 
 } /* namespace so_5 */

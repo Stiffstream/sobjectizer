@@ -29,6 +29,7 @@
 #include <so_5/queue_locks_defaults_manager.hpp>
 #include <so_5/so_layer.hpp>
 #include <so_5/stop_guard.hpp>
+#include <so_5/subscription_storage_fwd.hpp>
 #include <so_5/timers.hpp>
 
 #include <so_5/stats/controller.hpp>
@@ -601,6 +602,67 @@ class SO_5_TYPE environment_params_t
 			}
 
 		/*!
+		 * \brief Set subscription storage factory to be used by default.
+		 *
+		 * Usage example:
+		 *
+		 * \code
+		 * so_5::launch( [](so_5::environment_t & env) {...},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		params.default_subscription_storage_factory(
+		 * 			so_5::flat_set_based_subscription_storage_factory(32u) );
+		 * 	} );
+		 * \endcode
+		 *
+		 * \note
+		 * The \a factory can be null (empty). This can be useful if there is a need
+		 * to drop the previous value. For example:
+		 * \code
+		 * void tune_env_params(so_5::environment_params_t & params) {
+		 * 	... // Some settings.
+		 * 	params.default_subscription_storage_factory(
+		 * 		so_5::flat_set_based_subscription_storage_factory(32u));
+		 * 	... // Some more settings.
+		 * }
+		 * ...
+		 * so_5::launch( [](so_5::environment_t & env) {...},
+		 * 	[](so_5::environment_params_t & params) {
+		 * 		// The main settings.
+		 * 		tune_env_params(params);
+		 *
+		 * 		#if !defined(NDEBUG)
+		 * 			// Have to drop some settings in the Debug mode.
+		 * 			params.default_subscription_storage_factory({});
+		 * 		#endif
+		 * 	} );
+		 * \endcode
+		 *
+		 * \since v.5.8.2
+		 */
+		environment_params_t &
+		default_subscription_storage_factory(
+			subscription_storage_factory_t factory )
+			{
+				m_default_subscription_storage_factory = std::move(factory);
+				return *this;
+			}
+
+		/*!
+		 * \brief Get the current default subscription storage factory.
+		 *
+		 * \note
+		 * This can be null (empty factory) if the factory isn't set
+		 * explicitly.
+		 *
+		 * \since v.5.8.2
+		 */
+		[[nodiscard]] const subscription_storage_factory_t &
+		default_subscription_storage_factory() const noexcept
+			{
+				return m_default_subscription_storage_factory;
+			}
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
@@ -807,6 +869,20 @@ class SO_5_TYPE environment_params_t
 		 * \since v.5.7.3
 		 */
 		so_5::disp::abstract_work_thread_factory_shptr_t m_work_thread_factory;
+
+		/*!
+		 * \brief Default subscription storage factory.
+		 *
+		 * This factory will be used by default if a specific factory isn't
+		 * set for agent explicitly.
+		 *
+		 * \note
+		 * It can be a nullptr. It means that standard default subscription
+		 * storage factory has to be used as the global factory.
+		 *
+		 * \since v.5.8.2
+		 */
+		subscription_storage_factory_t m_default_subscription_storage_factory;
 };
 
 //

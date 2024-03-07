@@ -475,6 +475,27 @@ make_direct_mbox_with_respect_to_custom_factory(
 		return result;
 	}
 
+/*!
+ * \brief Helper for selection of subscription storage factory.
+ *
+ * If a factory is specified in @a tuning_options explicitly then it's
+ * used. Otherwise the default subscription storage factory from
+ * SObjectizer Environment will be used.
+ *
+ * \since v.5.8.2
+ */
+[[nodiscard]]
+subscription_storage_factory_t
+detect_subscription_storage_factory_to_use(
+	environment_t & env,
+	const agent_tuning_options_t & tuning_options )
+	{
+		if( tuning_options.is_user_provided_subscription_storage_factory() )
+			return tuning_options.query_subscription_storage_factory();
+		else
+			return impl::internal_env_iface_t{ env }.default_subscription_storage_factory();
+	}
+
 } /* namespace anonymous */
 
 //
@@ -504,7 +525,7 @@ agent_t::agent_t(
 				&agent_t::handler_finder_msg_tracing_enabled :
 				&agent_t::handler_finder_msg_tracing_disabled )
 	,	m_subscriptions(
-			ctx.options().query_subscription_storage_factory()() )
+			detect_subscription_storage_factory_to_use( ctx.env(), ctx.options() )() )
 	,	m_message_sinks(
 			impl::create_sinks_storage_if_necessary(
 				partially_constructed_agent_ptr_t( self_ptr() ),

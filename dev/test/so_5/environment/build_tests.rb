@@ -16,4 +16,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/unknown_exception_run_3/prj.ut.rb"
 
 	required_prj "#{path}/stop_guards/build_tests.rb"
+
+   required_prj "#{path}/default_subscr_storage/prj.ut.rb"
 }

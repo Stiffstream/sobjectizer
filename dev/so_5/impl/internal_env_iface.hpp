@@ -160,11 +160,19 @@ class SO_5_TYPE internal_env_iface_t
 		/*!
 		 * \brief Allocate a new ID for a new custom mbox or mchain.
 		 *
-		 * \since
-		 * v.5.7.0
+		 * \since v.5.7.0
 		 */
 		[[nodiscard]] mbox_id_t
 		allocate_mbox_id() noexcept;
+
+		/*!
+		 * \brief Get the default storage subscription factory.
+		 *
+		 * \since v.5.8.2
+		 */
+		[[nodiscard]] subscription_storage_factory_t
+		default_subscription_storage_factory() const
+			noexcept( noexcept(subscription_storage_factory_t{} = subscription_storage_factory_t{}) );
 	};
 
 /*!

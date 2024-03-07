@@ -65,6 +65,7 @@ environment_params_t::environment_params_t(
 	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
 	,	m_event_queue_hook( std::move(other.m_event_queue_hook) )
 	,	m_work_thread_factory( std::move(other.m_work_thread_factory) )
+	,	m_default_subscription_storage_factory( std::move(default_subscription_storage_factory()) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -108,6 +109,8 @@ swap( environment_params_t & a, environment_params_t & b ) noexcept
 	swap( a.m_event_queue_hook, b.m_event_queue_hook );
 
 	swap( a.m_work_thread_factory, b.m_work_thread_factory );
+
+	swap( a.m_default_subscription_storage_factory, b.m_default_subscription_storage_factory );
 }
 
 environment_params_t &
@@ -277,6 +280,28 @@ ensure_work_thread_factory_exists(
 		return result;
 	}
 
+/*!
+ * \brief Helper function for creation of the default subscription storage
+ * factory.
+ *
+ * If \a user_provided_factory is nullptr then standard default subscription
+ * storage factory will be returned. Otherwise \a user_provided_factory is
+ * returned.
+ *
+ * \since v.5.8.2
+ */
+[[nodiscard]]
+so_5::subscription_storage_factory_t
+ensure_subscription_storage_factory_exists(
+	//! The current value provided by a user. Note: it can be nullptr.
+	subscription_storage_factory_t user_provided_factory )
+	{
+		if( !user_provided_factory )
+			user_provided_factory = default_subscription_storage_factory();
+
+		return user_provided_factory;
+	}
+
 } /* namespace anonymous */
 
 //
@@ -418,6 +443,16 @@ struct environment_t::internals_t
 	 */
 	event_exception_logger_unique_ptr_t m_event_exception_logger;
 
+	/*!
+	 * \brief Factory to be used as default subscription storage factory.
+	 *
+	 * \note
+	 * It can't be null. This has to be checked in the constructor.
+	 *
+	 * \since v.5.8.2
+	 */
+	subscription_storage_factory_t m_default_subscription_storage_factory;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -458,6 +493,9 @@ struct environment_t::internals_t
 					params.so5_giveout_work_thread_factory() ) )
 		,	m_event_exception_logger{
 				params.so5_giveout_event_exception_logger() }
+		,	m_default_subscription_storage_factory{
+				ensure_subscription_storage_factory_exists(
+					params.default_subscription_storage_factory() ) }
 	{}
 };
 
@@ -960,6 +998,13 @@ internal_env_iface_t::event_queue_on_unbind(
 internal_env_iface_t::allocate_mbox_id() noexcept
 {
 	return m_env.m_impl->m_mbox_core->allocate_mbox_id();
+}
+
+[[nodiscard]] subscription_storage_factory_t
+internal_env_iface_t::default_subscription_storage_factory() const
+	noexcept( noexcept(subscription_storage_factory_t{} = subscription_storage_factory_t{}) )
+{
+	return m_env.m_impl->m_default_subscription_storage_factory;
 }
 
 } /* namespace impl */
