@@ -9,7 +9,9 @@ constructor of so_5::wrapped_env_t.
 
 A new type of subscription storage: flat-set based storage.
 It can be specified by using a new so_5::flat_set_based_subscription_storage_factory()
-factory function.
+function.
+
+A new method so_5::environment_params_t::default_subscription_storage_factory().
 
 \section so_5__5_8_1 5.8.1 "Alpamayo"
 
