@@ -188,8 +188,23 @@ class auto_registered_source_holder_t
  * cases where manual registration of data_source should be used
  * instead of automatic one.
  *
- * \since
- * v.5.6.0
+ * \attention
+ * This is a simple wrapped that doesn't control the correctness
+ * of start() and stop() method calls. For example:
+ * \code
+ * environment_t & env = ...;
+ * manually_registered_source_holder_t< my_data_source > my_source;
+ * ...
+ * my_source.start( outliving_mutable(env.stats_repository()) );
+ * // Repeated call to start() may lead to UB.
+ * my_source.start( outliving_mutable(env.stats_repository()) ); // Oops!
+ * ...
+ * my_source.stop(); // The first call to stop() is OK.
+ * // Repeated call to stop() may lead to UB (null pointer dereference, for example.
+ * my_source.stop(); // Oops!
+ * \endcode
+ *
+ * \since v.5.6.0
  */
 template< typename Data_Source >
 class manually_registered_source_holder_t
@@ -214,6 +229,11 @@ class manually_registered_source_holder_t
 					stop();
 			}
 
+		/*!
+		 * \note
+		 * It's safe to call start() only if start() haven't been called yet.
+		 * Repeated call to start() leads to UB.
+		 */
 		void
 		start( outliving_reference_t< repository_t > repo )
 			{
@@ -221,6 +241,11 @@ class manually_registered_source_holder_t
 				m_repo = &(repo.get());
 			}
 
+		/*!
+		 * \note
+		 * It's safe to call stop() only if start() has been called earlier.
+		 * Repeated call to stop() leads to UB.
+		 */
 		void
 		stop() noexcept
 			{
