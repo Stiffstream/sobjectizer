@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <cstring>
 #include <ostream>
 
@@ -23,10 +24,9 @@ namespace stats
 {
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A type for storing prefix of data_source name.
+ *
+ * \since v.5.5.4
  */
 class prefix_t
 	{
@@ -37,11 +37,9 @@ class prefix_t
 		static constexpr const std::size_t max_buffer_size = max_length + 1;
 
 		//! Default constructor creates empty prefix.
-		inline
-		prefix_t()
-			{
-				m_value[ 0 ] = 0;
-			}
+		constexpr prefix_t() noexcept
+			:	m_value{ 0 }
+			{}
 
 // clang++ complaints about unsafe pointer arithmetics.
 // Attempt to use strncpy leads to warnings in VC++.
@@ -53,8 +51,8 @@ class prefix_t
 		/*!
 		 * Gets no more than max_length symbols.
 		 */
-		inline
-		prefix_t( const char * value )
+		constexpr prefix_t( const char * value ) noexcept
+			:	m_value{}
 			{
 				char * last = m_value + max_length;
 				char * pos = m_value;
@@ -72,42 +70,54 @@ class prefix_t
 		/*!
 		 * Gets no more than max_length symbols.
 		 */
-		inline
-		prefix_t( const std::string & value )
+		prefix_t( const std::string & value ) noexcept( noexcept(value.c_str()) )
 			:	prefix_t( value.c_str() )
 			{}
 
 		//! Access to prefix value.
-		inline const char *
-		c_str() const
+		[[nodiscard]]
+		constexpr const char *
+		c_str() const noexcept
 			{
 				return m_value;
 			}
 
+		//! Access to prefix value as string_view.
+		[[nodiscard]]
+		constexpr std::string_view
+		as_string_view() const noexcept( noexcept(std::string_view{m_value}) )
+			{
+				return { m_value };
+			}
+
 		//! Is prefix empty?
-		inline bool
-		empty() const
+		[[nodiscard]]
+		constexpr bool
+		empty() const noexcept
 			{
 				return 0 == m_value[ 0 ];
 			}
 
 		//! Is equal?
-		inline bool
-		operator==( const prefix_t & o ) const
+		[[nodiscard]]
+		bool
+		operator==( const prefix_t & o ) const noexcept
 			{
 				return 0 == strcmp( c_str(), o.c_str() );
 			}
 
 		//! Is not equal?
-		inline bool
-		operator!=( const prefix_t & o ) const
+		[[nodiscard]]
+		bool
+		operator!=( const prefix_t & o ) const noexcept
 			{
 				return 0 != strcmp( c_str(), o.c_str() );
 			}
 
 		//! Is less than?
-		inline bool
-		operator<( const prefix_t & o ) const
+		[[nodiscard]]
+		bool
+		operator<( const prefix_t & o ) const noexcept
 			{
 				return 0 < strcmp( c_str(), o.c_str() );
 			}
@@ -118,10 +128,9 @@ class prefix_t
 	};
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief Just a helper operator.
+ *
+ * \since v.5.5.4
  */
 inline std::ostream &
 operator<<( std::ostream & to, const prefix_t & what )
@@ -130,46 +139,62 @@ operator<<( std::ostream & to, const prefix_t & what )
 	}
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A type for representing the suffix of data_source name.
  *
  * \note This is just a wrapper around `const char *`.
+ *
+ * \attention
+ * It's assumed that suffix_t holds a pointer to a string in static memory
+ * (it's a pointer to a string literal).
+ *
+ * \since v.5.5.4
  */
 class suffix_t
 	{
 	public :
 		//! Initializing constructor.
-		inline
-		suffix_t( const char * value )
+		constexpr suffix_t(
+			//! Value. It's expected to be a pointer to a null-terminated string.
+			const char * value ) noexcept
 			:	m_value( value )
 			{}
 
 		//! Access to suffix value.
-		inline const char *
-		c_str() const
+		[[nodiscard]]
+		constexpr const char *
+		c_str() const noexcept
 			{
 				return m_value;
 			}
 
+		//! Access to prefix value as string_view.
+		[[nodiscard]]
+		constexpr std::string_view
+		as_string_view() const noexcept( noexcept(std::string_view{m_value}) )
+			{
+				return { m_value };
+			}
+
 		//! Compares suffixes by pointer values.
-		inline bool
-		operator==( const suffix_t & o ) const
+		[[nodiscard]]
+		constexpr bool
+		operator==( const suffix_t & o ) const noexcept
 			{
 				return m_value == o.m_value;
 			}
 
 		//! Compares suffixes by pointer value.
-		inline bool
-		operator!=( const suffix_t & o ) const
+		[[nodiscard]]
+		constexpr bool
+		operator!=( const suffix_t & o ) const noexcept
 			{
 				return m_value != o.m_value;
 			}
 
 		//! Compares suffixes by pointer value.
-		inline bool
-		operator<( const suffix_t & o ) const
+		[[nodiscard]]
+		constexpr bool
+		operator<( const suffix_t & o ) const noexcept
 			{
 				return m_value < o.m_value;
 			}
@@ -180,10 +205,9 @@ class suffix_t
 	};
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief Just a helper operator.
+ *
+ * \since v.5.5.4
  */
 inline std::ostream &
 operator<<( std::ostream & to, const suffix_t & what )

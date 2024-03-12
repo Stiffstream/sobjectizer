@@ -52,14 +52,30 @@ class a_test_t : public so_5::agent_t
 			{
 				namespace stats = so_5::stats;
 
-				std::cout << evt.m_prefix.c_str()
-						<< evt.m_suffix.c_str()
+				std::cout << evt.m_prefix
+						<< evt.m_suffix
 						<< ": " << evt.m_value << std::endl;
 
 				if( stats::prefixes::mbox_repository() == evt.m_prefix )
 					{
+						// Check as_string_view method for prefix_t.
+						if( stats::prefixes::mbox_repository().as_string_view()
+								!= evt.m_prefix.c_str() )
+							{
+								throw std::runtime_error(
+										"as_string_view() for prefix_t doesn't work" );
+							}
+
 						if( stats::suffixes::named_mbox_count() == evt.m_suffix )
 							{
+								// Check as_string_view method for suffix_t.
+								if( stats::suffixes::named_mbox_count().as_string_view()
+										!= evt.m_suffix.c_str() )
+									{
+										throw std::runtime_error(
+												"as_string_view() for suffix_t doesn't work" );
+									}
+
 								if( 3 != evt.m_value )
 									throw std::runtime_error( "unexpected count of "
 											"named mboxes: " +
