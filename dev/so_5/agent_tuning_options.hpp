@@ -91,7 +91,7 @@ class agent_tuning_options_t
 		agent_tuning_options_t &
 		subscription_storage_factory(
 			subscription_storage_factory_t factory )
-			noexcept( noexcept(m_subscription_storage_factory = std::move(factory)) )
+			noexcept( noexcept(std::declval<subscription_storage_factory_t &>() = std::move(factory)) )
 			{
 				m_subscription_storage_factory = std::move( factory );
 				m_is_user_provided_subscription_storage_factory = true;
