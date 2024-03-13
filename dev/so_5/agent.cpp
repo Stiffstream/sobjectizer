@@ -26,9 +26,106 @@
 #include <algorithm>
 #include <sstream>
 #include <cstdlib>
+#include <limits>
 
 namespace so_5
 {
+
+namespace
+{
+
+[[nodiscard]]
+unsigned int
+ensure_valid_agent_name_length( std::size_t length )
+	{
+		if( 0u == length )
+			SO_5_THROW_EXCEPTION( rc_empty_agent_name,
+					"Name of an agent can't be empty" );
+
+		constexpr std::size_t max_unit_value =
+				std::numeric_limits<unsigned int>::max();
+		if( max_unit_value < length )
+			SO_5_THROW_EXCEPTION( rc_empty_agent_name,
+					"Name of an agent is too long (length should fit "
+					"into unsigned int)" );
+
+		return static_cast<unsigned int>( length );
+	}
+
+} /* namespace anonymous */
+
+//
+// name_for_agent_t
+//
+name_for_agent_t::name_for_agent_t()
+	:	m_length{}
+	{}
+
+name_for_agent_t::name_for_agent_t( std::string_view value )
+	:	m_length{ ensure_valid_agent_name_length( value.size() ) }
+	{
+		m_value.reset( new char[ value.size() ] );
+		std::copy( std::begin(value), std::end(value), m_value.get() );
+	}
+
+name_for_agent_t::name_for_agent_t( const name_for_agent_t & other )
+	:	m_length{ other.m_length }
+	{
+		if( other.has_value() )
+			{
+				m_value.reset( new char[ m_length ] );
+				std::copy(
+						other.m_value.get(),
+						other.m_value.get() + m_length,
+						m_value.get() );
+			}
+	}
+
+name_for_agent_t &
+name_for_agent_t::operator=( const name_for_agent_t & other )
+	{
+		name_for_agent_t tmp{ other };
+		swap( *this, tmp );
+		return *this;
+	}
+
+name_for_agent_t::name_for_agent_t( name_for_agent_t && other ) noexcept
+	:	m_value{ std::exchange( other.m_value, std::unique_ptr< char[] >{} ) }
+	,	m_length{ std::exchange( other.m_length, 0u ) }
+	{}
+
+name_for_agent_t &
+name_for_agent_t::operator=( name_for_agent_t && other ) noexcept
+	{
+		name_for_agent_t tmp{ std::move(other) };
+		swap( *this, other );
+		return *this;
+	}
+
+SO_5_FUNC void
+swap( name_for_agent_t & a, name_for_agent_t & b ) noexcept
+	{
+		using std::swap;
+		swap( a.m_value, b.m_value );
+		swap( a.m_length, b.m_length );
+	}
+
+name_for_agent_t::~name_for_agent_t() = default;
+
+std::string_view
+name_for_agent_t::as_string_view() const
+	{
+		std::string_view result;
+		if( has_value() )
+			result = std::string_view{ m_value.get(), m_length };
+		return result;
+	}
+
+bool
+name_for_agent_t::has_value() const noexcept
+	{
+		return 0u != m_length;
+	}
 
 namespace
 {

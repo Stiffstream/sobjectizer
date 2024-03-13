@@ -533,6 +533,20 @@ const int rc_disp_binder_already_set_for_agent = 194;
  */
 const int rc_no_disp_binder_for_agent = 195;
 
+/*!
+ * \brief Name for an agent can't be empty.
+ *
+ * \since v.5.8.2
+ */
+const int rc_empty_agent_name = 196;
+
+/*!
+ * \brief Length of an agent name is too large.
+ *
+ * \since v.5.8.2
+ */
+const int rc_agent_name_too_long = 197;
+
 //! \name Common error codes.
 //! \{
 
@@ -541,15 +555,15 @@ const int rc_empty_name = 500;
 
 /*!
  * \brief Invalid value of time limit for an agent's state.
- * \since
- * v.5.5.15
+ *
+ * \since v.5.5.15
  */
 const int rc_invalid_time_limit_for_state = 501;
 
 /*!
  * \brief Feature or method has no implementation yet.
- * \since
- * v.5.5.16
+ *
+ * \since v.5.5.16
  */
 const int rc_not_implemented = 502;
 
@@ -559,8 +573,7 @@ const int rc_not_implemented = 502;
  * SObjectizer expects that all exceptions are derived from std::exception
  * class.
  *
- * \since
- * v.5.5.24.3
+ * \since v.5.5.24.3
  */
 const int rc_unknown_exception_type = 503;
 

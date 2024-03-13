@@ -16,6 +16,8 @@
 #include <so_5/message_limit.hpp>
 #include <so_5/priority.hpp>
 
+#include <memory>
+
 namespace so_5
 {
 
@@ -55,6 +57,82 @@ class partially_constructed_agent_ptr_t
 using custom_direct_mbox_factory_t = std::function<
 		so_5::mbox_t(partially_constructed_agent_ptr_t, so_5::mbox_t) >;
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
+
+// NOTE: the implementation of name_for_agent_t is in agent.cpp
+
+//FIXME: document this!
+class SO_5_TYPE name_for_agent_t
+{
+	static_assert( sizeof(unsigned int) <= sizeof(std::size_t),
+			"it's expected that std::size_t is bigger or the same as unsigned int" );
+
+	//! Name storage.
+	/*!
+	 * \note
+	 * It doesn't have a terminating 0-symbol.
+	 */
+	std::unique_ptr< char[] > m_value;
+
+	//! Name length.
+	unsigned int m_length;
+
+public:
+	//! Default constructor makes an null value.
+	name_for_agent_t();
+
+	//! Initializing constructor.
+	/*!
+	 * \attention
+	 * It throws is \a value has zero length.
+	 *
+	 * \attention
+	 * It throws is the length of \a value can't fit into unsigned int.
+	 */
+	explicit name_for_agent_t( std::string_view value );
+
+	// Copy operation.
+	name_for_agent_t( const name_for_agent_t & );
+	name_for_agent_t &
+	operator=( const name_for_agent_t & );
+
+	// Move operation.
+	name_for_agent_t( name_for_agent_t && other ) noexcept;
+	name_for_agent_t &
+	operator=( name_for_agent_t && other ) noexcept;
+
+	~name_for_agent_t();
+
+	friend SO_5_FUNC void swap( name_for_agent_t & a, name_for_agent_t & b ) noexcept;
+
+	//! Get the value as a string_view.
+	/*!
+	 * \note
+	 * If the object is null, then it produces an empty string_view.
+	 */
+	[[nodiscard]]
+	std::string_view
+	as_string_view() const;
+
+	//! Does this object have a value?
+	[[nodiscard]]
+	bool
+	has_value() const noexcept;
+
+	//! Does this object have a value?
+	explicit operator bool() const noexcept
+	{
+		return this->has_value();
+	}
+};
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
+
 //
 // agent_tuning_options_t
 //
@@ -85,6 +163,7 @@ class agent_tuning_options_t
 						b.m_custom_direct_mbox_factory );
 				swap( a.m_is_user_provided_subscription_storage_factory,
 						b.m_is_user_provided_subscription_storage_factory );
+				swap( a.m_agent_name, b.m_agent_name );
 			}
 
 		//! Set factory for subscription storage creation.
@@ -153,8 +232,8 @@ class agent_tuning_options_t
 			}
 
 		//! Set priority for agent.
-		/*! \since
-		 * v.5.5.8
+		/*!
+		 * \since v.5.5.8
 		 */
 		agent_tuning_options_t &
 		priority( so_5::priority_t v )
@@ -201,6 +280,53 @@ class agent_tuning_options_t
 				return m_custom_direct_mbox_factory;
 			}
 
+		/*!
+		 * \brief Set a name for agent.
+		 *
+		 * \note
+		 * The name should have an actual name, otherwise an exception
+		 * will be thrown.
+		 *
+		 * \since v.5.8.2
+		 */
+		agent_tuning_options_t &
+		agent_name( name_for_agent_t name )
+			{
+				if( !name.has_value() )
+					SO_5_THROW_EXCEPTION( rc_empty_agent_name,
+							"empty name can't be used for an agent" );
+
+				m_agent_name = std::move(name);
+
+				return *this;
+			}
+
+		/*!
+		 * \brief Does a name specified for an agent?
+		 *
+		 * \since v.5.8.2
+		 */
+		[[nodiscard]]
+		bool
+		has_agent_name() const noexcept
+			{
+				return m_agent_name.has_value();
+			}
+
+		/*!
+		 * \brief Gives away the name for an agent.
+		 *
+		 * If the name wasn't set an empty value is returned.
+		 *
+		 * \since v.5.8.2
+		 */
+		[[nodiscard]]
+		name_for_agent_t
+		giveout_agent_name() noexcept
+			{
+				return name_for_agent_t{ std::move(m_agent_name) };
+			}
+
 	private :
 		//FIXME(v.5.9.0): this member has to be changed to:
 		//
@@ -235,6 +361,13 @@ class agent_tuning_options_t
 		 * \since v.5.8.2
 		 */
 		bool m_is_user_provided_subscription_storage_factory{ false };
+
+		/*!
+		 * \brief Optional name for an agent.
+		 *
+		 * \since v.5.8.2
+		 */
+		name_for_agent_t m_agent_name;
 	};
 
 } /* namespace so_5 */

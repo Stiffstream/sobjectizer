@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.4
- *
  * \file
  * \brief A context for agent construction and tuning.
+ *
+ * \since v.5.5.4
  */
 
 #pragma once
@@ -23,10 +22,9 @@ namespace so_5
 // agent_context_t
 //
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A context for agent construction and tuning.
+ *
+ * \since v.5.5.4
  */
 class agent_context_t
 	{
@@ -69,9 +67,7 @@ class agent_context_t
 
 		//! Access to SObjectizer Environment.
 		/*!
-		 * \since
-		 * v.5.5.9
-		 *
+		 * \since v.5.5.9
 		 */
 		environment_t &
 		environment() const
@@ -101,11 +97,10 @@ class agent_context_t
 	};
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A plus operator for creating agent_context object from
  * a reference to Environment and single agent tuning option.
+ *
+ * \since v.5.5.4
  */
 template< typename Option >
 agent_context_t
