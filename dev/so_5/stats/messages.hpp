@@ -45,7 +45,7 @@ namespace messages
  * \tparam T type for representing quantity.
  */
 template< typename T >
-struct SO_5_TYPE quantity : public message_t
+struct quantity : public message_t
 	{
 		//! Prefix of data_source name.
 		prefix_t m_prefix;
