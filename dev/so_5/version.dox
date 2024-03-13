@@ -13,6 +13,10 @@ function.
 
 A new method so_5::environment_params_t::default_subscription_storage_factory().
 
+New methods so_5::stats::prefix_t::as_string_view() and
+so_5::stats::suffix_t::as_string_view(). Several methods of
+so_5::stats::prefix_t and so_5::stats::suffix_t are now constexpr.
+
 \section so_5__5_8_1 5.8.1 "Alpamayo"
 
 New functions so_5::msinks::transform_then_redirect() and new

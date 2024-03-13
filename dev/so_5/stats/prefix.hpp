@@ -83,6 +83,9 @@ class prefix_t
 			}
 
 		//! Access to prefix value as string_view.
+		/*!
+		 * \since v.5.8.2
+		 */
 		[[nodiscard]]
 		constexpr std::string_view
 		as_string_view() const noexcept( noexcept(std::string_view{std::declval<const char *>()}) )
@@ -168,6 +171,9 @@ class suffix_t
 			}
 
 		//! Access to prefix value as string_view.
+		/*!
+		 * \since v.5.8.2
+		 */
 		[[nodiscard]]
 		constexpr std::string_view
 		as_string_view() const noexcept( noexcept(std::string_view{std::declval<const char *>()}) )
