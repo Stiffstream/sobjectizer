@@ -23,6 +23,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/mpsc_queue_traits/build_tests.rb"
 
+	required_prj "#{path}/agent/build_tests.rb" 
+
 	required_prj "#{path}/disp/build_tests.rb" 
 
 	required_prj "#{path}/event_handler/build_tests.rb" 

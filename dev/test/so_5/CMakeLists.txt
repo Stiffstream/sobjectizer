@@ -14,6 +14,8 @@ add_subdirectory(timer_thread)
 
 add_subdirectory(mpsc_queue_traits)
 
+add_subdirectory(agent)
+
 add_subdirectory(disp)
 
 add_subdirectory(event_handler)

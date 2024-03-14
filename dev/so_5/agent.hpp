@@ -27,6 +27,7 @@
 
 #include <so_5/agent_ref_fwd.hpp>
 #include <so_5/agent_context.hpp>
+#include <so_5/agent_identity.hpp>
 #include <so_5/mbox.hpp>
 #include <so_5/agent_state_listener.hpp>
 #include <so_5/event_queue.hpp>
@@ -2708,6 +2709,11 @@ class SO_5_TYPE agent_t
 		disp_binder_shptr_t
 		so_this_coop_disp_binder() const;
 
+		//FIXME: document this!
+		[[nodiscard]]
+		agent_identity_t
+		so_agent_name() const noexcept;
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
@@ -2872,6 +2878,14 @@ class SO_5_TYPE agent_t
 		 * \since v.5.7.5
 		 */
 		disp_binder_shptr_t m_disp_binder;
+
+		//FIXME: document this!
+		/*!
+		 * Empty value means that the name for the agent wasn't specified.
+		 *
+		 * \since v.5.8.2
+		 */
+		name_for_agent_t m_name;
 
 		//! Destroy all agent's subscriptions.
 		/*!

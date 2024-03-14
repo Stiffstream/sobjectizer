@@ -25,11 +25,50 @@
 
 #include <algorithm>
 #include <sstream>
+#include <cstdint>
 #include <cstdlib>
 #include <limits>
 
 namespace so_5
 {
+
+//
+// agent_identity_t::pointer_only_t
+//
+std::array<char, agent_identity_t::pointer_only_t::c_string_size>
+agent_identity_t::pointer_only_t::make_c_string() const noexcept
+	{
+		static constexpr std::array<char, 16> hex_symbols{
+			'0', '1', '2', '3', '4', '5', '6', '7',
+			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+		};
+
+		constexpr std::string_view prefix{ "<noname:" };
+
+		std::array<char, c_string_size> result;
+		auto it = std::copy( prefix.begin(), prefix.end(), result.begin() );
+
+		// NOTE: this code won't compile if there is no std::uintptr_t type,
+		// but we don't care about such platforms at the moment.
+		std::uintptr_t ptr_as_uint = reinterpret_cast<std::uintptr_t>(m_pointer_value);
+
+		// Handle by 4 bits portions from the most significant bit.
+		// Leading zeros are not skipped (for the simplicity of implementation).
+		unsigned bits_to_process = sizeof(void *) * 8u;
+		while( bits_to_process >= 4u )
+			{
+				const auto v = (ptr_as_uint >> (bits_to_process - 4u)) & 0x0Fu;
+				const std::size_t index = static_cast<std::size_t>( v );
+				*(it++) = hex_symbols[ index ];
+
+				bits_to_process -= 4u;
+			}
+
+		*(it++) = '>'; ++it;
+		*it = 0;
+
+		return result;
+	}
 
 namespace
 {
@@ -642,6 +681,7 @@ agent_t::agent_t(
 	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( nullptr )
 	,	m_priority( ctx.options().query_priority() )
+	,	m_name( ctx.options().giveout_agent_name() )
 {
 }
 
@@ -949,6 +989,15 @@ agent_t::so_this_coop_disp_binder() const
 				"because agent is not bound to any cooperation" );
 
 	return m_agent_coop->coop_disp_binder();
+}
+
+agent_identity_t
+agent_t::so_agent_name() const noexcept
+{
+	if( m_name.has_value() )
+		return { m_name.as_string_view() };
+	else
+		return { static_cast<const void *>(this) };
 }
 
 void

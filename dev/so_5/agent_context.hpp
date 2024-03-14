@@ -190,6 +190,15 @@ operator+(
 		ctx.options().custom_direct_mbox_factory( std::move(factory) );
 		return ctx;
 	}
+
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	name_for_agent_t agent_name )
+	{
+		ctx.options().agent_name( std::move(agent_name) );
+		return ctx;
+	}
 /*!
  * \}
  */
