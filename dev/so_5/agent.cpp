@@ -50,21 +50,25 @@ agent_identity_t::pointer_only_t::make_c_string() const noexcept
 
 		// NOTE: this code won't compile if there is no std::uintptr_t type,
 		// but we don't care about such platforms at the moment.
-		std::uintptr_t ptr_as_uint = reinterpret_cast<std::uintptr_t>(m_pointer_value);
+		std::uintptr_t ptr_as_uint =
+				reinterpret_cast<std::uintptr_t>(m_pointer_value);
 
 		// Handle by 4 bits portions from the most significant bit.
 		// Leading zeros are not skipped (for the simplicity of implementation).
-		unsigned bits_to_process = sizeof(void *) * 8u;
-		while( bits_to_process >= 4u )
+		constexpr unsigned int half_octet = 4u;
+		unsigned bits_to_process = sizeof(void *) * (half_octet * 2u);
+		while( bits_to_process >= half_octet )
 			{
-				const auto v = (ptr_as_uint >> (bits_to_process - 4u)) & 0x0Fu;
-				const std::size_t index = static_cast<std::size_t>( v );
+				const auto index = static_cast<std::size_t>(
+						(ptr_as_uint >> (bits_to_process - half_octet)) & 0x0Fu
+					);
+
 				*(it++) = hex_symbols[ index ];
 
-				bits_to_process -= 4u;
+				bits_to_process -= half_octet;
 			}
 
-		*(it++) = '>'; ++it;
+		*(it++) = '>';
 		*it = 0;
 
 		return result;
@@ -137,7 +141,7 @@ name_for_agent_t &
 name_for_agent_t::operator=( name_for_agent_t && other ) noexcept
 	{
 		name_for_agent_t tmp{ std::move(other) };
-		swap( *this, other );
+		swap( *this, tmp );
 		return *this;
 	}
 

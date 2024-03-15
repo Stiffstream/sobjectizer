@@ -43,7 +43,7 @@ class agent_identity_t
 
 				// NOTE: this method is implemented in agent.cpp source file.
 				//! Make a c-string with text representation of a value.
-				SO_5_FUNC [[nodiscard]]
+				[[nodiscard]] SO_5_FUNC
 				std::array<char, c_string_size>
 				make_c_string() const noexcept;
 			};
