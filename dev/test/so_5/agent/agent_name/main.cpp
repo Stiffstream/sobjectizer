@@ -35,7 +35,7 @@ class named_agent_t final : public so_5::agent_t
 	{
 	public:
 		named_agent_t( context_t ctx )
-			:	so_5::agent_t{ ctx + so_5::name_for_agent_t{ "Alice" } }
+			:	so_5::agent_t{ ctx + name_for_agent( "Alice" ) }
 			{}
 
 		void

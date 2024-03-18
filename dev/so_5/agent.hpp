@@ -669,6 +669,7 @@ struct working_thread_id_sentinel_t
 class SO_5_TYPE agent_t
 	:	private atomic_refcounted_t
 	,	public message_limit::message_limit_methods_mixin_t
+	,	public name_for_agent_methods_mixin_t
 {
 		friend class subscription_bind_t;
 		friend class state_t;
@@ -2709,7 +2710,41 @@ class SO_5_TYPE agent_t
 		disp_binder_shptr_t
 		so_this_coop_disp_binder() const;
 
-		//FIXME: document this!
+		/*!
+		 * \brief Get an optional name of the agent.
+		 *
+		 * If agent has the name then a reference to this name will be returned.
+		 * Otherwise a small object with a pointer to agent will be returned.
+		 *
+		 * The result can be printed to std::ostream or converted into a string:
+		 * \code
+		 * class my_agent final : public so_5::agent_t
+		 * {
+		 * ...
+		 * 	void so_evt_start() override
+		 * 	{
+		 * 		std::cout << so_agent_name() << ": started" << std::endl;
+		 * 		...
+		 * 		so_5::send<std::string>(some_mbox, so_agent_name().to_string());
+		 * 	}
+		 * 	void so_evt_finished() override
+		 * 	{
+		 * 		std::cout << so_agent_name() << ": stopped" << std::endl;
+		 * 	}
+		 * ...
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * This method returns a lightweight object that just holds a reference
+		 * to the agent's name (or a pointer to the agent). This object should
+		 * not be stored for the long time, because the references/pointers it
+		 * holds may become invalid. If you have to store the agent name for
+		 * a long time please convert the returned value into std::string and
+		 * store the resulting std::string object.
+		 *
+		 * \since v.5.8.2
+		 */
 		[[nodiscard]]
 		agent_identity_t
 		so_agent_name() const noexcept;
@@ -2879,13 +2914,17 @@ class SO_5_TYPE agent_t
 		 */
 		disp_binder_shptr_t m_disp_binder;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Optional name for the agent.
+		 *
+		 * This value can be set in the constructor only and can't be changed
+		 * later.
+		 *
 		 * Empty value means that the name for the agent wasn't specified.
 		 *
 		 * \since v.5.8.2
 		 */
-		name_for_agent_t m_name;
+		const name_for_agent_t m_name;
 
 		//! Destroy all agent's subscriptions.
 		/*!

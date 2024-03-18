@@ -22,7 +22,29 @@
 namespace so_5
 {
 
-//FIXME: document this!
+/*!
+ * \brief Helper class for holding agent's identity (name or pointer).
+ *
+ * Since v.5.8.2 agents may have an optional name. If a name is set for agent
+ * a reference to this name can be returned by agent_t::so_agent_name(). But
+ * if a name is not specified then only a pointer to agent (agent_t's `this` value)
+ * can be used as agent's identity.
+ *
+ * This type is intended to be used as a thin wrapper that covers cases described
+ * above. It holds a reference to agent's name if the name is specified or
+ * just pointer to an agent if there is no name. This type can be seen as
+ * a more as more convenient version of:
+ * \code
+ * std::variant<std::string_view, const agent_t*>;
+ * \endcode
+ *
+ * \attention
+ * Objects of this type hold references, not values. So it's not safe to store
+ * them for a long time. Please consider to store `std::string` objects
+ * returned by to_string() methods instead of agent_identity_t objects.
+ *
+ * \since v.5.8.2
+ */
 class agent_identity_t
 	{
 		friend class agent_t;
@@ -39,7 +61,7 @@ class agent_identity_t
 						+ 1u /* terminating 0-symbol */;
 
 				//! Value.
-				const void * m_pointer_value;
+				const agent_t * m_pointer_value;
 
 				// NOTE: this method is implemented in agent.cpp source file.
 				//! Make a c-string with text representation of a value.
@@ -55,7 +77,10 @@ class agent_identity_t
 				std::string_view m_name;
 			};
 
-		//FIXME: document this!
+		/*!
+		 * Helper type to be used with std::visit when agent_identity has to
+		 * be converted into a string.
+		 */
 		struct to_string_visitor_t
 			{
 				[[nodiscard]]
@@ -74,7 +99,10 @@ class agent_identity_t
 					}
 			};
 
-		//FIXME: document this!
+		/*!
+		 * Helper type to be used with std::visit when agent_identity has to
+		 * be printed into a std::ostream.
+		 */
 		struct to_ostream_visitor_t
 			{
 				std::ostream & m_to;
@@ -102,7 +130,7 @@ class agent_identity_t
 		value_t m_value;
 
 		//! Initializing constructor for case when agent has no user specified name.
-		agent_identity_t( const void * pointer ) noexcept
+		agent_identity_t( const agent_t * pointer ) noexcept
 			:	m_value{ pointer_only_t{ pointer } }
 			{}
 

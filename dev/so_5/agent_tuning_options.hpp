@@ -64,7 +64,24 @@ using custom_direct_mbox_factory_t = std::function<
 
 // NOTE: the implementation of name_for_agent_t is in agent.cpp
 
-//FIXME: document this!
+/*!
+ * \brief Type for holding agent name.
+ *
+ * Unlike std::string it has no small-string optimization, but its size is just
+ * a (sizeof(char *)+sizeof(unsigned int)), so it is smaller than std::string in
+ * cases when agent's name is empty.
+ *
+ * \note
+ * This type holds a copy of name (without the terminal 0-symbol). If name is
+ * not set (or if the content of the object is moved out) then a nullptr is
+ * held and the object is treated as empty or null-object.
+ *
+ * \attention
+ * The size of a name has to be fit into `unsigned int`, not into `std::size_t`,
+ * so name of agent can't exceed 4GiB if `unsigned int` is 32-bit.
+ *
+ * \since v.5.8.2
+ */
 class SO_5_TYPE name_for_agent_t
 {
 	static_assert( sizeof(unsigned int) <= sizeof(std::size_t),
@@ -124,9 +141,41 @@ public:
 
 	//! Does this object have a value?
 	explicit operator bool() const noexcept
-	{
-		return this->has_value();
-	}
+		{
+			return this->has_value();
+		}
+};
+
+/*!
+ * \brief Helper type with method to be mixed into agent class.
+ *
+ * \since v.5.8.2
+ */
+struct name_for_agent_methods_mixin_t
+{
+	/*!
+	 * \brief A helper factory for making #name_for_agent_t instance.
+	 *
+	 * Usage example:
+	 * \code
+	 * class my_agent final : public so_5::agent_t
+	 * {
+	 * public:
+	 * 	my_agent(context_t ctx, std::string_view name)
+	 * 		: so_5::agent_t{ ctx + name_for_agent(name) }
+	 * 	{}
+	 * 	...
+	 * }
+	 * \endcode
+	 *
+	 * \since v.5.8.2
+	 */
+	[[nodiscard]]
+	static name_for_agent_t
+	name_for_agent( std::string_view name )
+		{
+			return name_for_agent_t{ name };
+		}
 };
 
 #if defined( SO_5_MSVC )

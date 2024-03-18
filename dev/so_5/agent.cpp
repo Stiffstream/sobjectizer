@@ -1001,7 +1001,7 @@ agent_t::so_agent_name() const noexcept
 	if( m_name.has_value() )
 		return { m_name.as_string_view() };
 	else
-		return { static_cast<const void *>(this) };
+		return { this };
 }
 
 void
