@@ -65,7 +65,6 @@ MxxRu::Cpp::composite_target do
 
     global_compiler_option '-Werror'
     global_compiler_option '-Wpedantic'
-    global_compiler_option '-Weverything'
     global_compiler_option '-Wno-c++98-compat'
     global_compiler_option '-Wno-c++98-compat-pedantic'
     global_compiler_option '-Wno-padded'
