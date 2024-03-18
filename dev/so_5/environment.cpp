@@ -65,7 +65,7 @@ environment_params_t::environment_params_t(
 	,	m_infrastructure_factory( std::move(other.m_infrastructure_factory) )
 	,	m_event_queue_hook( std::move(other.m_event_queue_hook) )
 	,	m_work_thread_factory( std::move(other.m_work_thread_factory) )
-	,	m_default_subscription_storage_factory( std::move(default_subscription_storage_factory()) )
+	,	m_default_subscription_storage_factory( std::move(other.m_default_subscription_storage_factory) )
 {}
 
 environment_params_t::~environment_params_t()
