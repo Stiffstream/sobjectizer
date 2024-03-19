@@ -4,10 +4,10 @@
 
 /*!
  * \file
- * \since
- * v.5.5.4
  *
  * \brief Messages with monitoring information.
+ *
+ * \since v.5.5.4
  */
 
 #pragma once
@@ -15,6 +15,8 @@
 #include <so_5/current_thread_id.hpp>
 
 #include <so_5/message.hpp>
+
+#include <so_5/detect_os.hpp>
 
 #include <so_5/stats/prefix.hpp>
 #include <so_5/stats/work_thread_activity.hpp>
@@ -33,19 +35,28 @@ namespace stats
 namespace messages
 {
 
+/*
+ * Implementation note: this type has to be marked as SO_5_TYPE for
+ * clang on FreeBSD/macOS. But SO_5_TYPE shouldn't be used on Windows.
+ */
+#if defined(SO_5_OS_WINDOWS)
+	#define SO_5_EXPORT_IMPORT_FOR_QUANTITY_MSG /* empty */
+#else
+	#define SO_5_EXPORT_IMPORT_FOR_QUANTITY_MSG SO_5_TYPE
+#endif
+
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A message with value of some quantity.
  *
  * This message can be used for monitoring things like queue sizes,
  * count of delayed messages, count of cooperations and so on.
  *
  * \tparam T type for representing quantity.
+ *
+ * \since v.5.5.4
  */
 template< typename T >
-struct quantity : public message_t
+struct SO_5_EXPORT_IMPORT_FOR_QUANTITY_MSG quantity : public message_t
 	{
 		//! Prefix of data_source name.
 		prefix_t m_prefix;
@@ -66,33 +77,32 @@ struct quantity : public message_t
 			{}
 	};
 
+#undef SO_5_EXPORT_IMPORT_FOR_QUANTITY_MSG
+
 /*!
  * \brief Notification about start of new stats distribution.
  *
- * \since
- * v.5.5.18
- *
  * \note This message is empty now but it is not declared as a signal.
  * It is for a possibility of expansion of the message in the future.
+ *
+ * \since v.5.5.18
  */
 struct SO_5_TYPE distribution_started : public message_t {};
 
 /*!
  * \brief Notification about finish of stats distribution.
  *
- * \since
- * v.5.5.18
- *
  * \note This message is empty now but it is not declared as a signal.
  * It is for a possibility of expansion of the message in the future.
+ *
+ * \since v.5.5.18
  */
 struct SO_5_TYPE distribution_finished : public message_t {};
 
 /*!
  * \brief Information about one work thread activity.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 struct SO_5_TYPE work_thread_activity : public message_t
 	{
