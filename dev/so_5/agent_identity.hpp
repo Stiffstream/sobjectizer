@@ -33,7 +33,7 @@ namespace so_5
  * This type is intended to be used as a thin wrapper that covers cases described
  * above. It holds a reference to agent's name if the name is specified or
  * just pointer to an agent if there is no name. This type can be seen as
- * a more as more convenient version of:
+ * a more convenient version of:
  * \code
  * std::variant<std::string_view, const agent_t*>;
  * \endcode

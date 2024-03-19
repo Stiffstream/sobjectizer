@@ -17,6 +17,9 @@ New methods so_5::stats::prefix_t::as_string_view() and
 so_5::stats::suffix_t::as_string_view(). Several methods of
 so_5::stats::prefix_t and so_5::stats::suffix_t are now constexpr.
 
+A possibility to set an optional name for agent. New types so_5::name_for_agent_t,
+so_5::agent_identity_t. New methods so_5::agent_t::name_for_agent(), so_5::agent_t::so_agent_name().
+
 \section so_5__5_8_1 5.8.1 "Alpamayo"
 
 New functions so_5::msinks::transform_then_redirect() and new

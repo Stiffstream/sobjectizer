@@ -154,7 +154,7 @@ public:
 struct name_for_agent_methods_mixin_t
 {
 	/*!
-	 * \brief A helper factory for making #name_for_agent_t instance.
+	 * \brief A helper factory for making %name_for_agent_t instance.
 	 *
 	 * Usage example:
 	 * \code
