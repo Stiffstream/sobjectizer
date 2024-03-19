@@ -1,5 +1,6 @@
 /*!
  * \example so_5/adv_thread_pool_fifo/main.cpp
+ * \example so_5/agent_name/main.cpp
  * \example so_5/bind_transformer/main.cpp
  * \example so_5/blinking_led/main.cpp
  * \example so_5/chameneos_prealloc_msgs/main.cpp

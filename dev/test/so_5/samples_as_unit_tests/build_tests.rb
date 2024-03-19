@@ -112,5 +112,7 @@ MxxRu::Cpp::composite_target {
 
   required_prj "#{path}/bind_transformer.ut.rb"
   required_prj "#{path}/bind_transformer-static.ut.rb"
-}
 
+  required_prj "#{path}/agent_name.ut.rb"
+  required_prj "#{path}/agent_name-static.ut.rb"
+}

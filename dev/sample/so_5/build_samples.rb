@@ -87,4 +87,5 @@ MxxRu::Cpp::composite_target {
 	example[ 'introduce_named_mbox' ]
 	example[ 'child_soenv' ]
 	example[ 'bind_transformer' ]
+	example[ 'agent_name' ]
 }
