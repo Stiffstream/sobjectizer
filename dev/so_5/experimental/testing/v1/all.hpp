@@ -466,7 +466,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		/*!
 		 * \brief Type of token returned from pre-handler-hook.
 		 *
-		 * This token can be in valid or invalid states. If is is in
+		 * This token can be in valid or invalid states. If it is in
 		 * valid state then it should be passed as is to
 		 * abstract_scenario_step_t::post_handler_hook() method.
 		 *

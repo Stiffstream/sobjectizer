@@ -453,7 +453,7 @@ class real_scenario_t final : public abstract_scenario_t
 		//! Set the unfreezer for registered agents.
 		/*!
 		 * \attention
-		 * This method must be called before star of the scenario.
+		 * This method must be called before start of the scenario.
 		 */
 		void
 		setup_unfreezer( agent_unfreezer_t & unfreezer ) noexcept
