@@ -782,7 +782,7 @@ namespace details = so_5::experimental::testing::v1::details;
  *
  * Testing scenario should know about every handled or rejected message
  * delivered to agents. To make this possible a trick with enveloped
- * messages are used: every message is enveloped into a special envelope.
+ * messages is used: every message is enveloped into a special envelope.
  * This envelope has a reference to testing scenario and informs this
  * scenario when message is handled by a receiver.
  *
@@ -1171,8 +1171,8 @@ class special_event_queue_hook_t final
 	};
 
 /*!
- * \brief A helper object for synchronization between helper worker
- * there where testing environment is launched and user thread.
+ * \brief A helper object for synchronization between helper worker where
+ * testing environment is launched and user thread.
  *
  * We must stop work of testing_env_t constructor until
  * testing_env_t::tune_environment_on_start() finishes its work.

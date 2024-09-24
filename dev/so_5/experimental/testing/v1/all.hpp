@@ -1249,7 +1249,7 @@ reacts_to( const so_5::mbox_t & mbox )
 	{
 		return {
 				message_payload_type<Msg_Type>::subscription_type_index(),
-				mbox->id() 	
+				mbox->id()
 			};
 	}
 
