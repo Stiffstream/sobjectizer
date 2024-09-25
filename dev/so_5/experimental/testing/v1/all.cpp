@@ -6,8 +6,7 @@
  * \file
  * \brief Testing related stuff.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 
 #include <so_5/experimental/testing/v1/all.hpp>
@@ -49,7 +48,23 @@ trigger_t::target_agent() const noexcept
 void
 trigger_t::set_completion( completion_function_t fn )
 	{
-		m_completion = std::move(fn);
+		if( !m_completion )
+			// Simple store the current function.
+			m_completion = std::move(fn);
+		else
+			{
+				// We have to join the old and the new ones.
+				completion_function_t joined_version =
+					[old_fn = m_completion, new_fn = std::move(fn)]
+					( const trigger_completion_context_t & ctx ) {
+						// NOTE: don't care about exception because completion
+						// functions have to be noexcept.
+						old_fn( ctx );
+						new_fn( ctx );
+					};
+
+				m_completion = std::move(joined_version);
+			}
 	}
 
 [[nodiscard]]
@@ -81,8 +96,7 @@ trigger_t::complete(
 /*!
  * \brief An actual implementation of step of testing scenario.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class real_scenario_step_t final : public abstract_scenario_step_t
 	{
@@ -376,8 +390,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
  * This interface allows testing scenario to unfreeze agents but hides the
  * details of this procedure.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class agent_unfreezer_t
 	{
@@ -399,8 +412,7 @@ class agent_unfreezer_t
 /*!
  * \brief The actual implementation of testing scenario.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class real_scenario_t final : public abstract_scenario_t
 	{
@@ -795,8 +807,7 @@ namespace details = so_5::experimental::testing::v1::details;
  * In theory there can be cases when envelope is destroyed without delivery
  * to an agent. But for testing scenarios we just ignore those case.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 	{
@@ -874,8 +885,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
  *
  * This enumeration describes mode of operation for special_event_queue_t.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 enum class queue_mode_t
 	{
@@ -916,8 +926,7 @@ enum class queue_mode_t
  * messages/signals, service requests and enveloped messages must be
  * wrapped into a special envelope. This is done in push() method.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class special_event_queue_t final : public event_queue_t
 	{
@@ -1041,8 +1050,7 @@ class special_event_queue_t final : public event_queue_t
  * testing environment finishes its work without launching the
  * testing scenario.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class stop_guard_for_unfreezer_t final
 	:	public stop_guard_t
@@ -1083,8 +1091,7 @@ class stop_guard_for_unfreezer_t final
  * to all created event_queue in internal container. In unfreeze()
  * method all those queues are switched from buffered to direct mode.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class special_event_queue_hook_t final
 	:	public event_queue_hook_t
@@ -1179,8 +1186,7 @@ class special_event_queue_hook_t final
  * To do that constructor will wait on a future object for that
  * promise, and tune_environment_on_start() will set this promise.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 struct init_completed_data_t
 	{

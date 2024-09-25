@@ -6,8 +6,7 @@
  * \file
  * \brief Testing related stuff.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 
 #pragma once
@@ -44,8 +43,7 @@ class scenario_in_progress_accessor_t;
  * Instances of that type will be passed to various hooks of
  * testing scenario and scenario's steps.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 struct incident_info_t final
 	{
@@ -74,8 +72,7 @@ struct incident_info_t final
  * when source message/signal is handled, some are activated when incident
  * is ignored. This enumeration can be used for selection of that cases.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 enum class incident_status_t
 	{
@@ -97,8 +94,7 @@ enum class incident_status_t
  * The references inside that object are valid only for small amount
  * of time. They shouldn't be used after completion of trigger.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 struct trigger_completion_context_t
 	{
@@ -112,8 +108,7 @@ struct trigger_completion_context_t
  * In the current version trigger is implemented as a concrete class (just for
  * simplicity), but in the future versions it could be an abstract interface.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class SO_5_TYPE trigger_t final
 	{
@@ -179,6 +174,12 @@ class SO_5_TYPE trigger_t final
 		target_agent() const noexcept;
 
 		//! Setter for completion function.
+		/*!
+		 * @note
+		 * If a completon function is already set then the old and new functions
+		 * are joined. It means that the old function will be called first and
+		 * then the new function.
+		 */
 		void
 		set_completion( completion_function_t fn );
 
@@ -210,16 +211,14 @@ class SO_5_TYPE trigger_t final
 /*!
  * \brief An alias for unique_ptr of trigger.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using trigger_unique_ptr_t = std::unique_ptr< trigger_t >;
 
 /*!
  * \brief An alias for type of tigger's container.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using trigger_container_t = std::vector< trigger_unique_ptr_t >;
 
@@ -230,8 +229,7 @@ using trigger_container_t = std::vector< trigger_unique_ptr_t >;
  * mbox_id for source mbox. If mbox_id is not specified then the direct
  * mbox of a target agent will be used as source mbox.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template< incident_status_t Status >
 struct trigger_source_t final
@@ -255,8 +253,7 @@ struct trigger_source_t final
 /*!
  * \brief A special data object for case of store-state-name completion action.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 struct store_agent_state_name_t
 	{
@@ -265,10 +262,20 @@ struct store_agent_state_name_t
 	};
 
 /*!
+ * \brief A special data object for case when a step should be completed only
+ * after returning from the event handler.
+ *
+ * \since v.5.8.3
+ */
+struct wait_event_handler_completion_t
+	{
+		// Yes, it's an empty type.
+	};
+
+/*!
  * \brief An interface of step's constraints.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class constraint_t
 	{
@@ -319,24 +326,21 @@ class constraint_t
 /*!
  * \brief An alias for unique_ptr of constraint.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using constraint_unique_ptr_t = std::unique_ptr< constraint_t >;
 
 /*!
  * \brief An alias for container of constraints.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using constraint_container_t = std::vector< constraint_unique_ptr_t >;
 
 /*!
  * \brief Implementation of 'not_before' constraint.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class not_before_constraint_t final
 	:	public constraint_t
@@ -379,8 +383,7 @@ class not_before_constraint_t final
 /*!
  * \brief Implementation of 'not_after' constraint.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class not_after_constraint_t final
 	:	public constraint_t
@@ -423,8 +426,7 @@ class not_after_constraint_t final
 /*!
  * \brief An alias for type of step's preactivation action.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using preactivate_action_t = std::function< void() /*noexcept*/ >;
 
@@ -436,8 +438,7 @@ using preactivate_action_t = std::function< void() /*noexcept*/ >;
  * is an internal and implementation-specific type, please don't use
  * it in end-user code.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class SO_5_TYPE abstract_scenario_step_t
 	{
@@ -470,8 +471,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		 * valid state then it should be passed as is to
 		 * abstract_scenario_step_t::post_handler_hook() method.
 		 *
-		 * \since
-		 * v.5.5.24
+		 * \since v.5.5.24
 		 */
 		class token_t final
 			{
@@ -619,8 +619,7 @@ class SO_5_TYPE abstract_scenario_step_t
 /*!
  * \brief An alias for unique_ptr of scenario-step.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 using step_unique_ptr_t = std::unique_ptr< abstract_scenario_step_t >;
 
@@ -631,8 +630,7 @@ using step_unique_ptr_t = std::unique_ptr< abstract_scenario_step_t >;
  * \note
  * This class is Movable, but not Copyable.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template< incident_status_t Status >
 class trigger_holder_t final
@@ -735,8 +733,7 @@ class trigger_holder_t final
  * This class is not thread-safe. Because of that it should be used on
  * a context of a signle thread.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class step_definition_proxy_t
 	{
@@ -1048,8 +1045,7 @@ class step_definition_proxy_t
  * This enumeration is used by testing scenario itself and by
  * scenario_result_t type.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 enum class scenario_status_t
 	{
@@ -1102,8 +1098,7 @@ enum class scenario_status_t
  * 	std::cout << "The result is: " << result << std::endl;
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class scenario_result_t
 	{
@@ -1199,8 +1194,7 @@ class scenario_result_t
  * }
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 [[nodiscard]]
 inline scenario_result_t
@@ -1218,10 +1212,10 @@ completed() { return { scenario_status_t::completed }; }
  * 	.when(some_agent & reacts_to<some_message>());
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template<typename Msg_Type>
+[[nodiscard]]
 details::trigger_source_t< details::incident_status_t::handled >
 reacts_to()
 	{
@@ -1240,10 +1234,10 @@ reacts_to()
  * 	.when(some_agent & reacts_to<some_message>(some_mbox));
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template<typename Msg_Type>
+[[nodiscard]]
 details::trigger_source_t< details::incident_status_t::handled >
 reacts_to( const so_5::mbox_t & mbox )
 	{
@@ -1270,13 +1264,41 @@ reacts_to( const so_5::mbox_t & mbox )
  * REQUIRE("some_state" == env.scenario().stored_state_name("my_step", "my_agent"));
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
+[[nodiscard]]
 inline details::store_agent_state_name_t
 store_state_name( std::string tag )
 	{
 		return { std::move(tag) };
+	}
+
+/*!
+ * \brief Create a special marker for a trigger that requires waiting for
+ * completion of an event handler.
+ *
+ * Usage example:
+ * \code
+ * using namespace so_5::experimental::testing;
+ * ...
+ * env.scenario().define_step("my_step")
+ * 	.when(some_agent & reacts_to<some_message>() & wait_event_handler_completion());
+ * ...
+ * env.scenario().run_for(std::chrono::seconds(1));
+ *
+ * REQUIRE(completed() == env.scenario().result());
+ * \endcode
+ *
+ * @note
+ * This marker can be combined with reacts_to(), but not with ignores().
+ *
+ * \since v.5.8.3
+ */
+[[nodiscard]]
+inline details::wait_event_handler_completion_t
+wait_event_handler_completion()
+	{
+		return {};
 	}
 
 /*!
@@ -1298,10 +1320,10 @@ store_state_name( std::string tag )
  * simply skipped inside a call to send() function. It means that there
  * won't be delivery of message at all.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template<typename Msg_Type>
+[[nodiscard]]
 details::trigger_source_t< details::incident_status_t::ignored >
 ignores()
 	{
@@ -1327,10 +1349,10 @@ ignores()
  * simply skipped inside a call to send() function. It means that there
  * won't be delivery of message at all.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template<typename Msg_Type>
+[[nodiscard]]
 details::trigger_source_t< details::incident_status_t::ignored >
 ignores( const so_5::mbox_t & mbox )
 	{
@@ -1361,9 +1383,9 @@ ignores( const so_5::mbox_t & mbox )
  * If not_before() is used with not_after() then the correctness of those
  * constraints is not checked.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
+[[nodiscard]]
 inline details::constraint_unique_ptr_t
 not_before(
 	std::chrono::steady_clock::duration pause )
@@ -1392,9 +1414,9 @@ not_before(
  * If not_after() is used with not_before() then the correctness of those
  * constraints is not checked.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
+[[nodiscard]]
 inline details::constraint_unique_ptr_t
 not_after(
 	std::chrono::steady_clock::duration pause )
@@ -1413,8 +1435,7 @@ namespace details {
  * progess. This method requires an instance of that class as a special
  * token.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class scenario_in_progress_accessor_t final
 	{
@@ -1457,8 +1478,7 @@ class scenario_in_progress_accessor_t final
  * to another file in future versions of SObjectizer without any
  * previous notice.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class abstract_scenario_t
 	{
@@ -1606,8 +1626,7 @@ class abstract_scenario_t
 /*!
  * \brief A helper operator to create a trigger for the specified agent.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 template< incident_status_t Status >
 trigger_holder_t<Status>
@@ -1631,8 +1650,7 @@ operator&(
  * \brief A helper operator to create a tigger that stores the
  * name of the current agent's state.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 inline trigger_holder_t<incident_status_t::handled>
 operator&(
@@ -1650,6 +1668,29 @@ operator&(
 							ctx.m_step,
 							data.m_tag,
 							target_agent->so_current_state().query_name() );
+				} );
+
+		return { std::move(trigger_ptr) };
+	}
+
+/*!
+ * \brief A helper operator to create a tigger that requires the
+ * completion of an event handler.
+ *
+ * \since v.5.8.3
+ */
+inline trigger_holder_t<incident_status_t::handled>
+operator&(
+	trigger_holder_t<incident_status_t::handled> && old_holder,
+	wait_event_handler_completion_t /*data_to_store*/ )
+	{
+		auto trigger_ptr = old_holder.giveout_trigger();
+		trigger_ptr->set_completion(
+				[]( const trigger_completion_context_t & /*ctx*/ ) noexcept
+				{
+					// Do nothing.
+					// The presence of this completion_function requires
+					// waiting of the return from an event handler.
 				} );
 
 		return { std::move(trigger_ptr) };
@@ -1719,8 +1760,7 @@ operator&(
  * }
  * \endcode
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class SO_5_TYPE scenario_proxy_t final
 	{
@@ -1915,8 +1955,7 @@ Bye, bye!
 Hello, World!
 \endverbatim
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 class SO_5_TYPE testing_env_t
 	{

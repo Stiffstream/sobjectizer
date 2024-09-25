@@ -6,8 +6,7 @@
  * \file
  * \brief Top-level header file for all testing-related stuff.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 
 #pragma once

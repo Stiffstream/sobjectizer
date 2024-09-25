@@ -20,3 +20,6 @@ add_subdirectory(testenv_constructors)
 add_subdirectory(impact_as_message)
 
 add_subdirectory(inline_ns)
+
+add_subdirectory(wait_evt_handler_completion)
+
