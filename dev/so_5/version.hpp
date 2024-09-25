@@ -6,13 +6,12 @@
  * \file
  * \brief Definition of SO_5_VERSION macro
  *
- * \since
- * v.5.5.19.3
+ * \since v.5.5.19.3
  */
 
 #pragma once
 
-// The current version is 5.8.2
+// The current version is 5.8.3
 //
 /*!
  * A number next to generation number in SObjectizer's version.
@@ -32,7 +31,7 @@
  * When minor version is changed some new features are added to SObjectizer
  * but SObjectizer API is compatible on source-code level.
  */
-#define SO_5_VERSION_MINOR 2ull
+#define SO_5_VERSION_MINOR 3ull
 
 /*!
  * A number next to minor version in SObjectizer's version.
