@@ -27,5 +27,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/inline_ns/prj.ut.rb"
 
 	required_prj "#{path}/wait_evt_handler_completion/prj.ut.rb"
+
+	required_prj "#{path}/no_msg_from_envelope/prj.ut.rb"
 }
 
