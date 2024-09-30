@@ -1696,7 +1696,78 @@ operator&(
 		return { std::move(trigger_ptr) };
 	}
 
+namespace mbox_receives_msg_impl
+{
+
+//FIXME: document this!
+template< typename Msg >
+class a_msg_catcher_t final : public agent_t
+	{
+		const mbox_t m_from;
+
+	public:
+		a_msg_catcher_t( context_t ctx, mbox_t from )
+			: agent_t{ std::move(ctx) }
+			, m_from{ std::move(from) }
+			{}
+
+		void
+		so_define_agent() override
+			{
+				so_subscribe( m_from ).event( &a_msg_catcher_t::evt_msg_arrived );
+			}
+
+	private:
+		void
+		evt_msg_arrived( mhood_t<Msg> )
+			{
+				so_drop_subscription< Msg >( m_from );
+			}
+	};
+
+} /* namespace mbox_receives_msg_impl */
+
+//FIXME: document this!
+template< typename Msg >
+struct receives_indicator_t
+	{};
+
+//FIXME: document this!
+template< typename Msg >
+trigger_holder_t< incident_status_t::handled >
+operator&(
+	const mbox_t & from,
+	receives_indicator_t< Msg > )
+	{
+		// A new agent has to be registered.
+		agent_t & catcher_agent = from->environment().introduce_coop(
+				[&from]( coop_t & coop ) -> agent_t & {
+					using agent_to_create_t =
+							mbox_receives_msg_impl::a_msg_catcher_t< Msg >;
+
+					auto * catcher = coop.make_agent< agent_to_create_t >( from );
+					return *catcher;
+				} );
+
+		return {
+				std::make_unique<trigger_t>(
+						incident_status_t::handled,
+						catcher_agent,
+						message_payload_type< Msg >::subscription_type_index(),
+						from->id() )
+			};
+	}
+
 } /* namespace details */
+
+//FIXME: document this!
+template< typename Msg >
+[[nodiscard]]
+details::receives_indicator_t< Msg >
+receives()
+	{
+		return {};
+	}
 
 /*!
  * \brief A special wrapper around scenario object.
