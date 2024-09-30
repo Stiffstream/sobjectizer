@@ -17,8 +17,8 @@ public:
 
 	void
 	access_hook(
-		access_context_t context,
-		handler_invoker_t & invoker ) noexcept override
+		access_context_t /*context*/,
+		handler_invoker_t & /*invoker*/ ) noexcept override
 	{
 		// Do not call invoker.invoke!
 	}
