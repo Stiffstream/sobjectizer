@@ -14,20 +14,36 @@ class test_envelope_t : public so_5::enveloped_msg::envelope_t
 {
 	std::atomic<int> & m_how_many_times_handled;
 
+	so_5::message_ref_t m_payload;
+
 public:
-	test_envelope_t( std::atomic<int> & how_many_times_handled )
+	test_envelope_t(
+		std::atomic<int> & how_many_times_handled,
+		so_5::message_ref_t payload )
 		: m_how_many_times_handled{ how_many_times_handled }
+		, m_payload{ std::move(payload) }
 	{}
 
 	void
 	access_hook(
 		access_context_t context,
-		handler_invoker_t & /*invoker*/ ) noexcept override
+		handler_invoker_t & invoker ) noexcept override
 	{
-		if( access_context_t::handler_found == context )
+		switch( context )
+		{
+		case access_context_t::handler_found:
 			++m_how_many_times_handled;
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
 
-		// Do not call invoker.invoke!
+		case access_context_t::transformation:
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+
+		case access_context_t::inspection:
+			invoker.invoke( payload_info_t{ m_payload } );
+		break;
+		}
 	}
 };
 
@@ -41,11 +57,7 @@ public:
 	void
 	so_define_agent() override
 	{
-		so_subscribe_self().event(
-			[](mhood_t<hello>) {
-				// This should not happen!
-				std::abort();
-			} );
+		so_subscribe_self().event( [](mhood_t<hello>) {} );
 	}
 };
 
@@ -70,7 +82,9 @@ public:
 		m_target_mbox->do_deliver_message(
 				so_5::message_delivery_mode_t::ordinary,
 				so_5::message_payload_type< hello >::subscription_type_index(),
-				std::make_unique< test_envelope_t >( m_how_many_times_handled ),
+				std::make_unique< test_envelope_t >(
+						m_how_many_times_handled,
+						so_5::message_ref_t{} /* null for a signal */ ),
 				1u );
 	}
 };
@@ -102,37 +116,7 @@ UT_UNIT_TEST( reacts_to )
 
 			env.scenario().run_for( std::chrono::milliseconds(200) );
 
-			UT_CHECK_NE( so5_tests::completed(), env.scenario().result() );
-		},
-		5 );
-
-	UT_CHECK_EQ( 1, how_many_times_handled.load() );
-}
-
-UT_UNIT_TEST( ignores )
-{
-	std::atomic<int> how_many_times_handled{ 0 };
-	run_with_time_limit(
-		[&]()
-		{
-			so5_tests::testing_env_t env;
-
-			a_receiver_t * receiver = env.environment().introduce_coop(
-					[&how_many_times_handled](so_5::coop_t & coop) {
-						a_receiver_t * r = coop.make_agent< a_receiver_t >();
-						coop.make_agent< a_sender_t >(
-								how_many_times_handled,
-								r->so_direct_mbox() );
-						return r;
-					} );
-
-			env.scenario().define_step( "hello-at-start" )
-				.when( *receiver & so5_tests::ignores< hello >() )
-				;
-
-			env.scenario().run_for( std::chrono::milliseconds(200) );
-
-			UT_CHECK_NE( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
 		},
 		5 );
 
@@ -143,7 +127,6 @@ int
 main()
 {
 	UT_RUN_UNIT_TEST( reacts_to )
-	UT_RUN_UNIT_TEST( ignores )
 
 	return 0;
 }

@@ -883,7 +883,9 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 							case message_t::kind_t::classical_message : [[fallthrough]];
 							case message_t::kind_t::user_type_message :
 								m_handled = true;
-								m_envelope.get().call_handler_invoker( m_invoker.get() );
+								m_envelope.get().call_handler_invoker(
+										m_invoker.get(),
+										payload.message() );
 							break;
 
 							case message_t::kind_t::enveloped_msg :
@@ -977,13 +979,17 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 		//! \since v.5.8.3
 		void
 		call_handler_invoker(
-			handler_invoker_t & invoker_to_use ) noexcept
+			handler_invoker_t & invoker_to_use,
+			//! A reference to message to be passed to \a invoker_to_use.
+			//! We can just pass m_message to \a invoker_to_use because it will
+			//! lead to repeated call to the access_hook() of nested envelopes.
+			const so_5::message_ref_t & message_ref_to_use ) noexcept
 			{
 				// We must get token...
 				auto token = m_scenario.get().pre_handler_hook(
 						m_demand_info );
 
-				invoker_to_use.invoke( payload_info_t{ m_message } );
+				invoker_to_use.invoke( payload_info_t{ message_ref_to_use } );
 
 				// And now the token must be passed back.
 				m_scenario.get().post_handler_hook( token );

@@ -24,6 +24,7 @@ add_subdirectory(inline_ns)
 add_subdirectory(wait_evt_handler_completion)
 
 add_subdirectory(no_msg_from_envelope)
+add_subdirectory(msg_from_envelope)
 
 add_subdirectory(mbox_receives_msg)
 
