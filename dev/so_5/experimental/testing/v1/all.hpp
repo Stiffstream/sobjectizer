@@ -1699,10 +1699,19 @@ operator&(
 namespace mbox_receives_msg_impl
 {
 
-//FIXME: document this!
+/*!
+ * \brief Agent that receives a message/signal from specified mbox.
+ *
+ * This agent is a part of `receives` trigger.
+ *
+ * \tparam Msg type of message/signal to be received.
+ *
+ * \since v.5.8.3
+ */
 template< typename Msg >
 class a_msg_catcher_t final : public agent_t
 	{
+		//! Source for a message.
 		const mbox_t m_from;
 
 	public:
@@ -1721,25 +1730,43 @@ class a_msg_catcher_t final : public agent_t
 		void
 		evt_msg_arrived( mhood_t<Msg> )
 			{
+				// Drop the subscription because it's no more needed.
 				so_drop_subscription< Msg >( m_from );
 			}
 	};
 
 } /* namespace mbox_receives_msg_impl */
 
-//FIXME: document this!
+/*!
+ * \brief Special indicator to be used in implementation of `receives` trigger.
+ *
+ * \tparam Msg type of message/signal to be received.
+ *
+ * \since v.5.8.3
+ */
 template< typename Msg >
 struct receives_indicator_t
 	{};
 
-//FIXME: document this!
+/*!
+ * \brief A helper operator to create a tigger that receives a message/signal
+ * from specified mbox.
+ *
+ * \tparam Msg type of message/signal to be received.
+ *
+ * \since v.5.8.3
+ */
 template< typename Msg >
 trigger_holder_t< incident_status_t::handled >
 operator&(
+	//! Mbox from that a message/signal has to be received.
 	const mbox_t & from,
+	//! Type of message to be received.
 	receives_indicator_t< Msg > )
 	{
 		// A new agent has to be registered.
+		//
+		// NOTE: the agent will be bound to the default dispatcher.
 		agent_t & catcher_agent = from->environment().introduce_coop(
 				[&from]( coop_t & coop ) -> agent_t & {
 					using agent_to_create_t =
@@ -1760,7 +1787,36 @@ operator&(
 
 } /* namespace details */
 
-//FIXME: document this!
+/*!
+ * \brief Helper function to be used for a trigger that receives
+ * a message/singal from a mbox.
+ *
+ * Usage example:
+ * \code
+ * so_5::testing::testing_env_t env;
+ * ...
+ * so_5::mbox_t dest = env.environment().create_mbox();
+ * ...
+ * env.scenario().define_step("message_arrives")
+ * 	.when(dest & tests::receives<some_msg>());
+ * ...
+ * \endcode
+ *
+ * \note
+ * A mutable message can be specified too. But the mbox should allow
+ * subscription for mutable messages. For example:
+ * \code
+ * so_5::testing::testing_env_t env;
+ * ...
+ * so_5::mbox_t dest = so_5::make_unique_subscribers_mbox(env.environment());
+ * ...
+ * env.scenario().define_step("message_arrives")
+ * 	.when(dest & tests::receives< so_5::mutable_msg<some_msg> >());
+ * ...
+ * \endcode
+ *
+ * \since v.5.8.3
+ */
 template< typename Msg >
 [[nodiscard]]
 details::receives_indicator_t< Msg >
