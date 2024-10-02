@@ -49,6 +49,12 @@ public:
 	}
 };
 
+class a_noop_t final : public so_5::agent_t
+{
+public:
+	using so_5::agent_t::agent_t;
+};
+
 class a_sender_t final : public so_5::agent_t
 {
 	std::atomic<int> & m_how_many_times_handled;
@@ -117,9 +123,9 @@ UT_UNIT_TEST( ignores )
 		{
 			so5_tests::testing_env_t env;
 
-			a_receiver_t * receiver = env.environment().introduce_coop(
+			a_noop_t * receiver = env.environment().introduce_coop(
 					[&how_many_times_handled](so_5::coop_t & coop) {
-						a_receiver_t * r = coop.make_agent< a_receiver_t >();
+						auto * r = coop.make_agent< a_noop_t >();
 						coop.make_agent< a_sender_t >(
 								how_many_times_handled,
 								r->so_direct_mbox() );
@@ -136,7 +142,7 @@ UT_UNIT_TEST( ignores )
 		},
 		5 );
 
-	UT_CHECK_EQ( 1, how_many_times_handled.load() );
+	UT_CHECK_EQ( 0, how_many_times_handled.load() );
 }
 
 int
