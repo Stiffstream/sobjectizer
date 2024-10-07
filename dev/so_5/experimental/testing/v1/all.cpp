@@ -537,7 +537,8 @@ class real_scenario_t final : public abstract_scenario_t
 		[[nodiscard]]
 		token_t
 		pre_handler_hook(
-			const incident_info_t & info ) noexcept override
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept override
 			{
 				token_t result;
 
@@ -548,7 +549,7 @@ class real_scenario_t final : public abstract_scenario_t
 				if( scenario_status_t::in_progress == m_status &&
 						m_waiting_step_index < m_steps.size() )
 					{
-						result = react_on_pre_handler_hook( info );
+						result = react_on_pre_handler_hook( info, incoming_msg );
 					}
 
 				return result;
@@ -643,7 +644,8 @@ class real_scenario_t final : public abstract_scenario_t
 		[[nodiscard]]
 		token_t
 		react_on_pre_handler_hook(
-			const incident_info_t & info ) noexcept
+			const incident_info_t & info,
+			const message_ref_t & /*incoming_msg*/ ) noexcept
 			{
 				token_t result;
 
@@ -791,6 +793,7 @@ namespace impl {
 
 namespace details = so_5::experimental::testing::v1::details;
 
+
 /*!
  * \brief A special envelope that is necessary for testing scenarios.
  *
@@ -841,39 +844,96 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 		//! Was this message handled by a receiver?
 		delivery_result_t m_delivery_result{ delivery_result_t::ignored };
 
+		//! A special invoker to be used to call pre_handler_hook.
+		class pre_handler_hook_invoker_t final : public handler_invoker_t
+			{
+				//! Owner of this invoker.
+				outliving_reference_t< special_envelope_t > m_owner;
+
+				//! Invoker to be used to call the actual event handler.
+				outliving_reference_t< handler_invoker_t > m_actual_invoker;
+
+			public:
+				//! Intializing constructor.
+				pre_handler_hook_invoker_t(
+					//! Owner of this invoker.
+					outliving_reference_t< special_envelope_t > owner,
+					//! Invoker to be used to call the actual event handler.
+					outliving_reference_t< handler_invoker_t > actual_invoker )
+					:	m_owner{ owner }
+					,	m_actual_invoker{ actual_invoker }
+					{}
+
+				void
+				invoke( const payload_info_t & payload ) noexcept override
+					{
+						// We must get token...
+						auto token = m_owner.get()
+								.m_scenario.get()
+										.pre_handler_hook(
+												m_owner.get().m_demand_info,
+												payload.message() );
+
+						// Actual event handler has to be called.
+						m_actual_invoker.get().invoke( payload );
+
+						// And now the token must be passed back.
+						m_owner.get().m_scenario.get().post_handler_hook( token );
+					}
+			};
+
+		//! A special invoker to be used to call no_handler_hook.
+		class no_handler_invoker_t final : public handler_invoker_t
+			{
+				//! Owner of this invoker.
+				outliving_reference_t< special_envelope_t > m_owner;
+
+			public:
+				//! Initializing constructor.
+				explicit no_handler_invoker_t(
+					outliving_reference_t< special_envelope_t > owner )
+					:	m_owner{ owner }
+					{}
+
+				void
+				invoke( const payload_info_t & /*payload*/ ) noexcept override
+					{
+						m_owner.get().m_scenario.get().no_handler_hook(
+								m_owner.get().m_demand_info );
+					}
+			};
+
 		//! Special handler invoker that tries to extract the actual message.
 		//!
 		//! This invoker is necessary because the message may be enveloped
 		//! more than once and one of the nested envelopes may suppress it.
 		//!
-		//! If the message is extracted then special_envelope_t::call_handler_invoker()
-		//! will be called as a callback.
-		//!
 		//! \since v.5.8.3
-		class special_handler_invoker_t final
+		class invoker_for_message_extraction_t final
 			: public so_5::enveloped_msg::handler_invoker_t
 			{
-				//! Object that created this invoker.
-				outliving_reference_t< special_envelope_t > m_envelope;
-
-				//! Handler invoker that has to be used.
+				//! Handler invoker that has to be used for extracted message.
 				outliving_reference_t< so_5::enveloped_msg::handler_invoker_t > m_invoker;
+
+				//! Context for accessing enveloped message.
+				const so_5::enveloped_msg::access_context_t m_access_context;
 
 				//! Has the message actually been handled?
 				bool m_handled{ false };
 
 			public:
-				special_handler_invoker_t(
-					//! Object that created this invoker.
-					outliving_reference_t< special_envelope_t > envelope,
-					//! Handler invoker that has to be used.
-					outliving_reference_t< so_5::enveloped_msg::handler_invoker_t > invoker )
-					:	m_envelope{ envelope }
-					,	m_invoker{ invoker }
+				//! Initializing constructor.
+				invoker_for_message_extraction_t(
+					//! Handler invoker that has to be used if message is extracted.
+					outliving_reference_t< so_5::enveloped_msg::handler_invoker_t > invoker,
+					//! Context for accessing enveloped message.
+					so_5::enveloped_msg::access_context_t access_context )
+					:	m_invoker{ invoker }
+					,	m_access_context{ access_context }
 					{}
 
 				void
-				invoke( const payload_info_t & payload ) noexcept override
+				invoke( const so_5::enveloped_msg::payload_info_t & payload ) noexcept override
 					{
 						const auto msg_kind = message_kind( payload.message() );
 
@@ -883,9 +943,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 							case message_t::kind_t::classical_message : [[fallthrough]];
 							case message_t::kind_t::user_type_message :
 								m_handled = true;
-								m_envelope.get().call_handler_invoker(
-										m_invoker.get(),
-										payload.message() );
+								m_invoker.get().invoke( payload );
 							break;
 
 							case message_t::kind_t::enveloped_msg :
@@ -893,11 +951,10 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 									// Do recurvise call.
 									// Value for was_handled will be detected in the
 									// nested call.
-									auto & nested_envelope = so_5::enveloped_msg::impl::message_to_envelope(
-											payload.message() );
-									nested_envelope.access_hook(
-											access_context_t::handler_found,
-											*this );
+									auto & nested_envelope =
+											so_5::enveloped_msg::impl::message_to_envelope(
+													payload.message() );
+									nested_envelope.access_hook( m_access_context, *this );
 								}
 							break;
 							}
@@ -912,6 +969,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 			};
 
 	public :
+		//! Initializing constructor.
 		special_envelope_t(
 			outliving_reference_t< details::abstract_scenario_t > scenario,
 			const execution_demand_t & demand )
@@ -924,7 +982,20 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 				// If message wasn't handled we assume that agent rejected
 				// this message.
 				if( delivery_result_t::ignored == m_delivery_result )
-					m_scenario.get().no_handler_hook( m_demand_info );
+				{
+					// But we have to check that message isn't suppressed by
+					// a nested envelope.
+					no_handler_invoker_t invoker_no_handler_hook{
+							outliving_mutable( *this )
+						};
+					invoker_for_message_extraction_t special_invoker{
+							outliving_mutable( invoker_no_handler_hook ),
+							access_context_t::inspection
+						};
+					// If the message is not suppressed then no_handler_hook
+					// will be called by invoker_no_handler_hook.
+					special_invoker.invoke( payload_info_t{ m_message } );
+				}
 			}
 
 		void
@@ -938,12 +1009,19 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 					{
 					case access_context_t::handler_found :
 						{
+							// This invoker will call pre/post_handler_hooks and
+							// the actual event-handler.
+							pre_handler_hook_invoker_t pre_handler_hook_invoker{
+									outliving_mutable( *this ),
+									outliving_mutable( invoker )
+								};
+
 							// The message can be envelope itself.
 							// And the envelope can hide the message and does not return it.
 							// This case has to be handled.
-							special_handler_invoker_t special_invoker{
-									outliving_mutable( *this ),
-									outliving_mutable( invoker )
+							invoker_for_message_extraction_t special_invoker{
+									outliving_mutable( pre_handler_hook_invoker ),
+									context
 								};
 							// The special invoker will do the back call of
 							// call_handler_invoker method.
@@ -965,34 +1043,6 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 						invoker.invoke( payload_info_t{ m_message } );
 					break;
 					}
-			}
-
-		//! This is a callback for special_handler_invoker.
-		//!
-		//! This method will be called by a special_handler_invoker_t instance
-		//! created inside the access_hook().
-		//!
-		//! \note
-		//! This method is marked as noexcept because is has to be called
-		//! from noexcept-context.
-		//!
-		//! \since v.5.8.3
-		void
-		call_handler_invoker(
-			handler_invoker_t & invoker_to_use,
-			//! A reference to message to be passed to \a invoker_to_use.
-			//! We can just pass m_message to \a invoker_to_use because it will
-			//! lead to repeated call to the access_hook() of nested envelopes.
-			const so_5::message_ref_t & message_ref_to_use ) noexcept
-			{
-				// We must get token...
-				auto token = m_scenario.get().pre_handler_hook(
-						m_demand_info );
-
-				invoker_to_use.invoke( payload_info_t{ message_ref_to_use } );
-
-				// And now the token must be passed back.
-				m_scenario.get().post_handler_hook( token );
 			}
 	};
 

@@ -1573,14 +1573,18 @@ class abstract_scenario_t
 		//! Hook that should be called before invocation of event-handler.
 		/*!
 		 * This hook should be called before invocation of any event-handler
-		 * for ordinary message, service request or enveloped message.
+		 * for ordinary message or enveloped message.
 		 *
 		 * The token returned should then be passed to post_handler_hook().
 		 */
 		[[nodiscard]]
 		virtual token_t
 		pre_handler_hook(
-			const incident_info_t & info ) noexcept = 0;
+			//! Information about incoming message/signal.
+			const incident_info_t & info,
+			//! Reference to the incoming message.
+			//! It may be nullptr in case of a signal.
+			const message_ref_t & incoming_msg ) noexcept = 0;
 
 		//! Hook that should be called just after completion of event-handler.
 		/*!
