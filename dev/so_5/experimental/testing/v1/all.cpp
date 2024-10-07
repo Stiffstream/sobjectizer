@@ -72,6 +72,7 @@ trigger_t::set_completion( completion_function_t fn )
 [[nodiscard]]
 bool
 trigger_t::check(
+	const trigger_activation_context_t & /*context*/,
 	const incident_status_t incident_status,
 	const incident_info_t & info ) const noexcept
 	{
@@ -178,12 +179,18 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		[[nodiscard]]
 		token_t
 		pre_handler_hook(
+			const scenario_in_progress_accessor_t & scenario_accessor,
 			const incident_info_t & info ) noexcept override
 			{
 				token_t result;
 
 				if( status_t::preactivated == m_status )
-					result = try_activate( incident_status_t::handled, info );
+					result = try_activate(
+							trigger_activation_context_t{
+									scenario_accessor,
+									*this
+							},
+							incident_status_t::handled, info );
 
 				return result;
 			}
@@ -216,10 +223,16 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 		void
 		no_handler_hook(
+			const scenario_in_progress_accessor_t & scenario_accessor,
 			const incident_info_t & info ) noexcept override
 			{
 				if( status_t::preactivated == m_status )
-					(void)try_activate( incident_status_t::ignored, info );
+					(void)try_activate(
+							trigger_activation_context_t{
+									scenario_accessor,
+									*this,
+							},
+							incident_status_t::ignored, info );
 			}
 
 		[[nodiscard]]
@@ -319,6 +332,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		[[nodiscard]]
 		token_t
 		try_activate(
+			const trigger_activation_context_t & context,
 			const incident_status_t incident_status,
 			const incident_info_t & info ) noexcept
 			{
@@ -339,8 +353,9 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 				auto it = std::find_if(
 						std::begin(m_triggers), end,
-						[incident_status, &info]( trigger_unique_ptr_t & trigger ) {
-							return trigger->check( incident_status, info );
+						[&context, incident_status, &info]
+						( trigger_unique_ptr_t & trigger ) {
+							return trigger->check( context, incident_status, info );
 						} );
 
 				if( it == end )
@@ -586,7 +601,8 @@ class real_scenario_t final : public abstract_scenario_t
 
 		void
 		no_handler_hook(
-			const incident_info_t & info ) noexcept override
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -595,7 +611,7 @@ class real_scenario_t final : public abstract_scenario_t
 				if( scenario_status_t::in_progress == m_status &&
 						m_waiting_step_index < m_steps.size() )
 					{
-						react_on_no_handler_hook( info );
+						react_on_no_handler_hook( info, incoming_msg );
 					}
 			}
 
@@ -651,7 +667,7 @@ class real_scenario_t final : public abstract_scenario_t
 
 				// pre_handler_hook on the current waiting step must be called.
 				auto & step_to_check = *(m_steps[ m_waiting_step_index ]);
-				auto step_token = step_to_check.pre_handler_hook( info );
+				auto step_token = step_to_check.pre_handler_hook( make_accessor(), info );
 
 				if( step_token.valid() )
 					// Because step's token is not NULL, we should return
@@ -685,11 +701,13 @@ class real_scenario_t final : public abstract_scenario_t
 
 		void
 		react_on_no_handler_hook(
-			const incident_info_t & info ) noexcept
+			const incident_info_t & info,
+			const message_ref_t & /*incoming_msg*/ ) noexcept
 			{
 				// no_handler_hook on the current waiting step must be called.
 				auto & step_to_check = *(m_steps[ m_waiting_step_index ]);
-				step_to_check.no_handler_hook( info );
+				//FIXME: incoming_msg has to be passed here!
+				step_to_check.no_handler_hook( make_accessor(), info );
 
 				// The step can change its status...
 				switch( step_to_check.status() )
@@ -896,10 +914,11 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 					{}
 
 				void
-				invoke( const payload_info_t & /*payload*/ ) noexcept override
+				invoke( const payload_info_t & payload ) noexcept override
 					{
 						m_owner.get().m_scenario.get().no_handler_hook(
-								m_owner.get().m_demand_info );
+								m_owner.get().m_demand_info,
+								payload.message() );
 					}
 			};
 

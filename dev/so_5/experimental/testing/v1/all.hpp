@@ -103,6 +103,27 @@ struct trigger_completion_context_t
 	};
 
 /*!
+ * \brief Description of context on that an attempt to activate a trigger
+ * is performing.
+ *
+ * Some triggers should do some actions on activation. Because
+ * of that triggers should have access to scenario's step or even to
+ * the whole scenario. This type holds a reference to objects those
+ * can be accessible to a trigger.
+ *
+ * \note
+ * The references inside that object are valid only for small amount
+ * of time. They shouldn't be used after completion of trigger.
+ *
+ * \since v.5.8.3
+ */
+struct trigger_activation_context_t
+	{
+		const scenario_in_progress_accessor_t & m_scenario_accessor;
+		abstract_scenario_step_t & m_step;
+	};
+
+/*!
  * \brief An implementation of trigger for scenario's step.
  *
  * In the current version trigger is implemented as a concrete class (just for
@@ -192,9 +213,11 @@ class SO_5_TYPE trigger_t final
 		[[nodiscard]]
 		bool
 		check(
+			//! Activation context.
+			const trigger_activation_context_t & context,
 			//! What happened with message/signal?
 			const incident_status_t incident_status,
-			//! Context for that event.
+			//! Informationa about the incident.
 			const incident_info_t & info ) const noexcept;
 
 		//! Does this trigger require separate completion action?
@@ -552,6 +575,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		[[nodiscard]]
 		virtual token_t
 		pre_handler_hook(
+			const scenario_in_progress_accessor_t & scenario_accessor,
 			const incident_info_t & info ) noexcept = 0;
 
 		//! Hook that should be called just after completion of event-handler.
@@ -572,6 +596,7 @@ class SO_5_TYPE abstract_scenario_step_t
 		 */
 		virtual void
 		no_handler_hook(
+			const scenario_in_progress_accessor_t & scenario_accessor,
 			const incident_info_t & info ) noexcept = 0;
 
 		//! Get the current status of the step.
@@ -1600,7 +1625,11 @@ class abstract_scenario_t
 		//! a message or service request.
 		virtual void
 		no_handler_hook(
-			const incident_info_t & info ) noexcept = 0;
+			//! Information about incoming message/signal.
+			const incident_info_t & info,
+			//! Reference to the incoming message.
+			//! It may be nullptr in case of a signal.
+			const message_ref_t & incoming_msg ) noexcept = 0;
 
 		//! Store a name of an agent state in the scenario.
 		/*!
