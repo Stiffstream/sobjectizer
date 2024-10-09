@@ -1365,7 +1365,56 @@ store_state_name( std::string tag )
 		return { std::move(tag) };
 	}
 
-//FIXME: document this!
+/*!
+ * \brief Create a special marker for a trigger for inspecting an
+ * incoming message and storing the inspection result inside the scenario.
+ *
+ * Usage example:
+ * \code
+ * using namespace so_5::experimental::testing;
+ * ...
+ * env.scenario().define_step("my_step")
+ * 	.when(some_agent & reacts_to<some_message>()
+ * 		& inspect_msg("msg-check", [](const some_message & msg) -> std::string {
+ * 				return msg.some_field == expected_value ? "OK" : "FAILED";
+ * 			})
+ * 	);
+ * ...
+ * env.scenario().run_for(std::chrono::seconds(1));
+ *
+ * REQUIRE(completed() == env.scenario().result());
+ * REQUIRE("OK" == env.scenario().stored_msg_inspection_result("my_step", "msg-check"));
+ * \endcode
+ *
+ * The inspect_msg() can be used for mutable messages too:
+ *
+ * \code
+ * env.scenario().define_step("my_step")
+ * 	.when(some_agent & reacts_to<so_5::mutable_msg<some_message>>()
+ * 		& inspect_msg("msg-check", [](const some_message & msg) -> std::string {
+ * 				return msg.some_field == expected_value ? "OK" : "FAILED";
+ * 			})
+ * 	);
+ * \endcode
+ *
+ * The inspect_msg() can't be used with signals, because signals have no actual data.
+ *
+ * \attention
+ * The inspect_msg() doesn't check the type of the message. So it's possible to
+ * make a mistake like this:
+ * \code
+ * env.scenario().define_step("my_step")
+ * 	.when(some_agent & reacts_to<some_message>()
+ * 		& inspect_msg("msg-check", [](const another_msg & msg) -> std::string {
+ * 				return msg.some_field == expected_value ? "OK" : "FAILED";
+ * 			})
+ * 	);
+ * \endcode
+ * And this will lead to a run-time error (with possible termination of the
+ * application).
+ *
+ * \since v.5.8.3
+ */
 template< typename Lambda >
 [[nodiscard]]
 details::store_msg_inspection_result_t
@@ -1758,6 +1807,8 @@ class abstract_scenario_t
 		//! Store msg inspection result in the scenario.
 		/*!
 		 * Note this method can be accessed only when scenario object is locked.
+		 *
+		 * \since v.5.8.3
 		 */
 		virtual void
 		store_msg_inspection_result(
@@ -1766,7 +1817,15 @@ class abstract_scenario_t
 			const std::string & tag,
 			const std::string & inspection_result ) = 0;
 
-		//FIXME: document this!
+		//! Get a value of stored msg inspection result.
+		/*!
+		 * Note this method can be accessed only when scenario object is locked.
+		 *
+		 * \throw exception_t if there is no msg inspecation result with such
+		 * tag name for the specified step name.
+		 *
+		 * \since v.5.8.3
+		 */
 		[[nodiscard]]
 		virtual std::string
 		stored_msg_inspection_result(
@@ -1824,8 +1883,10 @@ operator&(
 		return { std::move(trigger_ptr) };
 	}
 
-//FIXME: document this!
 /*!
+ * \brief A helper operator to create a tigger that inspects the incoming
+ * message and stores the result into the scenario.
+ *
  * \since v.5.8.3
  */
 template< incident_status_t Status >
@@ -2179,7 +2240,45 @@ class SO_5_TYPE scenario_proxy_t final
 			const std::string & step_name,
 			const std::string & tag ) const;
 
-		//FIXME: document this!
+		//! Try to get stored msg inspection result.
+		/*!
+		 * This method allows to get msg inspection result stored by
+		 * inspect_msg() trigger. For example:
+		 * \code
+		 * using namespace so_5::experimental::testing;
+		 * TEST_CASE("some_case") {
+		 * 	testing_env_t env;
+		 *
+		 * 	so_5::agent_t * test_agent;
+		 * 	env.environment().introduce_coop([&](so_5::coop_t & coop) {
+		 * 		test_agent = coop.make_agent<some_agent_type>(...);
+		 * 	});
+		 *
+		 * 	env.scenario().define_step("one")
+		 * 		.impact<some_message>(*test_agent, ...)
+		 * 		.when(*test_agent & reacts_to<some_message>()
+		 * 				& inspect_msg("msg-check"
+		 * 						[](const some_message & msg) -> std::string {
+		 * 							return msg.some_field = expected_value ? "OK" : "FAIL";
+		 * 						})
+		 * 		);
+		 * 	...
+		 * 	env.scenario().run_for(std::chrono::seconds(1));
+		 *
+		 * 	REQUIRE(completed() == env.scenario().result());
+		 *
+		 * 	REQUIRE("OK" == env.scenario().stored_msg_inspection_result("one", "msg-check"));
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * This method can be called only after completion of the scenario.
+		 * Otherwise an instance of so_5::exception_t will be thrown.
+		 *
+		 * \return The value of the inspection result. If there is no stored
+		 * result for a pair of (\a step_name, \a tag) then an instance of
+		 * so_5::exception_t will be thrown.
+		 */
 		[[nodiscard]]
 		std::string
 		stored_msg_inspection_result(
