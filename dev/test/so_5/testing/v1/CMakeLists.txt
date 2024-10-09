@@ -28,3 +28,5 @@ add_subdirectory(msg_from_envelope)
 
 add_subdirectory(mbox_receives_msg)
 
+add_subdirectory(inspect_msg)
+

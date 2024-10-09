@@ -51,7 +51,7 @@ void
 trigger_t::set_completion( completion_function_t fn )
 	{
 		if( !m_completion )
-			// Simple store the current function.
+			// Simple store the new function.
 			m_completion = std::move(fn);
 		else
 			{
@@ -69,10 +69,31 @@ trigger_t::set_completion( completion_function_t fn )
 			}
 	}
 
+void
+trigger_t::set_activation( activation_function_t fn )
+	{
+		if( !m_activation )
+			// Simple store the new function.
+			m_activation = std::move(fn);
+		else
+			{
+				// We have to join the old and the new ones.
+				activation_function_t joined_version =
+					[old_fn = m_activation, new_fn = std::move(fn)]
+					( const trigger_activation_context_t & ctx ) {
+						// NOTE: don't care about exception because completion
+						// functions have to be noexcept.
+						old_fn( ctx );
+						new_fn( ctx );
+					};
+
+				m_activation = std::move(joined_version);
+			}
+	}
+
 [[nodiscard]]
 bool
 trigger_t::check(
-	const trigger_activation_context_t & /*context*/,
 	const incident_status_t incident_status,
 	const incident_info_t & info ) const noexcept
 	{
@@ -87,6 +108,14 @@ bool
 trigger_t::requires_completion() const noexcept
 	{
 		return static_cast<bool>(m_completion);
+	}
+
+void
+trigger_t::activate(
+	const trigger_activation_context_t & context ) noexcept
+	{
+		if( m_activation )
+			m_activation( context );
 	}
 
 void
@@ -180,7 +209,8 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		token_t
 		pre_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			const incident_info_t & info ) noexcept override
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept override
 			{
 				token_t result;
 
@@ -188,7 +218,8 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 					result = try_activate(
 							trigger_activation_context_t{
 									scenario_accessor,
-									*this
+									*this,
+									incoming_msg
 							},
 							incident_status_t::handled, info );
 
@@ -224,13 +255,15 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 		void
 		no_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			const incident_info_t & info ) noexcept override
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept override
 			{
 				if( status_t::preactivated == m_status )
 					(void)try_activate(
 							trigger_activation_context_t{
 									scenario_accessor,
 									*this,
+									incoming_msg,
 							},
 							incident_status_t::ignored, info );
 			}
@@ -355,14 +388,17 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 						std::begin(m_triggers), end,
 						[&context, incident_status, &info]
 						( trigger_unique_ptr_t & trigger ) {
-							return trigger->check( context, incident_status, info );
+							return trigger->check( incident_status, info );
 						} );
 
 				if( it == end )
 					return result;
 
-				// Actual trigger should be stored separatelly.
 				trigger_t * active_trigger = it->get();
+				// Trigger has to be activated.
+				active_trigger->activate( context );
+
+				// Actual trigger should be stored separatelly.
 				if( m_last_non_activated_trigger )
 					{
 						// Actual trigger should be moved to the end of triggers list.
@@ -463,12 +499,29 @@ class real_scenario_t final : public abstract_scenario_t
 		std::size_t m_waiting_step_index = 0u;
 
 		//! Type of container for holding stored state names.
+		/*!
+		 * The key consists of step_name and tag_name.
+		 */
 		using state_name_map_t = std::map<
+				std::pair< std::string, std::string >,
+				std::string >;
+
+		//! Type of container for holding stored inspection results for messages.
+		/*!
+		 * The key consists of step_name and tag_name.
+		 */
+		using inspection_result_map_t = std::map<
 				std::pair< std::string, std::string >,
 				std::string >;
 
 		//! Container for holding stored state names.
 		state_name_map_t m_stored_states;
+
+		//! Container for holding stored inspection results for messages.
+		/*!
+		 * \since v.5.8.3
+		 */
+		inspection_result_map_t m_stored_inspection_results;
 
 		//! Unfreezer for registered agents.
 		/*!
@@ -625,6 +678,17 @@ class real_scenario_t final : public abstract_scenario_t
 				m_stored_states[ std::make_pair(step.name(), tag) ] = state_name;
 			}
 
+		void
+		store_msg_inspection_result(
+			const scenario_in_progress_accessor_t & /*accessor*/,
+			const abstract_scenario_step_t & step,
+			const std::string & tag,
+			const std::string & inspection_result ) override
+			{
+				m_stored_inspection_results[ std::make_pair(step.name(), tag) ]
+						= inspection_result;
+			}
+
 		[[nodiscard]]
 		std::string
 		stored_state_name(
@@ -650,6 +714,31 @@ class real_scenario_t final : public abstract_scenario_t
 				return it->second;
 			}
 
+		[[nodiscard]]
+		std::string
+		stored_msg_inspection_result(
+			const std::string & step_name,
+			const std::string & tag ) const override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				if( scenario_status_t::completed != m_status )
+					SO_5_THROW_EXCEPTION(
+							rc_scenario_must_be_completed,
+							"scenario must be completed before call to "
+							"stored_msg_inspection_result()" );
+
+				const auto it = m_stored_inspection_results.find(
+						std::make_pair(step_name, tag) );
+				if( it == m_stored_inspection_results.end() )
+					SO_5_THROW_EXCEPTION(
+							rc_stored_msg_inspection_result_not_found,
+							"unable to find stored msg inspection result for <" +
+							step_name + "," + tag + ">" );
+
+				return it->second;
+			}
+
 	private :
 		void
 		preactivate_current_step()
@@ -661,13 +750,16 @@ class real_scenario_t final : public abstract_scenario_t
 		token_t
 		react_on_pre_handler_hook(
 			const incident_info_t & info,
-			const message_ref_t & /*incoming_msg*/ ) noexcept
+			const message_ref_t & incoming_msg ) noexcept
 			{
 				token_t result;
 
 				// pre_handler_hook on the current waiting step must be called.
 				auto & step_to_check = *(m_steps[ m_waiting_step_index ]);
-				auto step_token = step_to_check.pre_handler_hook( make_accessor(), info );
+				auto step_token = step_to_check.pre_handler_hook(
+						make_accessor(),
+						info,
+						incoming_msg );
 
 				if( step_token.valid() )
 					// Because step's token is not NULL, we should return
@@ -702,12 +794,14 @@ class real_scenario_t final : public abstract_scenario_t
 		void
 		react_on_no_handler_hook(
 			const incident_info_t & info,
-			const message_ref_t & /*incoming_msg*/ ) noexcept
+			const message_ref_t & incoming_msg ) noexcept
 			{
 				// no_handler_hook on the current waiting step must be called.
 				auto & step_to_check = *(m_steps[ m_waiting_step_index ]);
-				//FIXME: incoming_msg has to be passed here!
-				step_to_check.no_handler_hook( make_accessor(), info );
+				step_to_check.no_handler_hook(
+						make_accessor(),
+						info,
+						incoming_msg );
 
 				// The step can change its status...
 				switch( step_to_check.status() )
@@ -1454,7 +1548,6 @@ scenario_proxy_t::scenario_proxy_t(
 	:	m_scenario{ scenario }
 	{}
 
-[[nodiscard]]
 step_definition_proxy_t
 scenario_proxy_t::define_step(
 	nonempty_name_t step_name )
@@ -1462,7 +1555,6 @@ scenario_proxy_t::define_step(
 		return m_scenario.get().define_step( std::move(step_name) );
 	}
 
-[[nodiscard]]
 scenario_result_t
 scenario_proxy_t::result() const
 	{
@@ -1476,13 +1568,20 @@ scenario_proxy_t::run_for(
 		return m_scenario.get().run_for( run_time );
 	}
 
-[[nodiscard]]
 std::string
 scenario_proxy_t::stored_state_name(
 	const std::string & step_name,
 	const std::string & tag ) const
 	{
 		return m_scenario.get().stored_state_name( step_name, tag );
+	}
+
+std::string
+scenario_proxy_t::stored_msg_inspection_result(
+	const std::string & step_name,
+	const std::string & tag ) const
+	{
+		return m_scenario.get().stored_msg_inspection_result( step_name, tag );
 	}
 
 //

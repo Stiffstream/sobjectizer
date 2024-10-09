@@ -36,36 +36,32 @@ const int rc_agent_has_no_cooperation = 14;
 const int rc_agent_incompatible_type_conversion = 15;
 
 /*!
- * \since
- * v.5.4.0
- *
  * \brief An attempt to perform an operation which is enabled only
  * on agent's working thread.
+ *
+ * \since v.5.4.0
  */
 const int rc_operation_enabled_only_on_agent_working_thread = 16;
 
 /*!
- * \since
- * v.5.5.15
- *
  * \brief An attempt to change agent state to a new composite state which
  * have no initial state defined.
+ *
+ * \since v.5.5.15
  */
 const int rc_no_initial_substate = 17;
 
 /*!
- * \since
- * v.5.5.15
- *
  * \brief Nesting of agent states is too deep.
+ *
+ * \since v.5.5.15
  */
 const int rc_state_nesting_is_too_deep = 18;
 
 /*!
- * \since
- * v.5.5.15
- *
  * \brief Initial substate for a composite state is already defined.
+ *
+ * \since v.5.5.15
  */
 const int rc_initial_substate_already_defined = 19;
 
@@ -78,19 +74,17 @@ const int rc_initial_substate_already_defined = 19;
 const int rc_coop_define_agent_failed = 24;
 
 /*!
- * \since
- * v.5.4.0
- *
  * \brief Binding of agent to dispatcher failed.
+ *
+ * \since v.5.4.0
  */
 const int rc_agent_to_disp_binding_failed = 27;
 
 /*!
- * \since
- * v.5.4.0.1
- *
  * \brief It is impossible to register cooperation during
  * SObjectizer Environment shutdown.
+ *
+ * \since v.5.4.0.1
  */
 const int rc_unable_to_register_coop_during_shutdown = 28;
 //! \}
@@ -114,27 +108,24 @@ const int rc_evt_handler_already_provided = 40;
 const int rc_agent_is_not_the_state_owner = 43;
 
 /*!
- * \since
- * v.5.4.0
- *
  * \brief An attempt to create illegal subscription to mpsc_mbox.
+ *
+ * \since v.5.4.0
  */
 const int rc_illegal_subscriber_for_mpsc_mbox = 47;
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief An attempt to create subscription to message without
  * predefined limit for that message type.
+ *
+ * \since v.5.5.4
  */
 const int rc_message_has_no_limit_defined = 48;
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief An attempt to define several limits for one message type.
+ *
+ * \since v.5.5.4
  */
 const int rc_several_limits_for_one_message_type = 49;
 
@@ -145,12 +136,10 @@ const int rc_several_limits_for_one_message_type = 49;
 
 //! Null message data.
 /*!
- * \since
- * v.5.2.0
- *
- *
  * An attempt to deliver message_t by nullptr pointer to it is an error.
  * A signal should be used for this.
+ *
+ * \since v.5.2.0
  */
 const int rc_null_message_data = 82;
 
@@ -222,8 +211,7 @@ const int rc_several_handlers_for_one_message_type = 165;
  * \brief An attempt to switch agent state when another switch operation
  * is in progress.
  *
- * \since
- * v.5.5.18
+ * \since v.5.5.18
  */
 const int rc_another_state_switch_in_progress = 170;
 
@@ -234,24 +222,21 @@ const int rc_another_state_switch_in_progress = 170;
  * For example so_5::env_infrastructures::simple_not_mtsafe requires
  * autoshutdown feature.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 const int rc_autoshutdown_must_be_enabled = 171;
 
 /*!
  * \brief An attempt to deliver mutable message via MPMC mbox.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 const int rc_mutable_msg_cannot_be_delivered_via_mpmc_mbox = 172;
 
 /*!
  * \brief An attempt to send mutable message as a periodic message
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 const int rc_mutable_msg_cannot_be_periodic = 173;
 
@@ -261,8 +246,7 @@ const int rc_mutable_msg_cannot_be_periodic = 173;
  *
  * Delivery of mutable messages via MPMC mboxes is prohibited.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 const int rc_subscription_to_mutable_msg_from_mpmc_mbox = 174;
 
@@ -270,8 +254,7 @@ const int rc_subscription_to_mutable_msg_from_mpmc_mbox = 174;
  * \brief An attempt to set up a new stop_guard when the stop operation
  * is already in progress.
  *
- * \since
- * v.5.5.19.2
+ * \since v.5.5.19.2
  */
 const int rc_cannot_set_stop_guard_when_stop_is_started = 175;
 
@@ -282,8 +265,7 @@ const int rc_cannot_set_stop_guard_when_stop_is_started = 175;
  * A value of `pause` argument for so_5::send_delayed() and
  * so_5::send_periodic() must be non-negative.
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 const int rc_negative_value_for_pause = 176;
 
@@ -293,8 +275,7 @@ const int rc_negative_value_for_pause = 176;
  *
  * A value of `pause` argument for so_5::send_periodic() must be non-negative.
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 const int rc_negative_value_for_period = 177;
 
@@ -351,8 +332,7 @@ const int rc_negative_value_for_period = 177;
  * };
  * \endcode
  *
- * \since
- * v.5.5.22.1
+ * \since v.5.5.22.1
  */
 const int rc_transfer_to_state_loop = 178;
 
@@ -366,8 +346,7 @@ const int rc_transfer_to_state_loop = 178;
  * it is necessary to cast a pointer from message_t to envelope_t.
  * But it is impossible if a pointer to message_t is null.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 const int rc_attempt_to_cast_to_envelope_on_nullptr = 180;
 
@@ -375,8 +354,7 @@ const int rc_attempt_to_cast_to_envelope_on_nullptr = 180;
  * \brief New step can't be defined if testing scenario is already
  * started or finished.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 const int rc_unable_to_define_new_step = 181;
 
@@ -384,16 +362,14 @@ const int rc_unable_to_define_new_step = 181;
  * \brief Testing scenario must be completed before an attempt
  * to do the current operation.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 const int rc_scenario_must_be_completed = 182;
 
 /*!
  * \brief There is no stored state name in the testing scenario.
  *
- * \since
- * v.5.5.24
+ * \since v.5.5.24
  */
 const int rc_stored_state_name_not_found = 183;
 
@@ -403,8 +379,7 @@ const int rc_stored_state_name_not_found = 183;
  * This error can be reported when a coop_handle instance for already
  * destroyed coop is used.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 const int rc_coop_already_destroyed = 184;
 
@@ -415,16 +390,14 @@ const int rc_coop_already_destroyed = 184;
  * For example if can be an attempt to add a new child coop when
  * the parent coop is being deregistered.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 const int rc_coop_is_not_in_registered_state = 185;
 
 /*!
  * \brief An attempt to call join() from the joinable thread itself.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 const int rc_unable_to_join_thread_by_itself = 186;
 
@@ -432,8 +405,7 @@ const int rc_unable_to_join_thread_by_itself = 186;
  * \brief An attempt to modify or activate extensible-select when an operation
  * on that extensible-select object is already active.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 const int rc_extensible_select_is_active_now = 187;
 
@@ -441,8 +413,7 @@ const int rc_extensible_select_is_active_now = 187;
  * \brief An attempt to activate prepared-select when an operation
  * on that prepared-select object is already active.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 const int rc_prepared_select_is_active_now = 188;
 
@@ -546,6 +517,13 @@ const int rc_empty_agent_name = 196;
  * \since v.5.8.2
  */
 const int rc_agent_name_too_long = 197;
+
+/*!
+ * \brief There is no stored msg inspection result in the testing scenario.
+ *
+ * \since v.5.8.3
+ */
+const int rc_stored_msg_inspection_result_not_found = 198;
 
 //! \name Common error codes.
 //! \{

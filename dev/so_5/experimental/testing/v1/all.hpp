@@ -119,8 +119,18 @@ struct trigger_completion_context_t
  */
 struct trigger_activation_context_t
 	{
+		//! Access to the running scenario.
 		const scenario_in_progress_accessor_t & m_scenario_accessor;
+
+		//! The current step for that activation is being performed.
 		abstract_scenario_step_t & m_step;
+
+		//! Incoming message of signal.
+		/*!
+		 * \note
+		 * This will be a nullptr in case of a signal.
+		 */
+		const message_ref_t & m_incoming_msg;
 	};
 
 /*!
@@ -134,8 +144,16 @@ struct trigger_activation_context_t
 class SO_5_TYPE trigger_t final
 	{
 	public :
+		//! Type of functor to be used on the completion of the trigger.
 		using completion_function_t = std::function<
 				void(const trigger_completion_context_t &) /*noexcept*/ >;
+
+		//! Type of functor to be used on the activation of the trigger.
+		/*!
+		 * \since v.5.8.3
+		 */
+		using activation_function_t = std::function<
+				void(const trigger_activation_context_t &) /*noexcept*/ >;
 
 	private :
 		//! What should happen with initial message/signal.
@@ -171,6 +189,12 @@ class SO_5_TYPE trigger_t final
 		 */
 		completion_function_t m_completion;
 
+		//! Optional function for activation of the trigger.
+		/*!
+		 * \since v.5.8.3
+		 */
+		activation_function_t m_activation;
+
 		// Note. These are required by Clang.
 		trigger_t( const trigger_t & ) = delete;
 		trigger_t( trigger_t && ) = delete;
@@ -204,6 +228,18 @@ class SO_5_TYPE trigger_t final
 		void
 		set_completion( completion_function_t fn );
 
+		//! Setter for activation function.
+		/*!
+		 * \note
+		 * If an activation function is already set then the old and new functions
+		 * are joined. It means that the old function will be called first and
+		 * then the new function.
+		 *
+		 * \since v.5.8.3
+		 */
+		void
+		set_activation( activation_function_t fn );
+
 		//! Check for activation of the trigger.
 		/*!
 		 * \retval true Trigger is activated.
@@ -213,8 +249,6 @@ class SO_5_TYPE trigger_t final
 		[[nodiscard]]
 		bool
 		check(
-			//! Activation context.
-			const trigger_activation_context_t & context,
 			//! What happened with message/signal?
 			const incident_status_t incident_status,
 			//! Informationa about the incident.
@@ -224,6 +258,16 @@ class SO_5_TYPE trigger_t final
 		[[nodiscard]]
 		bool
 		requires_completion() const noexcept;
+
+		//! Do activation of the trigger.
+		/*!
+		 * If there is an activation function it will be called.
+		 *
+		 * \since v.5.8.3
+		 */
+		void
+		activate(
+			const trigger_activation_context_t & context ) noexcept;
 
 		//! Do completion of a trigger.
 		void
@@ -293,6 +337,21 @@ struct store_agent_state_name_t
 struct wait_event_handler_completion_t
 	{
 		// Yes, it's an empty type.
+	};
+
+/*!
+ * \brief A special data object for case when a message inspector has
+ * to be used on an incoming message.
+ *
+ * \since v.5.8.3
+ */
+struct store_msg_inspection_result_t
+	{
+		//! Name of a tag for store-msg-inspection action.
+		std::string m_tag;
+
+		//! Inspector for a message.
+		std::function< std::string(const message_ref_t &) > m_inspector;
 	};
 
 /*!
@@ -571,12 +630,16 @@ class SO_5_TYPE abstract_scenario_step_t
 		 *
 		 * If a valid token is returned then this token should be passed
 		 * to subsequent call to post_handler_hook() method.
+		 *
+		 * \note
+		 * The \a incoming_msg may be nullptr in case of a signal.
 		 */
 		[[nodiscard]]
 		virtual token_t
 		pre_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			const incident_info_t & info ) noexcept = 0;
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept = 0;
 
 		//! Hook that should be called just after completion of event-handler.
 		/*!
@@ -593,11 +656,15 @@ class SO_5_TYPE abstract_scenario_step_t
 		//! a message or service request.
 		/*!
 		 * The step should update its status inside that method.
+		 *
+		 * \note
+		 * The \a incoming_msg may be nullptr in case of a signal.
 		 */
 		virtual void
 		no_handler_hook(
 			const scenario_in_progress_accessor_t & scenario_accessor,
-			const incident_info_t & info ) noexcept = 0;
+			const incident_info_t & info,
+			const message_ref_t & incoming_msg ) noexcept = 0;
 
 		//! Get the current status of the step.
 		[[nodiscard]]
@@ -1298,6 +1365,39 @@ store_state_name( std::string tag )
 		return { std::move(tag) };
 	}
 
+//FIXME: document this!
+template< typename Lambda >
+[[nodiscard]]
+details::store_msg_inspection_result_t
+inspect_msg(
+	//! Tag to be used for indentification of the inspection result.
+	std::string tag,
+	//! Inspection functor.
+	Lambda && inspector )
+	{
+		using namespace so_5::details::lambda_traits;
+
+		using lambda_type = std::remove_reference_t< Lambda >;
+		using argument_type = typename argument_type_if_lambda< lambda_type >::type;
+
+		// Signal can't be inspected.
+		ensure_not_signal< argument_type >();
+
+		return {
+				std::move(tag),
+				[lambda_to_call = std::move(inspector)]
+				( const message_ref_t & message ) -> std::string
+				{
+					const argument_type & payload_ref =
+							message_payload_type< argument_type >::payload_reference(
+									// Because inspect_msg can't be used for signals
+									// we can assume that message is not nullptr.
+									*message );
+					return lambda_to_call( payload_ref );
+				}
+			};
+	}
+
 /*!
  * \brief Create a special marker for a trigger that requires waiting for
  * completion of an event handler.
@@ -1654,6 +1754,24 @@ class abstract_scenario_t
 		stored_state_name(
 			const std::string & step_name,
 			const std::string & tag ) const = 0;
+
+		//! Store msg inspection result in the scenario.
+		/*!
+		 * Note this method can be accessed only when scenario object is locked.
+		 */
+		virtual void
+		store_msg_inspection_result(
+			const scenario_in_progress_accessor_t & /*accessor*/,
+			const abstract_scenario_step_t & step,
+			const std::string & tag,
+			const std::string & inspection_result ) = 0;
+
+		//FIXME: document this!
+		[[nodiscard]]
+		virtual std::string
+		stored_msg_inspection_result(
+			const std::string & step_name,
+			const std::string & tag ) const = 0;
 	};
 
 /*!
@@ -1701,6 +1819,32 @@ operator&(
 							ctx.m_step,
 							data.m_tag,
 							target_agent->so_current_state().query_name() );
+				} );
+
+		return { std::move(trigger_ptr) };
+	}
+
+//FIXME: document this!
+/*!
+ * \since v.5.8.3
+ */
+template< incident_status_t Status >
+trigger_holder_t< Status >
+operator&(
+	trigger_holder_t<Status> && old_holder,
+	store_msg_inspection_result_t inspection_info )
+	{
+		auto trigger_ptr = old_holder.giveout_trigger();
+		trigger_ptr->set_activation(
+				[info = std::move(inspection_info)](
+					const trigger_activation_context_t & ctx ) noexcept
+				{
+					std::string result = info.m_inspector( ctx.m_incoming_msg );
+					ctx.m_scenario_accessor.scenario().store_msg_inspection_result(
+							ctx.m_scenario_accessor,
+							ctx.m_step,
+							info.m_tag,
+							result );
 				} );
 
 		return { std::move(trigger_ptr) };
@@ -2032,6 +2176,13 @@ class SO_5_TYPE scenario_proxy_t final
 		[[nodiscard]]
 		std::string
 		stored_state_name(
+			const std::string & step_name,
+			const std::string & tag ) const;
+
+		//FIXME: document this!
+		[[nodiscard]]
+		std::string
+		stored_msg_inspection_result(
 			const std::string & step_name,
 			const std::string & tag ) const;
 	};

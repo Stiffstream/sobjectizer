@@ -32,5 +32,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/msg_from_envelope/prj.ut.rb"
 
 	required_prj "#{path}/mbox_receives_msg/prj.ut.rb"
+
+	required_prj "#{path}/inspect_msg/prj.ut.rb"
 }
 
