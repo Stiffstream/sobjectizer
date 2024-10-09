@@ -112,6 +112,29 @@ define_ignores_step(
 		);
 }
 
+class agent_with_state_t final : public so_5::agent_t
+{
+	const state_t st_normal{ this, "normal" };
+
+public :
+	agent_with_state_t( context_t ctx )
+		:	so_5::agent_t( std::move(ctx) )
+	{}
+
+	void
+	so_define_agent() override
+	{
+		this >>= st_normal;
+
+		so_subscribe_self().in( st_normal )
+			.event( &agent_with_state_t::on_so_msg_1 )
+			;
+	}
+
+private :
+	void on_so_msg_1( mhood_t<so_msg> ) {}
+};
+
 } /* namespace test */
 
 using namespace test;
@@ -148,6 +171,54 @@ UT_UNIT_TEST( inspect_when_reacts )
 					"usr_msg", inspection_result_tag ) );
 			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
 					"mutable<usr_msg>", inspection_result_tag ) );
+		},
+		5 );
+}
+
+UT_UNIT_TEST( inspect_when_reacts_with_state )
+{
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+					[](so_5::coop_t & coop) {
+						return coop.make_agent< agent_with_state_t >();
+					} );
+
+			env.scenario().define_step( "first" )
+				.impact< so_msg >( *test_agent, 1 )
+				.when( *test_agent
+						& so5_tests::reacts_to< so_msg >()
+						& so5_tests::inspect_msg( inspection_result_tag,
+								[]( const so_msg & msg ) -> std::string {
+									return 1 == msg.m_value ? "OK" : "MISSMATCH";
+								} )
+						& so5_tests::store_state_name( "state" )
+				);
+
+			env.scenario().define_step( "second" )
+				.impact< so_msg >( *test_agent, 2 )
+				.when( *test_agent
+						& so5_tests::reacts_to< so_msg >()
+						& so5_tests::store_state_name( "state" )
+						& so5_tests::inspect_msg( inspection_result_tag,
+								[]( const so_msg & msg ) -> std::string {
+									return 1 == msg.m_value ? "OK" : "MISSMATCH";
+								} )
+				);
+
+			env.scenario().run_for( std::chrono::seconds(1) );
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+					"first", inspection_result_tag ) );
+			UT_CHECK_EQ( "normal", env.scenario().stored_state_name( "first", "state" ) );
+
+			UT_CHECK_EQ( "MISSMATCH", env.scenario().stored_msg_inspection_result(
+					"second", inspection_result_tag ) );
+			UT_CHECK_EQ( "normal", env.scenario().stored_state_name( "second", "state" ) );
 		},
 		5 );
 }
@@ -190,6 +261,7 @@ int
 main()
 {
 	UT_RUN_UNIT_TEST( inspect_when_reacts )
+	UT_RUN_UNIT_TEST( inspect_when_reacts_with_state )
 	UT_RUN_UNIT_TEST( inspect_when_ignores )
 
 	return 0;
