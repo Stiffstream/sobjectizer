@@ -386,7 +386,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 
 				auto it = std::find_if(
 						std::begin(m_triggers), end,
-						[&context, incident_status, &info]
+						[incident_status, &info]
 						( trigger_unique_ptr_t & trigger ) {
 							return trigger->check( incident_status, info );
 						} );
