@@ -4,10 +4,10 @@
 
 /*!
  * \file
- * \since
- * v.5.5.23
  *
  * \brief Stuff related to enveloped messages.
+ *
+ * \since v.5.5.23
  */
 
 #include <so_5/enveloped_msg.hpp>
@@ -32,8 +32,7 @@ namespace {
  * \brief An implementation of handler_invoker interface for
  * extraction of payload because of various reasons.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class payload_access_handler_invoker_t final : public handler_invoker_t
 	{

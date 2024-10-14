@@ -4,10 +4,9 @@
 
 /*!
  * \file
- * \since
- * v.5.5.23
- *
  * \brief Stuff related to enveloped messages.
+ *
+ * \since v.5.5.23
  */
 
 #pragma once
@@ -31,8 +30,7 @@ namespace enveloped_msg {
  * reference to the payload message. But additional info can be added
  * in some future versions.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class payload_info_t
 	{
@@ -77,8 +75,7 @@ class payload_info_t
  * creation on instances derived classes in dynamic memory
  * is not intended.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class SO_5_TYPE handler_invoker_t
 	{
@@ -105,8 +102,7 @@ class SO_5_TYPE handler_invoker_t
 /*!
  * \brief Information about context on that enveloped message is handled.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 enum class access_context_t
 	{
@@ -163,8 +159,7 @@ enum class access_context_t
  * conditions are not fulfilled then access_hook() won't call
  * handler_invoker_t::invoke() method.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class SO_5_TYPE envelope_t : public message_t
 	{
@@ -221,8 +216,7 @@ class SO_5_TYPE envelope_t : public message_t
  * \attention
  * Argument \a envelope should not be nullptr.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 [[nodiscard]]
 SO_5_FUNC
@@ -246,8 +240,7 @@ extract_payload_for_message_transformation(
  * If \a msg_or_envelope is not an envelope then \a msg_or_envelope
  * is returned as a result.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 [[nodiscard]]
 SO_5_FUNC

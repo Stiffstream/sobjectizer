@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.9
- *
  * \file
  * \brief Various helpers for message delivery tracing stuff.
+ *
+ * \since v.5.5.9
  */
 
 #pragma once
@@ -590,11 +589,10 @@ make_trace(
 // tracing_disabled_base
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Base class for a mbox for the case when message delivery
  * tracing is disabled.
+ *
+ * \since v.5.5.9
  */
 struct tracing_disabled_base
 	{
@@ -637,11 +635,10 @@ struct tracing_disabled_base
 // tracing_enabled_base
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Base class for a mbox for the case when message delivery
  * tracing is enabled.
+ *
+ * \since v.5.5.9
  */
 class tracing_enabled_base
 	{
@@ -809,10 +806,9 @@ class tracing_enabled_base
 	};
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Helper for tracing the result of event handler search.
+ *
+ * \since v.5.5.9
  */
 inline void
 trace_event_handler_search_result(
@@ -834,8 +830,7 @@ trace_event_handler_search_result(
 /*!
  * \brief Helper for tracing the result of search of deadletter handler.
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 inline void
 trace_deadletter_handler_search_result(
@@ -855,13 +850,12 @@ trace_deadletter_handler_search_result(
 	}
 
 /*!
- * \since
- * v.5.5.15
- *
  * \brief Helper for tracing the fact of leaving a state.
  *
  * \note This helper checks status of msg tracing by itself. It means that
  * it is safe to call this function if msg tracing is disabled.
+ *
+ * \since v.5.5.15
  */
 inline void
 safe_trace_state_leaving(
@@ -879,13 +873,12 @@ safe_trace_state_leaving(
 }
 
 /*!
- * \since
- * v.5.5.15
- *
  * \brief Helper for tracing the fact of entering into a state.
  *
  * \note This helper checks status of msg tracing by itself. It means that
  * it is safe to call this function if msg tracing is disabled.
+ *
+ * \since v.5.5.15
  */
 inline void
 safe_trace_state_entering(
@@ -906,11 +899,10 @@ safe_trace_state_entering(
 // mchain_tracing_disabled_base
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Base class for a mchain for the case when message delivery
  * tracing is disabled.
+ *
+ * \since v.5.5.13
  */
 struct mchain_tracing_disabled_base
 	{
@@ -949,11 +941,10 @@ struct mchain_tracing_disabled_base
 // mchain_tracing_enabled_base
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Base class for a mchain for the case when message delivery
  * tracing is enabled.
+ *
+ * \since v.5.5.13
  */
 class mchain_tracing_enabled_base
 	{

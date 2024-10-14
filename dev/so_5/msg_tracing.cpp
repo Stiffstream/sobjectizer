@@ -17,11 +17,10 @@ namespace impl {
 // std_stream_tracer_t
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A simple implementation of tracer which uses one of
  * standard streams.
+ *
+ * \since v.5.5.9
  */
 class std_stream_tracer_t : public tracer_t
 	{

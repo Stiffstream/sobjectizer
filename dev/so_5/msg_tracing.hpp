@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.9
- *
  * \file
  * \brief Stuff related to message delivery tracing.
+ *
+ * \since v.5.5.9
  */
 
 #pragma once
@@ -30,10 +29,9 @@ namespace so_5 {
 namespace msg_tracing {
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Status of message delivery tracing.
+ *
+ * \since v.5.5.9
  */
 enum class status_t
 	{
@@ -48,10 +46,9 @@ enum class status_t
 //
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Interface of tracer object.
+ *
+ * \since v.5.5.9
  */
 class SO_5_TYPE tracer_t
 	{
@@ -75,10 +72,9 @@ class SO_5_TYPE tracer_t
 //
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A short alias for unique_ptr to tracer.
+ *
+ * \since v.5.5.9
  */
 using tracer_unique_ptr_t = std::unique_ptr< tracer_t >;
 
@@ -87,28 +83,25 @@ using tracer_unique_ptr_t = std::unique_ptr< tracer_t >;
 //
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Factory for tracer which uses std::cout stream.
+ *
+ * \since v.5.5.9
  */
 SO_5_FUNC tracer_unique_ptr_t
 std_cout_tracer();
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Factory for tracer which uses std::cerr stream.
+ *
+ * \since v.5.5.9
  */
 SO_5_FUNC tracer_unique_ptr_t
 std_cerr_tracer();
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Factory for tracer which uses std::clog stream.
+ *
+ * \since v.5.5.9
  */
 SO_5_FUNC tracer_unique_ptr_t
 std_clog_tracer();
@@ -116,8 +109,7 @@ std_clog_tracer();
 /*!
  * \brief A flag for message/signal dichotomy.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 enum class message_or_signal_flag_t
 	{
@@ -132,8 +124,7 @@ enum class message_or_signal_flag_t
  * will be a message source for a subscriber. Sometimes it is necessary
  * to know what is actual type of message source: mbox or mchain.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 enum class msg_source_type_t
 	{
@@ -151,8 +142,7 @@ enum class msg_source_type_t
 /*!
  * \brief An information about message source.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 struct msg_source_t
 	{
@@ -165,11 +155,11 @@ struct msg_source_t
 /*!
  * \brief An information about a message instance.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 struct message_instance_info_t
 	{
+		//FIXME: maybe this has to be `const message_t *` in v5.9?
 		//! A pointer to envelope.
 		/*!
 		 * Can be null if message is not enveloped into a special wrapper.
@@ -182,8 +172,7 @@ struct message_instance_info_t
 /*!
  * \brief An information about compound description of message-related action.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 struct compound_action_description_t
 	{
@@ -232,8 +221,7 @@ struct compound_action_description_t
  * trace filters. Because of that the content of this interface can be
  * a subject of change in the future versions of SObjectizer.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 class SO_5_TYPE trace_data_t
 	{
@@ -327,8 +315,7 @@ class SO_5_TYPE trace_data_t
  * \note
  * In most cases it is much easier to use make_filter() helper function.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 class SO_5_TYPE filter_t : private so_5::atomic_refcounted_t
 	{
@@ -353,8 +340,7 @@ class SO_5_TYPE filter_t : private so_5::atomic_refcounted_t
 /*!
  * \brief An alias for smart pointer to filter.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 using filter_shptr_t = intrusive_ptr_t< filter_t >;
 
@@ -366,8 +352,7 @@ namespace impl {
 /*!
  * \brief A type of implementation of filters created from lambda function.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 template< typename L >
 class filter_from_lambda_t : public filter_t
@@ -401,7 +386,7 @@ class filter_from_lambda_t : public filter_t
  * 	// Create a filter which will enable only messages from specific mboxes.
  * 	std::set<so_5::mbox_id_t> selected_ids{...};
  * 	so_environment().change_message_delivery_tracer_filter(
- * 		so_5::msg_tracing::make_filter( 
+ * 		so_5::msg_tracing::make_filter(
  * 			[ids = std::move(selected_ids)](so_5::msg_tracing::trace_data_t & td) {
  * 				const auto ms = td.msg_source();
  * 				return ms && 1 == ids.count(ms->m_id);
@@ -410,8 +395,7 @@ class filter_from_lambda_t : public filter_t
  * }
  * \endcode
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 template< typename L >
 filter_shptr_t
@@ -442,8 +426,7 @@ make_filter( L && lambda )
  * 	} );
  * \endcode
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 inline filter_shptr_t
 make_enable_all_filter()
@@ -472,8 +455,7 @@ make_enable_all_filter()
  * 	} );
  * \endcode
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 inline filter_shptr_t
 make_disable_all_filter()
@@ -510,8 +492,7 @@ make_disable_all_filter()
  * }
  * \endcode
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 inline filter_shptr_t
 no_filter() { return {}; }
@@ -522,8 +503,7 @@ no_filter() { return {}; }
 /*!
  * \brief Interface of holder of message tracer and message trace filter objects.
  *
- * \since
- * v.5.5.22
+ * \since v.5.5.22
  */
 class SO_5_TYPE holder_t
 	{
