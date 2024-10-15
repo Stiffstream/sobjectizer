@@ -42,6 +42,7 @@ class Prj < MxxRu::Cpp::LibOrDllTarget
 		cpp_source 'timers.cpp'
 
 		cpp_source 'msg_tracing.cpp'
+		cpp_source 'msg_tracing_individual.cpp'
 
 		# Run-time.
 		cpp_source 'message.cpp'

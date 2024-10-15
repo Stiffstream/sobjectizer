@@ -39,6 +39,7 @@ set(SO_5_SRC exception.cpp
 	error_logger.cpp
 	timers.cpp
 	msg_tracing.cpp
+	msg_tracing_individual.cpp
 	wrapped_env.cpp
 	message.cpp
 	enveloped_msg.cpp

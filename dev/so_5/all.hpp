@@ -41,3 +41,5 @@
 
 #include <so_5/bind_transformer_helpers.hpp>
 
+#include <so_5/msg_tracing_individual.hpp>
+
