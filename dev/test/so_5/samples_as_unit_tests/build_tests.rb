@@ -15,6 +15,9 @@ MxxRu::Cpp::composite_target {
   required_prj "#{path}/selective_msg_tracing.ut.rb"
   required_prj "#{path}/selective_msg_tracing-static.ut.rb"
 
+  required_prj "#{path}/individual_msg_tracing.ut.rb"
+  required_prj "#{path}/individual_msg_tracing-static.ut.rb"
+
   required_prj "#{path}/nohandler_msg_tracing.ut.rb"
   required_prj "#{path}/nohandler_msg_tracing-static.ut.rb"
 

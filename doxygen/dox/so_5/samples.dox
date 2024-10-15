@@ -32,6 +32,7 @@
  * \example so_5/hello_periodic/main.cpp
  * \example so_5/hello_world/main.cpp
  * \example so_5/hello_world_simple_not_mtsafe/main.cpp
+ * \example so_5/individual_msg_tracing/main.cpp
  * \example so_5/intercom_statechart/main.cpp
  * \example so_5/introduce_named_mbox/main.cpp
  * \example so_5/machine_control/main.cpp

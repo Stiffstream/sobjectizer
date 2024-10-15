@@ -20,5 +20,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/change_filter_1/prj.ut.rb"
 
 	required_prj "#{path}/simple_individual_msg_count/prj.ut.rb"
+	required_prj "#{path}/simple_individual_delayed/prj.ut.rb"
 }
 
