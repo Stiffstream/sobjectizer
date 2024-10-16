@@ -6,8 +6,7 @@
  * \file
  * \brief Basic tools for simplify usage of std::mutex or null_mutex
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 
 #pragma once
@@ -22,8 +21,11 @@ namespace so_5 {
 /*!
  * \brief A class which is like std::mutex but does not do any real actions.
  *
- * \since
- * v.5.5.19.2
+ * \note
+ * Since v.5.8.3 it can also be used instead of std::shared_mutex because
+ * empty method lock_shared() and unlock_shared() were added in v.5.8.3.
+ *
+ * \since v.5.5.19.2
  */
 class null_mutex_t
 	{
@@ -34,6 +36,16 @@ class null_mutex_t
 
 		void lock() {}
 		void unlock() {}
+
+		/*!
+		 * \since v.5.8.3
+		 */
+		void lock_shared() {}
+
+		/*!
+		 * \since v.5.8.3
+		 */
+		void unlock_shared() {}
 	};
 
 namespace details {
@@ -62,8 +74,7 @@ namespace details {
  * \tparam Lock_Type type of lock to be used for object protection.
  * Will be used with std::lock_guard.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename Lock_Type = std::mutex >
 class actual_lock_holder_t
@@ -108,8 +119,7 @@ class actual_lock_holder_t
 	using non_mtsafe_coop_repo_t = coop_repo_t< so_5::details::no_lock_holder_t >;
  * \endcode
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 class no_lock_holder_t
 	{
@@ -143,8 +153,7 @@ class no_lock_holder_t
  * 	};
  * \endcode
  *
- * \since
- * v.5.5.19.2
+ * \since v.5.5.19.2
  */
 template< typename Lock_Type >
 struct lock_holder_detector
