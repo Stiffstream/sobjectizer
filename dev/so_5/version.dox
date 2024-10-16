@@ -2,6 +2,15 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_3 5.8.3 "Volcan Tacora"
+
+New facilities for testing of agents: so_5::experimental::testing::inspect_msg(),
+so_5::experimental::testing::receives(), and
+so_5::experimental::testing::wait_event_handler_completion().
+
+New facilities for message delivery tracing: so_5::msg_tracing::individual_trace()
+and so_5::msg_tracing::make_individual_trace_filter().
+
 \section so_5__5_8_2 5.8.2 "Sabancaya"
 
 New synchronous mode for execution of init-function in the

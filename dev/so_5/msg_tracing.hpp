@@ -128,7 +128,9 @@ enum class message_or_signal_flag_t
  */
 enum class msg_source_type_t
 	{
+		//! The source is a mbox.
 		mbox,
+		//! The source is a mchain.
 		mchain,
 		//! There is no information about a type of actual message source.
 		//! This information can be lost if message was redirected or

@@ -28,8 +28,20 @@ namespace so_5::msg_tracing
 namespace impl
 {
 
-//FIXME: document this!
 /*!
+ * \brief A special mbox that wraps all incoming messages/signals into a
+ * special envelope.
+ *
+ * Instances of that special mbox will be created by
+ * so_5::msg_tracing::individual_trace().
+ *
+ * This mbox wraps outgoing messages/signals into an envelope of
+ * type individual_tracing_envelope_t.
+ *
+ * \note
+ * This mbox works like a simple proxy and because of that doesn't support
+ * operations like subscriptions and delivery filter management.
+ *
  * \since v.5.8.3
  */
 class SO_5_TYPE special_enveloping_mbox_t final : public abstract_message_box_t
@@ -44,6 +56,10 @@ class SO_5_TYPE special_enveloping_mbox_t final : public abstract_message_box_t
 			//! It's assumed that this pointer can't be nullptr.
 			mbox_t dest );
 
+		/*!
+		 * \note
+		 * Returns the ID of the actual destination.
+		 */
 		[[nodiscard]]
 		mbox_id_t
 		id() const override;
@@ -92,13 +108,9 @@ class SO_5_TYPE special_enveloping_mbox_t final : public abstract_message_box_t
 		 */
 		void
 		do_deliver_message(
-			//! Can the delivery blocks the current thread?
 			message_delivery_mode_t delivery_mode,
-			//! Type of the message to deliver.
 			const std::type_index & msg_type,
-			//! A message instance to be delivered.
 			const message_ref_t & message,
-			//! Current deep of overlimit reaction recursion.
 			unsigned int redirection_deep ) override;
 
 		/*!
@@ -108,12 +120,8 @@ class SO_5_TYPE special_enveloping_mbox_t final : public abstract_message_box_t
 		 */
 		void
 		set_delivery_filter(
-			//! Message type to be filtered.
 			const std::type_index & msg_type,
-			//! Filter to be set.
-			//! A caller must guaranted the validity of this reference.
 			const delivery_filter_t & filter,
-			//! A subscriber for the message.
 			abstract_message_sink_t & subscriber ) override;
 
 		/*!
@@ -134,8 +142,15 @@ class SO_5_TYPE special_enveloping_mbox_t final : public abstract_message_box_t
 //
 // individual_tracing_envelope_t
 //
-//FIXME: document this!
 /*!
+ * \brief Special envelope that just holds an original message/signal.
+ *
+ * This envelope has no own logic. It returns the original message/signal
+ * always.  The only purpose of this type is an attempt to make dynamic_cast in
+ * a filter created by so_5::msg_tracing::make_individual_trace_filter(). This
+ * filter tries to perform such a cast, and if this cast succeeds, then the
+ * filter allows the trace.
+ *
  * \since v.5.8.3
  */
 class SO_5_TYPE individual_tracing_envelope_t final
@@ -159,13 +174,19 @@ class SO_5_TYPE individual_tracing_envelope_t final
 //
 // make_special_enveloping_mbox
 //
-//FIXME: document this!
 /*!
+ * \brief Factory function for special_enveloping_mbox.
+ *
+ * Creates an instance of special_enveloping_mbox_t bound with \a dest and
+ * returns it as mbox.
+ *
  * \since v.5.8.3
  */
 [[nodiscard]]
 inline so_5::mbox_t
-make_special_enveloping_mbox( so_5::mbox_t dest )
+make_special_enveloping_mbox(
+	//! Actual destination. It's assumed that \a dest != nullptr.
+	so_5::mbox_t dest )
 	{
 		return { std::make_unique< special_enveloping_mbox_t >( std::move(dest) ) };
 	}
@@ -175,14 +196,39 @@ make_special_enveloping_mbox( so_5::mbox_t dest )
 //
 // individual
 //
-//FIXME: document this!
 /*!
+ * \brief Indicator that tells that delivery of the message/signal should be traced.
+ *
+ * This indicator has to be used with send(), send_delayed() and send_periodic() functions.
+ * It allows to trace only actions related to a message/signal sent by using
+ * individual_trace().
+ *
+ * \note
+ * It's necessary to enable message delivery tracing and set a filter returned
+ * by make_individual_trace_filter().
+ *
+ * Usage example:
+ * \code
+ * // Ordinary message/signal.
+ * so_5::send<my_msg>(so_5::msg_tracing::individual_trace(dest), ...);
+ *
+ * // Delayed message/signal.
+ * so_5::send_delayed<my_msg>(so_5::msg_tracing::individual_trace(dest), 10ms, ...);
+ *
+ * // Periodic message/signal.
+ * auto timer_id = so_5::send_periodic<my_msg>(so_5::msg_tracing::individual_trace(dest), 10ms, 10ms, ...);
+ * \endcode
+ *
  * \since v.5.8.3
  */
 template< typename Dest >
 [[nodiscard]]
 so_5::mbox_t
-individual_trace( Dest && dest )
+individual_trace(
+	//! Actual destination for the message/signal.
+	//! It can be a reference to the agent (direct mbox of that agent will be used),
+	//! a mbox, a mchain.
+	Dest && dest )
 	{
 		return impl::make_special_enveloping_mbox(
 				so_5::send_functions_details::arg_to_mbox( std::forward<Dest>(dest) ) );
@@ -191,7 +237,27 @@ individual_trace( Dest && dest )
 //
 // make_individual_trace_filter
 //
-//FIXME: document this!
+/*!
+ * \brief Factory for special message tracing filter for individual tracing.
+ *
+ * This filter allows to trace only actions related to messages/signal sent by
+ * using individual_trace().
+ *
+ * Usage example:
+ * \code
+ * so_5::launch(
+ * 	[](so_5::environment_t & env) {...},
+ * 	[](so_5::environment_params_t & params) {
+ * 		// Message delivery tracing has to be turned on.
+ * 		params.message_delivery_tracer(so_5::msg_tracing::std_cout_tracer());
+ * 		// Special filter has to be set to avoid flooding of trace information.
+ * 		params.message_delivery_tracer_filter(so_5::msg_tracing::make_individual_trace_filter());
+ * 		...
+ * 	});
+ * \endcode
+ *
+ * \since v.5.8.3
+ */
 [[nodiscard]] SO_5_FUNC
 filter_shptr_t
 make_individual_trace_filter();
