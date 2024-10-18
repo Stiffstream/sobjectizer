@@ -4,6 +4,8 @@ if( NOT CYGWIN )
   add_subdirectory(spinlocks/llvm_inspired_test)
 endif()
 
+add_subdirectory(details)
+
 add_subdirectory(environment)
 
 add_subdirectory(wrapped_env)
