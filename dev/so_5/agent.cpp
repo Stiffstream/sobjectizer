@@ -195,7 +195,7 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 struct state_t::time_limit_t
 {
-	struct msg_timeout final : public signal_t {};
+	using msg_timeout = so_5::details::msg_state_timeout;
 
 	duration_t m_limit;
 	const state_t & m_state_to_switch;

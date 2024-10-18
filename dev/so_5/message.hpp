@@ -49,8 +49,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 	public:
 		//! A short typedef for kind of message.
 		/*!
-		 * \since
-		 * v.5.5.23
+		 * \since v.5.5.23
 		 */
 		using kind_t = ::so_5::message_kind_t;
 
@@ -149,8 +148,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * Don't use it directly. It can be a subject of changes in some
 		 * future versions.
 		 *
-		 * \since
-		 * v.5.5.23
+		 * \since v.5.5.23
 		 */
 		friend message_kind_t
 		message_kind(
@@ -170,8 +168,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * Don't use it directly. It can be a subject of changes in some
 		 * future versions.
 		 *
-		 * \since
-		 * v.5.5.23
+		 * \since v.5.5.23
 		 */
 		friend message_kind_t
 		message_kind(
@@ -185,8 +182,8 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * \brief Is message mutable or immutable?
 		 *
 		 * By default the message is immutable.
-		 * \since
-		 * v.5.5.19
+		 *
+		 * \since v.5.5.19
 		 */
 		message_mutability_t m_mutability;
 
@@ -200,8 +197,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * It can be changed or even removed in any future versions
 		 * of SObjectizer.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		virtual message_mutability_t
 		so5_message_mutability() const noexcept { return m_mutability; }
@@ -226,8 +222,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * For example a derived class can prohibit changing
 		 * of message mutability.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		virtual void
 		so5_change_mutability(
@@ -247,8 +242,7 @@ class SO_5_TYPE message_t : public atomic_refcounted_t
 		 * It can be changed or even removed in any future versions
 		 * of SObjectizer.
 		 *
-		 * \since
-		 * v.5.5.23
+		 * \since v.5.5.23
 		 */
 		virtual kind_t
 		so5_message_kind() const noexcept
@@ -271,11 +265,10 @@ using message_ref_t = intrusive_ptr_t< message_t >;
 //
 //! A base class for agent signals.
 /*!
- * \since
- * v.5.2.0
- *
  * All signals (messages without any data) for agents should be
  * derived from this class.
+ *
+ * \since v.5.2.0
  */
 class SO_5_TYPE signal_t
 	:	public message_t
@@ -315,8 +308,7 @@ class SO_5_TYPE signal_t
  * \tparam T type of actual message. This type must have move- or copy
  * constructor.
  *
- * \since
- * v.5.5.9
+ * \since v.5.5.9
  */
 template< typename T >
 struct user_type_message_t : public message_t
@@ -368,8 +360,7 @@ private :
  *
  * \tparam M type of the message.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename M >
 struct immutable_msg final {};
@@ -386,8 +377,7 @@ struct immutable_msg final {};
  *
  * \tparam M type of the message.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename M >
 struct mutable_msg final {};
@@ -401,8 +391,7 @@ namespace details {
  * \brief Detector of message type traits in dependency of message immutability
  * or mutability.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename T >
 struct message_mutability_traits
@@ -443,12 +432,11 @@ struct message_mutability_traits< mutable_msg<T> >
 // is_user_type_message
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A helper for detection presence of message of user type.
  *
  * \tparam M type to test.
+ *
+ * \since v.5.5.9
  */
 template< typename M >
 struct is_user_type_message
@@ -466,10 +454,9 @@ struct is_user_type_message< user_type_message_t< M > >
 // is_signal
 //
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A helper class for checking that message is a signal.
+ *
+ * \since v.5.5.4
  */
 template< class T >
 struct is_signal
@@ -483,11 +470,10 @@ struct is_signal
 // is_classical_message
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A helper class for checking that message is a classical message
  * derived from %message_t class.
+ *
+ * \since v.5.5.9
  */
 template< class T >
 struct is_classical_message
@@ -503,8 +489,7 @@ struct is_classical_message
 /*!
  * \brief A helper class for checking that message is a mutable message.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< typename T >
 struct is_mutable_message
@@ -522,11 +507,10 @@ struct is_mutable_message< mutable_msg<T> >
 // ensure_not_signal
 //
 /*!
- * \since
- * v.5.2.0
- *
  * \brief A special compile-time checker to guarantee that the message
  * class is not a signal class.
+ *
+ * \since v.5.2.0
  */
 template< class Msg >
 void
@@ -540,9 +524,6 @@ ensure_not_signal()
 // ensure_message_with_actual_data
 //
 /*!
- * \since
- * v.5.2.0
- *
  * \brief A special checker to guarantee that the message is an instance
  * of the message_t (not signal_t) and has a not-null pointer 
  * to the message data.
@@ -550,6 +531,8 @@ ensure_not_signal()
  * \note A check for the inheritance from the message_t is done at compile-time.
  *
  * \tparam Msg message type to be checked.
+ *
+ * \since v.5.2.0
  */
 template< class Msg >
 void
@@ -573,8 +556,7 @@ ensure_message_with_actual_data( const Msg * m )
  * This check is intended to prevent usage of mutable_msg<S> where S is 
  * a signal type.
  *
- * \since
- * v.5.5.19
+ * \since v.5.5.19
  */
 template< class S >
 void
@@ -590,13 +572,12 @@ ensure_not_mutable_signal()
 // ensure_signal
 //
 /*!
- * \since
- * v.5.2.0
- *
  * \brief A special compile-time checker to guarantee that the Msg is derived
  * from the signal_t.
  *
  * \tparam Msg signal type to be checked.
+ *
+ * \since v.5.2.0
  */
 template< class Msg >
 void
@@ -614,13 +595,12 @@ ensure_signal()
 // ensure_classical_message
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A special compile-time checker to guarantee that Msg is derived from
  * %message_t.
  *
  * \tparam Msg type to be checked.
+ *
+ * \since v.5.5.9
  */
 template< typename Msg >
 void
@@ -634,13 +614,12 @@ ensure_classical_message()
 // message_payload_type_impl
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Implementation details for %message_payload_type.
  *
  * \note This specialization is for cases where T is derived from message_t.
  * In that case payload_type is the same as envelope_type.
+ *
+ * \since v.5.5.9
  */
 template< typename T, bool is_classical_message >
 struct message_payload_type_impl
@@ -709,13 +688,12 @@ struct message_payload_type_impl
 	};
 
 /*!
- * \since
- * v.5.5.9
- *
  * \brief Implementation details for %message_payload_type.
  *
  * \note This specialization is for cases where T is not derived from message_t.
  * In that case payload_type is T, but envelope_type is user_type_message_t<T>.
+ *
+ * \since v.5.5.9
  */
 template< typename T >
 struct message_payload_type_impl< T, false >
@@ -791,12 +769,11 @@ struct message_payload_type_impl< T, false >
 // message_payload_type
 //
 /*!
- * \since
- * v.5.5.9
- *
  * \brief A helper class for detection of payload type of message.
  *
  * \tparam T type to test.
+ *
+ * \since v.5.5.9
  */
 template< typename T >
 struct message_payload_type
@@ -854,10 +831,9 @@ struct make_message_instance_impl< true, Msg >
 	};
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A helper for allocate instance of a message.
+ *
+ * \since v.5.5.4
  */
 template< typename Msg, typename... Args >
 [[nodiscard]]
@@ -869,6 +845,16 @@ make_message_instance( Args &&... args )
 						is_signal< Msg >::value, Msg
 				>::make( std::forward< Args >( args )... );
 	}
+
+/*!
+ * \brief A signal to be used for switching to another state by timeout.
+ *
+ * \note
+ * It was a so_5::state_t::time_limit_t::msg_timeout in previous versions.
+ *
+ * \since v.5.8.3
+ */
+struct msg_state_timeout final : public so_5::signal_t {};
 
 } /* namespace details */
 
@@ -884,8 +870,7 @@ struct control_block_t;
 /*!
  * \brief A special mark to be used for default limits.
  *
- * \since
- * v.5.7.1
+ * \since v.5.7.1
  */
 class SO_5_TYPE any_unspecified_message final
 	{
@@ -902,10 +887,9 @@ class action_msg_tracer_t;
 } /* namespace impl */
 
 /*!
- * \since
- * v.5.5.4
- *
  * \brief Description of context for overlimit action.
+ *
+ * \since v.5.5.4
  */
 struct overlimit_context_t
 	{
@@ -938,8 +922,7 @@ struct overlimit_context_t
 		const message_ref_t & m_message;
 
 		/*!
-		 * \since
-		 * v.5.5.9
+		 * \since v.5.5.9
 		 *
 		 * \brief An optional pointer to tracer object for
 		 * message delivery tracing.
@@ -975,10 +958,9 @@ struct overlimit_context_t
 // action_t
 //
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A type for reaction of message overlimit.
+ *
+ * \since v.5.5.4
  */
 using action_t = std::function< void(const overlimit_context_t&) >;
 
@@ -986,10 +968,9 @@ using action_t = std::function< void(const overlimit_context_t&) >;
 // control_block_t
 //
 /*!
- * \since
- * v.5.5.4
- *
  * \brief A control block for one message limit.
+ *
+ * \since v.5.5.4
  */
 struct control_block_t
 	{

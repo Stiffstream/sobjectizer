@@ -257,6 +257,42 @@ namespace description_preparation_details
 {
 
 /*!
+ * \brief Check presence of limit for %msg_state_timeout and add it of there is
+ * no such a limit.
+ *
+ * The addition of a pseudo-limit for so_5::details::msg_state_timeout is
+ * neccessary to avoid exceptions during an attempt to make a subscription for
+ * it when message limits are used.
+ *
+ * \since v.5.8.3
+ */
+inline void
+append_dummy_limit_for_state_timeout_msg(
+	so_5::message_limit::description_container_t & original_descriptions )
+	{
+		const std::type_index type_to_find =
+				message_payload_type< ::so_5::details::msg_state_timeout >::subscription_type_index();
+
+		// Check that this message is not specified explicitly.
+		const auto it = std::find_if(
+				std::begin( original_descriptions ), std::end( original_descriptions ),
+				[&type_to_find]( const auto & d ) {
+					return d.m_msg_type == type_to_find;
+				} );
+		if( it == end( original_descriptions ) )
+		{
+			// Now we can add another description.
+			original_descriptions.push_back( {
+					type_to_find,
+					// No real limit. Don't expect it to be reached.
+					std::numeric_limits<unsigned int>::max(),
+					// No real action.
+					[](const ::so_5::message_limit::overlimit_context_t &) -> void {}
+				} );
+		}
+	}
+
+/*!
  *
  * Returns sorted array as the first item of the result tuple.
  *
@@ -279,6 +315,9 @@ prepare(
 	using namespace std;
 
 	optional< so_5::message_limit::description_t > default_limit;
+
+	// Pay attention to so_5::state_t::time_limit_t::msg_timeout...
+	append_dummy_limit_for_state_timeout_msg( original_descriptions );
 
 	// Descriptions must be sorted.
 	sort( begin( original_descriptions ), end( original_descriptions ),
