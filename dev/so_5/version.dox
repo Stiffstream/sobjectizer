@@ -4,6 +4,13 @@
 
 \section so_5__5_8_3 5.8.3 "Volcan Tacora"
 
+A fix for a case when message limits are specified for an agent and time_limit
+is used for the agent's state(s). See the <a href="https://github.com/Stiffstream/sobjectizer/issues/75">issue 75</a>
+for more details.
+
+The lock_shared/unlock_shared methods have been added to so_5::null_mutext_t class.
+Now the so_5::null_mutex_t class can be used with std::shared_lock.
+
 New facilities for testing of agents: so_5::experimental::testing::inspect_msg(),
 so_5::experimental::testing::receives(), and
 so_5::experimental::testing::wait_event_handler_completion().
