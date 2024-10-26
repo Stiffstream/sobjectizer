@@ -16,6 +16,14 @@ struct test_signal final : public so_5::signal_t {};
 
 struct test_msg final : public so_5::message_t {};
 
+struct test_msg_with_content final : public so_5::message_t
+	{
+		int m_value;
+
+		test_msg_with_content( int v ) : m_value{ v }
+			{}
+	};
+
 template< typename Msg >
 class a_initiator_t final : public so_5::agent_t
 {
@@ -113,12 +121,71 @@ UT_UNIT_TEST( mutable_msg )
 		5 );
 }
 
+UT_UNIT_TEST( receives_with_inspect_immutable )
+{
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::mbox_t dest = so_5::make_unique_subscribers_mbox( env.environment() );
+
+			env.scenario().define_step( "single" )
+				.impact< test_msg_with_content >( dest, 42 )
+				.when( dest
+						& so5_tests::receives< test_msg_with_content >()
+						& so5_tests::inspect_msg( "inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 42 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+
+			env.scenario().run_for( 1000ms );
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"single", "inspection" ) );
+		},
+		5 );
+}
+
+UT_UNIT_TEST( receives_with_inspect_mutable )
+{
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::mbox_t dest = so_5::make_unique_subscribers_mbox( env.environment() );
+
+			env.scenario().define_step( "single" )
+				.impact< so_5::mutable_msg<test_msg_with_content> >( dest, 42 )
+				.when( dest
+						& so5_tests::receives< so_5::mutable_msg<test_msg_with_content> >()
+						& so5_tests::inspect_msg(
+							"inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 42 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+
+			env.scenario().run_for( 1000ms );
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"single", "inspection" ) );
+		},
+		5 );
+}
+
 int
 main()
 {
 	UT_RUN_UNIT_TEST( signal )
 	UT_RUN_UNIT_TEST( immutable_msg )
 	UT_RUN_UNIT_TEST( mutable_msg )
+	UT_RUN_UNIT_TEST( receives_with_inspect_immutable )
+	UT_RUN_UNIT_TEST( receives_with_inspect_mutable )
 
 	return 0;
 }
