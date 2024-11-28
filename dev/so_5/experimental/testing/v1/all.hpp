@@ -1968,8 +1968,12 @@ class a_msg_catcher_t final : public agent_t
 		void
 		evt_msg_arrived( mhood_t<Msg> )
 			{
+std::cout << this << " message arried" << std::endl;
+//FIXME: uncomment after experimenting.
+#if 0
 				// Drop the subscription because it's no more needed.
 				so_drop_subscription< Msg >( m_from );
+#endif
 			}
 	};
 
