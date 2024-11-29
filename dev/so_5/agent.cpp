@@ -43,10 +43,11 @@ agent_identity_t::pointer_only_t::make_c_string() const noexcept
 			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 		};
 
-		constexpr std::string_view prefix{ "<noname:" };
-
 		std::array<char, c_string_size> result;
-		auto it = std::copy( prefix.begin(), prefix.end(), result.begin() );
+		auto it = std::copy(
+				c_string_prefix.begin(),
+				c_string_prefix.end(),
+				result.begin() );
 
 		// NOTE: this code won't compile if there is no std::uintptr_t type,
 		// but we don't care about such platforms at the moment.
@@ -68,7 +69,7 @@ agent_identity_t::pointer_only_t::make_c_string() const noexcept
 				bits_to_process -= half_octet;
 			}
 
-		*(it++) = '>';
+		it = std::copy( c_string_suffix.begin(), c_string_suffix.end(), it );
 		*it = 0;
 
 		return result;

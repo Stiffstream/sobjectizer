@@ -52,12 +52,18 @@ class agent_identity_t
 		//! Type for case when agent has no user-provided name.
 		struct pointer_only_t
 			{
+				//! Prefix to be used for string representation.
+				static constexpr std::string_view c_string_prefix{ "<noname:" };
+				//! Suffix to be used for string representation.
+				static constexpr std::string_view c_string_suffix{ ">" };
+
 				//! Capacity of c-string for holding string representation.
 				//!
 				//! Size of hex representation of a pointer + "<noname:>".length() + 1.
 				static constexpr std::size_t c_string_size =
 						(sizeof(void*) * 2u)
-						+ std::string_view{ "<noname:>" }.size()
+						+ c_string_prefix.size()
+						+ c_string_suffix.size()
 						+ 1u /* terminating 0-symbol */;
 
 				//! Value.
