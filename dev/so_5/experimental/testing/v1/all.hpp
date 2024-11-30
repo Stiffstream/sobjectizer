@@ -1937,6 +1937,23 @@ operator&(
 namespace mbox_receives_msg_impl
 {
 
+//FIXME: document this!
+struct catch_enabled_flag_t
+	: public std::enable_shared_from_this< catch_enabled_flag_t >
+{
+	//! The current flag value.
+	//!
+	//! @note
+	//! The catch is disabled by default.
+	std::atomic< bool > m_value;
+};
+
+//! An alias for shared_ptr to catch_enabled_flag_t.
+//!
+//! @since v.5.8.4
+using catch_enabled_flag_shptr_t =
+		std::shared_ptr< catch_enabled_flag_t >;
+
 /*!
  * \brief Agent that receives a message/signal from specified mbox.
  *
@@ -1949,18 +1966,50 @@ namespace mbox_receives_msg_impl
 template< typename Msg >
 class a_msg_catcher_t final : public agent_t
 	{
+		using msg_traits_t = message_payload_type< Msg >;
+
 		//! Source for a message.
 		const mbox_t m_from;
 
+		//! Flag for enablind/disabling message processing.
+		catch_enabled_flag_shptr_t m_catch_enabled;
+
 	public:
-		a_msg_catcher_t( context_t ctx, mbox_t from )
+		a_msg_catcher_t(
+			context_t ctx,
+			mbox_t from,
+			catch_enabled_flag_shptr_t catch_enabled )
 			: agent_t{ std::move(ctx) }
 			, m_from{ std::move(from) }
+			, m_catch_enabled{ std::move(catch_enabled) }
 			{}
 
 		void
 		so_define_agent() override
 			{
+				const auto delivery_filter =
+						[flag = std::move(m_catch_enabled)]
+						(typename msg_traits_t::payload_type const &) {
+return true;
+//FIXME: uncomment this!
+//return flag->m_value.load( std::memory_order_acquire );
+						};
+
+				// A special delivery filter has to be set to disable
+				// message delivery until the appropriate step will be
+				// preactivated.
+				if constexpr( message_mutability_t::mutable_message ==
+						msg_traits_t::mutability() )
+				{
+					so_set_delivery_filter_for_mutable_msg(
+							m_from,
+							delivery_filter );
+				}
+				else
+				{
+					so_set_delivery_filter( m_from, delivery_filter );
+				}
+
 				so_subscribe( m_from ).event( &a_msg_catcher_t::evt_msg_arrived );
 			}
 
@@ -1968,12 +2017,10 @@ class a_msg_catcher_t final : public agent_t
 		void
 		evt_msg_arrived( mhood_t<Msg> )
 			{
-std::cout << this << " message arried" << std::endl;
-//FIXME: uncomment after experimenting.
-#if 0
 				// Drop the subscription because it's no more needed.
 				so_drop_subscription< Msg >( m_from );
-#endif
+				// The delivery filter is no more needed too.
+				so_drop_delivery_filter< Msg >( m_from );
 			}
 	};
 
@@ -2006,15 +2053,20 @@ operator&(
 	//! Type of message to be received.
 	receives_indicator_t< Msg > )
 	{
+		// We need a catch_enabler.
+		auto catch_enabler =
+				std::make_shared< mbox_receives_msg_impl::catch_enabled_flag_t >();
+
 		// A new agent has to be registered.
 		//
 		// NOTE: the agent will be bound to the default dispatcher.
 		agent_t & catcher_agent = from->environment().introduce_coop(
-				[&from]( coop_t & coop ) -> agent_t & {
+				[&from, &catch_enabler]( coop_t & coop ) -> agent_t & {
 					using agent_to_create_t =
 							mbox_receives_msg_impl::a_msg_catcher_t< Msg >;
 
-					auto * catcher = coop.make_agent< agent_to_create_t >( from );
+					auto * catcher = coop.make_agent< agent_to_create_t >(
+							from, catch_enabler );
 					return *catcher;
 				} );
 
