@@ -2501,6 +2501,27 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \brief Drop a delivery filter.
 		 *
+		 * Usage example:
+		 * \code
+		 * // For a case of an immutable message.
+		 * void some_agent::some_event(mhood_t<my_message> cmd) {
+		 * 	... // Some actions.
+		 * 	// Now we want to drop the subscription and the delivery
+		 * 	// filter for this message.
+		 * 	so_drop_subscription_for_all_states<my_message>(source_mbox);
+		 * 	so_drop_delivery_filter<my_message>(source_mbox);
+		 * }
+		 *
+		 * // For a case of a mutable message.
+		 * void some_agent::some_event(mutable_mhood_t<my_message> cmd) {
+		 * 	... // Some actions.
+		 * 	// Now we want to drop the subscription and the delivery
+		 * 	// filter for this message.
+		 * 	so_drop_subscription_for_all_states<so_5::mutable_msg<my_message>>(source_mbox);
+		 * 	so_drop_delivery_filter<so_5::mutable_msg<my_message>>(source_mbox);
+		 * }
+		 * \endcode
+		 *
 		 * \tparam Message type of message filtered.
 		 *
 		 * \since v.5.5.5
