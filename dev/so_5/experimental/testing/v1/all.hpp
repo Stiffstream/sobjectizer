@@ -125,7 +125,7 @@ struct trigger_activation_context_t
 		//! The current step for that activation is being performed.
 		abstract_scenario_step_t & m_step;
 
-		//! Incoming message of signal.
+		//! Incoming message or signal.
 		/*!
 		 * \note
 		 * This will be a nullptr in case of a signal.
@@ -169,7 +169,7 @@ class SO_5_TYPE trigger_t final
 		 * m_target_id field.
 		 */
 		const agent_t & m_target_agent;
-		//! The unique ID or target's direct mbox.
+		//! The unique ID of target's direct mbox.
 		/*!
 		 * ID of mbox is a unique value. ID is not reused even if
 		 * the agent is destroyed and its memory is reallocated for
