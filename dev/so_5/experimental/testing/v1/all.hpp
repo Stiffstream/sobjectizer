@@ -1979,6 +1979,95 @@ class a_msg_catcher_t final : public agent_t
 			}
 	};
 
+//
+// msg_catcher_map_layer_t
+//
+//FIXME: document this!
+/// \since v.5.8.4.
+class msg_catcher_map_layer_t final
+	: public layer_t
+	{
+	public:
+		/// Information about a catcher agent.
+		///
+		/// This information has to be used for building a trigger.
+		struct catcher_info_t
+			{
+				/// Pointer to the agent.
+				const agent_t * m_target_agent;
+
+				//FIXME: it seems that this field is not needed at all.
+				/// ID of the agent's direct mbox.
+				mbox_id_t m_target_id;
+
+				/// Initializing constructor.
+				catcher_info_t(
+					const agent_t * target_agent,
+					mbox_id_t target_id )
+					: m_target_agent{ target_agent }
+					, m_target_id{ target_id }
+					{}
+			};
+
+	private:
+		/// Type of key for identifying agents.
+		using catcher_key_t = std::tuple<
+				// Type of message/signal to be received.
+				std::type_index,
+				// ID of source mbox.
+				mbox_id_t
+			>;
+
+		/// Type of map of already registered agents.
+		using agents_map_t = std::map< catcher_key_t, catcher_info_t >;
+
+		/// The lock for thread safety.
+		std::mutex m_lock;
+
+		/// The map of already created catcher agents.
+		agents_map_t m_agents;
+
+	public:
+		msg_catcher_map_layer_t() = default;
+
+		//FIXME: document this!
+		template< typename Msg >
+		[[nodiscard]] catcher_info_t
+		catcher_for_mbox(
+			const so_5::mbox_t & from )
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				const catcher_key_t key{
+						message_payload_type< Msg >::subscription_type_index(),
+						from->id()
+					};
+				auto it = m_agents.find( key );
+				if( it == m_agents.end() )
+					{
+						// It's necessary to create an agent first time.
+						const agent_t * catcher_agent =
+								// NOTE: the agent will be bound to the default dispatcher.
+								this->so_environment().introduce_coop(
+									[&from]( coop_t & coop ) -> const agent_t * {
+										using agent_to_create_t = a_msg_catcher_t< Msg >;
+
+										return coop.make_agent< agent_to_create_t >( from );
+									} );
+						//FIXME: exception safety has to be provided here!
+						it = m_agents.emplace(
+								key,
+								catcher_info_t{
+										catcher_agent,
+										catcher_agent->so_direct_mbox()->id() } )
+							.first;
+					}
+
+				// Now the agent is present in the map.
+				return it->second;
+			}
+	};
+
 } /* namespace mbox_receives_msg_impl */
 
 /*!
@@ -2008,23 +2097,16 @@ operator&(
 	//! Type of message to be received.
 	receives_indicator_t< Msg > )
 	{
-		// A new agent has to be registered.
-		//
-		// NOTE: the agent will be bound to the default dispatcher.
-		agent_t & catcher_agent = from->environment().introduce_coop(
-				[&from]( coop_t & coop ) -> agent_t & {
-					using agent_to_create_t =
-							mbox_receives_msg_impl::a_msg_catcher_t< Msg >;
-
-					auto * catcher = coop.make_agent< agent_to_create_t >(
-							from );
-					return *catcher;
-				} );
+		// Information about catcher agents is stored in a special layer.
+		using catcher_layer_t = mbox_receives_msg_impl::msg_catcher_map_layer_t;
+		auto * catcher_layer = from->environment().query_layer< catcher_layer_t >();
+		// The appropriate catcher agent will be created or reused.
+		const auto catcher_info = catcher_layer->catcher_for_mbox< Msg >( from );
 
 		return {
 				std::make_unique<trigger_t>(
 						incident_status_t::handled,
-						catcher_agent,
+						*(catcher_info.m_target_agent),
 						message_payload_type< Msg >::subscription_type_index(),
 						from->id() )
 			};

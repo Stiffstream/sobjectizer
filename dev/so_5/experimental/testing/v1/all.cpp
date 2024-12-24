@@ -1535,6 +1535,12 @@ make_special_params(
 	{
 		setup_special_queue_hook( internals, params );
 
+		// Special layer has to be added to the environment.
+		using so_5::experimental::testing::v1::details::mbox_receives_msg_impl
+				::msg_catcher_map_layer_t;
+		params.add_layer(
+				std::make_unique< msg_catcher_map_layer_t >() );
+
 		return std::move(params);
 	}
 
