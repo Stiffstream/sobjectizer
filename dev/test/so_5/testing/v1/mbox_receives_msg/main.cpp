@@ -227,6 +227,59 @@ UT_UNIT_TEST( several_receives_with_inspect_immutable )
 		},
 		5 );
 }
+
+UT_UNIT_TEST( several_receives_with_inspect_mutable )
+{
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::mbox_t dest = so_5::make_unique_subscribers_mbox( env.environment() );
+
+			using msg_to_use = so_5::mutable_msg< test_msg_with_content >;
+
+			env.scenario().define_step( "one" )
+				.impact< msg_to_use >( dest, 1 )
+				.when( dest
+						& so5_tests::receives< msg_to_use >()
+						& so5_tests::inspect_msg( "inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 1 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+			env.scenario().define_step( "two" )
+				.impact< msg_to_use >( dest, 2 )
+				.when( dest
+						& so5_tests::receives< msg_to_use >()
+						& so5_tests::inspect_msg( "inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 2 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+			env.scenario().define_step( "three" )
+				.impact< msg_to_use >( dest, 3 )
+				.when( dest
+						& so5_tests::receives< msg_to_use >()
+						& so5_tests::inspect_msg( "inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 3 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+
+			env.scenario().run_for( 1000ms );
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"one", "inspection" ) );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"two", "inspection" ) );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"three", "inspection" ) );
+		},
+		5 );
+}
+
 int
 main()
 {
@@ -236,6 +289,7 @@ main()
 	UT_RUN_UNIT_TEST( receives_with_inspect_immutable )
 	UT_RUN_UNIT_TEST( receives_with_inspect_mutable )
 	UT_RUN_UNIT_TEST( several_receives_with_inspect_immutable )
+	UT_RUN_UNIT_TEST( several_receives_with_inspect_mutable )
 
 	return 0;
 }

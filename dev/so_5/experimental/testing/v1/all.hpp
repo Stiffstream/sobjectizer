@@ -1972,10 +1972,7 @@ class a_msg_catcher_t final : public agent_t
 		void
 		evt_msg_arrived( mhood_t<Msg> )
 			{
-				// Drop the subscription because it's no more needed.
-				so_drop_subscription< Msg >( m_from );
-				// The delivery filter is no more needed too.
-				so_drop_delivery_filter< Msg >( m_from );
+				// Nothing to do.
 			}
 	};
 
