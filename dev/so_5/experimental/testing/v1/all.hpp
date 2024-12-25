@@ -1979,8 +1979,27 @@ class a_msg_catcher_t final : public agent_t
 //
 // msg_catcher_map_layer_t
 //
-//FIXME: document this!
-/// \since v.5.8.4.
+/// \brief Special layer that holds a map of catcher agents.
+///
+/// There should be just one agent for every pair of (msg_type, mbox),
+/// otherwise there would be errors on attempt to use receives() with
+/// MPSC mboxes. Because of that a map of catcher agent is necessary.
+/// This layer holds such a map and provides a method to create a
+/// new catcher agent or get a pointer to existing one.
+///
+/// This layer will be automatically added to testing_env_t.
+///
+/// When a receives_indicator_t is transformed into a trigger this
+/// layer will be obtained from mbox's environment.
+///
+/// \note
+/// This layer holds pointers to agents. It's not a good idea in
+/// general, because the lifetime of catcher agents is not under
+/// control of the layer. But in this use case it seems to be safe
+/// because pointers are used only during creation of triggers and
+/// at this moment all catcher agents are alive.
+///
+/// \since v.5.8.4
 class msg_catcher_map_layer_t final
 	: public layer_t
 	{
@@ -1988,21 +2007,20 @@ class msg_catcher_map_layer_t final
 		/// Information about a catcher agent.
 		///
 		/// This information has to be used for building a trigger.
+		///
+		/// @note
+		/// At the current moment just a pointer is enough. But it's better
+		/// to place it into a struct to have a possibility to extend it
+		/// in the future.
 		struct catcher_info_t
 			{
 				/// Pointer to the agent.
 				const agent_t * m_target_agent;
 
-				//FIXME: it seems that this field is not needed at all.
-				/// ID of the agent's direct mbox.
-				mbox_id_t m_target_id;
-
 				/// Initializing constructor.
-				catcher_info_t(
-					const agent_t * target_agent,
-					mbox_id_t target_id )
+				explicit catcher_info_t(
+					const agent_t * target_agent )
 					: m_target_agent{ target_agent }
-					, m_target_id{ target_id }
 					{}
 			};
 
@@ -2024,10 +2042,29 @@ class msg_catcher_map_layer_t final
 		/// The map of already created catcher agents.
 		agents_map_t m_agents;
 
+		/// Helper for registration of a new agent.
+		template< typename Msg >
+		[[nodiscard]] const agent_t *
+		register_new_catcher(
+			const so_5::mbox_t & from ) const
+			{
+				// NOTE: the agent will be bound to the default dispatcher.
+				return this->so_environment().introduce_coop(
+					[&from]( coop_t & coop ) -> const agent_t * {
+						using agent_to_create_t = a_msg_catcher_t< Msg >;
+
+						return coop.make_agent< agent_to_create_t >( from );
+					} );
+			}
+
 	public:
 		msg_catcher_map_layer_t() = default;
 
-		//FIXME: document this!
+		/// Get information about a catcher agent for (msg_type, mbox) pair.
+		///
+		/// If there is no such an agent for this (msg_type, mbox) pair it
+		/// will be created. Otherwise an information about already existing
+		/// agent will be returned.
 		template< typename Msg >
 		[[nodiscard]] catcher_info_t
 		catcher_for_mbox(
@@ -2042,22 +2079,29 @@ class msg_catcher_map_layer_t final
 				auto it = m_agents.find( key );
 				if( it == m_agents.end() )
 					{
-						// It's necessary to create an agent first time.
-						const agent_t * catcher_agent =
-								// NOTE: the agent will be bound to the default dispatcher.
-								this->so_environment().introduce_coop(
-									[&from]( coop_t & coop ) -> const agent_t * {
-										using agent_to_create_t = a_msg_catcher_t< Msg >;
-
-										return coop.make_agent< agent_to_create_t >( from );
-									} );
-						//FIXME: exception safety has to be provided here!
+						// For exception safety we add a key with nullptr
+						// to the m_agents map, and then update the pointer if
+						// there won't be problems with registration of a new agent.
 						it = m_agents.emplace(
 								key,
-								catcher_info_t{
-										catcher_agent,
-										catcher_agent->so_direct_mbox()->id() } )
+								catcher_info_t{ nullptr } )
 							.first;
+
+						::so_5::details::do_with_rollback_on_exception(
+								[&]() {
+									// It's necessary to create an agent first time.
+									const agent_t * catcher_agent =
+											register_new_catcher< Msg >( from );
+
+									// Now we have an actual agent pointer and can update
+									// m_agents map.
+									it->second.m_target_agent = catcher_agent;
+								},
+								[&]() {
+									// Information about new agent has to be removed
+									// because it wasn't registered.
+									m_agents.erase( it );
+								} );
 					}
 
 				// Now the agent is present in the map.

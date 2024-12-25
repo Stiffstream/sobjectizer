@@ -70,7 +70,7 @@ class SO_5_TYPE layer_t
 		 * the SObjectizer Environment.
 		 */
 		environment_t &
-		so_environment();
+		so_environment() const;
 
 	private:
 		//! Bind layer to the SObjectizer Environment.
