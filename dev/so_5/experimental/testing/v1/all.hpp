@@ -2370,6 +2370,8 @@ class SO_5_TYPE scenario_proxy_t final
 			const std::string & step_name,
 			const std::string & tag ) const;
 
+		//FIXME: there should a method has_stored_state_name.
+
 		//! Try to get stored msg inspection result.
 		/*!
 		 * This method allows to get msg inspection result stored by
@@ -2414,6 +2416,8 @@ class SO_5_TYPE scenario_proxy_t final
 		stored_msg_inspection_result(
 			const std::string & step_name,
 			const std::string & tag ) const;
+
+		//FIXME: there should a method has_stored_msg_inspection_result.
 	};
 
 /*!

@@ -280,6 +280,70 @@ UT_UNIT_TEST( several_receives_with_inspect_mutable )
 		5 );
 }
 
+UT_UNIT_TEST( receives_in_when_any_immutable )
+{
+	class a_starter_t final : public so_5::agent_t
+	{
+		const so_5::mbox_t m_dest;
+
+	public:
+		struct msg_start final : public so_5::signal_t {};
+
+		a_starter_t( context_t ctx, so_5::mbox_t dest )
+			: so_5::agent_t{ std::move(ctx) }
+			, m_dest{ std::move(dest) }
+		{}
+
+		void
+		so_define_agent() override
+		{
+			so_subscribe_self().event( [this]( mhood_t<msg_start> ) {
+					so_5::send< test_msg_with_content >( m_dest, 2 );
+				} );
+		}
+	};
+
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::mbox_t dest = env.environment().create_mbox();
+
+			auto & starter = env.environment().introduce_coop(
+				[dest](so_5::coop_t & coop) -> decltype(auto) {
+					return *(coop.make_agent< a_starter_t >( dest ));
+				} );
+
+			env.scenario().define_step( "one" )
+				.impact< a_starter_t::msg_start >( starter )
+				.when_any(
+						starter & so5_tests::reacts_to< a_starter_t::msg_start >(),
+						dest
+							& so5_tests::receives< test_msg_with_content >()
+							& so5_tests::inspect_msg( "inspection",
+								[]( const test_msg_with_content & msg ) -> std::string {
+									return 1 == msg.m_value ? "OK" : "FAIL";
+								} ) )
+				;
+			env.scenario().define_step( "two" )
+				.when( dest
+						& so5_tests::receives< test_msg_with_content >()
+						& so5_tests::inspect_msg( "inspection",
+							[]( const test_msg_with_content & msg ) -> std::string {
+								return 2 == msg.m_value ? "OK" : "FAIL";
+							} ) )
+				;
+
+			env.scenario().run_for( 1000ms );
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
+						"two", "inspection" ) );
+		},
+		5 );
+}
+
 int
 main()
 {
@@ -290,6 +354,7 @@ main()
 	UT_RUN_UNIT_TEST( receives_with_inspect_mutable )
 	UT_RUN_UNIT_TEST( several_receives_with_inspect_immutable )
 	UT_RUN_UNIT_TEST( several_receives_with_inspect_mutable )
+	UT_RUN_UNIT_TEST( receives_in_when_any_immutable )
 
 	return 0;
 }
