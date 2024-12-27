@@ -98,6 +98,11 @@ main()
 					"test should take more than 250ms" );
 
 			ensure_or_die(
+					env.scenario().has_stored_state_name(
+							"hello_one_received", "first" ),
+					"there should be a stored state name" );
+
+			ensure_or_die(
 					"main" == env.scenario().stored_state_name(
 							"hello_one_received", "first" ),
 					"`main` is expected to be stored" );

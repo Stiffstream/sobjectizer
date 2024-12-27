@@ -125,7 +125,7 @@ struct trigger_activation_context_t
 		//! The current step for that activation is being performed.
 		abstract_scenario_step_t & m_step;
 
-		//! Incoming message of signal.
+		//! Incoming message or signal.
 		/*!
 		 * \note
 		 * This will be a nullptr in case of a signal.
@@ -169,7 +169,7 @@ class SO_5_TYPE trigger_t final
 		 * m_target_id field.
 		 */
 		const agent_t & m_target_agent;
-		//! The unique ID or target's direct mbox.
+		//! The unique ID of target's direct mbox.
 		/*!
 		 * ID of mbox is a unique value. ID is not reused even if
 		 * the agent is destroyed and its memory is reallocated for
@@ -1804,6 +1804,18 @@ class abstract_scenario_t
 			const std::string & step_name,
 			const std::string & tag ) const = 0;
 
+		//! Check presence of the stored state name.
+		/*!
+		 * Should be called only after completion of scenario.
+		 *
+		 * \since v.5.8.4
+		 */
+		[[nodiscard]]
+		virtual bool
+		has_stored_state_name(
+			const std::string & step_name,
+			const std::string & tag ) const = 0;
+
 		//! Store msg inspection result in the scenario.
 		/*!
 		 * Note this method can be accessed only when scenario object is locked.
@@ -1829,6 +1841,21 @@ class abstract_scenario_t
 		[[nodiscard]]
 		virtual std::string
 		stored_msg_inspection_result(
+			const std::string & step_name,
+			const std::string & tag ) const = 0;
+
+		/*!
+		 * \brief Is there the inspection result?
+		 *
+		 * Note this method can be accessed only when scenario object is locked.
+		 *
+		 * \throw exception_t if the scenario is not completed yet.
+		 *
+		 * \since v.5.8.4
+		 */
+		[[nodiscard]]
+		virtual bool
+		has_stored_msg_inspection_result(
 			const std::string & step_name,
 			const std::string & tag ) const = 0;
 	};
@@ -1949,11 +1976,15 @@ namespace mbox_receives_msg_impl
 template< typename Msg >
 class a_msg_catcher_t final : public agent_t
 	{
+		using msg_traits_t = message_payload_type< Msg >;
+
 		//! Source for a message.
 		const mbox_t m_from;
 
 	public:
-		a_msg_catcher_t( context_t ctx, mbox_t from )
+		a_msg_catcher_t(
+			context_t ctx,
+			mbox_t from )
 			: agent_t{ std::move(ctx) }
 			, m_from{ std::move(from) }
 			{}
@@ -1968,8 +1999,140 @@ class a_msg_catcher_t final : public agent_t
 		void
 		evt_msg_arrived( mhood_t<Msg> )
 			{
-				// Drop the subscription because it's no more needed.
-				so_drop_subscription< Msg >( m_from );
+				// Nothing to do.
+			}
+	};
+
+//
+// msg_catcher_map_layer_t
+//
+/// \brief Special layer that holds a map of catcher agents.
+///
+/// There should be just one agent for every pair of (msg_type, mbox),
+/// otherwise there would be errors on attempt to use receives() with
+/// MPSC mboxes. Because of that a map of catcher agent is necessary.
+/// This layer holds such a map and provides a method to create a
+/// new catcher agent or get a pointer to existing one.
+///
+/// This layer will be automatically added to testing_env_t.
+///
+/// When a receives_indicator_t is transformed into a trigger this
+/// layer will be obtained from mbox's environment.
+///
+/// \note
+/// This layer holds pointers to agents. It's not a good idea in
+/// general, because the lifetime of catcher agents is not under
+/// control of the layer. But in this use case it seems to be safe
+/// because pointers are used only during creation of triggers and
+/// at this moment all catcher agents are alive.
+///
+/// \since v.5.8.4
+class msg_catcher_map_layer_t final
+	: public layer_t
+	{
+	public:
+		/// Information about a catcher agent.
+		///
+		/// This information has to be used for building a trigger.
+		///
+		/// @note
+		/// At the current moment just a pointer is enough. But it's better
+		/// to place it into a struct to have a possibility to extend it
+		/// in the future.
+		struct catcher_info_t
+			{
+				/// Pointer to the agent.
+				const agent_t * m_target_agent;
+
+				/// Initializing constructor.
+				explicit catcher_info_t(
+					const agent_t * target_agent )
+					: m_target_agent{ target_agent }
+					{}
+			};
+
+	private:
+		/// Type of key for identifying agents.
+		using catcher_key_t = std::tuple<
+				// Type of message/signal to be received.
+				std::type_index,
+				// ID of source mbox.
+				mbox_id_t
+			>;
+
+		/// Type of map of already registered agents.
+		using agents_map_t = std::map< catcher_key_t, catcher_info_t >;
+
+		/// The lock for thread safety.
+		std::mutex m_lock;
+
+		/// The map of already created catcher agents.
+		agents_map_t m_agents;
+
+		/// Helper for registration of a new agent.
+		template< typename Msg >
+		[[nodiscard]] const agent_t *
+		register_new_catcher(
+			const so_5::mbox_t & from ) const
+			{
+				// NOTE: the agent will be bound to the default dispatcher.
+				return this->so_environment().introduce_coop(
+					[&from]( coop_t & coop ) -> const agent_t * {
+						using agent_to_create_t = a_msg_catcher_t< Msg >;
+
+						return coop.make_agent< agent_to_create_t >( from );
+					} );
+			}
+
+	public:
+		msg_catcher_map_layer_t() = default;
+
+		/// Get information about a catcher agent for (msg_type, mbox) pair.
+		///
+		/// If there is no such an agent for this (msg_type, mbox) pair it
+		/// will be created. Otherwise an information about already existing
+		/// agent will be returned.
+		template< typename Msg >
+		[[nodiscard]] catcher_info_t
+		catcher_for_mbox(
+			const so_5::mbox_t & from )
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				const catcher_key_t key{
+						message_payload_type< Msg >::subscription_type_index(),
+						from->id()
+					};
+				auto it = m_agents.find( key );
+				if( it == m_agents.end() )
+					{
+						// For exception safety we add a key with nullptr
+						// to the m_agents map, and then update the pointer if
+						// there won't be problems with registration of a new agent.
+						it = m_agents.emplace(
+								key,
+								catcher_info_t{ nullptr } )
+							.first;
+
+						::so_5::details::do_with_rollback_on_exception(
+								[&]() {
+									// It's necessary to create an agent first time.
+									const agent_t * catcher_agent =
+											register_new_catcher< Msg >( from );
+
+									// Now we have an actual agent pointer and can update
+									// m_agents map.
+									it->second.m_target_agent = catcher_agent;
+								},
+								[&]() {
+									// Information about new agent has to be removed
+									// because it wasn't registered.
+									m_agents.erase( it );
+								} );
+					}
+
+				// Now the agent is present in the map.
+				return it->second;
 			}
 	};
 
@@ -2002,22 +2165,16 @@ operator&(
 	//! Type of message to be received.
 	receives_indicator_t< Msg > )
 	{
-		// A new agent has to be registered.
-		//
-		// NOTE: the agent will be bound to the default dispatcher.
-		agent_t & catcher_agent = from->environment().introduce_coop(
-				[&from]( coop_t & coop ) -> agent_t & {
-					using agent_to_create_t =
-							mbox_receives_msg_impl::a_msg_catcher_t< Msg >;
-
-					auto * catcher = coop.make_agent< agent_to_create_t >( from );
-					return *catcher;
-				} );
+		// Information about catcher agents is stored in a special layer.
+		using catcher_layer_t = mbox_receives_msg_impl::msg_catcher_map_layer_t;
+		auto * catcher_layer = from->environment().query_layer< catcher_layer_t >();
+		// The appropriate catcher agent will be created or reused.
+		const auto catcher_info = catcher_layer->catcher_for_mbox< Msg >( from );
 
 		return {
 				std::make_unique<trigger_t>(
 						incident_status_t::handled,
-						catcher_agent,
+						*(catcher_info.m_target_agent),
 						message_payload_type< Msg >::subscription_type_index(),
 						from->id() )
 			};
@@ -2240,6 +2397,51 @@ class SO_5_TYPE scenario_proxy_t final
 			const std::string & step_name,
 			const std::string & tag ) const;
 
+		//! Is there the inspection result?
+		/*!
+		 * This method allows to check presence of the state name stored by
+		 * store_state_name() trigger. For example:
+		 * \code
+		 * using namespace so_5::experimental::testing;
+		 * TEST_CASE("some_case") {
+		 * 	testing_env_t env;
+		 *
+		 * 	so_5::agent_t * test_agent;
+		 * 	env.environment().introduce_coop([&](so_5::coop_t & coop) {
+		 * 		test_agent = coop.make_agent<some_agent_type>(...);
+		 * 	});
+		 *
+		 * 	env.scenario().define_step("one")
+		 * 		.impact<some_message>(*test_agent, ...)
+		 * 		.when_any(
+		 * 			*test_agent & reacts_to<some_message>()
+		 * 				& store_state_name("my_agent"),
+		 * 				... // Other triggers...
+		 * 		);
+		 * 	...
+		 * 	env.scenario().run_for(std::chrono::seconds(1));
+		 *
+		 * 	REQUIRE(completed() == env.scenario().result());
+		 *
+		 * 	// Because store_state_name was used in when_any then, the corresponding
+		 * 	// trigger may not have been activated.
+		 * 	if(env.scenario().has_stored_state_name("one", "my_agent"))
+		 * 		REQUIRE("some_state" == env.scenario().stored_state_name("one", "my_agent"));
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * This method can be called only after completion of the scenario.
+		 * Otherwise an instance of so_5::exception_t will be thrown.
+		 *
+		 * \since v.5.8.4
+		 */
+		[[nodiscard]]
+		bool
+		has_stored_state_name(
+			const std::string & step_name,
+			const std::string & tag ) const;
+
 		//! Try to get stored msg inspection result.
 		/*!
 		 * This method allows to get msg inspection result stored by
@@ -2278,10 +2480,60 @@ class SO_5_TYPE scenario_proxy_t final
 		 * \return The value of the inspection result. If there is no stored
 		 * result for a pair of (\a step_name, \a tag) then an instance of
 		 * so_5::exception_t will be thrown.
+		 *
+		 * \since v.5.8.3
 		 */
 		[[nodiscard]]
 		std::string
 		stored_msg_inspection_result(
+			const std::string & step_name,
+			const std::string & tag ) const;
+
+		//! Is there the inspection result?
+		/*!
+		 * This method allows to check presence of them msg inspection result
+		 * stored by inspect_msg() trigger. For example:
+		 * \code
+		 * using namespace so_5::experimental::testing;
+		 * TEST_CASE("some_case") {
+		 * 	testing_env_t env;
+		 *
+		 * 	so_5::agent_t * test_agent;
+		 * 	env.environment().introduce_coop([&](so_5::coop_t & coop) {
+		 * 		test_agent = coop.make_agent<some_agent_type>(...);
+		 * 	});
+		 *
+		 * 	env.scenario().define_step("one")
+		 * 		.impact<some_message>(*test_agent, ...)
+		 * 		.when_any(
+		 * 			*test_agent & reacts_to<some_message>()
+		 * 				& inspect_msg("msg-check"
+		 * 						[](const some_message & msg) -> std::string {
+		 * 							return msg.some_field = expected_value ? "OK" : "FAIL";
+		 * 						}),
+		 * 			... // some other triggers.
+		 * 		);
+		 * 	...
+		 * 	env.scenario().run_for(std::chrono::seconds(1));
+		 *
+		 * 	REQUIRE(completed() == env.scenario().result());
+		 *
+		 * 	// Because inspect_msg was used in when_any then, the corresponding
+		 * 	// trigger may not have been activated.
+		 * 	if(env.scenario().has_stored_msg_inspection_result("one", "msg-check"))
+		 * 		REQUIRE("OK" == env.scenario().stored_msg_inspection_result("one", "msg-check"));
+		 * }
+		 * \endcode
+		 *
+		 * \attention
+		 * This method can be called only after completion of the scenario.
+		 * Otherwise an instance of so_5::exception_t will be thrown.
+		 *
+		 * \since v.5.8.4
+		 */
+		[[nodiscard]]
+		bool
+		has_stored_msg_inspection_result(
 			const std::string & step_name,
 			const std::string & tag ) const;
 	};

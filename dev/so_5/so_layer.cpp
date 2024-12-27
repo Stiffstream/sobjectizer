@@ -25,7 +25,7 @@ layer_t::wait()
 }
 
 environment_t &
-layer_t::so_environment()
+layer_t::so_environment() const
 {
 	if( nullptr == m_env )
 	{
