@@ -937,6 +937,18 @@ class real_scenario_t final : public abstract_scenario_t
 			}
 	};
 
+//
+// msg_catcher_map_layer_t
+//
+
+namespace mbox_receives_msg_impl
+{
+
+msg_catcher_map_layer_t::msg_catcher_map_layer_t() = default;
+msg_catcher_map_layer_t::~msg_catcher_map_layer_t() noexcept = default;
+
+} /* namespace mbox_receives_msg_impl */
+
 } /* namespace details */
 
 namespace impl {

@@ -2027,7 +2027,7 @@ class a_msg_catcher_t final : public agent_t
 /// at this moment all catcher agents are alive.
 ///
 /// \since v.5.8.4
-class msg_catcher_map_layer_t final
+class SO_5_TYPE msg_catcher_map_layer_t final
 	: public layer_t
 	{
 	public:
@@ -2085,7 +2085,8 @@ class msg_catcher_map_layer_t final
 			}
 
 	public:
-		msg_catcher_map_layer_t() = default;
+		msg_catcher_map_layer_t();
+		~msg_catcher_map_layer_t() noexcept override;
 
 		/// Get information about a catcher agent for (msg_type, mbox) pair.
 		///
