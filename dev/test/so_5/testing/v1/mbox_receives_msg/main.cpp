@@ -338,6 +338,10 @@ UT_UNIT_TEST( receives_in_when_any_immutable )
 			env.scenario().run_for( 1000ms );
 
 			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ( false, env.scenario().has_stored_msg_inspection_result(
+						"one", "inspection" ) );
+			UT_CHECK_EQ( true, env.scenario().has_stored_msg_inspection_result(
+						"two", "inspection" ) );
 			UT_CHECK_EQ( "OK", env.scenario().stored_msg_inspection_result(
 						"two", "inspection" ) );
 		},

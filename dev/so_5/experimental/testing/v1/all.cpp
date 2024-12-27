@@ -715,6 +715,24 @@ class real_scenario_t final : public abstract_scenario_t
 			}
 
 		[[nodiscard]]
+		bool
+		has_stored_state_name(
+			const std::string & step_name,
+			const std::string & tag ) const override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				if( scenario_status_t::completed != m_status )
+					SO_5_THROW_EXCEPTION(
+							rc_scenario_must_be_completed,
+							"scenario must be completed before call to "
+							"stored_state_name()" );
+
+				return m_stored_states.end() != m_stored_states.find(
+						std::make_pair(step_name, tag) );
+			}
+
+		[[nodiscard]]
 		std::string
 		stored_msg_inspection_result(
 			const std::string & step_name,
@@ -738,6 +756,26 @@ class real_scenario_t final : public abstract_scenario_t
 
 				return it->second;
 			}
+
+		[[nodiscard]]
+		bool
+		has_stored_msg_inspection_result(
+			const std::string & step_name,
+			const std::string & tag ) const override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				if( scenario_status_t::completed != m_status )
+					SO_5_THROW_EXCEPTION(
+							rc_scenario_must_be_completed,
+							"scenario must be completed before call to "
+							"has_stored_msg_inspection_result()" );
+
+				return m_stored_inspection_results.end() !=
+						m_stored_inspection_results.find(
+								std::make_pair(step_name, tag) );
+			}
+
 
 	private :
 		void
@@ -1582,12 +1620,28 @@ scenario_proxy_t::stored_state_name(
 		return m_scenario.get().stored_state_name( step_name, tag );
 	}
 
+bool
+scenario_proxy_t::has_stored_state_name(
+	const std::string & step_name,
+	const std::string & tag ) const
+	{
+		return m_scenario.get().has_stored_state_name( step_name, tag );
+	}
+
 std::string
 scenario_proxy_t::stored_msg_inspection_result(
 	const std::string & step_name,
 	const std::string & tag ) const
 	{
 		return m_scenario.get().stored_msg_inspection_result( step_name, tag );
+	}
+
+bool
+scenario_proxy_t::has_stored_msg_inspection_result(
+	const std::string & step_name,
+	const std::string & tag ) const
+	{
+		return m_scenario.get().has_stored_msg_inspection_result( step_name, tag );
 	}
 
 //
