@@ -2198,6 +2198,24 @@ operator&(
  * ...
  * \endcode
  *
+ * Since v.5.8.4 this helper can be used for the same mbox and the same
+ * message type several times in one scenario (but in different scenario
+ * steps):
+ * \code
+ * so_5::testing::testing_env_t env;
+ * ...
+ * so_5::mbox_t dest = env.environment().create_mbox();
+ * ...
+ * env.scenario().define_step("message_arrives")
+ * 	.when(dest & tests::receives<some_msg>());
+ * ...
+ * env.scenario().define_step("another_time")
+ * 	.when(dest & tests::receives<some_msg>());
+ * ...
+ * env.scenario().define_step("and_yet_another_time")
+ * 	.when(dest & tests::receives<some_msg>());
+ * \endcode
+ *
  * \note
  * A mutable message can be specified too. But the mbox should allow
  * subscription for mutable messages. For example:
