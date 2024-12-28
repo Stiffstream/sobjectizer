@@ -2,6 +2,14 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_4 5.8.4 "Uturuncu"
+
+More advanced version of so_5::experimental::testing::receives().
+
+New method so_5::experimental::testing::scenario_proxy_t::has_stored_state_name().
+
+New method so_5::experimental::testing::scenario_proxy_t::has_stored_msg_inspection_result().
+
 \section so_5__5_8_3 5.8.3 "Volcan Tacora"
 
 A fix for a case when message limits are specified for an agent and time_limit
