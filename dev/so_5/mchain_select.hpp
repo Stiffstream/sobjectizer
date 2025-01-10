@@ -5,8 +5,8 @@
 /*!
  * \file
  * \brief Various stuff related to multi chain select.
- * \since
- * v.5.5.16
+ *
+ * \since v.5.5.16
  */
 
 #pragma once
@@ -46,10 +46,9 @@ using adv_select_data_t = bulk_processing_basic_data_t;
 // mchain_select_result_t
 //
 /*!
- * \since
- * v.5.7.0
- *
  * \brief A result of select from several mchains.
+ *
+ * \since v.5.7.0
  */
 class mchain_select_result_t
 	{
