@@ -1791,7 +1791,7 @@ perform_receive(
  *
  * \par Handlers format examples:
  * \code
-	receive( ch, so_5::infinite_wait,
+	receive( from(ch).handle_n(1),
 		// Message instance by const reference.
 		[]( const std::string & v ) {...},
 		// Message instance by value (efficient for small types like int).
@@ -1806,6 +1806,17 @@ perform_receive(
 		[]( so_5::mhood_t< some_another_signal > ) {...},
 		// Signal handler via const reference to mhood_t.
 		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
+ * \endcode
+ *
+ * \note
+ * Since v.5.8.4 the value of empty_timeout (or no_wait_on_empty) is
+ * taken into account when `total_time` is specified. It means that
+ * in the following example the receive() returns immediately if
+ * the mchain is empty:
+ * \code
+ * receive(
+ * 	from(ch).handle_n(5).no_wait_on_empty().total_time(6s),
+ * 	[](const my_message & msg) {...});
  * \endcode
  *
  * \since v.5.5.13
@@ -1955,6 +1966,19 @@ class prepared_receive_t
 			from(chain).handle_all().empty_timeout( milliseconds(500) ),
 			[]( const first_message_type & msg ) { ... },
 			[]( const second_message_type & msg ) { ... }, ... );
+ * \endcode
+ *
+ * \note
+ * Since v.5.8.4 the value of empty_timeout (or no_wait_on_empty) is
+ * taken into account when `total_time` is specified. It means that
+ * in the following example the receive() returns immediately if
+ * the mchain is empty:
+ * \code
+ * auto prepared = prepare_receive(
+ * 	from(ch).handle_n(5).no_wait_on_empty().total_time(6s),
+ * 	[](const my_message & msg) {...});
+ * ...
+ * auto r = so_5::receive(prepared);
  * \endcode
  *
  * \since v.5.5.17

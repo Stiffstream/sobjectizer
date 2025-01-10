@@ -1670,6 +1670,18 @@ send_case(
 				... ) );
 	\endcode
  *
+ * \note
+ * Since v.5.8.4 the value of empty_timeout (or no_wait_on_empty) is
+ * taken into account when `total_time` is specified. It means that
+ * in the following example the select() returns immediately if
+ * all mchains are empty:
+ * \code
+ * select(
+ * 	from_all().handle_n(5).no_wait_on_empty().total_time(6s),
+ * 	receive_case( ch1, ...),
+ * 	receive_case( ch2, ...) );
+ * \endcode
+ *
  * \since v.5.5.16
  */
 template<
@@ -1851,6 +1863,20 @@ class prepared_select_t
 				[]( const third_message_type & msg ) { ... },
 				handler< some_signal_type >( []{ ... ] ),
 				... ) );
+ * \endcode
+ *
+ * \note
+ * Since v.5.8.4 the value of empty_timeout (or no_wait_on_empty) is
+ * taken into account when `total_time` is specified. It means that
+ * in the following example the select() returns immediately if
+ * all mchains are empty:
+ * \code
+ * auto prepared = prepare_select(
+ * 	from_all().handle_n(5).no_wait_on_empty().total_time(6s),
+ * 	receive_case( ch1, ...),
+ * 	receive_case( ch2, ...) );
+ * ...
+ * so_5::select(prepared);
  * \endcode
  *
  * \since v.5.5.17
@@ -2057,6 +2083,23 @@ class extensible_select_t
  * so_5::add_select_cases(sel2,
  * 	receive_case(ch2, ...),
  * 	receive_case(ch3, ...));
+ * \endcode
+ *
+ * \note
+ * Since v.5.8.4 the value of empty_timeout (or no_wait_on_empty) is
+ * taken into account when `total_time` is specified. It means that
+ * in the following example the select() returns immediately if
+ * all mchains are empty:
+ * \code
+ * // Creation of extensible-select instance with initial set of cases.
+ * auto sel = so_5::make_extensible_select(
+ * 	so_5::from_all().handle_n(10).no_wait_on_empty().total_time(6s),
+ * 	receive_case(ch1, ...),
+ * 	receive_case(ch2, ...));
+ * ...
+ * so_5::add_select_cases(sel, ...);
+ * ...
+ * auto r = select(sel);
  * \endcode
  *
  * \since v.5.6.1
