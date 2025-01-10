@@ -5,8 +5,8 @@
 /*!
  * \file
  * \brief Public part of message chain related stuff.
- * \since
- * v.5.5.13
+ *
+ * \since v.5.5.13
  */
 
 #pragma once
@@ -28,10 +28,9 @@ namespace so_5 {
 namespace mchain_props {
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief An alias for type for repesenting timeout values.
+ *
+ * \since v.5.5.13
  */
 using duration_t = std::chrono::high_resolution_clock::duration;
 
@@ -41,10 +40,9 @@ namespace details {
 // no_wait_special_timevalue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Special value of %duration to indicate 'no_wait' case.
+ *
+ * \since v.5.5.13
  */
 inline duration_t
 no_wait_special_timevalue() { return duration_t::zero(); }
@@ -53,10 +51,9 @@ no_wait_special_timevalue() { return duration_t::zero(); }
 // infinite_wait_special_timevalue
 //
 /*!
- * \since
- * v.5.5.13
- * 
  * \brief Special value of %duration to indicate 'infinite_wait' case.
+ *
+ * \since v.5.5.13
  */
 inline duration_t
 infinite_wait_special_timevalue() { return duration_t::max(); }
@@ -65,10 +62,9 @@ infinite_wait_special_timevalue() { return duration_t::max(); }
 // is_no_wait_timevalue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Is time value means 'no_wait'?
+ *
+ * \since v.5.5.13
  */
 inline bool
 is_no_wait_timevalue( duration_t v )
@@ -80,10 +76,9 @@ is_no_wait_timevalue( duration_t v )
 // is_infinite_wait_timevalue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Is time value means 'infinite_wait'?
+ *
+ * \since v.5.5.13
  */
 inline bool
 is_infinite_wait_timevalue( duration_t v )
@@ -96,13 +91,12 @@ is_infinite_wait_timevalue( duration_t v )
 //
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that infinite waiting is
  * represented as duration_t::max() value.
+ *
+ * \since v.5.5.13
  */
 inline duration_t
 actual_timeout( infinite_wait_indication )
@@ -111,13 +105,12 @@ actual_timeout( infinite_wait_indication )
 	}
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that no waiting is
  * represented as duration_t::zero() value.
+ *
+ * \since v.5.5.13
  */
 inline duration_t
 actual_timeout( no_wait_indication )
@@ -126,10 +119,9 @@ actual_timeout( no_wait_indication )
 	}
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function for detection of actual value for waiting timeout.
+ *
+ * \since v.5.5.13
  */
 template< typename V >
 duration_t
@@ -144,10 +136,9 @@ actual_timeout( V value )
 // demand_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Description of one demand in message chain.
+ *
+ * \since v.5.5.13
  */
 struct demand_t
 	{
@@ -183,10 +174,9 @@ struct demand_t
 // memory_usage_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Memory allocation for storage for size-limited chains.
+ *
+ * \since v.5.5.13
  */
 enum class memory_usage_t
 	{
@@ -200,11 +190,10 @@ enum class memory_usage_t
 // overflow_reaction_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief What reaction must be performed on attempt to push new message to
  * the full message chain.
+ *
+ * \since v.5.5.13
  */
 enum class overflow_reaction_t
 	{
@@ -232,10 +221,9 @@ enum class overflow_reaction_t
 // capacity_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Parameters for defining chain size.
+ *
+ * \since v.5.5.13
  */
 class capacity_t
 	{
@@ -375,10 +363,9 @@ class capacity_t
 // extraction_status_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Result of extraction of message from a message chain.
+ *
+ * \since v.5.5.13
  */
 enum class extraction_status_t
 	{
@@ -396,8 +383,7 @@ enum class extraction_status_t
 /*!
  * \brief Result of attempt of pushing a message into a message chain.
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 enum class push_status_t
 	{
@@ -416,10 +402,9 @@ enum class push_status_t
 // close_mode_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief What to do with chain's content at close.
+ *
+ * \since v.5.5.13
  */
 enum class close_mode_t
 	{
@@ -434,13 +419,12 @@ enum class close_mode_t
 // not_empty_notification_func_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Type of functor for notifies about arrival of a message to
  * the empty chain.
  *
  * \attention This function must be noexcept.
+ *
+ * \since v.5.5.13
  */
 using not_empty_notification_func_t = std::function< void() >;
 
@@ -455,10 +439,9 @@ class select_case_t;
 // abstract_message_chain_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief An interace of message chain.
+ *
+ * \since v.5.5.13
  */
 class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_t
 	{
@@ -555,8 +538,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 * }
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.7.3
+		 * \since v.5.7.3
 		 */
 		template< typename Exceptions_Control >
 		void
@@ -583,8 +565,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 *
 		 * \note This method is intended to be used by select_case_t.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		[[nodiscard]]
 		virtual mchain_props::extraction_status_t
@@ -604,8 +585,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 * \note
 		 * This method is intended to be used by select_case_t.
 		 *
-		 * \since
-		 * v.5.7.0
+		 * \since v.5.7.0
 		 */
 		[[nodiscard]]
 		virtual mchain_props::push_status_t
@@ -625,8 +605,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 *
 		 * \note This method is intended to be used by select_case_t.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		virtual void
 		remove_from_select(
@@ -638,8 +617,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		 * \attention
 		 * This method can throw exception.
 		 *
-		 * \since
-		 * v.5.7.3
+		 * \since v.5.7.3
 		 */
 		virtual void
 		actual_close(
@@ -651,10 +629,9 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 // mchain_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Short name for smart pointer to message chain.
+ *
+ * \since v.5.5.13
  */
 using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 
@@ -682,8 +659,7 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
  * so_5::terminate_if_throws_t. So the first parameter to close_drop_content
  * has to be so_5::exceptions_enabled or so_5::terminate_if_throws.
  *
- * \since
- * v.5.7.3
+ * \since v.5.7.3
  */
 template< typename Exceptions_Control >
 inline void
@@ -725,8 +701,7 @@ close_drop_content(
  * so_5::terminate_if_throws_t. So the first parameter to close_drop_content
  * has to be so_5::exceptions_enabled or so_5::terminate_if_throws.
  *
- * \since
- * v.5.7.3
+ * \since v.5.7.3
  */
 template< typename Exceptions_Control >
 inline void
@@ -746,8 +721,7 @@ close_retain_content(
 // mchain_params_t
 //
 /*!
- * \since
- * v.5.5.13
+ * \since v.5.5.13
  *
  * \brief Parameters for message chain.
  */
@@ -832,9 +806,6 @@ class mchain_params_t
  */
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Create parameters for size-unlimited %mchain.
  *
  * \par Usage example:
@@ -842,6 +813,8 @@ class mchain_params_t
 	so_5::environment_t & env = ...;
 	auto chain = env.create_mchain( so_5::make_unlimited_mchain_params() );
 	\endcode
+ *
+ * \since v.5.5.13
  */
 inline mchain_params_t
 make_unlimited_mchain_params()
@@ -850,9 +823,6 @@ make_unlimited_mchain_params()
 	}
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Create parameters for size-limited %mchain without waiting on overflow.
  *
  * \par Usage example:
@@ -866,6 +836,8 @@ make_unlimited_mchain_params()
 			// New messages will be ignored on chain's overflow.
 			so_5::mchain_props::overflow_reaction_t::drop_newest ) );
 	\endcode
+ *
+ * \since v.5.5.13
  */
 inline mchain_params_t
 make_limited_without_waiting_mchain_params(
@@ -885,9 +857,6 @@ make_limited_without_waiting_mchain_params(
 	}
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Create parameters for size-limited %mchain with waiting on overflow.
  *
  * \par Usage example:
@@ -914,6 +883,8 @@ make_limited_without_waiting_mchain_params(
  * special: there is no possibility to spend some time on waiting for
  * some free space in message chain. All operations on the context of
  * timer thread must be done as fast as possible.
+ *
+ * \since v.5.5.13
  */
 inline mchain_params_t
 make_limited_with_waiting_mchain_params(
@@ -943,10 +914,9 @@ make_limited_with_waiting_mchain_params(
 // mchain_receive_result_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief A result of receive from %mchain.
+ *
+ * \since v.5.5.13
  */
 class mchain_receive_result_t
 	{
@@ -1003,8 +973,7 @@ class mchain_receive_result_t
  * This type plays the same role as mchain_receive_result_t but is used
  * for send operations.
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 class mchain_send_result_t
 	{
@@ -1052,8 +1021,7 @@ namespace mchain_props {
  * \brief Status of limit for messages to be extracted/handled
  * during a bulk operation on a mchain.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 enum class msg_count_status_t
 	{
@@ -1239,8 +1207,7 @@ class mchain_bulk_processing_basic_params_t
  * \brief Basic parameters for advanced receive from %mchain and for
  * multi chain select.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< typename Data, typename Derived >
 class mchain_bulk_processing_params_t
@@ -1286,8 +1253,7 @@ class mchain_bulk_processing_params_t
 		 * so_5::receive(so_5::from(ch).handle_all(), ...);
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.6.0
+		 * \since v.5.6.0
 		 */
 		decltype(auto)
 		handle_all() noexcept
@@ -1421,8 +1387,7 @@ class mchain_bulk_processing_params_t
 		 * 	...);
 		 * \endcode
 		 *
-		 * \since
-		 * v.5.5.17
+		 * \since v.5.5.17
 		 */
 		actual_type &
 		on_close( typename basic_t::chain_closed_handler_t handler ) noexcept
@@ -1442,8 +1407,7 @@ namespace details {
 /*!
  * \brief Container of parameters for receive() function.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 struct adv_receive_data_t : public bulk_processing_basic_data_t
 	{
@@ -1475,8 +1439,7 @@ struct adv_receive_data_t : public bulk_processing_basic_data_t
  *
  * \tparam Msg_Count_Status status of message count limit.
  *
- * \since
- * v.5.5.13
+ * \since v.5.5.13
  */
 template< mchain_props::msg_count_status_t Msg_Count_Status >
 class mchain_receive_params_t final
@@ -1527,9 +1490,6 @@ class mchain_receive_params_t final
 // from
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief A helper function for simplification of creation of %mchain_receive_params instance.
  *
  * \attention
@@ -1573,6 +1533,8 @@ class mchain_receive_params_t final
 	receive( from(chain).extract_n( 1000 ).total_time( seconds(2) ),
 			handlers... );
 	\endcode
+ *
+ * \since v.5.5.13
  */
 inline mchain_receive_params_t< mchain_props::msg_count_status_t::undefined >
 from( mchain_t chain )
@@ -1588,11 +1550,10 @@ namespace details {
 // receive_actions_performer_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper class with implementation of main actions of
  * advanced receive operation.
+ *
+ * \since v.5.5.13
  */
 template< typename Bunch >
 class receive_actions_performer_t
@@ -1676,11 +1637,10 @@ class receive_actions_performer_t
 	};
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief An implementation of advanced receive when a limit for total
  * operation time is defined.
+ *
+ * \since v.5.5.13
  */
 template< typename Bunch >
 inline mchain_receive_result_t
@@ -1705,11 +1665,10 @@ receive_with_finite_total_time(
 	}
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief An implementation of advanced receive when there is no
  * limit for total operation time is defined.
+ *
+ * \since v.5.5.13
  */
 template< typename Bunch >
 inline mchain_receive_result_t
@@ -1739,8 +1698,7 @@ receive_without_total_time(
 /*!
  * \brief An implementation of main receive actions.
  *
- * \since
- * v.5.5.17
+ * \since v.5.5.17
  */
 template< typename Bunch >
 inline mchain_receive_result_t
@@ -1763,9 +1721,6 @@ perform_receive(
 //
 
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Advanced version of receive from %mchain.
  *
  * \attention It is an error if there are more than one handler for the
@@ -1836,6 +1791,8 @@ perform_receive(
 		// Signal handler via const reference to mhood_t.
 		[]( const so_5::mhood_t< yet_another_signal > & ) {...} );
  * \endcode
+ *
+ * \since v.5.5.13
  */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
@@ -1879,9 +1836,8 @@ receive(
 	auto r = so_5::receive( prepared );
  * \endcode
  * \note This is a moveable type, not copyable.
- * 
- * \since
- * v.5.5.17
+ *
+ * \since v.5.5.17
  */
 template< std::size_t Handlers_Count >
 class prepared_receive_t
@@ -1985,8 +1941,7 @@ class prepared_receive_t
 			[]( const second_message_type & msg ) { ... }, ... );
  * \endcode
  *
- * \since
- * v.5.5.17
+ * \since v.5.5.17
  */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
@@ -2030,8 +1985,8 @@ prepare_receive(
 		...
 	}
  * \endcode
- * \since
- * v.5.5.17
+ *
+ * \since v.5.5.17
  */
 template< std::size_t Handlers_Count >
 mchain_receive_result_t
