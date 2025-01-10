@@ -155,8 +155,7 @@ class mchain_select_result_t
  *
  * \note Adds nothing to mchain_bulk_processing_params_t.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< mchain_props::msg_count_status_t Msg_Count_Status >
 class mchain_select_params_t final
@@ -232,8 +231,7 @@ namespace details {
  * a new pure virtual method try_handle_extracted_message() that should
  * be implemented in a derived class.
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 class receive_select_case_t : public select_case_t
 	{
@@ -297,8 +295,7 @@ class receive_select_case_t : public select_case_t
  * a new pure virtual method on_successful_push() that should
  * be implemented in a derived class.
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 class send_select_case_t : public select_case_t
 	{
@@ -372,8 +369,7 @@ class send_select_case_t : public select_case_t
 /*!
  * \brief Actual implementation of one multi chain select case.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< std::size_t N >
 class actual_receive_select_case_t : public receive_select_case_t
@@ -429,8 +425,7 @@ class actual_receive_select_case_t : public receive_select_case_t
  * \tparam On_Success_Handler the type of handler to be called when
  * the message is sent.
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 template< typename On_Success_Handler >
 class actual_send_select_case_t : public send_select_case_t
@@ -480,8 +475,7 @@ class actual_send_select_case_t : public send_select_case_t
  *
  * \note This is moveable class, but not copyable.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< std::size_t Cases_Count >
 class select_cases_holder_t
@@ -621,8 +615,7 @@ fill_select_cases_holder(
  * If prepared-select instance is activated (is used in select() call)
  * then this instance can't be activated yet more time.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 enum class prepared_select_status_t
 	{
@@ -642,8 +635,7 @@ enum class prepared_select_status_t
  * \attention
  * This class is not Moveable nor Copyable.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 template< std::size_t Cases_Count >
 class prepared_select_data_t
@@ -708,8 +700,7 @@ class prepared_select_data_t
 		 * \note
 		 * This class is not Moveable nor Copyable.
 		 *
-		 * \since
-		 * v.5.6.1
+		 * \since v.5.6.1
 		 */
 		class activation_locker_t
 			{
@@ -769,8 +760,7 @@ class prepared_select_data_t
  *
  * \note This is moveable class, but not copyable.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 class extensible_select_cases_holder_t
 	{
@@ -906,8 +896,7 @@ fill_select_cases_holder(
  * If extensible-select instance is activated (is used in select() call)
  * then this instance can't be modified or activated yet more time.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 enum class extensible_select_status_t
 	{
@@ -928,8 +917,7 @@ enum class extensible_select_status_t
  * \attention
  * This class is not Moveable nor Copyable.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 class extensible_select_data_t
 	{
@@ -983,8 +971,7 @@ class extensible_select_data_t
 		 * \note
 		 * This class is not Moveable nor Copyable.
 		 *
-		 * \since
-		 * v.5.6.1
+		 * \since v.5.6.1
 		 */
 		class modification_locker_t
 			{
@@ -1042,8 +1029,7 @@ class extensible_select_data_t
 		 * \note
 		 * This class is not Moveable nor Copyable.
 		 *
-		 * \since
-		 * v.5.6.1
+		 * \since v.5.6.1
 		 */
 		class activation_locker_t
 			{
@@ -1104,8 +1090,7 @@ class extensible_select_data_t
 /*!
  * \brief Actual implementation of notificator for multi chain select.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 class actual_select_notificator_t : public select_notificator_t
 	{
@@ -1222,8 +1207,7 @@ class actual_select_notificator_t : public select_notificator_t
  *
  * \tparam Holder type of actual select_cases_holder_t.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< typename Holder >
 class select_actions_performer_t
@@ -1244,8 +1228,7 @@ class select_actions_performer_t
 		 * A send_case is completed if the corresponding message is sent
 		 * of if the target mchain is closed.
 		 *
-		 * \since
-		 * v.5.7.0
+		 * \since v.5.7.0
 		 */
 		std::size_t m_completed_send_cases = 0;
 
@@ -1511,8 +1494,7 @@ do_adv_select_without_total_time(
 /*!
  * \brief Helper function with implementation of main select action.
  *
- * \since
- * v.5.5.17
+ * \since v.5.5.17
  */
 template< typename Cases_Holder >
 mchain_select_result_t
@@ -1544,8 +1526,7 @@ perform_select(
  *
  * \sa so_5::select()
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template< typename... Handlers >
 [[nodiscard]]
@@ -1574,8 +1555,7 @@ receive_case(
  *
  * \sa so_5::select()
  *
- * \since
- * v.5.7.0
+ * \since v.5.7.0
  */
 template<
 	typename Msg,
@@ -1690,8 +1670,7 @@ send_case(
 				... ) );
 	\endcode
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
@@ -1742,9 +1721,8 @@ select(
  * another prepared_select_t instance. Usage of empty prepared_select_t
  * is an error and can lead to null-pointer dereference. SObjectizer doesn't
  * check the emptiness of prepared_select_t object.
- * 
- * \since
- * v.5.5.17
+ *
+ * \since v.5.5.17
  */
 template< std::size_t Cases_Count >
 class prepared_select_t
@@ -1763,8 +1741,7 @@ class prepared_select_t
 		 * Can be null if the actual content was moved to another
 		 * prepared_select_t instance.
 		 *
-		 * \since
-		 * v.5.6.1
+		 * \since v.5.6.1
 		 */
 		std::unique_ptr<
 						mchain_props::details::prepared_select_data_t<Cases_Count> >
@@ -1817,15 +1794,14 @@ class prepared_select_t
 
 		//! Is this handle empty?
 		/*!
-		 * \since
-		 * v.5.6.1
+		 * \since v.5.6.1
 		 */
 		bool
 		empty() const noexcept { return !m_data; }
 
 		/*!
 		 * \name Getters
-		 * \{ 
+		 * \{
 		 */
 		auto &
 		data() const noexcept { return *m_data; }
@@ -1877,8 +1853,7 @@ class prepared_select_t
 				... ) );
  * \endcode
  *
- * \since
- * v.5.5.17
+ * \since v.5.5.17
  */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
@@ -1930,8 +1905,7 @@ prepare_select(
  * in parallel/nested calls to select(). If such call detected then
  * an exception is thrown.
  *
- * \since
- * v.5.5.17
+ * \since v.5.5.17
  */
 template< std::size_t Cases_Count >
 mchain_select_result_t
@@ -1970,8 +1944,7 @@ select(
  * \note
  * This is Moveable type but not Copyable.
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 class extensible_select_t
 	{
@@ -2086,8 +2059,7 @@ class extensible_select_t
  * 	receive_case(ch3, ...));
  * \endcode
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 template<
 	mchain_props::msg_count_status_t Msg_Count_Status,
@@ -2141,8 +2113,7 @@ make_extensible_select(
  * \attention
  * The \a extensible_select object must not be empty!
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 template< typename... Cases >
 void
@@ -2187,8 +2158,7 @@ add_select_cases(
  * \attention
  * The \a extensible_select object must not be empty!
  *
- * \since
- * v.5.6.1
+ * \since v.5.6.1
  */
 inline mchain_select_result_t
 select(
