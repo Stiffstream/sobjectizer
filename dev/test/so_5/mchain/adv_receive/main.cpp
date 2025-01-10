@@ -90,6 +90,40 @@ UT_UNIT_TEST( test_total_time )
 }
 
 void
+do_check_no_wait_on_empty_with_total_time( const so_5::mchain_t & chain )
+{
+	auto r = receive(
+			from( chain )
+				.handle_all()
+				.no_wait_on_empty()
+				.total_time( seconds( 500 ) ) );
+
+	UT_CHECK_CONDITION( 0 == r.extracted() );
+	UT_CHECK_CONDITION(
+			so_5::mchain_props::extraction_status_t::no_messages == r.status() );
+}
+
+UT_UNIT_TEST( test_no_wait_on_empty_with_total_time )
+{
+	auto params = build_mchain_params();
+	for( const auto & p : params )
+	{
+		cout << "=== " << p.first << " ===" << endl;
+
+		run_with_time_limit(
+			[&p]()
+			{
+				so_5::wrapped_env_t env;
+
+				do_check_no_wait_on_empty_with_total_time(
+						env.environment().create_mchain( p.second ) );
+			},
+			5,
+			"test_no_wait_on_empty_with_total_time: " + p.first );
+	}
+}
+
+void
 do_check_handle_n(
 	const so_5::mchain_t & ch1,
 	const so_5::mchain_t & ch2 )
@@ -268,6 +302,7 @@ main()
 {
 	UT_RUN_UNIT_TEST( test_timeout_on_empty_queue )
 	UT_RUN_UNIT_TEST( test_total_time )
+	UT_RUN_UNIT_TEST( test_no_wait_on_empty_with_total_time )
 	UT_RUN_UNIT_TEST( test_handle_n )
 	UT_RUN_UNIT_TEST( test_extract_n )
 	UT_RUN_UNIT_TEST( test_stop_pred )

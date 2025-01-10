@@ -1661,8 +1661,18 @@ receive_with_finite_total_time(
 						params.empty_timeout() );
 
 				performer.handle_next( this_iteration_wait_time );
+
+				if( extraction_status_t::no_messages == performer.last_status() )
+					// There is no need to continue.
+					// This status means that empty_timeout has some value
+					// and there is no any new message during empty_timeout.
+					// And this means a condition for return from advanced
+					// receive.
+					break;
+
 				if( !performer.can_continue() )
 					break;
+
 				remaining_time.update();
 			}
 		while( remaining_time );
