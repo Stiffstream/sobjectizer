@@ -1439,13 +1439,33 @@ do_adv_select_with_total_time(
 
 		select_actions_performer_t< Holder > performer{ params, select_cases };
 
-		remaining_time_counter_t time_counter{ params.total_time() };
+		remaining_time_counter_t total_time_counter{ params.total_time() };
+		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
 		do
 			{
-				performer.handle_next( time_counter.remaining() );
-				time_counter.update();
+				// Since v.5.8.4 we have to take the empty_timeout value
+				// into the account.
+				const duration_t this_iteration_wait_time = std::min(
+						total_time_counter.remaining(),
+						wait_incoming_time.remaining() );
+
+				performer.handle_next( this_iteration_wait_time );
+				if( extraction_status_t::msg_extracted ==
+						performer.last_extraction_status() )
+					// Becase some message extracted we must restart
+					// wait_incoming_time counting.
+					wait_incoming_time =
+							remaining_time_counter_t{ params.empty_timeout() };
+				else
+					// Otherwise wait_incoming_time should be updated to
+					// reduce it value.
+					wait_incoming_time.update();
+
+				total_time_counter.update();
 			}
-		while( time_counter && performer.can_continue() );
+		while( total_time_counter
+				&& wait_incoming_time
+				&& performer.can_continue() );
 
 		return performer.make_result();
 	}

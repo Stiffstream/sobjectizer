@@ -1654,7 +1654,13 @@ receive_with_finite_total_time(
 				params.total_time() );
 		do
 			{
-				performer.handle_next( remaining_time.remaining() );
+				// Since v.5.8.4 we have to take the empty_timeout value
+				// into the account.
+				const duration_t this_iteration_wait_time = std::min(
+						remaining_time.remaining(),
+						params.empty_timeout() );
+
+				performer.handle_next( this_iteration_wait_time );
 				if( !performer.can_continue() )
 					break;
 				remaining_time.update();
