@@ -10,6 +10,11 @@ New method so_5::experimental::testing::scenario_proxy_t::has_stored_state_name(
 
 New method so_5::experimental::testing::scenario_proxy_t::has_stored_msg_inspection_result().
 
+The `no_wait_on_empty` and `empty_timeout` parameters are now handled in
+so_5::receive() and so_5::select() if `total_time` is specified. The previous
+versions of SObjectizer ignored `no_wait_on_empty`/`empty_timeout` if
+`total_time` was set.
+
 \section so_5__5_8_3 5.8.3 "Volcan Tacora"
 
 A fix for a case when message limits are specified for an agent and time_limit
