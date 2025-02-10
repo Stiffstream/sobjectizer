@@ -20,4 +20,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/prepared_select/prj.rb"
 	required_prj "#{path}/named_mboxes/prj.rb"
 	required_prj "#{path}/subscribe_unsubscribe/prj.rb"
+	required_prj "#{path}/state_time_limit/prj.rb"
 }
