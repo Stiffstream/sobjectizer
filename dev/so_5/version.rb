@@ -1,4 +1,4 @@
 module So5
-  VERSION = "5.8.4"
+  VERSION = "5.8.5"
 end
 
