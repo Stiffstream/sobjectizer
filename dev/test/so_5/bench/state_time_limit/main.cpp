@@ -111,6 +111,12 @@ run_sobjectizer( const cfg_t & cfg )
 				env.introduce_coop( [&cfg]( so_5::coop_t & coop ) {
 						coop.make_agent< a_benchmarker_t >( cfg );
 					} );
+			},
+			[]( so_5::environment_params_t & params )
+			{
+				// This timer thread doesn't consume resources without
+				// actual delayed/periodic messages.
+				params.timer_thread( so_5::timer_list_factory() );
 			} );
 	}
 
