@@ -38,10 +38,9 @@ namespace so_5
 // timer_t
 //
 /*!
- * \since
- * v.5.5.0
- *
  * \brief A base class for timer identificator.
+ *
+ * \since v.5.5.0
  */
 class SO_5_TYPE timer_t
 	:	private so_5::atomic_refcounted_t
@@ -64,10 +63,20 @@ class SO_5_TYPE timer_t
 // timer_id_t
 //
 /*!
- * \since
- * v.5.5.0
- *
  * \brief An indentificator for the timer.
+ *
+ * This type is Copyable and Moveable.
+ *
+ * Instances of this type work like smart pointers: a reference counter
+ * for a timer event is used. When a timer_id is copied this counter is
+ * incremented. When a timer_id dies this counter is decremented. When
+ * the last timer_id dies then the timer event if cancelled (released).
+ *
+ * The timer event can be cancelled explicitly by calling release() method.
+ *
+ * The method is_active() allows to check if timer event is not cancelled yet.
+ *
+ * \since v.5.5.0
  */
 class SO_5_TYPE timer_id_t
 	{
@@ -88,6 +97,13 @@ class SO_5_TYPE timer_id_t
 			}
 
 		//! Is this timer event is active?
+		//!
+		//! \retval true if timer event wasn't cancelled yet.
+		//! \retval false if timer event was cancelled by release() call.
+		//!
+		//! \note
+		//! This method can return `true` even if timer event is already fired.
+		//! The `false` will be returned only if release() was called explicitly.
 		bool
 		is_active() const noexcept
 			{
