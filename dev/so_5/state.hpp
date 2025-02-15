@@ -10,17 +10,18 @@
 #pragma once
 
 #include <array>
-#include <string>
-#include <map>
-#include <set>
-#include <functional>
 #include <chrono>
+#include <functional>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
 
 #include <so_5/compiler_features.hpp>
 #include <so_5/declspec.hpp>
 
-#include <so_5/mbox_fwd.hpp>
-#include <so_5/fwd.hpp>
+#include <so_5/mbox.hpp>
+#include <so_5/timers.hpp>
 
 #include <so_5/message_handler_format_detector.hpp>
 
@@ -145,8 +146,178 @@ struct substate_of
  * of agent's event handlers.
  */
 class SO_5_TYPE state_t final
-{
-		class time_limit_t;
+	{
+		/*!
+		 * \brief Alias for duration type.
+		 *
+		 * \since v.5.5.15
+		 */
+		using duration_t = std::chrono::high_resolution_clock::duration;
+
+		//FIXME: document this!
+		class SO_5_TYPE time_limit_t
+		{
+		public:
+			/// Type of signal to be used for controlling timeouts.
+			using msg_timeout = so_5::details::msg_state_timeout;
+
+			/// Type of clock to be used.
+			using steady_clock = std::chrono::steady_clock;
+
+			/*!
+			 * \brief Type for holding information necessary for handling
+			 * time limits for agent states.
+			 *
+			 * \note
+			 * Instance of this type can be in one of the following states:
+			 *
+			 * - empty. There is no data for handling of time limits. This
+			 *   is the default and initial state;
+			 * - defained. In this case m_timeout_mbox has an actual value.
+			 *   The instance has to be switched to this state explicitly.
+			 *
+			 * \note
+			 * This class in not Copyable, nor Moveable.
+			 *
+			 * \since v.5.8.5
+			 */
+			class SO_5_TYPE handling_data_t
+			{
+				/// Message box to be used for state_t::time_limit_t::msg_timeout
+				/// messages.
+				///
+				/// \note
+				/// If this field is nullptr then the whole instance of
+				/// state_time_limit_handling_data_t is in empty state.
+				mbox_t m_timeout_mbox;
+
+			public:
+				/// Default constructor.
+				///
+				/// Creates an empty instance.
+				handling_data_t();
+
+				~handling_data_t();
+
+				/// Is the data for handling time limits defined?
+				[[nodiscard]]
+				bool
+				is_defined() const noexcept;
+
+				/// Define the data for handling time limits.
+				///
+				/// \attention
+				/// The actual value of \a timeout_mbox is not checked.
+				/// It's just assumed that \a timeout_mbox is not nullptr.
+				void
+				make_defined(
+					/// Message box to be used for msg_timeout signals.
+					mbox_t timeout_mbox );
+
+				/// Get the mbox for msg_timeout signals.
+				///
+				/// \attention
+				/// This method doesn't check the actual value of
+				/// m_timeout_mbox. So it can be called even if
+				/// (is_defined() == true).
+				[[nodiscard]]
+				mbox_t
+				timeout_mbox() const noexcept;
+			};
+
+			/// Default constructor.
+			///
+			/// Makes empty limit (limit without actual definition).
+			time_limit_t() noexcept;
+
+			/// Initializing constructor.
+			time_limit_t(
+				duration_t limit,
+				const state_t & state_to_switch ) noexcept;
+
+			~time_limit_t();
+
+		//FIXME: document this!
+			[[nodiscard]]
+			bool
+			is_defined() const noexcept;
+
+		//FIXME: document this!
+			void
+			undefine() noexcept;
+
+		//FIXME: document this!
+			///
+			/// \attention
+			/// This method is marked as noexcept because it has to be called
+			/// in a noexcept context. But it calls methods those can throw
+			/// (like so_5::send_periodic). This is a consequence of the current
+			/// design of SObjectizer-5 (there is no non-throwing ways to send
+			/// a message yet).
+			void
+			on_state_activation(
+				const handling_data_t & info ) noexcept;
+
+		//FIXME: document this!
+			void
+			on_state_deactivation() noexcept;
+
+		//FIXME: document this!
+			void
+			initiate_msg_timeout(
+				const handling_data_t & info );
+
+		//FIXME: document this!
+			[[nodiscard]]
+			bool
+			is_limit_exceeded(
+				const steady_clock::time_point current_time ) const noexcept;
+
+		//FIXME: document this!
+			[[nodiscard]]
+			const state_t &
+			state_to_switch() const noexcept;
+
+		private:
+			/// Information for active timeout.
+			///
+			/// \note
+			/// Destruction of an instance of activation_data_t will lead
+			/// to destruction of m_timer and this will lead to cancelling
+			/// of the delayed message.
+			///
+			/// \since v.5.8.5
+			struct activation_data_t
+				{
+					/// ID of delayed timeout signal.
+					timer_id_t m_timer;
+
+					/// Timeout of timeout expiration.
+					steady_clock::time_point m_expiration_point;
+
+					activation_data_t(
+						timer_id_t timer,
+						steady_clock::time_point expiration_point )
+						: m_timer{ std::move(timer) }
+						, m_expiration_point{ expiration_point }
+						{}
+				};
+
+			/// The current duration of the timeout.
+			///
+			/// Will be changed on the next call to state_t::time_limit().
+			duration_t m_limit;
+
+			/// The target state to switch after the timeout.
+			///
+			/// nullptr means that there is no time limit for the state.
+			const state_t * m_state_to_switch;
+
+			/// Information required to serve timeout when it's activated.
+			///
+			/// Empty value means that the timeout isn't activated.
+			std::optional< activation_data_t > m_activation_data;
+		};
 
 		friend class agent_t;
 
@@ -205,13 +376,6 @@ class SO_5_TYPE state_t final
 		 * \since v.5.5.15
 		 */
 		using on_exit_handler_t = std::function< void() >;
-
-		/*!
-		 * \brief Alias for duration type.
-		 *
-		 * \since v.5.5.15
-		 */
-		using duration_t = std::chrono::high_resolution_clock::duration;
 
 		/*!
 		 * \note State name will be generated automaticaly.
@@ -1659,6 +1823,7 @@ class SO_5_TYPE state_t final
 		 */
 		on_exit_handler_t m_on_exit;
 
+		//FIXME: describe why this field is `mutable`!
 		/*!
 		 * \brief A definition of time limit for the state.
 		 *
@@ -1666,7 +1831,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * \since v.5.5.15
 		 */
-		std::unique_ptr< time_limit_t > m_time_limit;
+		mutable time_limit_t m_time_limit;
 
 		/*!
 		 * \brief A helper for handle-methods implementation.
@@ -1774,7 +1939,7 @@ class SO_5_TYPE state_t final
 		call_on_enter() const noexcept
 			{
 				if( m_on_enter ) m_on_enter();
-				if( m_time_limit ) handle_time_limit_on_enter();
+				if( m_time_limit.is_defined() ) handle_time_limit_on_enter();
 			}
 
 		/*!
@@ -1783,15 +1948,15 @@ class SO_5_TYPE state_t final
 		 * \since v.5.5.15
 		 */
 		void
-		call_on_exit() const noexcept 
+		call_on_exit() const noexcept
 			{
-				if( m_time_limit ) handle_time_limit_on_exit();
+				if( m_time_limit.is_defined() ) handle_time_limit_on_exit();
 				if( m_on_exit ) m_on_exit();
 			}
 		/*!
 		 * \}
 		 */
-};
+	};
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
