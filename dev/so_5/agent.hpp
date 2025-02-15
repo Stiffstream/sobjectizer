@@ -2947,6 +2947,84 @@ class SO_5_TYPE agent_t
 		 */
 		const name_for_agent_t m_name;
 
+		/*!
+		 * \brief Type for holding information necessary for handling
+		 * time limits for agent states.
+		 *
+		 * \note
+		 * Instance of this type can be in one of the following states:
+		 *
+		 * - empty. There is no data for handling of time limits. This
+		 *   is the default and initial state;
+		 * - defained. In this case m_timeout_mbox has an actual value.
+		 *   The instance has to be switched to this state explicitly.
+		 *
+		 * \note
+		 * This class in not Copyable, nor Moveable.
+		 *
+		 * \since v.5.8.5
+		 */
+		class SO_5_TYPE state_time_limit_handling_data_t
+		{
+			/// Message box to be used for state_t::time_limit_t::msg_timeout
+			/// messages.
+			///
+			/// \note
+			/// If this field is nullptr then the whole instance of
+			/// state_time_limit_handling_data_t is in empty state.
+			mbox_t m_timeout_mbox;
+
+		public:
+			/// Default constructor.
+			///
+			/// Creates an empty instance.
+			state_time_limit_handling_data_t();
+
+			~state_time_limit_handling_data_t();
+
+			/// Is the data for handling time limits defined?
+			[[nodiscard]]
+			bool
+			is_defined() const noexcept;
+
+			/// Define the data for handling time limits.
+			///
+			/// \attention
+			/// The actual value of \a timeout_mbox is not checked.
+			/// It's just assumed that \a timeout_mbox is not nullptr.
+			void
+			make_defined(
+				/// Message box to be used for msg_timeout signals.
+				mbox_t timeout_mbox );
+
+			/// Get the mbox for msg_timeout signals.
+			///
+			/// \attention
+			/// This method doesn't check the actual value of
+			/// m_timeout_mbox. So it can be called even if
+			/// (is_defined() == true).
+			[[nodiscard]]
+			mbox_t
+			timeout_mbox() const noexcept;
+		};
+
+		/*!
+		 * \brief Data that is necessary for handling time limits
+		 * of agent's states.
+		 *
+		 * \note
+		 * It is not defined by default. The actual value is assigned
+		 * when state_t::time_limit is called for the first time.
+		 *
+		 * \attention
+		 * The current implementation never drops this value after
+		 * the first call of state_t::time_limit, even if all time limits
+		 * are dropped after then.
+		 *
+		 * \since v.5.8.5
+		 */
+		state_time_limit_handling_data_t m_state_time_limit_handling_data;
+
 		//! Destroy all agent's subscriptions.
 		/*!
 		 * \note
@@ -3366,6 +3444,26 @@ class SO_5_TYPE agent_t
 		 */
 		bool
 		is_agent_deactivated() const noexcept;
+
+		/*!
+		 * \brief Initialize data for handling time limit of
+		 * agent's states.
+		 *
+		 * Initializes data for handling time limit if it is not
+		 * defined yet.
+		 *
+		 * \return Message box to be used for state_t::time_limit_t::msg_timeout.
+		 *
+		 * \since v.5.8.5
+		 */
+		[[nodiscard]]
+		mbox_t
+		define_state_time_limit_handling_data_if_needed();
+
+		//FIXME: document this!
+		void
+		evt_state_time_limit(
+			mhood_t< so_5::details::msg_state_timeout > );
 };
 
 /*!

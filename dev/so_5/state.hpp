@@ -146,7 +146,7 @@ struct substate_of
  */
 class SO_5_TYPE state_t final
 {
-		struct time_limit_t;
+		class time_limit_t;
 
 		friend class agent_t;
 
