@@ -2,3 +2,5 @@ add_subdirectory(simple)
 add_subdirectory(reset_limit)
 add_subdirectory(many_switches)
 add_subdirectory(cancel_on_dereg)
+add_subdirectory(two_time_limits)
+
