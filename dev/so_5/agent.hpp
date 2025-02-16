@@ -3452,15 +3452,25 @@ class SO_5_TYPE agent_t
 		 * Initializes data for handling time limit if it is not
 		 * defined yet.
 		 *
-		 * \return Message box to be used for state_t::time_limit_t::msg_timeout.
+		 * \since v.5.8.5
+		 */
+		void
+		define_state_time_limit_handling_data_if_needed();
+
+		/*!
+		 * \brief Special event handler to process state time limits.
+		 *
+		 * This event handler is used as deadletter handler for
+		 * state_t::time_limit_t::msg_timeout.
+		 *
+		 * \note
+		 * Subscription for this deadletter handler will be created on
+		 * the first call to state_t::time_limit. If no one calls
+		 * state_t::time_limit then will event handler won't be used
+		 * at all.
 		 *
 		 * \since v.5.8.5
 		 */
-		[[nodiscard]]
-		mbox_t
-		define_state_time_limit_handling_data_if_needed();
-
-		//FIXME: document this!
 		void
 		evt_state_time_limit(
 			mhood_t< so_5::details::msg_state_timeout > );

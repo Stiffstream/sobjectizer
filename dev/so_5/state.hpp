@@ -1439,6 +1439,30 @@ class SO_5_TYPE state_t final
 		 * time_limit for that state will be reset and time for the state S
 		 * will be counted from zero.
 		 *
+		 * \attention
+		 * This method provides only basic exception guarantee.
+		 * For example:
+		 * \code
+		 * void some_agent::so_define_agent()
+		 * {
+		 * 	some_state
+		 * 		.time_limit( std::chrono::seconds{2}, another_state )
+		 * 		.event( [this]( const some_message & msg ) {
+		 * 				// An attempt to change time_limit for
+		 * 				// some_state. NOTE: this state is already
+		 * 				// activated and SObjectizer controls time
+		 * 				// spent in this state.
+		 * 				some_state( std::chrono::seconds{5}, another_state ); // (1)
+		 * 				...
+		 * 			} )
+		 * 		;
+		 * }
+		 * \endcode
+		 * If an exception thrown at (1) then the previous 2s timeout will be
+		 * cancelled, but new timeout won't be started due to exception. It means
+		 * that the agent will stay in `some_state`, but time limit for this
+		 * state won't be controlled anymore.
+		 *
 		 * \since v.5.5.15
 		 */
 		state_t &
