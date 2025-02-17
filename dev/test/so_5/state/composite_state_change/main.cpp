@@ -35,7 +35,7 @@ public :
 	{
 		ensure( st_child_1_1_1 == so_current_state(),
 			"unexpected current state, expected: " +
-			st_child_1_1.query_name() + ", actual: " +
+			st_child_1_1_1.query_name() + ", actual: " +
 			so_current_state().query_name() );
 		ensure( so_is_active_state( st_child_1_1_1 ) &&
 				st_child_1_1_1.is_active(),

@@ -905,6 +905,39 @@ class SO_5_TYPE agent_t
 
 		//! Access to the current agent state.
 		/*!
+		 * Returns a reference to the current agent's state.
+		 *
+		 * If composite states are used then so_current_state() returns
+		 * a reference to the inner-most state. For example:
+		 * \code
+		 * class demo final : public so_5::agent_t
+		 * {
+		 * 	state_t st_top_1{ this, "top_1" };
+		 * 	state_t st_child_1_1{ initial_substate_of{ st_top_1 }, "child_1" };
+		 * 	state_t st_child_1_2{ substate_of{ st_top_1 }, "child_2" };
+		 *
+		 * 	state_t st_child_1_1_1{ initial_substate_of{ st_child_1_1 }, "1" };
+		 * 	state_t st_child_1_1_2{ substate_of{ st_child_1_1 }, "2" };
+		 * 	state_t st_child_1_1_3{ substate_of{ st_child_1_1 }, "3" };
+		 * 	...
+		 * 	void so_define_agent() override
+		 * 	{
+		 * 		// Change the agent state.
+		 * 		this >>= st_top_1;
+		 * 		// Now the agent has several active states:
+		 * 		//
+		 * 		// st_top_1 (because this state has been explicitly activated)
+		 * 		// st_child_1_1 (because it's initial substate of st_top_1)
+		 * 		// st_child_1_1_1 (because it's initial substate of st_child_1_1).
+		 * 		//
+		 * 		// And so_current_state() will return reference to st_child_1_1_1.
+		 * 		assert(st_child_1_1_1 == so_current_state());
+		 *
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
 		 * \note
 		 * There is a change in behaviour of this methon in v.5.5.22.
 		 * If some on_enter/on_exit handler calls this method during
@@ -2774,6 +2807,10 @@ class SO_5_TYPE agent_t
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
 		//! Current agent state.
+		/*!
+		 * If composite states are used then m_current_state_ptr points
+		 * to the inner-most state. See so_current_state() for an example.
+		 */
 		const state_t * m_current_state_ptr;
 
 		/*!
