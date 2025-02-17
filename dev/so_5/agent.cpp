@@ -363,7 +363,7 @@ state_t::state_t(
 	agent_t * target_agent,
 	std::string state_name,
 	state_t * parent_state,
-	std::size_t nested_level,
+	nested_level_internal_t nested_level,
 	history_t state_history )
 	:	m_target_agent{ target_agent }
 	,	m_state_name( std::move(state_name) )
@@ -371,8 +371,8 @@ state_t::state_t(
 	,	m_initial_substate{ nullptr }
 	,	m_state_history{ state_history }
 	,	m_last_active_substate{ nullptr }
-	,	m_nested_level{ nested_level }
 	,	m_substate_count{ 0 }
+	,	m_nested_level{ nested_level }
 {
 	if( parent_state )
 	{
@@ -381,6 +381,12 @@ state_t::state_t(
 			SO_5_THROW_EXCEPTION( rc_state_nesting_is_too_deep,
 					"max nesting deep for agent states is " +
 					std::to_string( max_deep ) );
+
+		if( parent_state->m_substate_count ==
+				std::numeric_limits<substate_count_t>::max() )
+			SO_5_THROW_EXCEPTION( rc_too_many_substates,
+					"too many substates in the parent state " +
+					std::to_string( parent_state->m_substate_count ) );
 
 		// Now we can safely mark parent state as composite.
 		parent_state->m_substate_count += 1;
@@ -432,7 +438,8 @@ state_t::state_t(
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
 			parent.m_parent_state,
-			parent.m_parent_state->m_nested_level + 1,
+			static_cast<nested_level_internal_t>(
+					parent.m_parent_state->m_nested_level + 1 ),
 			state_history }
 {
 	if( m_parent_state->m_initial_substate )
@@ -463,7 +470,8 @@ state_t::state_t(
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
 			parent.m_parent_state,
-			parent.m_parent_state->m_nested_level + 1,
+			static_cast<nested_level_internal_t>(
+					parent.m_parent_state->m_nested_level + 1 ),
 			state_history }
 {}
 
@@ -475,10 +483,10 @@ state_t::state_t(
 	,	m_initial_substate{ other.m_initial_substate }
 	,	m_state_history{ other.m_state_history }
 	,	m_last_active_substate{ other.m_last_active_substate }
-	,	m_nested_level{ other.m_nested_level }
-	,	m_substate_count{ other.m_substate_count }
 	,	m_on_enter{ std::move(other.m_on_enter) }
 	,	m_on_exit{ std::move(other.m_on_exit) }
+	,	m_substate_count{ other.m_substate_count }
+	,	m_nested_level{ other.m_nested_level }
 {
 	if( m_parent_state && m_parent_state->m_initial_substate == &other )
 		m_parent_state->m_initial_substate = this;
@@ -626,7 +634,7 @@ const state_t *
 state_t::actual_state_to_enter() const
 {
 	const state_t * s = this;
-	while( 0 != s->m_substate_count )
+	while( substate_count_t{0} != s->m_substate_count )
 	{
 		if( s->m_last_active_substate )
 			// Note: for states with shallow history m_last_active_substate

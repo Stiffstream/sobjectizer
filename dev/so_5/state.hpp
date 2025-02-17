@@ -10,11 +10,12 @@
 #pragma once
 
 #include <array>
-#include <string>
+#include <chrono>
+#include <functional>
+#include <limits>
 #include <map>
 #include <set>
-#include <functional>
-#include <chrono>
+#include <string>
 
 #include <so_5/compiler_features.hpp>
 #include <so_5/declspec.hpp>
@@ -157,12 +158,22 @@ class SO_5_TYPE state_t final
 		state_t & operator =( const state_t & ) = delete;
 
 	public:
+		//FIXME: document this!
+		using nested_level_internal_t = unsigned char;
+
+		//FIXME: document this!
+		using substate_count_t = unsigned short;
+
 		/*!
 		 * \brief Max deep of nested states.
 		 *
 		 * \since v.5.5.15
 		 */
 		static constexpr const std::size_t max_deep = 16;
+
+		static_assert(
+				max_deep <= static_cast<std::size_t>(
+						std::numeric_limits<nested_level_internal_t>::max()) );
 
 		/*!
 		 * \brief Type of history for state.
@@ -1597,7 +1608,7 @@ class SO_5_TYPE state_t final
 			state_t * parent_state,
 			//! Nesting deep for this state. Value 0 means this state is
 			//! a top-level state.
-			std::size_t nested_level,
+			nested_level_internal_t nested_level,
 			//! Type of state history.
 			history_t state_history );
 
@@ -1654,25 +1665,6 @@ class SO_5_TYPE state_t final
 		const state_t * m_last_active_substate;
 
 		/*!
-		 * \brief Nesting level for state.
-		 *
-		 * \note Value 0 means that state is a top-level state.
-		 *
-		 * \since v.5.5.15
-		 */
-		std::size_t m_nested_level;
-
-		/*!
-		 * \brief Number of substates.
-		 *
-		 * \note Value 0 means that state is not composite state and has no
-		 * any substates.
-		 *
-		 * \since v.5.5.15
-		 */
-		size_t m_substate_count;
-
-		/*!
 		 * \brief Handler for the enter to the state.
 		 *
 		 * \since v.5.5.15
@@ -1694,6 +1686,25 @@ class SO_5_TYPE state_t final
 		 * \since v.5.5.15
 		 */
 		std::unique_ptr< time_limit_t > m_time_limit;
+
+		/*!
+		 * \brief Number of substates.
+		 *
+		 * \note Value 0 means that state is not composite state and has no
+		 * any substates.
+		 *
+		 * \since v.5.5.15
+		 */
+		substate_count_t m_substate_count;
+
+		/*!
+		 * \brief Nesting level for state.
+		 *
+		 * \note Value 0 means that state is a top-level state.
+		 *
+		 * \since v.5.5.15
+		 */
+		nested_level_internal_t m_nested_level;
 
 		/*!
 		 * \brief A helper for handle-methods implementation.
@@ -1748,7 +1759,7 @@ class SO_5_TYPE state_t final
 		std::size_t
 		nested_level() const noexcept
 			{
-				return m_nested_level;
+				return static_cast<std::size_t>(m_nested_level);
 			}
 
 		/*!

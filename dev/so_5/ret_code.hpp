@@ -525,6 +525,17 @@ const int rc_agent_name_too_long = 197;
  */
 const int rc_stored_msg_inspection_result_not_found = 198;
 
+/*!
+ * \brief Too many substates for a state.
+ *
+ * There is a limit for number of substates:
+ * std::numeric_limits<state_t::substate_count_t>::max(). This value can't be
+ * exceeded.
+ *
+ * \since v.5.8.5
+ */
+const int rc_too_many_substates = 199;
+
 //! \name Common error codes.
 //! \{
 
