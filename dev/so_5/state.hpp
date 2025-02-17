@@ -147,6 +147,9 @@ struct substate_of
 class SO_5_TYPE state_t final
 {
 		class time_limit_t;
+		class state_path_t;
+
+		friend class state_path_t;
 
 		friend class agent_t;
 
@@ -1816,6 +1819,71 @@ class SO_5_TYPE state_t final
 		 * \}
 		 */
 };
+
+//FIXME: document this!
+/*!
+ * \brief Helper class for simplify iteration on state's path.
+ *
+ * Usage example:
+ * \code
+ * state_t::state_path_t path{ *m_current_state_ptr };
+ * for( const state_t * st : path )
+ * {
+ * 	... // use of `st`
+ * }
+ * \endcode
+ *
+ * \attention
+ * This class is not Copyable, nor Moveable.
+ *
+ * \since v.5.8.5
+ */
+class state_t::state_path_t
+	{
+		/// Path for the state.
+		state_t::path_t m_path;
+
+		/// Path-the-end iterator for the m_path.
+		///
+		/// Will be calculated in the constructor and won't be
+		/// changed after that.
+		state_t::path_t::const_iterator m_past_the_end_it;
+
+	public:
+		/// Initializing constructor.
+		explicit state_path_t(
+			const state_t & state ) noexcept
+			{
+				state.fill_path( m_path );
+				m_past_the_end_it =
+						static_cast<const state_t::path_t &>(m_path).begin();
+				std::advance( m_past_the_end_it, state.nested_level() + 1u );
+			}
+
+		state_path_t( const state_path_t & ) = delete;
+		state_path_t &
+		operator=( const state_path_t & ) = delete;
+
+		state_path_t( state_path_t && ) = delete;
+		state_path_t &
+		operator=( state_path_t && ) = delete;
+
+		/// Get iterator for the very first item of the path.
+		[[nodiscard]]
+		state_t::path_t::const_iterator
+		begin() const noexcept
+			{
+				return m_path.begin();
+			}
+
+		/// Get the past-the-end iterator for the path.
+		[[nodiscard]]
+		state_t::path_t::const_iterator
+		end() const noexcept
+			{
+				return m_past_the_end_it;
+			}
+	};
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)

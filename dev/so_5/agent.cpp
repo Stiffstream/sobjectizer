@@ -841,16 +841,10 @@ agent_t::so_evt_finish()
 bool
 agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 {
-	state_t::path_t path;
-	m_current_state_ptr->fill_path( path );
+	state_t::state_path_t current_path{ *m_current_state_ptr };
 
-	const auto past_the_end = [&path, this]() {
-			auto r = begin(path);
-			std::advance( r, m_current_state_ptr->nested_level() + 1u );
-			return r;
-		}();
-
-	return past_the_end != std::find( begin(path), past_the_end, &state_to_check );
+	return current_path.end() != std::find(
+			current_path.begin(), current_path.end(), &state_to_check );
 }
 
 void
@@ -1923,23 +1917,13 @@ agent_t::evt_state_time_limit(
 	const auto now = state_t::time_limit_t::steady_clock::now();
 
 	// We should have all active states in a row.
-//FIXME: this code is copy-pasted from so_is_active_state, it seems that
-//this fragment has to be transformed into a reusable method.
-	state_t::path_t path;
-	m_current_state_ptr->fill_path( path );
-
-	const auto past_the_end = [&path, this]() {
-			auto r = begin(path);
-			std::advance( r, m_current_state_ptr->nested_level() + 1u );
-			return r;
-		}();
+	state_t::state_path_t current_state_path{ *m_current_state_ptr };
 
 	// NOTE: we're going from the outer-most to the inner-most state.
 	// It means that if A is the parent for B and A's timeout exceeded
 	// then the timeout for B is ignored (even if it's exceeded too).
-	for( auto it = begin(path); it != past_the_end; ++it )
+	for( const state_t * st : current_state_path )
 	{
-		const state_t * st = *it;
 		if( st->m_time_limit )
 		{
 			if( st->m_time_limit->is_limit_exceeded( now ) )
