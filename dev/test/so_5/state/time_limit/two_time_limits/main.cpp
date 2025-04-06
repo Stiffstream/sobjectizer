@@ -37,7 +37,7 @@ public :
 				} )
 			.on_exit( []{ std::cout << "top_one on_exit" << std::endl; } )
 			.time_limit( std::chrono::milliseconds{ 200 }, top_two )
-			.event( [this]( mhood_t<make_pause> ) {
+			.event( []( mhood_t<make_pause> ) {
 					// Suspend the agent for some time.
 					std::this_thread::sleep_for( std::chrono::milliseconds{ 250 } );
 				} )
