@@ -28,16 +28,15 @@ namespace timers_details
 // actual_timer_t
 //
 /*!
- * \since
- * v.5.5.0
- *
  * \brief An actual implementation of timer interface.
  *
  * \note
  * Since v.5.5.19 this template can be used with timer_thread and
  * with timer_manager.
- * 
+ *
  * \tparam Timer A type of timertt-based thread/manager which implements timers.
+ *
+ * \since v.5.5.0
  */
 template< class Timer >
 class actual_timer_t : public timer_t

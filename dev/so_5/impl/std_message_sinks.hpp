@@ -257,7 +257,7 @@ namespace description_preparation_details
 {
 
 /*!
- * \brief Check presence of limit for %msg_state_timeout and add it of there is
+ * \brief Check presence of limit for %msg_state_timeout and add it if there is
  * no such a limit.
  *
  * The addition of a pseudo-limit for so_5::details::msg_state_timeout is

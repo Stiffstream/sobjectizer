@@ -146,7 +146,10 @@ struct substate_of
  */
 class SO_5_TYPE state_t final
 {
-		struct time_limit_t;
+		class time_limit_t;
+		class state_path_t;
+
+		friend class state_path_t;
 
 		friend class agent_t;
 
@@ -1439,6 +1442,30 @@ class SO_5_TYPE state_t final
 		 * time_limit for that state will be reset and time for the state S
 		 * will be counted from zero.
 		 *
+		 * \attention
+		 * This method provides only basic exception guarantee.
+		 * For example:
+		 * \code
+		 * void some_agent::so_define_agent()
+		 * {
+		 * 	some_state
+		 * 		.time_limit( std::chrono::seconds{2}, another_state )
+		 * 		.event( [this]( const some_message & msg ) {
+		 * 				// An attempt to change time_limit for
+		 * 				// some_state. NOTE: this state is already
+		 * 				// activated and SObjectizer controls time
+		 * 				// spent in this state.
+		 * 				some_state( std::chrono::seconds{5}, another_state ); // (1)
+		 * 				...
+		 * 			} )
+		 * 		;
+		 * }
+		 * \endcode
+		 * If an exception thrown at (1) then the previous 2s timeout will be
+		 * cancelled, but new timeout won't be started due to exception. It means
+		 * that the agent will stay in `some_state`, but time limit for this
+		 * state won't be controlled anymore.
+		 *
 		 * \since v.5.5.15
 		 */
 		state_t &
@@ -1792,6 +1819,70 @@ class SO_5_TYPE state_t final
 		 * \}
 		 */
 };
+
+/*!
+ * \brief Helper class for simplify iteration on state's path.
+ *
+ * Usage example:
+ * \code
+ * state_t::state_path_t path{ *m_current_state_ptr };
+ * for( const state_t * st : path )
+ * {
+ * 	... // use of `st`
+ * }
+ * \endcode
+ *
+ * \attention
+ * This class is not Copyable, nor Moveable.
+ *
+ * \since v.5.8.5
+ */
+class state_t::state_path_t
+	{
+		/// Path for the state.
+		state_t::path_t m_path;
+
+		/// Past-the-end iterator for the m_path.
+		///
+		/// Will be calculated in the constructor and won't be
+		/// changed after that.
+		state_t::path_t::const_iterator m_past_the_end_it;
+
+	public:
+		/// Initializing constructor.
+		explicit state_path_t(
+			const state_t & state ) noexcept
+			{
+				state.fill_path( m_path );
+				m_past_the_end_it =
+						static_cast<const state_t::path_t &>(m_path).begin();
+				std::advance( m_past_the_end_it, state.nested_level() + 1u );
+			}
+
+		state_path_t( const state_path_t & ) = delete;
+		state_path_t &
+		operator=( const state_path_t & ) = delete;
+
+		state_path_t( state_path_t && ) = delete;
+		state_path_t &
+		operator=( state_path_t && ) = delete;
+
+		/// Get iterator for the very first item of the path.
+		[[nodiscard]]
+		state_t::path_t::const_iterator
+		begin() const noexcept
+			{
+				return m_path.begin();
+			}
+
+		/// Get the past-the-end iterator for the path.
+		[[nodiscard]]
+		state_t::path_t::const_iterator
+		end() const noexcept
+			{
+				return m_past_the_end_it;
+			}
+	};
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)

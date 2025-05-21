@@ -9,4 +9,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/reset_limit/prj.ut.rb"
 	required_prj "#{path}/many_switches/prj.ut.rb"
 	required_prj "#{path}/cancel_on_dereg/prj.ut.rb"
+	required_prj "#{path}/two_time_limits/prj.ut.rb"
+	required_prj "#{path}/two_time_limits_2/prj.ut.rb"
 }

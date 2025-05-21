@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.14)
 
 project(SObjectizer LANGUAGES CXX)
 
@@ -35,30 +35,63 @@ if(NOT SOBJECTIZER_BUILD_SHARED)
 endif()
 
 if (ANDROID)
-    if (ANDROID_NDK_ABI_NAME STREQUAL "armeabi")
-        message(FATAL_ERROR "'${ANDROID_NDK_ABI_NAME}' target is not supported due to lack of the lock-free atomics")
-    endif()
-    if (ANDROID_NDK_ABI_NAME STREQUAL "mips")
-        message(FATAL_ERROR "'${ANDROID_NDK_ABI_NAME}' target is not supported due to lack of the lock-free 64-bit atomics")
-    endif()
-    if (NOT ANDROID_NDK_ABI_NAME MATCHES "^(armeabi-v7a|armeabi-v7a-hard|arm64-v8a|x86|x86_64|mips64)$")
-        message(FATAL_ERROR "Unsupported ABI: '${ANDROID_NDK_ABI_NAME}'")
-    endif()
+	if (ANDROID_NDK_ABI_NAME STREQUAL "armeabi")
+		message(FATAL_ERROR "'${ANDROID_NDK_ABI_NAME}' target is not supported due to lack of the lock-free atomics")
+	endif()
+	if (ANDROID_NDK_ABI_NAME STREQUAL "mips")
+		message(FATAL_ERROR "'${ANDROID_NDK_ABI_NAME}' target is not supported due to lack of the lock-free 64-bit atomics")
+	endif()
+	if (NOT ANDROID_NDK_ABI_NAME MATCHES "^(armeabi-v7a|armeabi-v7a-hard|arm64-v8a|x86|x86_64|mips64)$")
+		message(FATAL_ERROR "Unsupported ABI: '${ANDROID_NDK_ABI_NAME}'")
+	endif()
 endif()
 
-if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+if(NOT CMAKE_CXX_STANDARD)
+	message(STATUS "C++17 will be used by default")
 	set(CMAKE_CXX_STANDARD 17)
 	set(CMAKE_CXX_STANDARD_REQUIRED ON)
+	set(CXX_EXTENSIONS NO)
+else()
+	message(STATUS "C++ standard is set to C++${CMAKE_CXX_STANDARD}")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	add_compile_options(
+		-Wall
+		-Wextra
+		-Werror
+		-Wpedantic
+		-Wno-c++98-compat
+		-Wno-c++98-compat-pedantic
+		-Wno-padded
+		-Wno-missing-noreturn
+		-Wno-documentation-unknown-command
+		-Wno-documentation-deprecated-sync
+		-Wno-documentation
+		-Wno-weak-vtables
+		-Wno-missing-prototypes
+		-Wno-missing-variable-declarations
+		-Wno-exit-time-destructors
+		-Wno-global-constructors
+	)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	add_compile_options(
+		-Wextra
+		-Wpedantic
+		-Werror
+		-Wall
+		-Wno-unused-function
+	)
 endif()
 
 add_subdirectory(so_5)
 if(BUILD_ALL OR BUILD_EXAMPLES)
-    add_subdirectory(sample/so_5)
+	add_subdirectory(sample/so_5)
 endif()
 if(BUILD_ALL OR BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(test/so_5)
-    if(WIN32)
-        configure_file(${CMAKE_SOURCE_DIR}/cmake/run_tests.bat ${CMAKE_BINARY_DIR} NEWLINE_STYLE WIN32)
-    endif()
+	enable_testing()
+	add_subdirectory(test/so_5)
+	if(WIN32)
+		configure_file(${CMAKE_SOURCE_DIR}/cmake/run_tests.bat ${CMAKE_BINARY_DIR} NEWLINE_STYLE WIN32)
+	endif()
 endif()

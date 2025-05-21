@@ -194,76 +194,165 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 // state_t::time_limit_t
 //
-struct state_t::time_limit_t
+/// Information of time_limit for a state.
+class state_t::time_limit_t
 {
+public:
+	/// Type of signal to be used for controlling timeouts.
 	using msg_timeout = so_5::details::msg_state_timeout;
 
-	duration_t m_limit;
-	const state_t & m_state_to_switch;
+	/// Type of clock to be used.
+	using steady_clock = std::chrono::steady_clock;
 
-	mbox_t m_unique_mbox;
-	timer_id_t m_timer;
-
+	/// Initializing constructor.
 	time_limit_t(
+		/// Value of the time limit.
 		duration_t limit,
-		const state_t & state_to_switch )
-		:	m_limit( limit )
-		,	m_state_to_switch( state_to_switch )
-	{}
+		/// The target state to switch to after the time limit has been exceeded.
+		const state_t & state_to_switch ) noexcept
+		:	m_limit{ limit }
+		,	m_state_to_switch{ state_to_switch }
+		{}
 
+	/// Change parameters of time limit.
+	///
+	/// \note
+	/// This method only changes m_limit and m_state_to_switch but
+	/// doesn't change m_activation_data. If time_limit is activated
+	/// it has to be deactivated explicitly via deactivate() method.
 	void
-	set_up_limit_for_agent(
-		agent_t & agent,
-		const state_t & current_state ) noexcept
-	{
-		// Because this method is called from on_enter handler it can't
-		// throw exceptions. Any exception will lead to abort of the application.
-		// So we don't care about exception safety.
-		so_5::details::invoke_noexcept_code( [&] {
+	change(
+		duration_t limit,
+		const state_t & state_to_switch ) noexcept
+		{
+			m_limit = limit;
+			m_state_to_switch = state_to_switch;
+		}
 
-			// New unique mbox is necessary for time limit.
-			m_unique_mbox = impl::internal_env_iface_t{ agent.so_environment() }
-					// A new MPSC mbox will be used for that.
-					.create_limitless_mpsc_mbox(
-							// New MPSC mbox will be directly connected to target agent.
-							agent );
-
-			// A subscription must be created for msg_timeout signal.
-			agent.so_subscribe( m_unique_mbox )
-					.in( current_state )
-					.event( [&agent, this](mhood_t<msg_timeout>) {
-						agent.so_change_state( m_state_to_switch );
-					} );
-
-			// Delayed timeout signal must be sent.
-			m_timer = send_periodic< msg_timeout >(
-					m_unique_mbox,
-					m_limit,
-					duration_t::zero() );
-		} );
-	}
-
+	/// React to activation of the state for that time_limit is defined.
+	///
+	/// Sends delayed msg_timeout message and sets the m_activation_data.
+	///
+	/// \attention
+	/// This method is marked as noexcept because it has to be called
+	/// in a noexcept context. But it calls methods those can throw
+	/// (like so_5::send_periodic). This is a consequence of the current
+	/// design of SObjectizer-5 (there is no non-throwing ways to send
+	/// a message yet).
 	void
-	drop_limit_for_agent(
-		agent_t & agent,
-		const state_t & current_state ) noexcept
-	{
-		// Because this method is called from on_exit handler it can't
-		// throw exceptions. Any exception will lead to abort of the application.
-		// So we don't care about exception safety.
-		so_5::details::invoke_noexcept_code( [&] {
-			m_timer.release();
+	on_state_activation(
+		const agent_t::state_time_limit_handling_data_t & info ) noexcept
+		{
+			activate( info );
+		}
 
-			if( m_unique_mbox )
-			{
-				// Old subscription must be removed.
-				agent.so_drop_subscription< msg_timeout >(
-						m_unique_mbox, current_state );
-				// Unique mbox is no more needed.
-				m_unique_mbox = mbox_t{};
-			}
-		} );
-	}
+	/// React to deactivation of the state for that time_limit is defined.
+	///
+	/// Resets the value of m_activation_data and cancels the delayed
+	/// msg_timeout message.
+	void
+	on_state_deactivation() noexcept
+		{
+			// We call reset() always even if time_limit is not activated,
+			// just for simplicity of the implementation.
+			m_activation_data.reset();
+		}
+
+	/// Sends the delayed msg_timeout signal.
+	///
+	/// Updates the value of m_activation_data.
+	///
+	/// It's assumed that this method will be called only if
+	/// time_limit is not active yet.
+	void
+	activate(
+		const agent_t::state_time_limit_handling_data_t & info )
+		{
+			const auto limit_exceeded_at = steady_clock::now() + m_limit;
+			m_activation_data.emplace(
+					so_5::send_periodic< msg_timeout >(
+							info.timeout_mbox(),
+							m_limit,
+							steady_clock::duration::zero() ),
+					limit_exceeded_at );
+		}
+
+	/// Deactivates the time limit.
+	///
+	/// This method can be called even if the time limit is not active.
+	///
+	/// Resets the value of m_activation_data and cancels the delayed
+	/// msg_timeout signal.
+	void
+	deactivate()
+		{
+			// We call reset() always even if time_limit is not activated,
+			// just for simplicity of the implementation.
+			m_activation_data.reset();
+		}
+
+	/// \retval true if timeout has been exceeded and the agent has to
+	/// be switched to a new state.
+	/// \retval false if timeout has not been exceeded yet (or if time limit
+	/// isn't activated).
+	[[nodiscard]]
+	bool
+	is_limit_exceeded(
+		const steady_clock::time_point current_time ) const noexcept
+		{
+			if( m_activation_data.has_value() )
+				{
+					return m_activation_data->m_expiration_point <= current_time;
+				}
+
+			return false;
+		}
+
+	/// \return Reference to the state to switch after expiration of the timeout.
+	[[nodiscard]]
+	const state_t &
+	state_to_switch() const noexcept
+		{
+			return m_state_to_switch.get();
+		}
+
+private:
+	/// Information for active timeout.
+	///
+	/// \note
+	/// Destruction of an instance of activation_data_t will lead
+	/// to destruction of m_timer and this will lead to cancelling
+	/// of the delayed message.
+	///
+	/// \since v.5.8.5
+	struct activation_data_t
+		{
+			/// ID of delayed timeout signal.
+			timer_id_t m_timer;
+
+			/// Timeout of timeout expiration.
+			steady_clock::time_point m_expiration_point;
+
+			activation_data_t(
+				timer_id_t timer,
+				steady_clock::time_point expiration_point )
+				: m_timer{ std::move(timer) }
+				, m_expiration_point{ expiration_point }
+				{}
+		};
+
+	/// The current duration of the timeout.
+	///
+	/// Will be changed on the next call to state_t::time_limit().
+	duration_t m_limit;
+
+	/// The target state to switch after the timeout.
+	std::reference_wrapper< const state_t > m_state_to_switch;
+
+	/// Information required to serve timeout when it's activated.
+	///
+	/// Empty value means that the timeout isn't activated.
+	std::optional< activation_data_t > m_activation_data;
 };
 
 //
@@ -486,26 +575,41 @@ state_t::time_limit(
 				"zero can't be used as time limit for state: " +
 				query_name() );
 
-	// Old time limit must be dropped if it exists.
+	m_target_agent->define_state_time_limit_handling_data_if_needed();
+
+	// Existing time_limit_t object will be reused, but if there is no
+	// such object yet it has to be created.
+	//
+	// NOTE: by changing m_time_limit we can provide only basic
+	// exception guarantee.
+	if( !m_time_limit )
 	{
-		// As a defense from exception create new time_limit object first.
-		auto fresh_limit = std::make_unique< time_limit_t >(
-				timeout, std::cref(state_to_switch) );
-		drop_time_limit();
-		m_time_limit = std::move(fresh_limit);
+		m_time_limit = std::make_unique< time_limit_t >(
+				timeout, state_to_switch );
+	}
+	else
+	{
+		// NOTE: if the state is active and there was old time_limit
+		// (with already sent instance of msg_timeout) then the old
+		// delayed msg_timeout signal will be automatically cancelled.
+		m_time_limit->deactivate();
+		m_time_limit->change( timeout, state_to_switch );
 	}
 
 	// If this state is active then new time limit must be activated.
 	if( is_active() )
+	{
+		// If this action fails then m_time_limit should be reset
+		// to nullptr.
 		so_5::details::do_with_rollback_on_exception(
-			[&] {
-				m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
-			},
-			[&] {
-				// Time limit must be dropped because it is not activated
-				// for the current state.
-				drop_time_limit();
-			} );
+				[this] {
+					m_time_limit->activate(
+							m_target_agent->m_state_time_limit_handling_data );
+				},
+				[this] {
+					m_time_limit.reset();
+				} );
+	}
 
 	return *this;
 }
@@ -513,11 +617,7 @@ state_t::time_limit(
 state_t &
 state_t::drop_time_limit()
 {
-	if( m_time_limit )
-	{
-		m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
-		m_time_limit.reset();
-	}
+	m_time_limit.reset();
 
 	return *this;
 }
@@ -569,13 +669,42 @@ state_t::update_history_in_parent_states() const
 void
 state_t::handle_time_limit_on_enter() const
 {
-	m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
+	m_time_limit->on_state_activation(
+			m_target_agent->m_state_time_limit_handling_data );
 }
 
 void
 state_t::handle_time_limit_on_exit() const
 {
-	m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
+	m_time_limit->on_state_deactivation();
+}
+
+//
+// agent_t::state_time_limit_handling_data_t
+//
+agent_t::state_time_limit_handling_data_t::state_time_limit_handling_data_t()
+	: m_timeout_mbox{}
+{}
+
+agent_t::state_time_limit_handling_data_t::~state_time_limit_handling_data_t() = default;
+
+bool
+agent_t::state_time_limit_handling_data_t::is_defined() const noexcept
+{
+	return static_cast<bool>(m_timeout_mbox);
+}
+
+void
+agent_t::state_time_limit_handling_data_t::make_defined(
+	mbox_t timeout_mbox )
+{
+	m_timeout_mbox = std::move(timeout_mbox);
+}
+
+mbox_t
+agent_t::state_time_limit_handling_data_t::timeout_mbox() const noexcept
+{
+	return m_timeout_mbox;
 }
 
 namespace
@@ -712,16 +841,10 @@ agent_t::so_evt_finish()
 bool
 agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 {
-	state_t::path_t path;
-	m_current_state_ptr->fill_path( path );
+	state_t::state_path_t current_path{ *m_current_state_ptr };
 
-	const auto past_the_end = [&path, this]() {
-			auto r = begin(path);
-			std::advance( r, m_current_state_ptr->nested_level() + 1u );
-			return r;
-		}();
-
-	return past_the_end != std::find( begin(path), past_the_end, &state_to_check );
+	return current_path.end() != std::find(
+			current_path.begin(), current_path.end(), &state_to_check );
 }
 
 void
@@ -1753,6 +1876,68 @@ bool
 agent_t::is_agent_deactivated() const noexcept
 {
 	return awaiting_deregistration_state == so_current_state();
+}
+
+void
+agent_t::define_state_time_limit_handling_data_if_needed()
+{
+	ensure_operation_is_on_working_thread(
+			"state_t::time_limit" );
+
+	// NOTE: the agent can be in awaiting_deregistration_state, but we don't
+	// check it because an attempt to make a deadletter subscription will
+	// fail in that case.
+
+	if( !m_state_time_limit_handling_data.is_defined() )
+	{
+		// We need a new special mbox for msg_timeout message.
+		auto unique_mbox =
+				impl::internal_env_iface_t{ so_environment() }
+						// A new MPSC mbox will be used for that.
+						.create_limitless_mpsc_mbox(
+								// New MPSC mbox will be directly connected
+								// to this agent.
+								*this );
+
+		// We need a special deadletter handler.
+		so_subscribe_deadletter_handler(
+				unique_mbox,
+				&agent_t::evt_state_time_limit );
+
+		// Now we can store time_limit_handling_data in the agent.
+		m_state_time_limit_handling_data.make_defined(
+				std::move(unique_mbox) );
+	}
+}
+
+void
+agent_t::evt_state_time_limit(
+	mhood_t< so_5::details::msg_state_timeout > )
+{
+	const auto now = state_t::time_limit_t::steady_clock::now();
+
+	// We should have all active states in a row.
+	state_t::state_path_t current_state_path{ *m_current_state_ptr };
+
+	// NOTE: we're going from the outer-most to the inner-most state.
+	// It means that if A is the parent for B and A's timeout exceeded
+	// then the timeout for B is ignored (even if it's exceeded too).
+	for( const state_t * st : current_state_path )
+	{
+		if( st->m_time_limit )
+		{
+			if( st->m_time_limit->is_limit_exceeded( now ) )
+			{
+				// We have to switch the agent to a new state.
+				so_change_state( st->m_time_limit->state_to_switch() );
+				break;
+			}
+		}
+	}
+
+	// NOTE: it's possible that we haven't find an exceeded timeout.
+	// This could happen if msg_timeout waited too long in the event_queue and
+	// the agent changed its state during that time.
 }
 
 } /* namespace so_5 */
