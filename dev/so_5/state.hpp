@@ -1820,7 +1820,6 @@ class SO_5_TYPE state_t final
 		 */
 };
 
-//FIXME: document this!
 /*!
  * \brief Helper class for simplify iteration on state's path.
  *
@@ -1843,7 +1842,7 @@ class state_t::state_path_t
 		/// Path for the state.
 		state_t::path_t m_path;
 
-		/// Path-the-end iterator for the m_path.
+		/// Past-the-end iterator for the m_path.
 		///
 		/// Will be calculated in the constructor and won't be
 		/// changed after that.
