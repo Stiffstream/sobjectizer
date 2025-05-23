@@ -4,10 +4,9 @@
 
 /*!
  * \file
- * \since
- * v.5.5.23
- *
  * \brief Some implementation details for enveloped messages.
+ *
+ * \since v.5.5.23
  */
 #pragma once
 
@@ -37,8 +36,7 @@ namespace impl {
  * \note
  * This function throws if \a src_msg is nullptr.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 [[nodiscard]]
 inline envelope_t &
@@ -71,8 +69,7 @@ message_to_envelope(
 /*!
  * \brief An implementation of handler_invoker interface.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class agent_demand_handler_invoker_t : public handler_invoker_t
 	{
@@ -162,8 +159,7 @@ class agent_demand_handler_invoker_t : public handler_invoker_t
  * \brief An implementation of handler_invoker interface for
  * the case when a mesage was sent to mchain.
  *
- * \since
- * v.5.5.23
+ * \since v.5.5.23
  */
 class mchain_demand_handler_invoker_t : public handler_invoker_t
 	{
