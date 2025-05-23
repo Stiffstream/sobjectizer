@@ -24,6 +24,8 @@ add_subdirectory(deadletter_handler_formats)
 add_subdirectory(deactivate_agent_simple)
 add_subdirectory(deactivate_try_resubscribe)
 add_subdirectory(deactivate_agent_evt_finish)
+add_subdirectory(deactivate_keep_state_simple)
+add_subdirectory(deactivate_keep_state_evt_finish)
 
 add_subdirectory(thread_safety_check)
 add_subdirectory(as_event_handler)

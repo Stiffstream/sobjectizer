@@ -942,9 +942,20 @@ agent_t::so_change_state(
 void
 agent_t::so_deactivate_agent()
 {
+	// Default implementation requires switching to a special state.
+	so_deactivate_agent( agent_deactivation_t::switch_to_special_state );
+}
+
+void
+agent_t::so_deactivate_agent(
+	agent_deactivation_t mode)
+{
 	ensure_operation_is_on_working_thread( "so_deactivate_agent" );
 
-	do_change_agent_state( awaiting_deregistration_state );
+	if( agent_deactivation_t::switch_to_special_state == mode )
+	{
+		do_change_agent_state( awaiting_deregistration_state );
+	}
 	destroy_all_subscriptions_and_filters();
 }
 

@@ -492,6 +492,24 @@ struct working_thread_id_sentinel_t
 } /* namespace impl::agent_impl */
 
 //
+// agent_deactivation_t
+//
+//FIXME: document this!
+enum class agent_deactivation_t
+{
+	switch_to_special_state,
+	keep_current_state
+};
+
+//FIXME: document this!
+inline constexpr agent_deactivation_t switch_to_special_state =
+		agent_deactivation_t::switch_to_special_state;
+
+//FIXME: document this!
+inline constexpr agent_deactivation_t keep_current_state =
+		agent_deactivation_t::keep_current_state;
+
+//
 // agent_t
 //
 
@@ -1339,6 +1357,15 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		so_deactivate_agent();
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.5
+		 */
+		void
+		so_deactivate_agent(
+			/// Deactivation mode to be used.
+			agent_deactivation_t mode);
 		/*!
 		 * \}
 		 */

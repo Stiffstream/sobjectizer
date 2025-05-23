@@ -1,5 +1,5 @@
 /*
- * A simple test for so_deactivate_agent().
+ * A simple test for so_deactivate_agent(so_5::keep_current_state).
  */
 
 #include <so_5/all.hpp>
@@ -39,9 +39,9 @@ public:
 			.event( [this]( mhood_t<first> ) {
 					so_5::send< a_terminator_t::kill >(
 							so_environment().create_mbox( "terminator" ) );
-					so_deactivate_agent();
-					ensure_or_die(!so_default_state().is_active(),
-							"agent should not be in the default_state");
+					so_deactivate_agent( so_5::keep_current_state );
+					ensure_or_die( so_default_state().is_active(),
+							"agent should be in the default_state" );
 				} )
 			.event( []( mhood_t<second> ) {
 					throw std::runtime_error{ "second message received" };

@@ -1,5 +1,5 @@
 /*
- * A simple test for so_deactivate_agent().
+ * A test for so_evt_finish() after so_deactivate_agent(so_5::keep_current_state).
  */
 
 #include <so_5/all.hpp>
@@ -29,8 +29,13 @@ class a_test_t final : public so_5::agent_t
 	struct first final : public so_5::signal_t {};
 	struct second final : public so_5::signal_t {};
 
+	std::atomic_bool & m_evt_finish_called_flag;
+
 public:
-	using so_5::agent_t::agent_t;
+	a_test_t( context_t ctx, std::atomic_bool & evt_finish_called_flag )
+		:	so_5::agent_t{ std::move(ctx) }
+		,	m_evt_finish_called_flag{ evt_finish_called_flag }
+	{}
 
 	void
 	so_define_agent() override
@@ -39,9 +44,9 @@ public:
 			.event( [this]( mhood_t<first> ) {
 					so_5::send< a_terminator_t::kill >(
 							so_environment().create_mbox( "terminator" ) );
-					so_deactivate_agent();
-					ensure_or_die(!so_default_state().is_active(),
-							"agent should not be in the default_state");
+					so_deactivate_agent( so_5::keep_current_state );
+					ensure_or_die( so_default_state().is_active(),
+							"agent should be in the default_state" );
 				} )
 			.event( []( mhood_t<second> ) {
 					throw std::runtime_error{ "second message received" };
@@ -51,8 +56,16 @@ public:
 	void
 	so_evt_start() override
 	{
+		m_evt_finish_called_flag = false;
+
 		so_5::send< first >( *this );
 		so_5::send< second >( *this );
+	}
+
+	void
+	so_evt_finish() override
+	{
+		m_evt_finish_called_flag = true;
 	}
 };
 
@@ -64,12 +77,19 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				so_5::launch( []( so_5::environment_t & env ) {
-						env.introduce_coop( []( so_5::coop_t & coop ) {
+				std::atomic_bool evt_finish_called{ false };
+
+				so_5::launch( [&]( so_5::environment_t & env ) {
+						env.introduce_coop( [&]( so_5::coop_t & coop ) {
 								coop.make_agent< a_terminator_t >();
-								coop.make_agent< a_test_t >();
+								coop.make_agent< a_test_t >(
+										std::ref(evt_finish_called) );
 							} );
 					} );
+
+				ensure_or_die(
+						evt_finish_called.load( std::memory_order_acquire ),
+						"evt_finish_called is expected to be 'true'" );
 			},
 			5 );
 	}
