@@ -92,7 +92,7 @@ class a_test_t : public so_5::agent_t
 			do
 			{
 				if( 1 != m_workers )
-					std::runtime_error( "m_workers != 1" );
+					throw std::runtime_error( "m_workers != 1" );
 
 				std::this_thread::sleep_for( std::chrono::microseconds( 100 ) );
 
