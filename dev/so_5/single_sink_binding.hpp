@@ -184,7 +184,7 @@ class single_sink_binding_t
 				/*!
 				 * May be nullptr. Can't be used for signals.
 				 */
-				delivery_filter_unique_ptr_t m_delivery_filter;
+				delivery_filter_unique_ptr_t m_delivery_filter{};
 
 				binding_info_t(
 					const mbox_t & source,
@@ -215,10 +215,22 @@ class single_sink_binding_t
 
 		single_sink_binding_t() noexcept = default;
 
+// NOTE: this pragma was added because of a problem with GCC-13/14 with
+// -Werror, -Wall, -Wpedantic. GCC-13/14 complained sometimes
+// (test/so_5/mbox/sink_binding/single_sink_too_deep/main.cpp) about the use of
+// uninitialized pointer somewhere inside implementation of std::unique_ptr.
+// It seems to be a bug in the compiler.
+#if defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 		~single_sink_binding_t() noexcept
 			{
 				clear();
 			}
+#if defined(__GNUG__)
+#pragma GCC diagnostic pop
+#endif
 
 		single_sink_binding_t(
 			const single_sink_binding_t & ) = delete;
@@ -290,16 +302,9 @@ class single_sink_binding_t
 						m_info->m_source->unsubscribe_event_handler(
 								m_info->m_msg_type,
 								m_info->m_sink_owner->sink() );
+
+						m_info.reset();
 					}
-				// NOTE: initially this call was inside if(),
-				// but it led to problem with GCC-13.1 with -Werror,
-				// -Wall, -Wpedantic. GCC-13.1 complained sometimes
-				// (test/so_5/mbox/sink_binding/single_sink_too_deep/main.cpp)
-				// about the use of uninitialized pointer somewhere inside
-				// implementation of std::unique_ptr.
-				// It seems to be a bug in the compiler. As a workaround
-				// a call to `reset` is moved outside of if().
-				m_info.reset();
 			}
 
 		/*!
