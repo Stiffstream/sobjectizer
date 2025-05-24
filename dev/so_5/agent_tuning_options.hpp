@@ -185,7 +185,9 @@ struct name_for_agent_methods_mixin_t
 //
 // demands_handling_on_dereg_t
 //
-//FIXME: document this!
+/// \brief How pending demands should be handled on deregistration.
+///
+/// \since v.5.8.5
 enum class demands_handling_on_dereg_t
 	{
 		/// Pending demands have to be handled as usual.
@@ -194,7 +196,20 @@ enum class demands_handling_on_dereg_t
 		skip
 	};
 
-//FIXME: document this!
+/// \brief Marker that tells that pending demands have to be skipped
+/// on deregistration.
+///
+/// Usage example:
+/// \code
+/// class my_agent : public so_5::agent_t
+/// {
+/// public:
+/// 	my_agent(context_t ctx) : so_5::agent_t{ctx + so_5::skip_demands_on_dereg} {}
+/// 	...
+/// };
+/// \endcode
+///
+/// \since v.5.8.5
 inline constexpr demands_handling_on_dereg_t skip_demands_on_dereg =
 		demands_handling_on_dereg_t::skip;
 
@@ -394,7 +409,8 @@ class agent_tuning_options_t
 				return name_for_agent_t{ std::move(m_agent_name) };
 			}
 
-		//FIXME: document this!
+		/// \brief Set mode of handling pending demands on deregistration.
+		///
 		/// \since v.5.8.5
 		agent_tuning_options_t &
 		demands_handling_on_dereg(
@@ -404,7 +420,8 @@ class agent_tuning_options_t
 				return *this;
 			}
 
-		//FIXME: document this!
+		/// \breif Get mode of handling pending demands on deregistration.
+		///
 		/// \since v.5.8.5
 		[[nodiscard]]
 		demands_handling_on_dereg_t
@@ -455,7 +472,9 @@ class agent_tuning_options_t
 		 */
 		name_for_agent_t m_agent_name;
 
-		//FIXME: document this!
+		/// \brief What to do with pending demands on deregistration.
+		///
+		/// \since v.5.8.5
 		demands_handling_on_dereg_t m_demands_handling_on_dereg{
 				demands_handling_on_dereg_t::normal
 			};

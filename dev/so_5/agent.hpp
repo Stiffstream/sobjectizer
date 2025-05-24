@@ -3091,7 +3091,12 @@ class SO_5_TYPE agent_t
 		 */
 		state_time_limit_handling_data_t m_state_time_limit_handling_data;
 
-		//FIXME: document this!
+		/// \brief What to do with pending demands on deregistration.
+		///
+		/// This value is extracted from agent_tuning_options in the constructor
+		/// and never changes later.
+		///
+		/// \since v.5.8.5
 		const demands_handling_on_dereg_t m_demands_handling_on_dereg;
 
 		//! Destroy all agent's subscriptions.
