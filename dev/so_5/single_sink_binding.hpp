@@ -220,7 +220,7 @@ class single_sink_binding_t
 // (test/so_5/mbox/sink_binding/single_sink_too_deep/main.cpp) about the use of
 // uninitialized pointer somewhere inside implementation of std::unique_ptr.
 // It seems to be a bug in the compiler.
-#if defined(__GNUG__)
+#if defined(__GNUG__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
@@ -228,7 +228,7 @@ class single_sink_binding_t
 			{
 				clear();
 			}
-#if defined(__GNUG__)
+#if defined(__GNUG__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
