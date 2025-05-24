@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj.rb'
 
-	target '_unit.test.event_handler.deactivate_keep_state_simple'
+	target '_unit.test.event_handler.drop_all_subscriptions_simple'
 
 	cpp_source 'main.cpp'
 }

@@ -30,8 +30,8 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/deactivate_agent_simple/prj.ut.rb" )
 	required_prj( "#{path}/deactivate_try_resubscribe/prj.ut.rb" )
 	required_prj( "#{path}/deactivate_agent_evt_finish/prj.ut.rb" )
-	required_prj( "#{path}/deactivate_keep_state_simple/prj.ut.rb" )
-	required_prj( "#{path}/deactivate_keep_state_evt_finish/prj.ut.rb" )
+	required_prj( "#{path}/drop_all_subscriptions_simple/prj.ut.rb" )
+	required_prj( "#{path}/drop_all_subscriptions_evt_finish/prj.ut.rb" )
 
 	required_prj( "#{path}/thread_safety_check/prj.ut.rb" )
 
