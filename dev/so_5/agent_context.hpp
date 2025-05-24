@@ -96,6 +96,8 @@ class agent_context_t
 		agent_tuning_options_t m_options;
 	};
 
+//FIXME: should the following operator+ be marked as [[nodiscard]]?
+
 /*!
  * \brief A plus operator for creating agent_context object from
  * a reference to Environment and single agent tuning option.
@@ -197,6 +199,15 @@ operator+(
 	name_for_agent_t agent_name )
 	{
 		ctx.options().agent_name( std::move(agent_name) );
+		return ctx;
+	}
+
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	demands_handling_on_dereg_t handling_mode )
+	{
+		ctx.options().demands_handling_on_dereg( handling_mode );
 		return ctx;
 	}
 /*!

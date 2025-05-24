@@ -30,3 +30,5 @@ add_subdirectory(deactivate_keep_state_evt_finish)
 add_subdirectory(thread_safety_check)
 add_subdirectory(as_event_handler)
 
+add_subdirectory(skip_demands_on_dereg)
+

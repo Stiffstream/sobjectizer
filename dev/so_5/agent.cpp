@@ -816,6 +816,8 @@ agent_t::agent_t(
 	,	m_agent_coop( nullptr )
 	,	m_priority( ctx.options().query_priority() )
 	,	m_name( ctx.options().giveout_agent_name() )
+	,	m_demands_handling_on_dereg(
+			ctx.options().demands_handling_on_dereg() )
 {
 }
 
@@ -1206,6 +1208,10 @@ agent_t::shutdown_agent() noexcept
 			} );
 	}
 
+	// Since v.5.8.5 pending demands can be skipped.
+	if( demands_handling_on_dereg_t::skip == m_demands_handling_on_dereg )
+		m_current_status = agent_status_t::shutdown_with_skipping_pending_demands;
+
 	if( actual_queue )
 		// Since v.5.5.24 we should utilize event_queue via
 		// event_queue_hook.
@@ -1549,6 +1555,14 @@ agent_t::process_message(
 	thread_safety_t thread_safety,
 	event_handler_method_t method )
 {
+	// Since v.5.8.5 pending demands may be skipped after dereg.
+	if( agent_status_t::shutdown_with_skipping_pending_demands ==
+			d.m_receiver->m_current_status )
+	{
+		// Demand has to be ignored.
+		return;
+	}
+
 	impl::agent_impl::working_thread_id_sentinel_t sentinel{
 			d.m_receiver->m_working_thread_id,
 			// v.5.7.3
@@ -1581,6 +1595,14 @@ agent_t::process_enveloped_msg(
 	execution_demand_t & d,
 	const impl::event_handler_data_t * handler_data )
 {
+	// Since v.5.8.5 pending demands may be skipped after dereg.
+	if( agent_status_t::shutdown_with_skipping_pending_demands ==
+			d.m_receiver->m_current_status )
+	{
+		// Demand has to be ignored.
+		return;
+	}
+
 	using namespace enveloped_msg::impl;
 
 	if( handler_data )

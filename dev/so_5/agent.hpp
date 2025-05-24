@@ -2853,7 +2853,9 @@ class SO_5_TYPE agent_t
 			//! Agent is defined.
 			defined,
 			//! State switch operation is in progress.
-			state_switch_in_progress
+			state_switch_in_progress,
+			//! Agent was shutdown and all pending demands have to be skipped.
+			shutdown_with_skipping_pending_demands
 		};
 
 		/*!
@@ -3088,6 +3090,9 @@ class SO_5_TYPE agent_t
 		 * \since v.5.8.5
 		 */
 		state_time_limit_handling_data_t m_state_time_limit_handling_data;
+
+		//FIXME: document this!
+		const demands_handling_on_dereg_t m_demands_handling_on_dereg;
 
 		//! Destroy all agent's subscriptions.
 		/*!

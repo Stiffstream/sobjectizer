@@ -183,6 +183,22 @@ struct name_for_agent_methods_mixin_t
 #endif
 
 //
+// demands_handling_on_dereg_t
+//
+//FIXME: document this!
+enum class demands_handling_on_dereg_t
+	{
+		/// Pending demands have to be handled as usual.
+		normal,
+		/// Pending demands have to be skipped.
+		skip
+	};
+
+//FIXME: document this!
+inline constexpr demands_handling_on_dereg_t skip_demands_on_dereg =
+		demands_handling_on_dereg_t::skip;
+
+//
 // agent_tuning_options_t
 //
 /*!
@@ -213,6 +229,8 @@ class agent_tuning_options_t
 				swap( a.m_is_user_provided_subscription_storage_factory,
 						b.m_is_user_provided_subscription_storage_factory );
 				swap( a.m_agent_name, b.m_agent_name );
+				swap( a.m_demands_handling_on_dereg,
+						b.m_demands_handling_on_dereg );
 			}
 
 		//! Set factory for subscription storage creation.
@@ -376,6 +394,25 @@ class agent_tuning_options_t
 				return name_for_agent_t{ std::move(m_agent_name) };
 			}
 
+		//FIXME: document this!
+		/// \since v.5.8.5
+		agent_tuning_options_t &
+		demands_handling_on_dereg(
+			demands_handling_on_dereg_t handling_mode )
+			{
+				m_demands_handling_on_dereg = handling_mode;
+				return *this;
+			}
+
+		//FIXME: document this!
+		/// \since v.5.8.5
+		[[nodiscard]]
+		demands_handling_on_dereg_t
+		demands_handling_on_dereg() const noexcept
+			{
+				return m_demands_handling_on_dereg;
+			}
+
 	private :
 		//FIXME(v.5.9.0): this member has to be changed to:
 		//
@@ -417,6 +454,11 @@ class agent_tuning_options_t
 		 * \since v.5.8.2
 		 */
 		name_for_agent_t m_agent_name;
+
+		//FIXME: document this!
+		demands_handling_on_dereg_t m_demands_handling_on_dereg{
+				demands_handling_on_dereg_t::normal
+			};
 	};
 
 } /* namespace so_5 */
