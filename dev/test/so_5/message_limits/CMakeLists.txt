@@ -20,3 +20,7 @@ add_subdirectory(any_unspecified_msg_and_state_time_limit)
 add_subdirectory(subscription_unsubscription_1)
 add_subdirectory(state_time_limit)
 
+add_subdirectory(log_then_abort_for_msg)
+add_subdirectory(log_then_abort_for_signal)
+add_subdirectory(abort_app)
+

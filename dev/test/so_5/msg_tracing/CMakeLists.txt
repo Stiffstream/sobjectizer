@@ -10,3 +10,6 @@ add_subdirectory(overlimit_redirect_with_filter)
 add_subdirectory(change_filter_1)
 add_subdirectory(simple_individual_msg_count)
 add_subdirectory(simple_individual_delayed)
+
+add_subdirectory(overlimit_abort_app)
+
