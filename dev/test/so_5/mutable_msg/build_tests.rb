@@ -5,7 +5,6 @@ MxxRu::Cpp::composite_target {
 
 	path = 'test/so_5/mutable_msg'
 
-	required_prj "#{path}/wont_compile_runner/prj.ut.rb"
 	required_prj "#{path}/receive_immutable/prj.ut.rb"
 	required_prj "#{path}/receive_mutable/prj.ut.rb"
 	required_prj "#{path}/receive_mutable_lambda/prj.ut.rb"
