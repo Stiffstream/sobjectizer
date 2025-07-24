@@ -54,6 +54,11 @@ main()
 					UT_CHECK_CONDITION( 1 == r.extracted() );
 					UT_CHECK_CONDITION( 1 == r.handled() );
 					UT_CHECK_CONDITION( !hello_received );
+
+					const auto [extracted, handled, status] = r;
+					UT_CHECK_CONDITION(extracted == r.extracted());
+					UT_CHECK_CONDITION(handled == r.handled());
+					UT_CHECK_CONDITION(status == r.status());
 				}
 			},
 			20,

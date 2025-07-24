@@ -965,6 +965,21 @@ class mchain_receive_result_t
 	};
 
 //
+/*!
+ * \brief part of tuple protocol for mchain_receive_result_t.
+ *
+ * \since v.5.8.5
+ */
+template<std::size_t Index>
+auto get(const mchain_receive_result_t& result)
+{
+	static_assert(Index < 3, "Index out of bounds for mchain_receive_result_t");
+	if constexpr (Index == 0) return result.extracted();
+	if constexpr (Index == 1) return result.handled();
+	if constexpr (Index == 2) return result.status();
+}
+
+//
 // mchain_send_result_t
 //
 /*!
@@ -2040,3 +2055,29 @@ receive(
 
 } /* namespace so_5 */
 
+namespace std
+{
+	//
+	/*!
+	 * \brief part of tuple protocol for mchain_receive_result_t.
+	 *
+	 * \since v.5.8.5
+	 */
+	template<>
+	struct tuple_size<so_5::mchain_receive_result_t>
+		: integral_constant<std::size_t, 3>
+	{
+	};
+
+	//
+	/*!
+	 * \brief part of tuple protocol for mchain_receive_result_t.
+	 *
+	 * \since v.5.8.5
+	 */
+	template<size_t Index>
+	struct tuple_element<Index, so_5::mchain_receive_result_t>
+		: tuple_element<Index, tuple<std::size_t, std::size_t, so_5::mchain_props::extraction_status_t>>
+	{
+	};
+}
