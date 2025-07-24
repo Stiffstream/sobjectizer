@@ -2077,7 +2077,12 @@ namespace std
 	 */
 	template<size_t Index>
 	struct tuple_element<Index, so_5::mchain_receive_result_t>
-		: tuple_element<Index, tuple<std::size_t, std::size_t, so_5::mchain_props::extraction_status_t>>
+		: tuple_element<Index,
+				tuple<std::size_t,
+					std::size_t,
+					so_5::mchain_props::extraction_status_t>>
 	{
 	};
-}
+} /* namespace std */
+
+
