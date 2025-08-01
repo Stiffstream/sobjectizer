@@ -7,8 +7,8 @@
  * \brief Various stuff related to multi chain select.
  *
  * \note This file contains only publicly visible interfaces.
- * \since
- * v.5.5.16
+ *
+ * \since v.5.5.16
  */
 
 #pragma once
@@ -36,8 +36,7 @@ namespace mchain_props {
  * \note This class has no virtual destructor becase there is no
  * intention to create instances of select_notificators dynamically.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 class select_notificator_t
 {
@@ -58,8 +57,7 @@ public :
  *
  * \attention Objects of this class are not copyable nor moveable.
  *
- * \since
- * v.5.5.16
+ * \since v.5.5.16
  */
 class select_case_t
 	{
@@ -110,8 +108,7 @@ class select_case_t
 		 * class and can't call protected/private methods of
 		 * abstract_message_chain_t.
 		 *
-		 * \since
-		 * v.5.7.0
+		 * \since v.5.7.0
 		 */
 		[[nodiscard]]
 		auto
@@ -130,8 +127,7 @@ class select_case_t
 		 * class and can't call protected/private methods of
 		 * abstract_message_chain_t.
 		 *
-		 * \since
-		 * v.5.7.0
+		 * \since v.5.7.0
 		 */
 		[[nodiscard]]
 		auto
@@ -250,8 +246,7 @@ class select_case_t
 
 		//! Get the underlying mchain.
 		/*!
-		 * \since
-		 * v.5.5.17
+		 * \since v.5.5.17
 		 */
 		[[nodiscard]]
 		const mchain_t &
@@ -266,8 +261,7 @@ class select_case_t
 //
 /*!
  * \brief An alias of unique_ptr for select_case.
- * \since
- * v5.5.16
+ * \since v5.5.16
  */
 using select_case_unique_ptr_t = std::unique_ptr< select_case_t >;
 

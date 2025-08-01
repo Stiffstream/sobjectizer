@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.13
- *
  * \file
  * \brief Public part of message chain related stuff.
+ *
+ * \since v.5.5.13
  */
 
 #include <so_5/mchain.hpp>
