@@ -392,7 +392,7 @@ class mchain_template
 
 		/*!
 		 * \attention Will throw an exception because delivery
-		 * filter is not applicable to MPSC-mboxes.
+		 * filter is not applicable to mchains.
 		 */
 		void
 		set_delivery_filter(
