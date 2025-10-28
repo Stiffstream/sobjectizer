@@ -439,7 +439,7 @@ class select_case_t;
 // abstract_message_chain_t
 //
 /*!
- * \brief An interace of message chain.
+ * \brief An interface of message chain.
  *
  * \since v.5.5.13
  */

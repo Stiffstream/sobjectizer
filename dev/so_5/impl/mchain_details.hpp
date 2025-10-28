@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.5.13
- *
  * \file
  * \brief Implementation details for message chains.
+ *
+ * \since v.5.5.13
  */
 
 #pragma once
@@ -39,10 +38,9 @@ namespace details {
 // ensure_queue_not_empty
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function which throws an exception if queue is empty.
+ *
+ * \since v.5.5.13
  */
 template< typename Q >
 void
@@ -58,10 +56,9 @@ ensure_queue_not_empty( Q && queue )
 // ensure_queue_not_full
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Helper function which throws an exception if queue is full.
+ *
+ * \since v.5.5.13
  */
 template< typename Q >
 void
@@ -77,10 +74,9 @@ ensure_queue_not_full( Q && queue )
 // unlimited_demand_queue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Implementation of demands queue for size-unlimited message chain.
+ *
+ * \since v.5.5.13
  */
 class unlimited_demand_queue
 	{
@@ -142,11 +138,10 @@ class unlimited_demand_queue
 // limited_dynamic_demand_queue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Implementation of demands queue for size-limited message chain with
  * dynamically allocated storage.
+ *
+ * \since v.5.5.13
  */
 class limited_dynamic_demand_queue
 	{
@@ -208,11 +203,10 @@ class limited_dynamic_demand_queue
 // limited_preallocated_demand_queue
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Implementation of demands queue for size-limited message chain with
  * preallocated storage.
+ *
+ * \since v.5.5.13
  */
 class limited_preallocated_demand_queue
 	{
@@ -286,10 +280,9 @@ class limited_preallocated_demand_queue
 // status
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Status of the message chain.
+ *
+ * \since v.5.5.13
  */
 enum class status
 	{
@@ -305,13 +298,12 @@ enum class status
 // mchain_template
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Template-based implementation of message chain.
  *
  * \tparam Queue type of demand queue for message chain.
  * \tparam Tracing_Base type with message tracing implementation details.
+ *
+ * \since v.5.5.13
  */
 template< typename Queue, typename Tracing_Base >
 class mchain_template
@@ -647,16 +639,14 @@ class mchain_template
 		 * This value is incremented before sleeping on m_underflow_cond and
 		 * decremented just after a return from this sleep.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		std::size_t m_threads_to_wakeup = { 0 };
 
 		/*!
 		 * \brief A queue of multi-chain selects in which this chain is used.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		select_case_t * m_select_tail = nullptr;
 
@@ -770,8 +760,7 @@ class mchain_template
 		 * (like waiting for free space on overloaded chain) and there can't
 		 * be an exception about mchain's overflow.
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		void
 		try_to_store_message_to_queue_nonblocking_mode(
@@ -838,8 +827,7 @@ class mchain_template
 		 * \attention This helper method must be called when chain object
 		 * is locked in some hi-level method.
 		 *
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		extraction_status_t
 		extract_demand_from_not_empty_queue(
@@ -865,8 +853,7 @@ class mchain_template
 			}
 
 		/*!
-		 * \since
-		 * v.5.5.16
+		 * \since v.5.5.16
 		 */
 		void
 		notify_multi_chain_select_ops() noexcept
@@ -887,8 +874,7 @@ class mchain_template
 		 * Intended to be called from try_to_store_message_to_queue_ordinary_mode()
 		 * and try_to_store_message_to_queue_nonblocking_mode().
 		 *
-		 * \since
-		 * v.5.5.18
+		 * \since v.5.5.18
 		 */
 		void
 		complete_store_message_to_queue(
