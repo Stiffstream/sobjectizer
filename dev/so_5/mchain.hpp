@@ -429,6 +429,15 @@ enum class close_mode_t
 using not_empty_notification_func_t = std::function< void() >;
 
 //
+// empty_notification_func_t
+//
+//FIXME: document this!
+/*!
+ * \since v.5.8.5
+ */
+using empty_notification_func_t = std::function< void() >;
+
+//
 // Forward declarations related to multi chain select operations.
 //
 class select_case_t;
@@ -733,6 +742,12 @@ class mchain_params_t
 		//! An optional notificator for 'not_empty' condition.
 		mchain_props::not_empty_notification_func_t m_not_empty_notificator;
 
+		//! An optional notificator for 'empty' condition.
+		/*!
+		 * \since v.5.8.5
+		 */
+		mchain_props::empty_notification_func_t m_empty_notificator;
+
 		//! Is message delivery tracing disabled explicitly?
 		bool m_msg_tracing_disabled = { false };
 
@@ -777,6 +792,26 @@ class mchain_params_t
 		not_empty_notificator() const
 			{
 				return m_not_empty_notificator;
+			}
+
+		//FIXME: document this!
+		//! Set chain's notificator for 'empty' condition.
+		/*!
+		 * \since v.5.8.5
+		 */
+		mchain_params_t &
+		empty_notificator(
+			mchain_props::empty_notification_func_t notificator )
+			{
+				m_empty_notificator = std::move(notificator);
+				return *this;
+			}
+
+		//! Get chain's notificator for 'empty' condition.
+		const mchain_props::empty_notification_func_t &
+		empty_notificator() const
+			{
+				return m_empty_notificator;
 			}
 
 		//! Disable message delivery tracing explicitly.

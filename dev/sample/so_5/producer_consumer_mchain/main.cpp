@@ -112,7 +112,7 @@ struct request
 	std::string m_payload;
 };
 
-// A repsonse from consumer.
+// A response from consumer.
 struct reply
 {
 	std::string m_payload;

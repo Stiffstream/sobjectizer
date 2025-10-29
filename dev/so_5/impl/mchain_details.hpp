@@ -327,6 +327,7 @@ class mchain_template
 			,	m_id( id )
 			,	m_capacity( params.capacity() )
 			,	m_not_empty_notificator( params.not_empty_notificator() )
+			,	m_empty_notificator( params.empty_notificator() )
 			,	m_queue( params.capacity() )
 			{}
 
@@ -622,6 +623,12 @@ class mchain_template
 		//! Optional notificator for 'not_empty' condition.
 		const not_empty_notification_func_t m_not_empty_notificator;
 
+		//! Optional notificator for 'empty' condition.
+		/*!
+		 * \since v.5.8.5
+		 */
+		const empty_notification_func_t m_empty_notificator;
+
 		//! Chain's demands queue.
 		Queue m_queue;
 
@@ -839,6 +846,15 @@ class mchain_template
 				m_queue.pop_front();
 
 				this->trace_extracted_demand( *this, dest );
+
+				// Since v.5.8.5 there could be an empty notificator
+				// that has to be used if the queue becomes empty.
+				if( m_queue.is_empty() )
+					{
+						if( m_empty_notificator )
+							so_5::details::invoke_noexcept_code(
+								[this] { m_empty_notificator(); } );
+					}
 
 				if( queue_was_full )
 					{

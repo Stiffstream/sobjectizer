@@ -17,6 +17,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/adv_receive/prj.ut.rb" )
 	required_prj( "#{path}/adv_prepared_receive/prj.ut.rb" )
 	required_prj( "#{path}/not_empty_notify/prj.ut.rb" )
+	required_prj( "#{path}/empty_notify/prj.ut.rb" )
 	required_prj( "#{path}/multithread_receive/prj.ut.rb" )
 	required_prj( "#{path}/multithread_receive_close/prj.ut.rb" )
 

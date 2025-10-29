@@ -9,6 +9,7 @@ add_subdirectory(limited_no_app_abort)
 add_subdirectory(adv_receive)
 add_subdirectory(adv_prepared_receive)
 add_subdirectory(not_empty_notify)
+add_subdirectory(empty_notify)
 add_subdirectory(multithread_receive)
 add_subdirectory(multithread_receive_close)
 
