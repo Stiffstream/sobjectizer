@@ -89,4 +89,6 @@ MxxRu::Cpp::composite_target {
 	example[ 'child_soenv' ]
 	example[ 'bind_transformer' ]
 	example[ 'agent_name' ]
+
+	example[ 'mchain_empty_notificator' ]
 }

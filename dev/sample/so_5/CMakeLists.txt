@@ -84,3 +84,5 @@ add_subdirectory(child_soenv)
 add_subdirectory(bind_transformer)
 add_subdirectory(agent_name)
 
+add_subdirectory(mchain_empty_notificator)
+
