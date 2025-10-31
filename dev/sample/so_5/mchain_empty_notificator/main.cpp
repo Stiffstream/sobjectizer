@@ -89,7 +89,7 @@ public :
 		:	so_5::agent_t{ ctx }
 		,	m_name( std::move(name) )
 		,	m_logger_mbox{ std::move(logger_mbox) }
-		,	m_requests_left{ requests }
+		,	m_attempts_left{ requests }
 	{
 		// Create the target mchain.
 		m_target_mchain = so_environment().create_mchain(
@@ -132,7 +132,8 @@ private :
 
 	const so_5::mbox_t m_logger_mbox;
 
-	unsigned int m_requests_left;
+	// How many attempts remains.
+	unsigned int m_attempts_left;
 
 	// The target mchain to be used.
 	so_5::mchain_t m_target_mchain;
@@ -146,23 +147,26 @@ private :
 	{
 		if( m_target_is_empty )
 		{
-			m_logger_mbox <<= "sending a message...";
+			m_logger_mbox <<= ( msg_maker() << m_name
+					<< ": sending a message..." );
 
 			// Assume that mchain won't be empty after the sent.
 			m_target_is_empty = false;
 			so_5::send< request >(
 					m_target_mchain,
-					m_name + "_request_" + std::to_string( m_requests_left ) );
-
-			--m_requests_left;
+					m_name + "_request_" + std::to_string( m_attempts_left ) );
 		}
 		else
 		{
-			m_logger_mbox <<= "message is not sent because mchain is full";
+			m_logger_mbox <<= ( msg_maker{} << m_name
+					<< ": message is not sent because mchain is full" );
 		}
 
-		if( m_requests_left )
+		--m_attempts_left;
+
+		if( m_attempts_left )
 		{
+			// Next try after a timeout.
 			so_5::send_delayed< send_next >(
 					*this,
 					std::chrono::milliseconds{ 50 } );
@@ -174,13 +178,15 @@ private :
 					so_5::exceptions_enabled,
 					m_target_mchain );
 
-			m_logger_mbox <<= "target mchain is closed";
+			m_logger_mbox <<= ( msg_maker{} << m_name
+					<< ": target mchain is closed" );
 		}
 	}
 
 	void evt_mchain_is_empty( mhood_t<mchain_is_empty> )
 	{
-		m_logger_mbox <<= "mchain_is_empty received";
+		m_logger_mbox <<= ( msg_maker{} << m_name
+				<< ": mchain_is_empty received" );
 		m_target_is_empty = true;
 	}
 };
@@ -223,12 +229,12 @@ void run_example()
 						.no_wait_on_empty(),
 				[&logger_mbox]( const request & req )
 				{
-					logger_mbox <<= "start handling of received request";
+					logger_mbox <<= "Bob: start handling of received request";
 
-					logger_mbox <<= ( msg_maker{} << "  request payload: "
+					logger_mbox <<= ( msg_maker{} << "Bob: request payload: "
 							<< req.m_payload );
 
-					logger_mbox <<= "finish handling of received request";
+					logger_mbox <<= "Bob: finish handling of received request";
 				} ).status();
 	}
 
