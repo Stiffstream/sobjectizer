@@ -431,8 +431,11 @@ using not_empty_notification_func_t = std::function< void() >;
 //
 // empty_notification_func_t
 //
-//FIXME: document this!
 /*!
+ * \brief Type of functor to be called when a mchain becomes empty.
+ *
+ * \attention This function must be noexcept.
+ *
  * \since v.5.8.5
  */
 using empty_notification_func_t = std::function< void() >;
@@ -794,9 +797,11 @@ class mchain_params_t
 				return m_not_empty_notificator;
 			}
 
-		//FIXME: document this!
 		//! Set chain's notificator for 'empty' condition.
 		/*!
+		 * This notificator will be called when the mchain becomes
+		 * empty after extraction of the last message.
+		 *
 		 * \since v.5.8.5
 		 */
 		mchain_params_t &
