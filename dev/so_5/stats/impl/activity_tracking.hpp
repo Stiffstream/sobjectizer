@@ -181,8 +181,7 @@ class stats_collector_t : protected Lock_Holder
 		 * \brief A helper method for safe start if start method hasn't been
 		 * called yet.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		void
 		start_if_not_started()

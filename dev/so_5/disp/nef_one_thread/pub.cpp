@@ -248,7 +248,7 @@ class agent_queue_t final : public event_queue_t
 		push_evt_start( execution_demand_t demand ) override
 			{
 				// ATTENTION: assume that m_evt_start_demand is valid.
-				// It's UB is that isn't the true.
+				// It's UB if that isn't the true.
 				m_evt_start_demand->m_execution_demand = std::move(demand);
 				m_dest_queue.get().push( std::move(m_evt_start_demand) );
 			}
@@ -257,7 +257,7 @@ class agent_queue_t final : public event_queue_t
 		push_evt_finish( execution_demand_t demand ) noexcept override
 			{
 				// ATTENTION: assume that m_evt_start_demand is valid.
-				// It's UB is that isn't the true.
+				// It's UB if that isn't the true.
 				//
 				// Don't expect exceptions here.
 				m_evt_finish_demand->m_execution_demand = std::move(demand);

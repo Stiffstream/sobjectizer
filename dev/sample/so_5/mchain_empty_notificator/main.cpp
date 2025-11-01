@@ -8,7 +8,6 @@
 
 #include <iostream>
 #include <chrono>
-#include <syncstream>
 
 #include <so_5/all.hpp>
 
