@@ -91,6 +91,12 @@ struct work_thread_activity_stats_t
 		activity_stats_t m_working_stats{};
 
 		//! Stats for waiting periods.
+		/*!
+		 * \note
+		 * Not all dispatchers can provide this information. In such a case
+		 * there will be an object without actual information (all fields of
+		 * m_waiting_stats will have default zero values).
+		 */
 		activity_stats_t m_waiting_stats{};
 	};
 
