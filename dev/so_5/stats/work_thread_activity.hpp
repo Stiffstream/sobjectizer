@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <chrono>
 #include <iostream>
+#include <optional>
 #include <type_traits>
 
 namespace so_5
@@ -58,6 +59,14 @@ struct activity_stats_t
 
 		//! Average time for one event.
 		duration_t m_avg_time{};
+
+		//! Duration of the current activity.
+		//!
+		//! This value is defined only if the current activity is present.
+		//! Otherwise it will be nullopt.
+		//!
+		//! \since v.5.8.5
+		std::optional< duration_t > m_current_activity_time;
 	};
 
 /*!
@@ -75,7 +84,10 @@ operator<<( std::ostream & to, const activity_stats_t & what )
 
 	to << "[count=" << what.m_count
 		<< ";total=" << to_ms(what.m_total_time)
-		<< "ms;avg=" << to_ms(what.m_avg_time) << "ms]";
+		<< "ms;avg=" << to_ms(what.m_avg_time) << "ms";
+	if( what.m_current_activity_time )
+		to << ";current=" << to_ms(*what.m_current_activity_time) << "ms";
+	to << ']';
 
 	return to;
 }
@@ -150,9 +162,12 @@ update_stats_from_current_time(
 	activity_stats_t & value_to_update,
 	clock_type_t::time_point activity_started_at )
 {
+	const auto current_activity_time =
+			clock_type_t::now() - activity_started_at;
+	value_to_update.m_current_activity_time = current_activity_time;
 	update_stats_from_duration(
 			value_to_update,
-			clock_type_t::now() - activity_started_at );
+			current_activity_time );
 }
 
 } /* namespace details */
