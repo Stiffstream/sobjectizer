@@ -65,6 +65,12 @@ struct activity_stats_t
 		//! This value is defined only if the current activity is present.
 		//! Otherwise it will be nullopt.
 		//!
+		//! When it isn't nullopt it contains duration of the current
+		//! activity. For example, the total execution time of the current
+		//! event handler. If an instance of activity_stats_t describes
+		//! waiting, then this field shows duration of the current waiting
+		//! period.
+		//!
 		//! \since v.5.8.5
 		std::optional< duration_t > m_current_activity_time;
 	};

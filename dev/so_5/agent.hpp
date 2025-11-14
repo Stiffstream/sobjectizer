@@ -3053,7 +3053,7 @@ class SO_5_TYPE agent_t
 			/// \attention
 			/// This method doesn't check the actual value of
 			/// m_timeout_mbox. So it can be called even if
-			/// (is_defined() == true).
+			/// (is_defined() != true).
 			[[nodiscard]]
 			mbox_t
 			timeout_mbox() const noexcept;

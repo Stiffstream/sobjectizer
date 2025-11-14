@@ -4,6 +4,22 @@
 
 \section so_5__5_8_5 5.8.5 "San Fransisco"
 
+Implementation of so_5::state_t::time_limit has been changed. Now it is more
+effective and doesn't recreate a special mbox for internal delayed messages.
+
+A new method so_5::agent_t::so_drop_all_subscriptions_and_filters().
+
+It's now possible to skip all pending demands for agent when deregistration
+of agent's coop starts. A new agent tuning option so_5::skip_demands_on_dereg
+has to be used.
+
+A new method so_5::mchain_params_t::empty_notificator(). It allows to do
+something when a mchain becomes empty.
+
+A new field so_5::stats::activity_stats_t::m_current_activity_time.
+When it isn't nullopt it contains a duration of the current activity
+(for example total execution time of the current event handler).
+
 The result of so_5::receive() can now be deconstructed by structured binding,
 for example:
 
