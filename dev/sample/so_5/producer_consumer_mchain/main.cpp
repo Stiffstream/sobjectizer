@@ -212,7 +212,7 @@ private :
 class consumer final : public so_5::agent_t
 {
 	// This signal will be sent by not_empty_notificator when
-	// the first message is stored to the empty mchain.
+	// the first message is stored in the empty mchain.
 	struct chain_has_requests final : public so_5::signal_t {};
 
 public :
