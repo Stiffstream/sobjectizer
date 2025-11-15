@@ -161,7 +161,7 @@ private :
 	// Timer ID for periodic send_next signal.
 	so_5::timer_id_t m_send_timer;
 
-	// An event for next attempt to send another requests.
+	// An event for the next attempt to send another request.
 	void evt_send_next(mhood_t< send_next >)
 	{
 		const auto result = so_5::select(
