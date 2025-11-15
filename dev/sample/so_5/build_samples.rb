@@ -91,4 +91,5 @@ MxxRu::Cpp::composite_target {
 	example[ 'agent_name' ]
 
 	example[ 'mchain_empty_notificator' ]
+	example[ 'mchain_empty_notificator_2' ]
 }

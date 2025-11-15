@@ -41,6 +41,7 @@
  * \example so_5/make_pipeline/main.cpp
  * \example so_5/many_timers/main.cpp
  * \example so_5/mchain_empty_notificator/main.cpp
+ * \example so_5/mchain_empty_notificator_2/main.cpp
  * \example so_5/mchain_fibonacci/main.cpp
  * \example so_5/mchain_handler_formats/main.cpp
  * \example so_5/mchain_multi_consumers/main.cpp
