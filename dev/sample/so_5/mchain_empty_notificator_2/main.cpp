@@ -178,7 +178,7 @@ private :
 
 		if( !result.was_sent() )
 		{
-			// Message wasn't send.
+			// Message wasn't sent.
 			m_logger_mbox <<= ( msg_maker{} << m_name
 					<< ": message is not sent because mchain is full" );
 
@@ -208,7 +208,7 @@ private :
 				<< ": message can't be sent because mchain is full" );
 	}
 
-	// Reaction to notification about emptyness of the target mbox.
+	// Reaction to notification about emptiness of the target mbox.
 	void evt_mchain_is_empty( mhood_t<mchain_is_empty> )
 	{
 		m_logger_mbox <<= ( msg_maker{} << m_name
