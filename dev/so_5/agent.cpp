@@ -1053,9 +1053,10 @@ agent_t::so_create_execution_hint(
 			// Try to find handler for the demand.
 			auto handler = d.m_receiver->m_handler_finder(
 					d, "create_execution_hint" );
-			if( demand_type_t::message == demand_type )
+			if( handler )
 				{
-					if( handler )
+					if( demand_type_t::message == demand_type )
+						// Ordinary message.
 						return execution_hint_t(
 								d,
 								[handler](
@@ -1069,30 +1070,25 @@ agent_t::so_create_execution_hint(
 								},
 								handler->m_thread_safety );
 					else
-						// Handler not found.
-						return execution_hint_t::create_empty_execution_hint( d );
+						// Enveloped message.
+						return execution_hint_t(
+								d,
+								[handler](
+										execution_demand_t & demand,
+										current_thread_id_t thread_id ) {
+									process_enveloped_msg(
+											thread_id,
+											demand,
+											*handler );
+								},
+								handler->m_thread_safety );
 				}
 			else
-				{
-					// Execution hint for enveloped message is
-					// very similar to hint for service request.
-					return execution_hint_t(
-							d,
-							[handler](
-									execution_demand_t & demand,
-									current_thread_id_t thread_id ) {
-								process_enveloped_msg(
-										thread_id,
-										demand,
-										handler );
-							},
-							handler ? handler->m_thread_safety :
-								// If there is no real handler then
-								// there will only be actions from
-								// envelope.
-								// These actions should be thread safe.
-								thread_safe );
-				}
+				// Handler not found.
+				//
+				// NOTE: there is no difference between ordinary and
+				// enveloped messages.
+				return execution_hint_t::create_empty_execution_hint( d );
 		}
 	else
 		// This is demand_handler_on_start or demand_handler_on_finish.
@@ -1537,7 +1533,8 @@ agent_t::demand_handler_on_enveloped_msg(
 
 	auto handler = d.m_receiver->m_handler_finder(
 			d, "demand_handler_on_enveloped_msg" );
-	process_enveloped_msg( working_thread_id, d, handler );
+	if( handler )
+		process_enveloped_msg( working_thread_id, d, *handler );
 }
 
 demand_handler_pfn_t
@@ -1591,7 +1588,7 @@ void
 agent_t::process_enveloped_msg(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d,
-	const impl::event_handler_data_t * handler_data )
+	const impl::event_handler_data_t & handler_data )
 {
 	// Since v.5.8.5 pending demands may be skipped after dereg.
 	if( agent_status_t::shutdown_with_skipping_pending_demands ==
@@ -1603,36 +1600,33 @@ agent_t::process_enveloped_msg(
 
 	using namespace enveloped_msg::impl;
 
-	if( handler_data )
-	{
-		// If this is intermediate_handler then we should pass the
-		// whole envelope to it.
-		if( event_handler_kind_t::intermediate_handler == handler_data->m_kind )
-			// Just call process_message() in that case because
-			// process_message() already does what we need (including
-			// setting working_thread_id and handling of exceptions).
-			process_message(
+	// If this is intermediate_handler then we should pass the
+	// whole envelope to it.
+	if( event_handler_kind_t::intermediate_handler == handler_data.m_kind )
+		// Just call process_message() in that case because
+		// process_message() already does what we need (including
+		// setting working_thread_id and handling of exceptions).
+		process_message(
+				working_thread_id,
+				d,
+				handler_data.m_thread_safety,
+				handler_data.m_method );
+	else
+		// For a final_handler the payload should be extracted
+		// from the envelope and the extracted payload should go
+		// to the handler.
+		// We don't expect exceptions here and can't restore after them.
+		so_5::details::invoke_noexcept_code( [&] {
+			auto & envelope = message_to_envelope( d.m_message_ref );
+			agent_demand_handler_invoker_t invoker{
 					working_thread_id,
 					d,
-					handler_data->m_thread_safety,
-					handler_data->m_method );
-		else
-			// For a final_handler the payload should be extracted
-			// from the envelope and the extracted payload should go
-			// to the handler.
-			// We don't expect exceptions here and can't restore after them.
-			so_5::details::invoke_noexcept_code( [&] {
-				auto & envelope = message_to_envelope( d.m_message_ref );
-				agent_demand_handler_invoker_t invoker{
-						working_thread_id,
-						d,
-						*handler_data
-				};
-				envelope.access_hook(
-						so_5::enveloped_msg::access_context_t::handler_found,
-						invoker );
-			} );
-	}
+					handler_data
+			};
+			envelope.access_hook(
+					so_5::enveloped_msg::access_context_t::handler_found,
+					invoker );
+		} );
 }
 
 void

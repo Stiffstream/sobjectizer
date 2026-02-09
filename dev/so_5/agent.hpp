@@ -3349,9 +3349,8 @@ class SO_5_TYPE agent_t
 		 * \brief Actual implementation of enveloped message handling.
 		 *
 		 * \note
-		 * handler_data can be nullptr. It means that an event handler
-		 * for that message type if not found and special hook will
-		 * be called for the envelope.
+		 * This method has to be called only if event-handler for the mesage
+		 * is found.
 		 *
 		 * \since v.5.5.23
 		 */
@@ -3359,7 +3358,7 @@ class SO_5_TYPE agent_t
 		process_enveloped_msg(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
-			const impl::event_handler_data_t * handler_data );
+			const impl::event_handler_data_t & handler_data );
 
 		/*!
 		 * \brief Enables operation only if it is performed on agent's
