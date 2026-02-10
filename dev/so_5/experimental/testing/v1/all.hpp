@@ -1976,8 +1976,6 @@ namespace mbox_receives_msg_impl
 template< typename Msg >
 class a_msg_catcher_t final : public agent_t
 	{
-		using msg_traits_t = message_payload_type< Msg >;
-
 		//! Source for a message.
 		const mbox_t m_from;
 
