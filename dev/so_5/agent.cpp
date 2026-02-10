@@ -896,6 +896,13 @@ agent_t::so_make_new_direct_mbox()
 			*self_ptr() );
 }
 
+//FIXME: remove after experiments!
+impl::agent_impl::next_demand_extractor_t *
+agent_t::so_next_demand_extractor() const
+{
+	return nullptr;
+}
+
 const state_t &
 agent_t::so_default_state() const
 {
@@ -1516,6 +1523,10 @@ agent_t::demand_handler_on_message(
 				d,
 				handler->m_thread_safety,
 				handler->m_method );
+
+//FIXME: remove after experiments!
+	if( auto * extractor = d.m_receiver->so_next_demand_extractor() )
+		extractor->current_demand_handled();
 }
 
 demand_handler_pfn_t
@@ -1535,6 +1546,10 @@ agent_t::demand_handler_on_enveloped_msg(
 			d, "demand_handler_on_enveloped_msg" );
 	if( handler )
 		process_enveloped_msg( working_thread_id, d, *handler );
+
+//FIXME: remove after experiments!
+	if( auto * extractor = d.m_receiver->so_next_demand_extractor() )
+		extractor->current_demand_handled();
 }
 
 demand_handler_pfn_t

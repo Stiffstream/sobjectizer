@@ -489,6 +489,14 @@ struct working_thread_id_sentinel_t
 			}
 	};
 
+//FIXME: remove after experiments!
+class next_demand_extractor_t
+{
+public:
+	virtual void
+	current_demand_handled() = 0;
+};
+
 } /* namespace impl::agent_impl */
 
 //
@@ -1169,6 +1177,11 @@ class SO_5_TYPE agent_t
 		{
 			return { std::forward<Lambda>(lambda) };
 		}
+
+//FIXME: remove after experiments!
+[[nodiscard]] virtual
+impl::agent_impl::next_demand_extractor_t *
+so_next_demand_extractor() const;
 
 	protected:
 		/*!
