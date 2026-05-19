@@ -67,7 +67,7 @@
  * \since
  * v.1.2.1
  */
-#define TIMERTT_VERSION 1002003u
+#define TIMERTT_VERSION 1002004u
 
 /*!
  * \brief Top-level project's namespace.
@@ -845,10 +845,11 @@ struct timer_wheel_engine_defaults
  *
  * This class uses <a href="http://www.cs.columbia.edu/~nahum/w6998/papers/ton97-timing-wheels.pdf">timer_wheel</a>
  * mechanism to work with timers.
- * This mechanism is efficient for working with big amount of timers.
- * But it requires that timer thread is working always, even in case
- * when there is no timers. Another price for timer_wheel is the
- * granularity of timer steps.
+ * This mechanism is efficient for working with big amount of timers. But this
+ * mechanism can consume some more resources when there is a small number of
+ * waiting timers. It's because there is a wakeup at every time step of the
+ * wheel, even if there is no elapsed timers for that step. Another price for
+ * timer_wheel is the granularity of timer steps.
  *
  * Timer wheel data structure consists from one fixed size vector
  * (the wheel) and several double-linked list (one list for every wheel
@@ -861,7 +862,7 @@ struct timer_wheel_engine_defaults
  *
  * \note At the beginnig of time step thread detects elapsed timers, then
  * unblocks object mutex and calls timer actors for those timers. It means
- * that actors call call timer thread object. And there won't be frequent
+ * that actors can call timer thread object. And there won't be frequent
  * mutex locking/unlocking operations for building and processing
  * list of elapsed timers. This allows to process millions of timer actor
  * per second.
@@ -1631,7 +1632,7 @@ struct timer_list_engine_defaults
  * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam Timer_Action type of functor to perform an user-defined
+ * \tparam Time_Action type of functor to perform an user-defined
  * action when timer expires. This must be Moveable and MoveConstructible
  * type.
  *
@@ -1996,7 +1997,7 @@ private :
 	//! Insert timer to the list.
 	/*!
 	 * Insertion starts from the tail of the list. And if \a timer
-	 * has lower timer_type::m_whan value then the last list item
+	 * has lower timer_type::m_when value then the last list item
 	 * there is an loop of searching appropriate place by going to
 	 * the head of the list.
 	 *
@@ -2231,17 +2232,14 @@ struct timer_heap_engine_defaults
  * the heap. When this timer elapsed and removed next timer with the
  * eralier time point is going to the top of the heap.
  *
- * This implementation uses array-based <a
- * href="http://en.wikipedia.org/wiki/Binary_heap">binary heap</a>. The array
- * is growing as necessary to hold all the timers. The initial size of that
- * array can be specified in the constructor.
+ * This implementation uses array-based <a href="http://en.wikipedia.org/wiki/Binary_heap">binary heap</a>.
+ * The array is growing as necessary to hold all the timers. The initial size
+ * of that array can be specified in the constructor.
  *
- * \note Unlike timer_wheel and timer_list threads this thread unlock and
- * lock its mutex for processing every timers. It means that processing
- * speed of this thread will be slower then for timer_wheel or
- * timer_list threads. But this type of thread doesn't consume resources
- * when there is no timers (unlike timer_wheel thread). And has very
- * efficient activation and deactivation procedures (unlike timer_list
+ * \note Unlike timer_wheel and timer_list threads this thread unlock and lock
+ * its mutex for processing every timers. It means that processing speed of
+ * this thread will be slower then for timer_wheel or timer_list threads. And
+ * has very efficient activation and deactivation procedures (unlike timer_list
  * thread).
  *
  * \tparam Thread_Safety Thread-safety indicator.
@@ -2739,39 +2737,56 @@ private :
 	heap_remove( timer_type * timer )
 	{
 		if( timer->m_position == m_heap.size() )
+		{
 			// A special case: timer to remove is a last added item
 			// in the heap. It could be simply removed from heap
 			// without any other actions.
 			m_heap.pop_back();
+		}
 		else
 		{
 			auto last_item = m_heap.back();
 			heap_swap( timer, last_item );
 			m_heap.pop_back();
 
-			// last_item must be heap-down to the appropriate place.
-			while( true )
+			// If timer->m_position is not 1 then we can violate
+			// binary heap order. The last_item can now:
+			//
+			// - be less than its new parent;
+			// - be greater than any of its new children.
+			//
+			// If the last_item is less than new parent then we
+			// have to heap it up. If we move the last_item up then there
+			// is no need to check order down of it.
+			//
+			// But if the last_item wasn't moved up then we have to
+			// check the order down of it.
+			bool should_be_checked_down = true;
+
+			// NOTE: there is no need to check upward direction
+			// if removed timer was the head of the heap.
+			while( last_item->m_position > std::size_t{ 1 } )
 			{
-				auto left_index = last_item->m_position * 2;
-				auto right_index = left_index + 1;
-				auto min_index = last_item->m_position;
-
-				if( left_index <= m_heap.size() &&
-						heap_item( left_index )->m_when <=
-								heap_item( min_index )->m_when )
-					min_index = left_index;
-
-				if( right_index <= m_heap.size() &&
-						heap_item( right_index )->m_when <=
-								heap_item( min_index )->m_when )
-					min_index = right_index;
-
-				if( min_index != last_item->m_position )
-					heap_swap( last_item, heap_item( min_index ) );
+				auto parent = heap_item(
+						last_item->m_position / std::size_t{ 2 } );
+				if( parent->m_when > last_item->m_when )
+				{
+					// Timer must be heap-up on the place of the parent node.
+					heap_swap( parent, last_item );
+					// There is no need to do additional check in downward
+					// order (because parent is guaranteed to be less then
+					// children noded).
+					should_be_checked_down = false;
+				}
 				else
-					// Heap structure is correct.
+				{
+					// There is no need to modify heap structure anymore.
 					break;
+				}
 			}
+
+			if( should_be_checked_down )
+				heap_down_item( last_item );
 		}
 	}
 
@@ -2783,6 +2798,40 @@ private :
 		m_heap[ b->m_position - 1 ] = a;
 
 		std::swap( a->m_position, b->m_position );
+	}
+
+	//! Helper method to ensure that children of the specified
+	//! item are greater.
+	//!
+	//! If this isn't true then \a subtree_head will be moved down
+	//! the heap until the appropriate place will be found.
+	void
+	heap_down_item( timer_type * subtree_head )
+	{
+		do
+		{
+			auto left_index = subtree_head->m_position * std::size_t{ 2 };
+			auto right_index = left_index + std::size_t{ 1 };
+			auto min_index = subtree_head->m_position;
+
+			if( left_index <= m_heap.size() &&
+					heap_item( left_index )->m_when <=
+							heap_item( min_index )->m_when )
+				min_index = left_index;
+
+			if( right_index <= m_heap.size() &&
+					heap_item( right_index )->m_when <=
+							heap_item( min_index )->m_when )
+				min_index = right_index;
+
+			if( min_index != subtree_head->m_position )
+			{
+				heap_swap( subtree_head, heap_item( min_index ) );
+			}
+			else
+				// Heap structure is correct.
+				break;
+		} while( true );
 	}
 
 	//! Get timer by it index.
