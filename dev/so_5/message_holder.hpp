@@ -657,7 +657,7 @@ class message_holder_t
 		 * };
 		 *
 		 * auto make_message() {
-		 * 	return so_5::message_holder_t<my_message>(
+		 * 	return so_5::message_holder_t<my_message>::make(
 		 * 		0, // value for my_message's a_ field.
 		 * 		"hello", // value for my_message's b_ field.
 		 * 		15s ); // value for my_message's c_ field.
