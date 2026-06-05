@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <utility>
+
 namespace so_5 {
 
 namespace details {
@@ -26,10 +28,10 @@ namespace details {
  * \tparam L type of lambda with main code to be invoked.
  */
 template< typename L >
-auto
-invoke_noexcept_code( L lambda ) noexcept -> decltype(lambda())
+decltype(auto)
+invoke_noexcept_code( L lambda ) noexcept
 	{
-		return lambda();
+		return std::forward<L>(lambda)();
 	}
 
 } /* namespace details */
