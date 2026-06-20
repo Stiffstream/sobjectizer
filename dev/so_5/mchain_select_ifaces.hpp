@@ -93,7 +93,7 @@ class select_case_t
 		 *   nullptr). Next item in queue belongs to different select(). This
 		 *   item must be notified in notify() method.
 		 * - in ready to use select_case queue. The select_case is added to that
-		 *   queue when select_case in notified by mchain. The next item in
+		 *   queue when select_case is notified by mchain. The next item in
 		 *   queue belongs to the same select().
 		 */
 		select_case_t * m_next = nullptr;
