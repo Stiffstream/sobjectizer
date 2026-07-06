@@ -30,3 +30,5 @@ add_subdirectory(mbox_receives_msg)
 
 add_subdirectory(inspect_msg)
 
+add_subdirectory(issue_108)
+
