@@ -93,18 +93,21 @@ set(SO_5_SRC exception.cpp
 	disp/prio_one_thread/quoted_round_robin/pub.cpp
 	disp/prio_dedicated_threads/one_per_prio/pub.cpp
 
+	cpp_coro/scheduler.cpp
+	cpp_coro/this_thread_scheduler.cpp
+
 	experimental/testing/v1/all.cpp
 )
 
 function(setup_target_cxx_std TARGET_NAME)
 	if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
 		set_target_properties(${TARGET_NAME} PROPERTIES
-			CXX_STANDARD 17
+			CXX_STANDARD 20
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 		)
 	else()
-		target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
+		target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
 	endif()
 endfunction()
 
