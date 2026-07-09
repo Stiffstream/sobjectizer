@@ -2,6 +2,8 @@
 
 #include <so_5/cpp_coro/this_thread_scheduler.hpp>
 
+#include <so_5/cpp_coro/details/final_awaiter.hpp>
+
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
 
@@ -19,38 +21,20 @@ class single_int_task_t
 
 				std::coroutine_handle<> m_continuation;
 
+				[[nodiscard]]
+				std::coroutine_handle<>
+				query_continuation() const noexcept
+					{
+						return m_continuation;
+					}
+
 				std::suspend_always
 				initial_suspend() const noexcept { return {}; }
 
-				class final_awaiter_t
-				{
-					std::coroutine_handle<> m_continuation;
-
-				public:
-					final_awaiter_t(
-						std::coroutine_handle<> continuation ) noexcept
-						: m_continuation{ std::move(continuation) }
-					{}
-
-					[[nodiscard]]
-					bool
-					await_ready() const noexcept { return false; }
-
-					[[nodiscard]]
-					std::coroutine_handle<>
-					await_suspend( std::coroutine_handle<> ) const noexcept
-						{
-							return m_continuation;
-						}
-
-					void
-					await_resume() const noexcept {}
-				};
-
-				final_awaiter_t
+				so_5::cpp_coro::details::final_awaiter_t< promise_type >
 				final_suspend() const noexcept
 					{
-						return { m_continuation };
+						return {};
 					}
 
 				[[nodiscard]]
@@ -154,38 +138,20 @@ class single_void_task_t
 			{
 				std::coroutine_handle<> m_continuation;
 
+				[[nodiscard]]
+				std::coroutine_handle<>
+				query_continuation() const noexcept
+					{
+						return m_continuation;
+					}
+
 				std::suspend_always
 				initial_suspend() const noexcept { return {}; }
 
-				class final_awaiter_t
-				{
-					std::coroutine_handle<> m_continuation;
-
-				public:
-					final_awaiter_t(
-						std::coroutine_handle<> continuation ) noexcept
-						: m_continuation{ std::move(continuation) }
-					{}
-
-					[[nodiscard]]
-					bool
-					await_ready() const noexcept { return false; }
-
-					[[nodiscard]]
-					std::coroutine_handle<>
-					await_suspend( std::coroutine_handle<> ) const noexcept
-						{
-							return m_continuation;
-						}
-
-					void
-					await_resume() const noexcept {}
-				};
-
-				final_awaiter_t
+				so_5::cpp_coro::details::final_awaiter_t< promise_type >
 				final_suspend() const noexcept
 					{
-						return { m_continuation };
+						return {};
 					}
 
 				[[nodiscard]]
