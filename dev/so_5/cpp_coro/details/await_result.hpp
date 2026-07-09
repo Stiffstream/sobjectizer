@@ -98,7 +98,8 @@ template<typename Tp>
 using awaiter_type_t = typename awaiter_type<Tp>::type;
 
 template<typename Tp>
-concept Awaitable = std::movable<Tp> && requires(Tp && awaitable)
+//FIXME: is std::movable<Tp> really needed here?
+concept Awaitable = /*std::movable<Tp> &&*/ requires(Tp && awaitable)
 	{
 		{ get_awaiter(static_cast<Tp &&>(awaitable)) } -> Awaiter;
 	};

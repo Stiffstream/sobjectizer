@@ -21,6 +21,10 @@ namespace so_5::cpp_coro
 // resumable_item_t
 //
 //FIXME: document this!
+/// @attention
+/// Object of this type holds a coroutine_handle but doesn't own it.
+/// The m_to_be_resumed won't be destroyed in the destructor of
+/// resumable_item_t.
 struct resumable_item_t
 	{
 		/// What need to be resumed.
@@ -31,6 +35,24 @@ struct resumable_item_t
 		/// @note
 		/// This value has to be managed by a scheduler.
 		resumable_item_t * m_next{ nullptr };
+
+		/// The default constructor.
+		resumable_item_t() = default;
+
+		/// Initializing constructor for the case when couroutine to be resumed
+		/// is known.
+		explicit resumable_item_t(
+			std::coroutine_handle<> to_be_resumed )
+			: m_to_be_resumed{ to_be_resumed }
+			{}
+
+		/// Initializing constructor for the case when all information is known.
+		resumable_item_t(
+			std::coroutine_handle<> to_be_resumed,
+			resumable_item_t * next )
+			: m_to_be_resumed{ to_be_resumed }
+			, m_next{ next }
+			{}
 	};
 
 //

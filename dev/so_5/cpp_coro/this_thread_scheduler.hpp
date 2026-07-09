@@ -269,6 +269,33 @@ class SO_5_TYPE this_thread_scheduler_t
 		void
 		schedule( resumable_item_t & what_to_resume ) override;
 
+		//FIXME: document this!
+		template< typename Task >
+		decltype(auto)
+		sync_wait( Task && top_level_task )
+			{
+				using namespace this_thread_scheduler_impl;
+
+				using T = details::await_result_t<Task>;
+
+				// Wrap the top_level_task into our own coroutine that
+				// is in suspended state.
+				auto wrapped_top_level =
+					[]( Task * t ) -> top_level_task_t<T> {
+						co_return co_await *t;
+					}( std::addressof(top_level_task) );
+
+				// The dispatcher should have our coroutine in the queue.
+				resumable_item_t our_coro{ wrapped_top_level.m_coro };
+				this->schedule( our_coro );
+
+				// And now we have to wait for the completion of the
+				// top-level task.
+				wait_and_handle_coroutines( wrapped_top_level.m_coro );
+
+				return wrapped_top_level.await_resume();
+			}
+
 	private:
 		//FIXME: document this!
 		void

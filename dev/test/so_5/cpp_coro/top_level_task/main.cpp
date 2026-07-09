@@ -139,18 +139,12 @@ get_int_value()
 		co_return 42;
 	};
 
-so_5::cpp_coro::this_thread_scheduler_impl::top_level_task_t< int >
-int_case()
-	{
-		co_return co_await get_int_value();
-	}
-
 void
 check_int_case()
 	{
-		auto t = int_case();
-		t.m_coro.resume();
-		ensure_or_die( 42 == t.await_resume(), "42 is expected" );
+		so_5::cpp_coro::this_thread_scheduler_t scheduler;
+		auto r = scheduler.sync_wait( get_int_value() );
+		ensure_or_die( 42 == r, "42 is expected" );
 	}
 
 class single_void_task_t
@@ -276,18 +270,12 @@ get_void_value( int & marker )
 		co_return;
 	};
 
-so_5::cpp_coro::this_thread_scheduler_impl::top_level_task_t< void >
-void_case( int & marker )
-	{
-		co_return co_await get_void_value( marker );
-	}
-
 void
 check_void_case()
 	{
 		int marker = 11;
-		auto t = void_case( marker );
-		t.m_coro.resume();
+		so_5::cpp_coro::this_thread_scheduler_t scheduler;
+		scheduler.sync_wait( get_void_value( marker ) );
 		ensure_or_die( 42 == marker, "42 is expected" );
 	}
 
