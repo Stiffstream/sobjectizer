@@ -95,6 +95,7 @@ set(SO_5_SRC exception.cpp
 
 	cpp_coro/scheduler.cpp
 	cpp_coro/this_thread_scheduler.cpp
+	cpp_coro/mchain_select.cpp
 
 	experimental/testing/v1/all.cpp
 )

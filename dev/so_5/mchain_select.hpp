@@ -18,6 +18,8 @@
 #include <so_5/details/remaining_time_counter.hpp>
 #include <so_5/details/safe_cv_wait_for.hpp>
 
+#include <so_5/outliving.hpp>
+
 #include <iterator>
 #include <array>
 
