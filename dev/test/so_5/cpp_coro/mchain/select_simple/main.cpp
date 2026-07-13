@@ -14,6 +14,8 @@
 
 using namespace std;
 
+template<typename T> struct debug;
+
 void
 do_test()
 {
@@ -38,10 +40,7 @@ do_test()
 		so_5::cpp_coro::this_thread_scheduler_t scheduler;
 
 		auto r = scheduler.sync_wait(
-				[ch1, ch2, ch3, &hello_received, &scheduler]()
-				-> so_5::cpp_coro::task_t< so_5::cpp_coro::resumable_select_t >
-				{
-					co_return so_5::cpp_coro::select(
+				so_5::cpp_coro::select(
 							scheduler,
 							so_5::from_all().handle_n(1),
 							receive_case( ch1, []( hello ) {
@@ -53,8 +52,8 @@ do_test()
 							receive_case( ch3, []( hello ) {
 									throw std::runtime_error( "hello from ch3!" );
 								} )
-							);
-				} );
+							)
+				);
 
 		UT_CHECK_CONDITION( 1 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );

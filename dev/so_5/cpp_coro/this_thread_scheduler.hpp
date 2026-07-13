@@ -276,6 +276,8 @@ class SO_5_TYPE this_thread_scheduler_t
 		decltype(auto)
 		sync_wait( Task && top_level_task )
 			{
+				static_assert( so_5::cpp_coro::details::Awaitable< Task > );
+
 				using namespace this_thread_scheduler_impl;
 
 				using T = details::await_result_t<Task>;

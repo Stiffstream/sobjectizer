@@ -416,6 +416,7 @@ select(
 				cases_holder, 0, std::forward< Cases >(cases)... );
 
 		return async_select_impl::perform_select(
+				coro_scheduler,
 				std::move(params),
 				std::move(cases_holder) );
 	}
