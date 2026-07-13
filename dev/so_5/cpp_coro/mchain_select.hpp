@@ -15,6 +15,9 @@
 #include <so_5/mchain_select.hpp>
 
 #include <so_5/cpp_coro/details/final_awaiter.hpp>
+#include <so_5/cpp_coro/details/current_coro_handle.hpp>
+
+#include <so_5/cpp_coro/scheduler.hpp>
 
 #include <exception>
 
@@ -179,6 +182,243 @@ class SO_5_TYPE resumable_select_t
 			std::coroutine_handle< promise_type > coro )
 		noexcept;
 	};
+
+namespace async_select_impl
+{
+
+//FIXME: document this!
+class async_select_notificator_t final
+	: public so_5::mchain_props::select_notificator_t
+	{
+	private :
+		std::mutex m_lock;
+
+		//! Scheduler to be used for resumption.
+		scheduler_t & m_scheduler;
+
+		//! Information for resumption.
+		resumable_item_t m_to_be_resumed;
+
+		//! Queue of already notified select_cases.
+		so_5::mchain_props::select_case_t * m_tail = nullptr;
+
+		/*!
+		 * \attention This method must be called only on locked object.
+		 */
+		void
+		push_to_notified_chain(
+			so_5::mchain_props::select_case_t & what ) noexcept
+			{
+				what.set_next( m_tail );
+				m_tail = &what;
+			}
+
+	public :
+		/*!
+		 * \brief Initializing constructor.
+		 *
+		 * Intended to be used with select_cases_holder and its iterators.
+		 *
+		 * Every select_case is automatically added to the list of notified
+		 * select_cases.
+		 */
+		template< typename Fwd_it >
+		async_select_notificator_t(
+			//FIXME: document this!
+			scheduler_t & scheduler,
+			//FIXME: document this!
+			std::coroutine_handle<> coro_to_resume,
+			Fwd_it b, Fwd_it e )
+			: m_scheduler{ scheduler }
+			, m_to_be_resumed{ coro_to_resume }
+			{
+				// All select_cases from range [b,e) must be included in
+				// ready_cases list.
+				while( b != e )
+					{
+						b->set_next( m_tail );
+						m_tail = &(*b);
+						++b;
+					}
+			}
+
+		void
+		notify(
+			so_5::mchain_props::select_case_t & what ) noexcept override
+			{
+				so_5::mchain_props::select_case_t * old_tail = nullptr;
+				{
+					std::lock_guard< std::mutex > lock{ m_lock };
+
+					old_tail = m_tail;
+					push_to_notified_chain( what );
+				}
+
+				if( !old_tail )
+					m_scheduler.schedule( m_to_be_resumed );
+			}
+
+		/*!
+		 * \brief Return specifed select_case object to the chain of
+		 * 'notified select_cases'.
+		 *
+		 * If a message has been read from a mchain then there could be
+		 * other messages in that mchain. Because of that the select_case
+		 * for that mchain must be seen as 'notified' -- it should be
+		 * processed on next call to wait() method. This method must be
+		 * used for immediately return of select_case to the chain of
+		 * 'notified select_cases'.
+		 */
+		void
+		return_to_ready_chain(
+			so_5::mchain_props::select_case_t & what ) noexcept
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+				push_to_notified_chain( what );
+			}
+
+		//FIXME: document this!
+		[[nodiscard]]
+		so_5::mchain_props::select_case_t *
+		wait(
+			//FIXME: document that this parameter is ignored and why.
+			so_5::mchain_props::duration_t /*wait_time*/ )
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				auto * result = m_tail;
+				m_tail = nullptr;
+
+				return result;
+			}
+	};
+
+//FIXME: document this!
+using defined_select_params_t =
+		mchain_select_params_t< so_5::mchain_props::msg_count_status_t::defined >;
+
+//FIXME: document this!
+template<
+	std::size_t Cases_Count >
+resumable_select_t
+do_select_without_total_time(
+	scheduler_t & coro_scheduler,
+	defined_select_params_t params,
+	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
+	{
+		using namespace so_5::mchain_props::details;
+
+		using holder_t = so_5::mchain_props::details
+				::select_cases_holder_t< Cases_Count >;
+
+		using performer_t = select_actions_performer_t<
+				holder_t,
+				async_select_notificator_t >;
+
+		async_select_notificator_t notificator{
+				coro_scheduler,
+				co_await so_5::cpp_coro::details::current_coro_handle(),
+				cases_holder.begin(),
+				cases_holder.end()
+			};
+		performer_t performer{
+				params,
+				cases_holder,
+				notificator
+			};
+
+		do
+			{
+				const auto handle_result = performer.handle_next(
+						std::chrono::seconds::zero() );
+				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
+						performer.last_extraction_status() )
+					{
+#if 0
+						// Becase some message extracted we must restart wait_time
+						// counting.
+						wait_time = remaining_time_counter_t{ params.empty_timeout() };
+#endif
+					}
+				else
+					{
+						//FIXME: document this!
+						if( handle_next_result_t::no_ready_cases == handle_result )
+							co_yield resumable_select_t::waiting_for_next_event_t{};
+#if 0
+						// There could be one of two situations:
+						// 1) several threads do select on the same mchain.
+						//    Both threads will be awoken when some message is
+						//    pushed into the mchain. But only one thread will get
+						//    this message. Second thread will receive no_messages
+						//    status. In this case we should wait for the next message,
+						//    but wait_time must be decremented.
+						// 2) some chain is closed. Wait time should be updated and
+						//    next wait attempt must be performed.
+						wait_time.update();
+#endif
+					}
+			}
+		while( performer.can_continue() );
+
+		co_return performer.make_result();
+	}
+
+template<
+	std::size_t Cases_Count >
+resumable_select_t
+perform_select(
+	/// Scheduler to be used.
+	scheduler_t & coro_scheduler,
+	defined_select_params_t params,
+	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
+	{
+//FIXME: has to be implemented!
+#if 0
+		if( is_infinite_wait_timevalue( params.total_time() ) )
+#endif
+			return do_select_without_total_time(
+					coro_scheduler,
+					std::move(params),
+					std::move(cases_holder) );
+//FIXME: has to be implemented!
+#if 0
+		else
+			return do_select_with_total_time( params, cases_holder );
+#endif
+	}
+
+} /* namespace async_select_impl */
+
+//FIXME: document this!
+template<
+	so_5::mchain_props::msg_count_status_t Msg_Count_Status,
+	typename... Cases >
+resumable_select_t
+select(
+	//FIXME: document this!
+	scheduler_t & coro_scheduler,
+	//! Parameters for advanced select.
+	so_5::mchain_select_params_t< Msg_Count_Status > params,
+	//! Select cases.
+	Cases &&... cases )
+	{
+		static_assert(
+				Msg_Count_Status == so_5::mchain_props::msg_count_status_t::defined,
+				"message count to be processed/extracted should be defined "
+				"by using handle_all()/handle_n()/extract_n() methods" );
+
+		using namespace so_5::mchain_props;
+		using namespace so_5::mchain_props::details;
+
+		select_cases_holder_t< sizeof...(cases) > cases_holder;
+		fill_select_cases_holder(
+				cases_holder, 0, std::forward< Cases >(cases)... );
+
+		return async_select_impl::perform_select(
+				std::move(params),
+				std::move(cases_holder) );
+	}
 
 } /* namespace so_5::cpp_coro */
 

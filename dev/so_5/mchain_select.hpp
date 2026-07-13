@@ -1197,10 +1197,21 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 	};
 
+//FIXME: document this!
+/*!
+ * \since v.5.8.6
+ */
+enum class handle_next_result_t
+	{
+		no_ready_cases,
+		some_cases_were_ready
+	};
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
 
+//FIXME: document Notificator template parameter.
 //
 // select_actions_performer_t
 //
@@ -1211,13 +1222,15 @@ class actual_select_notificator_t : public select_notificator_t
  *
  * \since v.5.5.16
  */
-template< typename Holder >
+template<
+	typename Holder,
+	typename Notificator >
 class select_actions_performer_t
 	{
 		const mchain_select_params_t< msg_count_status_t::defined > & m_params;
 
 		const Holder & m_select_cases;
-		actual_select_notificator_t m_notificator;
+		Notificator & m_notificator;
 
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
@@ -1242,10 +1255,11 @@ class select_actions_performer_t
 	public :
 		select_actions_performer_t(
 			const mchain_select_params_t< msg_count_status_t::defined > & params,
-			const Holder & select_cases )
+			const Holder & select_cases,
+			Notificator & notificator )
 			:	m_params( params )
 			,	m_select_cases( select_cases )
-			,	m_notificator( select_cases.begin(), select_cases.end() )
+			,	m_notificator( notificator )
 			{}
 		~select_actions_performer_t()
 			{
@@ -1253,7 +1267,7 @@ class select_actions_performer_t
 					c.on_select_finish();
 			}
 
-		void
+		handle_next_result_t
 		handle_next( const duration_t & wait_time )
 			{
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
@@ -1261,9 +1275,14 @@ class select_actions_performer_t
 					{
 						m_last_extraction_status = extraction_status_t::no_messages;
 						update_can_continue_flag();
+
+						return handle_next_result_t::no_ready_cases;
 					}
 				else
-					handle_ready_chain( ready_chain );
+					{
+						handle_ready_chain( ready_chain );
+						return handle_next_result_t::some_cases_were_ready;
+					}
 			}
 
 		extraction_status_t
@@ -1420,8 +1439,19 @@ do_adv_select_with_total_time(
 	const Holder & select_cases )
 	{
 		using namespace so_5::details;
+		using performer_t = select_actions_performer_t<
+				Holder,
+				actual_select_notificator_t >;
 
-		select_actions_performer_t< Holder > performer{ params, select_cases };
+		actual_select_notificator_t notificator{
+				select_cases.begin(),
+				select_cases.end()
+			};
+		performer_t performer{
+				params,
+				select_cases,
+				notificator
+			};
 
 		remaining_time_counter_t total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
@@ -1461,8 +1491,20 @@ do_adv_select_without_total_time(
 	const Holder & select_cases )
 	{
 		using namespace so_5::details;
+		using performer_t = select_actions_performer_t<
+				Holder,
+				actual_select_notificator_t >;
 
-		select_actions_performer_t< Holder > performer{ params, select_cases };
+		actual_select_notificator_t notificator{
+				select_cases.begin(),
+				select_cases.end()
+			};
+
+		performer_t performer{
+				params,
+				select_cases,
+				notificator
+			};
 
 		remaining_time_counter_t wait_time{ params.empty_timeout() };
 		do
