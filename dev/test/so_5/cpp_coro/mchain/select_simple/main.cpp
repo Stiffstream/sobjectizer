@@ -4,6 +4,7 @@
 
 #include <so_5/cpp_coro/mchain_select.hpp>
 #include <so_5/cpp_coro/this_thread_scheduler.hpp>
+#include <so_5/cpp_coro/task.hpp>
 
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 
