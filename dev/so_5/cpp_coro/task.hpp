@@ -10,6 +10,8 @@
 #if !defined( SO_5_CPP_CORO_TASK_HPP )
 #define SO_5_CPP_CORO_TASK_HPP
 
+#include <so_5/cpp_coro/details/final_awaiter.hpp>
+
 #include <so_5/exception.hpp>
 #include <so_5/ret_code.hpp>
 
@@ -65,6 +67,8 @@ struct task_t
 			{
 				std::variant< task_impl::no_value_t, std::exception_ptr, T > m_result;
 
+				std::coroutine_handle<> m_continuation;
+
 				promise_type()
 					: m_result{ task_impl::no_value_t{} }
 					{}
@@ -81,7 +85,7 @@ struct task_t
 				std::suspend_always
 				initial_suspend() noexcept { return {}; }
 
-				std::suspend_always
+				so_5::cpp_coro::details::final_awaiter_t< promise_type >
 				final_suspend() noexcept { return {}; }
 
 				template< typename Actual_T >
@@ -94,15 +98,23 @@ struct task_t
 				//FIXME: implement this!
 				void
 				unhandled_exception() noexcept {}
+
+				[[nodiscard]]
+				std::coroutine_handle<>
+				query_continuation() const noexcept
+					{
+						return m_continuation;
+					}
 			};
 
 		bool
 		await_ready() const noexcept { return false; }
 
-		void
-		await_suspend( std::coroutine_handle<> ) noexcept
+		std::coroutine_handle<>
+		await_suspend( std::coroutine_handle<> continuation ) noexcept
 			{
-				m_coro.resume();
+				m_coro.promise().m_continuation = continuation;
+				return m_coro;
 			}
 
 		T
@@ -170,6 +182,8 @@ struct task_t< void >
 						return_void_called_t >
 					m_result;
 
+				std::coroutine_handle<> m_continuation;
+
 				promise_type()
 					: m_result{ task_impl::no_value_t{} }
 					{}
@@ -186,7 +200,7 @@ struct task_t< void >
 				std::suspend_always
 				initial_suspend() noexcept { return {}; }
 
-				std::suspend_always
+				so_5::cpp_coro::details::final_awaiter_t< promise_type >
 				final_suspend() noexcept { return {}; }
 
 				void
@@ -198,15 +212,23 @@ struct task_t< void >
 				//FIXME: implement this!
 				void
 				unhandled_exception() noexcept {}
+
+				[[nodiscard]]
+				std::coroutine_handle<>
+				query_continuation() const noexcept
+					{
+						return m_continuation;
+					}
 			};
 
 		bool
 		await_ready() const noexcept { return false; }
 
-		void
-		await_suspend( std::coroutine_handle<> ) noexcept
+		std::coroutine_handle<>
+		await_suspend( std::coroutine_handle<> continuation ) noexcept
 			{
-				m_coro.resume();
+				m_coro.promise().m_continuation = continuation;
+				return m_coro;
 			}
 
 		void

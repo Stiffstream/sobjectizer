@@ -16,6 +16,8 @@ option(SOBJECTIZER_BUILD_SHARED "Build shared SObjectizer library [default: ON]"
 option(SOBJECTIZER_INSTALL "Generate install target for SObjectizer"
 	${SOBJECTIZER_MASTER_PROJECT})
 
+option(SOBJECTIZER_USE_ADDRESS_SANITIZER "Use address sanitizer [default: OFF]" OFF)
+
 if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
 	message(FATAL_ERROR "at least one of SOBJECTIZER_BUILD_STATIC/SOBJECTIZER_BUILD_SHARED must be defined")
 endif()
@@ -86,6 +88,14 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		-Wall
 		-Wno-unused-function
 	)
+	if(SOBJECTIZER_USE_ADDRESS_SANITIZER)
+		add_compile_options(
+			-fsanitize=address
+		)
+		add_link_options(
+			-fsanitize=address
+		)
+	endif()
 endif()
 
 add_subdirectory(so_5)
