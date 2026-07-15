@@ -19,6 +19,8 @@
 
 #include <so_5/disp/one_thread/pub.hpp>
 
+#include <so_5/details/has_thread_sanitizer.hpp>
+
 namespace so_5 {
 
 namespace env_infrastructures {
@@ -35,7 +37,8 @@ coop_repo_t::coop_repo_t(
 	coop_listener_unique_ptr_t coop_listener )
 	:	coop_repository_basis_t( env, std::move(coop_listener) )
 	,	m_final_dereg_thread_shutdown_flag{ false }
-	{}
+{
+}
 
 void
 coop_repo_t::start()
@@ -98,7 +101,12 @@ coop_repo_t::start_deregistration()
 
 	if( coop_repository_basis_t::try_switch_to_shutdown_result_t
 			::switched == result )
+	{
+#if SO_5_HAS_THREAD_SANITIZER
+		std::lock_guard< std::mutex > lck{ m_lock };
+#endif
 		m_deregistration_started_cond.notify_one();
+	}
 }
 
 void
