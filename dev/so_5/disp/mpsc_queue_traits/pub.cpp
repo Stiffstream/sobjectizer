@@ -15,6 +15,7 @@
 #include <so_5/spinlocks.hpp>
 
 #include <so_5/details/invoke_noexcept_code.hpp>
+#include <so_5/details/tsan_friendly_lock_guard.hpp>
 
 #include <mutex>
 #include <condition_variable>
@@ -158,7 +159,8 @@ class simple_lock_t : public lock_t
 		virtual void
 		lock() noexcept override
 			{
-				m_mutex.lock();
+				so_5::details::tsan_friendly_lock_guard_t< std::mutex >
+						::do_lock( m_mutex );
 			}
 
 		virtual void
