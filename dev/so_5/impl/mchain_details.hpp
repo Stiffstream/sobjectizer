@@ -464,12 +464,14 @@ class mchain_template
 		bool
 		empty() const override
 			{
+				std::lock_guard< std::mutex > lock{ m_lock };
 				return m_queue.is_empty();
 			}
 
 		std::size_t
 		size() const override
 			{
+				std::lock_guard< std::mutex > lock{ m_lock };
 				return m_queue.size();
 			}
 
@@ -633,7 +635,11 @@ class mchain_template
 		Queue m_queue;
 
 		//! Chain's lock.
-		std::mutex m_lock;
+		/*!
+		 * \note
+		 * It's mutable to be able to lock it in const methods.
+		 */
+		mutable std::mutex m_lock;
 
 		//! Condition variable for waiting on empty queue.
 		std::condition_variable m_underflow_cond;
