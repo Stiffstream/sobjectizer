@@ -19,8 +19,6 @@
 
 #include <so_5/disp/one_thread/pub.hpp>
 
-#include <so_5/details/has_thread_sanitizer.hpp>
-
 namespace so_5 {
 
 namespace env_infrastructures {
@@ -97,14 +95,12 @@ coop_repo_t::final_deregister_coop(
 void
 coop_repo_t::start_deregistration()
 {
-	const auto result = coop_repository_basis_t::try_switch_to_shutdown();
+	std::lock_guard< std::mutex > lock{ m_lock };
 
-	if( coop_repository_basis_t::try_switch_to_shutdown_result_t
-			::switched == result )
+	const auto result = try_switch_to_shutdown();
+
+	if( try_switch_to_shutdown_result_t::switched == result )
 	{
-#if SO_5_HAS_THREAD_SANITIZER
-		std::lock_guard< std::mutex > lck{ m_lock };
-#endif
 		m_deregistration_started_cond.notify_one();
 	}
 }
@@ -203,6 +199,19 @@ coop_repo_t::process_current_final_dereg_chain(
 	// Have to reacquire the lock back.
 	lck.lock();
 }
+
+[[nodiscard]]
+coop_repo_t::try_switch_to_shutdown_result_t
+coop_repo_t::try_switch_to_shutdown() noexcept
+	{
+		if( status_t::normal == m_status )
+			{
+				m_status = status_t::pending_shutdown;
+				return try_switch_to_shutdown_result_t::switched;
+			}
+		else
+			return try_switch_to_shutdown_result_t::already_in_shutdown_state;
+	}
 
 //
 // mt_env_infrastructure_t

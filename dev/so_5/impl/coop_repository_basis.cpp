@@ -255,21 +255,6 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 		m_root_coop->deregister_children_on_shutdown();
 	}
 
-[[nodiscard]]
-coop_repository_basis_t::try_switch_to_shutdown_result_t
-coop_repository_basis_t::try_switch_to_shutdown() noexcept
-	{
-		std::lock_guard< std::mutex > lock{ m_lock };
-
-		if( status_t::normal == m_status )
-			{
-				m_status = status_t::pending_shutdown;
-				return try_switch_to_shutdown_result_t::switched;
-			}
-		else
-			return try_switch_to_shutdown_result_t::already_in_shutdown_state;
-	}
-
 environment_t &
 coop_repository_basis_t::environment()
 	{
