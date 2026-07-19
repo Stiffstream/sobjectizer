@@ -12,14 +12,6 @@
 
 #if defined( __SANITIZE_THREAD__ )
 	#define SO_5_HAS_THREAD_SANITIZER 1
-#elif defined( __has_feature )
-	#if __has_feature(thread_sanitizer)
-		#define SO_5_HAS_THREAD_SANITIZER 1
-	#endif
-#endif
-
-#if !defined( SO_5_HAS_THREAD_SANITIZER )
-	#define SO_5_HAS_THREAD_SANITIZER 0
 #endif
 
 #endif
