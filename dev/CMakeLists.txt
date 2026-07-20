@@ -16,7 +16,7 @@ option(SOBJECTIZER_BUILD_SHARED "Build shared SObjectizer library [default: ON]"
 option(SOBJECTIZER_INSTALL "Generate install target for SObjectizer"
 	${SOBJECTIZER_MASTER_PROJECT})
 
-option(SOBJECTIZER_SANITIZE "Sanitizer to use [default: none]" none)
+option(SOBJECTIZER_SANITIZE "Sanitizer to use (thread|address) [default: OFF]" OFF)
 
 if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
 	message(FATAL_ERROR "at least one of SOBJECTIZER_BUILD_STATIC/SOBJECTIZER_BUILD_SHARED must be defined")
@@ -48,7 +48,7 @@ if (ANDROID)
 	endif()
 endif()
 
-set(SOBJECTIZER_SUPPORTED_SANITIZERS "none" "thread" "address")
+set(SOBJECTIZER_SUPPORTED_SANITIZERS "OFF" "thread" "address")
 if(NOT (SOBJECTIZER_SANITIZE IN_LIST SOBJECTIZER_SUPPORTED_SANITIZERS))
 	message(FATAL_ERROR "Unsupported sanitizer: ${SOBJECTIZER_SANITIZE}")
 endif()
@@ -108,7 +108,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		add_link_options(-fsanitize=address)
 	endif()
 else()
-	if(SOBJECTIZER_SANITIZE NOT STREQUAL "none")
+	if(NOT(SOBJECTIZER_SANITIZE STREQUAL "OFF"))
 		message(FATAL_ERROR "Sanitizers supported for Clang and GCC only")
 	endif()
 endif()
