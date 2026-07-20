@@ -189,6 +189,40 @@ class coop_repo_t final : protected ::so_5::impl::coop_repository_basis_t
 		process_current_final_dereg_chain(
 			//! Lock object for acquired m_final_dereg_chain_lock.
 			std::unique_lock< std::mutex > & lck ) noexcept;
+
+		/*!
+		 * \brief Result of attempt to switch to shutdown state.
+		 *
+		 * \note
+		 * It was a part of coop_repository_basis_t until v.5.8.6.
+		 *
+		 * \since v.5.6.0
+		 */
+		enum class [[nodiscard]] try_switch_to_shutdown_result_t
+			{
+				switched,
+				already_in_shutdown_state
+			};
+
+		/*!
+		 * \brief Try to switch repository to shutdown state.
+		 *
+		 * \note
+		 * This method doesn't call deregister_all_coop().
+		 * It only changes state of repository to 'shutdown'.
+		 * This prevents from registration of new cooperations.
+		 *
+		 * \note
+		 * It was a part of coop_repository_basis_t until v.5.8.6.
+		 *
+		 * \attention
+		 * This method must be called only when
+		 * coop_repository_basis_t::m_lock is acquired by the current thread.
+		 *
+		 * \since v.5.6.0
+		 */
+		try_switch_to_shutdown_result_t
+		try_switch_to_shutdown() noexcept;
 	};
 
 //

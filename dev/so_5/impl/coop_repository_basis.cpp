@@ -14,6 +14,7 @@
 #include <so_5/environment.hpp>
 
 #include <so_5/details/rollback_on_exception.hpp>
+#include <so_5/details/tsan_friendly_lock_guard.hpp>
 
 #include <cstdlib>
 #include <algorithm>
@@ -58,7 +59,8 @@ class coop_repository_basis_t::root_coop_t final : public coop_t
 			{
 				// List of children coop should be processed when
 				// the object is locked.
-				std::lock_guard< std::mutex > lock{ m_lock };
+				so_5::details::tsan_friendly_lock_guard_t< std::mutex >
+						lock{ m_lock };
 
 				// Every child should be deregistered with 'shutdown' reason.
 				for_each_child( []( coop_t & child ) {
@@ -251,21 +253,6 @@ coop_repository_basis_t::deregister_all_coop() noexcept
 
 		// Phase 2: deregistration of all coops.
 		m_root_coop->deregister_children_on_shutdown();
-	}
-
-[[nodiscard]]
-coop_repository_basis_t::try_switch_to_shutdown_result_t
-coop_repository_basis_t::try_switch_to_shutdown() noexcept
-	{
-		std::lock_guard< std::mutex > lock{ m_lock };
-
-		if( status_t::normal == m_status )
-			{
-				m_status = status_t::pending_shutdown;
-				return try_switch_to_shutdown_result_t::switched;
-			}
-		else
-			return try_switch_to_shutdown_result_t::already_in_shutdown_state;
 	}
 
 environment_t &
