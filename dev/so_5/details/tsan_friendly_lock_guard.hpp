@@ -23,7 +23,16 @@ namespace so_5::details
 
 #if defined( SO_5_HAS_THREAD_SANITIZER )
 
-//FIXME: document this!
+/// Workaround for a strange behaviour in thread sanitizer.
+///
+/// Should be used instead of `std::lock_guard` in places where
+/// thread sanitizer report a possible deadlock because of lock
+/// order inversion.
+///
+/// Uses a loop with mutex::try_lock and this_thread::yield instead of
+/// plain mutex::lock method. In such a case TSan doesn't report this
+/// warning.
+///
 /// @sa https://github.com/llvm/llvm-project/issues/57955
 template< typename M >
 class tsan_friendly_lock_guard_t
