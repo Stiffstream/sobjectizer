@@ -11,7 +11,8 @@
  * case of a fatal error.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_ABORT_ON_FATAL_ERROR_HPP )
+#define SO_5_DETAILS_ABORT_ON_FATAL_ERROR_HPP
 
 #include <so_5/details/invoke_noexcept_code.hpp>
 
@@ -59,4 +60,6 @@ abort_on_fatal_error( L logging_lambda ) noexcept
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

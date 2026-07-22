@@ -7,7 +7,8 @@
 	\brief Functions for creating and binding to the active group dispatcher.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_ACTIVE_GROUP_HPP )
+#define SO_5_DISP_ACTIVE_GROUP_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -295,4 +296,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

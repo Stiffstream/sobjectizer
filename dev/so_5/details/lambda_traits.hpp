@@ -10,7 +10,8 @@
  * \brief Lambda-related type traits.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_LAMBDA_TRAITS_HPP )
+#define SO_5_DETAILS_LAMBDA_TRAITS_HPP
 
 #include <type_traits>
 
@@ -256,4 +257,6 @@ struct is_lambda
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
 	\brief Agent cooperation notifications definition.
 */
 
-#pragma once
+#if !defined( SO_5_AGENT_COOP_NOTIFICATIONS_HPP )
+#define SO_5_AGENT_COOP_NOTIFICATIONS_HPP
 
 #include <so_5/coop.hpp>
 #include <so_5/mbox.hpp>
@@ -166,5 +167,7 @@ make_coop_dereg_notificator(
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

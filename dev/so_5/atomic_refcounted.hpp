@@ -7,7 +7,8 @@
 	\brief The base class for the object with a reference counting definition.
 */
 
-#pragma once
+#if !defined( SO_5_ATOMIC_REFCOUNTED_HPP )
+#define SO_5_ATOMIC_REFCOUNTED_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/types.hpp>
@@ -318,3 +319,6 @@ template<typename T> intrusive_ptr_t(std::unique_ptr<T>) -> intrusive_ptr_t<T>;
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
 #endif
+
+#endif
+

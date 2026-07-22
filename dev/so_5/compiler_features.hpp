@@ -10,7 +10,8 @@
  * \brief Detection of compiler version and absence of various features.
  */
 
-#pragma once
+#if !defined( SO_5_COMPILER_FEATURES_HPP )
+#define SO_5_COMPILER_FEATURES_HPP
 
 #if defined( _MSC_VER )
 	#define SO_5_MSVC
@@ -18,5 +19,7 @@
 
 #if defined( __clang__ )
 	#define SO_5_CLANG
+#endif
+
 #endif
 

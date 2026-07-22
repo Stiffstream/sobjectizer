@@ -10,7 +10,8 @@
  * \brief A collector for agent tuning options.
  */
 
-#pragma once
+#if !defined( SO_5_AGENT_TUNING_OPTIONS_HPP )
+#define SO_5_AGENT_TUNING_OPTIONS_HPP
 
 #include <so_5/subscription_storage_fwd.hpp>
 #include <so_5/message_limit.hpp>
@@ -481,4 +482,6 @@ class agent_tuning_options_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * v.5.5.16
  */
 
-#pragma once
+#if !defined( SO_5_REMAINING_TIME_COUNTER_HPP )
+#define SO_5_REMAINING_TIME_COUNTER_HPP
 
 #include <chrono>
 
@@ -90,4 +91,6 @@ class remaining_time_counter_t
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

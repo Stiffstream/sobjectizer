@@ -7,7 +7,8 @@
  * \brief Reusable function for the default size for a thread pool.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_DEFAULT_THREAD_POOL_SIZE_HPP )
+#define SO_5_DISP_REUSE_DEFAULT_THREAD_POOL_SIZE_HPP
 
 #include <thread>
 
@@ -38,4 +39,6 @@ default_thread_pool_size()
 	}
 
 } /* namespace so_5::disp::reuse */
+
+#endif
 

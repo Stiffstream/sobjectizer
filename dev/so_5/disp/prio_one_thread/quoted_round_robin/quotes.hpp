@@ -10,7 +10,8 @@
  * \brief A storage of quotes for priorities.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_PRIO_ONE_THREAD_QUOTED_ROUND_ROBIN_QUOTES_HPP )
+#define SO_5_DISP_PRIO_ONE_THREAD_QUOTED_ROUND_ROBIN_QUOTES_HPP
 
 #include <so_5/priority.hpp>
 #include <so_5/exception.hpp>
@@ -115,3 +116,6 @@ class quotes_t
 #if defined(__clang__) && (__clang_major__ >= 16)
 #pragma clang diagnostic pop
 #endif
+
+#endif
+

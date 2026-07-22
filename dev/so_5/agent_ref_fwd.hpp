@@ -10,7 +10,8 @@
 	\brief A forward declaration of agent_ref_t.
 */
 
-#pragma once
+#if !defined( SO_5_AGENT_REF_FWD_HPP )
+#define SO_5_AGENT_REF_FWD_HPP
 
 #include <so_5/atomic_refcounted.hpp>
 
@@ -29,4 +30,6 @@ namespace so_5
 using agent_ref_t = intrusive_ptr_t< agent_t >;
 
 } /* namespace so_5 */
+
+#endif
 

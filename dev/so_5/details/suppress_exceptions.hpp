@@ -10,7 +10,8 @@
  * \brief Helpers for invoking code with suppressing exceptions.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_SUPPRESS_EXCEPTIONS_HPP )
+#define SO_5_DETAILS_SUPPRESS_EXCEPTIONS_HPP
 
 namespace so_5 {
 
@@ -39,4 +40,4 @@ void suppress_exceptions( Lambda && lambda ) noexcept
 
 } /* namespace so_5 */
 
-
+#endif

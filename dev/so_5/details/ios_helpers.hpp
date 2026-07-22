@@ -10,7 +10,8 @@
  * \brief Various helpers for working with C++ iostreams.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_IOS_HELPERS_HPP )
+#define SO_5_DETAILS_IOS_HELPERS_HPP
 
 #include <string_view>
 #include <ostream>
@@ -89,4 +90,6 @@ operator<<( std::ostream & to, const pointer & v )
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

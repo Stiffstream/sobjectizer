@@ -10,7 +10,8 @@
  * v.5.6.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_MAKE_ACTUAL_DISPATCHER_HPP )
+#define SO_5_DISP_REUSE_MAKE_ACTUAL_DISPATCHER_HPP
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
@@ -118,4 +119,6 @@ make_actual_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

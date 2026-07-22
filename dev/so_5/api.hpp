@@ -7,7 +7,8 @@
 	\brief Function for the SObjectizer starting.
 */
 
-#pragma once
+#if !defined( SO_5_API_HPP )
+#define SO_5_API_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -227,4 +228,6 @@ launch(
 }
 
 } /* namespace so_5 */
+
+#endif
 

@@ -9,7 +9,8 @@
  * \since v.5.4.0, v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_QUEUE_OF_QUEUES_HPP )
+#define SO_5_DISP_REUSE_QUEUE_OF_QUEUES_HPP
 
 #include <so_5/disp/mpmc_queue_traits/pub.hpp>
 
@@ -310,4 +311,6 @@ class queue_of_queues_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

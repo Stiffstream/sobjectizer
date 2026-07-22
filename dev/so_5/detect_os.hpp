@@ -9,7 +9,8 @@
  * \since v.5.8.2
  */
 
-#pragma once
+#if !defined( SO_5_DETECT_OS_HPP )
+#define SO_5_DETECT_OS_HPP
 
 /*!
  * \def SO_5_OS_WIN32
@@ -58,5 +59,7 @@
 
 #if defined(__APPLE__)
 	#define SO_5_OS_APPLE
+#endif
+
 #endif
 
