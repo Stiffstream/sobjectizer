@@ -13,7 +13,6 @@
 * [Limitations](#limitations)
 * [Obtaining and building](#obtaining-and-building)
 	* [SObjectizer-5.8 requires Cpp-17!](#sobjectizer-58-requires-c17)
-	* [Building via Mxx_ru](#building-via-mxx_ru)
 	* [Building via CMake](#building-via-cmake)
 	* [Building for Android](#building-for-android)
 		* [Building with Android NDK](#building-with-android-ndk)
@@ -601,15 +600,25 @@ https://github.com/Stiffstream/mosquitto_transport
 SObjectizer can be checked out from [GitHub](https://github.com/stiffstream/sobjectizer). Archives with SObjectizer's source code can be downloaded
 from [GitHub](https://github.com/Stiffstream/sobjectizer/releases) or from [SourceForge](https://sourceforge.net/projects/sobjectizer/files/sobjectizer).
 
-There are two ways for building SObjectizer.
-The first one by using [Mxx_ru](https://sourceforge.net/projects/mxxru/)
-tool. The second one by using [CMake](https://cmake.org).
+Since v.5.8.6 there is just one way of building SObjectizer -- by using
+[CMake](https://cmake.org).
 
 NOTE. Since v.5.5.15.2 there is a support of Android platform.  Building for
 Android is possible by CMake only. See the corresponding section below.
 
 SObjectizer can also be installed and used via **vcpkg** and **Conan**
 dependency managers. See the appropriate sections below.
+
+To build html-format documentation for SObjectizer the Doxygen tool is
+necessary. If it is installed then:
+
+```sh
+git clone https://github.com/stiffstream/sobjectizer sobjectizer
+cd sobjectizer/doxygen
+doxygen
+```
+
+Generated html-files will be located in sobjectizer/dev/doc/html.
 
 ## SObjectizer-5.8 requires C++17!
 
@@ -619,93 +628,6 @@ If you need support for C++14 or C++11 try to look to older versions of
 SObjectizer on [SourceForge](https://sourceforge.net/projects/sobjectizer).  Or
 contact [stiffstream](https://stiffstream.com/en/services.html) to discuss
 porting of SObjectizer-5.8 to older C++ standards.
-
-## Building via Mxx_ru
-
-*NOTE. This is a standard way for building SObjectizer. This way is used in
-SObjectizer development process.*
-
-To build SObjectizer it is necessary to use Ruby language and Mxx_ru tool.
-Install Ruby and then install Mxx_ru via RubyGems command:
-
-```sh
-gem install Mxx_ru
-```
-
-If you already have Mxx_ru installed please update to at least version 1.6.14.6:
-
-```sh
-gem update Mxx_ru
-```
-
-SObjectizer can be obtained from Git repository on GitHub:
-
-```sh
-git clone https://github.com/stiffstream/sobjectizer
-```
-
-To build SObjectizer:
-
-```sh
-cd sobjectizer/dev
-ruby build.rb
-```
-
-Static and shared library for SObjectizer will be built. Libraries will be
-placed into target/release subdirectory.
-
-If you want to build just shared library:
-
-```sh
-cd sobjectizer/dev
-ruby so_5/prj.rb
-```
-
-Or if you want to build just static library:
-
-```sh
-cd sobjectizer/dev
-ruby so_5/prj_s.rb
-```
-
-To build SObjectizer with all tests and samples:
-
-```sh
-cd sobjectizer/dev
-ruby build_all.rb
-```
-
-Please note that under FreeBSD it could be necessary to define LD_LIBRARY_PATH
-environment variable. And the actual build command sequence under FreeBSD could
-be as follows:
-
-```sh
-cd sobjectizer/dev
-export LD_LIBRARY_PATH=target/release
-ruby build_all.rb
-```
-
-To build html-format documentation for SObjectizer the Doxygen tool is
-necessary. If it is installed then:
-
-```sh
-cd sobjectizer/doxygen
-doxygen
-```
-
-Generated html-files will be located in sobjectizer/dev/doc/html.
-
-NOTE. If you do not specify MXX_RU_CPP_TOOLSET by youself then Mxx_ru will
-try to detect your C++ toolset automatically. If you want to use C++ compiler
-which is not default in your system please define MXX_RU_CPP_TOOLSET
-environment variable manually. It could look like:
-
-```sh
-export MXX_RU_CPP_TOOLSET="clang_linux compiler_name=clang++-6 linker_name=clang++-6"
-```
-
-More information about tuning Mxx_ru for your needs you can find in the
-[corresponding documentation](http://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.4-r1.pdf/download).
 
 ## Building via CMake
 
@@ -743,6 +665,10 @@ CMake build system currently supports this options:
 * `BUILD_ALL`. Enable building examples and tests [default: OFF]
 * `BUILD_EXAMPLES`. Enable building examples [default: OFF]
 * `BUILD_TESTS`. Enable building tests [default: OFF]
+* `SOBJECTIZER_SANITIZE`. Enable a specific sanitizer. By default this option
+  is set to `OFF` (no sanitizers are used). Supported values: `thread` for
+  ThreadSanitizer and `address` for AddressSanitizer. Note that those
+  sanitizers are supported to GCC and clang only.
 
 Please note that if `BUILD_ALL` or `BUILD_EXAMPLES` or `BUILD_TESTS` is turned
 ON then both `SOBJECTIZER_BUILD_STATIC` and `SOBJECTIZER_BUILD_SHARED` must be
