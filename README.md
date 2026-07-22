@@ -668,7 +668,7 @@ CMake build system currently supports this options:
 * `SOBJECTIZER_SANITIZE`. Enable a specific sanitizer. By default this option
   is set to `OFF` (no sanitizers are used). Supported values: `thread` for
   ThreadSanitizer and `address` for AddressSanitizer. Note that those
-  sanitizers are supported to GCC and clang only.
+  sanitizers are supported form GCC and clang only.
 
 Please note that if `BUILD_ALL` or `BUILD_EXAMPLES` or `BUILD_TESTS` is turned
 ON then both `SOBJECTIZER_BUILD_STATIC` and `SOBJECTIZER_BUILD_SHARED` must be
