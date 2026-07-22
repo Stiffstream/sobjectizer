@@ -9,7 +9,8 @@
  * \since v.5.4.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_THREAD_POOL_PUB_HPP )
+#define SO_5_DISP_THREAD_POOL_PUB_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -527,4 +528,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

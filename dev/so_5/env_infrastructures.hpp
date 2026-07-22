@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_ENV_INFRASTRUCTURES_HPP )
+#define SO_5_ENV_INFRASTRUCTURES_HPP
 
 #include <so_5/timers.hpp>
 
@@ -262,4 +263,6 @@ factory()
 } /* namespace env_infrastructures */
 
 } /* namespace so_5 */
+
+#endif
 

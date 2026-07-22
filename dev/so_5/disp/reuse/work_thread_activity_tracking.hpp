@@ -9,7 +9,8 @@
  * \since v.5.5.18
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_WORK_THREAD_ACTIVITY_TRACKING_HPP )
+#define SO_5_DISP_REUSE_WORK_THREAD_ACTIVITY_TRACKING_HPP
 
 #include <so_5/types.hpp>
 
@@ -86,4 +87,6 @@ class work_thread_activity_tracking_flag_mixin_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

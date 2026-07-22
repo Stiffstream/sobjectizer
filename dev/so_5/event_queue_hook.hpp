@@ -10,7 +10,8 @@
  * v.5.5.24
  */
 
-#pragma once
+#if !defined( SO_5_EVENT_QUEUE_HOOK_HPP )
+#define SO_5_EVENT_QUEUE_HOOK_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -221,4 +222,6 @@ make_empty_event_queue_hook_unique_ptr()
 	}
 
 } /* namespace so_5 */
+
+#endif
 

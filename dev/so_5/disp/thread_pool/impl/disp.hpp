@@ -9,7 +9,8 @@
  * \since v.5.4.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_THREAD_POOL_IMPL_DISP_HPP )
+#define SO_5_DISP_THREAD_POOL_IMPL_DISP_HPP
 
 #include <so_5/disp/thread_pool/impl/basic_event_queue.hpp>
 #include <so_5/disp/thread_pool/impl/work_thread_template.hpp>
@@ -178,4 +179,6 @@ using dispatcher_template_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

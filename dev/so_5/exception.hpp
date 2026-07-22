@@ -7,7 +7,8 @@
 	\brief An exception class.
 */
 
-#pragma once
+#if !defined( SO_5_EXCEPTION_HPP )
+#define SO_5_EXCEPTION_HPP
 
 #include <stdexcept>
 #include <string>
@@ -75,4 +76,6 @@ class SO_5_TYPE exception_t : public std::runtime_error
 	SO_5_THROW_EXCEPTION_IMPL(__FILE__, __LINE__, error_code, desc)
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief Tools for logging error messages inside SObjectizer core.
  */
 
-#pragma once
+#if !defined( SO_5_ERROR_LOGGER_HPP )
+#define SO_5_ERROR_LOGGER_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -160,4 +161,6 @@ class conductor_t
  */
 #define SO_5_LOG_ERROR(logger, var_name) \
 	SO_5_LOG_ERROR_IMPL(logger, __FILE__, __LINE__, var_name )
+
+#endif
 

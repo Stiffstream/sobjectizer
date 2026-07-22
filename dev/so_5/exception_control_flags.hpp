@@ -7,7 +7,8 @@
  * \brief Types and constants for exception control flags.
  */
 
-#pragma once
+#if !defined( SO_5_EXCEPTION_CONTROL_FLAGS_HPP )
+#define SO_5_EXCEPTION_CONTROL_FLAGS_HPP
 
 namespace so_5
 {
@@ -100,4 +101,6 @@ struct should_terminate_if_throws_t< terminate_if_throws_t >
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -7,7 +7,8 @@
 	\brief Interface for the dispatcher binders definition.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_BINDER_HPP )
+#define SO_5_DISP_BINDER_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/fwd.hpp>
@@ -99,4 +100,6 @@ class disp_binder_t
 using disp_binder_shptr_t = std::shared_ptr< disp_binder_t >;
 
 } /* namespace so_5 */
+
+#endif
 

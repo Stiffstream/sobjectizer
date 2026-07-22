@@ -10,7 +10,8 @@
  * \brief Forward declaration for SObjectizer run-time related classes.
  */
 
-#pragma once
+#if !defined( SO_5_FWD_HPP )
+#define SO_5_FWD_HPP
 
 namespace so_5 {
 
@@ -58,4 +59,6 @@ namespace low_level_api {
 } /* namespace low_level_api */
 
 } /* namespace so_5 */
+
+#endif
 

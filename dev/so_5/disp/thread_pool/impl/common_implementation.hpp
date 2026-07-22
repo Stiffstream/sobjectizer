@@ -9,7 +9,8 @@
  * \since v.5.5.4
  */
 
-#pragma once
+#if !defined( SO_5_DISP_THREAD_POOL_IMPL_COMMON_IMPLEMENTATION_HPP )
+#define SO_5_DISP_THREAD_POOL_IMPL_COMMON_IMPLEMENTATION_HPP
 
 #include <so_5/event_queue.hpp>
 
@@ -481,4 +482,6 @@ class dispatcher_t final
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 
