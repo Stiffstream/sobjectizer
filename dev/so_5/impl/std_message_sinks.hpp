@@ -8,7 +8,8 @@
  * \brief Private part of message limit implementation.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_STD_MESSAGE_SINKS_HPP )
+#define SO_5_IMPL_STD_MESSAGE_SINKS_HPP
 
 #include <so_5/impl/message_sink_without_message_limit.hpp>
 #include <so_5/impl/message_sink_with_message_limit.hpp>
@@ -395,4 +396,6 @@ create_sinks_storage_if_necessary(
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

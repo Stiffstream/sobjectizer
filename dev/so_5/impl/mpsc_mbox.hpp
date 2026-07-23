@@ -10,7 +10,8 @@
 	\brief A multi-producer/single-consumer mbox definition.
 */
 
-#pragma once
+#if !defined( SO_5_IMPL_MPSC_MBOX_HPP )
+#define SO_5_IMPL_MPSC_MBOX_HPP
 
 #include <so_5/types.hpp>
 #include <so_5/exception.hpp>
@@ -523,4 +524,6 @@ using limitless_mpsc_mbox_with_tracing_t =
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

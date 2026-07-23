@@ -9,7 +9,8 @@
  * \since v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MT_ENV_INFRASTRUCTURE_HPP )
+#define SO_5_IMPL_MT_ENV_INFRASTRUCTURE_HPP
 
 #include <so_5/environment_infrastructure.hpp>
 #include <so_5/mchain.hpp>
@@ -377,4 +378,5 @@ class mt_env_infrastructure_t
 
 } /* namespace so_5 */
 
+#endif
 

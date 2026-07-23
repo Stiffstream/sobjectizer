@@ -9,7 +9,8 @@
  * \since v.5.5.13
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MCHAIN_DETAILS_HPP )
+#define SO_5_IMPL_MCHAIN_DETAILS_HPP
 
 #include <so_5/mchain.hpp>
 #include <so_5/mchain_select_ifaces.hpp>
@@ -931,4 +932,6 @@ class mchain_template
 } /* namespace mchain_props */
 
 } /* namespace so_5 */
+
+#endif
 

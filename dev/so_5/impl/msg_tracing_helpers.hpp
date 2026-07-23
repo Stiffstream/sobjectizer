@@ -9,7 +9,8 @@
  * \since v.5.5.9
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MSG_TRACING_HELPERS_HPP )
+#define SO_5_IMPL_MSG_TRACING_HELPERS_HPP
 
 #include <so_5/msg_tracing.hpp>
 
@@ -1100,5 +1101,7 @@ class mchain_tracing_enabled_base
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

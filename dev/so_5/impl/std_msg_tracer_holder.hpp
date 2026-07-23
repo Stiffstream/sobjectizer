@@ -10,7 +10,8 @@
  * v.5.5.22
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_STD_MSG_TRACER_HOLDER_HPP )
+#define SO_5_IMPL_STD_MSG_TRACER_HOLDER_HPP
 
 #include <so_5/msg_tracing.hpp>
 #include <so_5/spinlocks.hpp>
@@ -94,4 +95,6 @@ class std_holder_t : public holder_t
 } /* namespace msg_tracing */
 
 } /* namespace so_5 */
+
+#endif
 
