@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_STATS_IMPL_ST_ENV_STUFF_HPP )
+#define SO_5_STATS_IMPL_ST_ENV_STUFF_HPP
 
 #include <so_5/mbox.hpp>
 
@@ -200,4 +201,6 @@ class next_turn_mbox_t final : public abstract_message_box_t
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * v.5.5.18
  */
 
-#pragma once
+#if !defined( SO_5_QUEUE_LOCKS_DEFAULTS_MANAGER_HPP )
+#define SO_5_QUEUE_LOCKS_DEFAULTS_MANAGER_HPP
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
 #include <so_5/disp/mpmc_queue_traits/pub.hpp>
@@ -95,4 +96,6 @@ SO_5_FUNC queue_locks_defaults_manager_unique_ptr_t
 make_defaults_manager_for_combined_locks();
 
 } /* namespace so_5 */
+
+#endif
 

@@ -7,7 +7,8 @@
 	\brief A class for the agent state definition.
 */
 
-#pragma once
+#if !defined( SO_5_STATE_HPP )
+#define SO_5_STATE_HPP
 
 #include <array>
 #include <string>
@@ -1889,4 +1890,6 @@ class state_t::state_path_t
 #endif
 
 } /* namespace so_5 */
+
+#endif
 

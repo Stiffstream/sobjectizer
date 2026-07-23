@@ -9,7 +9,8 @@
  * \since v.5.8.1
  */
 
-#pragma once
+#if !defined( SO_5_MSINKS_TRANSFORM_THEN_REDIRECT_HPP )
+#define SO_5_MSINKS_TRANSFORM_THEN_REDIRECT_HPP
 
 #include <so_5/message_sink.hpp>
 #include <so_5/transformed_message.hpp>
@@ -736,4 +737,6 @@ transform_then_redirect(
 } /* namespace msinks */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief Interfaces of data source and data sources repository.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_REPOSITORY_HPP )
+#define SO_5_STATS_REPOSITORY_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -273,5 +274,7 @@ class manually_registered_source_holder_t
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

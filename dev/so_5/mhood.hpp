@@ -7,7 +7,8 @@
 	\brief Definition of the template class mhood.
 */
 
-#pragma once
+#if !defined( SO_5_MHOOD_HPP )
+#define SO_5_MHOOD_HPP
 
 #include <so_5/message.hpp>
 #include <so_5/message_holder.hpp>
@@ -630,4 +631,6 @@ template< typename M >
 using mutable_mhood_t = mhood_t< mutable_msg<M> >;
 
 } /* namespace so_5 */
+
+#endif
 

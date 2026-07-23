@@ -9,7 +9,8 @@
  * \since v.5.5.16
  */
 
-#pragma once
+#if !defined( SO_5_MCHAIN_SELECT_HPP )
+#define SO_5_MCHAIN_SELECT_HPP
 
 #include <so_5/mchain_select_ifaces.hpp>
 
@@ -2222,5 +2223,7 @@ select(
 
 #if defined(__clang__) && (__clang_major__ >= 16)
 #pragma clang diagnostic pop
+#endif
+
 #endif
 

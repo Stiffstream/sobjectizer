@@ -8,7 +8,8 @@
 	\since v.5.8.0
 */
 
-#pragma once
+#if !defined( SO_5_MESSAGE_SINK_HPP )
+#define SO_5_MESSAGE_SINK_HPP
 
 #include <so_5/message.hpp>
 #include <so_5/priority.hpp>
@@ -318,4 +319,6 @@ class simple_sink_owner_t final : public abstract_sink_owner_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

@@ -9,7 +9,8 @@
  * \since v.5.5.9
  */
 
-#pragma once
+#if !defined( SO_5_MSG_TRACING_HPP )
+#define SO_5_MSG_TRACING_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -542,4 +543,6 @@ class SO_5_TYPE holder_t
 } /* namespace msg_tracing */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -9,7 +9,8 @@
  * \since v.5.8.1
  */
 
-#pragma once
+#if !defined( SO_5_TRANSFORMED_MESSAGE_HPP )
+#define SO_5_TRANSFORMED_MESSAGE_HPP
 
 #include <so_5/message.hpp>
 #include <so_5/message_holder.hpp>
@@ -287,4 +288,6 @@ make_transformed(
 	}
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief Forward definitions for subscription storage related stuff.
  */
 
-#pragma once
+#if !defined( SO_5_SUBSCRIPTION_STORAGE_FWD_HPP )
+#define SO_5_SUBSCRIPTION_STORAGE_FWD_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -210,4 +211,6 @@ flat_set_based_subscription_storage_factory(
 	std::size_t initial_capacity );
 
 } /* namespace so_5 */
+
+#endif
 

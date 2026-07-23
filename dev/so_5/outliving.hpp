@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_OUTLIVING_HPP )
+#define SO_5_OUTLIVING_HPP
 
 #include <so_5/compiler_features.hpp>
 
@@ -155,4 +156,6 @@ outliving_reference_t< const T >
 outliving_const( outliving_reference_t<T> r ) { return outliving_reference_t<const T>(r.get()); }
 
 } /* namespace so_5 */
+
+#endif
 

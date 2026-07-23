@@ -7,7 +7,7 @@
 	\brief A wrapper for all major SO Run-Time includes.
 */
 
-#pragma once
+#if !defined( SO_5_RT_HPP )
 
 #include <so_5/message.hpp>
 #include <so_5/agent.hpp>
@@ -24,3 +24,4 @@
 #include <so_5/stats/std_names.hpp>
 #include <so_5/stats/messages.hpp>
 
+#endif

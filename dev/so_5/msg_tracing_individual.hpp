@@ -9,7 +9,8 @@
  * \since v.5.8.3
  */
 
-#pragma once
+#if !defined( SO_5_MSG_TRACING_INDIVIDUAL_HPP )
+#define SO_5_MSG_TRACING_INDIVIDUAL_HPP
 
 #include <so_5/msg_tracing.hpp>
 
@@ -266,5 +267,7 @@ make_individual_trace_filter();
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

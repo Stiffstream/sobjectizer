@@ -10,7 +10,8 @@
  * \since v.5.5.4
  */
 
-#pragma once
+#if !defined( SO_5_STATS_MESSAGES_HPP )
+#define SO_5_STATS_MESSAGES_HPP
 
 #include <so_5/current_thread_id.hpp>
 
@@ -137,5 +138,7 @@ struct SO_5_TYPE work_thread_activity : public message_t
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

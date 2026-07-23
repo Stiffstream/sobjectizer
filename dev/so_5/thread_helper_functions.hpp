@@ -9,7 +9,8 @@
  * v.5.5.16
  */
 
-#pragma once
+#if !defined( SO_5_THREAD_HELPER_FUNCTIONS_HPP )
+#define SO_5_THREAD_HELPER_FUNCTIONS_HPP
 
 #include <array>
 #include <thread>
@@ -146,4 +147,5 @@ auto_join(
 
 } /* namespace so_5 */
 
+#endif
 

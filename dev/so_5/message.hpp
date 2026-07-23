@@ -7,7 +7,8 @@
 	\brief A base class for the agent messages definition.
 */
 
-#pragma once
+#if !defined( SO_5_MESSAGE_HPP )
+#define SO_5_MESSAGE_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/exception.hpp>
@@ -1035,4 +1036,6 @@ struct control_block_t
 } /* namespace message_limit */
 
 } /* namespace so_5 */
+
+#endif
 

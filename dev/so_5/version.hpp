@@ -9,7 +9,8 @@
  * \since v.5.5.19.3
  */
 
-#pragma once
+#if !defined( SO_5_VERSION_HPP )
+#define SO_5_VERSION_HPP
 
 // The current version is 5.8.6
 //
@@ -70,4 +71,6 @@
 	SO_5_VERSION_MAJOR,\
 	SO_5_VERSION_MINOR,\
 	SO_5_VERSION_PATCH)
+
+#endif
 

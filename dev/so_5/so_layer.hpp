@@ -7,7 +7,8 @@
 	\brief An addition layer for the SObjectizer Environment definition.
 */
 
-#pragma once
+#if !defined( SO_5_SO_LAYER_HPP )
+#define SO_5_SO_LAYER_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -95,4 +96,6 @@ using layer_ref_t = std::shared_ptr< layer_t >;
 using layer_map_t = std::map< std::type_index, layer_ref_t >;
 
 } /* namespace so_5 */
+
+#endif
 
