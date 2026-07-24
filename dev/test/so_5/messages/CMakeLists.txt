@@ -9,3 +9,5 @@ add_subdirectory(lambda_handlers)
 add_subdirectory(signal_redirection)
 add_subdirectory(make_transformed_message_holder)
 add_subdirectory(user_type_msgs)
+
+add_subdirectory(tsan_check_1)
