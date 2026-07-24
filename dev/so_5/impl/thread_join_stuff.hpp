@@ -10,7 +10,8 @@
  * v.5.6.0
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_THREAD_JOIN_STUFF_HPP )
+#define SO_5_IMPL_THREAD_JOIN_STUFF_HPP
 
 #include <so_5/exception.hpp>
 #include <so_5/ret_code.hpp>
@@ -50,4 +51,6 @@ ensure_join_from_different_thread(
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

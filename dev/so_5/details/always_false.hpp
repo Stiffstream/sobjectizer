@@ -10,7 +10,8 @@
  * v.5.6.0
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_ALWAYS_FALSE_HPP )
+#define SO_5_DETAILS_ALWAYS_FALSE_HPP
 
 namespace so_5 {
 
@@ -33,4 +34,6 @@ struct always_false
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

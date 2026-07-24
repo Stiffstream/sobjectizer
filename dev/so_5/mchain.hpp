@@ -9,7 +9,8 @@
  * \since v.5.5.13
  */
 
-#pragma once
+#if !defined( SO_5_MCHAIN_HPP )
+#define SO_5_MCHAIN_HPP
 
 #include <so_5/mbox.hpp>
 #include <so_5/handler_makers.hpp>
@@ -2125,4 +2126,5 @@ namespace std
 	};
 } /* namespace std */
 
+#endif
 

@@ -15,7 +15,8 @@
  * were used. Now it is here for compatibility reasons.
  */
 
-#pragma once
+#if !defined( SO_5_CURRENT_THREAD_ID_HPP )
+#define SO_5_CURRENT_THREAD_ID_HPP
 
 // For the normal implementations use the standard tools.
 #include <thread>
@@ -52,4 +53,6 @@ namespace so_5
 		}
 
 } /* namespace so_5 */
+
+#endif
 

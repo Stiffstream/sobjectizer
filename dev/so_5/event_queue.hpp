@@ -10,7 +10,8 @@
 	\brief An interface of event queue for agent.
 */
 
-#pragma once
+#if !defined( SO_5_EVENT_QUEUE_HPP )
+#define SO_5_EVENT_QUEUE_HPP
 
 #include <so_5/execution_demand.hpp>
 
@@ -84,4 +85,6 @@ class SO_5_TYPE event_queue_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

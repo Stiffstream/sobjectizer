@@ -10,7 +10,8 @@
  * v.5.5.19.2
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_STOP_GUARD_REPO_HPP )
+#define SO_5_IMPL_STOP_GUARD_REPO_HPP
 
 #include <so_5/stop_guard.hpp>
 
@@ -253,4 +254,6 @@ class stop_guard_repository_t
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

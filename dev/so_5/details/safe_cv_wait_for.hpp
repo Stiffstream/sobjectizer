@@ -11,7 +11,8 @@
  * v.5.7.2
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_SAFE_CV_WAIT_FOR_HPP )
+#define SO_5_DETAILS_SAFE_CV_WAIT_FOR_HPP
 
 #include <chrono>
 
@@ -76,4 +77,6 @@ wait_for_big_interval(
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

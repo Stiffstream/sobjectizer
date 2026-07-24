@@ -7,7 +7,8 @@
 	\brief Various typedefs.
 */
 
-#pragma once
+#if !defined( SO_5_TYPES_HPP )
+#define SO_5_TYPES_HPP
 
 #include <atomic>
 #include <cstdint>
@@ -184,4 +185,6 @@ enum class message_delivery_mode_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

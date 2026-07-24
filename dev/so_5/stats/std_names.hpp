@@ -10,7 +10,8 @@
  * \brief Standard data sources prefixes and suffixes used by SObjectizer.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_STD_NAMES_HPP )
+#define SO_5_STATS_STD_NAMES_HPP
 
 #include <so_5/stats/prefix.hpp>
 
@@ -162,4 +163,6 @@ demand_quote();
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

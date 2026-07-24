@@ -7,7 +7,8 @@
 	\brief SObjectizer Environment definition.
 */
 
-#pragma once
+#if !defined( SO_5_ENVIRONMENT_HPP )
+#define SO_5_ENVIRONMENT_HPP
 
 #include <so_5/compiler_features.hpp>
 #include <so_5/coop.hpp>
@@ -2459,5 +2460,7 @@ single_timer(
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

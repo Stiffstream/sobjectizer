@@ -7,7 +7,8 @@
 	\brief Agent state listener definition.
 */
 
-#pragma once
+#if !defined( SO_5_AGENT_STATE_LISTENER_HPP )
+#define SO_5_AGENT_STATE_LISTENER_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/state.hpp>
@@ -156,4 +157,6 @@ class state_listener_controller_t final
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

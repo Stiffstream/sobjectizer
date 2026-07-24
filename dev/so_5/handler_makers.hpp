@@ -10,7 +10,8 @@
  * \brief Various stuff for creation of event handlers.
  */
 
-#pragma once
+#if !defined( SO_5_HANDLER_MAKERS_HPP )
+#define SO_5_HANDLER_MAKERS_HPP
 
 #include <so_5/exception.hpp>
 #include <so_5/ret_code.hpp>
@@ -606,5 +607,7 @@ fill_handlers_bunch(
 
 #if defined(__clang__) && (__clang_major__ >= 16)
 #pragma clang diagnostic pop
+#endif
+
 #endif
 

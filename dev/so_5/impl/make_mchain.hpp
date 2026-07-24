@@ -10,7 +10,8 @@
  * v.5.7.0
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MAKE_MCHAIN_HPP )
+#define SO_5_IMPL_MAKE_MCHAIN_HPP
 
 #include <so_5/impl/mchain_details.hpp>
 #include <so_5/impl/msg_tracing_helpers.hpp>
@@ -59,4 +60,6 @@ make_mchain(
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

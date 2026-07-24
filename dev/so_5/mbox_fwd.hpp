@@ -10,7 +10,8 @@
 	\brief A forward declaration of mbox_t.
 */
 
-#pragma once
+#if !defined( SO_5_MBOX_FWD_HPP )
+#define SO_5_MBOX_FWD_HPP
 
 #include <so_5/atomic_refcounted.hpp>
 
@@ -35,4 +36,6 @@ class mbox_iface_for_timers_t;
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

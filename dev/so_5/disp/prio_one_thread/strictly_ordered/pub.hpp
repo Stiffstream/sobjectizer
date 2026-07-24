@@ -10,7 +10,8 @@
  * \since v.5.5.8
  */
 
-#pragma once
+#if !defined( SO_5_DISP_PRIO_ONE_THREAD_STRICTLY_ORDERED_PUB_HPP )
+#define SO_5_DISP_PRIO_ONE_THREAD_STRICTLY_ORDERED_PUB_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -265,4 +266,6 @@ make_dispatcher( environment_t & env )
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

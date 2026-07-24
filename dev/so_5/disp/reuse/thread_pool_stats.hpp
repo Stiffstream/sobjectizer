@@ -10,7 +10,8 @@
  * \brief Reusable tools for run-time monitoring of thread-pool-like dispatchers.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_THREAD_POOL_STATS_HPP )
+#define SO_5_DISP_REUSE_THREAD_POOL_STATS_HPP
 
 #include <so_5/atomic_refcounted.hpp>
 
@@ -472,4 +473,6 @@ class data_source_t : public stats::source_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

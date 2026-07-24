@@ -10,7 +10,8 @@
  * \brief Definition of priority type.
  */
 
-#pragma once
+#if !defined( SO_5_PRIORITY_HPP )
+#define SO_5_PRIORITY_HPP
 
 #include <type_traits>
 #include <stdexcept>
@@ -203,3 +204,4 @@ for_each_priority( Lambda l )
 
 } /* namespace so_5 */
 
+#endif

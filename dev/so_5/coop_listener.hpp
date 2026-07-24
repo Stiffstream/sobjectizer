@@ -7,7 +7,8 @@
 	\brief Interface for the cooperation listener definition.
 */
 
-#pragma once
+#if !defined( SO_5_COOP_LISTENER_HPP )
+#define SO_5_COOP_LISTENER_HPP
 
 #include <string>
 #include <memory>
@@ -80,3 +81,6 @@ class SO_5_TYPE coop_listener_t
 using coop_listener_unique_ptr_t = std::unique_ptr< coop_listener_t >;
 
 } /* namespace so_5 */
+
+#endif
+

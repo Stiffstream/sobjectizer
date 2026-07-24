@@ -5,7 +5,8 @@
  * \since so5extra-1.5.0, v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_UNIQUE_SUBSCRIBERS_MBOX_HPP )
+#define SO_5_UNIQUE_SUBSCRIBERS_MBOX_HPP
 
 #include <so_5/ret_code.hpp>
 
@@ -399,4 +400,6 @@ make_unique_subscribers_mbox( so_5::environment_t & env )
 	}
 
 } /* namespace so_5 */
+
+#endif
 

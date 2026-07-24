@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MBOX_IFACE_FOR_TIMERS_HPP )
+#define SO_5_IMPL_MBOX_IFACE_FOR_TIMERS_HPP
 
 #include <so_5/mbox.hpp>
 
@@ -55,4 +56,5 @@ class mbox_iface_for_timers_t
 
 } /* namespace so_5 */
 
+#endif
 

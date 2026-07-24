@@ -10,7 +10,8 @@
  * \brief A public interface for control SObjectizer monitoring options.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_CONTROLLER_HPP )
+#define SO_5_STATS_CONTROLLER_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -82,4 +83,5 @@ class SO_5_TYPE controller_t
 
 } /* namespace so_5 */
 
+#endif
 

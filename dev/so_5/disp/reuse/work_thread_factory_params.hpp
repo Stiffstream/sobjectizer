@@ -9,7 +9,8 @@
  * \since v.5.7.3
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_WORK_THREAD_FACTORY_PARAMS_HPP )
+#define SO_5_DISP_REUSE_WORK_THREAD_FACTORY_PARAMS_HPP
 
 #include <so_5/disp/abstract_work_thread.hpp>
 
@@ -70,4 +71,6 @@ class work_thread_factory_mixin_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -11,7 +11,8 @@
  * v.5.5.8
  */
 
-#pragma once
+#if !defined( SO_5_DISP_PRIO_ONE_THREAD_QUITED_ROUND_ROBIN_PUB_HPP )
+#define SO_5_DISP_PRIO_ONE_THREAD_QUITED_ROUND_ROBIN_PUB_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -293,4 +294,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

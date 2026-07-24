@@ -10,7 +10,8 @@
  * \since v.5.5.8
  */
 
-#pragma once
+#if !defined( SO_5_DISP_PRIO_ONE_THREAD_REUSE_WORK_THREAD_HPP )
+#define SO_5_DISP_PRIO_ONE_THREAD_REUSE_WORK_THREAD_HPP
 
 #include <so_5/current_thread_id.hpp>
 
@@ -267,4 +268,6 @@ using work_thread_with_activity_tracking_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

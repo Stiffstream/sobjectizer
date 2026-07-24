@@ -9,7 +9,8 @@
  * \since v.5.5.18
  */
 
-#pragma once
+#if !defined( SO_5_STATS_WORK_THREAD_ACTIVITY_HPP )
+#define SO_5_STATS_WORK_THREAD_ACTIVITY_HPP
 
 #include <cstdint>
 #include <chrono>
@@ -181,4 +182,6 @@ update_stats_from_current_time(
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

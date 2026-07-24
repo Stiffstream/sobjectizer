@@ -10,7 +10,8 @@
  * \brief Definition of storage for delivery filters.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_DELIVERY_FILTER_STORAGE_HPP )
+#define SO_5_IMPL_DELIVERY_FILTER_STORAGE_HPP
 
 #include <so_5/mbox.hpp>
 
@@ -184,4 +185,6 @@ class delivery_filter_storage_t
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

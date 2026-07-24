@@ -10,7 +10,8 @@
  * v.5.4.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_ADV_THREAD_POOL_IMPL_DISP_HPP )
+#define SO_5_DISP_ADV_THREAD_POOL_IMPL_DISP_HPP
 
 #include <so_5/spinlocks.hpp>
 #include <so_5/atomic_refcounted.hpp>
@@ -786,4 +787,6 @@ using dispatcher_template_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

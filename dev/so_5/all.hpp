@@ -9,7 +9,8 @@
  * \since v.5.4.0
  */
 
-#pragma once
+#if !defined( SO_5_ALL_HPP )
+#define SO_5_ALL_HPP
 
 #include <so_5/rt.hpp>
 #include <so_5/api.hpp>
@@ -42,4 +43,6 @@
 #include <so_5/bind_transformer_helpers.hpp>
 
 #include <so_5/msg_tracing_individual.hpp>
+
+#endif
 

@@ -7,7 +7,8 @@
 	\brief Working thread for dispatchers.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_WORK_THREAD_WORK_THREAD_HPP )
+#define SO_5_DISP_REUSE_WORK_THREAD_WORK_THREAD_HPP
 
 #include <atomic>
 #include <condition_variable>
@@ -739,4 +740,6 @@ using work_thread_with_activity_tracking_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -7,7 +7,8 @@
 	\brief A definition of an utility class for work with layers.
 */
 
-#pragma once
+#if !defined( SO_5_IMPL_LAYER_CORE_HPP )
+#define SO_5_IMPL_LAYER_CORE_HPP
 
 #include <vector>
 #include <typeindex>
@@ -159,3 +160,5 @@ class layer_core_t
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif

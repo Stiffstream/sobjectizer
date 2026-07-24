@@ -7,7 +7,8 @@
 	\brief A definition of an utility class for work with mboxes.
 */
 
-#pragma once
+#if !defined( SO_5_IMPL_MBOX_CORE_HPP )
+#define SO_5_IMPL_MBOX_CORE_HPP
 
 #include <so_5/mbox.hpp>
 #include <so_5/mbox_namespace_name.hpp>
@@ -317,4 +318,6 @@ using mbox_core_ref_t = intrusive_ptr_t< mbox_core_t >;
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

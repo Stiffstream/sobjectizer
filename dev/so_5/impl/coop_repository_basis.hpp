@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_COOP_REPOSITORY_BASIS_HPP )
+#define SO_5_IMPL_COOP_REPOSITORY_BASIS_HPP
 
 #include <so_5/impl/coop_private_iface.hpp>
 
@@ -211,3 +212,6 @@ protected:
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
 #endif
+
+#endif
+

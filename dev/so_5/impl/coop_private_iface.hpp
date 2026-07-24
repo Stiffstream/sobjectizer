@@ -10,7 +10,8 @@
  * v.5.6.0
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_COOP_PRIVATE_IFACE_HPP )
+#define SO_5_IMPL_COOP_PRIVATE_IFACE_HPP
 
 #include <so_5/coop.hpp>
 
@@ -144,4 +145,6 @@ class coop_private_iface_t
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief Definition of various types of waiting indicators.
  */
 
-#pragma once
+#if !defined( SO_5_WAIT_INDICATION_HPP )
+#define SO_5_WAIT_INDICATION_HPP
 
 namespace so_5 {
 
@@ -52,4 +53,6 @@ enum class no_wait_indication { no_wait };
 const no_wait_indication no_wait = no_wait_indication::no_wait;
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
 	\brief Event-related stuff.
 */
 
-#pragma once
+#if !defined( SO_5_EXECUTION_DEMAND_HPP )
+#define SO_5_EXECUTION_DEMAND_HPP
 
 #include <so_5/types.hpp>
 #include <so_5/current_thread_id.hpp>
@@ -323,4 +324,6 @@ struct msg_type_and_handler_pair_t
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

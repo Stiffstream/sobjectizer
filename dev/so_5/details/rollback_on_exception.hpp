@@ -10,7 +10,8 @@
  * \brief Helpers for do rollback actions in the case of exception.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_ROLLBACK_ON_EXCEPTION_HPP )
+#define SO_5_DETAILS_ROLLBACK_ON_EXCEPTION_HPP
 
 namespace so_5 {
 
@@ -100,4 +101,6 @@ do_with_rollback_on_exception(
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

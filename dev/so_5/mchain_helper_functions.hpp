@@ -9,7 +9,8 @@
  * v.5.5.16
  */
 
-#pragma once
+#if !defined( SO_5_MCHAIN_HELPER_FUNCTIONS_HPP )
+#define SO_5_MCHAIN_HELPER_FUNCTIONS_HPP
 
 #include <so_5/mchain.hpp>
 
@@ -650,4 +651,6 @@ class mchain_master_handle_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief Helpers for handling unhandled exceptions from agent's event handlers.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_PROCESS_UNHANDLED_EXCEPTION_HPP )
+#define SO_5_IMPL_PROCESS_UNHANDLED_EXCEPTION_HPP
 
 #include <so_5/agent.hpp>
 
@@ -63,4 +64,6 @@ process_unhandled_unknown_exception(
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

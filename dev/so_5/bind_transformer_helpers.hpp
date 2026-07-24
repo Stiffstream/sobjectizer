@@ -9,7 +9,8 @@
  * \since v.5.8.1
  */
 
-#pragma once
+#if !defined( SO_5_BIND_TRANSFORMER_HELPERS_HPP )
+#define SO_5_BIND_TRANSFORMER_HELPERS_HPP
 
 #include <so_5/msinks/transform_then_redirect.hpp>
 
@@ -431,4 +432,6 @@ bind_transformer(
 	}
 
 } /* namespace so_5 */
+
+#endif
 

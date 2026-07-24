@@ -10,7 +10,8 @@
  * \brief A type for storing prefix of data_source name.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_PREFIX_HPP )
+#define SO_5_STATS_PREFIX_HPP
 
 #include <string>
 #include <string_view>
@@ -224,4 +225,6 @@ operator<<( std::ostream & to, const suffix_t & what )
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

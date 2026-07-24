@@ -8,7 +8,8 @@
 	\since v.5.7.4
 */
 
-#pragma once
+#if !defined( SO_5_IMPL_LOCAL_MBOX_BASIC_SUBSCRIPTION_INFO_HPP )
+#define SO_5_IMPL_LOCAL_MBOX_BASIC_SUBSCRIPTION_INFO_HPP
 
 #include <so_5/types.hpp>
 
@@ -340,4 +341,6 @@ public :
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

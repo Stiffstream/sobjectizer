@@ -10,7 +10,8 @@
  * v.5.5.19.2
  */
 
-#pragma once
+#if !defined( SO_5_STOP_GUARD_HPP )
+#define SO_5_STOP_GUARD_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -87,4 +88,6 @@ class SO_5_FUNC stop_guard_t
 using stop_guard_shptr_t = std::shared_ptr< stop_guard_t >;
 
 } /* namespace so_5 */
+
+#endif
 

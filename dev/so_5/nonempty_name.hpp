@@ -7,7 +7,8 @@
 	\brief A nonempty_name class definition.
 */
 
-#pragma once
+#if !defined( SO_5_NONEMPTY_NAME_HPP )
+#define SO_5_NONEMPTY_NAME_HPP
 
 #include <string>
 
@@ -94,4 +95,6 @@ class nonempty_name_t
 };
 
 } /* namespace so_5 */
+
+#endif
 

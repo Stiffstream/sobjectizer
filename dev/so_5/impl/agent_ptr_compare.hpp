@@ -9,7 +9,8 @@
  * \since v.5.5.8
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_AGENT_PTR_COMPARE_HPP )
+#define SO_5_IMPL_AGENT_PTR_COMPARE_HPP
 
 #include <so_5/fwd.hpp>
 
@@ -46,4 +47,6 @@ special_agent_ptr_compare( const agent_t & a, const agent_t & b ) noexcept
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

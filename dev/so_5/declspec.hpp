@@ -2,7 +2,8 @@
 	SObjectizer 5.
 */
 
-#pragma once
+#if !defined( SO_5_DECLSPEC_HPP )
+#define SO_5_DECLSPEC_HPP
 
 #if defined( _MSC_VER )
 /*
@@ -59,5 +60,7 @@
 
 		#define SO_5_FUNC SO_5_IMPORT
 	#endif
+#endif
+
 #endif
 

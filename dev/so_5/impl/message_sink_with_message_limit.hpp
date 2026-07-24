@@ -8,7 +8,8 @@
  * \brief Implementation of message sink that handles message limits.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MESSAGE_SINK_WITH_MESSAGE_LIMIT_HPP )
+#define SO_5_IMPL_MESSAGE_SINK_WITH_MESSAGE_LIMIT_HPP
 
 #include <so_5/impl/message_sink_for_agent.hpp>
 
@@ -138,4 +139,6 @@ class message_sink_with_message_limit_t final
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

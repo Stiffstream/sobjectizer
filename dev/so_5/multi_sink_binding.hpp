@@ -9,7 +9,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_MULTI_SINK_BINDING_HPP )
+#define SO_5_MULTI_SINK_BINDING_HPP
 
 #include <so_5/single_sink_binding.hpp>
 
@@ -649,4 +650,6 @@ class multi_sink_binding_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

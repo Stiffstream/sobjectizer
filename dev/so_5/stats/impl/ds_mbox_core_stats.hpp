@@ -10,7 +10,8 @@
  * \brief A data source class for run-time monitoring of mbox_core.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_IMPL_DS_MBOX_CORE_STATS_HPP )
+#define SO_5_STATS_IMPL_DS_MBOX_CORE_STATS_HPP
 
 #include <so_5/stats/repository.hpp>
 
@@ -54,5 +55,5 @@ class ds_mbox_core_stats_t : public source_t
 
 } /* namespace so_5 */
 
-
+#endif
 

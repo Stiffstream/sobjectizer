@@ -8,7 +8,8 @@
  * \brief A base class for message sinks to be used by agents.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MESSAGE_SINK_FOR_AGENT_HPP )
+#define SO_5_IMPL_MESSAGE_SINK_FOR_AGENT_HPP
 
 #include <so_5/message_limit.hpp>
 
@@ -80,4 +81,5 @@ class message_sink_for_agent_t
 
 } /* namespace so_5 */
 
+#endif
 

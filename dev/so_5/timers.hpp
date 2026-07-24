@@ -10,7 +10,8 @@
 	\brief Timers and tools for working with timers.
 */
 
-#pragma once
+#if !defined( SO_5_TIMERS_HPP )
+#define SO_5_TIMERS_HPP
 
 #include <chrono>
 #include <functional>
@@ -784,4 +785,6 @@ create_appropriate_timer_thread(
 #endif
 
 } /* namespace so_5 */
+
+#endif
 

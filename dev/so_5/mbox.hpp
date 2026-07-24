@@ -7,7 +7,8 @@
 	\brief Mbox definition.
 */
 
-#pragma once
+#if !defined( SO_5_MBOX_HPP )
+#define SO_5_MBOX_HPP
 
 #include <string>
 #include <memory>
@@ -460,4 +461,6 @@ deliver_signal(
 } /* namespace low_level_api */
 
 } /* namespace so_5 */
+
+#endif
 

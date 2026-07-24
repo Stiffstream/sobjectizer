@@ -13,7 +13,8 @@
  * \since v.5.5.10
  */
 
-#pragma once
+#if !defined( SO_5_DISP_ONE_THREAD_PARAMS_HPP )
+#define SO_5_DISP_ONE_THREAD_PARAMS_HPP
 
 #include <so_5/disp/mpsc_queue_traits/pub.hpp>
 
@@ -117,4 +118,6 @@ class disp_params_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

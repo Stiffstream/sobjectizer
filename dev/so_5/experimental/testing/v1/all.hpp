@@ -9,7 +9,8 @@
  * \since v.5.5.24
  */
 
-#pragma once
+#if !defined( SO_5_EXPERIMENTAL_TESTING_V1_ALL_HPP )
+#define SO_5_EXPERIMENTAL_TESTING_V1_ALL_HPP
 
 #include <so_5/all.hpp>
 
@@ -2747,5 +2748,7 @@ class SO_5_TYPE testing_env_t
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

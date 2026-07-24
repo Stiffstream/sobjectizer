@@ -7,7 +7,8 @@
 	\brief Functions for creating and binding of the single thread dispatcher.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_ONE_THREAD_PUB_HPP )
+#define SO_5_DISP_ONE_THREAD_PUB_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -172,4 +173,6 @@ make_dispatcher( environment_t & env )
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

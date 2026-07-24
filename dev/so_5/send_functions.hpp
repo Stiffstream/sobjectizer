@@ -10,7 +10,8 @@
  * \brief Implementation of free functions send/send_delayed.
  */
 
-#pragma once
+#if !defined( SO_5_SEND_FUNCTIONS_HPP )
+#define SO_5_SEND_FUNCTIONS_HPP
 
 #include <so_5/environment.hpp>
 
@@ -835,4 +836,6 @@ send_periodic(
 	}
 
 } /* namespace so_5 */
+
+#endif
 
