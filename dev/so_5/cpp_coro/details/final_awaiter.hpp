@@ -5,7 +5,7 @@
 /// @file
 /// @brief Implementation of final_awaiter_t type.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined( SO_5_CPP_CORO_DETAILS_FINAL_AWAITER_HPP )
 #define SO_5_CPP_CORO_DETAILS_FINAL_AWAITER_HPP

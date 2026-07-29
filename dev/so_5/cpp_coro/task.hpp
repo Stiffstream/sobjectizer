@@ -5,7 +5,7 @@
 /// @file
 /// @brief The `task_t` template.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined( SO_5_CPP_CORO_TASK_HPP )
 #define SO_5_CPP_CORO_TASK_HPP

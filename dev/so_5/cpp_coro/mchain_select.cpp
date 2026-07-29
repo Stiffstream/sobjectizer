@@ -5,7 +5,7 @@
 /// @file
 /// @brief Staff related to coroutine-friendly select function.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #include <so_5/cpp_coro/mchain_select.hpp>
 

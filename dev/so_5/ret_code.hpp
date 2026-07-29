@@ -558,7 +558,7 @@ const int rc_unknown_exception_type = 503;
 /*!
  * \brief Promise type has no value to be obtained by an Awaiter.
  *
- * \since v.5.8.6
+ * \since v.5.8.7
  */
 const int rc_no_value_in_promise_object = 504;
 

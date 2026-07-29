@@ -5,7 +5,7 @@
 /// @file
 /// @brief Implementation of special "this thread" scheduler for C++20 coroutines.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #include <so_5/cpp_coro/this_thread_scheduler.hpp>
 

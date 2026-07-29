@@ -5,7 +5,7 @@
 /// @file
 /// @brief Staff related to coroutine-friendly select function.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined( SO_5_CPP_CORO_MCHAIN_SELECT_HPP )
 #define SO_5_CPP_CORO_MCHAIN_SELECT_HPP

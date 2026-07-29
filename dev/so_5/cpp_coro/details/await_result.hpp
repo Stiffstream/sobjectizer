@@ -5,7 +5,7 @@
 /// @file
 /// @brief Implementation of await_result template.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined( SO_5_CPP_CORO_DETAILS_AWAIT_RESULT_HPP )
 #define SO_5_CPP_CORO_DETAILS_AWAIT_RESULT_HPP

@@ -5,7 +5,7 @@
 /// @file
 /// @brief Declaration of special "this thread" scheduler for C++20 coroutines.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined( SO_5_CPP_CORO_THIS_THREAD_SCHEDULER_HPP )
 #define SO_5_CPP_CORO_THIS_THREAD_SCHEDULER_HPP

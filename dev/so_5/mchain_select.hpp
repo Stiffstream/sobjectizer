@@ -1199,7 +1199,7 @@ class actual_select_notificator_t : public select_notificator_t
 
 //FIXME: document this!
 /*!
- * \since v.5.8.6
+ * \since v.5.8.7
  */
 enum class handle_next_result_t
 	{

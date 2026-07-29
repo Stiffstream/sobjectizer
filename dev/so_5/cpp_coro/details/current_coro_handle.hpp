@@ -5,7 +5,7 @@
 /// @file
 /// @brief Helpers to obtain coroutine_handle for the current coroutine.
 ///
-/// @since v.5.8.6
+/// @since v.5.8.7
 
 #if !defined(SO_5_CPP_CORO_DETAILS_CURRENT_CORO_HANDLE_HPP)
 #define SO_5_CPP_CORO_DETAILS_CURRENT_CORO_HANDLE_HPP
