@@ -10,7 +10,8 @@
  * \brief Helpers creation of data source name prefixes.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_DATA_SOURCE_PREFIX_HELPERS_HPP )
+#define SO_5_DISP_REUSE_DATA_SOURCE_PREFIX_HELPERS_HPP
 
 #include <so_5/stats/prefix.hpp>
 
@@ -80,4 +81,6 @@ make_disp_working_thread_prefix(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

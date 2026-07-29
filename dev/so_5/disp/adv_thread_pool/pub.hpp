@@ -10,7 +10,8 @@
  * \brief Public interface of advanced thread pool dispatcher.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_ADV_THREAD_POOL_HPP )
+#define SO_5_DISP_ADV_THREAD_POOL_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -510,4 +511,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

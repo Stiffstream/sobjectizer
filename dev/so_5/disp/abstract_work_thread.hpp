@@ -8,7 +8,8 @@
  * \since v.5.7.3
  */
 
-#pragma once
+#if !defined( SO_5_DISP_ABSTRACT_WORK_THREAD_HPP )
+#define SO_5_DISP_ABSTRACT_WORK_THREAD_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/fwd.hpp>
@@ -355,4 +356,6 @@ abstract_work_thread_factory_shptr_t
 make_std_work_thread_factory();
 
 } /* namespace so_5::disp */
+
+#endif
 

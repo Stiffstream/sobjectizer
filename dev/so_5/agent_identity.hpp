@@ -7,7 +7,8 @@
  * \brief Types related to agents identity (name).
  */
 
-#pragma once
+#if !defined( SO_5_AGENT_IDENTITY_HPP )
+#define SO_5_AGENT_IDENTITY_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -185,4 +186,6 @@ class agent_identity_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

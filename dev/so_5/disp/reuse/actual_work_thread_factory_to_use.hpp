@@ -9,7 +9,8 @@
  * \since v.5.7.3
  */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_ACTUAL_WORK_THREAD_FACTORY_TO_USE_HPP )
+#define SO_5_DISP_REUSE_ACTUAL_WORK_THREAD_FACTORY_TO_USE_HPP
 
 #include <so_5/disp/reuse/work_thread_factory_params.hpp>
 
@@ -85,4 +86,6 @@ acquire_work_thread(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

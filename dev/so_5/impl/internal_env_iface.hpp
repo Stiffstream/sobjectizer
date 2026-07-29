@@ -10,7 +10,8 @@
  * \brief Helper class for accessing private functionality of environment-class.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_INTERNAL_ENV_IFACE_HPP )
+#define SO_5_IMPL_INTERNAL_ENV_IFACE_HPP
 
 #include <so_5/environment.hpp>
 #include <so_5/ret_code.hpp>
@@ -272,4 +273,6 @@ wrap_init_fn_call( Init_Fn init_fn )
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

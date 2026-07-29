@@ -7,7 +7,8 @@
 	\brief An interface for the exception logging definition.
 */
 
-#pragma once
+#if !defined( SO_5_EVENT_EXCEPTION_LOGGER_HPP )
+#define SO_5_EVENT_EXCEPTION_LOGGER_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -92,4 +93,6 @@ SO_5_FUNC event_exception_logger_unique_ptr_t
 create_std_event_exception_logger();
 
 } /* namespace so_5 */
+
+#endif
 

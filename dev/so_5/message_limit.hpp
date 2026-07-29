@@ -9,7 +9,8 @@
  * \since v.5.5.4
  */
 
-#pragma once
+#if !defined( SO_5_MESSAGE_LIMIT_HPP )
+#define SO_5_MESSAGE_LIMIT_HPP
 
 #include <so_5/message.hpp>
 #include <so_5/mbox.hpp>
@@ -919,4 +920,6 @@ struct message_limit_methods_mixin_t
 } /* namespace message_limit */
 
 } /* namespace so_5 */
+
+#endif
 

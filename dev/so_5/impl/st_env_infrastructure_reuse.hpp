@@ -10,7 +10,8 @@
  * \since v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_ST_ENV_INFRASTRUCTURE_HPP )
+#define SO_5_IMPL_ST_ENV_INFRASTRUCTURE_HPP
 
 #include <so_5/environment_infrastructure.hpp>
 
@@ -721,4 +722,6 @@ class stats_controller_t final
 } /* namespace env_infrastructures */
 
 } /* namespace so_5 */
+
+#endif
 

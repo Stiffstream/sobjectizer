@@ -10,7 +10,8 @@
  * v.5.5.19.2
  */
 
-#pragma once
+#if !defined( SO_5_CUSTOM_MBOX_HPP )
+#define SO_5_CUSTOM_MBOX_HPP
 
 #include <so_5/mbox.hpp>
 
@@ -118,4 +119,6 @@ class creator_template_t : public creator_iface_t
 } /* namespace custom_mbox_details */
 
 } /* namespace so_5 */
+
+#endif
 

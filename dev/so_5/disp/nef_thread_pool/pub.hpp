@@ -10,7 +10,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_NEF_THREAD_POOL_HPP )
+#define SO_5_DISP_NEF_THREAD_POOL_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -479,4 +480,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

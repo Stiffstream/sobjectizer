@@ -9,7 +9,8 @@
  * \since v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_ENVIRONMENT_INFRASTRUCTURE_HPP )
+#define SO_5_ENVIRONMENT_INFRASTRUCTURE_HPP
 
 #include <so_5/coop.hpp>
 
@@ -295,4 +296,6 @@ using environment_infrastructure_factory_t =
 						mbox_t) >;
 
 } /* namespace so_5 */
+
+#endif
 

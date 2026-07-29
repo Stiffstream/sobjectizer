@@ -9,7 +9,8 @@
  * \since v.5.5.13
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MCHAIN_DETAILS_HPP )
+#define SO_5_IMPL_MCHAIN_DETAILS_HPP
 
 #include <so_5/mchain.hpp>
 #include <so_5/mchain_select_ifaces.hpp>
@@ -464,12 +465,14 @@ class mchain_template
 		bool
 		empty() const override
 			{
+				std::lock_guard< std::mutex > lock{ m_lock };
 				return m_queue.is_empty();
 			}
 
 		std::size_t
 		size() const override
 			{
+				std::lock_guard< std::mutex > lock{ m_lock };
 				return m_queue.size();
 			}
 
@@ -633,7 +636,11 @@ class mchain_template
 		Queue m_queue;
 
 		//! Chain's lock.
-		std::mutex m_lock;
+		/*!
+		 * \note
+		 * It's mutable to be able to lock it in const methods.
+		 */
+		mutable std::mutex m_lock;
 
 		//! Condition variable for waiting on empty queue.
 		std::condition_variable m_underflow_cond;
@@ -925,4 +932,6 @@ class mchain_template
 } /* namespace mchain_props */
 
 } /* namespace so_5 */
+
+#endif
 

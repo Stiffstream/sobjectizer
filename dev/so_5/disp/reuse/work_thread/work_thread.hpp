@@ -7,7 +7,8 @@
 	\brief Working thread for dispatchers.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_REUSE_WORK_THREAD_WORK_THREAD_HPP )
+#define SO_5_DISP_REUSE_WORK_THREAD_WORK_THREAD_HPP
 
 #include <atomic>
 #include <condition_variable>
@@ -393,7 +394,7 @@ struct common_data_t
 	 *
 	 * \attention Receive the value only after start of thread body.
 	 */
-	so_5::current_thread_id_t m_thread_id;
+	std::atomic< so_5::current_thread_id_t > m_thread_id;
 
 	/*!
 	 * \brief A counter for calculating count of demands in
@@ -433,6 +434,8 @@ protected :
 	//! Main method for serving block of demands.
 	void
 	serve_demands_block(
+		//! ID of worker thread.
+		so_5::current_thread_id_t thread_id,
 		//! Bunch of demands to be processed.
 		demand_container_t & demands )
 	{
@@ -440,7 +443,7 @@ protected :
 		{
 			auto & demand = demands.front();
 
-			demand.call_handler( this->m_thread_id );
+			demand.call_handler( thread_id );
 
 			demands.pop_front();
 			--(this->m_demands_count);
@@ -509,6 +512,8 @@ protected :
 	//! Main method for serving block of demands.
 	void
 	serve_demands_block(
+		//! ID of worker thread.
+		so_5::current_thread_id_t thread_id,
 		//! Bunch of demands to be processed.
 		demand_container_t & demands )
 	{
@@ -524,7 +529,7 @@ protected :
 		{
 			auto & demand = demands.front();
 
-			demand.call_handler( m_thread_id );
+			demand.call_handler( thread_id );
 
 			const auto activity_finished_at = so_5::stats::clock_type_t::now();
 
@@ -625,7 +630,8 @@ public :
 	void
 	wait()
 	{
-		so_5::impl::ensure_join_from_different_thread( this->m_thread_id );
+		so_5::impl::ensure_join_from_different_thread(
+				this->m_thread_id.load() );
 		this->m_thread_holder.unchecked_get().join();
 		this->m_queue.clear();
 	}
@@ -669,7 +675,7 @@ public :
 	so_5::current_thread_id_t
 	thread_id() const
 	{
-		return this->m_thread_id;
+		return this->m_thread_id.load();
 	}
 
 private :
@@ -679,7 +685,8 @@ private :
 	{
 		// Store current thread ID to attribute to avoid thread ID
 		// request on every event execution.
-		this->m_thread_id = so_5::query_current_thread_id();
+		const auto thread_id = so_5::query_current_thread_id();
+		this->m_thread_id = thread_id;
 
 		// Local demands queue.
 		demand_container_t demands;
@@ -695,7 +702,7 @@ private :
 
 			// Serve demands if any.
 			if( extraction_result_t::demand_extracted == result )
-				this->serve_demands_block( demands );
+				this->serve_demands_block( thread_id, demands );
 		}
 	}
 };
@@ -733,4 +740,6 @@ using work_thread_with_activity_tracking_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

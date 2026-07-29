@@ -10,7 +10,8 @@
  * \brief Helpers for invoking code which must not throws.
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_INVOKE_NOEXCEPT_CODE_HPP )
+#define SO_5_DETAILS_INVOKE_NOEXCEPT_CODE_HPP
 
 #include <utility>
 
@@ -37,4 +38,6 @@ invoke_noexcept_code( L lambda ) noexcept
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

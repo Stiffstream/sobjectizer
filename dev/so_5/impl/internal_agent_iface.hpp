@@ -10,7 +10,8 @@
  * \brief Helper class for accessing private functionality of agent-class.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_INTERNAL_AGENT_IFACE_HPP )
+#define SO_5_IMPL_INTERNAL_AGENT_IFACE_HPP
 
 #include <so_5/agent.hpp>
 
@@ -123,4 +124,6 @@ class internal_agent_iface_t final
 } /* namespace impl */
 
 } /* so_5 */
+
+#endif
 

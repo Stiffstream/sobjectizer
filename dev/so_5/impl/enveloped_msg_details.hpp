@@ -8,7 +8,8 @@
  *
  * \since v.5.5.23
  */
-#pragma once
+#if !defined( SO_5_IMPL_ENVELOPED_MSG_DETAILS_HPP )
+#define SO_5_IMPL_ENVELOPED_MSG_DETAILS_HPP
 
 #include <so_5/enveloped_msg.hpp>
 #include <so_5/agent.hpp>
@@ -218,4 +219,6 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 } /* namespace enveloped_msg */
 
 } /* namespace so_5 */
+
+#endif
 

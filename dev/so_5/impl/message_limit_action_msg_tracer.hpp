@@ -10,7 +10,8 @@
  * \brief Declaration of action_msg_tracer for overlimit action tracing.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_MESSAGE_LIMIT_ACTION_MSG_TRACER_HPP )
+#define SO_5_IMPL_MESSAGE_LIMIT_ACTION_MSG_TRACER_HPP
 
 #include <so_5/message.hpp>
 
@@ -81,4 +82,6 @@ class action_msg_tracer_t
 } /* namespace message_limit */
 
 } /* namespace so_5 */
+
+#endif
 

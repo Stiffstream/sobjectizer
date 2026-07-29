@@ -9,7 +9,8 @@
  * \since v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_SYNC_HELPERS_HPP )
+#define SO_5_DETAILS_SYNC_HELPERS_HPP
 
 #include <mutex>
 
@@ -170,4 +171,6 @@ struct lock_holder_detector<null_mutex_t>
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

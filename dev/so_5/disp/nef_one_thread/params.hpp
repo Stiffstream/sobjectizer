@@ -9,7 +9,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_NEF_ONE_THREAD_PARAMS_HPP )
+#define SO_5_DISP_NEF_ONE_THREAD_PARAMS_HPP
 
 #include <so_5/declspec.hpp>
 
@@ -113,4 +114,6 @@ class disp_params_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

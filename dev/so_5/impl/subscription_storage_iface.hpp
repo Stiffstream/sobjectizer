@@ -10,7 +10,8 @@
  * \brief An interface of subscription storage.
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_SUBSCRIPTION_STORAGE_IFACE_HPP )
+#define SO_5_IMPL_SUBSCRIPTION_STORAGE_IFACE_HPP
 
 #include <so_5/types.hpp>
 
@@ -235,4 +236,6 @@ class subscription_storage_t
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

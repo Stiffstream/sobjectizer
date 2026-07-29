@@ -9,7 +9,8 @@
  * \since v.5.5.4
  */
 
-#pragma once
+#if !defined( SO_5_AGENT_CONTEXT_HPP )
+#define SO_5_AGENT_CONTEXT_HPP
 
 #include <so_5/fwd.hpp>
 
@@ -215,4 +216,6 @@ operator+(
  */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -8,7 +8,8 @@
 	\since v.5.8.0
 */
 
-#pragma once
+#if !defined( SO_5_MBOX_NAMESPACE_NAME_HPP )
+#define SO_5_MBOX_NAMESPACE_NAME_HPP
 
 #include <string_view>
 
@@ -62,4 +63,6 @@ class mbox_namespace_name_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

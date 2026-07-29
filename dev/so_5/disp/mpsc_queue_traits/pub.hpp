@@ -9,7 +9,8 @@
  * \since v.5.5.10
  */
 
-#pragma once
+#if !defined( SO_5_DISP_MPSC_QUEUE_TRAITS_HPP )
+#define SO_5_DISP_MPSC_QUEUE_TRAITS_HPP
 
 #include <so_5/declspec.hpp>
 #include <so_5/compiler_features.hpp>
@@ -314,4 +315,6 @@ class queue_params_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

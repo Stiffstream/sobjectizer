@@ -10,7 +10,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_COOP_REPOSITORY_BASIS_HPP )
+#define SO_5_IMPL_COOP_REPOSITORY_BASIS_HPP
 
 #include <so_5/impl/coop_private_iface.hpp>
 
@@ -130,32 +131,6 @@ public:
 	deregister_all_coop() noexcept;
 
 	/*!
-	 * \brief Result of attempt to switch to shutdown state.
-	 *
-	 * \since
-	 * v.5.6.0
-	 */
-	enum class [[nodiscard]] try_switch_to_shutdown_result_t
-		{
-			switched,
-			already_in_shutdown_state
-		};
-
-	/*!
-	 * \brief Try to switch repository to shutdown state.
-	 *
-	 * \note
-	 * This method doesn't call deregister_all_coop().
-	 * It only changes state of repository to 'shutdown'.
-	 * This prevents from registration of new cooperations.
-	 *
-	 * \since
-	 * v.5.6.0
-	 */
-	try_switch_to_shutdown_result_t
-	try_switch_to_shutdown() noexcept;
-
-	/*!
 	 * \since
 	 * v.5.5.0
 	 *
@@ -237,3 +212,6 @@ protected:
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
 #endif
+
+#endif
+

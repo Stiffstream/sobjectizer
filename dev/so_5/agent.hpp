@@ -7,7 +7,8 @@
 	\brief A base class for agents.
 */
 
-#pragma once
+#if !defined( SO_5_AGENT_HPP )
+#define SO_5_AGENT_HPP
 
 #include <so_5/compiler_features.hpp>
 #include <so_5/declspec.hpp>
@@ -4125,5 +4126,7 @@ operator>>=( agent_t * agent, const state_t & new_state )
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 

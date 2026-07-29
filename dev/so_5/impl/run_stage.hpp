@@ -11,7 +11,8 @@
  * v.5.5.19
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_RUN_STAGE_HPP )
+#define SO_5_IMPL_RUN_STAGE_HPP
 
 #include <so_5/exception.hpp>
 
@@ -84,4 +85,6 @@ run_stage(
 } /* namespace impl */
 
 } /* namespace so_5 */
+
+#endif
 

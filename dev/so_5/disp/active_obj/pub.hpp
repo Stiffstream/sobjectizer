@@ -7,7 +7,8 @@
 	\brief Dispatcher creation and agent binding functions.
 */
 
-#pragma once
+#if !defined( SO_5_DISP_ACTIVE_OBJ_HPP )
+#define SO_5_DISP_ACTIVE_OBJ_HPP
 
 #include <string>
 
@@ -259,4 +260,6 @@ make_dispatcher(
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

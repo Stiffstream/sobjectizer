@@ -10,7 +10,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_THREAD_POOL_IMPL_BASIC_EVENT_QUEUE_HPP )
+#define SO_5_DISP_THREAD_POOL_IMPL_BASIC_EVENT_QUEUE_HPP
 
 #include <so_5/disp/reuse/queue_of_queues.hpp>
 
@@ -320,4 +321,6 @@ class basic_event_queue_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief A data source class for run-time monitoring of timer_thread.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_IMPL_DS_TIMER_THREAD_STATS_HPP )
+#define SO_5_STATS_IMPL_DS_TIMER_THREAD_STATS_HPP
 
 #include <so_5/stats/repository.hpp>
 
@@ -53,4 +54,6 @@ class ds_timer_thread_stats_t : public source_t
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

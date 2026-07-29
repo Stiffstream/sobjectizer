@@ -9,7 +9,8 @@
  * \since v.5.5.23
  */
 
-#pragma once
+#if !defined( SO_5_ENVELOPED_MSG_HPP )
+#define SO_5_ENVELOPED_MSG_HPP
 
 #include <so_5/message.hpp>
 
@@ -251,4 +252,6 @@ message_to_be_inspected(
 } /* namespace enveloped_msg */
 
 } /* namespace so_5 */
+
+#endif
 

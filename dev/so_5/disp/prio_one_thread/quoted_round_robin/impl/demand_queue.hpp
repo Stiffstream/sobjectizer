@@ -12,7 +12,8 @@
  * quoted basic.
  */
 
-#pragma once
+#if !defined( SO_5_DISP_PRIO_ONE_THREAD_QUITED_ROUND_ROBIN_IMPL_DEMAND_QUEUE_HPP )
+#define SO_5_DISP_PRIO_ONE_THREAD_QUITED_ROUND_ROBIN_IMPL_DEMAND_QUEUE_HPP
 
 #include <memory>
 #include <atomic>
@@ -388,5 +389,7 @@ class demand_queue_t
 
 #if defined(__clang__) && (__clang_major__ >= 16)
 #pragma clang diagnostic pop
+#endif
+
 #endif
 

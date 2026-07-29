@@ -10,7 +10,8 @@
  * v.5.5.16
  */
 
-#pragma once
+#if !defined( SO_5_DETAILS_AT_SCOPED_EXIT_HPP )
+#define SO_5_DETAILS_AT_SCOPED_EXIT_HPP
 
 #include <utility>
 
@@ -65,4 +66,6 @@ at_scope_exit( L && l )
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

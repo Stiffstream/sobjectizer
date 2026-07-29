@@ -10,7 +10,8 @@
  * v.5.5.19.5
  */
 
-#pragma once
+#if !defined( SO_5_MESSAGE_HANDLER_FORMAT_DETECTOR_HPP )
+#define SO_5_MESSAGE_HANDLER_FORMAT_DETECTOR_HPP
 
 #include <so_5/message.hpp>
 #include <so_5/mhood.hpp>
@@ -222,4 +223,6 @@ struct is_agent_method_pointer<method_arity::unary, Result (Agent::*)(Handler_Ar
 } /* namespace details */
 
 } /* namespace so_5 */
+
+#endif
 

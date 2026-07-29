@@ -9,7 +9,8 @@
  * \since v.5.5.18
  */
 
-#pragma once
+#if !defined( SO_5_STATS_IMPL_ACTIVITY_TRACKING_HPP )
+#define SO_5_STATS_IMPL_ACTIVITY_TRACKING_HPP
 
 #include <so_5/stats/work_thread_activity.hpp>
 
@@ -293,4 +294,6 @@ create_appropriate_disp(
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

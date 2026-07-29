@@ -10,7 +10,8 @@
  * \brief Class wrapped_env and its details.
  */
 
-#pragma once
+#if !defined( SO_5_WRAPPED_ENV_HPP )
+#define SO_5_WRAPPED_ENV_HPP
 
 #include <so_5/api.hpp>
 
@@ -497,4 +498,6 @@ class SO_5_TYPE wrapped_env_t
 #endif
 
 } /* namespace so_5 */
+
+#endif
 

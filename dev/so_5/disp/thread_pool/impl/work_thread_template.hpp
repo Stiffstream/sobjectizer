@@ -10,7 +10,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_THREAD_POOL_IMPL_WORK_THREAD_TEMPLATE_HPP )
+#define SO_5_DISP_THREAD_POOL_IMPL_WORK_THREAD_TEMPLATE_HPP
 
 #include <so_5/stats/impl/activity_tracking.hpp>
 
@@ -403,4 +404,6 @@ using work_thread_with_activity_tracking_t =
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_DISP_NEF_ONE_THREAD_PUB_HPP )
+#define SO_5_DISP_NEF_ONE_THREAD_PUB_HPP
 
 #include <so_5/disp/nef_one_thread/params.hpp>
 
@@ -172,4 +173,6 @@ make_dispatcher( environment_t & env )
 } /* namespace disp */
 
 } /* namespace so_5 */
+
+#endif
 

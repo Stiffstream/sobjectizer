@@ -8,7 +8,8 @@
  * \since v.5.8.0
  */
 
-#pragma once
+#if !defined( SO_5_IMPL_FINAL_DEREG_CHAIN_HELPERS_HPP )
+#define SO_5_IMPL_FINAL_DEREG_CHAIN_HELPERS_HPP
 
 #include <so_5/impl/coop_private_iface.hpp>
 #include <so_5/impl/internal_env_iface.hpp>
@@ -188,4 +189,6 @@ process_final_dereg_chain( coop_shptr_t head ) noexcept
 	}
 
 } /* namespace so_5::impl */
+
+#endif
 

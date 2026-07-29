@@ -7,7 +7,8 @@
  * \brief All project's stuff.
  */
 
-#pragma once
+#if !defined( SO_5_TIMERTT_ALL_HPP )
+#define SO_5_TIMERTT_ALL_HPP
 
 #include <array>
 #include <atomic>
@@ -4213,4 +4214,6 @@ public :
 };
 
 } /* namespace timertt */
+
+#endif
 

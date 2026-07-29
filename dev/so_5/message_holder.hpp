@@ -10,7 +10,8 @@
 	v.5.6.0
 */
 
-#pragma once
+#if !defined( SO_5_MESSAGE_HOLDER_HPP )
+#define SO_5_MESSAGE_HOLDER_HPP
 
 #include <so_5/message.hpp>
 
@@ -692,4 +693,6 @@ class message_holder_t
 	};
 
 } /* namespace so_5 */
+
+#endif
 

@@ -10,7 +10,8 @@
  * \brief A standard implementation of controller for run-time monitoring.
  */
 
-#pragma once
+#if !defined( SO_5_STATS_IMPL_STD_CONTROLLER_HPP )
+#define SO_5_STATS_IMPL_STD_CONTROLLER_HPP
 
 #include <so_5/stats/controller.hpp>
 #include <so_5/stats/repository.hpp>
@@ -130,4 +131,6 @@ class std_controller_t final
 } /* namespace stats */
 
 } /* namespace so_5 */
+
+#endif
 

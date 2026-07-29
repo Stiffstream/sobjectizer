@@ -16,7 +16,7 @@ option(SOBJECTIZER_BUILD_SHARED "Build shared SObjectizer library [default: ON]"
 option(SOBJECTIZER_INSTALL "Generate install target for SObjectizer"
 	${SOBJECTIZER_MASTER_PROJECT})
 
-option(SOBJECTIZER_USE_ADDRESS_SANITIZER "Use address sanitizer [default: OFF]" OFF)
+option(SOBJECTIZER_SANITIZE "Sanitizer to use (thread|address) [default: OFF]" OFF)
 
 if((NOT SOBJECTIZER_BUILD_STATIC) AND (NOT SOBJECTIZER_BUILD_SHARED))
 	message(FATAL_ERROR "at least one of SOBJECTIZER_BUILD_STATIC/SOBJECTIZER_BUILD_SHARED must be defined")
@@ -46,6 +46,11 @@ if (ANDROID)
 	if (NOT ANDROID_NDK_ABI_NAME MATCHES "^(armeabi-v7a|armeabi-v7a-hard|arm64-v8a|x86|x86_64|mips64)$")
 		message(FATAL_ERROR "Unsupported ABI: '${ANDROID_NDK_ABI_NAME}'")
 	endif()
+endif()
+
+set(SOBJECTIZER_SUPPORTED_SANITIZERS "OFF" "thread" "address")
+if(NOT (SOBJECTIZER_SANITIZE IN_LIST SOBJECTIZER_SUPPORTED_SANITIZERS))
+	message(FATAL_ERROR "Unsupported sanitizer: ${SOBJECTIZER_SANITIZE}")
 endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -80,6 +85,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		-Wno-exit-time-destructors
 		-Wno-global-constructors
 	)
+	if(SOBJECTIZER_SANITIZE STREQUAL "thread")
+		add_compile_options(-fsanitize=thread)
+		add_link_options(-fsanitize=thread)
+	elseif(SOBJECTIZER_SANITIZE STREQUAL "address")
+		add_compile_options(-fsanitize=address)
+		add_link_options(-fsanitize=address)
+	endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	add_compile_options(
 		-Wextra
@@ -88,13 +100,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		-Wall
 		-Wno-unused-function
 	)
-	if(SOBJECTIZER_USE_ADDRESS_SANITIZER)
-		add_compile_options(
-			-fsanitize=address
-		)
-		add_link_options(
-			-fsanitize=address
-		)
+	if(SOBJECTIZER_SANITIZE STREQUAL "thread")
+		add_compile_options(-fsanitize=thread)
+		add_link_options(-fsanitize=thread)
+	elseif(SOBJECTIZER_SANITIZE STREQUAL "address")
+		add_compile_options(-fsanitize=address)
+		add_link_options(-fsanitize=address)
+	endif()
+else()
+	if(NOT(SOBJECTIZER_SANITIZE STREQUAL "OFF"))
+		message(FATAL_ERROR "Sanitizers supported for Clang and GCC only")
 	endif()
 endif()
 

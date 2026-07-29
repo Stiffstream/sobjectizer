@@ -9,7 +9,8 @@
  * \since v.5.6.0
  */
 
-#pragma once
+#if !defined( SO_5_COOP_HPP )
+#define SO_5_COOP_HPP
 
 #include <so_5/compiler_features.hpp>
 #include <so_5/declspec.hpp>
@@ -1390,5 +1391,7 @@ class coop_unique_holder_t
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
+#endif
+
 #endif
 
