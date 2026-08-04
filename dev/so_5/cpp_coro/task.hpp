@@ -93,8 +93,7 @@ struct promise_base_t
 					break;
 
 					case 1: std::rethrow_exception(
-							std::move(std::get< std::exception_ptr >(
-									m_result))
+							std::move(std::get< std::exception_ptr >(m_result))
 						);
 					break;
 					}

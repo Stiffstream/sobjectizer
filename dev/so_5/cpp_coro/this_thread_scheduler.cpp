@@ -9,6 +9,9 @@
 
 #include <so_5/cpp_coro/this_thread_scheduler.hpp>
 
+#include <so_5/ret_code.hpp>
+#include <so_5/exception.hpp>
+
 #include <utility>
 
 namespace so_5::cpp_coro
@@ -17,9 +20,31 @@ namespace so_5::cpp_coro
 //
 // this_thread_scheduler_t
 //
-//FIXME: document this!
-this_thread_scheduler_t::this_thread_scheduler_t() = default;
+this_thread_scheduler_t::this_thread_scheduler_t(
+	so_5::environment_t & env )
+	: m_env{ std::addressof(env) }
+	{}
+
+this_thread_scheduler_t::this_thread_scheduler_t(
+	no_environment_case_t )
+	: m_env{ nullptr }
+	{}
+
 this_thread_scheduler_t::~this_thread_scheduler_t() = default;
+
+so_5::environment_t &
+this_thread_scheduler_t::environment() const
+	{
+		if( !m_env )
+			{
+std::cout << "*** no environment_t in this_thread_scheduler_t" << std::endl;
+				SO_5_THROW_EXCEPTION( rc_no_soenv_for_cpp_coro_scheduler,
+						"so_5::cpp_coro::this_thread_scheduler_t is not "
+						"bound to SOEnv instance" );
+			}
+
+		return *m_env;
+	}
 
 void
 this_thread_scheduler_t::schedule( resumable_item_t & what_to_resume )

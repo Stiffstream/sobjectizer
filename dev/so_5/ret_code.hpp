@@ -526,6 +526,21 @@ const int rc_agent_name_too_long = 197;
  */
 const int rc_stored_msg_inspection_result_not_found = 198;
 
+/*!
+ * \brief Promise type has no value to be obtained by an Awaiter.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_value_in_promise_object = 199;
+
+/*!
+ * \brief A this_thread_scheduler_t for C++20 coroutines is not
+ * bound with a SObjectizer Environment.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_soenv_for_cpp_coro_scheduler = 200;
+
 //! \name Common error codes.
 //! \{
 
@@ -555,13 +570,6 @@ const int rc_not_implemented = 502;
  * \since v.5.5.24.3
  */
 const int rc_unknown_exception_type = 503;
-
-/*!
- * \brief Promise type has no value to be obtained by an Awaiter.
- *
- * \since v.5.8.7
- */
-const int rc_no_value_in_promise_object = 504;
 
 //! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;

@@ -24,7 +24,9 @@ get_int_value()
 void
 check_int_case()
 	{
-		so_5::cpp_coro::this_thread_scheduler_t scheduler;
+		so_5::cpp_coro::this_thread_scheduler_t scheduler{
+				so_5::cpp_coro::this_thread_scheduler_t::no_environment
+			};
 		auto r = scheduler.sync_wait( get_int_value() );
 		ensure_or_die( 42 == r, "42 is expected" );
 	}
@@ -42,7 +44,9 @@ void
 check_void_case()
 	{
 		int marker = 11;
-		so_5::cpp_coro::this_thread_scheduler_t scheduler;
+		so_5::cpp_coro::this_thread_scheduler_t scheduler{
+				so_5::cpp_coro::this_thread_scheduler_t::no_environment
+			};
 		scheduler.sync_wait( get_void_value( marker ) );
 		ensure_or_die( 42 == marker, "42 is expected" );
 	}

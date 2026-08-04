@@ -12,6 +12,8 @@
 
 #include <so_5/declspec.hpp>
 
+#include <so_5/fwd.hpp>
+
 #include <coroutine>
 
 namespace so_5::cpp_coro
@@ -64,6 +66,13 @@ class SO_5_TYPE scheduler_t
 	public:
 		scheduler_t();
 		virtual ~scheduler_t();
+
+//FIXME: document why this method is not marked as noexcept.
+		/// Access to SObjectizer Environment for that this scheduler has
+		/// been created.
+		[[nodiscard]] virtual
+		so_5::environment_t &
+		environment() const = 0;
 
 		//FIXME: document this!
 		/// @attention

@@ -35,6 +35,8 @@ struct no_value_t {};
 //
 // top_level_task_t
 //
+//FIXME: can so_5::cpp_coro::task_t can be used instead of top_level_task_t
+//(or as the base type for top_level_task_t)?
 //FIXME: document this!
 template< typename T >
 struct top_level_task_t
@@ -242,12 +244,15 @@ struct top_level_task_t< void >
 // this_thread_scheduler_t
 //
 //FIXME: should this class be `final`?
-//FIXME: should here be some way to finish the schedule before the
+//FIXME: should here be some way to finish the scheduler before the
 //completion of the top-level coroutine?
 //FIXME: document this!
 class SO_5_TYPE this_thread_scheduler_t
 	: public scheduler_t
 	{
+		/// SObjectizer Environment for that this scheduler is created.
+		so_5::environment_t * m_env;
+
 		/// Object lock for thread safety.
 		std::mutex m_lock;
 
@@ -265,8 +270,27 @@ class SO_5_TYPE this_thread_scheduler_t
 		resumable_item_t * m_tail{ nullptr };
 
 	public:
-		this_thread_scheduler_t();
+		//FIXME: document this!
+		enum class no_environment_case_t { dummy_value };
+		//FIXME: document this!
+		static constexpr no_environment_case_t no_environment =
+				no_environment_case_t::dummy_value;
+
+		//FIXME: document this!
+		explicit this_thread_scheduler_t(
+			/// SObjectizer Environment for that this scheduler is created.
+			so_5::environment_t & env );
+
+		//FIXME: document this!
+		explicit this_thread_scheduler_t(
+			/// Special marker that tells that scheduler is run without
+			/// actual SObjectizer Environment.
+			no_environment_case_t );
+
 		~this_thread_scheduler_t() override;
+
+		so_5::environment_t &
+		environment() const override;
 
 		void
 		schedule( resumable_item_t & what_to_resume ) override;

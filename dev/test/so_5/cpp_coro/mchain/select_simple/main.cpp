@@ -37,7 +37,9 @@ do_test()
 
 		so_5::send< hello >( ch2 );
 
-		so_5::cpp_coro::this_thread_scheduler_t scheduler;
+		so_5::cpp_coro::this_thread_scheduler_t scheduler{
+				env.environment()
+			};
 
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
