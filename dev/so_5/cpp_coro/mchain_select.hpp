@@ -317,6 +317,10 @@ class SO_5_TYPE abstract_empty_timeout_handler_t
 		bool
 		is_elapsed() = 0;
 
+		[[nodiscard]] virtual
+		std::size_t
+		how_many_times_activated() = 0;
+
 		static
 		void
 		noop_deleter( abstract_empty_timeout_handler_t * ) noexcept;
@@ -340,6 +344,9 @@ struct SO_5_TYPE empty_timeout_handling_tools_t
 		struct no_timeout_t {};
 
 		empty_timeout_handler_unique_ptr_t m_handler;
+
+		/// @note
+		/// Maybe nullptr if no actual timeout handler is used.
 		so_5::mchain_props::select_case_unique_ptr_t m_select_case;
 
 		// For case when empty timeout is not used.
@@ -367,6 +374,9 @@ class SO_5_TYPE no_empty_timeout_handler_t final
 
 		bool
 		is_elapsed() override;
+
+		std::size_t
+		how_many_times_activated() override;
 	};
 
 //FIXME: document this!
@@ -393,6 +403,9 @@ class SO_5_TYPE actual_no_empty_timeout_handler_t final
 		/// ID of scheduled delayed message.
 		so_5::timer_id_t m_timer_id;
 
+		/// How many times `react_to` was called.
+		std::size_t m_how_many_time_react_to_called;
+
 		/// Actual value to be checked when `msg_elapsed` arrives.
 		unsigned long m_actual_id;
 
@@ -411,6 +424,9 @@ class SO_5_TYPE actual_no_empty_timeout_handler_t final
 
 		bool
 		is_elapsed() override;
+
+		std::size_t
+		how_many_times_activated() override;
 
 		/// @note
 		/// This method has to be called when msg_elapsed arrives
@@ -478,6 +494,28 @@ std::cout << "make_empty_timeout_handling_tools 2" << std::endl;
 	}
 
 //FIXME: document this!
+//FIXME: should it be implemented in .cpp file?
+[[nodiscard]] inline
+mchain_select_result_t
+adjust_performer_result(
+	abstract_empty_timeout_handler_t & empty_timeout_handler,
+	mchain_select_result_t result )
+	{
+		const auto empty_timeout_activations =
+				empty_timeout_handler.how_many_times_activated();
+
+std::cout << "empty_timeout_activations=" << empty_timeout_activations
+<< std::endl;
+
+		return {
+				result.extracted() - empty_timeout_activations,
+				result.handled() - empty_timeout_activations,
+				result.sent(),
+				result.closed()
+			};
+	}
+
+//FIXME: document this!
 /// @attention
 /// @a empty_timeout_handler should not be nullptr.
 template<
@@ -538,6 +576,7 @@ std::cout << "here (1)!" << std::endl;
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
 					{
+std::cout << "___ msg extracted" << std::endl;
 						// Becase some message extracted we must restart empty
 						// timeout timer.
 						empty_timeout_tools.m_handler->schedule();
@@ -561,7 +600,9 @@ std::cout << "here (1)!" << std::endl;
 		while( performer.can_continue() &&
 				!empty_timeout_tools.m_handler->is_elapsed() );
 
-		co_return performer.make_result();
+		co_return adjust_performer_result(
+				*(empty_timeout_tools.m_handler),
+				performer.make_result() );
 	}
 
 template<

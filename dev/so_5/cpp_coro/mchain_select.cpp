@@ -68,6 +68,12 @@ std::cout << "*** no_empty_timeout_handler_t::is_elapsed" << std::endl;
 		return false;
 	}
 
+std::size_t
+no_empty_timeout_handler_t::how_many_times_activated()
+	{
+		return false;
+	}
+
 //
 // actual_no_empty_timeout_handler_t::msg_elapsed
 //
@@ -84,6 +90,7 @@ actual_no_empty_timeout_handler_t::actual_no_empty_timeout_handler_t(
 	so_5::mchain_props::duration_t timeout )
 	: m_target{ std::move(target) }
 	, m_timeout{ timeout }
+	, m_how_many_time_react_to_called{ 0 }
 	, m_actual_id{ 0 }
 	, m_is_elapsed{ false }
 	{}
@@ -109,9 +116,17 @@ actual_no_empty_timeout_handler_t::is_elapsed()
 		return m_is_elapsed;
 	}
 
+std::size_t
+actual_no_empty_timeout_handler_t::how_many_times_activated()
+	{
+		return m_how_many_time_react_to_called;
+	}
+
 void
 actual_no_empty_timeout_handler_t::react_to( const msg_elapsed & cmd )
 	{
+		++m_how_many_time_react_to_called;
+
 		if( m_actual_id == cmd.m_id )
 			{
 				m_is_elapsed = true;
