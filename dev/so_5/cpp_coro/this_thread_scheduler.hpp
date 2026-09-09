@@ -250,6 +250,52 @@ struct top_level_task_t< void >
 class SO_5_TYPE this_thread_scheduler_t
 	: public scheduler_t
 	{
+		/// Helper class for managing list of resumable items.
+		class items_list_t
+			{
+				/// The head of the list.
+				resumable_item_t * m_head{ nullptr };
+
+				/// The tail of the list.
+				resumable_item_t * m_tail{ nullptr };
+
+			public:
+				items_list_t();
+				~items_list_t();
+
+				/// Is the list empty?
+				[[nodiscard]]
+				bool
+				empty() const noexcept;
+
+				/// Extract the head of the list.
+				///
+				/// @attention
+				/// This method has to be called for non-empty lists only.
+				[[nodiscard]]
+				resumable_item_t *
+				pop_front() noexcept;
+
+				/// Add an item to the end of the list.
+				void
+				push_back( resumable_item_t & item ) noexcept;
+
+				/// Extract the specified item for the list.
+				///
+				/// @attention
+				/// It's assumed that the @a item is in the list.
+				void
+				extract( resumable_item_t & item ) noexcept;
+
+				/// Get the head of the list.
+				///
+				/// @return Pointer the to first item (without extracting it) or
+				/// nullptr if the list is empty.
+				[[nodiscard]]
+				resumable_item_t *
+				head() const noexcept;
+			};
+
 		/// SObjectizer Environment for that this scheduler is created.
 		so_5::environment_t * m_env;
 
@@ -259,15 +305,11 @@ class SO_5_TYPE this_thread_scheduler_t
 		/// Condition variable for waiting on empty queue.
 		std::condition_variable m_wakeup_cv;
 
-		/// The head of the pending coroutines list.
-		///
-		/// Value nullptr means that this list is empty.
-		resumable_item_t * m_head{ nullptr };
+		/// List of coroutines that wait some external events/notifications.
+		items_list_t m_waiting_items;
 
-		/// The tail of the pending coroutines list.
-		///
-		/// Value nullptr means that this list is empty.
-		resumable_item_t * m_tail{ nullptr };
+		/// List of coroutines that are ready to be resumed.
+		items_list_t m_ready_items;
 
 	public:
 		//FIXME: document this!
@@ -293,7 +335,14 @@ class SO_5_TYPE this_thread_scheduler_t
 		environment() const override;
 
 		void
-		schedule( resumable_item_t & what_to_resume ) override;
+		try_schedule( resumable_item_t & what_to_resume ) override;
+
+//FIXME: it's assumed that this method will be called only by coroutine
+//that is scheduled by this dispatcher. This assumption has to be documented.
+		try_suspend_result_t
+		try_suspend(
+			resumable_item_t & what_to_handle,
+			monotonic_clock_t::duration sleep_time ) override;
 
 		//FIXME: document this!
 		template< typename Task >
@@ -314,12 +363,17 @@ class SO_5_TYPE this_thread_scheduler_t
 					}( std::addressof(top_level_task) );
 
 				// The dispatcher should have our coroutine in the queue.
-				resumable_item_t our_coro{ wrapped_top_level.m_coro };
-				this->schedule( our_coro );
+				resumable_item_t our_coro{ wrapped_top_level.m_coro, *this };
+				our_coro.scheduler_data().m_status =
+						resumable_item_t::status_t::ready;
+				m_ready_items.push_back( our_coro );
 
 				// And now we have to wait for the completion of the
 				// top-level task.
 				wait_and_handle_coroutines( wrapped_top_level.m_coro );
+
+			//FIXME: should here be a check that m_waiting_items and
+			//m_ready_items are empty?
 
 				return wrapped_top_level.await_resume();
 			}
@@ -330,6 +384,26 @@ class SO_5_TYPE this_thread_scheduler_t
 		wait_and_handle_coroutines(
 			//FIXME: document this!
 			std::coroutine_handle<> top_level );
+
+//FIXME: should this method be noexcept?
+		//FIXME: document this!
+		/// All coroutines with appropriate resume_at value found will be moved
+		/// to ready list.
+		///
+		/// @note
+		/// Has to be called only when the mutex is locked.
+		[[nodiscard]]
+		monotonic_clock_t::duration
+		check_resumption_time_for_waiting_coroutines();
+
+		//FIXME: document this!
+		/// @return number of resumed coroutines. It may be 0 if the ready
+		/// list is empty.
+		[[nodiscard]]
+		std::size_t
+		resume_ready_coroutines(
+				/// Object for unlocking the mutex temporary.
+				std::unique_lock< std::mutex > & locker );
 	};
 
 } /* namespace so_5::cpp_coro */

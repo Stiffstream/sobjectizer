@@ -541,6 +541,14 @@ const int rc_no_value_in_promise_object = 199;
  */
 const int rc_no_soenv_for_cpp_coro_scheduler = 200;
 
+/*!
+ * \brief A coroutine to be scheduled or suspended has an unexpected status and
+ * can't be handled.
+ *
+ * \since v.5.8.7
+ */
+const int rc_unexpected_coro_status = 201;
+
 //! \name Common error codes.
 //! \{
 

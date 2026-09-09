@@ -234,7 +234,7 @@ class async_select_notificator_t final
 			std::coroutine_handle<> coro_to_resume,
 			Fwd_it b, Fwd_it e )
 			: m_scheduler{ scheduler }
-			, m_to_be_resumed{ coro_to_resume }
+			, m_to_be_resumed{ coro_to_resume, scheduler }
 			{
 				// All select_cases from range [b,e) must be included in
 				// ready_cases list.
@@ -259,7 +259,7 @@ class async_select_notificator_t final
 				}
 
 				if( !old_tail )
-					m_scheduler.schedule( m_to_be_resumed );
+					m_scheduler.try_schedule( m_to_be_resumed );
 			}
 
 		/*!

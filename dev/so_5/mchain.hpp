@@ -45,8 +45,9 @@ namespace details {
  *
  * \since v.5.5.13
  */
-inline duration_t
-no_wait_special_timevalue() { return duration_t::zero(); }
+[[nodiscard]] inline constexpr
+duration_t
+no_wait_special_timevalue() noexcept { return duration_t::zero(); }
 
 //
 // infinite_wait_special_timevalue
@@ -56,7 +57,8 @@ no_wait_special_timevalue() { return duration_t::zero(); }
  *
  * \since v.5.5.13
  */
-inline duration_t
+[[nodiscard]] inline constexpr
+duration_t
 infinite_wait_special_timevalue() { return duration_t::max(); }
 
 //
