@@ -34,6 +34,13 @@ infinite_speep_time() noexcept { return monotonic_clock_t::duration::max(); }
 
 class scheduler_t;
 
+//FIXME: document this!
+enum class try_suspend_result_t
+	{
+		should_be_suspended,
+		should_be_resumed
+	};
+
 //
 // resumable_item_t
 //
@@ -121,6 +128,11 @@ scheduler_data() { return m_scheduler_data; }
 		/// into scheduler's waiting list.
 		void
 		try_schedule();
+
+		//FIXME: document this!
+		try_suspend_result_t
+		try_suspend(
+			monotonic_clock_t::duration sleep_time );
 	};
 
 //
@@ -130,12 +142,6 @@ scheduler_data() { return m_scheduler_data; }
 class SO_5_TYPE scheduler_t
 	{
 	public:
-		//FIXME: document this!
-		enum class try_suspend_result_t
-			{
-				should_be_suspended,
-				should_be_resumed
-			};
 
 	protected:
 		/// Helper for accessing coroutine's internal data.
@@ -183,6 +189,55 @@ class SO_5_TYPE scheduler_t
 			/// It may has infinite_speep_time() value.
 			monotonic_clock_t::duration sleep_time ) = 0;
 	};
+
+//FIXME: maybe it's not a good name.
+//FIXME: document this!
+struct suspension_awaitable_t
+	{
+		/// Coroutine to be suspended.
+		resumable_item_t & m_what_to_suspend;
+
+		/// How much should it sleep.
+		///
+		/// It may have infinite_speep_time() value.
+		monotonic_clock_t::duration m_sleep_time;
+
+		[[nodiscard]]
+		bool
+		await_ready()
+			{
+				//FIXME: is it good to return `false` always? Maybe it's better
+				//to check the status of the coroutine and return `false` only
+				//if the coroutine in the neutral status?
+				return false;
+			}
+
+		[[nodiscard]]
+		bool
+		await_suspend( std::coroutine_handle<> )
+			{
+				return try_suspend_result_t::should_be_suspended
+						== m_what_to_suspend.try_suspend( m_sleep_time );
+			}
+
+		void
+		await_resume() noexcept {}
+	};
+
+//FIXME: document this!
+[[nodiscard]] inline
+suspension_awaitable_t
+make_awaitable_for(
+	/// Coroutine to be suspended.
+	resumable_item_t & what_to_suspend,
+	/// How much time should it sleep.
+	monotonic_clock_t::duration sleep_time )
+	{
+		return {
+				.m_what_to_suspend = what_to_suspend,
+				.m_sleep_time = sleep_time
+			};
+	}
 
 } /* namespace so_5::cpp_coro */
 

@@ -36,9 +36,6 @@ class SO_5_TYPE resumable_select_t
 	{
 	public:
 		//FIXME: document this!
-		struct waiting_for_next_event_t {};
-
-		//FIXME: document this!
 		class promise_type
 			{
 				// NOTE: has to be set in unhandled_exception.
@@ -69,12 +66,6 @@ class SO_5_TYPE resumable_select_t
 				return_value( mchain_select_result_t result ) noexcept
 					{
 						m_select_result = result;
-					}
-
-				std::suspend_always
-				yield_value( waiting_for_next_event_t ) noexcept
-					{
-						return {};
 					}
 
 				void
@@ -295,6 +286,14 @@ class async_select_notificator_t final
 
 				return result;
 			}
+
+		//FIXME: document this!
+		[[nodiscard]]
+		resumable_item_t &
+		resumable_item() noexcept
+			{
+				return m_to_be_resumed;
+			}
 	};
 
 //FIXME: document this!
@@ -353,7 +352,9 @@ std::cout << "here (1)!" << std::endl;
 					{
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
-							co_yield resumable_select_t::waiting_for_next_event_t{};
+							co_await make_awaitable_for(
+									notificator.resumable_item(),
+									infinite_speep_time() );
 
 						// There could be one of two situations:
 						// 1) several threads do select on the same mchain.

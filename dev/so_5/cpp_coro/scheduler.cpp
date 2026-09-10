@@ -25,6 +25,13 @@ resumable_item_t::try_schedule()
 		m_scheduler.try_schedule( *this );
 	}
 
+try_suspend_result_t
+resumable_item_t::try_suspend(
+	monotonic_clock_t::duration sleep_time )
+	{
+		return m_scheduler.try_suspend( *this, sleep_time );
+	}
+
 //
 // scheduler_t
 //

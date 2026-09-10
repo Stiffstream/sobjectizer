@@ -144,7 +144,7 @@ this_thread_scheduler_t::try_schedule( resumable_item_t & what_to_resume )
 			m_wakeup_cv.notify_one();
 	}
 
-this_thread_scheduler_t::try_suspend_result_t
+try_suspend_result_t
 this_thread_scheduler_t::try_suspend(
 	resumable_item_t & what_to_handle,
 	monotonic_clock_t::duration sleep_time )
