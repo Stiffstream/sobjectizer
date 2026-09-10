@@ -56,7 +56,8 @@ do_test()
 						receive_case( ch2,
 							[&hello_received, ch2]( hello ) {
 								hello_received = true;
-
+//FIXME: remove after testing!
+std::cout << "... hello_received" << std::endl;
 								std::this_thread::sleep_for(
 										std::chrono::milliseconds{ 100 } );
 
@@ -68,7 +69,6 @@ do_test()
 
 								std::this_thread::sleep_for(
 										std::chrono::milliseconds{ 100 } );
-
 							} ),
 						receive_case( ch3, []( hello ) {
 								throw std::runtime_error( "hello from ch3!" );

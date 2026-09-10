@@ -17,6 +17,8 @@
 
 #include <so_5/cpp_coro/scheduler.hpp>
 
+#include <so_5/details/remaining_time_counter.hpp>
+
 #include <so_5/message.hpp>
 #include <so_5/mchain_select.hpp>
 #include <so_5/timers.hpp>
@@ -302,8 +304,6 @@ using defined_select_params_t =
 
 
 //FIXME: document this!
-/// @attention
-/// @a empty_timeout_handler should not be nullptr.
 template<
 	std::size_t Cases_Count >
 resumable_select_t
@@ -312,18 +312,14 @@ do_select_without_total_time(
 	defined_select_params_t params,
 	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
 	{
+		using namespace so_5::details;
 		using namespace so_5::mchain_props::details;
 
-		using holder_t = so_5::mchain_props::details
-				::select_cases_holder_t< Cases_Count >;
+		using holder_t = select_cases_holder_t< Cases_Count >;
 
 		using performer_t = select_actions_performer_t<
 				holder_t,
 				async_select_notificator_t >;
-
-std::cout << "here (0)!" << std::endl;
-
-std::cout << "here (1)!" << std::endl;
 
 		async_select_notificator_t notificator{
 				coro_scheduler,
@@ -338,23 +334,38 @@ std::cout << "here (1)!" << std::endl;
 				notificator
 			};
 
+		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+
 		//FIXME: can this loop be moved into a separate function?
 		do
 			{
+std::cout << "1: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 				const auto handle_result = performer.handle_next(
 						std::chrono::seconds::zero() );
+std::cout << "1: handle_next completed, " << static_cast<int>(handle_result) << std::endl;
+std::cout << "1: last_extraction_status=" << static_cast<int>(performer.last_extraction_status()) << std::endl;
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
 					{
-//FIXME: empty timeout has to be rescheduled.
+						// Becase some message extracted we must restart
+						// wait_incoming_time counting.
+						wait_incoming_time =
+								remaining_time_counter_t{ params.empty_timeout() };
+std::cout << "2: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 					}
 				else
 					{
+std::cout << "3: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
+						// Otherwise wait_incoming_time should be updated to
+						// reduce it value.
+						wait_incoming_time.update();
+
+std::cout << "4: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
 							co_await make_awaitable_for(
 									notificator.resumable_item(),
-									infinite_speep_time() );
+									wait_incoming_time.remaining() );
 
 						// There could be one of two situations:
 						// 1) several threads do select on the same mchain.
@@ -366,7 +377,7 @@ std::cout << "here (1)!" << std::endl;
 						// 2) some chain is closed.
 					}
 			}
-		while( performer.can_continue() );
+		while( wait_incoming_time && performer.can_continue() );
 
 		co_return performer.make_result();
 	}

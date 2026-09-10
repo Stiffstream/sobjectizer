@@ -1271,17 +1271,23 @@ class select_actions_performer_t
 		handle_next_result_t
 		handle_next( const duration_t & wait_time )
 			{
+//FIXME: remove after debugging!
+std::cout << "handle_next {" << std::endl;
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
 				if( !ready_chain )
 					{
 						m_last_extraction_status = extraction_status_t::no_messages;
 						update_can_continue_flag();
 
+//FIXME: remove after debugging!
+std::cout << "handle_next }1" << std::endl;
 						return handle_next_result_t::no_ready_cases;
 					}
 				else
 					{
 						handle_ready_chain( ready_chain );
+//FIXME: remove after debugging!
+std::cout << "handle_next }2" << std::endl;
 						return handle_next_result_t::some_cases_were_ready;
 					}
 			}
@@ -1325,6 +1331,8 @@ class select_actions_performer_t
 				while( ready_chain && m_can_continue )
 					{
 						auto * current = ready_chain;
+//FIXME: remove after debugging!
+std::cout << "... ready_chain=" << ready_chain << std::endl;
 						ready_chain = current->giveout_next();
 
 						std::visit(
@@ -1340,6 +1348,8 @@ class select_actions_performer_t
 			select_case_t * current,
 			const mchain_receive_result_t & result )
 			{
+//FIXME: remove after debugging!
+std::cout << "... on_receive_result, status=" << static_cast<int>(result.status()) << std::endl;
 				m_last_extraction_status = result.status();
 
 				if( extraction_status_t::msg_extracted == result.status() )
