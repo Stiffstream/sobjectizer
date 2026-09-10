@@ -15,6 +15,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/handler_makers.hpp>
 #include <so_5/exception_control_flags.hpp>
+#include <so_5/outliving.hpp>
 
 #include <so_5/fwd.hpp>
 

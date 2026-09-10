@@ -1255,6 +1255,10 @@ class select_actions_performer_t
 		void
 		handle_next( const duration_t & wait_time )
 			{
+				// This status has to be dropped to neutral value, it will be
+				// updated if some chain will become ready.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
 				if( !ready_chain )
 					{
@@ -1319,7 +1323,27 @@ class select_actions_performer_t
 			select_case_t * current,
 			const mchain_receive_result_t & result )
 			{
-				m_last_extraction_status = result.status();
+				// Update of m_last_extraction_status should be taken with
+				// a care: msg_extracted and chain_closed should not be
+				// overriden by no_messages.
+				switch( m_last_extraction_status )
+					{
+					case extraction_status_t::no_messages :
+						m_last_extraction_status = result.status();
+					break;
+
+					case extraction_status_t::msg_extracted :
+						// The value of result.status() can be ignored because
+						// msg_extracted is most important and can't be overriden.
+					break;
+
+					case extraction_status_t::chain_closed :
+						// The chain_closed value could be replaced by
+						// msg_extracted only.
+						if( extraction_status_t::msg_extracted == result.status() )
+							m_last_extraction_status = result.status();
+					break;
+					}
 
 				if( extraction_status_t::msg_extracted == result.status() )
 					{
