@@ -1366,8 +1366,8 @@ class select_actions_performer_t
 			select_case_t * current,
 			const mchain_send_result_t & result )
 			{
-				// No extracted messages for that case.
-				m_last_extraction_status = extraction_status_t::no_messages;
+				// NOTE: there is no need to change m_last_extraction_status, because
+				// the value was dropped to the default value in handle_next.
 
 				switch( result.status() )
 					{
