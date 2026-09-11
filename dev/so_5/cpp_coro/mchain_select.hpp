@@ -305,9 +305,10 @@ using defined_select_params_t =
 
 //FIXME: document this!
 template<
+	class Total_Time_Counter,
 	std::size_t Cases_Count >
 resumable_select_t
-do_select_without_total_time(
+do_select(
 	scheduler_t & coro_scheduler,
 	defined_select_params_t params,
 	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
@@ -334,16 +335,13 @@ do_select_without_total_time(
 				notificator
 			};
 
+		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
 
-		//FIXME: can this loop be moved into a separate function?
 		do
 			{
-std::cout << "1: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 				const auto handle_result = performer.handle_next(
 						std::chrono::seconds::zero() );
-std::cout << "1: handle_next completed, " << static_cast<int>(handle_result) << std::endl;
-std::cout << "1: last_extraction_status=" << static_cast<int>(performer.last_extraction_status()) << std::endl;
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
 					{
@@ -351,16 +349,13 @@ std::cout << "1: last_extraction_status=" << static_cast<int>(performer.last_ext
 						// wait_incoming_time counting.
 						wait_incoming_time =
 								remaining_time_counter_t{ params.empty_timeout() };
-std::cout << "2: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 					}
 				else
 					{
-std::cout << "3: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 						// Otherwise wait_incoming_time should be updated to
 						// reduce it value.
 						wait_incoming_time.update();
 
-std::cout << "4: wait_incoming_time=" << wait_incoming_time.remaining() << std::endl;
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
 							co_await make_awaitable_for(
@@ -376,8 +371,12 @@ std::cout << "4: wait_incoming_time=" << wait_incoming_time.remaining() << std::
 						//    but wait_time must be decremented.
 						// 2) some chain is closed.
 					}
+
+				total_time_counter.update();
 			}
-		while( wait_incoming_time && performer.can_continue() );
+		while( total_time_counter
+				&& wait_incoming_time
+				&& performer.can_continue() );
 
 		co_return performer.make_result();
 	}
@@ -391,19 +390,20 @@ perform_select(
 	defined_select_params_t params,
 	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
 	{
-//FIXME: has to be implemented!
-#if 0
-		if( is_infinite_wait_timevalue( params.total_time() ) )
-#endif
-			return do_select_without_total_time(
+		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
+		using fake_time_counter_t = so_5::details::fake_remaining_time_counter_t;
+
+		if( so_5::mchain_props::details::is_infinite_wait_timevalue(
+				params.total_time() ) )
+			return do_select< fake_time_counter_t >(
 					coro_scheduler,
 					std::move(params),
 					std::move(cases_holder) );
-//FIXME: has to be implemented!
-#if 0
 		else
-			return do_select_with_total_time( params, cases_holder );
-#endif
+			return do_select< normal_time_counter_t >(
+					coro_scheduler,
+					std::move(params),
+					std::move(cases_holder) );
 	}
 
 } /* namespace async_select_impl */

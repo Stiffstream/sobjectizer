@@ -38,9 +38,11 @@ namespace details {
  */
 class remaining_time_counter_t
 	{
+	public:
 		using time_point = std::chrono::steady_clock::time_point;
 		using duration = std::chrono::steady_clock::duration;
 
+	private:
 		/*!
 		 * \note This member in not declared as const to allow reassignment
 		 * for remaining_time_counter_t object. Like in such cases:
@@ -86,6 +88,32 @@ class remaining_time_counter_t
 		 * \return true if m_remaining is greater than duration::zero().
 		 */
 		operator bool() const { return duration::zero() < m_remaining; }
+	};
+
+//
+// fake_remaining_time_counter_t
+//
+/// A helper class that repeats API of remaining_time_counter_t but does
+/// nothing.
+class fake_remaining_time_counter_t
+	{
+	public :
+		using time_point = remaining_time_counter_t::time_point;
+		using duration = remaining_time_counter_t::duration;
+
+		fake_remaining_time_counter_t( duration /*remaining*/ )
+			{}
+
+		void
+		update() {}
+
+		duration
+		remaining() const { return duration::max(); }
+
+		/*!
+		 * @note always return `true`.
+		 */
+		operator bool() const { return true; }
 	};
 
 } /* namespace details */

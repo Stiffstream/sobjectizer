@@ -1457,9 +1457,12 @@ class select_actions_performer_t
 			}
 	};
 
-template< typename Holder >
+//FIXME: document this!
+template<
+	typename Total_Time_Counter,
+	typename Holder >
 mchain_select_result_t
-do_adv_select_with_total_time(
+do_adv_select(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
 	{
@@ -1478,7 +1481,7 @@ do_adv_select_with_total_time(
 				notificator
 			};
 
-		remaining_time_counter_t total_time_counter{ params.total_time() };
+		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
 		do
 			{
@@ -1509,54 +1512,6 @@ do_adv_select_with_total_time(
 		return performer.make_result();
 	}
 
-template< typename Holder >
-mchain_select_result_t
-do_adv_select_without_total_time(
-	const mchain_select_params_t< msg_count_status_t::defined > & params,
-	const Holder & select_cases )
-	{
-		using namespace so_5::details;
-		using performer_t = select_actions_performer_t<
-				Holder,
-				actual_select_notificator_t >;
-
-		actual_select_notificator_t notificator{
-				select_cases.begin(),
-				select_cases.end()
-			};
-
-		performer_t performer{
-				params,
-				select_cases,
-				notificator
-			};
-
-		remaining_time_counter_t wait_time{ params.empty_timeout() };
-		do
-			{
-				performer.handle_next( wait_time.remaining() );
-				if( extraction_status_t::msg_extracted ==
-						performer.last_extraction_status() )
-					// Becase some message extracted we must restart wait_time
-					// counting.
-					wait_time = remaining_time_counter_t{ params.empty_timeout() };
-				else
-					// There could be one of two situations:
-					// 1) several threads do select on the same mchain.
-					//    Both threads will be awoken when some message is
-					//    pushed into the mchain. But only one thread will get
-					//    this message. Second thread will receive no_messages
-					//    status. In this case we should wait for the next message,
-					//    but wait_time must be decremented.
-					// 2) some chain is closed. Wait time should be updated and
-					//    next wait attempt must be performed.
-					wait_time.update();
-			}
-		while( wait_time && performer.can_continue() );
-
-		return performer.make_result();
-	}
-
 //
 // perform_select
 //
@@ -1573,10 +1528,13 @@ perform_select(
 	//! Select cases.
 	const Cases_Holder & cases_holder )
 	{
+		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
+		using fake_time_counter_t = so_5::details::fake_remaining_time_counter_t;
+
 		if( is_infinite_wait_timevalue( params.total_time() ) )
-			return do_adv_select_without_total_time( params, cases_holder );
+			return do_adv_select< fake_time_counter_t >( params, cases_holder );
 		else
-			return do_adv_select_with_total_time( params, cases_holder );
+			return do_adv_select< normal_time_counter_t >( params, cases_holder );
 	}
 
 } /* namespace details */
