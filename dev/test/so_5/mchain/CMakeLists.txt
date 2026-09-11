@@ -40,3 +40,6 @@ add_subdirectory(adv_extensible_select)
 
 add_subdirectory(limited_app_abort)
 
+add_subdirectory(select_empty_timeout_3)
+add_subdirectory(select_empty_timeout_4)
+
