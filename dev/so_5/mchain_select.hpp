@@ -1419,7 +1419,7 @@ class select_actions_performer_t
 
 					if( m_params.to_handle() &&
 							(m_handled_messages + m_completed_send_cases >=
-							 		m_params.to_handle()) )
+									m_params.to_handle()) )
 						return false;
 
 					if( m_params.to_extract() &&
