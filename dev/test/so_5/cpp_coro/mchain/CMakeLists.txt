@@ -2,4 +2,5 @@ add_subdirectory(select_simple)
 add_subdirectory(select_empty_timeout_1)
 add_subdirectory(select_empty_timeout_2)
 add_subdirectory(select_empty_timeout_3)
+add_subdirectory(select_empty_timeout_4)
 

@@ -342,6 +342,7 @@ do_select(
 			{
 				const auto handle_result = performer.handle_next(
 						std::chrono::seconds::zero() );
+
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
 					{
@@ -355,12 +356,17 @@ do_select(
 						// Otherwise wait_incoming_time should be updated to
 						// reduce it value.
 						wait_incoming_time.update();
+						total_time_counter.update();
 
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
 							co_await make_awaitable_for(
 									notificator.resumable_item(),
-									wait_incoming_time.remaining() );
+									// Sleeping time has to be limited with respect
+									// to empty_timeout and total_time.
+									std::min(
+											total_time_counter.remaining(),
+											wait_incoming_time.remaining() ) );
 
 						// There could be one of two situations:
 						// 1) several threads do select on the same mchain.
@@ -372,6 +378,8 @@ do_select(
 						// 2) some chain is closed.
 					}
 
+				// total_time_counter has to be updated again because of potential
+				// sleeping in else-branch.
 				total_time_counter.update();
 			}
 		while( total_time_counter
