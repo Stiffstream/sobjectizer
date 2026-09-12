@@ -99,7 +99,6 @@ this_thread_scheduler_t::environment() const
 	{
 		if( !m_env )
 			{
-std::cout << "*** no environment_t in this_thread_scheduler_t" << std::endl;
 				SO_5_THROW_EXCEPTION( rc_no_soenv_for_cpp_coro_scheduler,
 						"so_5::cpp_coro::this_thread_scheduler_t is not "
 						"bound to SOEnv instance" );
@@ -300,6 +299,30 @@ this_thread_scheduler_t::resume_ready_coroutines(
 			}
 
 		return count;
+	}
+
+void
+this_thread_scheduler_t::ensure_lists_are_empty() const
+	{
+		// NOTE: Generally speaking, non-empty lists are a hard error. This means
+		// that coroutines within them will never be destroyed. Is this really a
+		// good approach to throwing an exception here? An exception can be
+		// caught and work can resume, but the coroutines in those lists will
+		// still exist (they will not be destroyed). Perhaps it would be better
+		// to abort the entire application?
+		//
+		// Another possible approach is additional parameter for sync_wait
+		// with default value. This parameter will tell what to do if those lists
+		// are not empty. By default the application will be aborted, but there
+		// could be other approaches (like throwing an exception or ignoring
+		// that case).
+		if( !m_waiting_items.empty() )
+			SO_5_THROW_EXCEPTION( rc_unexpected_error,
+					"this_thread_scheduler_t::m_waiting_items is not empty" );
+
+		if( !m_ready_items.empty() )
+			SO_5_THROW_EXCEPTION( rc_unexpected_error,
+					"this_thread_scheduler_t::m_ready_items is not empty" );
 	}
 
 } /* namespace so_5::cpp_coro */

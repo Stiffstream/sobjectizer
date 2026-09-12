@@ -1,5 +1,9 @@
 /*
- * Test for empty_timeout.
+ * A simple test for case with dandling demand in scheduler's queue.
+ *
+ * NOTE: this test is actual only if this_thread_scheduler_t does a check
+ * for emptiness of waiting/ready lists after completion of the top-level
+ * task.
  */
 
 #include <so_5/cpp_coro/mchain_select.hpp>
@@ -14,14 +18,11 @@
 
 using namespace std;
 
-template<typename T> struct debug;
-
 void
 do_test()
 {
 	struct hello {};
-	struct to_be_ignored {};
-	struct hello_again {};
+	struct bye {};
 
 	so_5::wrapped_env_t env;
 
@@ -33,51 +34,34 @@ do_test()
 
 		auto ch1 = env.environment().create_mchain( p.second );
 		auto ch2 = env.environment().create_mchain( p.second );
-		auto ch3 = env.environment().create_mchain( p.second );
 
 		bool hello_received = false;
-		bool hello_again_received = false;
+		bool bye_received = false;
+
+		so_5::send< hello >( ch1 );
 
 		so_5::cpp_coro::this_thread_scheduler_t scheduler{
 				env.environment()
 			};
 
-		so_5::send< hello >( ch2 );
-
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
 						scheduler,
-						so_5::from_all()
-							.handle_all()
-							.empty_timeout( std::chrono::milliseconds{ 50 } ),
-						receive_case( ch1, []( hello ) {
-								throw std::runtime_error( "hello from ch1!" );
-							} ),
-						receive_case( ch2,
-							[&hello_received, ch2]( hello ) {
+						so_5::from_all().handle_n(1),
+						receive_case( ch1, [ch2, &hello_received]( hello ) {
+								so_5::send< bye >( ch2 );
 								hello_received = true;
-								std::this_thread::sleep_for(
-										std::chrono::milliseconds{ 100 } );
-
-								so_5::send< to_be_ignored >( ch2 );
-								so_5::send< hello_again >( ch2 );
-							},
-							[&hello_again_received]( hello_again ) {
-								hello_again_received = true;
-
-								std::this_thread::sleep_for(
-										std::chrono::milliseconds{ 100 } );
 							} ),
-						receive_case( ch3, []( hello ) {
-								throw std::runtime_error( "hello from ch3!" );
+						receive_case( ch2, [&bye_received]( bye ) {
+								bye_received = true;
 							} )
 						)
 				);
 
+		UT_CHECK_CONDITION( 1 == r.extracted() );
+		UT_CHECK_CONDITION( 1 == r.handled() );
 		UT_CHECK_CONDITION( hello_received );
-		UT_CHECK_CONDITION( hello_again_received );
-		UT_CHECK_CONDITION( 3 == r.extracted() );
-		UT_CHECK_CONDITION( 2 == r.handled() );
+		UT_CHECK_CONDITION( !bye_received );
 	}
 }
 
@@ -88,7 +72,7 @@ main()
 	{
 		run_with_time_limit(
 			do_test,
-			20,
+			5,
 			"test for simple multi chain select" );
 	}
 	catch( const exception & ex )

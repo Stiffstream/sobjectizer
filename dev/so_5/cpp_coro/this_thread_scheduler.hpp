@@ -372,8 +372,9 @@ class SO_5_TYPE this_thread_scheduler_t
 				// top-level task.
 				wait_and_handle_coroutines( wrapped_top_level.m_coro );
 
-			//FIXME: should here be a check that m_waiting_items and
-			//m_ready_items are empty?
+				//FIXME: should these checks be kept here or is it better to remove
+				//them?
+				ensure_lists_are_empty();
 
 				return wrapped_top_level.await_resume();
 			}
@@ -404,6 +405,10 @@ class SO_5_TYPE this_thread_scheduler_t
 		resume_ready_coroutines(
 				/// Object for unlocking the mutex temporary.
 				std::unique_lock< std::mutex > & locker );
+
+		//FIXME: is this method really needed?
+		void
+		ensure_lists_are_empty() const;
 	};
 
 } /* namespace so_5::cpp_coro */
