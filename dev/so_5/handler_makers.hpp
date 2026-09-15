@@ -241,7 +241,7 @@ make_handler_with_arg( Handler_Type lambda )
  */
 template< class Lambda >
 details::msg_type_and_handler_pair_t
-make_handler_from_lambda_of_free_function( Lambda && lambda )
+make_handler_from_lambda_or_free_function( Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
@@ -394,7 +394,7 @@ preprocess_agent_event_handler(
 	{
 		using namespace details::event_subscription_helpers;
 
-		const auto ev = make_handler_from_lambda_of_free_function(
+		const auto ev = make_handler_from_lambda_or_free_function(
 				std::forward<Lambda>(lambda) );
 
 		ensure_handler_can_be_used_with_mbox( ev, mbox );
@@ -594,7 +594,7 @@ fill_handlers_bunch(
 		using namespace event_subscription_helpers;
 
 		bunch.add_handler( index,
-				make_handler_from_lambda_of_free_function(
+				make_handler_from_lambda_or_free_function(
 						std::forward<Lambda>( lambda ) ) );
 
 		fill_handlers_bunch( bunch, index + 1,

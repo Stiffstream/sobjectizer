@@ -115,7 +115,7 @@ class one_shot_subscription_t
 		make_user_handler( Event_Lambda && lambda )
 			{
 				using namespace so_5::details::event_subscription_helpers;
-				return make_handler_from_lambda_of_free_function(
+				return make_handler_from_lambda_or_free_function(
 						std::forward<Event_Lambda>(lambda) );
 			}
 
