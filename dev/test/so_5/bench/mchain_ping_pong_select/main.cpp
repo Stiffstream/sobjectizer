@@ -59,54 +59,6 @@ struct msg_ping final : public so_5::signal_t {};
 struct msg_pong final : public so_5::signal_t {};
 
 void
-pinger_thread_func(
-	so_5::mchain_t ping_ch,
-	so_5::mchain_t pong_ch,
-	unsigned int request_count)
-	{
-		unsigned int calls = 0;
-		for( unsigned int pong_received = 0; pong_received < request_count;
-				++pong_received )
-			{
-				so_5::send< msg_ping >( ping_ch );
-				so_5::select(
-						so_5::from_all().handle_n( 1 ),
-						receive_case( pong_ch,
-								[&calls]( so_5::mhood_t< msg_pong > ) {
-									++calls;
-								} ) );
-			}
-
-		ensure_or_die( calls == request_count,
-				"mismatch for ponger: calls=" + std::to_string( calls )
-				+ ", request_count=" + std::to_string( request_count ) );
-	}
-
-void
-ponger_thread_func(
-	so_5::mchain_t ping_ch,
-	so_5::mchain_t pong_ch,
-	unsigned int request_count)
-	{
-		unsigned int calls = 0;
-		for( unsigned int ping_received = 0; ping_received < request_count;
-				++ping_received )
-			{
-				so_5::select(
-						so_5::from_all().handle_n( 1 ),
-						receive_case( ping_ch,
-								[&pong_ch, &calls]( so_5::mhood_t< msg_ping > ) {
-									++calls;
-									so_5::send< msg_pong >( pong_ch );
-								} ) );
-			}
-
-		ensure_or_die( calls == request_count,
-				"mismatch for ponger: calls=" + std::to_string( calls )
-				+ ", request_count=" + std::to_string( request_count ) );
-	}
-
-void
 show_cfg(
 	const cfg_t & cfg )
 	{
@@ -129,11 +81,6 @@ main( int argc, char ** argv )
 
 		so_5::wrapped_env_t sobj;
 
-		std::thread pinger_thread;
-		std::thread ponger_thread;
-
-		auto joiner = so_5::auto_join( pinger_thread, ponger_thread );
-
 		auto ping_ch = create_mchain( sobj.environment() );
 		auto pong_ch = create_mchain( sobj.environment() );
 
@@ -141,14 +88,35 @@ main( int argc, char ** argv )
 
 		duration_meter_t meter{ "ping-pong on sync select" };
 
-		pinger_thread = std::thread{ &pinger_thread_func,
-				ping_ch, pong_ch, cfg.m_request_count };
+		unsigned int pings_received = 0;
+		unsigned int pongs_received = 0;
 
-		ponger_thread = std::thread{ &ponger_thread_func,
-				ping_ch, pong_ch, cfg.m_request_count };
+		so_5::send< msg_ping >( ping_ch );
+		for( unsigned int actions = 0; actions != cfg.m_request_count; ++actions )
+		{
+			so_5::select( so_5::from_all().handle_n( 1 ),
+					receive_case( ping_ch,
+							[&pings_received, &pong_ch]( so_5::mhood_t< msg_ping > )
+							{
+								++pings_received;
+								so_5::send< msg_pong >( pong_ch );
+							} ) );
+			so_5::select( so_5::from_all().handle_n( 1 ),
+					receive_case( pong_ch,
+							[&pongs_received, &ping_ch]( so_5::mhood_t< msg_pong > )
+							{
+								++pongs_received;
+								so_5::send< msg_ping >( ping_ch );
+							} ) );
+		}
 
-		pinger_thread.join();
-		ponger_thread.join();
+		ensure_or_die( pings_received == cfg.m_request_count,
+				"mismatch for pinger: calls=" + std::to_string( pings_received )
+				+ ", request_count=" + std::to_string( cfg.m_request_count ) );
+
+		ensure_or_die( pongs_received == cfg.m_request_count,
+				"mismatch for ponger: calls=" + std::to_string( pongs_received )
+				+ ", request_count=" + std::to_string( cfg.m_request_count ) );
 
 		return 0;
 	}
