@@ -1242,7 +1242,7 @@ class select_actions_performer_t
 		 * \brief The counter of completed send_cases.
 		 *
 		 * A send_case is completed if the corresponding message is sent
-		 * of if the target mchain is closed.
+		 * or if the target mchain is closed.
 		 *
 		 * \since v.5.7.0
 		 */
