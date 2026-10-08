@@ -340,8 +340,7 @@ do_select(
 
 		do
 			{
-				const auto handle_result = performer.handle_next(
-						std::chrono::seconds::zero() );
+				const auto handle_result = co_await performer.handle_next_async();
 
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )

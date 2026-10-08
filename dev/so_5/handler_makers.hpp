@@ -573,6 +573,14 @@ class handlers_bunch_t< 0 >
 			{
 				return false;
 			}
+
+		so_5::cpp_coro::task_t< bool >
+		handle_async(
+			const std::type_index & /*msg_type*/,
+			message_ref_t /*message*/ ) const
+			{
+				co_return false;
+			}
 	};
 
 //

@@ -16,6 +16,8 @@
 
 #include <so_5/mchain.hpp>
 
+#include <so_5/cpp_coro/task.hpp>
+
 #include <memory>
 #include <variant>
 
@@ -244,6 +246,13 @@ class select_case_t
 		[[nodiscard]]
 		virtual handling_result_t
 		try_handle( select_notificator_t & notificator ) = 0;
+
+		//FIXME: document this!
+		[[nodiscard]] virtual
+		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async(
+			//FIXME: is it safe to pass a reference here?
+			select_notificator_t & notificator ) = 0;
 
 		//! Get the underlying mchain.
 		/*!

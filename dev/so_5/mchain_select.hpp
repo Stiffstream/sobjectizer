@@ -277,6 +277,33 @@ class receive_select_case_t : public select_case_t
 				return mchain_receive_result_t{ 0u, 0u, status };
 			}
 
+		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async(
+			select_notificator_t & notificator ) override
+			{
+				// See the code of synchronous try_handle for more
+				// information.
+				m_notificator = &notificator;
+
+				demand_t demand;
+				const auto status = extract( demand );
+				// Notificator pointer must retain its value only if
+				// there is no messages in mchain.
+				// In other cases this pointer must be dropped.
+				if( extraction_status_t::no_messages != status )
+					m_notificator = nullptr;
+
+				if( extraction_status_t::msg_extracted == status )
+				{
+					const handling_result_t actual_result =
+							co_await try_handle_extracted_message_async( demand );
+
+					co_return actual_result;
+				}
+
+				co_return mchain_receive_result_t{ 0u, 0u, status };
+			}
+
 	protected :
 		//! Attempt to handle extracted message.
 		/*!
@@ -285,6 +312,13 @@ class receive_select_case_t : public select_case_t
 		[[nodiscard]]
 		virtual mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) = 0;
+
+		//FIXME: document this!
+		[[nodiscard]] virtual
+		so_5::cpp_coro::task_t< mchain_receive_result_t >
+		try_handle_extracted_message_async(
+			//FIXME: is it safe to pass demand by reference?
+			demand_t & demand ) = 0;
 	};
 
 //
@@ -357,6 +391,16 @@ class send_select_case_t : public select_case_t
 					};
 			}
 
+		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async(
+			select_notificator_t & notificator ) override
+			{
+				// Just delegate the work to the synchronous version
+				// because send_case doesn't support asynchronous
+				// handlers.
+				co_return this->try_handle( notificator );
+			}
+
 	protected :
 		//! Hook for handling successful push attempt.
 		/*!
@@ -400,6 +444,7 @@ class actual_receive_select_case_t : public receive_select_case_t
 			}
 
 	protected :
+		//FIXME: document this!
 		[[nodiscard]]
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
@@ -409,6 +454,21 @@ class actual_receive_select_case_t : public receive_select_case_t
 						demand.m_message_ref );
 
 				return mchain_receive_result_t{
+						1u,
+						handled ? 1u : 0u,
+						extraction_status_t::msg_extracted };
+			}
+
+		//FIXME: document this!
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< mchain_receive_result_t >
+		try_handle_extracted_message_async( demand_t & demand ) override
+			{
+				const bool handled = co_await m_handlers.handle_async(
+						demand.m_msg_type,
+						demand.m_message_ref );
+
+				co_return mchain_receive_result_t{
 						1u,
 						handled ? 1u : 0u,
 						extraction_status_t::msg_extracted };
@@ -1268,6 +1328,7 @@ class select_actions_performer_t
 					c.on_select_finish();
 			}
 
+//FIXME: [[nodiscard]]?
 		handle_next_result_t
 		handle_next( const duration_t & wait_time )
 			{
@@ -1290,12 +1351,41 @@ class select_actions_performer_t
 					}
 			}
 
+		//FIXME: document this!
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< handle_next_result_t >
+		handle_next_async()
+			{
+				// This status has to be dropped to neutral value, it will be
+				// updated if some chain will become ready.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
+				select_case_t * ready_chain = m_notificator.wait(
+						// Do not wait at all.
+						duration_t::zero() );
+				if( !ready_chain )
+					{
+						m_last_extraction_status = extraction_status_t::no_messages;
+						update_can_continue_flag();
+
+						co_return handle_next_result_t::no_ready_cases;
+					}
+				else
+					{
+						co_await handle_ready_chain_async( ready_chain );
+						co_return handle_next_result_t::some_cases_were_ready;
+					}
+			}
+
+//FIXME: [[nodiscard]]?
 		extraction_status_t
 		last_extraction_status() const noexcept { return m_last_extraction_status; }
 
+//FIXME: [[nodiscard]]?
 		bool
 		can_continue() const noexcept { return m_can_continue; }
 
+//FIXME: [[nodiscard]]?
 		mchain_select_result_t
 		make_result() const noexcept
 			{
@@ -1334,6 +1424,24 @@ class select_actions_performer_t
 						std::visit(
 								select_result_handler_t{ this, current },
 								current->try_handle( m_notificator ) );
+
+						update_can_continue_flag();
+					}
+			}
+
+		//FIXME: document this!
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< void >
+		handle_ready_chain_async( select_case_t * ready_chain )
+			{
+				while( ready_chain && m_can_continue )
+					{
+						auto * current = ready_chain;
+						ready_chain = current->giveout_next();
+
+						std::visit(
+								select_result_handler_t{ this, current },
+								co_await current->try_handle_async( m_notificator ) );
 
 						update_can_continue_flag();
 					}
