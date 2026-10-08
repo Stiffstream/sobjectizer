@@ -429,7 +429,7 @@ class subscription_bind_t
 		void
 		create_subscription_for_states(
 			const std::type_index & msg_type,
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			thread_safety_t thread_safety,
 			event_handler_kind_t handler_kind ) const;
 
@@ -1485,7 +1485,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety,
 			//! Kind of that event handler.
@@ -2047,7 +2047,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & msg_type,
 			//! Event handler caller.
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety );
 
@@ -2138,7 +2138,8 @@ class SO_5_TYPE agent_t
 				so_create_deadletter_subscription(
 						mbox,
 						ev.m_msg_type,
-						ev.m_handler,
+						so_5::low_level_api::query_ref_to_sync_handler(
+								ev.m_handler ),
 						thread_safety );
 			}
 
@@ -3344,7 +3345,7 @@ class SO_5_TYPE agent_t
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
 			thread_safety_t thread_safety,
-			event_handler_method_t method );
+			sync_event_handler_method_t method );
 
 		/*!
 		 * \brief Actual implementation of enveloped message handling.
@@ -3661,9 +3662,9 @@ subscription_bind_t::event(
 	using namespace details::event_subscription_helpers;
 
 	const auto ev = preprocess_agent_event_handler( m_mbox_ref, *m_agent, pfn );
-	create_subscription_for_states( 
+	create_subscription_for_states(
 			ev.m_msg_type,
-			ev.m_handler,
+			so_5::low_level_api::query_ref_to_sync_handler( ev.m_handler ),
 			thread_safety,
 			event_handler_kind_t::final_handler );
 
@@ -3687,7 +3688,7 @@ subscription_bind_t::event(
 
 	create_subscription_for_states(
 			ev.m_msg_type,
-			ev.m_handler,
+			so_5::low_level_api::query_ref_to_sync_handler( ev.m_handler ),
 			thread_safety,
 			event_handler_kind_t::final_handler );
 
@@ -3878,7 +3879,7 @@ subscription_bind_t::just_switch_to(
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind ) const
 {

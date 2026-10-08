@@ -69,7 +69,9 @@ handlers_bunch_basics_t::find_and_use_handler(
 						// This is an async message.
 						// Simple call is enough.
 						ret_value = true;
-						it->m_handler( message );
+						so_5::low_level_api::invoke_sync_event_handler(
+								it->m_handler,
+								message );
 					break;
 
 					case message_t::kind_t::enveloped_msg :

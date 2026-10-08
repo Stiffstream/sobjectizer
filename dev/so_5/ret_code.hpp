@@ -549,6 +549,14 @@ const int rc_no_soenv_for_cpp_coro_scheduler = 200;
  */
 const int rc_unexpected_coro_status = 201;
 
+/*!
+ * \brief An attempt to call synchronous event handler, but asynchronous
+ * handler is provided instead.
+ *
+ * \since v.5.8.7
+ */
+const int rc_sync_handler_expected = 202;
+
 //! \name Common error codes.
 //! \{
 

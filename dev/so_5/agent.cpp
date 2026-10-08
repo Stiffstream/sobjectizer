@@ -1218,7 +1218,7 @@ agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
 	std::type_index msg_type,
 	const state_t & target_state,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind )
 {
@@ -1248,7 +1248,7 @@ void
 agent_t::so_create_deadletter_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety )
 {
 	ensure_operation_is_on_working_thread( "so_create_deadletter_subscription" );
@@ -1548,7 +1548,7 @@ agent_t::process_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d,
 	thread_safety_t thread_safety,
-	event_handler_method_t method )
+	sync_event_handler_method_t method )
 {
 	// Since v.5.8.5 pending demands may be skipped after dereg.
 	if( agent_status_t::shutdown_with_skipping_pending_demands ==

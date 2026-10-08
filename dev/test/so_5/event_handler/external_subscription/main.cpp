@@ -20,13 +20,13 @@ struct subscription_data_t
 		so_5::mbox_t m_mbox;
 		const so_5::state_t * m_state;
 		std::type_index m_subscription_type;
-		so_5::event_handler_method_t m_handler;
+		so_5::sync_event_handler_method_t m_handler;
 
 		subscription_data_t(
 			so_5::mbox_t mbox,
 			const so_5::state_t & state,
 			std::type_index subscription_type,
-			so_5::event_handler_method_t handler )
+			so_5::sync_event_handler_method_t handler )
 			:	m_mbox( std::move(mbox) )
 			,	m_state( &state )
 			,	m_subscription_type( std::move(subscription_type) )
@@ -57,9 +57,11 @@ class one_shot_subscription_t
 						user_handler_data,
 						mbox );
 
-				const auto user_handler = user_handler_data.m_handler;
+				so_5::sync_event_handler_method_t user_handler =
+						so_5::low_level_api::query_ref_to_sync_handler(
+								user_handler_data.m_handler );
 
-				so_5::event_handler_method_t actual_handler =
+				so_5::sync_event_handler_method_t actual_handler =
 					[this, user_handler]( so_5::message_ref_t & msg )
 					{
 						drop_subscriptions();

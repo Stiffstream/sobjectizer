@@ -191,7 +191,9 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
 						m_was_handled = true;
-						m_handler.m_handler( payload.message() );
+						so_5::low_level_api::invoke_sync_event_handler(
+								m_handler.m_handler,
+								payload.message() );
 					break;
 
 					case message_t::kind_t::enveloped_msg :
