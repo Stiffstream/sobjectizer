@@ -459,6 +459,15 @@ struct handlers_bunch_basics_t
 			const msg_type_and_handler_pair_t * right,
 			const std::type_index & msg_type,
 			message_ref_t & message );
+
+		//FIXME: document this!
+		SO_5_FUNC static
+		so_5::cpp_coro::task_t< bool >
+		find_and_use_handler_async(
+			const msg_type_and_handler_pair_t * left,
+			const msg_type_and_handler_pair_t * right,
+			const std::type_index & msg_type,
+			message_ref_t message );
 	};
 
 //
@@ -520,6 +529,21 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 						m_handlers, m_handlers + N,
 						msg_type,
 						message );
+			}
+
+		//FIXME: document this!
+		so_5::cpp_coro::task_t< bool >
+		handle_async(
+//FIXME: is it safe to pass msg_type by reference?
+			//! Type of a message or signal.
+			const std::type_index & msg_type,
+			//! Message instance to be processed.
+			message_ref_t message ) const
+			{
+				return find_and_use_handler_async(
+						m_handlers, m_handlers + N,
+						msg_type,
+						std::move(message) );
 			}
 	};
 

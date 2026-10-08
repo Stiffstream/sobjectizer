@@ -16,6 +16,8 @@
 
 #include <so_5/optional.hpp>
 
+#include <so_5/cpp_coro/task.hpp>
+
 namespace so_5 {
 
 namespace enveloped_msg {
@@ -95,6 +97,14 @@ class SO_5_TYPE handler_invoker_t
 		//! Call an actual handler for the enveloped message/signal.
 		virtual void
 		invoke( const payload_info_t & payload ) noexcept = 0;
+
+		//FIXME: document this!
+		//FIXME: describe passing of `payload` by value.
+		//FIXME: describe why this method is not noexcept.
+		//FIXME: describe that the default implementation throws.
+		[[nodiscard]] virtual
+		so_5::cpp_coro::task_t< void >
+		async_invoke( const payload_info_t payload );
 	};
 
 //
@@ -119,6 +129,20 @@ enum class access_context_t
 		//! the further delivery.
 		//! For example it can be necessary for delivery filters.
 		inspection
+	};
+
+//
+// async_access_context_t
+//
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+enum class async_access_context_t
+	{
+		//! Enveloped message is delivered to a receiver and the payload
+		//! is necessary for calling event handler.
+		handler_found
 	};
 
 //
@@ -187,6 +211,20 @@ class SO_5_TYPE envelope_t : public message_t
 			access_context_t context,
 			//! Proxy object which can call an actual event handler.
 			handler_invoker_t & invoker ) noexcept = 0;
+
+		//FIXME: document this!
+		//FIXME: describe why this method is not noexcept.
+		//FIXME: describe that the default implementation throws.
+		//
+		//FIXME: is it safe to pass handler_invoker_t by reference?
+		//
+		[[nodiscard]] virtual
+		so_5::cpp_coro::task_t< void >
+		access_hook_async(
+			//! Why this hook is called.
+			async_access_context_t context,
+			//! Proxy object which can call an actual event handler.
+			handler_invoker_t & invoker );
 
 	private :
 		kind_t

@@ -557,6 +557,14 @@ const int rc_unexpected_coro_status = 201;
  */
 const int rc_sync_handler_expected = 202;
 
+/*!
+ * \brief An attempt to call asynchronous event handler, but synchronous
+ * handler is provided instead.
+ *
+ * \since v.5.8.7
+ */
+const int rc_async_handler_expected = 203;
+
 //! \name Common error codes.
 //! \{
 
