@@ -6,6 +6,7 @@ add_subdirectory(select_empty_timeout_4)
 add_subdirectory(select_exception_from_sync_handler)
 
 add_subdirectory(select_simple_nested)
+add_subdirectory(select_simple_nested_2)
 
 add_subdirectory(dangling_schedule)
 
