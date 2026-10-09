@@ -16,8 +16,9 @@
 #include <so_5/ret_code.hpp>
 
 #include <coroutine>
-#include <variant>
+#include <exception>
 #include <type_traits>
+#include <variant>
 
 namespace so_5::cpp_coro
 {
@@ -69,9 +70,11 @@ struct promise_base_t
 		so_5::cpp_coro::details::final_awaiter_t< Actual_Promise_Type >
 		final_suspend() noexcept { return {}; }
 
-		//FIXME: implement this!
 		void
-		unhandled_exception() noexcept {}
+		unhandled_exception()
+			{
+				m_result = std::current_exception();
+			}
 
 		[[nodiscard]]
 		std::coroutine_handle<>

@@ -103,9 +103,11 @@ query_ref_to_async_handler(
 		const auto * handler = std::get_if<async_event_handler_method_t>(
 				std::addressof(holder) );
 		if( !handler )
-			SO_5_THROW_EXCEPTION( rc_async_handler_expected,
-					"asynchronous event handler is expected, but synchronous "
-					"is found" );
+			{
+				SO_5_THROW_EXCEPTION( rc_async_handler_expected,
+						"asynchronous event handler is expected, but synchronous "
+						"is found" );
+			}
 
 		return *handler;
 	}
@@ -134,6 +136,36 @@ invoke_async_event_handler(
 	{
 		return (query_ref_to_async_handler( holder )( std::move(msg) ));
 	}
+
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+class any_handler_as_async_invoker_t
+	{
+		/// Message to be passed to the handler.
+		message_ref_t & m_msg_ref;
+
+	public :
+		any_handler_as_async_invoker_t(
+			message_ref_t & msg_ref )
+			: m_msg_ref{ msg_ref }
+			{}
+
+		so_5::cpp_coro::task_t< void >
+		operator()( const sync_event_handler_method_t & sync_handler )
+			{
+				sync_handler( m_msg_ref );
+
+				co_return;
+			}
+
+		so_5::cpp_coro::task_t< void >
+		operator()( const async_event_handler_method_t & async_handler )
+			{
+				co_return co_await async_handler( std::move(m_msg_ref) );
+			}
+	};
 
 } /* namespace low_level_api */
 

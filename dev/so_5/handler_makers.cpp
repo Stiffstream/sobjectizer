@@ -123,12 +123,12 @@ handlers_bunch_basics_t::find_and_use_handler_async(
 					case message_t::kind_t::signal : [[fallthrough]];
 					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
-						// This is an async message.
-						// Simple call is enough.
 						ret_value = true;
-						co_await so_5::low_level_api::invoke_async_event_handler(
-								it->m_handler,
-								std::move(message) );
+
+						using so_5::low_level_api::any_handler_as_async_invoker_t;
+						co_await std::visit(
+								any_handler_as_async_invoker_t{ message },
+								it->m_handler );
 					break;
 
 					case message_t::kind_t::enveloped_msg :

@@ -359,13 +359,15 @@ do_select(
 
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
-							co_await make_awaitable_for(
-									notificator.resumable_item(),
-									// Sleeping time has to be limited with respect
-									// to empty_timeout and total_time.
-									std::min(
-											total_time_counter.remaining(),
-											wait_incoming_time.remaining() ) );
+							{
+								co_await make_awaitable_for(
+										notificator.resumable_item(),
+										// Sleeping time has to be limited with respect
+										// to empty_timeout and total_time.
+										std::min(
+												total_time_counter.remaining(),
+												wait_incoming_time.remaining() ) );
+							}
 
 						// There could be one of two situations:
 						// 1) several threads do select on the same mchain.
