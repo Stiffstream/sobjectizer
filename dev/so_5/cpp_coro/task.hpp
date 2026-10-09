@@ -18,6 +18,7 @@
 #include <coroutine>
 #include <exception>
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 namespace so_5::cpp_coro
@@ -72,6 +73,7 @@ struct promise_base_t
 
 		void
 		unhandled_exception()
+		noexcept( noexcept(m_result = std::current_exception()) )
 			{
 				m_result = std::current_exception();
 			}
@@ -95,9 +97,10 @@ struct promise_base_t
 								"task_t::await_resume" );
 					break;
 
-					case 1: std::rethrow_exception(
-							std::move(std::get< std::exception_ptr >(m_result))
-						);
+					case 1:
+						std::rethrow_exception(
+								std::move(std::get< std::exception_ptr >(m_result))
+							);
 					break;
 					}
 
@@ -183,7 +186,7 @@ struct task_t
 			}
 
 		//FIXME: document this!
-		struct promise_type final
+		struct promise_type
 			: public task_impl::promise_base_with_return_handling_t<
 					promise_type, T >
 			{
