@@ -222,14 +222,34 @@ make_handler_with_arg( Handler_Type lambda )
 
 		arg_maker::ensure_appropriate_type();
 
-		auto method = [lambda](message_ref_t & message_ref) mutable
+		event_handler_holder_t method;
+
+		if constexpr( std::is_same_v<
+				Result,
+				so_5::cpp_coro::task_t<void> > )
 			{
-				lambda( arg_maker::make_arg( message_ref ) );
-			};
+				method = async_event_handler_method_t{
+						[lambda]
+						(message_ref_t message_ref) mutable
+						-> so_5::cpp_coro::task_t< void >
+						{
+							co_await lambda( arg_maker::make_arg( message_ref ) );
+						}
+					};
+			}
+		else
+			{
+				method = sync_event_handler_method_t{
+						[lambda](message_ref_t & message_ref) mutable
+						{
+							lambda( arg_maker::make_arg( message_ref ) );
+						}
+					};
+			}
 
 		return msg_type_and_handler_pair_t{
 				arg_maker::traits_type::subscription_type_index(),
-				method,
+				std::move(method),
 				arg_maker::traits_type::mutability() };
 	}
 
