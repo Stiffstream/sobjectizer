@@ -337,6 +337,7 @@ do_select(
 
 		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+		bool wait_incoming_time_not_elapsed_yet = false;
 
 		do
 			{
@@ -349,6 +350,8 @@ do_select(
 						// wait_incoming_time counting.
 						wait_incoming_time =
 								remaining_time_counter_t{ params.empty_timeout() };
+
+						wait_incoming_time_not_elapsed_yet = true;
 					}
 				else
 					{
@@ -356,6 +359,9 @@ do_select(
 						// reduce it value.
 						wait_incoming_time.update();
 						total_time_counter.update();
+
+						wait_incoming_time_not_elapsed_yet =
+								static_cast<bool>(wait_incoming_time);
 
 						//FIXME: document this!
 						if( handle_next_result_t::no_ready_cases == handle_result )
@@ -368,6 +374,9 @@ do_select(
 												total_time_counter.remaining(),
 												wait_incoming_time.remaining() ) );
 							}
+
+						//FIXME: should wait_incoming_time be updated here
+						//yet another time?
 
 						// There could be one of two situations:
 						// 1) several threads do select on the same mchain.
@@ -384,7 +393,7 @@ do_select(
 				total_time_counter.update();
 			}
 		while( total_time_counter
-				&& wait_incoming_time
+				&& wait_incoming_time_not_elapsed_yet
 				&& performer.can_continue() );
 
 		co_return performer.make_result();

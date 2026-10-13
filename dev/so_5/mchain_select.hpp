@@ -1591,6 +1591,7 @@ do_adv_select(
 
 		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+		bool wait_incoming_time_not_elapsed_yet = false;
 		do
 			{
 				// Since v.5.8.4 we have to take the empty_timeout value
@@ -1602,19 +1603,28 @@ do_adv_select(
 				performer.handle_next( this_iteration_wait_time );
 				if( extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
-					// Becase some message extracted we must restart
-					// wait_incoming_time counting.
-					wait_incoming_time =
-							remaining_time_counter_t{ params.empty_timeout() };
+					{
+						// Becase some message extracted we must restart
+						// wait_incoming_time counting.
+						wait_incoming_time =
+								remaining_time_counter_t{ params.empty_timeout() };
+
+						wait_incoming_time_not_elapsed_yet = true;
+					}
 				else
-					// Otherwise wait_incoming_time should be updated to
-					// reduce it value.
-					wait_incoming_time.update();
+					{
+						// Otherwise wait_incoming_time should be updated to
+						// reduce it value.
+						wait_incoming_time.update();
+
+						wait_incoming_time_not_elapsed_yet =
+								static_cast<bool>(wait_incoming_time);
+					}
 
 				total_time_counter.update();
 			}
 		while( total_time_counter
-				&& wait_incoming_time
+				&& wait_incoming_time_not_elapsed_yet
 				&& performer.can_continue() );
 
 		return performer.make_result();
