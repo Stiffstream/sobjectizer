@@ -194,6 +194,8 @@ class SO_5_TYPE envelope_t : public message_t
 		using payload_info_t = ::so_5::enveloped_msg::payload_info_t;
 		using handler_invoker_t = ::so_5::enveloped_msg::handler_invoker_t;
 		using access_context_t = ::so_5::enveloped_msg::access_context_t;
+		using async_access_context_t =
+				::so_5::enveloped_msg::async_access_context_t;
 
 		// clang requires this.
 		envelope_t() = default;

@@ -560,7 +560,7 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 			//! Message instance to be processed.
 			message_ref_t message ) const
 			{
-				return find_and_use_handler_async(
+				co_return co_await find_and_use_handler_async(
 						m_handlers, m_handlers + N,
 						msg_type,
 						std::move(message) );
