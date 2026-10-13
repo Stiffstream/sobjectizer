@@ -1448,6 +1448,7 @@ do_adv_select_with_total_time(
 
 		remaining_time_counter_t total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+		bool wait_incoming_time_not_elapsed_yet = false;
 		do
 			{
 				// Since v.5.8.4 we have to take the empty_timeout value
@@ -1459,19 +1460,27 @@ do_adv_select_with_total_time(
 				performer.handle_next( this_iteration_wait_time );
 				if( extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
-					// Becase some message extracted we must restart
-					// wait_incoming_time counting.
-					wait_incoming_time =
-							remaining_time_counter_t{ params.empty_timeout() };
+					{
+						// Becase some message extracted we must restart
+						// wait_incoming_time counting.
+						wait_incoming_time =
+								remaining_time_counter_t{ params.empty_timeout() };
+						wait_incoming_time_not_elapsed_yet = true;
+					}
 				else
-					// Otherwise wait_incoming_time should be updated to
-					// reduce it value.
-					wait_incoming_time.update();
+					{
+						// Otherwise wait_incoming_time should be updated to
+						// reduce it value.
+						wait_incoming_time.update();
+
+						wait_incoming_time_not_elapsed_yet =
+								static_cast<bool>(wait_incoming_time);
+					}
 
 				total_time_counter.update();
 			}
 		while( total_time_counter
-				&& wait_incoming_time
+				&& wait_incoming_time_not_elapsed_yet
 				&& performer.can_continue() );
 
 		return performer.make_result();
@@ -1488,27 +1497,40 @@ do_adv_select_without_total_time(
 		select_actions_performer_t< Holder > performer{ params, select_cases };
 
 		remaining_time_counter_t wait_time{ params.empty_timeout() };
+		bool wait_incoming_time_not_elapsed_yet = false;
 		do
 			{
 				performer.handle_next( wait_time.remaining() );
 				if( extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
-					// Becase some message extracted we must restart wait_time
-					// counting.
-					wait_time = remaining_time_counter_t{ params.empty_timeout() };
+					{
+						// Becase some message extracted we must restart wait_time
+						// counting.
+						wait_time = remaining_time_counter_t{
+								params.empty_timeout()
+							};
+
+						wait_incoming_time_not_elapsed_yet = true;
+					}
 				else
-					// There could be one of two situations:
-					// 1) several threads do select on the same mchain.
-					//    Both threads will be awoken when some message is
-					//    pushed into the mchain. But only one thread will get
-					//    this message. Second thread will receive no_messages
-					//    status. In this case we should wait for the next message,
-					//    but wait_time must be decremented.
-					// 2) some chain is closed. Wait time should be updated and
-					//    next wait attempt must be performed.
-					wait_time.update();
+					{
+						// There could be one of two situations:
+						// 1) several threads do select on the same mchain.
+						//    Both threads will be awoken when some message is
+						//    pushed into the mchain. But only one thread will get
+						//    this message. Second thread will receive no_messages
+						//    status. In this case we should wait for the next message,
+						//    but wait_time must be decremented.
+						// 2) some chain is closed. Wait time should be updated and
+						//    next wait attempt must be performed.
+						wait_time.update();
+
+						wait_incoming_time_not_elapsed_yet =
+								static_cast<bool>(wait_time);
+					}
 			}
-		while( wait_time && performer.can_continue() );
+		while( wait_incoming_time_not_elapsed_yet
+				&& performer.can_continue() );
 
 		return performer.make_result();
 	}
