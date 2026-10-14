@@ -57,7 +57,7 @@ async_process_envelope_when_handler_found(
 		auto & envelope = message_to_envelope( message );
 
 		mchain_demand_handler_invoker_t invoker{ handler };
-		co_await envelope.access_hook_async(
+		co_await envelope.async_access_hook(
 				so_5::enveloped_msg::async_access_context_t::handler_found,
 				invoker );
 

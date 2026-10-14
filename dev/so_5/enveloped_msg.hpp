@@ -222,7 +222,7 @@ class SO_5_TYPE envelope_t : public message_t
 		//
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< void >
-		access_hook_async(
+		async_access_hook(
 			//! Why this hook is called.
 			async_access_context_t context,
 			//! Proxy object which can call an actual event handler.

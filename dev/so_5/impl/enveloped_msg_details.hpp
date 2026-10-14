@@ -210,6 +210,41 @@ class mchain_demand_handler_invoker_t : public handler_invoker_t
 					break;
 					}
 			}
+
+		so_5::cpp_coro::task_t< void >
+		async_invoke( const payload_info_t payload ) override
+			{
+				const auto msg_kind = message_kind( payload.message() );
+
+				switch( msg_kind )
+					{
+					case message_t::kind_t::signal : [[fallthrough]];
+					case message_t::kind_t::classical_message : [[fallthrough]];
+					case message_t::kind_t::user_type_message :
+						m_was_handled = true;
+
+						using so_5::low_level_api::any_handler_as_async_invoker_t;
+						co_await std::visit(
+								any_handler_as_async_invoker_t{
+										payload.message()
+								},
+								m_handler.m_handler );
+					break;
+
+					case message_t::kind_t::enveloped_msg :
+						{
+							// Do recurvise call.
+							// Value for was_handled will be detected in the
+							// nested call.
+							auto & nested_envelope = message_to_envelope(
+									payload.message() );
+							co_await nested_envelope.async_access_hook(
+									async_access_context_t::handler_found,
+									*this );
+						}
+					break;
+					}
+			}
 	};
 
 #if defined(__clang__)

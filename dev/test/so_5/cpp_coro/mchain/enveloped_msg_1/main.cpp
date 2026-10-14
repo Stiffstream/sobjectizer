@@ -28,16 +28,13 @@ class special_wrapper_t : public so_5::enveloped_msg::envelope_t
 	so_5::cpp_coro::task_t< void >
 	invoke_async_if_enabled( handler_invoker_t & invoker )
 	{
-std::cout << "!!! special_wrapper_t::invoke_async_if_enabled called" << std::endl;
 		if( m_enabled.load( std::memory_order_acquire ) )
 			{
-std::cout << "!!! special_wrapper_t::invoke_async_if_enabled case 1" << std::endl;
 				co_return co_await invoker.async_invoke(
 						payload_info_t(m_payload) );
 			}
 		else
 			{
-std::cout << "!!! special_wrapper_t::invoke_async_if_enabled case 2" << std::endl;
 				co_return;
 			}
 	}
@@ -64,11 +61,10 @@ public:
 	}
 
 	so_5::cpp_coro::task_t< void >
-	access_hook_async(
+	async_access_hook(
 		async_access_context_t /*context*/,
 		handler_invoker_t & invoker ) override
 	{
-std::cout << "!!! special_wrapper_t::access_hook_async called" << std::endl;
 		co_return co_await invoke_async_if_enabled( invoker );
 	}
 };
@@ -117,7 +113,7 @@ run_test()
 	auto result = scheduler.sync_wait(
 			so_5::cpp_coro::select(
 					scheduler,
-					so_5::from_all().handle_n(1)/*.no_wait_on_empty()*/,
+					so_5::from_all().handle_n(1).no_wait_on_empty(),
 					receive_case( mchain,
 							[&](so_5::mhood_t<just_test_msg> cmd) {
 								++processed;

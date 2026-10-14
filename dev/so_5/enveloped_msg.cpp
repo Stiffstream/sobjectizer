@@ -37,12 +37,12 @@ handler_invoker_t::async_invoke( const payload_info_t /*payload*/ )
 // envelope_t
 //
 so_5::cpp_coro::task_t< void >
-envelope_t::access_hook_async(
+envelope_t::async_access_hook(
 	async_access_context_t /*context*/,
 	handler_invoker_t & /*invoker*/ )
 	{
 		SO_5_THROW_EXCEPTION( rc_not_implemented,
-				"envelope_t::access_hook_async is not implemeted "
+				"envelope_t::async_access_hook is not implemeted "
 				"in this version of SObjectizer" );
 
 		co_return;
