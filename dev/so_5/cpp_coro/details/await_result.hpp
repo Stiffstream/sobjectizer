@@ -97,8 +97,10 @@ struct awaiter_type
 template<typename Tp>
 using awaiter_type_t = typename awaiter_type<Tp>::type;
 
+// NOTE: source version had `std::movable<Tp>` in the concept.
+// I dons't understand why it was needed, so `std::movable<Tp>`
+// was commented.
 template<typename Tp>
-//FIXME: is std::movable<Tp> really needed here?
 concept Awaitable = /*std::movable<Tp> &&*/ requires(Tp && awaitable)
 	{
 		{ get_awaiter(static_cast<Tp &&>(awaitable)) } -> Awaiter;

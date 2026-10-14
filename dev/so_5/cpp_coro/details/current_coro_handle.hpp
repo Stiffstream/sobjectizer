@@ -15,7 +15,18 @@
 namespace so_5::cpp_coro::details
 {
 
-//FIXME: document this!
+namespace current_coro_handle_impl
+{
+
+/// Special awaitable type that allows to get coroutine handle.
+///
+/// Stores the handle passed to await_suspend() and returns it
+/// in await_resume().
+///
+/// @note
+/// await_suspend() return `false` (doesn't block the caller).
+///
+/// @since v.5.8.7
 struct current_coro_handle_obtainer_t
 	{
 		std::coroutine_handle<> m_handle;
@@ -37,12 +48,27 @@ struct current_coro_handle_obtainer_t
 			}
 	};
 
-//FIXME: document this!
+} /* namespace current_coro_handle_impl */
+
+/// Helper for obtaining handle of the current coroutine.
+///
+/// Usage example:
+/// @code
+/// so_5::cpp_coro::task_t<void>
+/// some_coroutine()
+/// {
+/// 	const auto this_coro_handle =
+/// 		co_await so_5::cpp_coro::details::current_coro_handle();
+/// 	...
+/// }
+/// @endcode
+///
+/// @since v.5.8.7
 [[nodiscard]] inline
-current_coro_handle_obtainer_t
+auto
 current_coro_handle()
 	{
-		return {};
+		return current_coro_handle_impl::current_coro_handle_obtainer_t{};
 	}
 
 } /* namespace so_5::cpp_coro::details */
