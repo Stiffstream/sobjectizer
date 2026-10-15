@@ -86,7 +86,7 @@ class SO_5_TYPE this_thread_scheduler_t
 	: public scheduler_t
 	{
 		/// Helper class for managing list of resumable items.
-		class items_list_t
+		class SO_5_TYPE items_list_t
 			{
 				/// The head of the list.
 				resumable_item_t * m_head{ nullptr };
