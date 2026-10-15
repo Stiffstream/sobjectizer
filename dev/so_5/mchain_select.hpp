@@ -1360,9 +1360,7 @@ class select_actions_performer_t
 				// updated if some chain will become ready.
 				m_last_extraction_status = extraction_status_t::no_messages;
 
-				select_case_t * ready_chain = m_notificator.wait(
-						// Do not wait at all.
-						duration_t::zero() );
+				select_case_t * ready_chain = m_notificator.wait();
 				if( !ready_chain )
 					{
 						m_last_extraction_status = extraction_status_t::no_messages;
@@ -1591,7 +1589,8 @@ do_adv_select(
 
 		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
-		bool wait_incoming_time_not_elapsed_yet = false;
+		bool wait_incoming_time_not_elapsed_yet = true;
+
 		do
 			{
 				// Since v.5.8.4 we have to take the empty_timeout value

@@ -24,20 +24,31 @@ namespace so_5::cpp_coro
 //
 // monotonic_clock_t
 //
-//FIXME: document this!
+/// @brief An alias for steady_clock.
+///
+/// @since v.5.8.7
 using monotonic_clock_t = std::chrono::steady_clock;
 
-//FIXME: document this!
+/// @brief Helper function to get a value for infinite sleep timeout.
+///
+/// This value will be used to detect the presence of the actual sleep timeout.
+///
+/// @since v.5.8.7
 [[nodiscard]] inline constexpr
 monotonic_clock_t::duration
 infinite_speep_time() noexcept { return monotonic_clock_t::duration::max(); }
 
 class scheduler_t;
 
-//FIXME: document this!
+/// @brief Enumeration of possible results of an attempt to suspend a
+/// coroutine.
+///
+/// @since v.5.8.7
 enum class try_suspend_result_t
 	{
+		/// The coroutine has to be suspended.
 		should_be_suspended,
+		/// The coroutine has to be resumed instead of the suspension.
 		should_be_resumed
 	};
 
@@ -49,12 +60,15 @@ enum class try_suspend_result_t
 /// Object of this type holds a coroutine_handle but doesn't own it.
 /// The m_to_be_resumed won't be destroyed in the destructor of
 /// resumable_item_t.
+///
+/// @since v.5.8.7
 class SO_5_TYPE resumable_item_t
 	{
-		friend class scheduler_t;
-
 	public:
-		//FIXME: document this!
+		/// @brief Enumeration of possible statuses for the coroutine
+		/// for that the resumable_item is created.
+		///
+		/// @since v.5.8.7
 		enum class status_t
 			{
 				/// There is no explicit status for the coroutine.
@@ -68,7 +82,9 @@ class SO_5_TYPE resumable_item_t
 				ready
 			};
 
-		//FIXME: document this!
+		/// @brief Holder of the information needed for the scheduler.
+		///
+		/// @since v.5.8.7
 		struct scheduler_data_t
 			{
 				/// What need to be resumed.
@@ -104,13 +120,20 @@ class SO_5_TYPE resumable_item_t
 		scheduler_t & m_scheduler;
 
 	public:
-//FIXME: this method has to be private and should be available for
-//friends only. It's public now just for fast experimentation.
-[[nodiscard]]
-scheduler_data_t &
-scheduler_data() { return m_scheduler_data; }
+		/// @brief Access to the scheduler's data of this resumable_item.
+		///
+		/// A resumable_item holds some data needed for schedulers.
+		/// This data is not used by the resumable_item itself, but is
+		/// stored inside the resumable_item. This method provides an
+		/// access to that information.
+		///
+		/// @note
+		/// It's assumed that only schedulers will use this method.
+		[[nodiscard]]
+		scheduler_data_t &
+		scheduler_data() { return m_scheduler_data; }
 
-		/// Initializing constructor.
+		/// @brief Initializing constructor.
 		resumable_item_t(
 			/// Handle of the coroutine.
 			std::coroutine_handle<> to_be_resumed,
@@ -119,17 +142,17 @@ scheduler_data() { return m_scheduler_data; }
 
 		~resumable_item_t();
 
-		/// An attempt to resume the coroutine.
+		/// @brief An attempt to resume the coroutine.
 		///
-		/// @note
-		/// Coroutine will be scheduled only if it is in status_t::waiting
-		/// status. If it has status_t::neutral then the status will be
-		/// changed to status_t::notified, but coroutine won't be placed
-		/// into scheduler's waiting list.
+		/// Delegates the work to `m_scheduler.try_schedule(*this)`.
 		void
 		try_schedule();
 
-		//FIXME: document this!
+		/// @brief An attempt to suspend the coroutine for the specified
+		/// amount of time.
+		///
+		/// Delegates the work to `m_scheduler.try_suspend(*this, sleep_time)`.
+		[[nodiscard]]
 		try_suspend_result_t
 		try_suspend(
 			monotonic_clock_t::duration sleep_time );

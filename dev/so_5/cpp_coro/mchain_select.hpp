@@ -34,17 +34,31 @@ namespace so_5::cpp_coro
 //
 // resumable_select_t
 //
-//FIXME: document this!
+/// @brief An alias for the result of asynchronous select.
+///
+/// @since v.5.8.7
 using resumable_select_t = task_t< mchain_select_result_t >;
 
 namespace async_select_impl
 {
 
-//FIXME: document this!
+/// @brief Implementation of select_notificator for asynchronous select.
+///
+/// Hold a reference to the scheduler to be used for coroutine wakeup.
+///
+/// @attention
+/// It's expected that the reference to the scheduler remains valid for
+/// the whole lifetime of the notificator.
+///
+/// The notificator also holds an instance of resumable_item_t to be
+/// use for coroutine resumption by the scheduler.
+///
+/// @since v.5.8.7
 class async_select_notificator_t final
 	: public so_5::mchain_props::select_notificator_t
 	{
 	private :
+		//! Object's lock for thread-safety.
 		std::mutex m_lock;
 
 		//! Scheduler to be used for resumption.
@@ -78,11 +92,14 @@ class async_select_notificator_t final
 		 */
 		template< typename Fwd_it >
 		async_select_notificator_t(
-			//FIXME: document this!
+			//! The scheduler to be used for the coroutine resumption.
 			scheduler_t & scheduler,
-			//FIXME: document this!
+			//! The coroutine to be resumed when notificator will be activated.
 			std::coroutine_handle<> coro_to_resume,
-			Fwd_it b, Fwd_it e )
+			//! The begin interator of the list of select_cases.
+			Fwd_it b,
+			//! The end (past-the-end) iterator of the list of select_cases.
+			Fwd_it e )
 			: m_scheduler{ scheduler }
 			, m_to_be_resumed{ coro_to_resume, scheduler }
 			{
@@ -131,12 +148,18 @@ class async_select_notificator_t final
 				push_to_notified_chain( what );
 			}
 
-		//FIXME: document this!
+		//! Initiate waiting for events.
+		/*!
+		 * This is analogue of actual_select_notificator_t for synchronous
+		 * select, but doesn't receive wait time parameter, because this method
+		 * doesn't wait anything. It just got the list of ready select_cases and
+		 * returns this list.
+		 *
+		 * @retval nullptr if there is no ready to resume select_cases.
+		 */
 		[[nodiscard]]
 		so_5::mchain_props::select_case_t *
-		wait(
-			//FIXME: document that this parameter is ignored and why.
-			so_5::mchain_props::duration_t /*wait_time*/ )
+		wait()
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -146,7 +169,7 @@ class async_select_notificator_t final
 				return result;
 			}
 
-		//FIXME: document this!
+		//! Get access to the resumable_item_t object.
 		[[nodiscard]]
 		resumable_item_t &
 		resumable_item() noexcept
@@ -155,18 +178,35 @@ class async_select_notificator_t final
 			}
 	};
 
-//FIXME: document this!
+/*!
+ * An alias for mchain_select_params_t with defined number of expected
+ * messages.
+ *
+ * @since v.5.8.7
+ */
 using defined_select_params_t =
 		mchain_select_params_t< so_5::mchain_props::msg_count_status_t::defined >;
 
-//FIXME: document this!
+/*!
+ * @brief The actual implementation of asynchronous select.
+ *
+ * @tparam Total_Time_Counter type to be used for counter of total execution
+ * time.
+ *
+ * @tparam Cases_Count how many select_cases are used in the select call.
+ *
+ * @since v.5.8.7
+ */
 template<
 	class Total_Time_Counter,
 	std::size_t Cases_Count >
 resumable_select_t
 do_select(
+	/// Scheduler to be used for coroutine resumption.
 	scheduler_t & coro_scheduler,
+	/// Parameters for the select call.
 	defined_select_params_t params,
+	/// Container with select_cases to be used.
 	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
 	{
 		using namespace so_5::details;
@@ -193,7 +233,7 @@ do_select(
 
 		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
-		bool wait_incoming_time_not_elapsed_yet = false;
+		bool wait_incoming_time_not_elapsed_yet = true;
 
 		do
 			{
@@ -214,14 +254,21 @@ do_select(
 						// Otherwise wait_incoming_time should be updated to
 						// reduce it value.
 						wait_incoming_time.update();
-						total_time_counter.update();
-
 						wait_incoming_time_not_elapsed_yet =
 								static_cast<bool>(wait_incoming_time);
 
-						//FIXME: document this!
+						// total_time_counter has to be updated to because
+						// handle_next_async may take some time.
+						total_time_counter.update();
+
+						// If there weren't ready cases then we have to wait.
+						// But because it's an asynchronous select then we have
+						// to suspend the coroutine for some time.
 						if( handle_next_result_t::no_ready_cases == handle_result )
 							{
+								// Ask for awaitable object that is bound to
+								// appropriate wait time and wait until this
+								// awaitable resumes.
 								co_await make_awaitable_for(
 										notificator.resumable_item(),
 										// Sleeping time has to be limited with respect
@@ -230,18 +277,6 @@ do_select(
 												total_time_counter.remaining(),
 												wait_incoming_time.remaining() ) );
 							}
-
-						//FIXME: should wait_incoming_time be updated here
-						//yet another time?
-
-						// There could be one of two situations:
-						// 1) several threads do select on the same mchain.
-						//    Both threads will be awoken when some message is
-						//    pushed into the mchain. But only one thread will get
-						//    this message. Second thread will receive no_messages
-						//    status.
-						//    but wait_time must be decremented.
-						// 2) some chain is closed.
 					}
 
 				// total_time_counter has to be updated again because of potential
@@ -255,13 +290,21 @@ do_select(
 		co_return performer.make_result();
 	}
 
+/// @brief Helper function to initiate the call of do_select.
+///
+/// Detects the presence of total_time in @a params and calls do_select
+/// with fake_time_counter_t or normal_time_counter_t.
+///
+/// @since v.5.8.7
 template<
 	std::size_t Cases_Count >
 resumable_select_t
 perform_select(
 	/// Scheduler to be used.
 	scheduler_t & coro_scheduler,
+	/// Parameters for the select call.
 	defined_select_params_t params,
+	/// Container with select_cases to be used.
 	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
 	{
 		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
@@ -283,12 +326,13 @@ perform_select(
 } /* namespace async_select_impl */
 
 //FIXME: document this!
+/// @since v.5.8.7
 template<
 	so_5::mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >
 resumable_select_t
 select(
-	//FIXME: document this!
+	//! The scheduler to be used for coroutine resumption.
 	scheduler_t & coro_scheduler,
 	//! Parameters for advanced select.
 	so_5::mchain_select_params_t< Msg_Count_Status > params,
