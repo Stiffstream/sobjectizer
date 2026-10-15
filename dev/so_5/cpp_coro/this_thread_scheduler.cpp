@@ -125,7 +125,7 @@ this_thread_scheduler_t::try_schedule( resumable_item_t & what_to_resume )
 			break;
 
 			case resumable_item_t::status_t::notified :
-				// Nothing to be. The item already has the proper status.
+				// Nothing to be done. The item already has the proper status.
 			break;
 
 			case resumable_item_t::status_t::waiting :
@@ -289,7 +289,7 @@ this_thread_scheduler_t::resume_ready_coroutines(
 				// NOTE: if resume() throws then locker won't be locked back.
 				locker.unlock();
 
-				// NOTE: the status can be changes to status_t::notified by a
+				// NOTE: the status can be changed to status_t::notified by a
 				// parallel thread.
 				item_data.m_to_be_resumed.resume();
 
