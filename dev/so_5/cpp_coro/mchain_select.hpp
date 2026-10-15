@@ -44,14 +44,12 @@ namespace async_select_impl
 
 /// @brief Implementation of select_notificator for asynchronous select.
 ///
-/// Hold a reference to the scheduler to be used for coroutine wakeup.
+/// The notificator also holds an instance of resumable_item_t to be
+/// use for coroutine resumption by the scheduler.
 ///
 /// @attention
 /// It's expected that the reference to the scheduler remains valid for
 /// the whole lifetime of the notificator.
-///
-/// The notificator also holds an instance of resumable_item_t to be
-/// use for coroutine resumption by the scheduler.
 ///
 /// @since v.5.8.7
 class async_select_notificator_t final
@@ -60,9 +58,6 @@ class async_select_notificator_t final
 	private :
 		//! Object's lock for thread-safety.
 		std::mutex m_lock;
-
-		//! Scheduler to be used for resumption.
-		scheduler_t & m_scheduler;
 
 		//! Information for resumption.
 		resumable_item_t m_to_be_resumed;
@@ -100,8 +95,7 @@ class async_select_notificator_t final
 			Fwd_it b,
 			//! The end (past-the-end) iterator of the list of select_cases.
 			Fwd_it e )
-			: m_scheduler{ scheduler }
-			, m_to_be_resumed{ coro_to_resume, scheduler }
+			: m_to_be_resumed{ coro_to_resume, scheduler }
 			{
 				// All select_cases from range [b,e) must be included in
 				// ready_cases list.
@@ -126,7 +120,7 @@ class async_select_notificator_t final
 				}
 
 				if( !old_tail )
-					m_scheduler.try_schedule( m_to_be_resumed );
+					m_to_be_resumed.try_schedule();
 			}
 
 		/*!
