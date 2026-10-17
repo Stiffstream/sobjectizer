@@ -121,7 +121,8 @@ this_thread_scheduler_t::try_schedule( resumable_item_t & what_to_resume )
 			case resumable_item_t::status_t::neutral :
 				item_data.m_status = resumable_item_t::status_t::notified;
 
-				// NOTE: we don't push the coroutine to any of lists.
+				// NOTE: we don't push the coroutine to any of lists because
+				// this coroutine is running right now.
 			break;
 
 			case resumable_item_t::status_t::notified :

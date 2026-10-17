@@ -55,13 +55,25 @@ enum class try_suspend_result_t
 //
 // resumable_item_t
 //
-//FIXME: document this!
-/// @attention
-/// Object of this type holds a coroutine_handle but doesn't own it.
-/// The m_to_be_resumed won't be destroyed in the destructor of
-/// resumable_item_t.
-///
-/// @since v.5.8.7
+/*!
+ * @brief Object to be used for communication between a scheduler and
+ * the coroutine.
+ *
+ * It's a bridge between a coroutine and a scheduler to be used for
+ * this coroutine. It holds references to the coroutine and the scheduler.
+ *
+ * The main goal is to avoid dynamic memory allocation for queues of
+ * waiting and ready to resume coroutines. Instances of resumable_item_t
+ * will be created on the stack in coroutines and then bound in
+ * intrusive queues.
+ *
+ * @attention
+ * Object of this type holds a coroutine_handle but doesn't own it.
+ * The m_to_be_resumed won't be destroyed in the destructor of
+ * resumable_item_t.
+ *
+ * @since v.5.8.7
+ */
 class SO_5_TYPE resumable_item_t
 	{
 	public:
@@ -71,14 +83,35 @@ class SO_5_TYPE resumable_item_t
 		/// @since v.5.8.7
 		enum class status_t
 			{
-				/// There is no explicit status for the coroutine.
+				/*!
+				 * There is no explicit status for the coroutine.
+				 *
+				 * This is the initial status for a coroutine.
+				 * It is also the status of the currently running coroutine.
+				 *
+				 * When coroutine has this status it shouldn't be resumed
+				 * (because it's running now), but the coroutine can be
+				 * suspended.
+				 */
 				neutral,
-				/// Coroutine received a notification to be resumed, but isn't
-				/// in waiting/ready list of the scheduler.
+				/*!
+				 * Coroutine received a notification to be resumed, but isn't
+				 * in waiting/ready list of the scheduler.
+				 *
+				 * It is the status for currently running coroutine that
+				 * receives another notification for resumption. But the
+				 * resumption isn't necessary because the coroutine is
+				 * running now. When a coroutine has this status it can't be
+				 * suspended.
+				 */
 				notified,
-				/// Coroutine is in waiting list of the scheduler.
+				/*!
+				 * Coroutine is in waiting list of the scheduler.
+				 */
 				waiting,
-				/// Coroutine is in ready list of the scheduler.
+				/*!
+				 * Coroutine is in ready list of the scheduler.
+				 */
 				ready
 			};
 
@@ -162,19 +195,16 @@ class SO_5_TYPE resumable_item_t
 // scheduler_t
 //
 //FIXME: document this!
+/*!
+ * @brief Interface of a coroutine scheduler.
+ *
+ * All implementations of coroutine schedulers have to implement
+ * this interface.
+ *
+ * @since v.5.8.7
+ */
 class SO_5_TYPE scheduler_t
 	{
-	public:
-
-	protected:
-		/// Helper for accessing coroutine's internal data.
-		[[nodiscard]] static
-		resumable_item_t::scheduler_data_t &
-		scheduler_data_of(
-			/// Coroutine to be accessed.
-			resumable_item_t & what )
-		noexcept;
-
 	public:
 		scheduler_t();
 		virtual ~scheduler_t();
