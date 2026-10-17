@@ -263,7 +263,7 @@ do_select(
 								// Ask for awaitable object that is bound to
 								// appropriate wait time and wait until this
 								// awaitable resumes.
-								co_await make_awaitable_for(
+								co_await try_suspend_for(
 										notificator.resumable_item(),
 										// Sleeping time has to be limited with respect
 										// to empty_timeout and total_time.
@@ -320,7 +320,9 @@ perform_select(
 } /* namespace async_select_impl */
 
 //FIXME: document this!
-/// @since v.5.8.7
+/*!
+ * @since v.5.8.7
+ */
 template<
 	so_5::mchain_props::msg_count_status_t Msg_Count_Status,
 	typename... Cases >

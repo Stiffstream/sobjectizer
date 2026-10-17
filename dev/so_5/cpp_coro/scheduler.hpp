@@ -194,7 +194,6 @@ class SO_5_TYPE resumable_item_t
 //
 // scheduler_t
 //
-//FIXME: document this!
 /*!
  * @brief Interface of a coroutine scheduler.
  *
@@ -210,29 +209,53 @@ class SO_5_TYPE scheduler_t
 		virtual ~scheduler_t();
 
 //FIXME: document why this method is not marked as noexcept.
-//FIXME: is this method still needed?
+//FIXME: is this method still needed? It seems that it is not used now
+//in coroutine-related features. But it is still here until completion
+//of v.5.8.7 because there is probability that this method may be
+//necessary somewhere. If not then it has to be removed before the
+//release of v.5.8.7.
 		/// Access to SObjectizer Environment for that this scheduler has
 		/// been created.
+		///
+		/// @note
+		/// This method may throw if the scheduler doesn't bound to an
+		/// environment.
 		[[nodiscard]] virtual
 		so_5::environment_t &
 		environment() const = 0;
 
-		//FIXME: document this!
-		/// @attention
-		/// The @a what_to_resume has to be valid reference and it should
-		/// remain valid until the coroutine will be scheduled.
+		/*!
+		 * @brief An attempt to schedule a coroutine for resumption.
+		 *
+		 * If @a what_to_resume is not running now it has to be placed into
+		 * a queue of ready-to-resume coroutines and should be resumed later
+		 * at some moment of time.
+		 *
+		 * @attention
+		 * The @a what_to_resume has to be valid reference and it should
+		 * remain valid until the coroutine will be scheduled.
+		 */
 		virtual
 		void
 		try_schedule(
 			/// What need to be resumed.
 			resumable_item_t & what_to_resume ) = 0;
 
-		//FIXME: document this!
-		//
-		/// @attention
-		/// The @a what_to_resume has to be valid reference and it should
-		/// remain valid until the coroutine will be scheduled.
-		virtual
+		/*!
+		 * @brief An attempt to suspend the currently running coroutine.
+		 *
+		 * @note
+		 * This attempt may success if the coroutine has no pending notifications
+		 * that require resumption. But it also may fail in case if the coroutine
+		 * has a notification for resumption. In that case try_suspend
+		 * returns try_suspend_result_t::should_be_resumed and the current
+		 * coroutine should continue its work without suspension.
+		 *
+		 * @attention
+		 * The @a what_to_resume has to be valid reference and it should
+		 * remain valid until the coroutine will be scheduled.
+		 */
+		[[nodiscard]] virtual
 		try_suspend_result_t
 		try_suspend(
 			/// Coroutine to be processed.
@@ -243,8 +266,16 @@ class SO_5_TYPE scheduler_t
 			monotonic_clock_t::duration sleep_time ) = 0;
 	};
 
-//FIXME: maybe it's not a good name.
-//FIXME: document this!
+namespace details
+{
+
+/*!
+ * @brief Helper object for suspension attempt for a coroutine.
+ *
+ * It's implementation detail of so_5::cpp_coro::try_suspend_for().
+ *
+ * @since v.5.8.7
+ */
 struct suspension_awaitable_t
 	{
 		/// Coroutine to be suspended.
@@ -277,10 +308,33 @@ struct suspension_awaitable_t
 		await_resume() noexcept {}
 	};
 
-//FIXME: document this!
+} /* namespace details */
+
+/*!
+ * @brief Helper function for suspension of the current coroutine if
+ * coroutine has to wait for some external event.
+ *
+ * It was added as part of async select implementation.
+ *
+ * Usage example:
+ * @code
+ * co_await try_suspend_for(this_coroutine_resumable_item, 120ms);
+ * @endcode
+ *
+ * The @a sleep_time can have a zero value. This doesn't mean that the
+ * coroutine will not be suspended at all. Instead, it may be placed in the
+ * waiting coroutines queue and suspended for a period of time until that queue
+ * is processed.
+ *
+ * @note
+ * The @a sleep_time could have infinite_speep_time() value. It may lead
+ * to infinite suspension if the external event won't happen.
+ *
+ * @since v.5.8.7
+ */
 [[nodiscard]] inline
-suspension_awaitable_t
-make_awaitable_for(
+details::suspension_awaitable_t
+try_suspend_for(
 	/// Coroutine to be suspended.
 	resumable_item_t & what_to_suspend,
 	/// How much time should it sleep.
