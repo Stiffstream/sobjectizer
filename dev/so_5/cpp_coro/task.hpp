@@ -218,14 +218,28 @@ struct promise_base_t< Actual_Promise_Type, void >
 //
 // task_t
 //
-//FIXME: document this!
+/*!
+ * @brief A task template that implements awaitable for value of type T.
+ *
+ * The `T` could be `void`.
+ *
+ * This type supports only coroutines with lazy start -- the await_ready
+ * returns `false`.
+ *
+ * @note
+ * It's Movable, but not Copyable type.
+ *
+ * @since v.5.8.7
+ */
 template< typename T >
 struct task_t
 	{
 		struct promise_type;
 
+		//! The coroutine associated with the task.
 		std::coroutine_handle< promise_type > m_coro;
 
+		//! Initializing constructor.
 		task_t( std::coroutine_handle< promise_type > coro )
 			: m_coro{ coro }
 			{
@@ -243,12 +257,14 @@ struct task_t
 		task_t &
 		operator=( const task_t & ) = delete;
 
+		//! Move constructor.
 		task_t( task_t && other ) noexcept
 			: m_coro{ std::exchange(
 					other.m_coro,
 					std::coroutine_handle< promise_type >{} ) }
 			{}
 
+		//! Move operator.
 		task_t &
 		operator=( task_t && other ) noexcept
 			{
@@ -263,11 +279,11 @@ struct task_t
 				return *this;
 			}
 
-		//FIXME: document this!
+		//! The actual promise_type for the task.
 		struct promise_type
-			: public task_impl::promise_base_t<
-					promise_type, T >
+			: public task_impl::promise_base_t< promise_type, T >
 			{
+				//! Standard factory method that returns new task instance.
 				task_t
 				get_return_object() noexcept
 					{
@@ -278,9 +294,16 @@ struct task_t
 					}
 			};
 
+		//! The standard-required method.
+		//!
+		//! Returns `false`.
 		bool
 		await_ready() const noexcept { return false; }
 
+		//! The standard-required method.
+		//!
+		//! Stores @a continuation in the promise and returns the value
+		//! of @a m_coro.
 		std::coroutine_handle<>
 		await_suspend( std::coroutine_handle<> continuation ) noexcept
 			{
@@ -288,6 +311,10 @@ struct task_t
 				return m_coro;
 			}
 
+		//! The standard-required method.
+		//!
+		//! Returns the value stored in the promise object or throws
+		//! an exception if unhandled_exception was called for the promise.
 		T
 		await_resume()
 			{

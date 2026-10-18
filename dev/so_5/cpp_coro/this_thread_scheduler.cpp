@@ -270,6 +270,34 @@ this_thread_scheduler_t::check_resumption_time_for_waiting_coroutines()
 		return sleep_time;
 	}
 
+namespace
+{
+
+//! Helper class for unlocking and locking a mutex back in RAII style.
+//!
+//! @attention
+//! Because the lock will be performed in the destructor an exception
+//! from lock() method will kill the whole application.
+template< typename M >
+class unlocker_locker_helper_t
+	{
+		//! What to unlock/lock.
+		M & m_mutex;
+
+	public:
+		unlocker_locker_helper_t( M & mutex ) : m_mutex{ mutex }
+			{
+				m_mutex.unlock();
+			}
+
+		~unlocker_locker_helper_t()
+			{
+				m_mutex.lock();
+			}
+	};
+
+} /* namespace anonymous */
+
 std::size_t
 this_thread_scheduler_t::resume_ready_coroutines(
 		std::unique_lock< std::mutex > & locker )
@@ -287,14 +315,14 @@ this_thread_scheduler_t::resume_ready_coroutines(
 				// The status has to be changed while mutex is locked.
 				item_data.m_status = resumable_item_t::status_t::neutral;
 
-				// NOTE: if resume() throws then locker won't be locked back.
-				locker.unlock();
+				{
+					unlocker_locker_helper_t< std::unique_lock<std::mutex> >
+							unlocker_locker{ locker };
 
-				// NOTE: the status can be changed to status_t::notified by a
-				// parallel thread.
-				item_data.m_to_be_resumed.resume();
-
-				locker.lock();
+					// NOTE: the status can be changed to status_t::notified by a
+					// parallel thread.
+					item_data.m_to_be_resumed.resume();
+				}
 
 				item = m_ready_items.head();
 			}
