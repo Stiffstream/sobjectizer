@@ -12,6 +12,8 @@
 #include <so_5/ret_code.hpp>
 #include <so_5/exception.hpp>
 
+#include <so_5/details/safe_cv_wait_for.hpp>
+
 #include <utility>
 
 namespace so_5::cpp_coro
@@ -161,9 +163,10 @@ this_thread_scheduler_t::try_suspend(
 				item_data.m_status = resumable_item_t::status_t::waiting;
 
 				if( infinite_speep_time() != sleep_time )
-					item_data.m_resume_at = monotonic_clock_t::now() + sleep_time;
+					item_data.m_sleeping_time =
+							so_5::details::remaining_time_counter_t{ sleep_time };
 				else
-					item_data.m_resume_at = std::nullopt;
+					item_data.m_sleeping_time = std::nullopt;
 
 				m_waiting_items.push_back( what_to_handle );
 			break;
@@ -218,8 +221,13 @@ this_thread_scheduler_t::wait_and_handle_coroutines(
 				// have to check the waiting list again (and recalculate
 				// sleep_time appropriately).
 				if( !coroutines_resumed )
-					// Have to wait while one of coroutines become ready.
-					m_wakeup_cv.wait_for( lock, sleep_time );
+					{
+						// Have to wait while one of coroutines become ready.
+						so_5::details::wait_for_big_interval(
+								lock,
+								m_wakeup_cv,
+								sleep_time );
+					}
 			}
 	}
 
@@ -241,14 +249,16 @@ this_thread_scheduler_t::check_resumption_time_for_waiting_coroutines()
 				// if the item is moved into ready list.
 				resumable_item_t * next = item_data.m_next;
 
-				if( item_data.m_resume_at.has_value() )
+				if( item_data.m_sleeping_time.has_value() )
 					{
 						if( !current_time.has_value() )
 							current_time = monotonic_clock_t::now();
 
-						if( *item_data.m_resume_at <= *current_time )
+						item_data.m_sleeping_time->update( *current_time );
+						if( !( *item_data.m_sleeping_time ) )
 							{
 								// This coroutine has to be moved to the ready list.
+								item_data.m_sleeping_time = std::nullopt;
 								m_waiting_items.extract( *item );
 
 								// The coroutine to be resumed must have a special status.
@@ -258,7 +268,7 @@ this_thread_scheduler_t::check_resumption_time_for_waiting_coroutines()
 						else
 							{
 								// Sleep time has to be updated.
-								const auto d = *item_data.m_resume_at - *current_time;
+								const auto d = item_data.m_sleeping_time->remaining();
 								if( sleep_time > d )
 									sleep_time = d;
 							}

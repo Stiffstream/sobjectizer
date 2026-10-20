@@ -14,6 +14,9 @@
 
 #include <so_5/fwd.hpp>
 
+#include <so_5/details/remaining_time_counter.hpp>
+
+#include <atomic>
 #include <chrono>
 #include <coroutine>
 #include <optional>
@@ -114,6 +117,7 @@ class SO_5_TYPE resumable_item_t
 				 */
 				ready
 			};
+		static_assert( std::atomic< status_t >::is_always_lock_free );
 
 		/// @brief Holder of the information needed for the scheduler.
 		///
@@ -130,12 +134,19 @@ class SO_5_TYPE resumable_item_t
 				resumable_item_t * m_next{ nullptr };
 
 				/// The current status of the coroutine.
-				status_t m_status{ status_t::neutral };
-
-				/// A time point for resumption.
 				///
-				/// May not be defined.
-				std::optional< monotonic_clock_t::time_point > m_resume_at;
+				/// @note
+				/// It's atomic to make possible checking of the status
+				/// without acquiring the scheduler lock.
+				std::atomic< status_t > m_status{ status_t::neutral };
+
+				/// Remaining time for sleeping.
+				///
+				/// @note
+				/// Has value only if sleeping time was specified, otherwise it's
+				/// empty.
+				std::optional< so_5::details::remaining_time_counter_t >
+					m_sleeping_time;
 
 				/// Initializing constructor.
 				explicit scheduler_data_t(
@@ -290,10 +301,12 @@ struct suspension_awaitable_t
 		bool
 		await_ready()
 			{
-				//FIXME: is it good to return `false` always? Maybe it's better
-				//to check the status of the coroutine and return `false` only
-				//if the coroutine in the neutral status?
-				return false;
+				// The coroutine is ready if it's already notified.
+				// If it's in neutral state then it has to be suspended.
+				// Other statuses are not expected here.
+				return resumable_item_t::status_t::notified ==
+						m_what_to_suspend.scheduler_data().m_status.load(
+								std::memory_order_acquire );
 			}
 
 		[[nodiscard]]

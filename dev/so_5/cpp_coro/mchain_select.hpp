@@ -306,15 +306,19 @@ perform_select(
 
 		if( so_5::mchain_props::details::is_infinite_wait_timevalue(
 				params.total_time() ) )
-			return do_select< fake_time_counter_t >(
-					coro_scheduler,
-					std::move(params),
-					std::move(cases_holder) );
+			{
+				return do_select< fake_time_counter_t >(
+						coro_scheduler,
+						std::move(params),
+						std::move(cases_holder) );
+			}
 		else
-			return do_select< normal_time_counter_t >(
-					coro_scheduler,
-					std::move(params),
-					std::move(cases_holder) );
+			{
+				return do_select< normal_time_counter_t >(
+						coro_scheduler,
+						std::move(params),
+						std::move(cases_holder) );
+			}
 	}
 
 } /* namespace async_select_impl */

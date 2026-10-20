@@ -60,6 +60,10 @@ class remaining_time_counter_t
 		 * \endcode
 		 */
 		time_point m_last_time;
+
+		/*!
+		 * \brief How many time remains.
+		 */
 		duration m_remaining;
 
 	public :
@@ -68,17 +72,30 @@ class remaining_time_counter_t
 			,	m_remaining{ remaining }
 			{}
 
+		/*!
+		 * \brief Update at manually specified time point.
+		 *
+		 * \since v.5.8.7
+		 */
 		void
-		update()
+		update( time_point when )
 			{
-				const auto now = std::chrono::steady_clock::now();
-				const auto elapsed = now - m_last_time;
-				m_last_time = now;
+				const auto elapsed = when - m_last_time;
+				m_last_time = when;
 
 				if( elapsed < m_remaining )
 					m_remaining -= elapsed;
 				else
 					m_remaining = duration::zero();
+			}
+
+		/*!
+		 * \brief Update with automatic detection of the current time.
+		 */
+		void
+		update()
+			{
+				this->update( std::chrono::steady_clock::now() );
 			}
 
 		duration
