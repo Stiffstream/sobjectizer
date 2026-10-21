@@ -249,6 +249,7 @@ struct task_t
 			{
 				if( m_coro )
 				{
+std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 					m_coro.destroy();
 				}
 			}

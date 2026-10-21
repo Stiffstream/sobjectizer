@@ -329,9 +329,12 @@ this_thread_scheduler_t::resume_ready_coroutines(
 					unlocker_locker_helper_t< std::unique_lock<std::mutex> >
 							unlocker_locker{ locker };
 
+const void * _addr = item_data.m_to_be_resumed.address();
+std::cout << "... entering resume for " << _addr << std::endl;
 					// NOTE: the status can be changed to status_t::notified by a
 					// parallel thread.
 					item_data.m_to_be_resumed.resume();
+std::cout << "... resume finished for " << _addr << std::endl;
 				}
 
 				item = m_ready_items.head();

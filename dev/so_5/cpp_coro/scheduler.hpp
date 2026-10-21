@@ -186,6 +186,8 @@ class SO_5_TYPE resumable_item_t
 
 		~resumable_item_t();
 
+//FIXME: this type shouldn't be Copyable nor Moveable.
+
 		/// @brief An attempt to resume the coroutine.
 		///
 		/// Delegates the work to `m_scheduler.try_schedule(*this)`.
