@@ -10,7 +10,7 @@ namespace test
 {
 
 class this_agent_scheduler_t final
-	: so_5::cpp_coro::scheduler_t
+	: public so_5::cpp_coro::scheduler_t
 {
 public:
 	struct msg_resume_this final : public so_5::message_t
@@ -116,6 +116,95 @@ public:
 	}
 };
 
+class a_demo_t final : public so_5::agent_t
+{
+	struct msg_catch_this final : public so_5::signal_t {};
+
+	struct msg_initiate_receive_message_async final : public so_5::signal_t {};
+
+	this_agent_scheduler_t m_scheduler;
+
+	std::optional< so_5::cpp_coro::task_t< void > > m_current_top_level_coro;
+
+	const so_5::mchain_t m_ch;
+
+	so_5::cpp_coro::task_t< void >
+	receive_message_async()
+	{
+		std::cout << "receive_message_async started" << std::endl;
+
+		co_await so_5::cpp_coro::select(
+				m_scheduler,
+				so_5::from_all().handle_n(1),
+				so_5::receive_case( m_ch,
+					[]( so_5::mhood_t<msg_catch_this> )
+					{
+						std::cout << "signal received" << std::endl;
+					} )
+			);
+
+		std::cout << "receive_message_async finished" << std::endl;
+
+		m_current_top_level_coro.reset();
+
+		std::cout << "m_current_top_level_coro destroyed" << std::endl;
+
+		so_deregister_agent_coop_normally();
+	}
+
+public:
+	a_demo_t( context_t ctx )
+		: so_5::agent_t{ std::move(ctx) }
+		, m_scheduler{ so_direct_mbox() }
+		, m_ch{ so_5::create_mchain( so_environment() ) }
+	{}
+
+	void
+	so_define_agent() override
+	{
+		so_subscribe_self()
+			.event( &a_demo_t::evt_initiate_receive_message_async )
+			.event( &a_demo_t::evt_resume_coro )
+			;
+	}
+
+	void
+	so_evt_start() override
+	{
+		so_5::send< msg_initiate_receive_message_async >( *this );
+
+		so_5::send_delayed< msg_catch_this >( m_ch,
+				std::chrono::milliseconds{ 50 } );
+	}
+
+private:
+	void
+	evt_initiate_receive_message_async(
+		mhood_t< msg_initiate_receive_message_async > )
+	{
+		m_current_top_level_coro = [this]() -> so_5::cpp_coro::task_t<void> {
+			co_await receive_message_async();
+		}();
+		m_current_top_level_coro->m_coro.resume();
+	}
+
+	void
+	evt_resume_coro(
+		mhood_t< this_agent_scheduler_t::msg_resume_this > cmd )
+	{
+		cmd->m_what->scheduler_data().m_to_be_resumed.resume();
+	}
+};
+
+void
+run_demo()
+{
+	so_5::launch( []( so_5::environment_t & env ) {
+			env.register_agent_as_coop(
+					env.make_agent< a_demo_t >() );
+		} );
+}
+
 } /* namespace test */
 
 using namespace test;
@@ -127,6 +216,7 @@ main()
 	{
 		run_with_time_limit(
 			[]() {
+				run_demo();
 			},
 			5 );
 	}
