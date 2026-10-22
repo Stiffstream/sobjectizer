@@ -44,7 +44,8 @@ public:
 
 		~msg_resume_this()
 		{
-			std::cout << this << " msg_resume_this deleted, what=" << m_what << std::endl;
+			std::cout << this << " msg_resume_this deleted, what="
+					<< m_what << std::endl;
 		}
 	};
 
@@ -58,19 +59,37 @@ private:
 
 		~notification_messages_t()
 		{
+			cancel_ordinary_resume();
+			cancel_timeout_elapsed();
+
 			std::cout << "notification_messages_t destroyed" << std::endl;
-			cancel_delivery();
 		}
 
 		void
-		cancel_delivery()
+		cancel_all()
+		{
+			cancel_ordinary_resume();
+			cancel_timeout_elapsed();
+		}
+
+		void
+		cancel_ordinary_resume()
 		{
 			if( m_ordinary_resume )
 			{
 				auto & msg = dynamic_cast<msg_resume_this &>(*m_ordinary_resume);
 				msg.m_what = nullptr;
+
+				std::cout << "ordinary msg_resume_this cancelled, msg="
+						<< std::addressof(msg) << std::endl;
 			}
 
+			m_ordinary_resume.reset();
+		}
+
+		void
+		cancel_timeout_elapsed()
+		{
 			if( m_timeout_elapsed )
 			{
 				m_timer.release();
@@ -82,7 +101,6 @@ private:
 						<< std::addressof(msg) << std::endl;
 			}
 
-			m_ordinary_resume.reset();
 			m_timeout_elapsed.reset();
 		}
 
@@ -143,6 +161,9 @@ public:
 					.m_extra_data.get_or_create< notification_messages_t >(
 							&notification_messages_t::factory );
 
+			// NOTE: it's important that extra_data.cancel_timeout_elapsed
+			// is not called here.
+
 			extra_data.m_ordinary_resume =
 					std::make_unique< msg_resume_this >(
 							what_to_resume,
@@ -196,9 +217,15 @@ public:
 		scheduler_data.m_status =
 				so_5::cpp_coro::resumable_item_t::status_t::waiting;
 
+//FIXME: it seems that this code is redundant.
+//the extra_data has actual timeout_elapsed message only when
+//resumable_item status is `waiting`, but this status has been set
+//just right now.
+#if 0
 		if( scheduler_data.m_extra_data.has_value() )
 			scheduler_data.m_extra_data.as_ref< notification_messages_t >()
 					.cancel_delivery();
+#endif
 
 		if( so_5::cpp_coro::infinite_speep_time() != sleep_time )
 		{
@@ -210,6 +237,7 @@ public:
 					std::make_unique< msg_resume_this >(
 							what_to_handle,
 							msg_resume_this::delayed{} );
+
 			notifications.m_timer = so_5::send_periodic(
 					m_dest,
 					sleep_time,
@@ -229,23 +257,30 @@ public:
 	void
 	do_resumption( const msg_resume_this & cmd )
 	{
-std::cout << std::addressof(cmd) << " msg_resume_this in do_resumption; "
-<< cmd.m_what << std::endl;
 		if( cmd.m_what )
 		{
+			auto & scheduler_data = cmd.m_what->scheduler_data();
+
 			// Status for this coroutine has to be changed.
 			{
 				std::lock_guard lock{ m_lock };
-				cmd.m_what->scheduler_data().m_status =
+				scheduler_data.m_status =
 						so_5::cpp_coro::resumable_item_t::status_t::neutral;
 			}
 
+			// If there are pending notifications they could be cancelled.
+			if( auto * notifications = scheduler_data.m_extra_data
+					.as_ptr< notification_messages_t >() )
+			{
+				notifications->cancel_all();
+			}
+
 			std::cout << "coro to be resumed via msg_resume_this: "
-					<< cmd.m_what->scheduler_data().m_to_be_resumed.address()
+					<< scheduler_data.m_to_be_resumed.address()
 					<< " (" << std::addressof(cmd) << ")"
 					<< std::endl;
 
-			cmd.m_what->scheduler_data().m_to_be_resumed.resume();
+			scheduler_data.m_to_be_resumed.resume();
 		}
 	}
 };
@@ -271,7 +306,8 @@ class a_demo_t final : public so_5::agent_t
 				m_scheduler,
 				so_5::from_all()
 						.handle_n(3)
-/*						.empty_timeout( std::chrono::seconds{1} )*/,
+						//.empty_timeout( std::chrono::seconds{1} )
+						,
 				so_5::receive_case( m_ch,
 					[]( so_5::mhood_t<msg_catch_this> )
 					{
