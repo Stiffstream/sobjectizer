@@ -19,15 +19,78 @@ class this_agent_scheduler_t final
 public:
 	struct msg_resume_this final : public so_5::message_t
 	{
+		struct ordinary {};
+		struct delayed {};
+
 		so_5::cpp_coro::resumable_item_t * m_what;
 
 		msg_resume_this(
-			so_5::cpp_coro::resumable_item_t & what )
+			so_5::cpp_coro::resumable_item_t & what,
+			ordinary )
 			: m_what{ std::addressof(what) }
-		{}
+		{
+			std::cout << this << " msg_resume_this(ordinary) created, what="
+					<< m_what << std::endl;
+		}
+
+		msg_resume_this(
+			so_5::cpp_coro::resumable_item_t & what,
+			delayed )
+			: m_what{ std::addressof(what) }
+		{
+			std::cout << this << " msg_resume_this(delayed) created, what="
+					<< m_what << std::endl;
+		}
+
+		~msg_resume_this()
+		{
+			std::cout << this << " msg_resume_this deleted, what=" << m_what << std::endl;
+		}
 	};
 
 private:
+	struct delayed_message_info_t
+	{
+		so_5::timer_id_t m_timer;
+		so_5::message_ref_t m_msg;
+
+		~delayed_message_info_t()
+		{
+			std::cout << "delayed_message_info_t destroyed" << std::endl;
+		}
+
+		void
+		cancel_delivery()
+		{
+			if( m_msg )
+			{
+				m_timer.release();
+
+				auto & msg = dynamic_cast<msg_resume_this &>(*m_msg);
+				msg.m_what = nullptr;
+
+				std::cout << "delayed msg_resume_this cancelled, msg="
+						<< std::addressof(msg) << std::endl;
+
+				m_msg.reset();
+			}
+		}
+
+		static void
+		deleter( void * info ) noexcept
+		{
+			delete static_cast<delayed_message_info_t *>(info);
+		}
+
+		[[nodiscard]] static
+		so_5::cpp_coro::resumable_item_t::scheduler_data_t::extra_data_t
+		factory()
+		{
+			auto info = std::make_unique< delayed_message_info_t >();
+			return { info.release(), &delayed_message_info_t::deleter };
+		}
+	};
+
 	const so_5::mbox_t m_dest;
 
 	std::mutex m_lock;
@@ -66,7 +129,9 @@ public:
 			what_to_resume.scheduler_data().m_status =
 					so_5::cpp_coro::resumable_item_t::status_t::ready;
 
-			so_5::send< msg_resume_this >( m_dest, what_to_resume );
+			so_5::send< msg_resume_this >( m_dest,
+					what_to_resume,
+					msg_resume_this::ordinary{} );
 		break;
 		}
 	}
@@ -78,7 +143,9 @@ public:
 	{
 		std::lock_guard lock{ m_lock };
 
-		switch( what_to_handle.scheduler_data().m_status )
+		auto & scheduler_data = what_to_handle.scheduler_data();
+
+		switch( scheduler_data.m_status )
 		{
 		case so_5::cpp_coro::resumable_item_t::status_t::neutral:
 			// This case will be handled outside of the switch.
@@ -87,7 +154,7 @@ public:
 		case so_5::cpp_coro::resumable_item_t::status_t::notified:
 			// Coroutine is running now. The status has to be changed, but
 			// coroutine shouldn't be suspended.
-			what_to_handle.scheduler_data().m_status =
+			scheduler_data.m_status =
 					so_5::cpp_coro::resumable_item_t::status_t::neutral;
 
 			return so_5::cpp_coro::try_suspend_result_t::should_be_resumed;
@@ -107,14 +174,28 @@ public:
 		break;
 		}
 
-		what_to_handle.scheduler_data().m_status =
+		scheduler_data.m_status =
 				so_5::cpp_coro::resumable_item_t::status_t::waiting;
 
+		if( scheduler_data.m_extra_data.has_value() )
+			scheduler_data.m_extra_data.as_ref< delayed_message_info_t >()
+					.cancel_delivery();
+
 		if( so_5::cpp_coro::infinite_speep_time() != sleep_time )
-			so_5::send_delayed< msg_resume_this >(
+		{
+			auto & delayed_msg_info = scheduler_data.m_extra_data
+					.get_or_create< delayed_message_info_t >(
+							delayed_message_info_t::factory );
+
+			delayed_msg_info.m_msg = std::make_unique< msg_resume_this >(
+					what_to_handle,
+					msg_resume_this::delayed{} );
+			delayed_msg_info.m_timer = so_5::send_periodic(
 					m_dest,
 					sleep_time,
-					what_to_handle );
+					std::chrono::milliseconds::zero(),
+					so_5::mhood_t< msg_resume_this >( delayed_msg_info.m_msg ) );
+		}
 
 		std::cout << "coro will be suspended "
 			<< what_to_handle.scheduler_data().m_to_be_resumed.address()
@@ -124,16 +205,19 @@ public:
 	}
 
 	void
-	do_resumption( so_5::cpp_coro::resumable_item_t & what )
+	do_resumption( const msg_resume_this & cmd )
 	{
-		// Status for this coroutine has to be changed.
+		if( cmd.m_what )
 		{
-			std::lock_guard lock{ m_lock };
-			what.scheduler_data().m_status =
-					so_5::cpp_coro::resumable_item_t::status_t::neutral;
-		}
+			// Status for this coroutine has to be changed.
+			{
+				std::lock_guard lock{ m_lock };
+				cmd.m_what->scheduler_data().m_status =
+						so_5::cpp_coro::resumable_item_t::status_t::neutral;
+			}
 
-		what.scheduler_data().m_to_be_resumed.resume();
+			cmd.m_what->scheduler_data().m_to_be_resumed.resume();
+		}
 	}
 };
 
@@ -157,8 +241,8 @@ class a_demo_t final : public so_5::agent_t
 		co_await so_5::cpp_coro::select(
 				m_scheduler,
 				so_5::from_all()
-						.handle_n(1)
-						.total_time( std::chrono::seconds{1} ),
+						.handle_n(3)
+						.empty_timeout( std::chrono::seconds{1} ),
 				so_5::receive_case( m_ch,
 					[]( so_5::mhood_t<msg_catch_this> )
 					{
@@ -203,6 +287,10 @@ public:
 
 		so_5::send_delayed< msg_catch_this >( m_ch,
 				std::chrono::milliseconds{ 50 } );
+		so_5::send_delayed< msg_catch_this >( m_ch,
+				std::chrono::milliseconds{ 80 } );
+		so_5::send_delayed< msg_catch_this >( m_ch,
+				std::chrono::milliseconds{ 110 } );
 	}
 
 	void
@@ -235,7 +323,7 @@ private:
 		std::cout << "coro to be resumed via msg_resume_this: "
 				<< cmd->m_what->scheduler_data().m_to_be_resumed.address()
 				<< std::endl;
-		m_scheduler.do_resumption( *(cmd->m_what) );
+		m_scheduler.do_resumption( *cmd );
 		std::cout << "do_resumption completed" << std::endl;
 		check_and_handle_top_level_coro_completion();
 	}

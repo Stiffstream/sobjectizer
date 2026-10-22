@@ -20,6 +20,7 @@
 #include <chrono>
 #include <coroutine>
 #include <optional>
+#include <utility>
 
 namespace so_5::cpp_coro
 {
@@ -124,6 +125,118 @@ class SO_5_TYPE resumable_item_t
 		/// @since v.5.8.7
 		struct scheduler_data_t
 			{
+				//FIXME: document this!
+				class extra_data_t
+					{
+					public:
+						using deleter_t = void(*)(void *) noexcept;
+
+					private:
+						//! Pointer to the extra data.
+						//!
+						//! @note
+						//! nullptr means that there is no extra data (maybe as
+						//! the result of move operation).
+						void * m_data{ nullptr };
+
+						//! Pointer to the deleter of the extra data.
+						//!
+						//! @note
+						//! nullptr means that there is no extra data (maybe as
+						//! the result of move operation).
+						deleter_t m_deleter{ nullptr };
+
+					public:
+						//! Default constructor.
+						extra_data_t() noexcept = default;
+
+						//! Initializing constructor.
+						extra_data_t(
+							void * data,
+							deleter_t deleter ) noexcept
+							: m_data{ data }
+							, m_deleter{ deleter }
+							{}
+
+						//! Move constructor.
+						extra_data_t( extra_data_t && other ) noexcept
+							: m_data{ std::exchange( other.m_data, nullptr ) }
+							, m_deleter{ std::exchange( other.m_deleter, nullptr ) }
+							{}
+
+						// Copy is disabled.
+						extra_data_t( const extra_data_t & ) = delete;
+
+						~extra_data_t() noexcept
+							{
+								if( m_deleter )
+									m_deleter( m_data );
+							}
+
+						friend void
+						swap( extra_data_t & a, extra_data_t & b ) noexcept
+							{
+								std::swap( a.m_data, b.m_data );
+								std::swap( a.m_deleter, b.m_deleter );
+							}
+
+						//! Move operator.
+						extra_data_t &
+						operator=( extra_data_t && other ) noexcept
+							{
+								extra_data_t tmp{ std::move(other) };
+								swap( *this, tmp );
+								return *this;
+							}
+
+						//! Check the presence of the value.
+						[[nodiscard]]
+						bool
+						has_value() const noexcept
+							{
+								return nullptr != m_data;
+							}
+
+						//! Get pointer to the value.
+						//!
+						//! Returns nullptr if there is no value.
+						template< typename T >
+						[[nodiscard]]
+						T *
+						as_ptr() const noexcept
+							{
+								return static_cast<T *>(m_data);
+							}
+
+						//! Get the value.
+						//!
+						//! @attention
+						//! Doesn't check m_data for nullptr. So it's unsafe to
+						//! use this method if has_value() returns `false`.
+						template< typename T >
+						[[nodiscard]]
+						T &
+						as_ref() const noexcept
+							{
+								return *(this->as_ptr<T>());
+							}
+
+						//! Get pointer to the value with calling a factory
+						//! if the value is absent.
+						//!
+						//! The @a factory has to return extra_data_t instance.
+						template< typename T, typename Factory >
+						[[nodiscard]]
+						T &
+						get_or_create( Factory && factory )
+							{
+								if( !this->has_value() )
+									*this = factory();
+
+								return this->as_ref<T>();
+							}
+					};
+
 				/// What need to be resumed.
 				std::coroutine_handle<> m_to_be_resumed;
 
@@ -147,6 +260,13 @@ class SO_5_TYPE resumable_item_t
 				/// empty.
 				std::optional< so_5::details::remaining_time_counter_t >
 					m_sleeping_time;
+
+				/// @brief Extra data for the scheduler.
+				///
+				/// If a scheduler need some additional information about
+				/// the coroutiner it has to create an appropriate data object
+				/// and store this object here.
+				extra_data_t m_extra_data;
 
 				/// Initializing constructor.
 				explicit scheduler_data_t(
