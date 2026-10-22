@@ -193,6 +193,7 @@ using defined_select_params_t =
  */
 template<
 	class Total_Time_Counter,
+	class Empty_Time_Counter,
 	std::size_t Cases_Count >
 resumable_select_t
 do_select(
@@ -226,7 +227,7 @@ do_select(
 			};
 
 		Total_Time_Counter total_time_counter{ params.total_time() };
-		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+		Empty_Time_Counter wait_incoming_time{ params.empty_timeout() };
 		bool wait_incoming_time_not_elapsed_yet = true;
 
 		do
@@ -238,7 +239,7 @@ do_select(
 						// Becase some message extracted we must restart
 						// wait_incoming_time counting.
 						wait_incoming_time =
-								remaining_time_counter_t{ params.empty_timeout() };
+								Empty_Time_Counter{ params.empty_timeout() };
 
 						wait_incoming_time_not_elapsed_yet = true;
 					}
@@ -302,22 +303,55 @@ perform_select(
 	{
 		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
 		using fake_time_counter_t = so_5::details::fake_remaining_time_counter_t;
+		using so_5::mchain_props::details::is_infinite_wait_timevalue;
 
-		if( so_5::mchain_props::details::is_infinite_wait_timevalue(
-				params.total_time() ) )
-			{
-				return do_select< fake_time_counter_t >(
-						coro_scheduler,
-						std::move(params),
-						std::move(cases_holder) );
-			}
-		else
-			{
-				return do_select< normal_time_counter_t >(
-						coro_scheduler,
-						std::move(params),
-						std::move(cases_holder) );
-			}
+		constexpr int no_total_time = 0;
+		constexpr int has_total_time = 1;
+		constexpr int no_empty_timeout = 0;
+		constexpr int has_empty_timeout = 2;
+
+		const int timeouts_presence =
+				( is_infinite_wait_timevalue( params.total_time() )
+					? no_total_time : has_total_time ) +
+				( is_infinite_wait_timevalue( params.empty_timeout() )
+					? no_empty_timeout : has_empty_timeout )
+				;
+		switch( timeouts_presence )
+		{
+		case (no_total_time + no_empty_timeout):
+			return do_select< fake_time_counter_t, fake_time_counter_t >(
+					coro_scheduler,
+					std::move(params),
+					std::move(cases_holder) );
+
+		case (no_total_time + has_empty_timeout):
+			return do_select< fake_time_counter_t, normal_time_counter_t >(
+					coro_scheduler,
+					std::move(params),
+					std::move(cases_holder) );
+
+		case (has_total_time + no_empty_timeout):
+			return do_select< normal_time_counter_t, fake_time_counter_t >(
+					coro_scheduler,
+					std::move(params),
+					std::move(cases_holder) );
+
+		case (has_total_time + has_empty_timeout):
+			// Will be handled after the switch to avoid compiler warning
+			// about missing return value.
+		break;
+
+		default:
+			SO_5_THROW_EXCEPTION(
+					rc_unexpected_error,
+					"not all cases are handled in so_5::cpp_coro::"
+					"async_select_impl::perform_select" );
+		}
+
+		return do_select< normal_time_counter_t, normal_time_counter_t >(
+				coro_scheduler,
+				std::move(params),
+				std::move(cases_holder) );
 	}
 
 } /* namespace async_select_impl */

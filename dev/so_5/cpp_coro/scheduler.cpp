@@ -4,9 +4,6 @@
 
 #include <so_5/cpp_coro/scheduler.hpp>
 
-//FIXME: remove after debugging!
-#include <iostream>
-
 namespace so_5::cpp_coro
 {
 
@@ -20,14 +17,7 @@ resumable_item_t::resumable_item_t(
 	, m_scheduler{ scheduler }
 	{}
 
-#if 0
 resumable_item_t::~resumable_item_t() = default;
-#else
-resumable_item_t::~resumable_item_t()
-{
-	std::cout << "~resumable_item_t " << this << std::endl;
-}
-#endif
 
 void
 resumable_item_t::try_schedule()

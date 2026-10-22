@@ -76,6 +76,9 @@ enum class try_suspend_result_t
  * The m_to_be_resumed won't be destroyed in the destructor of
  * resumable_item_t.
  *
+ * @note
+ * This type doesn't support Copy and Move operations.
+ *
  * @since v.5.8.7
  */
 class SO_5_TYPE resumable_item_t
@@ -122,10 +125,21 @@ class SO_5_TYPE resumable_item_t
 
 		/// @brief Holder of the information needed for the scheduler.
 		///
+		/// @note
+		/// This type doesn't support Copy and Move operations.
+		///
 		/// @since v.5.8.7
 		struct scheduler_data_t
 			{
-				//FIXME: document this!
+				/*!
+				 * @brief Special wrapper to hold scheduler-specific
+				 * additional data for resumable_item_t.
+				 *
+				 * It's somewhat similar to std::any, but doesn't support
+				 * copy and requires explicit deleter for the value.
+				 *
+				 * @since v.5.8.7
+				 */
 				class extra_data_t
 					{
 					public:
@@ -274,6 +288,15 @@ class SO_5_TYPE resumable_item_t
 					std::coroutine_handle<> to_be_resumed )
 					: m_to_be_resumed{ to_be_resumed }
 					{}
+
+				// Copy and Move operations are disabled.
+				scheduler_data_t( const scheduler_data_t & ) = delete;
+				scheduler_data_t &
+				operator=( const scheduler_data_t & ) = delete;
+
+				scheduler_data_t( scheduler_data_t && ) = delete;
+				scheduler_data_t &
+				operator=( scheduler_data_t && ) = delete;
 			};
 
 	private:
@@ -306,7 +329,14 @@ class SO_5_TYPE resumable_item_t
 
 		~resumable_item_t();
 
-//FIXME: this type shouldn't be Copyable nor Moveable.
+		// Copy and Move operations are disabled.
+		resumable_item_t( const resumable_item_t & ) = delete;
+		resumable_item_t &
+		operator=( const resumable_item_t & ) = delete;
+
+		resumable_item_t( resumable_item_t && ) = delete;
+		resumable_item_t &
+		operator=( resumable_item_t && ) = delete;
 
 		/// @brief An attempt to resume the coroutine.
 		///
