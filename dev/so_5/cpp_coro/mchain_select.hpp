@@ -105,8 +105,6 @@ class async_select_notificator_t final
 						m_tail = &(*b);
 						++b;
 					}
-
-std::cout << "async_select_notificator_t coro is " << coro_to_resume.address() << std::endl;
 			}
 
 		void
@@ -233,12 +231,7 @@ do_select(
 
 		do
 			{
-std::cout << "calling co_await performer.handle_next_async" << std::endl;
 				const auto handle_result = co_await performer.handle_next_async();
-std::cout << "co_await performer.handle_next_async completed" << std::endl;
-std::cout << "performer.last_extraction_status="
-<< static_cast<int>(performer.last_extraction_status()) << std::endl;
-std::cout << "handle_result=" << static_cast<int>(handle_result) << std::endl;
 				if( so_5::mchain_props::extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
 					{
@@ -251,7 +244,6 @@ std::cout << "handle_result=" << static_cast<int>(handle_result) << std::endl;
 					}
 				else
 					{
-std::cout << "do_select else branch" << std::endl;
 						// Otherwise wait_incoming_time should be updated to
 						// reduce it value.
 						wait_incoming_time.update();
@@ -267,7 +259,6 @@ std::cout << "do_select else branch" << std::endl;
 						// to suspend the coroutine for some time.
 						if( handle_next_result_t::no_ready_cases == handle_result )
 							{
-std::cout << "trying to call co_await try_suspend_for" << std::endl;
 								// Ask for awaitable object that is bound to
 								// appropriate wait time and wait until this
 								// awaitable resumes.
@@ -278,7 +269,6 @@ std::cout << "trying to call co_await try_suspend_for" << std::endl;
 										std::min(
 												total_time_counter.remaining(),
 												wait_incoming_time.remaining() ) );
-std::cout << "co_await try_suspend_for completed" << std::endl;
 							}
 					}
 
@@ -289,8 +279,6 @@ std::cout << "co_await try_suspend_for completed" << std::endl;
 		while( total_time_counter
 				&& wait_incoming_time_not_elapsed_yet
 				&& performer.can_continue() );
-
-std::cout << "do_select loop completed" << std::endl;
 
 		co_return performer.make_result();
 	}

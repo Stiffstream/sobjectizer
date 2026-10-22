@@ -3,11 +3,15 @@
 #include <so_5/cpp_coro/scheduler.hpp>
 #include <so_5/cpp_coro/mchain_select.hpp>
 
+#include <so_5/cpp_coro/this_thread_scheduler.hpp>
+
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
 
 namespace test
 {
+
+using so_5::cpp_coro::this_thread_scheduler_impl::top_level_task_t;
 
 class this_agent_scheduler_t final
 	: public so_5::cpp_coro::scheduler_t
@@ -70,7 +74,7 @@ public:
 	so_5::cpp_coro::try_suspend_result_t
 	try_suspend(
 		so_5::cpp_coro::resumable_item_t & what_to_handle,
-		so_5::cpp_coro::monotonic_clock_t::duration /*sleep_time*/ ) override
+		so_5::cpp_coro::monotonic_clock_t::duration sleep_time ) override
 	{
 		std::lock_guard lock{ m_lock };
 
@@ -106,15 +110,15 @@ public:
 		what_to_handle.scheduler_data().m_status =
 				so_5::cpp_coro::resumable_item_t::status_t::waiting;
 
-#if 0
 		if( so_5::cpp_coro::infinite_speep_time() != sleep_time )
 			so_5::send_delayed< msg_resume_this >(
 					m_dest,
 					sleep_time,
 					what_to_handle );
-#endif
 
-		std::cout << "coro will be suspended " << what_to_handle.scheduler_data().m_to_be_resumed.address() << std::endl;
+		std::cout << "coro will be suspended "
+			<< what_to_handle.scheduler_data().m_to_be_resumed.address()
+			<< std::endl;
 
 		return so_5::cpp_coro::try_suspend_result_t::should_be_suspended;
 	}
@@ -152,7 +156,9 @@ class a_demo_t final : public so_5::agent_t
 
 		co_await so_5::cpp_coro::select(
 				m_scheduler,
-				so_5::from_all().handle_n(1),
+				so_5::from_all()
+						.handle_n(1)
+						.total_time( std::chrono::seconds{1} ),
 				so_5::receive_case( m_ch,
 					[]( so_5::mhood_t<msg_catch_this> )
 					{
@@ -162,13 +168,16 @@ class a_demo_t final : public so_5::agent_t
 
 		std::cout << "receive_message_async finished" << std::endl;
 
-#if 0
-		m_current_top_level_coro.reset();
-
-		std::cout << "m_current_top_level_coro destroyed" << std::endl;
-
 		so_deregister_agent_coop_normally();
-#endif
+	}
+
+	void
+	check_and_handle_top_level_coro_completion()
+	{
+		if( m_current_top_level_coro->m_coro.done() )
+		{
+			m_current_top_level_coro.reset();
+		}
 	}
 
 public:
@@ -196,28 +205,39 @@ public:
 				std::chrono::milliseconds{ 50 } );
 	}
 
+	void
+	so_evt_finish() override
+	{
+		std::cout << "work finished" << std::endl;
+	}
+
 private:
 	void
 	evt_initiate_receive_message_async(
 		mhood_t< msg_initiate_receive_message_async > )
 	{
-#if 0
-		m_current_top_level_coro = receive_message_async();
+		auto wrapped_coro = [this]() -> top_level_task_t< void >
+		{
+			co_return co_await receive_message_async();
+		};
+		m_current_top_level_coro = wrapped_coro();
+		std::cout << "coro to be resumed: "
+				<< m_current_top_level_coro->m_coro.address()
+				<< std::endl;
 		m_current_top_level_coro->m_coro.resume();
-#else
-		auto * t = new so_5::cpp_coro::task_t<void>{ receive_message_async() };
-		std::cout << "coro to be resumed: " << t->m_coro.address() << std::endl;
-		t->m_coro.resume();
-#endif
+		check_and_handle_top_level_coro_completion();
 	}
 
 	void
 	evt_resume_coro(
 		mhood_t< this_agent_scheduler_t::msg_resume_this > cmd )
 	{
-		std::cout << "coro to be resumed via msg_resume_this: " << cmd->m_what->scheduler_data().m_to_be_resumed.address() << std::endl;
+		std::cout << "coro to be resumed via msg_resume_this: "
+				<< cmd->m_what->scheduler_data().m_to_be_resumed.address()
+				<< std::endl;
 		m_scheduler.do_resumption( *(cmd->m_what) );
 		std::cout << "do_resumption completed" << std::endl;
+		check_and_handle_top_level_coro_completion();
 	}
 };
 
