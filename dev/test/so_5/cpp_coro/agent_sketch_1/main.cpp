@@ -305,8 +305,34 @@ class a_demo_t final : public so_5::agent_t
 		co_await so_5::cpp_coro::select(
 				m_scheduler,
 				so_5::from_all()
-						.handle_n(3)
-						//.empty_timeout( std::chrono::seconds{1} )
+						.handle_n(1)
+						.empty_timeout( std::chrono::seconds{1} )
+						,
+				so_5::receive_case( m_ch,
+					[]( so_5::mhood_t<msg_catch_this> )
+					{
+						std::cout << "signal received" << std::endl;
+					} )
+			);
+
+		co_await so_5::cpp_coro::select(
+				m_scheduler,
+				so_5::from_all()
+						.handle_n(1)
+						.empty_timeout( std::chrono::seconds{1} )
+						,
+				so_5::receive_case( m_ch,
+					[]( so_5::mhood_t<msg_catch_this> )
+					{
+						std::cout << "signal received" << std::endl;
+					} )
+			);
+
+		co_await so_5::cpp_coro::select(
+				m_scheduler,
+				so_5::from_all()
+						.handle_n(1)
+						.empty_timeout( std::chrono::seconds{1} )
 						,
 				so_5::receive_case( m_ch,
 					[]( so_5::mhood_t<msg_catch_this> )
