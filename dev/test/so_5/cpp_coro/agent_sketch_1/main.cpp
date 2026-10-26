@@ -293,7 +293,7 @@ class a_demo_t final : public so_5::agent_t
 
 	this_agent_scheduler_t m_scheduler;
 
-	std::optional< so_5::cpp_coro::task_t< void > > m_current_top_level_coro;
+	std::optional< top_level_task_t< void > > m_current_top_level_coro;
 
 	const so_5::mchain_t m_ch;
 
