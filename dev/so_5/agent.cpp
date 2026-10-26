@@ -1608,14 +1608,38 @@ agent_t::demand_handler_for_cpp_coro_support(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	agent_t * const self = d.m_receiver;
+
 	for(;;)
 	{
-		//FIXME: checking for the presence of the current coroutine
-		//has to be done here.
+		// If there is the current coroutine then it has to be resumed.
+		// It's because we can't handle ordinary demands before completion
+		// of the current coroutine.
+		if( self->m_cpp_coro_data->m_current_top_level_task.has_value() )
+			{
+				impl::agent_impl::working_thread_id_sentinel_t sentinel(
+						self->m_working_thread_id,
+						working_thread_id );
+
+				self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
+				if( !self->m_cpp_coro_data->m_current_top_level_task
+						->m_coro.done() )
+					{
+						// We must wait the next wakeup_demand and this
+						// loop has to be finished.
+						break;
+					}
+				else
+					{
+						// The coroutine is completed and we can go to
+						// service ordinary demands.
+						self->m_cpp_coro_data->m_current_top_level_task.reset();
+					}
+			}
 
 		// When handling of the current coroutine is completed waiting
 		// ordinary demands have to be processed.
-		auto demand_ptr = d.m_receiver->m_cpp_coro_data->m_special_queue
+		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
 				.try_extract_demand_for_execution();
 		if( demand_ptr )
 		{

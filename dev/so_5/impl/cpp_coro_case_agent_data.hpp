@@ -11,6 +11,10 @@
 
 #include <so_5/impl/cpp_coro_case_special_queue.hpp>
 
+#include <so_5/cpp_coro/details/top_level_task.hpp>
+
+#include <optional>
+
 namespace so_5::impl
 {
 
@@ -28,10 +32,20 @@ namespace so_5::impl
  */
 struct cpp_coro_case_agent_data_t
 	{
+		//! Short alias for top_level_task.
+		using top_level_task_t =
+				so_5::cpp_coro::details::top_level_task_t< void >;
+
 		//! Special event queue for the agent.
 		cpp_coro_case_special_queue_t m_special_queue;
 
-		//FIXME: the current coroutine has to be stored here.
+		//! The current coroutine.
+		/*!
+		 * \note
+		 * This field has a value only when coroutine is started but
+		 * not done yet.
+		 */
+		std::optional< top_level_task_t > m_current_top_level_task;
 	};
 
 } /* namespace so_5::impl */
