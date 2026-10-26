@@ -293,12 +293,18 @@ class cpp_coro_case_special_queue_t final
 				return {};
 			}
 
-		//! Get the pointer to the actual_queue.
+		//! Give away the pointer to the actual_queue.
+		/*!
+		 * \attention
+		 * The special queue shouldn't be used after this call.
+		 */
 		[[nodiscard]]
 		event_queue_t *
-		actual_queue() const noexcept
+		giveaway_actual_queue() noexcept
 			{
-				return m_actual_queue;
+				event_queue_t * q = m_actual_queue;
+				m_actual_queue = nullptr;
+				return q;
 			}
 	};
 

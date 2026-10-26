@@ -1246,19 +1246,22 @@ agent_t::shutdown_agent() noexcept
 
 	if( actual_queue )
 	{
-		// Since v.5.8.7 the special queue is used instead of actual
-		// queue if coroutines support is enabled. In such a case the
-		// pointer to the actual queue has to be restored.
-		if( m_cpp_coro_data )
-			actual_queue = m_cpp_coro_data->m_special_queue.actual_queue();
-
 		// Since v.5.5.24 we should utilize event_queue via
 		// event_queue_hook.
-		impl::internal_env_iface_t{ m_env }
-				.event_queue_on_unbind( this, actual_queue );
+		//
+		// Since v.5.8.7 there is support for C++20 coroutines. If this
+		// support is enabled then the destruction of the actual queue
+		// has to be postponed to evt_finish.
+		if( !m_cpp_coro_data )
+		{
+			impl::internal_env_iface_t{ m_env }
+					.event_queue_on_unbind( this, actual_queue );
+		}
 	}
 }
 
+//FIXME: if m_cpp_coro_data is not null then thread_safety flag has to be
+//changed to not_thread_safe.
 void
 agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
@@ -1534,6 +1537,17 @@ agent_t::demand_handler_on_finish(
 
 		// Since v.5.5.15 agent should be returned in default state.
 		d.m_receiver->return_to_default_state_if_possible();
+
+		// Since v.5.8.7 there is support for C++20 coroutines. If this
+		// support is enabled then we have to delete the actual event_queue
+		// for the agent. We can do it only now.
+		if( d.m_receiver->m_cpp_coro_data )
+		{
+			impl::internal_env_iface_t{ d.m_receiver->m_env }
+					.event_queue_on_unbind( d.m_receiver,
+							d.m_receiver->m_cpp_coro_data->m_special_queue
+									.giveaway_actual_queue() );
+		}
 	}
 
 	// Cooperation should receive notification about agent deregistration.
