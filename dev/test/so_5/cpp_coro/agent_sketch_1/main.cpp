@@ -11,7 +11,7 @@
 namespace test
 {
 
-using so_5::cpp_coro::this_thread_scheduler_impl::top_level_task_t;
+using so_5::cpp_coro::details::top_level_task_t;
 
 class this_agent_scheduler_t final
 	: public so_5::cpp_coro::scheduler_t
