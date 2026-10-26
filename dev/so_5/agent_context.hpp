@@ -211,6 +211,15 @@ operator+(
 		ctx.options().demands_handling_on_dereg( handling_mode );
 		return ctx;
 	}
+
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	cpp_coro_support_t support_info )
+	{
+		ctx.options().enable_cpp_coro_support( std::move(support_info) );
+		return ctx;
+	}
 /*!
  * \}
  */

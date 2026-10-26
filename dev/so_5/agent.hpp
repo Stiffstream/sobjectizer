@@ -3086,6 +3086,17 @@ class SO_5_TYPE agent_t
 		/// \since v.5.8.5
 		const demands_handling_on_dereg_t m_demands_handling_on_dereg;
 
+		/*!
+		 * \brief Data related to C++20 coroutines support.
+		 *
+		 * \attention
+		 * This field will be defined only if coroutines support is enabled
+		 * in the agent's context.
+		 *
+		 * \since v.5.8.7
+		 */
+		std::unique_ptr< impl::cpp_coro_case_agent_data_t > m_cpp_coro_data;
+
 		//! Destroy all agent's subscriptions.
 		/*!
 		 * \note
@@ -3312,6 +3323,26 @@ class SO_5_TYPE agent_t
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_enveloped_msg_ptr() noexcept;
+
+		/*!
+		 * \brief Handles cases when C++20 coroutines are supported
+		 * by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static void
+		demand_handler_for_cpp_coro_support(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
+
+		/*!
+		 * \brief Get pointer to demand handler for case when C++20
+		 * coroutines are supported by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_for_cpp_coro_case_ptr() noexcept;
 		/*!
 		 * \}
 		 */

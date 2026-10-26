@@ -18,6 +18,7 @@
 #include <so_5/priority.hpp>
 
 #include <memory>
+#include <optional>
 
 namespace so_5
 {
@@ -215,6 +216,47 @@ inline constexpr demands_handling_on_dereg_t skip_demands_on_dereg =
 		demands_handling_on_dereg_t::skip;
 
 //
+// cpp_coro_support_t
+//
+/*!
+ * \brief Information about C++20 coroutines support.
+ *
+ * \note
+ * This type is intended to be used for tuning agent's options.
+ *
+ * \note
+ * It's an empty struct for now. But it may be extended in the future
+ * versions of SObjectizer.
+ *
+ * \since v.5.8.7
+ */
+struct cpp_coro_support_t
+	{};
+
+//! Helper function for enabling support of C++20 coroutines for an
+//! agent
+/*!
+ * Usage example:
+ * \code
+ * class demo : public so_5::agent_t
+ * {
+ * public:
+ * 	demo(context_t ctx)
+ * 		: so_5::agent_t{ ctx + so_5::enable_cpp_coro() }
+ * 	{...}
+ * };
+ * \endcode
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]] inline
+cpp_coro_support_t
+enable_cpp_coro()
+	{
+		return {};
+	}
+
+//
 // agent_tuning_options_t
 //
 /*!
@@ -247,6 +289,8 @@ class agent_tuning_options_t
 				swap( a.m_agent_name, b.m_agent_name );
 				swap( a.m_demands_handling_on_dereg,
 						b.m_demands_handling_on_dereg );
+				swap( a.m_cpp_coro_support,
+						b.m_cpp_coro_support );
 			}
 
 		//! Set factory for subscription storage creation.
@@ -431,6 +475,35 @@ class agent_tuning_options_t
 				return m_demands_handling_on_dereg;
 			}
 
+		/*!
+		 * \brief Enables support for C++20 coroutines.
+		 *
+		 * \since v.5.8.7
+		 */
+		agent_tuning_options_t &
+		enable_cpp_coro_support(
+			cpp_coro_support_t info )
+			{
+				m_cpp_coro_support = std::move(info);
+				return *this;
+			}
+
+		/*!
+		 * \brief Get information about C++20 coroutines support.
+		 *
+		 * \note
+		 * Returns empty std::optional if support for coroutines wasn't
+		 * enabled explicitly.
+		 *
+		 * \since v.5.8.7
+		 */
+		[[nodiscard]]
+		std::optional< cpp_coro_support_t >
+		cpp_coro_support() const
+			{
+				return m_cpp_coro_support;
+			}
+
 	private :
 		//FIXME(v.5.9.0): this member has to be changed to:
 		//
@@ -479,6 +552,15 @@ class agent_tuning_options_t
 		demands_handling_on_dereg_t m_demands_handling_on_dereg{
 				demands_handling_on_dereg_t::normal
 			};
+
+		/*!
+		 * \brief Status of support for C++20 coroutines.
+		 *
+		 * Empty value means that C++20 coroutines are not supported.
+		 *
+		 * \since v.5.8.7
+		 */
+		std::optional< cpp_coro_support_t > m_cpp_coro_support;
 	};
 
 } /* namespace so_5 */

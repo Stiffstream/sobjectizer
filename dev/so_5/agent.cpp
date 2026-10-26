@@ -19,6 +19,9 @@
 
 #include <so_5/impl/enveloped_msg_details.hpp>
 
+#include <so_5/impl/cpp_coro_case_special_queue.hpp>
+#include <so_5/impl/cpp_coro_case_agent_data.hpp>
+
 #include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <so_5/spinlocks.hpp>
@@ -28,6 +31,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <limits>
+#include <utility>
 
 namespace so_5
 {
@@ -766,6 +770,30 @@ detect_subscription_storage_factory_to_use(
 			return impl::internal_env_iface_t{ env }.default_subscription_storage_factory();
 	}
 
+/*!
+ * \brief Helper for creation of data instance for holding information
+ * related to C++20 coroutines handling.
+ *
+ * Returns empty unique_ptr if support for C++20 coroutines is disabled.
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]]
+std::unique_ptr< so_5::impl::cpp_coro_case_agent_data_t >
+make_cpp_coro_agent_data_if_needed(
+	const agent_tuning_options_t & tuning_options )
+	{
+		using so_5::impl::cpp_coro_case_agent_data_t;
+
+		std::unique_ptr< cpp_coro_case_agent_data_t > result;
+
+		const auto info = tuning_options.cpp_coro_support();
+		if( info )
+			result = std::make_unique< cpp_coro_case_agent_data_t >();
+
+		return result;
+	}
+
 } /* namespace anonymous */
 
 //
@@ -818,6 +846,8 @@ agent_t::agent_t(
 	,	m_name( ctx.options().giveout_agent_name() )
 	,	m_demands_handling_on_dereg(
 			ctx.options().demands_handling_on_dereg() )
+	,	m_cpp_coro_data{
+			make_cpp_coro_agent_data_if_needed( ctx.options() ) }
 {
 }
 
@@ -1010,6 +1040,14 @@ agent_t::so_bind_to_dispatcher(
 	// actual event_queue.
 	auto * actual_queue = impl::internal_env_iface_t{ m_env }
 			.event_queue_on_bind( this, &queue );
+
+	// Since v.5.8.7 special queue has to be used as wrapper around
+	// the actual_queue if C++20 coroutines support is enabled.
+	if( m_cpp_coro_data )
+	{
+		m_cpp_coro_data->m_special_queue.bind_actual_queue( actual_queue );
+		actual_queue = std::addressof(m_cpp_coro_data->m_special_queue);
+	}
 
 	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
@@ -1207,10 +1245,18 @@ agent_t::shutdown_agent() noexcept
 		m_current_status = agent_status_t::shutdown_with_skipping_pending_demands;
 
 	if( actual_queue )
+	{
+		// Since v.5.8.7 the special queue is used instead of actual
+		// queue if coroutines support is enabled. In such a case the
+		// pointer to the actual queue has to be restored.
+		if( m_cpp_coro_data )
+			actual_queue = m_cpp_coro_data->m_special_queue.actual_queue();
+
 		// Since v.5.5.24 we should utilize event_queue via
 		// event_queue_hook.
 		impl::internal_env_iface_t{ m_env }
 				.event_queue_on_unbind( this, actual_queue );
+	}
 }
 
 void
@@ -1541,6 +1587,39 @@ demand_handler_pfn_t
 agent_t::get_demand_handler_on_enveloped_msg_ptr() noexcept
 {
 	return &agent_t::demand_handler_on_enveloped_msg;
+}
+
+void
+agent_t::demand_handler_for_cpp_coro_support(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	for(;;)
+	{
+		//FIXME: checking for the presence of the current coroutine
+		//has to be done here.
+
+		// When handling of the current coroutine is completed waiting
+		// ordinary demands have to be processed.
+		auto demand_ptr = d.m_receiver->m_cpp_coro_data->m_special_queue
+				.try_extract_demand_for_execution();
+		if( demand_ptr )
+		{
+			demand_ptr->m_execution_demand.call_handler(
+					working_thread_id );
+		}
+		else
+		{
+			// There is no more waiting demands. Have to break the loop.
+			break;
+		}
+	}
+}
+
+demand_handler_pfn_t
+agent_t::get_demand_handler_for_cpp_coro_case_ptr() noexcept
+{
+	return &agent_t::demand_handler_for_cpp_coro_support;
 }
 
 void
