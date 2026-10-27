@@ -781,6 +781,7 @@ detect_subscription_storage_factory_to_use(
 [[nodiscard]]
 std::unique_ptr< so_5::impl::cpp_coro_case_agent_data_t >
 make_cpp_coro_agent_data_if_needed(
+	partially_constructed_agent_ptr_t agent_ptr,
 	const agent_tuning_options_t & tuning_options )
 	{
 		using so_5::impl::cpp_coro_case_agent_data_t;
@@ -789,7 +790,8 @@ make_cpp_coro_agent_data_if_needed(
 
 		const auto info = tuning_options.cpp_coro_support();
 		if( info )
-			result = std::make_unique< cpp_coro_case_agent_data_t >();
+			result = std::make_unique< cpp_coro_case_agent_data_t >(
+					*(agent_ptr.ptr()) );
 
 		return result;
 	}
@@ -847,7 +849,9 @@ agent_t::agent_t(
 	,	m_demands_handling_on_dereg(
 			ctx.options().demands_handling_on_dereg() )
 	,	m_cpp_coro_data{
-			make_cpp_coro_agent_data_if_needed( ctx.options() ) }
+			make_cpp_coro_agent_data_if_needed(
+				partially_constructed_agent_ptr_t{ self_ptr() },
+				ctx.options() ) }
 {
 }
 
@@ -1171,6 +1175,17 @@ agent_t::so_agent_name() const noexcept
 		return { m_name.as_string_view() };
 	else
 		return { this };
+}
+
+so_5::cpp_coro::scheduler_t &
+agent_t::so_this_agent_scheduler() const
+{
+	if( !m_cpp_coro_data )
+		SO_5_THROW_EXCEPTION(
+				rc_no_support_for_cpp_coro_in_agent,
+				"C++20 coroutines have to be enabled for the agent" );
+
+	return m_cpp_coro_data->m_this_agent_scheduler;
 }
 
 void
@@ -1658,6 +1673,55 @@ demand_handler_pfn_t
 agent_t::get_demand_handler_for_cpp_coro_case_ptr() noexcept
 {
 	return &agent_t::demand_handler_for_cpp_coro_support;
+}
+
+void
+agent_t::demand_handler_for_cpp_coro_resumption(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	agent_t * const self = d.m_receiver;
+
+	// The first task is the resumption of the specified coroutine.
+	{
+		so_5::impl::msg_resume_coro & resume_msg =
+				dynamic_cast<so_5::impl::msg_resume_coro &>(
+						*(d.m_message_ref.get()) );
+		// ATTENTION: delivery of msg_resume_coro may have been cancelled.
+		// This has to be checked.
+		if( resume_msg.m_what )
+		{
+			impl::agent_impl::working_thread_id_sentinel_t sentinel(
+					self->m_working_thread_id,
+					working_thread_id );
+
+			resume_msg.m_what->scheduler_data().m_to_be_resumed.resume();
+		}
+	}
+
+	// Delivered message is no more needed.
+	d.m_message_ref.reset();
+
+	// If the current top-level coroutine has been completed after resumption
+	// then the top-level coroutine has to be destroyed and agent has to be
+	// turned for the normal work.
+	if( self->m_cpp_coro_data->m_current_top_level_task.value().m_coro.done() )
+	{
+		self->m_cpp_coro_data->m_current_top_level_task.reset();
+
+		// Reuse the existing execution_demand_t instance for
+		// the subsequent demand_handler call.
+		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent_for_cpp_coro_case);
+		d.m_demand_handler = get_demand_handler_for_cpp_coro_case_ptr();
+
+		demand_handler_for_cpp_coro_support( working_thread_id, d );
+	}
+}
+
+demand_handler_pfn_t
+agent_t::get_demand_handler_for_cpp_coro_resumtion_ptr() noexcept
+{
+	return &agent_t::demand_handler_for_cpp_coro_resumption;
 }
 
 void

@@ -565,6 +565,14 @@ const int rc_sync_handler_expected = 202;
  */
 const int rc_async_handler_expected = 203;
 
+/*!
+ * \brief An attempt to use C++20 coroutines for an agent without explicit
+ * enabling of coroutines support.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_support_for_cpp_coro_in_agent = 204;
+
 //! \name Common error codes.
 //! \{
 

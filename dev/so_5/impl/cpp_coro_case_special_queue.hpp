@@ -1,3 +1,7 @@
+/*
+ * SObjectizer-5
+ */
+
 /*!
  * @file
  * @brief Special event_queue for case when agent should support
@@ -12,7 +16,10 @@
 #include <so_5/execution_demand.hpp>
 #include <so_5/event_queue.hpp>
 
+#include <so_5/details/invoke_noexcept_code.hpp>
+
 #include <mutex>
+#include <optional>
 
 namespace so_5::impl
 {
@@ -93,7 +100,12 @@ class cpp_coro_case_special_queue_t final
 		//implementation. It has to be changed to the appropriate
 		//queue_traits::lock_unique_ptr_t.
 		//! Queue lock.
-		std::mutex m_lock;
+		/*!
+		 * \note
+		 * It's an external lock-object that will be shared between several
+		 * entities (like this special_queue, this_agent_scheduler and so on).
+		 */
+		std::mutex & m_lock;
 
 		//! Actual event_queue for passing demands to the dispatcher.
 		/*!
@@ -133,165 +145,44 @@ class cpp_coro_case_special_queue_t final
 
 		//! Helper method for deleting queue's head object.
 		demand_unique_ptr_t
-		remove_head() noexcept
-			{
-				demand_unique_ptr_t to_be_deleted{ m_head };
-				m_head = m_head->m_next;
-				to_be_deleted->m_next = nullptr;
-
-				return to_be_deleted;
-			}
+		remove_head() noexcept;
 
 		void
-		store_demand( demand_unique_ptr_t tail_demand )
-			{
-				if( nullptr == m_head )
-					{
-						m_head = tail_demand.release();
-						m_tail = m_head;
-					}
-				else
-					{
-						m_tail->m_next = tail_demand.release();
-						m_tail = m_tail->m_next;
-					}
-			}
+		store_demand( demand_unique_ptr_t tail_demand );
 
 	public:
-		cpp_coro_case_special_queue_t() = default;
+		//! Initializing constructor.
+		cpp_coro_case_special_queue_t(
+			//! Lock to be used for thread safety.
+			std::mutex & lock );
 
-		~cpp_coro_case_special_queue_t() noexcept override
-			{
-				while( m_head )
-					{
-						remove_head();
-					}
-			}
+		~cpp_coro_case_special_queue_t() noexcept override;
 
 		//! Connect this special_queue with the actual event_queue from
 		//! the real dispatcher.
 		void
-		bind_actual_queue( event_queue_t * actual_queue )
-			{
-				// NOTE: it's assumed that this method will be called
-				// in agent_t::so_bind_to_dispatcher and there is no need
-				// to acquire m_lock object.
-				m_actual_queue = actual_queue;
-			}
+		bind_actual_queue( event_queue_t * actual_queue );
 
 		void
-		push( execution_demand_t src_demand ) override
-			{
-				agent_t * agent_to_wakeup = src_demand.m_receiver;
-
-				demand_unique_ptr_t wrapped_demand = std::make_unique< demand_t >(
-						std::move(src_demand) );
-
-				bool has_to_push_wakeup_demand = false;
-
-				{
-					std::lock_guard< std::mutex > lock{ m_lock };
-
-					store_demand( std::move(wrapped_demand) );
-
-					has_to_push_wakeup_demand = m_wakeup_demand_enabled;
-					m_wakeup_demand_enabled = false;
-				}
-
-				if( has_to_push_wakeup_demand )
-//FIXME: should this action be moved to separate helper method?
-					// If this attempt fails then it will be impossible
-					// to continue the work because the agent won't be
-					// informed about the presence of demand to be handled.
-					so_5::details::invoke_noexcept_code(
-						[this, agent_to_wakeup]() {
-							m_actual_queue->push(
-									execution_demand_t{
-											agent_to_wakeup,
-											message_limit::control_block_t::none(),
-											null_mbox_id(),
-											typeid(msg_wakeup_agent_for_cpp_coro_case),
-											message_ref_t{} /* no actual message */,
-											agent_t::get_demand_handler_for_cpp_coro_case_ptr()
-									} );
-						} );
-			}
+		push( execution_demand_t src_demand ) override;
 
 		void
-		push_evt_start( execution_demand_t demand ) override
-			{
-				// Simple delegate this call to the actual_queue.
-				//
-				// We assume that this is the first call to the queue and
-				// push() can't be called before push_evt_start.
-				m_actual_queue->push_evt_start( std::move(demand) );
-			}
+		push_evt_start( execution_demand_t demand ) override;
 
 		void
-		push_evt_finish( execution_demand_t demand ) noexcept override
-			{
-				bool do_actual_push = false;
+		push_evt_finish( execution_demand_t demand ) noexcept override;
 
-				{
-					std::lock_guard< std::mutex > lock{ m_lock };
-
-					if( m_wakeup_demand_enabled )
-						// The event queue is empty, so we can push evt_finish
-						// right now.
-						do_actual_push = true;
-					else
-						{
-							// The event queue is not empty or there is the
-							// current coroutine. The push of evt_finish has to
-							// be postponed.
-							m_pending_evt_finish = std::move(demand);
-						}
-				}
-
-				if( do_actual_push )
-					m_actual_queue->push_evt_finish( std::move(demand) );
-			}
+		//FIXME: document this!
+		//FIXME: should this method be noexcept? It seems that the normal work
+		//can't be continued if an exception will be thrown here and the demand
+		//won't be stored in the agent's queue.
+		void
+		push_coro_resumption_demand( execution_demand_t demand );
 
 		//FIXME: document this!
 		[[nodiscard]]
 		demand_unique_ptr_t
-		try_extract_demand_for_execution()
-			{
-				bool need_push_pending_evt_finish = false;
-
-				{
-					std::lock_guard< std::mutex > lock{ m_lock };
-
-					if( m_head )
-						return remove_head();
-
-					// The queue is empty now. A case when pending_evt_finish
-					// if present must be handled carefully.
-					if( m_pending_evt_finish.has_value() )
-						{
-							// We don't expect ordinary demands after receiving
-							// the evt_finish, but it's beter to disable
-							// wakeup_demand at all.
-							m_wakeup_demand_enabled = false;
-							need_push_pending_evt_finish = true;
-						}
-					else
-						// When the next demand arrives the wakeup_demand has
-						// to be pushed to the actual_queue.
-						m_wakeup_demand_enabled = true;
-				}
-
-				if( need_push_pending_evt_finish )
-					{
-						// We assume that only one thread can do a call
-						// to try_extract_demand_for_execution, so there is
-						// no need to protect this access to m_pending_evt_finish.
-						m_actual_queue->push_evt_finish(
-								std::move(*m_pending_evt_finish) );
-					}
-
-				return {};
-			}
+		try_extract_demand_for_execution();
 
 		//! Give away the pointer to the actual_queue.
 		/*!
@@ -300,12 +191,7 @@ class cpp_coro_case_special_queue_t final
 		 */
 		[[nodiscard]]
 		event_queue_t *
-		giveaway_actual_queue() noexcept
-			{
-				event_queue_t * q = m_actual_queue;
-				m_actual_queue = nullptr;
-				return q;
-			}
+		giveaway_actual_queue() noexcept;
 	};
 
 } /* namespace so_5::impl */

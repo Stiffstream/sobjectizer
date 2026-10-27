@@ -70,6 +70,9 @@ set(SO_5_SRC exception.cpp
 	impl/mt_env_infrastructure.cpp
 	impl/simple_mtsafe_st_env_infrastructure.cpp
 	impl/simple_not_mtsafe_st_env_infrastructure.cpp
+
+	impl/cpp_coro_case_special_queue.cpp
+	impl/this_agent_scheduler.cpp
 	
 	stats/repository.cpp
 	stats/std_names.cpp

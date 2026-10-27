@@ -39,6 +39,8 @@
 
 #include <so_5/disp_binder.hpp>
 
+#include <so_5/cpp_coro/scheduler.hpp>
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -2817,6 +2819,14 @@ class SO_5_TYPE agent_t
 		agent_identity_t
 		so_agent_name() const noexcept;
 
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.7
+		 */
+		[[nodiscard]]
+		so_5::cpp_coro::scheduler_t &
+		so_this_agent_scheduler() const;
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
@@ -3324,6 +3334,7 @@ class SO_5_TYPE agent_t
 		static demand_handler_pfn_t
 		get_demand_handler_on_enveloped_msg_ptr() noexcept;
 
+//FIXME: demand_handler_for_wakeup_demand is seems to be more appropriate.
 		/*!
 		 * \brief Handles cases when C++20 coroutines are supported
 		 * by the agent.
@@ -3343,6 +3354,26 @@ class SO_5_TYPE agent_t
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_for_cpp_coro_case_ptr() noexcept;
+
+		/*!
+		 * \brief Handles cases when C++20 coroutines are supported
+		 * by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static void
+		demand_handler_for_cpp_coro_resumption(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
+
+		/*!
+		 * \brief Get pointer to demand handler for case when C++20
+		 * coroutines are supported by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_for_cpp_coro_resumtion_ptr() noexcept;
 		/*!
 		 * \}
 		 */
