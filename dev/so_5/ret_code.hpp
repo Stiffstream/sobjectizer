@@ -573,6 +573,13 @@ const int rc_async_handler_expected = 203;
  */
 const int rc_no_support_for_cpp_coro_in_agent = 204;
 
+/*!
+ * \brief There is already a top-level coroutine for the agent.
+ *
+ * \since v.5.8.7
+ */
+const int rc_top_level_coro_already_exists = 205;
+
 //! \name Common error codes.
 //! \{
 

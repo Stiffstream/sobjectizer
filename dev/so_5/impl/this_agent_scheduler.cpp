@@ -85,6 +85,7 @@ class this_agent_scheduler_t::special_mbox_for_delayed_resumptions_t final
 			{
 				std::lock_guard lock{ m_owner.m_lock };
 
+std::cout << "delivery of " << msg_type.name() << " to special mbox" << std::endl;
 				m_owner.m_special_queue.push_coro_resumption_demand(
 						execution_demand_t{
 								std::addressof(m_owner.m_receiver),
@@ -146,6 +147,7 @@ void
 this_agent_scheduler_t::try_schedule(
 	so_5::cpp_coro::resumable_item_t & what_to_resume )
 	{
+std::cout << "try_schedule called" << std::endl;
 		std::lock_guard lock{ m_lock };
 
 		switch( what_to_resume.scheduler_data().m_status )
@@ -154,14 +156,17 @@ this_agent_scheduler_t::try_schedule(
 		case so_5::cpp_coro::resumable_item_t::status_t::notified:
 			// There is no need to schedule the coroutine because it's
 			// running now.
+std::cout << "try_schedule case 1" << std::endl;
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::ready:
 			// There is no need to schedule the coroutine because it's
 			// already scheduled.
+std::cout << "try_schedule case 2" << std::endl;
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::waiting:
+std::cout << "try_schedule case 3" << std::endl;
 			what_to_resume.scheduler_data().m_status =
 					so_5::cpp_coro::resumable_item_t::status_t::ready;
 

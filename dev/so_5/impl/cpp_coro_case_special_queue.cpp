@@ -150,12 +150,9 @@ void
 cpp_coro_case_special_queue_t::push_coro_resumption_demand(
 	execution_demand_t demand )
 	{
+std::cout << "*** push_coro_resumption_demand called" << std::endl;
 		// Delivery of wakeup demands has to be disabled for some time.
-		{
-			std::lock_guard< std::mutex > lock{ m_lock };
-
-			m_wakeup_demand_enabled = false;
-		}
+		m_wakeup_demand_enabled = false;
 
 		// If this attempt fails then it will be impossible
 		// to continue the work because the agent won't be
@@ -164,6 +161,8 @@ cpp_coro_case_special_queue_t::push_coro_resumption_demand(
 			[this, &demand]() {
 				m_actual_queue->push( std::move(demand) );
 			} );
+
+std::cout << "*** coro resumption demand pushed" << std::endl;
 	}
 
 cpp_coro_case_special_queue_t::demand_unique_ptr_t

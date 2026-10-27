@@ -1189,6 +1189,28 @@ agent_t::so_this_agent_scheduler() const
 }
 
 void
+agent_t::so_execute_top_level_task(
+	so_5::cpp_coro::details::top_level_task_t< void > what )
+{
+	ensure_operation_is_on_working_thread( "so_execute_top_level_task" );
+
+	if( !m_cpp_coro_data )
+		SO_5_THROW_EXCEPTION(
+				rc_no_support_for_cpp_coro_in_agent,
+				"C++20 coroutines have to be enabled for the agent" );
+
+	if( m_cpp_coro_data->m_current_top_level_task.has_value() )
+		SO_5_THROW_EXCEPTION(
+				rc_top_level_coro_already_exists,
+				"so_execute_top_level_task can't be performed because"
+				" a top-level coroutine is already set for the agent" );
+
+//FIXME: should delivery of wakeup_demand be disabled here?
+
+	m_cpp_coro_data->m_current_top_level_task = std::move(what);
+}
+
+void
 agent_t::destroy_all_subscriptions_and_filters() noexcept
 {
 	drop_all_delivery_filters();
@@ -1627,6 +1649,19 @@ agent_t::demand_handler_for_cpp_coro_support(
 
 	for(;;)
 	{
+		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
+				.try_extract_demand_for_execution();
+		if( demand_ptr )
+		{
+			demand_ptr->m_execution_demand.call_handler(
+					working_thread_id );
+		}
+		else
+		{
+			// There is no more waiting demands. Have to break the loop.
+			break;
+		}
+
 		// If there is the current coroutine then it has to be resumed.
 		// It's because we can't handle ordinary demands before completion
 		// of the current coroutine.
@@ -1640,7 +1675,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 				if( !self->m_cpp_coro_data->m_current_top_level_task
 						->m_coro.done() )
 					{
-						// We must wait the next wakeup_demand and this
+						// We must wait the next msg_resume_coro and this
 						// loop has to be finished.
 						break;
 					}
@@ -1651,21 +1686,6 @@ agent_t::demand_handler_for_cpp_coro_support(
 						self->m_cpp_coro_data->m_current_top_level_task.reset();
 					}
 			}
-
-		// When handling of the current coroutine is completed waiting
-		// ordinary demands have to be processed.
-		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
-				.try_extract_demand_for_execution();
-		if( demand_ptr )
-		{
-			demand_ptr->m_execution_demand.call_handler(
-					working_thread_id );
-		}
-		else
-		{
-			// There is no more waiting demands. Have to break the loop.
-			break;
-		}
 	}
 }
 

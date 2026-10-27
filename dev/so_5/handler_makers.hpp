@@ -23,6 +23,8 @@
 #include <so_5/message_handler_format_detector.hpp>
 #include <so_5/mbox.hpp>
 
+#include <so_5/cpp_coro/details/top_level_task.hpp>
+
 #include <algorithm>
 
 #if defined(__clang__) && (__clang_major__ >= 16)
@@ -42,6 +44,14 @@ namespace details {
  */
 namespace event_subscription_helpers
 {
+
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+template< typename Result >
+constexpr bool does_return_task_of_void_v =
+		std::is_same_v< Result, so_5::cpp_coro::task_t<void> >;
 
 /*!
  * \brief Get actual agent pointer.
@@ -224,9 +234,7 @@ make_handler_with_arg( Handler_Type lambda )
 
 		event_handler_holder_t method;
 
-		if constexpr( std::is_same_v<
-				Result,
-				so_5::cpp_coro::task_t<void> > )
+		if constexpr( does_return_task_of_void_v< Result > )
 			{
 				method = async_event_handler_method_t{
 						[lambda]
@@ -301,12 +309,37 @@ make_handler_with_arg_for_agent(
 				typename so_5::details::lambda_traits::plain_argument_type<
 						typename pfn_traits::argument_type>::type >;
 
+		using result_type = typename pfn_traits::result_type;
+
 		arg_maker::ensure_appropriate_type();
 
-		auto method = [agent, pfn](message_ref_t & message_ref)
+		event_handler_holder_t method;
+
+		if constexpr( does_return_task_of_void_v< result_type > )
 			{
-				(agent->*pfn)( arg_maker::make_arg( message_ref ) );
-			};
+				using so_5::cpp_coro::details::top_level_task_t;
+
+				method = [agent, pfn](message_ref_t & message_ref)
+				{
+					const auto task =
+						[]( Agent * agent, Method_Pointer pfn, message_ref_t msg )
+						-> top_level_task_t< void >
+					{
+						co_return co_await (agent->*pfn)(
+								arg_maker::make_arg( msg ) );
+					};
+
+					agent->so_execute_top_level_task(
+							task( agent, pfn, message_ref ) );
+				};
+			}
+		else
+			{
+				method = [agent, pfn](message_ref_t & message_ref)
+				{
+					(agent->*pfn)( arg_maker::make_arg( message_ref ) );
+				};
+			}
 
 		return msg_type_and_handler_pair_t{
 				arg_maker::traits_type::subscription_type_index(),

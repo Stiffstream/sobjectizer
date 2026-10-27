@@ -41,6 +41,8 @@
 
 #include <so_5/cpp_coro/scheduler.hpp>
 
+#include <so_5/cpp_coro/details/top_level_task.hpp>
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -2827,6 +2829,14 @@ class SO_5_TYPE agent_t
 		so_5::cpp_coro::scheduler_t &
 		so_this_agent_scheduler() const;
 
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.7
+		 */
+		void
+		so_execute_top_level_task(
+			so_5::cpp_coro::details::top_level_task_t< void > what );
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
@@ -3721,6 +3731,7 @@ subscription_bind_t::event(
 	Method_Pointer pfn,
 	thread_safety_t thread_safety )
 {
+std::cout << "subscription_bind_t::event 1 {" << std::endl;
 	using namespace details::event_subscription_helpers;
 
 	const auto ev = preprocess_agent_event_handler( m_mbox_ref, *m_agent, pfn );
@@ -3730,6 +3741,8 @@ subscription_bind_t::event(
 			thread_safety,
 			event_handler_kind_t::final_handler );
 
+std::cout << "  ev.m_msg_type=" << ev.m_msg_type.name() << std::endl;
+std::cout << "subscription_bind_t::event 1 }" << std::endl;
 	return *this;
 }
 
