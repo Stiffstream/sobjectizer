@@ -23,9 +23,7 @@ public:
 	void
 	so_define_agent() override
 	{
-		so_subscribe_self()
-			.event( &a_demo_t::evt_a )
-			;
+		so_subscribe_self().event( &a_demo_t::evt_a );
 	}
 
 	void
@@ -35,27 +33,15 @@ public:
 		so_5::send_delayed< msg_b >( m_target, std::chrono::milliseconds{ 25 } );
 	}
 
-	void
-	so_evt_finish() override
-	{
-		std::cout << "evt_finish" << std::endl;
-	}
-
 private:
 	so_5::cpp_coro::task_t< void >
 	evt_a( mhood_t< msg_a > )
 	{
-		std::cout << "evt_a" << std::endl;
-
-		co_await so_5::cpp_coro::select(
-				so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
 				so_5::from_all().handle_n(1),
-				so_5::receive_case( m_target,
-					[]( so_5::mhood_t< msg_b > ) {
-						std::cout << "msg_b received" << std::endl;
+				so_5::receive_case( m_target, [this]( so_5::mhood_t< msg_b > ) {
+						so_deregister_agent_coop_normally();
 					} ) );
-
-		so_deregister_agent_coop_normally();
 	}
 };
 
