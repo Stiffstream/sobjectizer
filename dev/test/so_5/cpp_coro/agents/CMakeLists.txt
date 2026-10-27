@@ -3,4 +3,5 @@ add_subdirectory(no_coro_adv_thread_pool)
 add_subdirectory(no_coro_event_queue_hook)
 
 add_subdirectory(simple_select)
+add_subdirectory(simple_select_lambda)
 

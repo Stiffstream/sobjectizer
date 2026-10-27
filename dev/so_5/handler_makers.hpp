@@ -264,8 +264,7 @@ make_handler_with_arg( Handler_Type lambda )
 /*!
  * \brief A function for creation event handler.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 template< class Lambda >
 details::msg_type_and_handler_pair_t
@@ -287,8 +286,7 @@ make_handler_from_lambda_or_free_function( Lambda && lambda )
  * \brief Helper template for creation of event handler with actual
  * argument.
  *
- * \since
- * v.5.5.14
+ * \since v.5.5.14
  */
 template< typename Agent, typename Method_Pointer >
 typename std::enable_if<
@@ -351,8 +349,7 @@ make_handler_with_arg_for_agent(
  * \brief Ensure that mutability of message is compatible with
  * mutability of target mbox.
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 inline void
 ensure_handler_can_be_used_with_mbox(
@@ -385,8 +382,7 @@ ensure_handler_can_be_used_with_mbox(
  * (for example: handler is for mutable message but mbox is
  * Multi-Consumer one).
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 template< typename Method_Pointer >
 typename std::enable_if<
@@ -433,22 +429,44 @@ preprocess_agent_event_handler(
  * ret_type (mhood_t<message_type>);
  * \endcode
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
-template< typename Lambda >
+template< typename Agent, typename Lambda >
 typename std::enable_if<
 		details::lambda_traits::is_lambda<Lambda>::value,
 		details::msg_type_and_handler_pair_t >::type
 preprocess_agent_event_handler(
 	const mbox_t & mbox,
-	agent_t & /*agent*/,
+	Agent & agent,
 	Lambda && lambda )
 	{
 		using namespace details::event_subscription_helpers;
 
-		const auto ev = make_handler_from_lambda_or_free_function(
+		auto ev = make_handler_from_lambda_or_free_function(
 				std::forward<Lambda>(lambda) );
+
+		// If async_handler is specified then it has to be wrapped
+		// into special sync_handler.
+		if( auto * async = std::get_if<async_event_handler_method_t>(
+				std::addressof(ev.m_handler) ) )
+			{
+				ev.m_handler =
+						[agent_ptr = std::addressof(agent),
+						h = std::move(*async)]
+						( message_ref_t & msg )
+						{
+							using so_5::cpp_coro::details::top_level_task_t;
+
+							const auto task =
+								[]( async_event_handler_method_t hld, message_ref_t msg )
+								-> top_level_task_t< void >
+							{
+								co_return co_await hld( msg );
+							};
+
+							agent_ptr->so_execute_top_level_task( task( h, msg ) );
+						};
+			}
 
 		ensure_handler_can_be_used_with_mbox( ev, mbox );
 
