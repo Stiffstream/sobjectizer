@@ -10,4 +10,11 @@ add_subdirectory(simple_select_total_time_2)
 add_subdirectory(simple_select_exception)
 add_subdirectory(simple_select_exception_2)
 
+add_subdirectory(nested_select)
+add_subdirectory(nested_select_empty_timeout)
+
+add_subdirectory(several_selects_1)
+add_subdirectory(several_selects_2)
+add_subdirectory(several_selects_3)
+
 add_subdirectory(simple_select_lambda)
