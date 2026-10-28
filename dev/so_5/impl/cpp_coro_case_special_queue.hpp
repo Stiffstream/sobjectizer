@@ -137,9 +137,19 @@ class cpp_coro_case_special_queue_t final
 		 * current coroutine, therefore the first incoming demand
 		 * has to initiate the wakeup_demand.
 		 *
-		 * Value `false` means that the queue is not empty or there is
-		 * the current coroutine. If there is no current coroutine, but
-		 * the value is `false` then the wakeup_demand is already sent.
+		 * Value `false` means that the processing of non-empty queue
+		 * is not completed yet (some demands may still be in the queue
+		 * or there is a suspended current top-level coroutine).
+		 *
+		 * There may be case when the queue is empty, but the flag still
+		 * has `false` value. For example, when the last demand from the
+		 * queue is extracted, but not processed yet. Or if the last
+		 * extracted demand has created a new top-level coroutine that
+		 * is suspended for now.
+		 *
+		 * The value will be changed from `false` to `true` only in
+		 * try_extract_demand_for_execution() call that is performed
+		 * on empty queue.
 		 */
 		bool m_wakeup_demand_enabled{ true };
 
@@ -147,6 +157,11 @@ class cpp_coro_case_special_queue_t final
 		demand_unique_ptr_t
 		remove_head() noexcept;
 
+		//! Helper method for storing the demand to the tail of the queue.
+		/*!
+		 * \note
+		 * This method doesn't change m_wakeup_demand_enabled flag.
+		 */
 		void
 		store_demand( demand_unique_ptr_t tail_demand );
 
@@ -173,11 +188,19 @@ class cpp_coro_case_special_queue_t final
 		push_evt_finish( execution_demand_t demand ) noexcept override;
 
 		//FIXME: document this!
-		//FIXME: should this method be noexcept? It seems that the normal work
-		//can't be continued if an exception will be thrown here and the demand
-		//won't be stored in the agent's queue.
+		/*!
+		 * \attention
+		 * This method must be called only when m_lock is acquired by the
+		 * current thread.
+		 *
+		 * \note
+		 * This method is marked as noexcept because if an attempt to push
+		 * execution_demand to the queue fails then it's impossible to
+		 * resume the current top-level coroutine and normal work can't
+		 * be continued.
+		 */
 		void
-		push_coro_resumption_demand( execution_demand_t demand );
+		push_coro_resumption_demand( execution_demand_t demand ) noexcept;
 
 		//FIXME: document this!
 		[[nodiscard]]

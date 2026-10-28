@@ -1192,6 +1192,16 @@ void
 agent_t::so_execute_top_level_task(
 	so_5::cpp_coro::details::top_level_task_t< void > what )
 {
+	/*
+	 * NOTE: it's assumed that this method is called only during processing
+	 * an execution_demand of this agent. Because of this there is no
+	 * possibility that someone will call this method in parallel.
+	 *
+	 * There is also no need to drop
+	 * cpp_coro_case_special_queue_t::m_wakeup_demand_enabled flag, because
+	 * it's already dropped. This flag returns to `true` only after completion
+	 * of all demands in agent's local queue.
+	 */
 	ensure_operation_is_on_working_thread( "so_execute_top_level_task" );
 
 	if( !m_cpp_coro_data )
@@ -1204,8 +1214,6 @@ agent_t::so_execute_top_level_task(
 				rc_top_level_coro_already_exists,
 				"so_execute_top_level_task can't be performed because"
 				" a top-level coroutine is already set for the agent" );
-
-//FIXME: should delivery of wakeup_demand be disabled here?
 
 	m_cpp_coro_data->m_current_top_level_task = std::move(what);
 }

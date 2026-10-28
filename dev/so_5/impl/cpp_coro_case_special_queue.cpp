@@ -89,7 +89,6 @@ cpp_coro_case_special_queue_t::push(
 		}
 
 		if( has_to_push_wakeup_demand )
-//FIXME: should this action be moved to separate helper method?
 			// If this attempt fails then it will be impossible
 			// to continue the work because the agent won't be
 			// informed about the presence of demand to be handled.
@@ -144,23 +143,39 @@ cpp_coro_case_special_queue_t::push_evt_finish(
 			m_actual_queue->push_evt_finish( std::move(demand) );
 	}
 
-//FIXME: is there a possibility that wakeup_demand will be pushed to the
-//queue just before push_coro_resumption_demand starts its work?
 void
 cpp_coro_case_special_queue_t::push_coro_resumption_demand(
-	execution_demand_t demand )
+	execution_demand_t demand ) noexcept
 	{
+		/*
+		 * NOTE: we don't expect a case when wakeup_demand will be inserted into
+		 * the queue just before insertion of this execution_demand.
+		 *
+		 * If wakeup_demand is generated from the current event-handler of
+		 * the agent then m_wakeup_demand_enabled is already dropped. So
+		 * the wakeup_demand won't be generated.
+		 *
+		 * There is a possibility that coro_resumption_demand is generated from
+		 * other place (like timer-thread). And it's generated at the same time
+		 * as the completion of the current top-level coroutine for the agent.
+		 * For example, the `resume` call completed, but we hasn't checked `done`
+		 * yet. Or just checked `done` but not call `reset` for deleting the
+		 * current top-level-coroutine. But the timer-thread pushes a new
+		 * coro_resumption_demand.
+		 *
+		 * It should not be a problem because completion of the current
+		 * top-level coroutine is performed in agent's demand_handler. And while
+		 * this demand_handler is not finished, the m_wakeup_demand_enabled
+		 * is still dropped.
+		 *
+		 * When the current top-level coroutine is completed and destroyed we
+		 * don't expect new valid coro_resumption_demands.
+		 */
 std::cout << "*** push_coro_resumption_demand called" << std::endl;
-		// Delivery of wakeup demands has to be disabled for some time.
-		m_wakeup_demand_enabled = false;
-
 		// If this attempt fails then it will be impossible
 		// to continue the work because the agent won't be
 		// informed about the presence of demand to be handled.
-		so_5::details::invoke_noexcept_code(
-			[this, &demand]() {
-				m_actual_queue->push( std::move(demand) );
-			} );
+		m_actual_queue->push( std::move(demand) );
 
 std::cout << "*** coro resumption demand pushed" << std::endl;
 	}
