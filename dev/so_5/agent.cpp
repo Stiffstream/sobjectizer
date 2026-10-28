@@ -1271,7 +1271,7 @@ agent_t::shutdown_agent() noexcept
 					// No more events will be stored to the queue.
 					m_event_queue = nullptr;
 				} );
-
+std::cout << "push_evt_finish completed" << std::endl;
 		}
 		else
 			so_5::details::abort_on_fatal_error( [&] {
@@ -1659,6 +1659,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 	{
 		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
 				.try_extract_demand_for_execution();
+std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 		if( demand_ptr )
 		{
 			demand_ptr->m_execution_demand.call_handler(
@@ -1695,6 +1696,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 					}
 			}
 	}
+std::cout << "demand_handler_for_cpp_coro_support completed" << std::endl;
 }
 
 demand_handler_pfn_t
@@ -1712,19 +1714,17 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 
 	// The first task is the resumption of the specified coroutine.
 	{
+		//FIXME: an exception from this operation leaves the program in the
+		//wrong state.
 		so_5::impl::msg_resume_coro & resume_msg =
 				dynamic_cast<so_5::impl::msg_resume_coro &>(
 						*(d.m_message_ref.get()) );
-		// ATTENTION: delivery of msg_resume_coro may have been cancelled.
-		// This has to be checked.
-		if( resume_msg.m_what )
-		{
-			impl::agent_impl::working_thread_id_sentinel_t sentinel(
-					self->m_working_thread_id,
-					working_thread_id );
 
-			resume_msg.m_what->scheduler_data().m_to_be_resumed.resume();
-		}
+		impl::agent_impl::working_thread_id_sentinel_t sentinel(
+				self->m_working_thread_id,
+				working_thread_id );
+
+		self->m_cpp_coro_data->m_this_agent_scheduler.do_resumption( resume_msg );
 	}
 
 	// Delivered message is no more needed.
@@ -1737,11 +1737,14 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 	{
 		self->m_cpp_coro_data->m_current_top_level_task.reset();
 
+std::cout << "top-level coroutine destroyed" << std::endl;
+
 		// Reuse the existing execution_demand_t instance for
 		// the subsequent demand_handler call.
 		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent_for_cpp_coro_case);
 		d.m_demand_handler = get_demand_handler_for_cpp_coro_case_ptr();
 
+std::cout << "switching control to demand_handler_for_cpp_coro_support" << std::endl;
 		demand_handler_for_cpp_coro_support( working_thread_id, d );
 	}
 }

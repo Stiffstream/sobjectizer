@@ -85,7 +85,7 @@ class this_agent_scheduler_t::special_mbox_for_delayed_resumptions_t final
 			{
 				std::lock_guard lock{ m_owner.m_lock };
 
-std::cout << "delivery of " << msg_type.name() << " to special mbox" << std::endl;
+std::cout << message.get() << " delivery of " << msg_type.name() << " to special mbox" << std::endl;
 				m_owner.m_special_queue.push_coro_resumption_demand(
 						execution_demand_t{
 								std::addressof(m_owner.m_receiver),
@@ -221,6 +221,7 @@ this_agent_scheduler_t::try_suspend(
 			return so_5::cpp_coro::try_suspend_result_t::should_be_resumed;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::ready:
+std::cout << "___ try_suspend ready status" << std::endl;
 			// This shouldn't happen.
 			SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
 					"coro has 'ready' status in "
@@ -228,6 +229,7 @@ this_agent_scheduler_t::try_suspend(
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::waiting:
+std::cout << "___ try_suspend waiting status" << std::endl;
 			// This shouldn't happen.
 			SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
 					"try_suspend is called for already suspended coroutine" );
@@ -266,6 +268,36 @@ this_agent_scheduler_t::try_suspend(
 			<< std::endl;
 
 		return so_5::cpp_coro::try_suspend_result_t::should_be_suspended;
+	}
+
+void
+this_agent_scheduler_t::do_resumption( const msg_resume_coro & cmd )
+	{
+		if( cmd.m_what )
+		{
+			auto & scheduler_data = cmd.m_what->scheduler_data();
+
+			// Status for this coroutine has to be changed.
+			{
+				std::lock_guard lock{ m_lock };
+				scheduler_data.m_status =
+						so_5::cpp_coro::resumable_item_t::status_t::neutral;
+			}
+
+			// If there are pending notifications they could be cancelled.
+			if( auto * notifications = scheduler_data.m_extra_data
+					.as_ptr< notification_messages_t >() )
+			{
+				notifications->cancel_all();
+			}
+
+			std::cout << "coro to be resumed via msg_resume_this: "
+					<< scheduler_data.m_to_be_resumed.address()
+					<< " (" << std::addressof(cmd) << ")"
+					<< std::endl;
+
+			scheduler_data.m_to_be_resumed.resume();
+		}
 	}
 
 } /* namespace so_5::impl */

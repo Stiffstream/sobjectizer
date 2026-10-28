@@ -251,9 +251,19 @@ do_select(
 						wait_incoming_time_not_elapsed_yet =
 								static_cast<bool>(wait_incoming_time);
 
+						// There is no need to continue if empty_timeout already
+						// elapsed.
+						if( !wait_incoming_time_not_elapsed_yet )
+							break;
+
 						// total_time_counter has to be updated to because
 						// handle_next_async may take some time.
 						total_time_counter.update();
+
+						// There is no need to continue if total_time already
+						// elapsed.
+						if( !total_time_counter )
+							break;
 
 						// If there weren't ready cases then we have to wait.
 						// But because it's an asynchronous select then we have

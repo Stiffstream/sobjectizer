@@ -240,6 +240,10 @@ class this_agent_scheduler_t final
 		try_suspend(
 			so_5::cpp_coro::resumable_item_t & what_to_handle,
 			so_5::cpp_coro::monotonic_clock_t::duration sleep_time ) override;
+
+		//FIXME: document this!
+		void
+		do_resumption( const msg_resume_coro & cmd );
 	};
 
 } /* namespace so_5::impl */

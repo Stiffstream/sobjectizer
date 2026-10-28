@@ -122,6 +122,7 @@ struct promise_base_common_t
 		unhandled_exception()
 		noexcept( noexcept(m_result = std::current_exception()) )
 			{
+std::cout << "*** unhandled_exception! ***" << std::endl;
 				m_result = std::current_exception();
 			}
 
