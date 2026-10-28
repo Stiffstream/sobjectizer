@@ -796,6 +796,74 @@ make_cpp_coro_agent_data_if_needed(
 		return result;
 	}
 
+//FIXME: may be this function should be noexcept? It's because
+//all exceptions have to be handled inside it.
+/*!
+ * \brief Helper function for calling event-handler-like code and
+ * intercepting possible exceptions.
+ *
+ * This is reusable function created to avoid code duplication.
+ *
+ * \since v.5.8.7
+ */
+template< typename Lambda >
+void
+wrap_handler_invocation_with_exception_handling(
+	current_thread_id_t working_thread_id,
+	agent_t & exception_producer,
+	Lambda && what_to_call )
+	{
+		try
+		{
+			what_to_call();
+		}
+		catch( const std::exception & x )
+		{
+			impl::process_unhandled_exception(
+					working_thread_id, x, exception_producer );
+		}
+		catch( ... ) // Since v.5.5.24.3
+		{
+			impl::process_unhandled_unknown_exception(
+					working_thread_id, exception_producer );
+		}
+	}
+
+/*!
+ * \brief Helper method for handling completion of top-level coroutine.
+ *
+ * Calls await_resume for the top-level coroutine. This call has no sense
+ * if there wasn't exception in coroutine. But it leads to rethrowing of
+ * an exception if it was thrown inside coroutine.
+ *
+ * Then the top-level coroutine is deleted.
+ *
+ * \attention
+ * The coro_related_data.m_current_top_level_task shouldn't be empty.
+ *
+ * \since v.5.8.7
+ */
+void
+consume_top_level_coroutine_result(
+	so_5::impl::cpp_coro_case_agent_data_t & coro_related_data,
+	current_thread_id_t working_thread_id,
+	agent_t & data_owner )
+	{
+		wrap_handler_invocation_with_exception_handling(
+				working_thread_id,
+				data_owner,
+				[&coro_related_data]() {
+					// Because co_await is not called for top-level task we
+					// have to call await_resume manually. If the coroutine
+					// finished because of an exception then this exception
+					// will be rethrown here.
+					coro_related_data.m_current_top_level_task->await_resume();
+				} );
+
+		// The coroutine is no more needed.
+		coro_related_data.m_current_top_level_task.reset();
+	}
+
 } /* namespace anonymous */
 
 //
@@ -1522,20 +1590,12 @@ agent_t::demand_handler_on_start(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
 
-	try
-	{
-		d.m_receiver->so_evt_start();
-	}
-	catch( const std::exception & x )
-	{
-		impl::process_unhandled_exception(
-				working_thread_id, x, *(d.m_receiver) );
-	}
-	catch( ... ) // Since v.5.5.24.3
-	{
-		impl::process_unhandled_unknown_exception(
-				working_thread_id, *(d.m_receiver) );
-	}
+	wrap_handler_invocation_with_exception_handling(
+			working_thread_id,
+			*(d.m_receiver),
+			[&d]() {
+				d.m_receiver->so_evt_start();
+			} );
 }
 
 void
@@ -1565,20 +1625,12 @@ agent_t::demand_handler_on_finish(
 				d.m_receiver->m_working_thread_id,
 				working_thread_id );
 
-		try
-		{
-			d.m_receiver->so_evt_finish();
-		}
-		catch( const std::exception & x )
-		{
-			impl::process_unhandled_exception(
-					working_thread_id, x, *(d.m_receiver) );
-		}
-		catch( ... ) // Since v.5.5.24.3
-		{
-			impl::process_unhandled_unknown_exception(
-					working_thread_id, *(d.m_receiver) );
-		}
+		wrap_handler_invocation_with_exception_handling(
+				working_thread_id,
+				(*d.m_receiver),
+				[&d]() {
+					d.m_receiver->so_evt_finish();
+				} );
 
 		// Since v.5.5.15 agent should be returned in default state.
 		d.m_receiver->return_to_default_state_if_possible();
@@ -1653,6 +1705,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+std::cout << "{{{" << std::endl;
 	agent_t * const self = d.m_receiver;
 
 	for(;;)
@@ -1680,6 +1733,7 @@ std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 						self->m_working_thread_id,
 						working_thread_id );
 
+std::cout << "calling m_coro.resume()" << std::endl;
 				self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
 				if( !self->m_cpp_coro_data->m_current_top_level_task
 						->m_coro.done() )
@@ -1692,11 +1746,15 @@ std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 					{
 						// The coroutine is completed and we can go to
 						// service ordinary demands.
-						self->m_cpp_coro_data->m_current_top_level_task.reset();
+						consume_top_level_coroutine_result(
+								*(self->m_cpp_coro_data),
+								working_thread_id,
+								*self );
 					}
 			}
 	}
 std::cout << "demand_handler_for_cpp_coro_support completed" << std::endl;
+std::cout << "}}}" << std::endl;
 }
 
 demand_handler_pfn_t
@@ -1710,6 +1768,7 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+std::cout << "<<<" << std::endl;
 	agent_t * const self = d.m_receiver;
 
 	// The first task is the resumption of the specified coroutine.
@@ -1735,8 +1794,10 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 	// turned for the normal work.
 	if( self->m_cpp_coro_data->m_current_top_level_task.value().m_coro.done() )
 	{
-		self->m_cpp_coro_data->m_current_top_level_task.reset();
-
+		consume_top_level_coroutine_result(
+				*(self->m_cpp_coro_data),
+				working_thread_id,
+				*self );
 std::cout << "top-level coroutine destroyed" << std::endl;
 
 		// Reuse the existing execution_demand_t instance for
@@ -1747,6 +1808,7 @@ std::cout << "top-level coroutine destroyed" << std::endl;
 std::cout << "switching control to demand_handler_for_cpp_coro_support" << std::endl;
 		demand_handler_for_cpp_coro_support( working_thread_id, d );
 	}
+std::cout << ">>>" << std::endl;
 }
 
 demand_handler_pfn_t
@@ -1780,20 +1842,12 @@ agent_t::process_message(
 				: working_thread_id
 		};
 
-	try
-	{
-		method( d.m_message_ref );
-	}
-	catch( const std::exception & x )
-	{
-		impl::process_unhandled_exception(
-				working_thread_id, x, *(d.m_receiver) );
-	}
-	catch( ... ) // Since v.5.5.24.3
-	{
-		impl::process_unhandled_unknown_exception(
-				working_thread_id, *(d.m_receiver) );
-	}
+	wrap_handler_invocation_with_exception_handling(
+			working_thread_id,
+			(*d.m_receiver),
+			[&method, &d]() {
+				method( d.m_message_ref );
+			} );
 }
 
 void

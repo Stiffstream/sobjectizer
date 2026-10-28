@@ -156,6 +156,7 @@ std::cout << "*** unhandled_exception! ***" << std::endl;
 					break;
 
 					case 1:
+std::cout << "___ rethrowing an exception" << std::endl;
 						std::rethrow_exception(
 								std::move(std::get< std::exception_ptr >(m_result))
 							);
