@@ -16,6 +16,7 @@ if(NOT SOBJECTIZER_INSTALL)
 	set(SOBJECTIZER_INSTALL ${SOBJECTIZER_MASTER_PROJECT})
 endif()
 
+include(GNUInstallDirs)
 include(cmake/target.cmake)
 
 project(sobjectizer VERSION ${SO_5_VERSION} LANGUAGES CXX)
@@ -168,14 +169,14 @@ if(SOBJECTIZER_BUILD_STATIC)
 endif()
 
 if(SOBJECTIZER_INSTALL)
-	set(SO_5_CMAKE_FILES_DEST "lib/cmake/sobjectizer")
+	set(SO_5_CMAKE_FILES_DEST "${CMAKE_INSTALL_LIBDIR}/cmake/sobjectizer")
 
 	install(
 		TARGETS ${SO_5_TARGETS_TO_INSTALL}
 		EXPORT SO_5_ALL_TARGETS
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	)
 	install(
 		EXPORT SO_5_ALL_TARGETS
@@ -186,7 +187,9 @@ if(SOBJECTIZER_INSTALL)
 
 	if(SOBJECTIZER_BUILD_SHARED)
 		foreach(__extLibrary ${SO_5_EXT_LIBS})
-			install(FILES ${__extLibrary} DESTINATION lib)
+		  install(
+            FILES ${__extLibrary}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR})
 		endforeach()
 	endif()
 
@@ -196,7 +199,7 @@ if(SOBJECTIZER_INSTALL)
 		# Since v.5.7.2.3 install even files from impl subfolders
 		# because it could be necessary for projects like so5extra.
 		get_filename_component( DIR ${HEADER_FILE} PATH )
-		install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+		install( FILES ${HEADER_FILE} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/so_5/${DIR}" )
 	endforeach()
 
 	set(SO_5_CONFIG_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/sobjectizer-config-version.cmake")
