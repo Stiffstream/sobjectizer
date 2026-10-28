@@ -1770,6 +1770,7 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 {
 std::cout << "<<<" << std::endl;
 	agent_t * const self = d.m_receiver;
+	bool current_coroutine_completed = false;
 
 	// The first task is the resumption of the specified coroutine.
 	{
@@ -1784,22 +1785,28 @@ std::cout << "<<<" << std::endl;
 				working_thread_id );
 
 		self->m_cpp_coro_data->m_this_agent_scheduler.do_resumption( resume_msg );
+		// If the current top-level coroutine has been completed after resumption
+		// then the top-level coroutine has to be destroyed.
+		if( self->m_cpp_coro_data->m_current_top_level_task->m_coro.done() )
+		{
+			// It's necessary for handling an exception from the current
+			// top-level coroutine.
+			consume_top_level_coroutine_result(
+					*(self->m_cpp_coro_data),
+					working_thread_id,
+					*self );
+
+			current_coroutine_completed = true;
+		}
 	}
 
 	// Delivered message is no more needed.
 	d.m_message_ref.reset();
 
 	// If the current top-level coroutine has been completed after resumption
-	// then the top-level coroutine has to be destroyed and agent has to be
-	// turned for the normal work.
-	if( self->m_cpp_coro_data->m_current_top_level_task.value().m_coro.done() )
+	// then agent has to be turned for the normal work.
+	if( current_coroutine_completed )
 	{
-		consume_top_level_coroutine_result(
-				*(self->m_cpp_coro_data),
-				working_thread_id,
-				*self );
-std::cout << "top-level coroutine destroyed" << std::endl;
-
 		// Reuse the existing execution_demand_t instance for
 		// the subsequent demand_handler call.
 		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent_for_cpp_coro_case);

@@ -6,5 +6,8 @@ add_subdirectory(simple_select)
 add_subdirectory(simple_select_empty_timeout)
 add_subdirectory(simple_select_total_time)
 add_subdirectory(simple_select_total_time_2)
-add_subdirectory(simple_select_lambda)
 
+add_subdirectory(simple_select_exception)
+add_subdirectory(simple_select_exception_2)
+
+add_subdirectory(simple_select_lambda)
