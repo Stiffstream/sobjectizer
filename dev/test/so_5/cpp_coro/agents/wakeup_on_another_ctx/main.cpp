@@ -1,5 +1,7 @@
 #include <so_5/all.hpp>
 
+#include <so_5/cpp_coro/details/current_coro_handle.hpp>
+
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
 
@@ -7,6 +9,121 @@
 
 namespace test
 {
+
+template< typename Source_Awaitable >
+struct return_back_to_agent_task_t
+{
+	struct promise_type
+	{
+		so_5::cpp_coro::scheduler_t * m_scheduler;
+
+		Source_Awaitable & m_source;
+
+		// Родительская короутина, которую нужно будет разбудить.
+		std::coroutine_handle<> m_coro;
+
+		std::optional< so_5::cpp_coro::resumable_item_t > m_resumable_item;
+
+		promise_type(
+			so_5::cpp_coro::scheduler_t * scheduler,
+			Source_Awaitable & source )
+			: m_scheduler{ scheduler }
+			, m_source{ source }
+		{}
+
+		return_back_to_agent_task_t
+		get_return_object()
+		{
+			return { std::coroutine_handle< promise_type >::from_promise( *this ) };
+		}
+
+		std::suspend_always
+		initial_suspend() const noexcept { return {}; }
+
+		std::suspend_always
+		final_suspend() const noexcept { return {}; }
+
+		void
+		return_void() noexcept {}
+
+		void
+		unhandled_exception()
+		{
+			throw;
+		}
+	};
+
+	std::coroutine_handle< promise_type > m_coro;
+
+	return_back_to_agent_task_t(
+		std::coroutine_handle< promise_type > coro )
+		: m_coro{ coro }
+	{}
+
+	~return_back_to_agent_task_t()
+	{
+		if( m_coro )
+		{
+			m_coro.destroy();
+		}
+	}
+
+	bool
+	await_ready() const
+	{
+		return m_coro.promise().m_source.await_ready();
+	}
+
+	auto
+	await_suspend( std::coroutine_handle<> parent_coro )
+	{
+		auto & promise = m_coro.promise();
+		promise.m_coro = parent_coro;
+		promise.m_resumable_item.emplace(
+				parent_coro,
+				*(promise.m_scheduler) );
+		(void) promise.m_resumable_item->try_suspend(
+				so_5::cpp_coro::infinite_speep_time() );
+
+		// Может быть здесь нужно проверять какой тип возвращаемого
+		// значения у m_source.await_suspend. И случай, когда возвращается
+		// std::coroutine_handle<> обрабатывать отдельно?
+		return promise.m_source.await_suspend( m_coro );
+	}
+
+	auto
+	await_resume()
+	{
+		return m_coro.promise().m_source.await_resume();
+	}
+};
+
+template< typename Source_Awaitable >
+[[nodiscard]]
+return_back_to_agent_task_t< Source_Awaitable >
+wrap_foreign_awaitable(
+	so_5::cpp_coro::scheduler_t * scheduler,
+	Source_Awaitable & awaitable )
+{
+	(void) scheduler;
+	(void) awaitable;
+
+	using promise_type = typename return_back_to_agent_task_t< Source_Awaitable >::
+			promise_type;
+
+	auto this_coro_handle = co_await so_5::cpp_coro::details::current_coro_handle();
+	std::coroutine_handle< promise_type > this_coro =
+			std::coroutine_handle< promise_type >::from_address(
+					this_coro_handle.address() );
+
+#if 1
+	this_coro.promise().m_resumable_item->try_schedule();
+#else
+	std::cout << "resumption of special coroutine " << this_coro.address() << std::endl;
+#endif
+
+	co_return;
+}
 
 class value_obtainer_t
 {
@@ -119,19 +236,23 @@ public:
 		std::osyncstream(std::cout) << "tid:" << own_thread_id
 				<< " | start" << std::endl;
 
-		int x = co_await m_obtainer;
+		int x = co_await wrap_foreign_awaitable(
+				std::addressof(so_this_agent_scheduler()),
+				m_obtainer );
 		std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
 				<< " | x=" << x << ", this=" << this << std::endl;
 
 		ensure_or_die( own_thread_id == std::this_thread::get_id(),
 				"wakeup on the different context" );
 
+#if 0
 		int y = co_await m_obtainer;
 		std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
 				<< " | y=" << y << ", this=" << this << std::endl;
 
 		ensure_or_die( own_thread_id == std::this_thread::get_id(),
 				"wakeup on the different context" );
+#endif
 
 		so_deregister_agent_coop_normally();
 	}

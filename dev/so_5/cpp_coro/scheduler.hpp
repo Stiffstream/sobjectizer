@@ -324,7 +324,7 @@ class SO_5_TYPE resumable_item_t
 		resumable_item_t(
 			/// Handle of the coroutine.
 			std::coroutine_handle<> to_be_resumed,
-			/// Scheduled to that coroutine has to be bound.
+			/// Scheduler to that coroutine has to be bound.
 			scheduler_t & scheduler );
 
 		~resumable_item_t();
