@@ -942,6 +942,13 @@ agent_t::so_evt_finish()
 	// Default implementation do nothing.
 }
 
+so_5::cpp_coro::task_t< void >
+agent_t::so_evt_async_start()
+{
+	// Default implementation do nothing.
+	co_return;
+}
+
 bool
 agent_t::so_is_active_state( const state_t & state_to_check ) const noexcept
 {
@@ -1579,23 +1586,80 @@ agent_t::push_event(
 					handler ) );
 }
 
+namespace
+{
+
+//FIXME: document this!
+[[nodiscard]]
+so_5::cpp_coro::details::top_level_task_t< void >
+wrap_evt_async_start_into_top_level_task( agent_t * what )
+	{
+		co_return co_await what->so_evt_async_start();
+	}
+
+} /* namespace anonymous */
+
 void
 agent_t::demand_handler_on_start(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
-	d.m_receiver->ensure_binding_finished();
+	agent_t * self = d.m_receiver;
+	self->ensure_binding_finished();
 
 	impl::agent_impl::working_thread_id_sentinel_t sentinel(
-			d.m_receiver->m_working_thread_id,
+			self->m_working_thread_id,
 			working_thread_id );
 
 	wrap_handler_invocation_with_exception_handling(
 			working_thread_id,
-			*(d.m_receiver),
-			[&d]() {
-				d.m_receiver->so_evt_start();
+			*self,
+			[self]() {
+				self->so_evt_start();
+
+				// If cpp_coro support is enabled, then it's time for
+				// so_evt_async_start().
+				//
+				// NOTE: if so_evt_start throws then so_evt_async_start won't
+				// be called at all.
+				if( self->m_cpp_coro_data )
+				{
+					self->m_cpp_coro_data->m_current_top_level_task =
+						wrap_evt_async_start_into_top_level_task( self );
+
+					// The current top-level coroutine has to be resumed because
+					// it uses lazy start and is suspended at the starting point.
+					self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
+
+					// NOTE: the completion of the so_evt_async_start coroutine
+					// will be checked a bit later.
+				}
 			} );
+
+	// In case of cpp_coro support the agent's queue has to be turned into
+	// the normal working mode.
+	//
+	// NOTE: don't expect exceptions here.
+	if( self->m_cpp_coro_data )
+	{
+		// The current top-level coroutine may be finished after
+		// completion of the `resume`.
+		if( self->m_cpp_coro_data->m_current_top_level_task
+				.value().m_coro.done() )
+		{
+			consume_top_level_coroutine_result(
+					*(self->m_cpp_coro_data),
+					working_thread_id,
+					*self );
+		}
+
+		// The special_queue has to be turned into normal working mode.
+		using so_5::impl::cpp_coro_case_special_queue_t;
+		self->m_cpp_coro_data->m_special_queue.turn_to_normal_working_mode(
+				self->m_cpp_coro_data->m_current_top_level_task.has_value()
+					? cpp_coro_case_special_queue_t::current_coro_exists
+					: cpp_coro_case_special_queue_t::no_current_coro );
+	}
 }
 
 void

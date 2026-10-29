@@ -500,6 +500,7 @@ struct working_thread_id_sentinel_t
 // agent_t
 //
 
+//FIXME: so_evt_async_start has to be mentioned in the description.
 //! A base class for agents.
 /*!
 	An agent in SObjctizer must be derived from the agent_t.
@@ -907,6 +908,14 @@ class SO_5_TYPE agent_t
 		*/
 		virtual void
 		so_evt_finish();
+
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.7
+		 */
+		virtual
+		so_5::cpp_coro::task_t< void >
+		so_evt_async_start();
 
 		//! Access to the current agent state.
 		/*!

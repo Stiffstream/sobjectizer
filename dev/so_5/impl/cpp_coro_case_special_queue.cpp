@@ -45,6 +45,24 @@ cpp_coro_case_special_queue_t::store_demand( demand_unique_ptr_t tail_demand )
 			}
 	}
 
+void
+cpp_coro_case_special_queue_t::push_wakeup_demand_to_actual_queue(
+	agent_t * agent_to_wakeup ) noexcept
+	{
+		// If this attempt fails then it will be impossible
+		// to continue the work because the agent won't be
+		// informed about the presence of demand to be handled.
+		m_actual_queue->push(
+				execution_demand_t{
+						agent_to_wakeup,
+						message_limit::control_block_t::none(),
+						null_mbox_id(),
+						typeid(msg_wakeup_agent_for_cpp_coro_case),
+						message_ref_t{} /* no actual message */,
+						agent_t::get_demand_handler_for_cpp_coro_case_ptr()
+				} );
+	}
+
 cpp_coro_case_special_queue_t::cpp_coro_case_special_queue_t(
 	std::mutex & lock )
 	: m_lock{ lock }
@@ -69,6 +87,39 @@ cpp_coro_case_special_queue_t::bind_actual_queue(
 	}
 
 void
+cpp_coro_case_special_queue_t::turn_to_normal_working_mode(
+	current_coroutine_presence_t current_coroutine_presence ) noexcept
+	{
+		// Non-null will mean that wakeup_demand has to be pushed to
+		// the actual queue.
+		agent_t * agent_to_wakeup = nullptr;
+
+		{
+			std::lock_guard< std::mutex > lock{ m_lock };
+
+			m_normal_work_enabled = true;
+
+			// If there is no current coroutine and the queue isn't empty,
+			// then the first wakeup_demand has to be pushed to the actual
+			// queue.
+			if( current_coroutine_presence_t::absent == current_coroutine_presence
+					&& m_head )
+				{
+					m_wakeup_demand_enabled = false;
+
+					agent_to_wakeup = m_head->m_execution_demand.m_receiver;
+				}
+
+			// Other cases:
+			// - the current coroutine exists, demands must remain in the queue;
+			// - the queue is empty, there is no need to push wakeup_demand.
+		}
+
+		if( agent_to_wakeup )
+			push_wakeup_demand_to_actual_queue( agent_to_wakeup );
+	}
+
+void
 cpp_coro_case_special_queue_t::push(
 	execution_demand_t src_demand )
 	{
@@ -84,26 +135,15 @@ cpp_coro_case_special_queue_t::push(
 
 			store_demand( std::move(wrapped_demand) );
 
-			has_to_push_wakeup_demand = m_wakeup_demand_enabled;
-			m_wakeup_demand_enabled = false;
+			if( m_normal_work_enabled )
+				{
+					has_to_push_wakeup_demand = m_wakeup_demand_enabled;
+					m_wakeup_demand_enabled = false;
+				}
 		}
 
 		if( has_to_push_wakeup_demand )
-			// If this attempt fails then it will be impossible
-			// to continue the work because the agent won't be
-			// informed about the presence of demand to be handled.
-			so_5::details::invoke_noexcept_code(
-				[this, agent_to_wakeup]() {
-					m_actual_queue->push(
-							execution_demand_t{
-									agent_to_wakeup,
-									message_limit::control_block_t::none(),
-									null_mbox_id(),
-									typeid(msg_wakeup_agent_for_cpp_coro_case),
-									message_ref_t{} /* no actual message */,
-									agent_t::get_demand_handler_for_cpp_coro_case_ptr()
-							} );
-				} );
+			push_wakeup_demand_to_actual_queue( agent_to_wakeup );
 	}
 
 void

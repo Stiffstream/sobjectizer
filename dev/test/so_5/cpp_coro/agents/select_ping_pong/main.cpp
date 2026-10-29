@@ -11,8 +11,6 @@ struct msg_ping final : public so_5::signal_t {};
 struct msg_pong final : public so_5::signal_t {};
 struct msg_completed final : public so_5::signal_t {};
 
-struct msg_start final : public so_5::signal_t {};
-
 struct communications_t
 {
 	so_5::mchain_t m_pings;
@@ -30,21 +28,8 @@ public:
 		, m_communications{ std::move(communications) }
 	{}
 
-	void
-	so_define_agent() override
-	{
-		so_subscribe_self().event( &a_pinger_t::evt_start );
-	}
-
-	void
-	so_evt_start() override
-	{
-		so_5::send< msg_start >( *this );
-	}
-
-private:
 	so_5::cpp_coro::task_t< void >
-	evt_start( mhood_t< msg_start > )
+	so_evt_async_start() override
 	{
 		so_5::send< msg_ping >( m_communications.m_pings );
 
@@ -70,21 +55,8 @@ public:
 		, m_communications{ std::move(communications) }
 	{}
 
-	void
-	so_define_agent() override
-	{
-		so_subscribe_self().event( &a_ponger_t::evt_start );
-	}
-
-	void
-	so_evt_start() override
-	{
-		so_5::send< msg_start >( *this );
-	}
-
-private:
 	so_5::cpp_coro::task_t< void >
-	evt_start( mhood_t< msg_start > )
+	so_evt_async_start() override
 	{
 		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
 				so_5::from_all().handle_n(3),
@@ -108,21 +80,8 @@ public:
 		, m_communications{ std::move(communications) }
 	{}
 
-	void
-	so_define_agent() override
-	{
-		so_subscribe_self().event( &a_shutdowner_t::evt_start );
-	}
-
-	void
-	so_evt_start() override
-	{
-		so_5::send< msg_start >( *this );
-	}
-
-private:
 	so_5::cpp_coro::task_t< void >
-	evt_start( mhood_t< msg_start > )
+	so_evt_async_start() override
 	{
 		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
 				so_5::from_all().handle_n(2),

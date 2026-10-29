@@ -95,6 +95,19 @@ class cpp_coro_case_special_queue_t final
 		 */
 		using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 
+		//FIXME: document this!
+		enum class current_coroutine_presence_t
+			{
+				absent,
+				present
+			};
+
+		static constexpr current_coroutine_presence_t no_current_coro =
+				current_coroutine_presence_t::absent;
+
+		static constexpr current_coroutine_presence_t current_coro_exists =
+				current_coroutine_presence_t::present;
+
 	private:
 		//FIXME: the std::mutex is used just for the simplicity of the first
 		//implementation. It has to be changed to the appropriate
@@ -131,6 +144,9 @@ class cpp_coro_case_special_queue_t final
 		 */
 		std::optional< execution_demand_t > m_pending_evt_finish;
 
+		//FIXME: document this!
+		bool m_normal_work_enabled{ false };
+
 		//! Status of the wakeup_demand.
 		/*!
 		 * Value `true` means that the queue is empty and there is no
@@ -165,6 +181,16 @@ class cpp_coro_case_special_queue_t final
 		void
 		store_demand( demand_unique_ptr_t tail_demand );
 
+		//! Helper for pushing the wakeup_demand to the actual queue.
+		/*!
+		 * \attention
+		 * This method is noexcept because there is no way to restore the
+		 * normal state if attempt of pushing wakeup_demand fails.
+		 */
+		void
+		push_wakeup_demand_to_actual_queue(
+			agent_t * agent_to_wakeup ) noexcept;
+
 	public:
 		//! Initializing constructor.
 		cpp_coro_case_special_queue_t(
@@ -177,6 +203,11 @@ class cpp_coro_case_special_queue_t final
 		//! the real dispatcher.
 		void
 		bind_actual_queue( event_queue_t * actual_queue );
+
+		//FIXME: document this!
+		void
+		turn_to_normal_working_mode(
+			current_coroutine_presence_t current_coroutine_presence ) noexcept;
 
 		void
 		push( execution_demand_t src_demand ) override;
