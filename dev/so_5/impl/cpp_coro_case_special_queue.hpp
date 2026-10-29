@@ -108,6 +108,28 @@ class cpp_coro_case_special_queue_t final
 		static constexpr current_coroutine_presence_t current_coro_exists =
 				current_coroutine_presence_t::present;
 
+		//FIXME: document this!
+		enum class sequential_limit_status_t
+			{
+				not_exceeded_yet,
+				exceeded
+			};
+
+		//FIXME: document this!
+		[[nodiscard]] static
+		sequential_limit_status_t
+		check_sequential_limit(
+			//! The current number of sequentially processed demands.
+			unsigned int current_number,
+			//! The limit.
+			unsigned int limit_value ) noexcept
+			{
+				return current_number < limit_value
+						? sequential_limit_status_t::not_exceeded_yet
+						: sequential_limit_status_t::exceeded
+						;
+			}
+
 	private:
 		//FIXME: the std::mutex is used just for the simplicity of the first
 		//implementation. It has to be changed to the appropriate
@@ -236,7 +258,8 @@ class cpp_coro_case_special_queue_t final
 		//FIXME: document this!
 		[[nodiscard]]
 		demand_unique_ptr_t
-		try_extract_demand_for_execution();
+		try_extract_demand_for_execution(
+			sequential_limit_status_t limit_status );
 
 		//! Give away the pointer to the actual_queue.
 		/*!

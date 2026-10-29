@@ -2,6 +2,8 @@ add_subdirectory(no_coro)
 add_subdirectory(no_coro_adv_thread_pool)
 add_subdirectory(no_coro_event_queue_hook)
 
+add_subdirectory(sequential_limit)
+
 add_subdirectory(simple_select)
 add_subdirectory(simple_select_empty_timeout)
 add_subdirectory(simple_select_total_time)

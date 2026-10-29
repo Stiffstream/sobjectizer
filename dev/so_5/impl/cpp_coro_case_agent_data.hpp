@@ -61,10 +61,18 @@ struct cpp_coro_case_agent_data_t
 		 */
 		std::optional< top_level_task_t > m_current_top_level_task;
 
+		//! How many demands may be processed sequentially.
+		unsigned int m_sequential_limit;
+
 		//! The initializing constructor.
-		cpp_coro_case_agent_data_t( so_5::agent_t & receiver )
+		cpp_coro_case_agent_data_t(
+			//! The target agent.
+			so_5::agent_t & receiver,
+			//! How many demands may be processed sequentially.
+			unsigned int sequential_limit )
 			: m_special_queue{ m_lock }
 			, m_this_agent_scheduler{ receiver, m_lock, m_special_queue }
+			, m_sequential_limit{ sequential_limit }
 			{}
 	};
 

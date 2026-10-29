@@ -221,7 +221,8 @@ std::cout << "*** coro resumption demand pushed" << std::endl;
 	}
 
 cpp_coro_case_special_queue_t::demand_unique_ptr_t
-cpp_coro_case_special_queue_t::try_extract_demand_for_execution()
+cpp_coro_case_special_queue_t::try_extract_demand_for_execution(
+	sequential_limit_status_t limit_status )
 	{
 		bool need_push_pending_evt_finish = false;
 
@@ -229,10 +230,30 @@ cpp_coro_case_special_queue_t::try_extract_demand_for_execution()
 			std::lock_guard< std::mutex > lock{ m_lock };
 
 			if( m_head )
-				return remove_head();
+				{
+					if( sequential_limit_status_t::not_exceeded_yet == limit_status )
+						{
+							// The next demand can be extracted from the queue for
+							// processing.
+							return remove_head();
+						}
+					else
+						{
+							// The further processing has to be delayed.
+							push_wakeup_demand_to_actual_queue(
+									m_head->m_execution_demand.m_receiver );
+
+							// NOTE: we expect that m_wakeup_demand_enabled has
+							// `false` value at the moment. So there is no need to
+							// change it.
+
+							// Empty value will break the loop of demand extraction.
+							return {};
+						}
+				}
 
 			// The queue is empty now. A case when pending_evt_finish
-			// if present must be handled carefully.
+			// is present must be handled carefully.
 			if( m_pending_evt_finish.has_value() )
 				{
 					// We don't expect ordinary demands after receiving

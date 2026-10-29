@@ -791,7 +791,8 @@ make_cpp_coro_agent_data_if_needed(
 		const auto info = tuning_options.cpp_coro_support();
 		if( info )
 			result = std::make_unique< cpp_coro_case_agent_data_t >(
-					*(agent_ptr.ptr()) );
+					*(agent_ptr.ptr()),
+					info->sequential_limit() );
 
 		return result;
 	}
@@ -1769,13 +1770,19 @@ agent_t::demand_handler_for_cpp_coro_support(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	using so_5::impl::cpp_coro_case_special_queue_t;
+
 std::cout << "{{{" << std::endl;
 	agent_t * const self = d.m_receiver;
 
-	for(;;)
+	for( unsigned int sequentially_processed{}; ; ++sequentially_processed )
 	{
 		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
-				.try_extract_demand_for_execution();
+				.try_extract_demand_for_execution(
+						cpp_coro_case_special_queue_t::check_sequential_limit(
+								sequentially_processed,
+								self->m_cpp_coro_data->m_sequential_limit ) );
+
 std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 		if( demand_ptr )
 		{

@@ -224,14 +224,40 @@ inline constexpr demands_handling_on_dereg_t skip_demands_on_dereg =
  * \note
  * This type is intended to be used for tuning agent's options.
  *
- * \note
- * It's an empty struct for now. But it may be extended in the future
- * versions of SObjectizer.
- *
  * \since v.5.8.7
  */
-struct cpp_coro_support_t
-	{};
+class cpp_coro_support_t
+	{
+		//! How many demands can be processed sequentially.
+		unsigned int m_sequential_limit{ 8u };
+
+	public:
+		cpp_coro_support_t() = default;
+
+		//! How many demands can be processed sequentially.
+		[[nodiscard]]
+		unsigned int
+		sequential_limit() const noexcept
+			{
+				return m_sequential_limit;
+			}
+
+		//! Setter for the limit of demands processed sequentially.
+		cpp_coro_support_t &
+		sequential_limit( unsigned int value ) & noexcept
+			{
+				m_sequential_limit = value;
+				return *this;
+			}
+
+		//! Setter for the limit of demands processed sequentially.
+		cpp_coro_support_t &&
+		sequential_limit( unsigned int value ) && noexcept
+			{
+				m_sequential_limit = value;
+				return std::move(*this);
+			}
+	};
 
 //! Helper function for enabling support of C++20 coroutines for an
 //! agent
