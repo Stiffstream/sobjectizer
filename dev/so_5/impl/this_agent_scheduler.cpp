@@ -93,7 +93,7 @@ std::cout << message.get() << " delivery of " << msg_type.name() << " to special
 								null_mbox_id(),
 								msg_type,
 								message,
-								agent_t::get_demand_handler_for_cpp_coro_resumtion_ptr()
+								agent_t::get_demand_handler_for_cpp_coro_resumption_ptr()
 						} );
 			}
 
@@ -191,7 +191,7 @@ std::cout << "try_schedule case 3" << std::endl;
 							null_mbox_id(),
 							typeid(msg_resume_coro),
 							extra_data.m_ordinary_resume,
-							agent_t::get_demand_handler_for_cpp_coro_resumtion_ptr()
+							agent_t::get_demand_handler_for_cpp_coro_resumption_ptr()
 					} );
 		break;
 		}

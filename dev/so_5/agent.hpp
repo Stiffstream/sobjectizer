@@ -3392,7 +3392,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.8.7
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_for_cpp_coro_resumtion_ptr() noexcept;
+		get_demand_handler_for_cpp_coro_resumption_ptr() noexcept;
 		/*!
 		 * \}
 		 */

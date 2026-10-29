@@ -1890,7 +1890,7 @@ std::cout << ">>>" << std::endl;
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_for_cpp_coro_resumtion_ptr() noexcept
+agent_t::get_demand_handler_for_cpp_coro_resumption_ptr() noexcept
 {
 	return &agent_t::demand_handler_for_cpp_coro_resumption;
 }
