@@ -123,6 +123,13 @@ class SO_5_TYPE resumable_item_t
 			};
 		static_assert( std::atomic< status_t >::is_always_lock_free );
 
+		//! Part of stuff for deferred initialization.
+		enum class deffered_initialization_t { deffered };
+
+		//! A special indicator for deffered initialization.
+		static constexpr deffered_initialization_t deffered_init =
+				deffered_initialization_t::deffered;
+
 		/// @brief Holder of the information needed for the scheduler.
 		///
 		/// @note
@@ -282,11 +289,15 @@ class SO_5_TYPE resumable_item_t
 				/// and store this object here.
 				extra_data_t m_extra_data;
 
-				/// Initializing constructor.
+				/// @brief Initializing constructor.
 				explicit scheduler_data_t(
 					/// Handle of the coroutine to be resumed.
 					std::coroutine_handle<> to_be_resumed )
 					: m_to_be_resumed{ to_be_resumed }
+					{}
+
+				/// @brief Constructor for the case of deffered initialization.
+				explicit scheduler_data_t( deffered_initialization_t )
 					{}
 
 				// Copy and Move operations are disabled.
@@ -303,8 +314,11 @@ class SO_5_TYPE resumable_item_t
 		/// Data to be managed by the scheduler.
 		scheduler_data_t m_scheduler_data;
 
-		/// Scheduler to that coroutine is bound.
-		scheduler_t & m_scheduler;
+		/// @brief Scheduler to that coroutine is bound.
+		///
+		/// @attention
+		/// May be nullptr in the case of deffered initialization.
+		scheduler_t * m_scheduler;
 
 	public:
 		/// @brief Access to the scheduler's data of this resumable_item.
@@ -327,6 +341,12 @@ class SO_5_TYPE resumable_item_t
 			/// Scheduler to that coroutine has to be bound.
 			scheduler_t & scheduler );
 
+		/// @brief A special constructor for the case of deffered initialization.
+		///
+		/// @attention
+		/// It's a UB if resumable_item_t will be used before a call to init().
+		resumable_item_t( deffered_initialization_t );
+
 		~resumable_item_t();
 
 		// Copy and Move operations are disabled.
@@ -337,6 +357,23 @@ class SO_5_TYPE resumable_item_t
 		resumable_item_t( resumable_item_t && ) = delete;
 		resumable_item_t &
 		operator=( resumable_item_t && ) = delete;
+
+		/// @breif Actual initialization of the item.
+		///
+		/// @attention
+		/// This method has to be used only if the constructor with
+		/// deffered_initialization_t was used for resumable_item_t.
+		///
+		/// @attention
+		/// This method may be called only once.
+		void
+		init(
+			/// Handle of the coroutine.
+			std::coroutine_handle<> to_be_resumed,
+			/// Scheduler to that coroutine has to be bound.
+			scheduler_t & scheduler,
+			/// Initial state of the coroutine.
+			status_t initial_status );
 
 		/// @brief An attempt to resume the coroutine.
 		///

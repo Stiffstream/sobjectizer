@@ -22,13 +22,14 @@ struct return_back_to_agent_task_t
 		// Родительская короутина, которую нужно будет разбудить.
 		std::coroutine_handle<> m_coro;
 
-		std::optional< so_5::cpp_coro::resumable_item_t > m_resumable_item;
+		so_5::cpp_coro::resumable_item_t m_resumable_item;
 
 		promise_type(
 			so_5::cpp_coro::scheduler_t * scheduler,
 			Source_Awaitable & source )
 			: m_scheduler{ scheduler }
 			, m_source{ source }
+			, m_resumable_item{ so_5::cpp_coro::resumable_item_t::deffered_init }
 		{}
 
 		return_back_to_agent_task_t
@@ -79,11 +80,10 @@ struct return_back_to_agent_task_t
 	{
 		auto & promise = m_coro.promise();
 		promise.m_coro = parent_coro;
-		promise.m_resumable_item.emplace(
+		promise.m_resumable_item.init(
 				parent_coro,
-				*(promise.m_scheduler) );
-		(void) promise.m_resumable_item->try_suspend(
-				so_5::cpp_coro::infinite_speep_time() );
+				*(promise.m_scheduler),
+				so_5::cpp_coro::resumable_item_t::status_t::waiting );
 
 		// Может быть здесь нужно проверять какой тип возвращаемого
 		// значения у m_source.await_suspend. И случай, когда возвращается
@@ -117,7 +117,7 @@ wrap_foreign_awaitable(
 					this_coro_handle.address() );
 
 #if 1
-	this_coro.promise().m_resumable_item->try_schedule();
+	this_coro.promise().m_resumable_item.try_schedule();
 #else
 	std::cout << "resumption of special coroutine " << this_coro.address() << std::endl;
 #endif

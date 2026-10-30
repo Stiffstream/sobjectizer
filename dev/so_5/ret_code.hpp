@@ -580,6 +580,20 @@ const int rc_no_support_for_cpp_coro_in_agent = 204;
  */
 const int rc_top_level_coro_already_exists = 205;
 
+/*!
+ * \brief A resumable_item_t is already initialized.
+ *
+ * \since v.5.8.7
+ */
+const int rc_resumable_item_already_initialized = 206;
+
+/*!
+ * \brief A resumable_item is not initialized yet.
+ *
+ * \since v.5.8.7
+ */
+const int rc_resumable_item_not_initialized = 207;
+
 //! \name Common error codes.
 //! \{
 
