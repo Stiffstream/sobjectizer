@@ -1625,6 +1625,12 @@ agent_t::demand_handler_on_start(
 				// be called at all.
 				if( self->m_cpp_coro_data )
 				{
+					// The scheduler of this agent has to become the current
+					// scheduler.
+					so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+							self->m_cpp_coro_data->m_this_agent_scheduler
+						};
+
 					self->m_cpp_coro_data->m_current_top_level_task =
 						wrap_evt_async_start_into_top_level_task( self );
 
@@ -1775,6 +1781,12 @@ agent_t::demand_handler_for_cpp_coro_support(
 std::cout << "{{{" << std::endl;
 	agent_t * const self = d.m_receiver;
 
+	// The scheduler of this agent has to become the current
+	// scheduler.
+	so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+			self->m_cpp_coro_data->m_this_agent_scheduler
+		};
+
 	for( unsigned int sequentially_processed{}; ; ++sequentially_processed )
 	{
 		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
@@ -1845,6 +1857,12 @@ std::cout << "<<<" << std::endl;
 
 	// The first task is the resumption of the specified coroutine.
 	{
+		// The scheduler of this agent has to become the current
+		// scheduler.
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+				self->m_cpp_coro_data->m_this_agent_scheduler
+			};
+
 		//FIXME: an exception from this operation leaves the program in the
 		//wrong state.
 		so_5::impl::msg_resume_coro & resume_msg =
