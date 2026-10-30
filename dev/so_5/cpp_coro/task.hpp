@@ -10,6 +10,8 @@
 #if !defined( SO_5_CPP_CORO_TASK_HPP )
 #define SO_5_CPP_CORO_TASK_HPP
 
+#include <so_5/cpp_coro/scheduler.hpp>
+
 #include <so_5/cpp_coro/details/final_awaiter.hpp>
 
 #include <so_5/exception.hpp>
@@ -103,6 +105,9 @@ struct promise_base_common_t
 				value_to_hold_t< T >
 			>;
 
+		//! Scheduler that is used for this coroutine.
+		scheduler_t * m_scheduler;
+
 		//! The value of the promise.
 		storage_t m_result{ no_value_t{} };
 
@@ -111,6 +116,16 @@ struct promise_base_common_t
 		 * It's a part of symmetric transfer implementation.
 		 */
 		std::coroutine_handle<> m_continuation;
+
+		//! The default constructor.
+		/*!
+		 * \attention
+		 * Initializes m_scheduler by using the current scheduler for
+		 * the current thread.
+		 */
+		promise_base_common_t()
+			: m_scheduler{ std::addressof(current_scheduler_setter_t::safe_get()) }
+			{}
 
 		std::suspend_always
 		initial_suspend() noexcept { return {}; }
@@ -296,6 +311,15 @@ std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 							};
 					}
 			};
+
+		//! Get the scheduler for that the task is created.
+		[[nodiscard]]
+		scheduler_t &
+		scheduler() const
+			{
+//FIXME: maybe it's better to add checks for value of m_coro and promise.m_scheduler?
+				return *(m_coro.promise().m_scheduler);
+			}
 
 		//! The standard-required method.
 		//!

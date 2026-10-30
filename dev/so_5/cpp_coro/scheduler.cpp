@@ -70,5 +70,56 @@ resumable_item_t::try_suspend(
 scheduler_t::scheduler_t() = default;
 scheduler_t::~scheduler_t() = default;
 
+namespace
+{
+
+//! The current scheduler for this thread.
+thread_local scheduler_t * g_this_thread_current_scheduler = nullptr;
+
+} /* namespace anonymous */
+
+//
+// current_scheduler_setter_t
+//
+current_scheduler_setter_t::current_scheduler_setter_t(
+	scheduler_t & scheduler )
+	{
+		if( g_this_thread_current_scheduler )
+			SO_5_THROW_EXCEPTION( rc_this_thread_scheduler_already_defined,
+					"a scheduler for this thread already defined" );
+
+		g_this_thread_current_scheduler = std::addressof(scheduler);
+	}
+
+current_scheduler_setter_t::~current_scheduler_setter_t()
+	{
+		g_this_thread_current_scheduler = nullptr;
+	}
+
+scheduler_t &
+current_scheduler_setter_t::safe_get()
+	{
+		if( !g_this_thread_current_scheduler )
+			SO_5_THROW_EXCEPTION( rc_this_thread_scheduler_not_defined,
+					"there is no scheduler for this thread" );
+
+		return *g_this_thread_current_scheduler;
+	}
+
+//
+// scoped_scheduler_setter_t
+//
+scoped_scheduler_setter_t::scoped_scheduler_setter_t(
+	scheduler_t & scheduler ) noexcept
+		: m_previous_scheduler{ g_this_thread_current_scheduler }
+	{
+		g_this_thread_current_scheduler = std::addressof(scheduler);
+	}
+
+scoped_scheduler_setter_t::~scoped_scheduler_setter_t()
+	{
+		g_this_thread_current_scheduler = m_previous_scheduler;
+	}
+
 } /* namespace so_5::cpp_coro */
 

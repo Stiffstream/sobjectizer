@@ -36,6 +36,7 @@ do_test()
 		so_5::cpp_coro::this_thread_scheduler_t scheduler{
 				env.environment()
 			};
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{ scheduler };
 
 		const auto started_at = std::chrono::steady_clock::now();
 

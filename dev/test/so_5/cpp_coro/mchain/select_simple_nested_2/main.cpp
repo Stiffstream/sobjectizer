@@ -44,8 +44,8 @@ do_test()
 		so_5::cpp_coro::this_thread_scheduler_t scheduler{
 				env.environment()
 			};
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{ scheduler };
 
-std::cout << "___ entring first select" << std::endl;
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
 					scheduler,
@@ -53,7 +53,6 @@ std::cout << "___ entring first select" << std::endl;
 					receive_case( ch1,
 						[&]( hello ) -> so_5::cpp_coro::task_t<void>
 						{
-std::cout << "   entring second select" << std::endl;
 							co_await so_5::cpp_coro::select(
 								scheduler,
 								so_5::from_all().handle_n(1),
@@ -62,16 +61,13 @@ std::cout << "   entring second select" << std::endl;
 									{
 										bye_received = true;
 
-std::cout << "   second select before co_return" << std::endl;
 										co_return;
 									} ) );
 
 							hello_received = true;
-std::cout << "   second select completed" << std::endl;
 						} )
 					)
 				);
-std::cout << "___ first select completed" << std::endl;
 
 		const auto finished_at = std::chrono::steady_clock::now();
 

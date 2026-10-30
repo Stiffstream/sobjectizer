@@ -594,6 +594,20 @@ const int rc_resumable_item_already_initialized = 206;
  */
 const int rc_resumable_item_not_initialized = 207;
 
+/*!
+ * \brief A scheduler object for this thread is already defined.
+ *
+ * \since v.5.8.7
+ */
+const int rc_this_thread_scheduler_already_defined = 208;
+
+/*!
+ * \brief There is no a scheduler object for this thread.
+ *
+ * \since v.5.8.7
+ */
+const int rc_this_thread_scheduler_not_defined = 209;
+
 //! \name Common error codes.
 //! \{
 

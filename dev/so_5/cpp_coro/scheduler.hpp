@@ -466,6 +466,78 @@ class SO_5_TYPE scheduler_t
 			monotonic_clock_t::duration sleep_time ) = 0;
 	};
 
+//
+// current_scheduler_setter_t
+//
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+class SO_5_TYPE current_scheduler_setter_t
+	{
+	public:
+		//! Initializing constructor.
+		current_scheduler_setter_t(
+			//! The scheduler to be set as the current.
+			scheduler_t & scheduler );
+		~current_scheduler_setter_t();
+
+		current_scheduler_setter_t(
+			const current_scheduler_setter_t & ) = delete;
+		current_scheduler_setter_t &
+		operator=(
+			const current_scheduler_setter_t & ) = delete;
+
+		current_scheduler_setter_t(
+			current_scheduler_setter_t && ) = delete;
+		current_scheduler_setter_t &
+		operator=(
+			current_scheduler_setter_t && ) = delete;
+
+		//! Get the current scheduler.
+		/*!
+		 * Throws an exception if there is no current scheduler.
+		 */
+		[[nodiscard]] static
+		scheduler_t &
+		safe_get();
+	};
+
+//
+// scoped_scheduler_setter_t
+//
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+class SO_5_TYPE scoped_scheduler_setter_t
+	{
+		//! Previous scheduler.
+		/*!
+		 * Maybe nullptr.
+		 */
+		scheduler_t * m_previous_scheduler;
+
+	public:
+		//! Initializing constructor.
+		scoped_scheduler_setter_t(
+			//! The scheduler to be set as the current.
+			scheduler_t & scheduler ) noexcept;
+		~scoped_scheduler_setter_t();
+
+		scoped_scheduler_setter_t(
+			const scoped_scheduler_setter_t & ) = delete;
+		scoped_scheduler_setter_t &
+		operator=(
+			const scoped_scheduler_setter_t & ) = delete;
+
+		scoped_scheduler_setter_t(
+			scoped_scheduler_setter_t && ) = delete;
+		scoped_scheduler_setter_t &
+		operator=(
+			scoped_scheduler_setter_t && ) = delete;
+	};
+
 namespace details
 {
 

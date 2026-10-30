@@ -17,7 +17,7 @@ struct return_back_to_agent_task_t
 	{
 		so_5::cpp_coro::scheduler_t * m_scheduler;
 
-		Source_Awaitable & m_source;
+		Source_Awaitable m_source;
 
 		// Родительская короутина, которую нужно будет разбудить.
 		std::coroutine_handle<> m_coro;
@@ -26,7 +26,7 @@ struct return_back_to_agent_task_t
 
 		promise_type(
 			so_5::cpp_coro::scheduler_t * scheduler,
-			Source_Awaitable & source )
+			Source_Awaitable source )
 			: m_scheduler{ scheduler }
 			, m_source{ source }
 			, m_resumable_item{ so_5::cpp_coro::resumable_item_t::deffered_init }
@@ -103,7 +103,7 @@ template< typename Source_Awaitable >
 return_back_to_agent_task_t< Source_Awaitable >
 wrap_foreign_awaitable(
 	so_5::cpp_coro::scheduler_t * scheduler,
-	Source_Awaitable & awaitable )
+	Source_Awaitable && awaitable )
 {
 	(void) scheduler;
 	(void) awaitable;
@@ -132,6 +132,10 @@ class value_obtainer_t
 
 public:
 	value_obtainer_t( so_5::mbox_t service );
+
+	value_obtainer_t(const value_obtainer_t &) = delete;
+
+	value_obtainer_t(value_obtainer_t &&) = delete;
 
 	void
 	set_value( int value );

@@ -43,6 +43,7 @@ do_test()
 		so_5::cpp_coro::this_thread_scheduler_t scheduler{
 				env.environment()
 			};
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{ scheduler };
 
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
