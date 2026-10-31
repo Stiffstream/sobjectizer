@@ -47,13 +47,11 @@ do_test()
 
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
-					scheduler,
 					so_5::from_all().handle_n(2),
 					receive_case( ch1,
 						[&]( hello ) -> so_5::cpp_coro::task_t<void>
 						{
 							co_await so_5::cpp_coro::select(
-								scheduler,
 								so_5::from_all().handle_n(2),
 								receive_case( ch2,
 									[&]( bye ) -> so_5::cpp_coro::task_t<void>

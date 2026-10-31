@@ -33,7 +33,7 @@ public:
 	{
 		so_5::send< msg_ping >( m_communications.m_pings );
 
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(3),
 				so_5::receive_case( m_communications.m_pongs,
 					[this]( so_5::mhood_t< msg_pong > )
@@ -58,7 +58,7 @@ public:
 	so_5::cpp_coro::task_t< void >
 	so_evt_async_start() override
 	{
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(3),
 				so_5::receive_case( m_communications.m_pings,
 					[this]( so_5::mhood_t< msg_ping > )
@@ -83,7 +83,7 @@ public:
 	so_5::cpp_coro::task_t< void >
 	so_evt_async_start() override
 	{
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(2),
 				so_5::receive_case( m_communications.m_completions,
 					[this]( so_5::mhood_t< msg_completed > )

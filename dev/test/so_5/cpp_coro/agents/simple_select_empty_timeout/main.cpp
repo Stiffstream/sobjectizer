@@ -36,7 +36,7 @@ private:
 	so_5::cpp_coro::task_t< void >
 	evt_a( mhood_t< msg_a > )
 	{
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all()
 					.handle_n(1)
 					.empty_timeout( std::chrono::milliseconds{ 25 } ),

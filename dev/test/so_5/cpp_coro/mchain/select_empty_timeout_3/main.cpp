@@ -47,7 +47,6 @@ do_test()
 
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
-						scheduler,
 						so_5::from_all()
 							.handle_all()
 							.empty_timeout( std::chrono::milliseconds{ 50 } ),

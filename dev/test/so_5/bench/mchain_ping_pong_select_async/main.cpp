@@ -84,6 +84,7 @@ main( int argc, char ** argv )
 
 		so_5::wrapped_env_t sobj;
 		so_5::cpp_coro::this_thread_scheduler_t scheduler{ sobj.environment() };
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{ scheduler };
 
 		auto ping_ch = create_mchain( sobj.environment() );
 		auto pong_ch = create_mchain( sobj.environment() );
@@ -99,7 +100,6 @@ main( int argc, char ** argv )
 		for( unsigned int actions = 0; actions != cfg.m_request_count; ++actions )
 		{
 			scheduler.sync_wait( so_5::cpp_coro::select(
-					scheduler,
 					so_5::from_all().handle_n( 1 ),
 					receive_case( ping_ch,
 							[&pings_received, &pong_ch]( so_5::mhood_t< msg_ping > )
@@ -109,7 +109,6 @@ main( int argc, char ** argv )
 							} ) ) );
 
 			scheduler.sync_wait( so_5::cpp_coro::select(
-					scheduler,
 					so_5::from_all().handle_n( 1 ),
 					receive_case( pong_ch,
 							[&pongs_received, &ping_ch]( so_5::mhood_t< msg_pong > )

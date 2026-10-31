@@ -42,7 +42,7 @@ private:
 		so_5::send< msg_b >( m_target );
 		so_5::send< msg_b >( m_target );
 
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all()
 					.handle_all()
 					.total_time( std::chrono::milliseconds{ 40 } ),

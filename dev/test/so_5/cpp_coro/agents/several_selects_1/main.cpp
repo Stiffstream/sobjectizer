@@ -42,7 +42,7 @@ private:
 	{
 		int received = 0;
 
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(1),
 				so_5::receive_case( m_first,
 					[&received]( so_5::mhood_t< msg_b > )
@@ -50,7 +50,7 @@ private:
 						++received;
 					} ) );
 
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(1),
 				so_5::receive_case( m_first,
 					[&received]( so_5::mhood_t< msg_b > )
@@ -58,7 +58,7 @@ private:
 						++received;
 					} ) );
 
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(1),
 				so_5::receive_case( m_first,
 					[&received]( so_5::mhood_t< msg_b > )

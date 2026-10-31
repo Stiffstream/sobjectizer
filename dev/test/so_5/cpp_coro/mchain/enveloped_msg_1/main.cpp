@@ -113,7 +113,6 @@ run_test()
 
 	auto result = scheduler.sync_wait(
 			so_5::cpp_coro::select(
-					scheduler,
 					so_5::from_all().handle_n(1).no_wait_on_empty(),
 					receive_case( mchain,
 							[&](so_5::mhood_t<just_test_msg> cmd) {

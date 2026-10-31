@@ -63,8 +63,6 @@ private:
 		so_5::send_delayed< msg_handle_it >( ch, std::chrono::milliseconds{ 50 } );
 
 		co_await so_5::cpp_coro::select(
-				// NOTE: this is not so_this_agent_scheduler!
-				cmd->m_scheduler,
 				so_5::from_all().handle_n(1),
 				so_5::receive_case( ch,
 					[]( mhood_t<msg_handle_it> ) {

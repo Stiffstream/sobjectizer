@@ -41,12 +41,12 @@ private:
 	so_5::cpp_coro::task_t< void >
 	evt_a( mhood_t< msg_a > )
 	{
-		co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(1),
 				so_5::receive_case( m_first,
 					[this]( so_5::mhood_t< msg_b > ) -> so_5::cpp_coro::task_t< void >
 					{
-						co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+						co_await so_5::cpp_coro::select(
 								so_5::from_all().handle_n(1),
 								so_5::receive_case( m_second,
 									[this]( so_5::mhood_t< msg_c > ) {

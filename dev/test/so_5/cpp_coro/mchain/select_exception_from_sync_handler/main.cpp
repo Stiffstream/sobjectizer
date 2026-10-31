@@ -52,7 +52,6 @@ do_test()
 		{
 			std::ignore = scheduler.sync_wait(
 					so_5::cpp_coro::select(
-								scheduler,
 								so_5::from_all().handle_all(),
 								receive_case( ch1, []( hello ) {
 										throw my_exception( "hello from ch1!" );

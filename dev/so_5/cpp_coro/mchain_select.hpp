@@ -197,8 +197,6 @@ template<
 	std::size_t Cases_Count >
 resumable_select_t
 do_select(
-	/// Scheduler to be used for coroutine resumption.
-	scheduler_t & coro_scheduler,
 	/// Parameters for the select call.
 	defined_select_params_t params,
 	/// Container with select_cases to be used.
@@ -214,7 +212,7 @@ do_select(
 				async_select_notificator_t >;
 
 		async_select_notificator_t notificator{
-				coro_scheduler,
+				current_scheduler_setter_t::safe_get(),
 				co_await so_5::cpp_coro::details::current_coro_handle(),
 				cases_holder.begin(),
 				cases_holder.end()
@@ -304,8 +302,6 @@ template<
 	std::size_t Cases_Count >
 resumable_select_t
 perform_select(
-	/// Scheduler to be used.
-	scheduler_t & coro_scheduler,
 	/// Parameters for the select call.
 	defined_select_params_t params,
 	/// Container with select_cases to be used.
@@ -330,19 +326,16 @@ perform_select(
 		{
 		case (no_total_time + no_empty_timeout):
 			return do_select< fake_time_counter_t, fake_time_counter_t >(
-					coro_scheduler,
 					std::move(params),
 					std::move(cases_holder) );
 
 		case (no_total_time + has_empty_timeout):
 			return do_select< fake_time_counter_t, normal_time_counter_t >(
-					coro_scheduler,
 					std::move(params),
 					std::move(cases_holder) );
 
 		case (has_total_time + no_empty_timeout):
 			return do_select< normal_time_counter_t, fake_time_counter_t >(
-					coro_scheduler,
 					std::move(params),
 					std::move(cases_holder) );
 
@@ -359,7 +352,6 @@ perform_select(
 		}
 
 		return do_select< normal_time_counter_t, normal_time_counter_t >(
-				coro_scheduler,
 				std::move(params),
 				std::move(cases_holder) );
 	}
@@ -375,8 +367,6 @@ template<
 	typename... Cases >
 resumable_select_t
 select(
-	//! The scheduler to be used for coroutine resumption.
-	scheduler_t & coro_scheduler,
 	//! Parameters for advanced select.
 	so_5::mchain_select_params_t< Msg_Count_Status > params,
 	//! Select cases.
@@ -395,7 +385,6 @@ select(
 				cases_holder, 0, std::forward< Cases >(cases)... );
 
 		return async_select_impl::perform_select(
-				coro_scheduler,
 				std::move(params),
 				std::move(cases_holder) );
 	}

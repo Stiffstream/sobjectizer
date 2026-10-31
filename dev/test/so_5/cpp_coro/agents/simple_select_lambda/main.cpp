@@ -26,7 +26,7 @@ public:
 		so_subscribe_self().event(
 			[this]( mhood_t< msg_a > ) -> so_5::cpp_coro::task_t< void >
 			{
-				co_await so_5::cpp_coro::select( so_this_agent_scheduler(),
+				co_await so_5::cpp_coro::select(
 						so_5::from_all().handle_n(1),
 						so_5::receive_case( m_target, [this]( so_5::mhood_t< msg_b > ) {
 								so_deregister_agent_coop_normally();

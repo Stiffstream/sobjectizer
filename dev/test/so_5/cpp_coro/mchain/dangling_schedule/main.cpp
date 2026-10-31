@@ -47,7 +47,6 @@ do_test()
 
 		auto r = scheduler.sync_wait(
 				so_5::cpp_coro::select(
-						scheduler,
 						so_5::from_all().handle_n(1),
 						receive_case( ch1, [ch2, &hello_received]( hello ) {
 								so_5::send< bye >( ch2 );
