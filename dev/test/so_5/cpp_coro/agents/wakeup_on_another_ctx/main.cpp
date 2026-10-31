@@ -10,6 +10,7 @@
 namespace test
 {
 
+#if 0
 template< typename Source_Awaitable >
 struct return_back_to_agent_task_t
 {
@@ -124,6 +125,7 @@ wrap_foreign_awaitable(
 
 	co_return;
 }
+#endif
 
 class value_obtainer_t
 {
@@ -240,23 +242,19 @@ public:
 		std::osyncstream(std::cout) << "tid:" << own_thread_id
 				<< " | start" << std::endl;
 
-		int x = co_await wrap_foreign_awaitable(
-				std::addressof(so_this_agent_scheduler()),
-				m_obtainer );
+		int x = co_await m_obtainer;
 		std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
 				<< " | x=" << x << ", this=" << this << std::endl;
 
 		ensure_or_die( own_thread_id == std::this_thread::get_id(),
 				"wakeup on the different context" );
 
-#if 0
 		int y = co_await m_obtainer;
 		std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
 				<< " | y=" << y << ", this=" << this << std::endl;
 
 		ensure_or_die( own_thread_id == std::this_thread::get_id(),
 				"wakeup on the different context" );
-#endif
 
 		so_deregister_agent_coop_normally();
 	}
