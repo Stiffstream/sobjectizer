@@ -24,4 +24,6 @@ add_subdirectory(select_ping_pong)
 add_subdirectory(simple_select_lambda)
 
 add_subdirectory(wakeup_on_another_ctx)
+add_subdirectory(wakeup_on_another_ctx_2)
+add_subdirectory(wakeup_on_another_ctx_3)
 
