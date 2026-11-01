@@ -229,7 +229,7 @@ struct promise_base_t< Actual_Promise_Type, void >
 template< typename Source_Awaitable >
 struct resumption_by_specific_scheduler_task_t
 	{
-		//FIXME: document this!
+		//! Special marker that this type is a SO-5 awaitable.
 		using so5_awaitable = void;
 
 		//! Promise type for this task type.
@@ -354,9 +354,29 @@ struct resumption_by_specific_scheduler_task_t
 						promise.m_scheduler,
 						so_5::cpp_coro::resumable_item_t::status_t::waiting );
 
-				//FIXME: is it a good approach if Source_Awaitable::await_suspend
-				//returns std::coroutine_handle<>?
-				return promise.m_source->await_suspend( m_coro );
+				// A case when Source_Awaitable returns std::coroutine_handle
+				// has to be handled a special way.
+				using original_result_type_t = std::decay_t<
+						decltype(promise.m_source->await_suspend( m_coro ) ) >;
+				if constexpr( std::is_same_v<
+						original_result_type_t,
+						std::coroutine_handle<> > )
+					{
+						// If source->await_suspend returns our coroutine
+						// handle then the coroutine has been completed
+						// synchronously and there is no need to suspend
+						// the parent_coro.
+						std::coroutine_handle<> coro_to_resume =
+								promise.m_source->await_suspend( m_coro );
+						if( m_coro == coro_to_resume )
+							return parent_coro;
+						else
+							return coro_to_resume;
+					}
+				else
+					{
+						return promise.m_source->await_suspend( m_coro );
+					}
 			}
 
 		auto
@@ -505,7 +525,6 @@ std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 							{
 								return wrap_foreign_awaitable(
 										current_scheduler_setter_t::safe_get(),
-//										std::forward<Awaitable>(awaitable) );
 										std::addressof(awaitable) );
 							}
 					}

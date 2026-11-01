@@ -27,3 +27,4 @@ add_subdirectory(wakeup_on_another_ctx)
 add_subdirectory(wakeup_on_another_ctx_2)
 add_subdirectory(wakeup_on_another_ctx_3)
 
+add_subdirectory(foreign_awaitable_1)
