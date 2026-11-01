@@ -229,14 +229,21 @@ struct promise_base_t< Actual_Promise_Type, void >
 template< typename Source_Awaitable >
 struct resumption_by_specific_scheduler_task_t
 	{
+		//FIXME: document this!
+		using so5_awaitable = void;
+
 		//! Promise type for this task type.
 		struct promise_type
 			{
+				//FIXME: document this!
+				using source_awaitable_ptr_t = std::add_pointer_t<
+						std::remove_reference_t< Source_Awaitable > >;
+
 				//! Scheduler to be used for resumption.
 				so_5::cpp_coro::scheduler_t & m_scheduler;
 
 				//! Awaitable for that this task has been created.
-				Source_Awaitable m_source;
+				source_awaitable_ptr_t m_source;
 
 				//! The parent coroutine to be awoken.
 				/*!
@@ -251,7 +258,7 @@ struct resumption_by_specific_scheduler_task_t
 				//! Initializing constructor.
 				promise_type(
 					so_5::cpp_coro::scheduler_t & scheduler,
-					Source_Awaitable source )
+					source_awaitable_ptr_t source )
 					: m_scheduler{ scheduler }
 					, m_source{ source }
 					, m_resumable_item{
@@ -334,7 +341,7 @@ struct resumption_by_specific_scheduler_task_t
 		bool
 		await_ready() const
 			{
-				return m_coro.promise().m_source.await_ready();
+				return m_coro.promise().m_source->await_ready();
 			}
 
 		auto
@@ -349,13 +356,13 @@ struct resumption_by_specific_scheduler_task_t
 
 				//FIXME: is it a good approach if Source_Awaitable::await_suspend
 				//returns std::coroutine_handle<>?
-				return promise.m_source.await_suspend( m_coro );
+				return promise.m_source->await_suspend( m_coro );
 			}
 
 		auto
 		await_resume()
 			{
-				return m_coro.promise().m_source.await_resume();
+				return m_coro.promise().m_source->await_resume();
 			}
 	};
 
@@ -365,7 +372,7 @@ template< typename Source_Awaitable >
 resumption_by_specific_scheduler_task_t< Source_Awaitable >
 wrap_foreign_awaitable(
 	so_5::cpp_coro::scheduler_t & scheduler,
-	Source_Awaitable && awaitable )
+	Source_Awaitable * awaitable )
 	{
 		(void) scheduler;
 		(void) awaitable;
@@ -385,15 +392,19 @@ wrap_foreign_awaitable(
 		this_coro.promise().m_resumable_item.try_schedule();
 	}
 
-//FIXME: document this!
+//
+// is_so5_awaitable
+//
+//! Helper concept for checking Awaitable type.
+/*!
+ * All SO-5 related awaitables have to have so5_awaitable inner type.
+ *
+ * \since 5.8.7
+ */
 template< typename T >
-struct is_so5_task_t : public std::false_type {};
-
-template< typename T >
-struct is_so5_task_t< task_t<T> > : public std::true_type {};
-
-template< typename T >
-concept is_so5_task = is_so5_task_t< T >::value;
+concept is_so5_awaitable = requires {
+	typename T::so5_awaitable;
+};
 
 } /* namespace task_impl */
 
@@ -416,6 +427,9 @@ concept is_so5_task = is_so5_task_t< T >::value;
 template< typename T >
 struct task_t
 	{
+		//! Special marker that this type is a SO-5 awaitable.
+		using so5_awaitable = void;
+
 		struct promise_type;
 
 		//! The coroutine associated with the task.
@@ -483,7 +497,7 @@ std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 					{
 						using namespace task_impl;
 
-						if constexpr( is_so5_task< Awaitable > )
+						if constexpr( is_so5_awaitable< Awaitable > )
 							{
 								return static_cast<Awaitable &&>(awaitable);
 							}
@@ -491,7 +505,8 @@ std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 							{
 								return wrap_foreign_awaitable(
 										current_scheduler_setter_t::safe_get(),
-										std::forward<Awaitable>(awaitable) );
+//										std::forward<Awaitable>(awaitable) );
+										std::addressof(awaitable) );
 							}
 					}
 			};

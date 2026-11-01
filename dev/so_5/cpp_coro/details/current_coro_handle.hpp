@@ -29,6 +29,9 @@ namespace current_coro_handle_impl
 /// @since v.5.8.7
 struct current_coro_handle_obtainer_t
 	{
+		//! Special marker that this type is a SO-5 awaitable.
+		using so5_awaitable = void;
+
 		std::coroutine_handle<> m_handle;
 
 		bool
