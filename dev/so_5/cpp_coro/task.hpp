@@ -379,7 +379,7 @@ struct resumption_by_specific_scheduler_task_t
 					}
 			}
 
-		auto
+		decltype(auto)
 		await_resume()
 			{
 				return m_coro.promise().m_source->await_resume();
