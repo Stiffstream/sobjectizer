@@ -18,6 +18,8 @@
 
 #include <so_5/details/invoke_noexcept_code.hpp>
 
+#include <so_5/fwd.hpp>
+
 #include <mutex>
 #include <optional>
 
@@ -131,6 +133,16 @@ class cpp_coro_case_special_queue_t final
 			}
 
 	private:
+		//! SObjectizer Environment for agent owning this queue.
+		/*!
+		 * SOEnv is needed to obtain an error_loger if the limit of
+		 * the queue size will be exceeded.
+		 */
+		environment_t & m_env;
+
+		//! The limit for the queue size.
+		const std::size_t m_queue_size_limit;
+
 		//FIXME: the std::mutex is used just for the simplicity of the first
 		//implementation. It has to be changed to the appropriate
 		//queue_traits::lock_unique_ptr_t.
@@ -156,6 +168,9 @@ class cpp_coro_case_special_queue_t final
 		//! Tail of the queue.
 		/*! Null if queue is empty. */
 		demand_t * m_tail = nullptr;
+
+		//! The current size of the queue.
+		std::size_t m_size{};
 
 		//! Buffer for pending evt_finish.
 		/*!
@@ -216,6 +231,10 @@ class cpp_coro_case_special_queue_t final
 	public:
 		//! Initializing constructor.
 		cpp_coro_case_special_queue_t(
+			//! Environment for the owner of this queue.
+			environment_t & env,
+			//! Limit for the queue size.
+			std::size_t queue_size_limit,
 			//! Lock to be used for thread safety.
 			std::mutex & lock );
 

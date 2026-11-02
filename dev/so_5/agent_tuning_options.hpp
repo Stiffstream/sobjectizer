@@ -228,11 +228,38 @@ inline constexpr demands_handling_on_dereg_t skip_demands_on_dereg =
  */
 class cpp_coro_support_t
 	{
+		//! Maximal enabled size of the local queue.
+		std::size_t m_max_local_queue_size{ 1'000'000u };
+
 		//! How many demands can be processed sequentially.
 		unsigned int m_sequential_limit{ 8u };
 
 	public:
 		cpp_coro_support_t() = default;
+
+		//! The maximal enabled size of the local queue.
+		[[nodiscard]]
+		std::size_t
+		max_local_queue_size() const noexcept
+			{
+				return m_max_local_queue_size;
+			}
+
+		//! Setter for maximal size of the local queue.
+		cpp_coro_support_t &
+		max_local_queue_size( std::size_t value ) & noexcept
+			{
+				m_max_local_queue_size = value;
+				return *this;
+			}
+
+		//! Setter for maximal size of the local queue.
+		cpp_coro_support_t &&
+		max_local_queue_size( std::size_t value ) && noexcept
+			{
+				m_max_local_queue_size = value;
+				return std::move(*this);
+			}
 
 		//! How many demands can be processed sequentially.
 		[[nodiscard]]

@@ -67,11 +67,15 @@ struct cpp_coro_case_agent_data_t
 		//! The initializing constructor.
 		cpp_coro_case_agent_data_t(
 			//! The target agent.
-			so_5::agent_t & receiver,
+			partially_constructed_agent_ptr_t receiver,
+			//! Environment for the agent.
+			environment_t & env,
+			//! The limit for the local queue size.
+			std::size_t queue_size_limit,
 			//! How many demands may be processed sequentially.
 			unsigned int sequential_limit )
-			: m_special_queue{ m_lock }
-			, m_this_agent_scheduler{ receiver, m_lock, m_special_queue }
+			: m_special_queue{ env, queue_size_limit, m_lock }
+			, m_this_agent_scheduler{ *(receiver.ptr()), m_lock, m_special_queue }
 			, m_sequential_limit{ sequential_limit }
 			{}
 	};

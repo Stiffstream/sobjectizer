@@ -782,6 +782,7 @@ detect_subscription_storage_factory_to_use(
 std::unique_ptr< so_5::impl::cpp_coro_case_agent_data_t >
 make_cpp_coro_agent_data_if_needed(
 	partially_constructed_agent_ptr_t agent_ptr,
+	environment_t & env,
 	const agent_tuning_options_t & tuning_options )
 	{
 		using so_5::impl::cpp_coro_case_agent_data_t;
@@ -791,7 +792,9 @@ make_cpp_coro_agent_data_if_needed(
 		const auto info = tuning_options.cpp_coro_support();
 		if( info )
 			result = std::make_unique< cpp_coro_case_agent_data_t >(
-					*(agent_ptr.ptr()),
+					agent_ptr,
+					env,
+					info->max_local_queue_size(),
 					info->sequential_limit() );
 
 		return result;
@@ -920,6 +923,7 @@ agent_t::agent_t(
 	,	m_cpp_coro_data{
 			make_cpp_coro_agent_data_if_needed(
 				partially_constructed_agent_ptr_t{ self_ptr() },
+				ctx.env(),
 				ctx.options() ) }
 {
 }

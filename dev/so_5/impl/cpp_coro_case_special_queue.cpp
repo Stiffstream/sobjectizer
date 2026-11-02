@@ -12,7 +12,11 @@
 
 #include <so_5/impl/cpp_coro_case_special_queue.hpp>
 
+#include <so_5/details/abort_on_fatal_error.hpp>
+
 #include <so_5/agent.hpp>
+#include <so_5/environment.hpp>
+#include <so_5/error_logger.hpp>
 
 namespace so_5::impl
 {
@@ -26,6 +30,8 @@ cpp_coro_case_special_queue_t::remove_head() noexcept
 		demand_unique_ptr_t to_be_deleted{ m_head };
 		m_head = m_head->m_next;
 		to_be_deleted->m_next = nullptr;
+
+		--m_size;
 
 		return to_be_deleted;
 	}
@@ -42,6 +48,21 @@ cpp_coro_case_special_queue_t::store_demand( demand_unique_ptr_t tail_demand )
 			{
 				m_tail->m_next = tail_demand.release();
 				m_tail = m_tail->m_next;
+			}
+
+		++m_size;
+		if( m_size > m_queue_size_limit )
+			{
+				so_5::details::abort_on_fatal_error(
+					[this]() {
+						// The queue size limit is exceeded, the work can't be continued.
+						SO_5_LOG_ERROR( m_env.error_logger(), stream )
+							stream << "limit of local agent queue exceeded, "
+									"application will be aborted. "
+									" limit: " << m_queue_size_limit
+									<< ", queue_size: " << m_size
+									<< std::endl;
+					} );
 			}
 	}
 
@@ -64,8 +85,12 @@ cpp_coro_case_special_queue_t::push_wakeup_demand_to_actual_queue(
 	}
 
 cpp_coro_case_special_queue_t::cpp_coro_case_special_queue_t(
+	environment_t & env,
+	std::size_t queue_size_limit,
 	std::mutex & lock )
-	: m_lock{ lock }
+	: m_env{ env }
+	, m_queue_size_limit{ queue_size_limit }
+	, m_lock{ lock }
 	{}
 
 cpp_coro_case_special_queue_t::~cpp_coro_case_special_queue_t() noexcept
