@@ -86,7 +86,7 @@ public:
 		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(2),
 				so_5::receive_case( m_communications.m_completions,
-					[this]( so_5::mhood_t< msg_completed > )
+					[]( so_5::mhood_t< msg_completed > )
 					{
 					} ) );
 

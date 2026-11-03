@@ -46,7 +46,7 @@ private:
 				so_5::from_all()
 					.handle_all()
 					.total_time( std::chrono::milliseconds{ 40 } ),
-				so_5::receive_case( m_target, [this]( so_5::mhood_t< msg_b > ) {
+				so_5::receive_case( m_target, []( so_5::mhood_t< msg_b > ) {
 						std::this_thread::sleep_for( std::chrono::milliseconds{ 20 } );
 					} ) );
 

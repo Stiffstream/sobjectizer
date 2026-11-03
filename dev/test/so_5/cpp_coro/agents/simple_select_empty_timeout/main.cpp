@@ -40,7 +40,7 @@ private:
 				so_5::from_all()
 					.handle_n(1)
 					.empty_timeout( std::chrono::milliseconds{ 25 } ),
-				so_5::receive_case( m_target, [this]( so_5::mhood_t< msg_b > ) {
+				so_5::receive_case( m_target, []( so_5::mhood_t< msg_b > ) {
 						throw std::runtime_error{ "don't expect this message!" };
 					} ) );
 

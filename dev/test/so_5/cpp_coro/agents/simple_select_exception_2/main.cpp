@@ -46,7 +46,7 @@ private:
 	{
 		co_await so_5::cpp_coro::select(
 				so_5::from_all().handle_n(1),
-				so_5::receive_case( m_target, [this]( so_5::mhood_t< msg_b > ) {
+				so_5::receive_case( m_target, []( so_5::mhood_t< msg_b > ) {
 						throw std::runtime_error{ "Boom!" };
 					} ) );
 	}
