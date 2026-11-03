@@ -46,24 +46,6 @@ process_envelope_when_handler_found(
 		return result;
 	}
 
-//FIXME: document this!
-so_5::cpp_coro::task_t< bool >
-async_process_envelope_when_handler_found(
-	const msg_type_and_handler_pair_t & handler,
-	message_ref_t message )
-	{
-		using namespace so_5::enveloped_msg::impl;
-
-		auto & envelope = message_to_envelope( message );
-
-		mchain_demand_handler_invoker_t invoker{ handler };
-		co_await envelope.async_access_hook(
-				so_5::enveloped_msg::async_access_context_t::handler_found,
-				invoker );
-
-		co_return invoker.was_handled();
-	}
-
 } /* namespace anonymous */
 
 SO_5_FUNC
@@ -132,9 +114,22 @@ handlers_bunch_basics_t::find_and_use_handler_async(
 					break;
 
 					case message_t::kind_t::enveloped_msg :
-						// Invocation must be done a special way.
-						ret_value = co_await async_process_envelope_when_handler_found(
-								*it, std::move(message) );
+						{
+							// Invocation must be done a special way.
+							using namespace so_5::enveloped_msg::impl;
+
+							// Note: all actions a performed here to avoid
+							// creation of another nested coroutine.
+							auto & envelope = message_to_envelope( message );
+
+							mchain_demand_handler_invoker_t invoker{ *it };
+							co_await envelope.async_access_hook(
+									so_5::enveloped_msg::async_access_context_t
+											::handler_found,
+									invoker );
+
+							ret_value = invoker.was_handled();
+						}
 					break;
 					}
 			}

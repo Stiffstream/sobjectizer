@@ -157,13 +157,18 @@ class any_handler_as_async_invoker_t
 			{
 				sync_handler( m_msg_ref );
 
+				// This co_return is needed here to transform the code
+				// into a coroutine.
 				co_return;
 			}
 
 		so_5::cpp_coro::task_t< void >
 		operator()( const async_event_handler_method_t & async_handler )
 			{
-				co_return co_await async_handler( std::move(m_msg_ref) );
+				// NOTE: there is no need to do co_return/co_await here,
+				// just return of task_t object from async_handler.
+				// The co_await will be applied to this object later.
+				return async_handler( std::move(m_msg_ref) );
 			}
 	};
 
