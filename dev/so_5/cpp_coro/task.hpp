@@ -248,7 +248,7 @@ struct resumption_by_specific_scheduler_task_t
 				//! The parent coroutine to be awoken.
 				/*!
 				 * \note
-				 * The actual value is sent in await_suspend method.
+				 * The actual value is set in await_suspend method.
 				 */
 				std::coroutine_handle<> m_coro;
 
