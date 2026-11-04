@@ -15,13 +15,13 @@
 #include <so_5/cpp_coro/details/final_awaiter.hpp>
 #include <so_5/cpp_coro/details/current_coro_handle.hpp>
 
+#include <so_5/atomic_refcounted.hpp>
+
 #include <so_5/exception.hpp>
 #include <so_5/ret_code.hpp>
 
-#include <condition_variable>
 #include <coroutine>
 #include <exception>
-#include <mutex>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -241,44 +241,15 @@ struct resumption_by_specific_scheduler_task_t
 		struct promise_type;
 
 		//FIXME: document this!
-		struct final_awaitable_for_promise_t
+		using coro_handle_t = std::coroutine_handle< promise_type >;
+
+		//FIXME: document this!
+		using source_awaitable_ptr_t = std::add_pointer_t<
+				std::remove_reference_t< Source_Awaitable > >;
+
+		//FIXME: document this!
+		struct task_data_t : public so_5::atomic_refcounted_t
 			{
-				//! Promise for that this awaitable is created.
-				/*!
-				 * \attention
-				 * It's assumed that this pointer in not nullptr.
-				 */
-				promise_type * m_promise;
-
-				final_awaitable_for_promise_t( promise_type * promise ) noexcept
-					: m_promise{ promise }
-					{}
-
-				[[nodiscard]]
-				bool
-				await_ready() noexcept
-					{
-						return false;
-					}
-
-				//FIXME: document this!
-				void
-				await_suspend( std::coroutine_handle<> /*coro*/ ) noexcept;
-
-				void
-				await_resume() noexcept
-					{
-						// Nothing to do.
-					}
-			};
-
-		//! Promise type for this task type.
-		struct promise_type
-			{
-				//FIXME: document this!
-				using source_awaitable_ptr_t = std::add_pointer_t<
-						std::remove_reference_t< Source_Awaitable > >;
-
 				//! Scheduler to be used for resumption.
 				so_5::cpp_coro::scheduler_t & m_scheduler;
 
@@ -295,28 +266,51 @@ struct resumption_by_specific_scheduler_task_t
 				//! Resumable item to be used for resumption.
 				so_5::cpp_coro::resumable_item_t m_resumable_item;
 
-				//FIXME: document this!
-				std::mutex m_status_lock;
-				//FIXME: document this!
-				std::condition_variable m_status_changed_cv;
-				//FIXME: document this!
-				bool m_finalized{ false };
-
 				//! Initializing constructor.
-				promise_type(
+				task_data_t(
 					so_5::cpp_coro::scheduler_t & scheduler,
 					source_awaitable_ptr_t source )
 					: m_scheduler{ scheduler }
 					, m_source{ source }
 					, m_resumable_item{
-						so_5::cpp_coro::resumable_item_t::deffered_init }
+							so_5::cpp_coro::resumable_item_t::deffered_init }
+					{}
+
+				task_data_t( const task_data_t & ) = delete;
+				task_data_t &
+				operator=( const task_data_t & ) = delete;
+
+				task_data_t( task_data_t && ) = delete;
+				task_data_t &
+				operator=( task_data_t && ) = delete;
+			};
+
+		//! Alias for unique_ptr to task_data_t.
+		using task_data_smart_ptr_t = so_5::intrusive_ptr_t< task_data_t >;
+
+		//! Promise type for this task type.
+		struct promise_type
+			{
+				//! Data related to the task that created this promise.
+				task_data_smart_ptr_t m_task_data;
+
+				//! Initializing constructor.
+				promise_type(
+					so_5::cpp_coro::scheduler_t & scheduler,
+					source_awaitable_ptr_t source )
+					: m_task_data{ std::make_unique< task_data_t >(
+							scheduler,
+							source )
+						}
 					{}
 
 				resumption_by_specific_scheduler_task_t
 				get_return_object()
 					{
-						using handle = std::coroutine_handle< promise_type >;
-						return { handle::from_promise( *this ) };
+						return {
+								coro_handle_t::from_promise( *this ),
+								m_task_data
+							};
 					}
 
 				std::suspend_always
@@ -326,11 +320,11 @@ std::cout << "*** initial_suspend, promise_ptr=" << this << std::endl;
 						return {};
 					}
 
-				final_awaitable_for_promise_t
+				std::suspend_never
 				final_suspend() noexcept
 					{
 std::cout << "*** final_suspend, promise_ptr=" << this << std::endl;
-						return { this };
+						return {};
 					}
 
 				void
@@ -346,46 +340,35 @@ std::cout << "*** unhandled_exception, promise_ptr=" << this << std::endl;
 					}
 			};
 
-		//! The coroutine associated with this task instance.
-		std::coroutine_handle< promise_type > m_coro;
+		//! Coroutine associated with this task.
+		/*!
+		 * \note
+		 * The task doesn't control the lifetime of this coroutine.
+		 */
+		coro_handle_t m_coro;
+
+		//! Task data associated with this task.
+		task_data_smart_ptr_t m_task_data;
 
 		//FIXME: document this!
 		static void
-		safe_destroy_coro( std::coroutine_handle< promise_type > coro ) noexcept
+		safe_destroy_data( task_data_smart_ptr_t data ) noexcept
 			{
-				if( coro )
-					{
-						{
-//FIXME: document this block!
-std::cout << "___ try check promise.m_finalized" << std::endl;
-							auto & promise = coro.promise();
-							std::unique_lock< std::mutex > lock{ promise.m_status_lock };
-							if( !promise.m_finalized )
-								{
-std::cout << "___ !promise.m_finalized, promise_ptr=" << std::addressof(promise) << std::endl;
-
-									promise.m_status_changed_cv.wait(
-											lock,
-											[&promise]() { return promise.m_finalized; } );
-
-								}
-						}
-
-std::cout << "___ promise.m_finalized checked" << std::endl;
-						// Now the coroutine can be destroyed.
-						coro.destroy();
-					}
+				data.reset();
 			}
 
 		//! Initializing constructor.
 		resumption_by_specific_scheduler_task_t(
-			std::coroutine_handle< promise_type > coro ) noexcept
+			std::coroutine_handle< promise_type > coro,
+			task_data_smart_ptr_t task_data ) noexcept
 			: m_coro{ coro }
+			, m_task_data{ std::move(task_data) }
 			{}
 
 		~resumption_by_specific_scheduler_task_t()
 			{
-				safe_destroy_coro( m_coro );
+std::cout << "___ dtor, m_coro=" << m_coro.address() << std::endl;
+				safe_destroy_data( std::move(m_task_data) );
 			}
 
 		// Copy is disabled.
@@ -398,9 +381,9 @@ std::cout << "___ promise.m_finalized checked" << std::endl;
 		// Move operations.
 		resumption_by_specific_scheduler_task_t(
 			resumption_by_specific_scheduler_task_t && other ) noexcept
-			: m_coro{ std::exchange(
-					other.m_coro,
-					std::coroutine_handle< promise_type >{} ) }
+			: m_coro{ std::exchange( other.m_coro, coro_handle_t{} ) }
+			, m_task_data{
+				std::exchange( other.m_task_data, task_data_smart_ptr_t{} ) }
 			{}
 
 		resumption_by_specific_scheduler_task_t &
@@ -409,11 +392,14 @@ std::cout << "___ promise.m_finalized checked" << std::endl;
 			{
 				if( this != std::addressof(other) )
 					{
-						safe_destroy_coro( m_coro );
+//FIXME: is it a safe operation?
+						safe_destroy_task( std::move(m_task_data) );
 
-						m_coro = std::exchange(
-								other.m_coro,
-								std::coroutine_handle< promise_type >{} );
+						m_coro = std::exchange( other.m_coro, coro_handle_t{} );
+
+						m_task_data = std::exchange(
+								other.m_task_data,
+								task_data_smart_ptr_t{} );
 					}
 
 				return *this;
@@ -422,7 +408,7 @@ std::cout << "___ promise.m_finalized checked" << std::endl;
 		bool
 		await_ready() const
 			{
-				return m_coro.promise().m_source->await_ready();
+				return m_task_data->m_source->await_ready();
 			}
 
 		auto
@@ -430,56 +416,58 @@ std::cout << "___ promise.m_finalized checked" << std::endl;
 			{
 				auto & promise = m_coro.promise();
 std::cout << "*** await_suspend, promise_ptr=" << std::addressof(promise) << std::endl;
-				promise.m_coro = parent_coro;
-				promise.m_resumable_item.init(
+std::cout << "***     coro=" << m_coro.address() << ", parent_coro=" << parent_coro.address() << std::endl;
+std::cout << "***     " << typeid(Source_Awaitable).name() << std::endl;
+				m_task_data->m_coro = parent_coro;
+				m_task_data->m_resumable_item.init(
 						parent_coro,
-						promise.m_scheduler,
+						m_task_data->m_scheduler,
 						so_5::cpp_coro::resumable_item_t::status_t::waiting );
 
+//FIXME: it seems that this complex case has to be removed.
+#if 0
 				// A case when Source_Awaitable returns std::coroutine_handle
 				// has to be handled a special way.
 				using original_result_type_t = std::decay_t<
-						decltype(promise.m_source->await_suspend( m_coro ) ) >;
+						decltype(m_task_data->m_source->await_suspend( m_coro ) ) >;
 				if constexpr( std::is_same_v<
 						original_result_type_t,
 						std::coroutine_handle<> > )
 					{
+std::cout << "***     (1)" << std::endl;
 						// If source->await_suspend returns our coroutine
 						// handle then the coroutine has been completed
 						// synchronously and there is no need to suspend
 						// the parent_coro.
 						std::coroutine_handle<> coro_to_resume =
-								promise.m_source->await_suspend( m_coro );
+								m_task_data->m_source->await_suspend( m_coro );
 						if( m_coro == coro_to_resume )
-							return parent_coro;
+							{
+std::cout << "***     (1.1)" << std::endl;
+								return std::coroutine_handle<>::from_address( m_coro.address() ); /*parent_coro*/;
+							}
 						else
-							return coro_to_resume;
+							{
+std::cout << "***     (1.2)" << std::endl;
+								return coro_to_resume;
+							}
 					}
 				else
 					{
-						return promise.m_source->await_suspend( m_coro );
+std::cout << "***     (2)" << std::endl;
+						return m_task_data->m_source->await_suspend( m_coro );
 					}
+#else
+				return m_task_data->m_source->await_suspend( m_coro );
+#endif
 			}
 
 		decltype(auto)
 		await_resume()
 			{
-				return m_coro.promise().m_source->await_resume();
+				return m_task_data->m_source->await_resume();
 			}
 	};
-
-template< typename Source_Awaitable >
-void
-resumption_by_specific_scheduler_task_t< Source_Awaitable >::
-final_awaitable_for_promise_t::await_suspend(
-	std::coroutine_handle<> /*coro*/) noexcept
-	{
-std::cout << "___ try set promise.m_finalized" << std::endl;
-		std::lock_guard< std::mutex > lock{ m_promise->m_status_lock };
-		m_promise->m_finalized = true;
-		m_promise->m_status_changed_cv.notify_one();
-std::cout << "___ promise.m_finalized set" << std::endl;
-	}
 
 //FIXME: document this!
 template< typename Source_Awaitable >
@@ -496,15 +484,18 @@ wrap_foreign_awaitable(
 				typename resumption_by_specific_scheduler_task_t< Source_Awaitable >
 						::promise_type;
 
+std::cout << "wrap_foreign_awaitable (0)" << std::endl;
 		auto this_coro_handle =
 				co_await so_5::cpp_coro::details::current_coro_handle();
 
+std::cout << "wrap_foreign_awaitable (1), this_coro=" << this_coro_handle.address() << std::endl;
 //FIXME: document those actions!
 		std::coroutine_handle< promise_type > this_coro =
 				std::coroutine_handle< promise_type >::from_address(
 						this_coro_handle.address() );
 
-		this_coro.promise().m_resumable_item.try_schedule();
+std::cout << "wrap_foreign_awaitable (2)" << std::endl;
+		this_coro.promise().m_task_data->m_resumable_item.try_schedule();
 
 //FIXME: remove after debugging!
 //std::this_thread::sleep_for(std::chrono::milliseconds{50});
