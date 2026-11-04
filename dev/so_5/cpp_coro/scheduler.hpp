@@ -550,6 +550,10 @@ namespace details
  */
 struct suspension_awaitable_t
 	{
+		//! Special marker that this type is a SO-5 awaitable.
+//FIXME: uncomment this after the testing.
+//		using so5_awaitable = void;
+
 		/// Coroutine to be suspended.
 		resumable_item_t & m_what_to_suspend;
 
