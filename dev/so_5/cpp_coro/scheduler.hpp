@@ -14,6 +14,8 @@
 
 #include <so_5/fwd.hpp>
 
+#include <so_5/exception.hpp>
+
 #include <so_5/details/remaining_time_counter.hpp>
 
 #include <atomic>
@@ -578,8 +580,16 @@ struct suspension_awaitable_t
 
 		[[nodiscard]]
 		bool
-		await_suspend( std::coroutine_handle<> )
+		await_suspend( std::coroutine_handle<> coro )
 			{
+				// If `coro` is not the same coroutine as stored in the
+				// resumable item, then there could be problem, because `coro`
+				// won't be resumed by the scheduler.
+				if( coro != m_what_to_suspend.scheduler_data().m_to_be_resumed )
+					SO_5_THROW_EXCEPTION( rc_unexpected_coro_handle,
+							"unexpected handle received in "
+							"suspension_awaitable_t::await_suspend" );
+
 				return try_suspend_result_t::should_be_suspended
 						== m_what_to_suspend.try_suspend( m_sleep_time );
 			}

@@ -608,6 +608,17 @@ const int rc_this_thread_scheduler_already_defined = 208;
  */
 const int rc_this_thread_scheduler_not_defined = 209;
 
+/*!
+ * \brief Unexpected coroutine handle.
+ *
+ * Sometimes we have a coroutine handle to be resumed and expect that
+ * this handle will be received in await_suspend method. But another
+ * handle actually received.
+ *
+ * \since v.5.8.7
+ */
+const int rc_unexpected_coro_handle = 210;
+
 //! \name Common error codes.
 //! \{
 
