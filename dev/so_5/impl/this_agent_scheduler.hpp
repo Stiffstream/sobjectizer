@@ -55,9 +55,8 @@ struct msg_resume_coro final : public so_5::message_t
 			ordinary )
 			: m_what{ std::addressof(what) }
 			{
-				//FIXME: remove after debugging.
-				std::cout << this << " msg_resume_this(ordinary) created, what="
-						<< m_what << std::endl;
+//FIXME: remove after debugging.
+//std::cout << this << " msg_resume_this(ordinary) created, what=" << m_what << std::endl;
 			}
 
 		//! Constructor for case when the coroutine has to be resumed after
@@ -67,17 +66,15 @@ struct msg_resume_coro final : public so_5::message_t
 			delayed )
 			: m_what{ std::addressof(what) }
 			{
-				//FIXME: remove after debugging.
-				std::cout << this << " msg_resume_this(delayed) created, what="
-						<< m_what << std::endl;
+//FIXME: remove after debugging.
+//std::cout << this << " msg_resume_this(delayed) created, what=" << m_what << std::endl;
 			}
 
 		//FIXME: remove after debugging.
-		~msg_resume_coro() override
-			{
-				std::cout << this << " msg_resume_this deleted, what="
-						<< m_what << std::endl;
-			}
+//~msg_resume_coro() override
+//	{
+//std::cout << this << " msg_resume_this deleted, what=" << m_what << std::endl;
+//	}
 	};
 
 //
@@ -142,9 +139,8 @@ class this_agent_scheduler_t final
 									*m_ordinary_resume);
 							msg.m_what = nullptr;
 
-							//FIXME: remove after debugging.
-							std::cout << "ordinary msg_resume_this cancelled, msg="
-									<< std::addressof(msg) << std::endl;
+//FIXME: remove after debugging.
+//std::cout << "ordinary msg_resume_this cancelled, msg=" << std::addressof(msg) << std::endl;
 							
 							m_ordinary_resume.reset();
 						}
@@ -163,9 +159,8 @@ class this_agent_scheduler_t final
 									*m_timeout_elapsed);
 							msg.m_what = nullptr;
 
-							//FIXME: remove after debugging.
-							std::cout << "delayed msg_resume_this cancelled, msg="
-									<< std::addressof(msg) << std::endl;
+//FIXME: remove after debugging.
+//std::cout << "delayed msg_resume_this cancelled, msg=" << std::addressof(msg) << std::endl;
 
 							m_timeout_elapsed.reset();
 						}

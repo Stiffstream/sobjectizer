@@ -135,7 +135,7 @@ struct promise_base_common_t
 		unhandled_exception()
 		noexcept( noexcept(m_result = std::current_exception()) )
 			{
-std::cout << "*** unhandled_exception! ***" << std::endl;
+//std::cout << "*** unhandled_exception! ***" << std::endl;
 				m_result = std::current_exception();
 			}
 
@@ -169,7 +169,7 @@ std::cout << "*** unhandled_exception! ***" << std::endl;
 					break;
 
 					case 1:
-std::cout << "___ rethrowing an exception" << std::endl;
+//std::cout << "___ rethrowing an exception" << std::endl;
 						std::rethrow_exception(
 								std::move(std::get< std::exception_ptr >(m_result))
 							);
@@ -333,7 +333,7 @@ struct resumption_by_specific_scheduler_task_t
 					{
 //FIXME: is it a good default behaviour?
 //FIXME: no, it seems to be a wrong action. This code has to be fixed somehow.
-std::cout << "*** unhandled_exception, promise_ptr=" << this << std::endl;
+//std::cout << "*** unhandled_exception, promise_ptr=" << this << std::endl;
 						throw;
 					}
 			};
@@ -506,7 +506,7 @@ struct task_t
 			{
 				if( m_coro )
 				{
-std::cout << "*** destroying coro " << m_coro.address() << std::endl;
+//std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 					m_coro.destroy();
 				}
 			}

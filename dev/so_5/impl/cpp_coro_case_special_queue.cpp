@@ -236,13 +236,10 @@ cpp_coro_case_special_queue_t::push_coro_resumption_demand(
 		 * When the current top-level coroutine is completed and destroyed we
 		 * don't expect new valid coro_resumption_demands.
 		 */
-std::cout << "*** push_coro_resumption_demand called" << std::endl;
 		// If this attempt fails then it will be impossible
 		// to continue the work because the agent won't be
 		// informed about the presence of demand to be handled.
 		m_actual_queue->push( std::move(demand) );
-
-std::cout << "*** coro resumption demand pushed" << std::endl;
 	}
 
 cpp_coro_case_special_queue_t::demand_unique_ptr_t

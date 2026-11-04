@@ -1351,7 +1351,6 @@ agent_t::shutdown_agent() noexcept
 					// No more events will be stored to the queue.
 					m_event_queue = nullptr;
 				} );
-std::cout << "push_evt_finish completed" << std::endl;
 		}
 		else
 			so_5::details::abort_on_fatal_error( [&] {
@@ -1782,7 +1781,6 @@ agent_t::demand_handler_for_cpp_coro_support(
 {
 	using so_5::impl::cpp_coro_case_special_queue_t;
 
-std::cout << "{{{" << std::endl;
 	agent_t * const self = d.m_receiver;
 
 	// The scheduler of this agent has to become the current
@@ -1799,7 +1797,6 @@ std::cout << "{{{" << std::endl;
 								sequentially_processed,
 								self->m_cpp_coro_data->m_sequential_limit ) );
 
-std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 		if( demand_ptr )
 		{
 			demand_ptr->m_execution_demand.call_handler(
@@ -1820,7 +1817,6 @@ std::cout << "demand_ptr extraction result=" << demand_ptr.get() << std::endl;
 						self->m_working_thread_id,
 						working_thread_id );
 
-std::cout << "calling m_coro.resume()" << std::endl;
 				self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
 				if( !self->m_cpp_coro_data->m_current_top_level_task
 						->m_coro.done() )
@@ -1840,8 +1836,6 @@ std::cout << "calling m_coro.resume()" << std::endl;
 					}
 			}
 	}
-std::cout << "demand_handler_for_cpp_coro_support completed" << std::endl;
-std::cout << "}}}" << std::endl;
 }
 
 demand_handler_pfn_t
@@ -1855,7 +1849,6 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
-std::cout << "<<<" << std::endl;
 	agent_t * const self = d.m_receiver;
 	bool current_coroutine_completed = false;
 
@@ -1905,10 +1898,8 @@ std::cout << "<<<" << std::endl;
 		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent_for_cpp_coro_case);
 		d.m_demand_handler = get_demand_handler_for_cpp_coro_case_ptr();
 
-std::cout << "switching control to demand_handler_for_cpp_coro_support" << std::endl;
 		demand_handler_for_cpp_coro_support( working_thread_id, d );
 	}
-std::cout << ">>>" << std::endl;
 }
 
 demand_handler_pfn_t

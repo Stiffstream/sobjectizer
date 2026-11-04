@@ -85,7 +85,6 @@ class this_agent_scheduler_t::special_mbox_for_delayed_resumptions_t final
 			{
 				std::lock_guard lock{ m_owner.m_lock };
 
-std::cout << message.get() << " delivery of " << msg_type.name() << " to special mbox" << std::endl;
 				m_owner.m_special_queue.push_coro_resumption_demand(
 						execution_demand_t{
 								std::addressof(m_owner.m_receiver),
@@ -147,7 +146,6 @@ void
 this_agent_scheduler_t::try_schedule(
 	so_5::cpp_coro::resumable_item_t & what_to_resume )
 	{
-std::cout << "try_schedule called" << std::endl;
 		std::lock_guard lock{ m_lock };
 
 		switch( what_to_resume.scheduler_data().m_status )
@@ -156,17 +154,14 @@ std::cout << "try_schedule called" << std::endl;
 		case so_5::cpp_coro::resumable_item_t::status_t::notified:
 			// There is no need to schedule the coroutine because it's
 			// running now.
-std::cout << "try_schedule case 1" << std::endl;
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::ready:
 			// There is no need to schedule the coroutine because it's
 			// already scheduled.
-std::cout << "try_schedule case 2" << std::endl;
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::waiting:
-std::cout << "try_schedule case 3" << std::endl;
 			what_to_resume.scheduler_data().m_status =
 					so_5::cpp_coro::resumable_item_t::status_t::ready;
 
@@ -221,7 +216,6 @@ this_agent_scheduler_t::try_suspend(
 			return so_5::cpp_coro::try_suspend_result_t::should_be_resumed;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::ready:
-std::cout << "___ try_suspend ready status" << std::endl;
 			// This shouldn't happen.
 			SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
 					"coro has 'ready' status in "
@@ -229,7 +223,6 @@ std::cout << "___ try_suspend ready status" << std::endl;
 		break;
 
 		case so_5::cpp_coro::resumable_item_t::status_t::waiting:
-std::cout << "___ try_suspend waiting status" << std::endl;
 			// This shouldn't happen.
 			SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
 					"try_suspend is called for already suspended coroutine" );
@@ -261,11 +254,11 @@ std::cout << "___ try_suspend waiting status" << std::endl;
 							notifications.m_timeout_elapsed ) );
 		}
 
-		//FIXME: remove after debugging.
-		std::cout << "coro will be suspended "
-			<< what_to_handle.scheduler_data().m_to_be_resumed.address()
-			<< " (" << std::addressof(what_to_handle) << ")"
-			<< std::endl;
+//FIXME: remove after debugging.
+//std::cout << "coro will be suspended "
+//	<< what_to_handle.scheduler_data().m_to_be_resumed.address()
+//	<< " (" << std::addressof(what_to_handle) << ")"
+//	<< std::endl;
 
 		return so_5::cpp_coro::try_suspend_result_t::should_be_suspended;
 	}
@@ -291,10 +284,11 @@ this_agent_scheduler_t::do_resumption( const msg_resume_coro & cmd )
 				notifications->cancel_all();
 			}
 
-			std::cout << "coro to be resumed via msg_resume_this: "
-					<< scheduler_data.m_to_be_resumed.address()
-					<< " (" << std::addressof(cmd) << ")"
-					<< std::endl;
+//FIXME: remove after debugging.
+//std::cout << "coro to be resumed via msg_resume_this: "
+//		<< scheduler_data.m_to_be_resumed.address()
+//		<< " (" << std::addressof(cmd) << ")"
+//		<< std::endl;
 
 			scheduler_data.m_to_be_resumed.resume();
 		}
