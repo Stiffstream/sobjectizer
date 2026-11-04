@@ -14,3 +14,4 @@ add_subdirectory(enveloped_msg_1)
 add_subdirectory(dangling_schedule)
 
 add_subdirectory(select_foreign_awaiter_1)
+add_subdirectory(select_foreign_awaiter_2)

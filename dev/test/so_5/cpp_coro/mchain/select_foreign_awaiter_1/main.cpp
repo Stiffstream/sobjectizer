@@ -44,7 +44,6 @@ void
 do_test()
 {
 	struct hello {};
-	struct bye {};
 
 	so_5::wrapped_env_t env;
 
