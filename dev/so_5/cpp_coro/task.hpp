@@ -24,6 +24,10 @@
 #include <utility>
 #include <variant>
 
+//FIXME: remove after testing!
+#include <syncstream>
+#include <thread>
+
 namespace so_5::cpp_coro
 {
 
@@ -232,6 +236,41 @@ struct resumption_by_specific_scheduler_task_t
 		//! Special marker that this type is a SO-5 awaitable.
 		using so5_awaitable = void;
 
+		struct promise_type;
+
+		//FIXME: document this!
+		struct final_awaitable_for_promise_t
+			{
+				//! Promise for that this awaitable is created.
+				/*!
+				 * \attention
+				 * It's assumed that this pointer in not nullptr.
+				 */
+				promise_type * m_promise;
+
+				final_awaitable_for_promise_t( promise_type * promise ) noexcept
+					: m_promise{ promise }
+					{}
+
+				[[nodiscard]]
+				bool
+				await_ready() noexcept;
+
+				/*!
+				 * \note
+				 * This method should not be called. But if it's called anyway then
+				 * do not suspend.
+				 */
+				void
+				await_suspend( std::coroutine_handle<> /*coro*/ ) noexcept {}
+
+				void
+				await_resume() noexcept
+					{
+						// Nothing to do.
+					}
+			};
+
 		//! Promise type for this task type.
 		struct promise_type
 			{
@@ -255,6 +294,9 @@ struct resumption_by_specific_scheduler_task_t
 				//! Resumable item to be used for resumption.
 				so_5::cpp_coro::resumable_item_t m_resumable_item;
 
+				//! Reference counter for this object.
+				std::atomic< int > m_ref_count{ 0 };
+
 				//! Initializing constructor.
 				promise_type(
 					so_5::cpp_coro::scheduler_t & scheduler,
@@ -265,6 +307,13 @@ struct resumption_by_specific_scheduler_task_t
 						so_5::cpp_coro::resumable_item_t::deffered_init }
 					{}
 
+//FIXME: remove after debugging!
+~promise_type()
+{
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | promise dtor; " << this << std::endl;
+}
+
 				resumption_by_specific_scheduler_task_t
 				get_return_object()
 					{
@@ -273,18 +322,41 @@ struct resumption_by_specific_scheduler_task_t
 					}
 
 				std::suspend_always
-				initial_suspend() const noexcept { return {}; }
+				initial_suspend() noexcept
+					{
+						// ATTENTION: the reference counter has to be incremented.
+						// It then will be decremented in final_suspend-related
+						// actions.
+						++m_ref_count;
 
-				std::suspend_always
-				final_suspend() const noexcept { return {}; }
+					using handle = std::coroutine_handle< promise_type >;
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | initial_suspend; " << handle::from_promise(const_cast<promise_type &>(*this)).address() << ", ref_count=" << m_ref_count.load() << std::endl;
+
+						return {};
+					}
+
+				final_awaitable_for_promise_t
+				final_suspend() noexcept
+				{
+					using handle = std::coroutine_handle< promise_type >;
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | final suspend; " << handle::from_promise(const_cast<promise_type &>(*this)).address() << std::endl;
+					return { this };
+				}
 
 				void
-				return_void() noexcept {}
+				return_void() noexcept {
+					using handle = std::coroutine_handle< promise_type >;
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | return_void; " << handle::from_promise(const_cast<promise_type &>(*this)).address() << ", ref_count=" << m_ref_count.load() << std::endl;
+				}
 
 				void
 				unhandled_exception()
 					{
 //FIXME: is it a good default behaviour?
+//FIXME: no, it seems to be a wrong action. This code has to be fixed somehow.
 						throw;
 					}
 			};
@@ -292,18 +364,37 @@ struct resumption_by_specific_scheduler_task_t
 		//! The coroutine associated with this task instance.
 		std::coroutine_handle< promise_type > m_coro;
 
+		//FIXME: document this!
+		static void
+		safe_destroy_coro( std::coroutine_handle< promise_type > coro ) noexcept
+			{
+				if( coro )
+					{
+						auto & promise = coro.promise();
+						if( 0 == --promise.m_ref_count )
+							{
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | wrapped coro destroyed (task); " << coro.address() << std::endl;
+								coro.destroy();
+							}
+					}
+			}
+
 		//! Initializing constructor.
 		resumption_by_specific_scheduler_task_t(
-			std::coroutine_handle< promise_type > coro )
+			std::coroutine_handle< promise_type > coro ) noexcept
 			: m_coro{ coro }
-			{}
+			{
+				// ATTENTION: refrence counter has to be incremented because
+				// the task is not the owner of the coro with promise object.
+				++(m_coro.promise().m_ref_count);
+			}
 
 		~resumption_by_specific_scheduler_task_t()
 			{
-				if( m_coro )
-					{
-						m_coro.destroy();
-					}
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | resumption_by_specific_scheduler_task_t dtor; " << m_coro.address() << std::endl;
+				safe_destroy_coro( m_coro );
 			}
 
 		// Copy is disabled.
@@ -327,8 +418,7 @@ struct resumption_by_specific_scheduler_task_t
 			{
 				if( this != std::addressof(other) )
 					{
-						if( m_coro )
-							m_coro.destroy();
+						safe_destroy_coro( m_coro );
 
 						m_coro = std::exchange(
 								other.m_coro,
@@ -386,6 +476,24 @@ struct resumption_by_specific_scheduler_task_t
 			}
 	};
 
+template< typename Source_Awaitable >
+bool
+resumption_by_specific_scheduler_task_t< Source_Awaitable >::
+final_awaitable_for_promise_t::await_ready() noexcept
+	{
+		if( 0 == --m_promise->m_ref_count )
+			{
+				// It's time to destroy the corresponding coroutine.
+				auto coro = std::coroutine_handle< promise_type >::from_promise(
+						*m_promise );
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | wrapped coro destroyed (final_awaiter); " << coro.address() << std::endl;
+				coro.destroy();
+			}
+
+		return false;
+	}
+
 //FIXME: document this!
 template< typename Source_Awaitable >
 [[nodiscard]]
@@ -404,12 +512,18 @@ wrap_foreign_awaitable(
 		auto this_coro_handle =
 				co_await so_5::cpp_coro::details::current_coro_handle();
 
+std::osyncstream(std::cout) << "tid:" << std::this_thread::get_id()
+	<< " | wrapped coro resumption; " << this_coro_handle.address() << std::endl;
+
 //FIXME: document those actions!
 		std::coroutine_handle< promise_type > this_coro =
 				std::coroutine_handle< promise_type >::from_address(
 						this_coro_handle.address() );
 
 		this_coro.promise().m_resumable_item.try_schedule();
+
+//FIXME: remove after debugging!
+std::this_thread::sleep_for(std::chrono::milliseconds{50});
 	}
 
 //

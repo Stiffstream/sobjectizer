@@ -121,9 +121,6 @@ class this_agent_scheduler_t final
 				~notification_messages_t()
 					{
 						cancel_all();
-
-						//FIXME: remove after debugging.
-						std::cout << "notification_messages_t destroyed" << std::endl;
 					}
 
 				//! Cancellation of all pending messages.
