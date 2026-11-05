@@ -149,6 +149,11 @@ class select_case_t
 				so_5::mchain_receive_result_t,
 				so_5::mchain_send_result_t >;
 
+		//FIXME: document this!
+		using try_handle_async_result_t = std::variant<
+				so_5::cpp_coro::task_t< handling_result_t >,
+				handling_result_t >;
+
 		//! Initialized constructor.
 		select_case_t(
 			//! Message chain for that this select_case is created.
@@ -249,7 +254,7 @@ class select_case_t
 
 		//FIXME: document this!
 		[[nodiscard]] virtual
-		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async_result_t
 		try_handle_async(
 			//FIXME: is it safe to pass a reference here?
 			select_notificator_t & notificator ) = 0;

@@ -277,7 +277,7 @@ class receive_select_case_t : public select_case_t
 				return mchain_receive_result_t{ 0u, 0u, status };
 			}
 
-		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async_result_t
 		try_handle_async(
 			select_notificator_t & notificator ) override
 			{
@@ -295,13 +295,12 @@ class receive_select_case_t : public select_case_t
 
 				if( extraction_status_t::msg_extracted == status )
 				{
-					const handling_result_t actual_result =
-							co_await try_handle_extracted_message_async( demand );
-
-					co_return actual_result;
+					return {
+							try_handle_extracted_message_async( std::move(demand) )
+						};
 				}
 
-				co_return mchain_receive_result_t{ 0u, 0u, status };
+				return { mchain_receive_result_t{ 0u, 0u, status } };
 			}
 
 	protected :
@@ -315,10 +314,10 @@ class receive_select_case_t : public select_case_t
 
 		//FIXME: document this!
 		[[nodiscard]] virtual
-		so_5::cpp_coro::task_t< mchain_receive_result_t >
+		so_5::cpp_coro::task_t< select_case_t::handling_result_t >
 		try_handle_extracted_message_async(
 			//FIXME: is it safe to pass demand by reference?
-			demand_t & demand ) = 0;
+			demand_t demand ) = 0;
 	};
 
 //
@@ -391,14 +390,14 @@ class send_select_case_t : public select_case_t
 					};
 			}
 
-		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async_result_t
 		try_handle_async(
 			select_notificator_t & notificator ) override
 			{
 				// Just delegate the work to the synchronous version
 				// because send_case doesn't support asynchronous
 				// handlers.
-				co_return this->try_handle( notificator );
+				return { this->try_handle( notificator ) };
 			}
 
 	protected :
@@ -461,17 +460,19 @@ class actual_receive_select_case_t : public receive_select_case_t
 
 		//FIXME: document this!
 		[[nodiscard]]
-		so_5::cpp_coro::task_t< mchain_receive_result_t >
-		try_handle_extracted_message_async( demand_t & demand ) override
+		so_5::cpp_coro::task_t< select_case_t::handling_result_t >
+		try_handle_extracted_message_async( demand_t demand ) override
 			{
 				const bool handled = co_await m_handlers.handle_async(
 						demand.m_msg_type,
 						demand.m_message_ref );
 
-				co_return mchain_receive_result_t{
-						1u,
-						handled ? 1u : 0u,
-						extraction_status_t::msg_extracted };
+				co_return select_case_t::handling_result_t{
+						mchain_receive_result_t{
+								1u,
+								handled ? 1u : 0u,
+								extraction_status_t::msg_extracted }
+					};
 			}
 	};
 
@@ -1437,9 +1438,22 @@ class select_actions_performer_t
 						auto * current = ready_chain;
 						ready_chain = current->giveout_next();
 
-						std::visit(
-								select_result_handler_t{ this, current },
-								co_await current->try_handle_async( m_notificator ) );
+						select_result_handler_t visitor{ this, current };
+
+						using task_t = so_5::cpp_coro::task_t<
+								select_case_t::handling_result_t >;
+
+						auto r = current->try_handle_async( m_notificator );
+						if( auto * pt = std::get_if< task_t >( std::addressof(r) ) )
+							{
+								std::visit( visitor, co_await *pt );
+							}
+						else
+							{
+								std::visit(
+										visitor,
+										std::get< select_case_t::handling_result_t >( r ) );
+							}
 
 						update_can_continue_flag();
 					}
