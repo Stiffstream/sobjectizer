@@ -76,6 +76,14 @@ class internal_agent_iface_t final
 							"m_agent.m_disp_binder is not nullptr when "
 							"set_disp_binder is called" );
 
+				if( m_agent.m_cpp_coro_data &&
+						!binder->does_support_cpp_coro_suspension() )
+					SO_5_THROW_EXCEPTION(
+							rc_cpp_coro_not_supported_by_dispatcher,
+							"agent with cpp_coro support can't be bound to "
+							"a dispatcher that doesn't support C++20 coroutines "
+							"suspension" );
+
 				m_agent.m_disp_binder = std::move(binder);
 			}
 

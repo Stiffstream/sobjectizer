@@ -140,6 +140,12 @@ class dispatcher_template_t final : public disp_binder_t
 				m_agents_per_priority[ to_size_t(priority) ] -= 1;
 			}
 
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
+
 	private:
 		friend class disp_data_source_t;
 

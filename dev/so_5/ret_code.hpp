@@ -619,6 +619,13 @@ const int rc_this_thread_scheduler_not_defined = 209;
  */
 const int rc_unexpected_coro_handle = 210;
 
+/*!
+ * \brief Suspension of C++20 coroutines is not supported by a dispatcher.
+ *
+ * \since v.5.8.7
+ */
+const int rc_cpp_coro_not_supported_by_dispatcher = 211;
+
 //! \name Common error codes.
 //! \{
 

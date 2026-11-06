@@ -183,6 +183,12 @@ class actual_binder_t final : public disp_binder_t
 			{
 				m_disp->release_thread_for_group( m_group_name );
 			}
+
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
 	};
 
 //

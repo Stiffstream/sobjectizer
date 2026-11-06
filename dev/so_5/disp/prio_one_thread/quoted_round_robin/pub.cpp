@@ -144,6 +144,12 @@ class dispatcher_template_t final : public disp_binder_t
 				m_demand_queue.agent_unbound( priority );
 			}
 
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
+
 	private:
 		/*!
 		 * \brief Data source for run-time monitoring of whole dispatcher.

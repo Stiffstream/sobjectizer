@@ -94,6 +94,16 @@ class disp_binder_t
 		unbind(
 			//! Agent for that previous bind() was called.
 			agent_t & agent ) noexcept = 0;
+
+		//FIXME: document this!
+		[[nodiscard]] virtual
+		bool
+		does_support_cpp_coro_suspension() const noexcept
+		{
+			// In SO-5.8 it's assumed that C++20 coroutines are not supported
+			// by default.
+			return false;
+		}
 };
 
 //! Typedef for the disp_binder smart pointer.

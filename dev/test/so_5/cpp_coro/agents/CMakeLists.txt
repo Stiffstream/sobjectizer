@@ -1,6 +1,7 @@
 add_subdirectory(no_coro)
 add_subdirectory(no_coro_adv_thread_pool)
 add_subdirectory(no_coro_event_queue_hook)
+add_subdirectory(no_coro_strictly_ordered_disp)
 
 add_subdirectory(sequential_limit)
 

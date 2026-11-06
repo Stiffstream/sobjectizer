@@ -190,6 +190,12 @@ class dispatcher_template_t final : public disp_binder_t
 				undo_preallocation( agent );
 			}
 
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
+
 	private:
 		friend class disp_data_source_t;
 

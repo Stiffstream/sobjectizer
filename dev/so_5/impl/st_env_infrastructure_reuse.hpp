@@ -260,6 +260,12 @@ class default_dispatcher_basis_t : public disp_binder_t
 				--m_agents_bound;
 			}
 
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
+
 		std::size_t
 		agents_bound() const noexcept
 			{

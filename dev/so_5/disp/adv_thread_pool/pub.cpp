@@ -124,6 +124,12 @@ class actual_binder_t final : public disp_binder_t
 			{
 				m_disp->unbind_agent( agent );
 			}
+
+		bool
+		does_support_cpp_coro_suspension() const noexcept override
+			{
+				return true;
+			}
 	};
 
 //
