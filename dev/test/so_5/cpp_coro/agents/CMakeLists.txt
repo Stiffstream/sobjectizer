@@ -21,6 +21,7 @@ add_subdirectory(several_selects_2)
 add_subdirectory(several_selects_3)
 
 add_subdirectory(select_ping_pong)
+add_subdirectory(select_ping_pong_st_env_1)
 
 add_subdirectory(simple_select_lambda)
 
