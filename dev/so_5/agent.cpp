@@ -1768,7 +1768,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 	execution_demand_t & d )
 {
 	using so_5::impl::cpp_coro_case_special_queue_t;
-
+std::cout << "agent_t::demand_handler_for_cpp_coro_support" << std::endl;
 	agent_t * const self = d.m_receiver;
 
 	// The scheduler of this agent has to become the current
@@ -1787,11 +1787,13 @@ agent_t::demand_handler_for_cpp_coro_support(
 
 		if( demand_ptr )
 		{
+std::cout << "agent_t::demand_handler_for_cpp_coro_support => call_handler" << std::endl;
 			demand_ptr->m_execution_demand.call_handler(
 					working_thread_id );
 		}
 		else
 		{
+std::cout << "agent_t::demand_handler_for_cpp_coro_support => no demand" << std::endl;
 			// There is no more waiting demands. Have to break the loop.
 			break;
 		}
@@ -1801,6 +1803,7 @@ agent_t::demand_handler_for_cpp_coro_support(
 		// of the current coroutine.
 		if( self->m_cpp_coro_data->m_current_top_level_task.has_value() )
 			{
+std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task" << std::endl;
 				impl::agent_impl::working_thread_id_sentinel_t sentinel(
 						self->m_working_thread_id,
 						working_thread_id );
@@ -1809,12 +1812,14 @@ agent_t::demand_handler_for_cpp_coro_support(
 				if( !self->m_cpp_coro_data->m_current_top_level_task
 						->m_coro.done() )
 					{
+std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task 1" << std::endl;
 						// We must wait the next msg_resume_coro and this
 						// loop has to be finished.
 						break;
 					}
 				else
 					{
+std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task 2" << std::endl;
 						// The coroutine is completed and we can go to
 						// service ordinary demands.
 						consume_top_level_coroutine_result(

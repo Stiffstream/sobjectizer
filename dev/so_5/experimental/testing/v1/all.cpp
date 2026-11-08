@@ -1265,6 +1265,35 @@ enum class queue_mode_t
  */
 class special_event_queue_t final : public event_queue_t
 	{
+		//FIXME: document this!
+		/*!
+		 * \since v.5.8.7
+		 */
+		enum class demand_kind_t
+			{
+				ordinary,
+				evt_start,
+				evt_finish
+			};
+
+		//FIXME: document this!
+		struct buffered_demand_t
+			{
+				//! Actual demand.
+				execution_demand_t m_demand;
+
+				//! What kind of demand?
+				demand_kind_t m_kind;
+
+				//! Initializing constructor.
+				buffered_demand_t(
+					execution_demand_t demand,
+					demand_kind_t kind )
+					: m_demand{ std::move(demand) }
+					, m_kind{ kind }
+					{}
+			};
+
 		//! Object lock.
 		/*!
 		 * All operations will be performed under that lock.
@@ -1279,7 +1308,7 @@ class special_event_queue_t final : public event_queue_t
 		//! The current mode of operation.
 		queue_mode_t m_mode;
 		//! Local storage for demands to be used in buffered mode.
-		std::vector< execution_demand_t > m_buffer;
+		std::vector< buffered_demand_t > m_buffer;
 
 		static bool
 		is_ordinary_demand( const execution_demand_t & demand ) noexcept
@@ -1290,15 +1319,49 @@ class special_event_queue_t final : public event_queue_t
 								demand.m_demand_handler;
 			}
 
+		static void
+		push_to_target_queue_by_appropriate_way(
+			//! The destination for the demand,
+			event_queue_t & target,
+			//! What to push.
+			execution_demand_t demand,
+			//! What kind of demand it is.
+			demand_kind_t kind )
+			{
+				switch( kind )
+					{
+					case demand_kind_t::ordinary:
+						target.push( std::move(demand) );
+					break;
+
+					case demand_kind_t::evt_start:
+						target.push_evt_start( std::move(demand) );
+					break;
+
+					case demand_kind_t::evt_finish:
+						target.push_evt_finish( std::move(demand) );
+					break;
+					}
+			}
+
 		void
-		push_to_queue( execution_demand_t demand )
+		push_to_queue(
+			//! What to push.
+			execution_demand_t demand,
+			//! What kind of demand it is.
+			demand_kind_t kind )
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
 				if( queue_mode_t::buffer == m_mode )
-					m_buffer.push_back( std::move(demand) );
+					m_buffer.emplace_back( std::move(demand), kind );
 				else
-					m_original_queue.get().push( std::move(demand) );
+					{
+						push_to_target_queue_by_appropriate_way(
+								m_original_queue.get(),
+								std::move(demand),
+								kind );
+					}
 			}
 
 	public :
@@ -1314,7 +1377,46 @@ class special_event_queue_t final : public event_queue_t
 		void
 		push( execution_demand_t demand ) override
 			{
-				if( is_ordinary_demand( demand ) )
+std::cout << "testing_special_queue::push" << std::endl;
+				//FIXME: just for checking!
+				//If this approach will work it will have to be documented.
+				if( agent_t::get_demand_handler_for_cpp_coro_case_ptr() ==
+						demand.m_demand_handler )
+					{
+std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
+						message_ref_t new_env{
+							std::make_unique< special_envelope_t >(
+									m_scenario,
+									std::cref(demand) )
+						};
+
+						demand.m_message_ref = std::move(new_env);
+						demand.m_demand_handler =
+								agent_t::get_demand_handler_for_cpp_coro_case_ptr();
+
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::ordinary );
+					}
+				else if( agent_t::get_demand_handler_on_start_ptr() ==
+						demand.m_demand_handler )
+					{
+						// Demand must go into the original queue without
+						// transformations.
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::evt_start );
+					}
+				else if( agent_t::get_demand_handler_on_finish_ptr() ==
+						demand.m_demand_handler )
+					{
+						// Demand must go into the original queue without
+						// transformations.
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::evt_start );
+					}
+				else
 					{
 std::cout << "message transformed into enveloped_msg" << std::endl;
 						// Original message must be wrapped into a special
@@ -1329,46 +1431,36 @@ std::cout << "message transformed into enveloped_msg" << std::endl;
 						demand.m_demand_handler =
 								agent_t::get_demand_handler_on_enveloped_msg_ptr();
 
-						push_to_queue( std::move(demand) );
-					}
-				//FIXME: just for checking!
-				//If this approach will work it will have to be documented.
-				else if( agent_t::get_demand_handler_for_cpp_coro_case_ptr() ==
-						demand.m_demand_handler )
-					{
-std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
-						message_ref_t new_env{
-							std::make_unique< special_envelope_t >(
-									m_scenario,
-									std::cref(demand) )
-						};
-
-						demand.m_message_ref = std::move(new_env);
-						demand.m_demand_handler =
-								agent_t::get_demand_handler_for_cpp_coro_case_ptr();
-
-						push_to_queue( std::move(demand) );
-					}
-				else
-					{
-						// Demand must go into the original queue without
-						// transformations.
-						push_to_queue( std::move(demand) );
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::ordinary );
 					}
 			}
 
 		void
 		push_evt_start( execution_demand_t demand ) override
 			{
+std::cout << "testing_special_queue::push_evt_start" << std::endl;
+
+//FIXME: information about evt_start will be lost here (because evt_start
+//is stored just like an ordinary demand);
 				// Demand must go into the original queue without transformations.
-				push_to_queue( std::move(demand) );
+				push_to_queue(
+						std::move(demand),
+						demand_kind_t::evt_start );
 			}
 
 		void
 		push_evt_finish( execution_demand_t demand ) noexcept override
 			{
+std::cout << "testing_special_queue::push_evt_finish" << std::endl;
+
+//FIXME: information about evt_start will be lost here (because evt_start
+//is stored just like an ordinary demand);
 				// Demand must go into the original queue without transformations.
-				push_to_queue( std::move(demand) );
+				push_to_queue(
+						std::move(demand),
+						demand_kind_t::evt_finish );
 			}
 
 		void
@@ -1383,7 +1475,12 @@ std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
 					m_mode = queue_mode_t::direct;
 
 					for( auto & d : m_buffer )
-						m_original_queue.get().push( std::move(d) );
+						{
+							push_to_target_queue_by_appropriate_way(
+									m_original_queue.get(),
+									std::move(d.m_demand),
+									d.m_kind );
+						}
 
 					using std::swap;
 					swap( tmp, m_buffer );
