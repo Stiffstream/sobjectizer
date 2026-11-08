@@ -74,13 +74,13 @@ public :
 	void
 	push_evt_start( so_5::execution_demand_t demand ) override
 	{
-		this->push( std::move(demand) );
+		m_actual->push_evt_start( std::move(demand) );
 	}
 
 	void
 	push_evt_finish( so_5::execution_demand_t demand ) noexcept override
 	{
-		this->push( std::move(demand) );
+		m_actual->push_evt_finish( std::move(demand) );
 	}
 };
 
@@ -143,6 +143,10 @@ do_test()
 					so_5::event_queue_hook_unique_ptr_t(
 							&hook,
 							&so_5::event_queue_hook_t::noop_deleter ) );
+#if 0
+			params.message_delivery_tracer(
+					so_5::msg_tracing::std_cout_tracer() );
+#endif
 		} );
 
 	const auto ensure_equal =

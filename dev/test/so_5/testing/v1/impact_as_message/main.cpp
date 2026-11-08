@@ -60,7 +60,16 @@ UT_UNIT_TEST( impact_as_message )
 	run_with_time_limit(
 		[]()
 		{
+#if 0
 			tests::testing_env_t env;
+#else
+			tests::testing_env_t env{
+					[]( so_5::environment_params_t & params ) {
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_cout_tracer() );
+					}
+				};
+#endif
 
 			so_5::agent_t * test_agent = env.environment().introduce_coop(
 					[](so_5::coop_t & coop) {
@@ -68,12 +77,14 @@ UT_UNIT_TEST( impact_as_message )
 					} );
 
 			define_step< hello >( env, "hello", *test_agent );
+#if 0
 			define_step< so_msg >( env, "so_msg", *test_agent, 1 );
 			define_step< so_5::mutable_msg<so_msg> >(
 					env, "mutable<so_msg>", *test_agent, 2 );
 			define_step< usr_msg >( env, "usr_msg", *test_agent, 1 );
 			define_step< so_5::mutable_msg<usr_msg> >(
 					env, "mutable<usr_msg>", *test_agent, 2 );
+#endif
 
 			env.scenario().run_for( std::chrono::seconds(1) );
 

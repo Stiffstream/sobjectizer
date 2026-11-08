@@ -1,13 +1,13 @@
 /*
- * SObjectizer-5
- */
+* SObjectizer-5
+*/
 
 /*!
- * \file
- * \brief Testing related stuff.
- *
- * \since v.5.5.24
- */
+* \file
+* \brief Testing related stuff.
+*
+* \since v.5.5.24
+*/
 
 #include <so_5/experimental/testing/v1/all.hpp>
 
@@ -16,99 +16,99 @@
 #include <so_5/impl/enveloped_msg_details.hpp>
 
 namespace so_5 {
-	
+
 namespace experimental {
-	
+
 namespace testing {
-	
+
 inline namespace v1 {
 
 namespace details {
 
 trigger_t::trigger_t(
-	incident_status_t incident_status,
-	const agent_t & target,
-	std::type_index msg_type,
-	mbox_id_t src_mbox_id )
-	:	m_incident_status( incident_status )
-	,	m_target_agent( target )
-	,	m_target_id( target.so_direct_mbox()->id() )
-	,	m_msg_type( std::move(msg_type) )
-	,	m_src_mbox_id( src_mbox_id )
-	{}
+incident_status_t incident_status,
+const agent_t & target,
+std::type_index msg_type,
+mbox_id_t src_mbox_id )
+:	m_incident_status( incident_status )
+,	m_target_agent( target )
+,	m_target_id( target.so_direct_mbox()->id() )
+,	m_msg_type( std::move(msg_type) )
+,	m_src_mbox_id( src_mbox_id )
+{}
 
 trigger_t::~trigger_t()
-	{}
+{}
 
 [[nodiscard]]
 const agent_t &
 trigger_t::target_agent() const noexcept
-	{
-		return m_target_agent;
-	}
+{
+	return m_target_agent;
+}
 
 void
 trigger_t::set_completion( completion_function_t fn )
-	{
-		if( !m_completion )
-			// Simple store the new function.
-			m_completion = std::move(fn);
-		else
-			{
-				// We have to join the old and the new ones.
-				completion_function_t joined_version =
-					[old_fn = m_completion, new_fn = std::move(fn)]
-					( const trigger_completion_context_t & ctx ) {
-						// NOTE: don't care about exception because completion
-						// functions have to be noexcept.
-						old_fn( ctx );
-						new_fn( ctx );
-					};
+{
+	if( !m_completion )
+		// Simple store the new function.
+		m_completion = std::move(fn);
+	else
+		{
+			// We have to join the old and the new ones.
+			completion_function_t joined_version =
+				[old_fn = m_completion, new_fn = std::move(fn)]
+				( const trigger_completion_context_t & ctx ) {
+					// NOTE: don't care about exception because completion
+					// functions have to be noexcept.
+					old_fn( ctx );
+					new_fn( ctx );
+				};
 
-				m_completion = std::move(joined_version);
-			}
-	}
+			m_completion = std::move(joined_version);
+		}
+}
 
 void
 trigger_t::set_activation( activation_function_t fn )
-	{
-		if( !m_activation )
-			// Simple store the new function.
-			m_activation = std::move(fn);
-		else
-			{
-				// We have to join the old and the new ones.
-				activation_function_t joined_version =
-					[old_fn = m_activation, new_fn = std::move(fn)]
-					( const trigger_activation_context_t & ctx ) {
-						// NOTE: don't care about exception because completion
-						// functions have to be noexcept.
-						old_fn( ctx );
-						new_fn( ctx );
-					};
+{
+	if( !m_activation )
+		// Simple store the new function.
+		m_activation = std::move(fn);
+	else
+		{
+			// We have to join the old and the new ones.
+			activation_function_t joined_version =
+				[old_fn = m_activation, new_fn = std::move(fn)]
+				( const trigger_activation_context_t & ctx ) {
+					// NOTE: don't care about exception because completion
+					// functions have to be noexcept.
+					old_fn( ctx );
+					new_fn( ctx );
+				};
 
-				m_activation = std::move(joined_version);
-			}
-	}
+			m_activation = std::move(joined_version);
+		}
+}
 
 [[nodiscard]]
 bool
 trigger_t::check(
-	const incident_status_t incident_status,
-	const incident_info_t & info ) const noexcept
-	{
-		return incident_status == m_incident_status
-				&& info.m_agent->so_direct_mbox()->id() == m_target_id
-				&& info.m_msg_type == m_msg_type
-				&& info.m_src_mbox_id == m_src_mbox_id;
-	}
+const incident_status_t incident_status,
+const incident_info_t & info ) const noexcept
+{
+	return incident_status == m_incident_status
+			&& info.m_agent->so_direct_mbox()->id() == m_target_id
+			&& info.m_msg_type == m_msg_type
+			&& info.m_src_mbox_id == m_src_mbox_id;
+}
 
 [[nodiscard]]
 bool
 trigger_t::requires_completion() const noexcept
-	{
-		return static_cast<bool>(m_completion);
-	}
+{
+	return static_cast<bool>(m_completion);
+}
 
 void
 trigger_t::activate(
@@ -212,6 +212,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 			const incident_info_t & info,
 			const message_ref_t & incoming_msg ) noexcept override
 			{
+std::cout << "pre_handler_hook" << std::endl;
 				token_t result;
 
 				if( status_t::preactivated == m_status )
@@ -231,6 +232,7 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 			const scenario_in_progress_accessor_t & scenario_accessor,
 			token_t token ) noexcept override
 			{
+std::cout << "post_handler_hook, token.valid=" << token.valid() << std::endl;
 				if( token.valid() )
 					{
 						token.trigger().complete(
@@ -1312,11 +1314,9 @@ class special_event_queue_t final : public event_queue_t
 		void
 		push( execution_demand_t demand ) override
 			{
-				if( !is_ordinary_demand( demand ) )
-					// Demand must go into the original queue without transformations.
-					push_to_queue( std::move(demand) );
-				else
+				if( is_ordinary_demand( demand ) )
 					{
+std::cout << "message transformed into enveloped_msg" << std::endl;
 						// Original message must be wrapped into a special
 						// envelope and original demand must be modified.
 						message_ref_t new_env{
@@ -1329,6 +1329,30 @@ class special_event_queue_t final : public event_queue_t
 						demand.m_demand_handler =
 								agent_t::get_demand_handler_on_enveloped_msg_ptr();
 
+						push_to_queue( std::move(demand) );
+					}
+				//FIXME: just for checking!
+				//If this approach will work it will have to be documented.
+				else if( agent_t::get_demand_handler_for_cpp_coro_case_ptr() ==
+						demand.m_demand_handler )
+					{
+std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
+						message_ref_t new_env{
+							std::make_unique< special_envelope_t >(
+									m_scenario,
+									std::cref(demand) )
+						};
+
+						demand.m_message_ref = std::move(new_env);
+						demand.m_demand_handler =
+								agent_t::get_demand_handler_for_cpp_coro_case_ptr();
+
+						push_to_queue( std::move(demand) );
+					}
+				else
+					{
+						// Demand must go into the original queue without
+						// transformations.
 						push_to_queue( std::move(demand) );
 					}
 			}

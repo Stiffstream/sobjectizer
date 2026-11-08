@@ -4,3 +4,4 @@ add_subdirectory(mchain)
 
 add_subdirectory(agents)
 
+add_subdirectory(testing)
