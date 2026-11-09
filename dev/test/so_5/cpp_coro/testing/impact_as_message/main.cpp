@@ -45,13 +45,27 @@ private :
 	so_5::cpp_coro::task_t< void >
 	on_hello( mhood_t<hello> ) {
 		co_await dummy_yield( so_environment(), 5ms );
-std::cout << "on hello resumed" << std::endl;
 	}
 
-	void on_so_msg_1( mhood_t<so_msg> ) {}
-	void on_so_msg_2( mutable_mhood_t<so_msg> ) {}
-	void on_usr_msg_1( mhood_t<usr_msg> ) {}
-	void on_usr_msg_2( mutable_mhood_t<usr_msg> ) {}
+	so_5::cpp_coro::task_t< void >
+	on_so_msg_1( mhood_t<so_msg> ) {
+		co_await dummy_yield( so_environment(), 5ms );
+	}
+
+	so_5::cpp_coro::task_t< void >
+	on_so_msg_2( mutable_mhood_t<so_msg> ) {
+		co_await dummy_yield( so_environment(), 5ms );
+	}
+
+	so_5::cpp_coro::task_t< void >
+	on_usr_msg_1( mhood_t<usr_msg> ) {
+		co_await dummy_yield( so_environment(), 5ms );
+	}
+
+	so_5::cpp_coro::task_t< void >
+	on_usr_msg_2( mutable_mhood_t<usr_msg> ) {
+		co_await dummy_yield( so_environment(), 5ms );
+	}
 };
 
 template< typename Msg, typename... Args >
