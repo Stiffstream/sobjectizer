@@ -62,6 +62,36 @@ public:
 	}
 };
 
+class state_changer_t final : public so_5::agent_t
+{
+	state_t st_initial{ this, "initial" };
+	state_t st_before{ this, "before" };
+	state_t st_after{ this, "after" };
+
+public :
+	state_changer_t( context_t ctx )
+		:	so_5::agent_t( ctx + so_5::enable_cpp_coro() )
+	{
+	}
+
+	void
+	so_define_agent() override
+	{
+		this >>= st_initial;
+
+		so_subscribe_self()
+			.in( st_initial )
+			.event(
+			[this]( mhood_t<start> ) -> so_5::cpp_coro::task_t< void > {
+				this >>= st_before;
+
+				co_await dummy_yield( so_environment(), expected_delay );
+
+				this >>= st_after;
+			} );
+	}
+};
+
 } /* namespace test */
 
 using namespace test;
@@ -94,6 +124,42 @@ UT_UNIT_TEST( basic )
 					true,
 					std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)
 							>= expected_delay );
+		},
+		5 );
+}
+
+UT_UNIT_TEST( basic_with_state_change )
+{
+	run_with_time_limit(
+		[]()
+		{
+			so5_tests::testing_env_t env;
+
+			so_5::agent_t * test_agent = env.environment().introduce_coop(
+				[&](so_5::coop_t & coop) {
+					return coop.make_agent< state_changer_t >();
+				} );
+
+			env.scenario().define_step( "start" )
+				.impact( [test_agent] { so_5::send< start >( *test_agent ); } )
+				.when( *test_agent
+						& so5_tests::reacts_to< start >()
+						& so5_tests::wait_event_handler_completion()
+						& so5_tests::store_state_name( "agent" ) )
+				;
+
+			const auto t1 = std::chrono::steady_clock::now();
+			env.scenario().run_for( 1000ms );
+			const auto t2 = std::chrono::steady_clock::now();
+
+			UT_CHECK_EQ( so5_tests::completed(), env.scenario().result() );
+			UT_CHECK_EQ(
+					true,
+					std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)
+							>= expected_delay );
+			UT_CHECK_EQ(
+					"after",
+					env.scenario().stored_state_name( "start", "agent" ) );
 		},
 		5 );
 }
@@ -156,6 +222,7 @@ int
 main()
 {
 	UT_RUN_UNIT_TEST( basic )
+	UT_RUN_UNIT_TEST( basic_with_state_change )
 	UT_RUN_UNIT_TEST( basic_with_continuation )
 
 	return 0;
