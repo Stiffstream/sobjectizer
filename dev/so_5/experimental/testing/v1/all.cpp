@@ -217,7 +217,6 @@ class real_scenario_step_t final : public abstract_scenario_step_t
 			const incident_info_t & info,
 			const message_ref_t & incoming_msg ) noexcept override
 			{
-std::cout << "pre_handler_hook" << std::endl;
 				token_t result;
 
 				if( status_t::preactivated == m_status )
@@ -237,7 +236,6 @@ std::cout << "pre_handler_hook" << std::endl;
 			const scenario_in_progress_accessor_t & scenario_accessor,
 			token_t token ) noexcept override
 			{
-std::cout << "post_handler_hook, token.valid=" << token.valid() << std::endl;
 				if( token.valid() )
 					{
 						token.trigger().complete(
@@ -965,14 +963,28 @@ namespace details = so_5::experimental::testing::v1::details;
 //
 // postponed_post_handler_hook_caller_t
 //
-//FIXME: document this!
 /*!
+ * \brief Special watcher for the current coroutine completion.
+ *
+ * If event handler starts a coroutine then we can't call post_handler_hook
+ * just after the completion of the event handler. We have to wait while
+ * the coroutine completes. To do this an instance of this type will be
+ * installed as coutine watcher in the agent's cpp_coro_data.
+ *
+ * The post_handler_hook is called in the on_completion() method.
+ *
  * \since v.5.8.7
  */
 class postponed_post_handler_hook_caller_t final
 	: public so_5::impl::cpp_coro_completion_watcher_t
 	{
 		//! Scenario for that hook has to be called.
+		/*!
+		 * \note
+		 * It's assumed that we can store the reference to the scenario
+		 * here. It's because the scenario has to overlive the agents
+		 * in the testing environment.
+		 */
 		outliving_reference_t< details::abstract_scenario_t > m_scenario;
 
 		//! The token to be passed to the hook.
@@ -1246,8 +1258,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 							// This invoker will call pre/post_handler_hooks and
 							// the actual event-handler.
 							pre_handler_hook_invoker_t pre_handler_hook_invoker{
-//FIXME: const_cast should be needed here!
-const_cast<agent_t *>(m_demand_info.m_agent),
+									m_demand_info.m_agent,
 									outliving_mutable( *this ),
 									outliving_mutable( invoker )
 								};
@@ -1336,8 +1347,17 @@ enum class queue_mode_t
  */
 class special_event_queue_t final : public event_queue_t
 	{
-		//FIXME: document this!
 		/*!
+		 * \brief What kind of a demand has to be stored in temporary
+		 * queue.
+		 *
+		 * It's very important to distinguish between
+		 * event_queue_t::push, event_queue_t::push_evt_start and
+		 * event_queue_t::push_evt_finish methods when demands from
+		 * the temporary queue are moved to the appropriate queues.
+		 * The flag of type demand_kind_t will help to call the
+		 * right method of the destination queue.
+		 *
 		 * \since v.5.8.7
 		 */
 		enum class demand_kind_t
@@ -1347,7 +1367,12 @@ class special_event_queue_t final : public event_queue_t
 				evt_finish
 			};
 
-		//FIXME: document this!
+		/*!
+		 * \brief Actual type of the demand to be stored in the
+		 * temporary queue.
+		 *
+		 * \since v.5.8.7
+		 */
 		struct buffered_demand_t
 			{
 				//! Actual demand.
@@ -1448,23 +1473,10 @@ class special_event_queue_t final : public event_queue_t
 		void
 		push( execution_demand_t demand ) override
 			{
-std::cout << "testing_special_queue::push" << std::endl;
-				//FIXME: just for checking!
-				//If this approach will work it will have to be documented.
 				if( agent_t::get_demand_handler_for_cpp_coro_case_ptr() ==
 						demand.m_demand_handler )
 					{
-std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
-						message_ref_t new_env{
-							std::make_unique< special_envelope_t >(
-									m_scenario,
-									std::cref(demand) )
-						};
-
-						demand.m_message_ref = std::move(new_env);
-						demand.m_demand_handler =
-								agent_t::get_demand_handler_for_cpp_coro_case_ptr();
-
+						// This wakeup demand should go directly to the queue.
 						push_to_queue(
 								std::move(demand),
 								demand_kind_t::ordinary );
@@ -1489,7 +1501,6 @@ std::cout << "demand_handler_for_cpp_coro_support" << std::endl;
 					}
 				else
 					{
-std::cout << "message transformed into enveloped_msg" << std::endl;
 						// Original message must be wrapped into a special
 						// envelope and original demand must be modified.
 						message_ref_t new_env{
@@ -1511,10 +1522,6 @@ std::cout << "message transformed into enveloped_msg" << std::endl;
 		void
 		push_evt_start( execution_demand_t demand ) override
 			{
-std::cout << "testing_special_queue::push_evt_start" << std::endl;
-
-//FIXME: information about evt_start will be lost here (because evt_start
-//is stored just like an ordinary demand);
 				// Demand must go into the original queue without transformations.
 				push_to_queue(
 						std::move(demand),
@@ -1524,10 +1531,6 @@ std::cout << "testing_special_queue::push_evt_start" << std::endl;
 		void
 		push_evt_finish( execution_demand_t demand ) noexcept override
 			{
-std::cout << "testing_special_queue::push_evt_finish" << std::endl;
-
-//FIXME: information about evt_start will be lost here (because evt_start
-//is stored just like an ordinary demand);
 				// Demand must go into the original queue without transformations.
 				push_to_queue(
 						std::move(demand),

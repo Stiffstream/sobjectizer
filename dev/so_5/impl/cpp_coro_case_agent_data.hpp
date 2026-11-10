@@ -27,9 +27,15 @@ namespace so_5::impl
 //
 // cpp_coro_completion_watcher_t
 //
-//FIXME: document this!
 /*!
- * @since v.5.8.7
+ * \brief An iterface of object that waits completion of the current
+ * top-level coroutine of an agent.
+ *
+ * An instance of this type can be stored inside cpp_coro_case_agent_data_t.
+ * If such an instance exists then its on_completion() will be called
+ * when the current top-level coroutine completes.
+ *
+ * \since v.5.8.7
  */
 class cpp_coro_completion_watcher_t
 	{

@@ -49,14 +49,18 @@ class scenario_in_progress_accessor_t;
 struct incident_info_t final
 	{
 		//! Target of an event.
-		const agent_t * m_agent;
+		/*!
+		 * \note
+		 * Since v.5.8.7 it is no more const pointer.
+		 */
+		agent_t * m_agent;
 		//! Type of message or signal.
 		const std::type_index m_msg_type;
 		//! ID of mbox from that message/signal was received.
 		mbox_id_t m_src_mbox_id;
 
 		incident_info_t(
-			const agent_t * agent,
+			agent_t * agent,
 			const std::type_index & msg_type,
 			mbox_id_t src_mbox_id )
 			:	m_agent( agent )
