@@ -1,4 +1,5 @@
 add_subdirectory(impact_as_message)
 add_subdirectory(inspect_msg)
 add_subdirectory(wait_evt_handler_completion)
+add_subdirectory(msg_from_envelope)
 
