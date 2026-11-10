@@ -833,6 +833,10 @@ wrap_handler_invocation_with_exception_handling(
 		}
 	}
 
+//FIXME: it seems that this method has to be noexcept, because it's
+//impossible to return to the normal state if it throws.
+//But noexcept-ness of wrap_handler_invocation_with_exception_handling
+//has to be checked first.
 /*!
  * \brief Helper method for handling completion of top-level coroutine.
  *
@@ -866,6 +870,14 @@ consume_top_level_coroutine_result(
 
 		// The coroutine is no more needed.
 		coro_related_data.m_current_top_level_task.reset();
+
+		// A case when watcher is present has to be handled now.
+		if( coro_related_data.m_current_completion_watcher )
+			{
+				// NOTE: don't expect exceptions here.
+				coro_related_data.m_current_completion_watcher->on_completion();
+				coro_related_data.m_current_completion_watcher.reset();
+			}
 	}
 
 } /* namespace anonymous */

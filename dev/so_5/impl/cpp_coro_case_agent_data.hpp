@@ -18,10 +18,37 @@
 
 #include <so_5/cpp_coro/details/top_level_task.hpp>
 
+#include <memory>
 #include <optional>
 
 namespace so_5::impl
 {
+
+//
+// cpp_coro_completion_watcher_t
+//
+//FIXME: document this!
+/*!
+ * @since v.5.8.7
+ */
+class cpp_coro_completion_watcher_t
+	{
+	public:
+		virtual ~cpp_coro_completion_watcher_t() = default;
+
+		//! This method will be called when the current top-level
+		//! task is completed.
+		virtual
+		void
+		on_completion() noexcept = 0;
+	};
+
+//! An alias for unique_ptr to cpp_coro_completion_watcher_t.
+/*!
+ * \since v.5.8.7
+ */
+using cpp_coro_completion_watcher_uptr_t =
+		std::unique_ptr< cpp_coro_completion_watcher_t >;
 
 //
 // cpp_coro_case_agent_data_t
@@ -52,6 +79,17 @@ struct cpp_coro_case_agent_data_t
 
 		//! Implementation of coroutines scheduler for this agent.
 		this_agent_scheduler_t m_this_agent_scheduler;
+
+		//! An optional watcher for coroutine completion.
+		/*!
+		 * By default it is nullptr. But it can be set to an actual watcher.
+		 * For example, testing facility uses this field.
+		 *
+		 * \note
+		 * This object will be destroyed after completion of the
+		 * current top-level task.
+		 */
+		cpp_coro_completion_watcher_uptr_t m_current_completion_watcher;
 
 		//! The current coroutine.
 		/*!

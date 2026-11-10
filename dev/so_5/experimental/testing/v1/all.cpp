@@ -14,6 +14,11 @@
 #include <so_5/details/safe_cv_wait_for.hpp>
 
 #include <so_5/impl/enveloped_msg_details.hpp>
+#include <so_5/impl/internal_agent_iface.hpp>
+#include <so_5/impl/cpp_coro_case_agent_data.hpp>
+
+#include <syncstream>
+#include <iostream>
 
 namespace so_5 {
 
@@ -957,6 +962,37 @@ namespace impl {
 
 namespace details = so_5::experimental::testing::v1::details;
 
+//
+// postponed_post_handler_hook_caller_t
+//
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+class postponed_post_handler_hook_caller_t final
+	: public so_5::impl::cpp_coro_completion_watcher_t
+	{
+		//! Scenario for that hook has to be called.
+		outliving_reference_t< details::abstract_scenario_t > m_scenario;
+
+		//! The token to be passed to the hook.
+		details::abstract_scenario_t::token_t m_token;
+
+	public:
+		//! Initializing constructor.
+		postponed_post_handler_hook_caller_t(
+			outliving_reference_t< details::abstract_scenario_t > scenario,
+			details::abstract_scenario_t::token_t token )
+			: m_scenario{ scenario }
+			, m_token{ std::move(token) }
+			{}
+
+		void
+		on_completion() noexcept override
+			{
+				m_scenario.get().post_handler_hook( m_token );
+			}
+	};
 
 /*!
  * \brief A special envelope that is necessary for testing scenarios.
@@ -1011,6 +1047,9 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 		//! A special invoker to be used to call pre_handler_hook.
 		class pre_handler_hook_invoker_t final : public handler_invoker_t
 			{
+				//! Receiver of the demand.
+				agent_t * m_receiver;
+
 				//! Owner of this invoker.
 				outliving_reference_t< special_envelope_t > m_owner;
 
@@ -1020,17 +1059,21 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 			public:
 				//! Intializing constructor.
 				pre_handler_hook_invoker_t(
+					//! Receiver of the demand.
+					agent_t * receiver,
 					//! Owner of this invoker.
 					outliving_reference_t< special_envelope_t > owner,
 					//! Invoker to be used to call the actual event handler.
 					outliving_reference_t< handler_invoker_t > actual_invoker )
-					:	m_owner{ owner }
+					:	m_receiver{ receiver }
+					,	m_owner{ owner }
 					,	m_actual_invoker{ actual_invoker }
 					{}
 
 				void
 				invoke( const payload_info_t & payload ) noexcept override
 					{
+
 						// We must get token...
 						auto token = m_owner.get()
 								.m_scenario.get()
@@ -1041,8 +1084,34 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 						// Actual event handler has to be called.
 						m_actual_invoker.get().invoke( payload );
 
-						// And now the token must be passed back.
-						m_owner.get().m_scenario.get().post_handler_hook( token );
+						// In case of non-finished C++ coroutine we can't
+						// call post_handler_hook right now. This call has to
+						// be postponed.
+						auto * cpp_coro_data =
+								so_5::impl::internal_agent_iface_t{ *m_receiver }
+								.access_cpp_coro_data();
+						if( cpp_coro_data &&
+								cpp_coro_data->m_current_top_level_task.has_value() )
+							{
+								// Special caller has to be created and stored along
+								// with the current coroutine.
+								using caller_t =
+										postponed_post_handler_hook_caller_t;
+
+								cpp_coro_data->m_current_completion_watcher =
+										std::make_unique< caller_t >(
+												m_owner.get().m_scenario,
+												token );
+							}
+						else
+							{
+								// There is no non-finished coroutine, so the
+								// post_handler_hook can be called right now.
+
+								// And now the token must be passed back.
+								m_owner.get().m_scenario.get().post_handler_hook(
+										token );
+							}
 					}
 			};
 
@@ -1177,6 +1246,8 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 							// This invoker will call pre/post_handler_hooks and
 							// the actual event-handler.
 							pre_handler_hook_invoker_t pre_handler_hook_invoker{
+//FIXME: const_cast should be needed here!
+const_cast<agent_t *>(m_demand_info.m_agent),
 									outliving_mutable( *this ),
 									outliving_mutable( invoker )
 								};
