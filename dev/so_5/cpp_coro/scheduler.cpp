@@ -12,6 +12,20 @@ namespace so_5::cpp_coro
 {
 
 //
+// resumable_item_t::scheduler_data_t
+//
+resumable_item_t::scheduler_data_t::scheduler_data_t(
+	std::coroutine_handle<> to_be_resumed )
+	: m_to_be_resumed{ to_be_resumed }
+	{}
+
+resumable_item_t::scheduler_data_t::scheduler_data_t(
+	deffered_initialization_t )
+	{}
+
+resumable_item_t::scheduler_data_t::~scheduler_data_t() = default;
+
+//
 // resumable_item_t
 //
 resumable_item_t::resumable_item_t(

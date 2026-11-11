@@ -41,7 +41,7 @@ namespace so_5::cpp_coro
  *
  * @since v.5.8.7
  */
-class SO_5_TYPE this_thread_scheduler_t
+class this_thread_scheduler_t
 	: public scheduler_t
 	{
 		//! Helper class for managing list of resumable items.
@@ -117,21 +117,26 @@ class SO_5_TYPE this_thread_scheduler_t
 				no_environment_case_t::dummy_value;
 
 		//FIXME: document this!
+		SO_5_FUNC
 		explicit this_thread_scheduler_t(
 			/// SObjectizer Environment for that this scheduler is created.
 			so_5::environment_t & env );
 
 		//FIXME: document this!
+		SO_5_FUNC
 		explicit this_thread_scheduler_t(
 			/// Special marker that tells that scheduler is run without
 			/// actual SObjectizer Environment.
 			no_environment_case_t );
 
+		SO_5_FUNC
 		~this_thread_scheduler_t() override;
 
+		SO_5_FUNC
 		so_5::environment_t &
 		environment() const override;
 
+		SO_5_FUNC
 		void
 		try_schedule( resumable_item_t & what_to_resume ) override;
 
@@ -140,6 +145,7 @@ class SO_5_TYPE this_thread_scheduler_t
 		 * The @a what_to_handle has to be a coroutine that is scheduled
 		 * by this scheduler and is running now on the current thread.
 		 */
+		SO_5_FUNC
 		try_suspend_result_t
 		try_suspend(
 			resumable_item_t & what_to_handle,
@@ -198,6 +204,7 @@ class SO_5_TYPE this_thread_scheduler_t
 		 * It blocks the current thread until @a top_level coroutine reaches
 		 * `done` status.
 		 */
+		SO_5_FUNC
 		void
 		wait_and_handle_coroutines(
 			//! The top_level coroutine that will be resumed on the first
@@ -223,7 +230,7 @@ class SO_5_TYPE this_thread_scheduler_t
 		 * infinite_speep_time() if the m_waiting_items is empty or if
 		 * none of waiting coroutines have actual resume_at values.
 		 */
-		[[nodiscard]]
+		[[nodiscard]] SO_5_FUNC
 		monotonic_clock_t::duration
 		check_resumption_time_for_waiting_coroutines();
 
@@ -237,7 +244,7 @@ class SO_5_TYPE this_thread_scheduler_t
 		 * @return number of resumed coroutines. It may be 0 if the ready
 		 * list is empty.
 		 */
-		[[nodiscard]]
+		[[nodiscard]] SO_5_FUNC
 		std::size_t
 		resume_ready_coroutines(
 				/// Object for unlocking the mutex temporary.
@@ -255,6 +262,7 @@ class SO_5_TYPE this_thread_scheduler_t
 		 * then there is an error somewhere and it's better to known about
 		 * that error. This method allows to detect such cases.
 		 */
+		SO_5_FUNC
 		void
 		ensure_lists_are_empty() const;
 	};

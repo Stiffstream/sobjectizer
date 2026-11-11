@@ -86,7 +86,7 @@ enum class try_suspend_result_t
  *
  * @since v.5.8.7
  */
-class SO_5_TYPE resumable_item_t
+class resumable_item_t
 	{
 	public:
 		/// @brief Enumeration of possible statuses for the coroutine
@@ -297,13 +297,12 @@ class SO_5_TYPE resumable_item_t
 				/// @brief Initializing constructor.
 				explicit scheduler_data_t(
 					/// Handle of the coroutine to be resumed.
-					std::coroutine_handle<> to_be_resumed )
-					: m_to_be_resumed{ to_be_resumed }
-					{}
+					std::coroutine_handle<> to_be_resumed );
 
 				/// @brief Constructor for the case of deffered initialization.
-				explicit scheduler_data_t( deffered_initialization_t )
-					{}
+				explicit scheduler_data_t( deffered_initialization_t );
+
+				~scheduler_data_t();
 
 				// Copy and Move operations are disabled.
 				scheduler_data_t( const scheduler_data_t & ) = delete;
@@ -335,11 +334,12 @@ class SO_5_TYPE resumable_item_t
 		///
 		/// @note
 		/// It's assumed that only schedulers will use this method.
-		[[nodiscard]]
+		[[nodiscard]] SO_5_FUNC
 		scheduler_data_t &
 		scheduler_data() { return m_scheduler_data; }
 
 		/// @brief Initializing constructor.
+		SO_5_FUNC
 		resumable_item_t(
 			/// Handle of the coroutine.
 			std::coroutine_handle<> to_be_resumed,
@@ -350,8 +350,10 @@ class SO_5_TYPE resumable_item_t
 		///
 		/// @attention
 		/// It's a UB if resumable_item_t will be used before a call to init().
+		SO_5_FUNC
 		resumable_item_t( deffered_initialization_t );
 
+		SO_5_FUNC
 		~resumable_item_t();
 
 		// Copy and Move operations are disabled.
@@ -371,6 +373,7 @@ class SO_5_TYPE resumable_item_t
 		///
 		/// @attention
 		/// This method may be called only once.
+		SO_5_FUNC
 		void
 		init(
 			/// Handle of the coroutine.
@@ -383,6 +386,7 @@ class SO_5_TYPE resumable_item_t
 		/// @brief An attempt to resume the coroutine.
 		///
 		/// Delegates the work to `m_scheduler.try_schedule(*this)`.
+		SO_5_FUNC
 		void
 		try_schedule();
 
@@ -390,7 +394,7 @@ class SO_5_TYPE resumable_item_t
 		/// amount of time.
 		///
 		/// Delegates the work to `m_scheduler.try_suspend(*this, sleep_time)`.
-		[[nodiscard]]
+		[[nodiscard]] SO_5_FUNC
 		try_suspend_result_t
 		try_suspend(
 			monotonic_clock_t::duration sleep_time );
