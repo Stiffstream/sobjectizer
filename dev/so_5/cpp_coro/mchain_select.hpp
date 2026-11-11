@@ -473,6 +473,34 @@ select(
 				cases_holder_proxy_t{ locker.cases() } );
 	}
 
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+inline resumable_select_t
+select(
+	const extensible_select_t & extensible_select )
+	{
+		using namespace so_5::mchain_props::details;
+
+		extensible_select_data_t::activation_locker_t locker{
+				outliving_mutable(extensible_select.data())
+		};
+
+		using cases_holder_t = std::remove_cvref_t< decltype(locker.cases()) >;
+
+		using select_params_proxy_t = async_select_impl::arg_proxy_t<
+				async_select_impl::defined_select_params_t,
+				async_select_impl::proxy_mode_t::reference >;
+		using cases_holder_proxy_t = async_select_impl::arg_proxy_t<
+				cases_holder_t,
+				async_select_impl::proxy_mode_t::reference >;
+
+		co_return co_await async_select_impl::perform_select(
+				select_params_proxy_t{ locker.params() },
+				cases_holder_proxy_t{ locker.cases() } );
+	}
+
 } /* namespace so_5::cpp_coro */
 
 #endif
