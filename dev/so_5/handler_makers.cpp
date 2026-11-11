@@ -21,14 +21,15 @@ namespace details {
 namespace {
 
 //FIXME: document this!
-bool
+[[nodiscard]]
+find_then_call_result_t
 process_envelope_when_handler_found(
 	const msg_type_and_handler_pair_t & handler,
 	message_ref_t & message )
 	{
 		using namespace so_5::enveloped_msg::impl;
 
-		bool result = false;
+		find_then_call_result_t result = find_then_call_result_t::not_found;
 
 //FIXME: is this part of code has to be noexcept?
 		// We don't expect exceptions here and can't restore after them.
@@ -40,7 +41,9 @@ process_envelope_when_handler_found(
 					so_5::enveloped_msg::access_context_t::handler_found,
 					invoker );
 
-			result = invoker.was_handled();
+			result = invoker.was_handled()
+					? find_then_call_result_t::found_and_called
+					: find_then_call_result_t::not_found;
 		} );
 
 		return result;
@@ -49,14 +52,14 @@ process_envelope_when_handler_found(
 } /* namespace anonymous */
 
 SO_5_FUNC
-bool
+find_then_call_result_t
 handlers_bunch_basics_t::find_and_use_handler(
 	const msg_type_and_handler_pair_t * left,
 	const msg_type_and_handler_pair_t * right,
 	const std::type_index & msg_type,
 	message_ref_t & message )
 	{
-		bool ret_value = false;
+		auto ret_value = find_then_call_result_t::not_found;
 
 		msg_type_and_handler_pair_t key{ msg_type };
 		auto it = std::lower_bound( left, right, key );
@@ -70,7 +73,7 @@ handlers_bunch_basics_t::find_and_use_handler(
 					case message_t::kind_t::user_type_message :
 						// This is an async message.
 						// Simple call is enough.
-						ret_value = true;
+						ret_value = find_then_call_result_t::found_and_called;
 						so_5::low_level_api::invoke_sync_event_handler(
 								it->m_handler,
 								message );
@@ -86,14 +89,14 @@ handlers_bunch_basics_t::find_and_use_handler(
 		return ret_value;
 	}
 
-so_5::cpp_coro::task_t< bool >
+so_5::cpp_coro::task_t< find_then_call_result_t >
 handlers_bunch_basics_t::find_and_use_handler_async(
 	const msg_type_and_handler_pair_t * left,
 	const msg_type_and_handler_pair_t * right,
 	const std::type_index & msg_type,
 	message_ref_t message )
 	{
-		bool ret_value = false;
+		find_then_call_result_t ret_value = find_then_call_result_t::not_found;
 
 		msg_type_and_handler_pair_t key{ msg_type };
 		auto it = std::lower_bound( left, right, key );
@@ -105,7 +108,7 @@ handlers_bunch_basics_t::find_and_use_handler_async(
 					case message_t::kind_t::signal : [[fallthrough]];
 					case message_t::kind_t::classical_message : [[fallthrough]];
 					case message_t::kind_t::user_type_message :
-						ret_value = true;
+						ret_value = find_then_call_result_t::found_and_called;
 
 						using so_5::low_level_api::any_handler_as_async_invoker_t;
 						co_await std::visit(
@@ -128,7 +131,9 @@ handlers_bunch_basics_t::find_and_use_handler_async(
 											::handler_found,
 									invoker );
 
-							ret_value = invoker.was_handled();
+							ret_value = invoker.was_handled()
+									? find_then_call_result_t::found_and_called
+									: find_then_call_result_t::not_found;
 						}
 					break;
 					}

@@ -1641,11 +1641,13 @@ class receive_actions_performer_t
 
 				if( extraction_status_t::msg_extracted == m_status )
 					{
+						using enum so_5::details::find_then_call_result_t;
+
 						++m_extracted_messages;
-						const bool handled = m_bunch.handle(
+						const auto handled = m_bunch.handle(
 								extracted_demand.m_msg_type,
 								extracted_demand.m_message_ref );
-						if( handled )
+						if( found_and_called == handled )
 							++m_handled_messages;
 					}
 				// Since v.5.5.17 we must check presence of chain-closed handler.

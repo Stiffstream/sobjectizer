@@ -449,13 +449,16 @@ class actual_receive_select_case_t : public receive_select_case_t
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
 			{
-				const bool handled = m_handlers.handle(
+				using so_5::details::find_then_call_result_t;
+
+				const auto handled = m_handlers.handle(
 						demand.m_msg_type,
 						demand.m_message_ref );
 
 				return mchain_receive_result_t{
 						1u,
-						handled ? 1u : 0u,
+						handled == find_then_call_result_t::found_and_called
+								? 1u : 0u,
 						extraction_status_t::msg_extracted };
 			}
 
@@ -464,13 +467,16 @@ class actual_receive_select_case_t : public receive_select_case_t
 		so_5::cpp_coro::task_t< mchain_receive_result_t >
 		try_handle_extracted_message_async( demand_t & demand ) override
 			{
-				const bool handled = co_await m_handlers.handle_async(
+				using so_5::details::find_then_call_result_t;
+
+				const auto handled = co_await m_handlers.handle_async(
 						demand.m_msg_type,
 						demand.m_message_ref );
 
 				co_return mchain_receive_result_t{
 						1u,
-						handled ? 1u : 0u,
+						handled == find_then_call_result_t::found_and_called
+								? 1u : 0u,
 						extraction_status_t::msg_extracted };
 			}
 	};

@@ -475,6 +475,20 @@ preprocess_agent_event_handler(
 
 namespace details {
 
+/*!
+ * \brief The result of an attempt to find and call handler for
+ * a message.
+ *
+ * \since v.5.8.7
+ */
+enum class find_then_call_result_t
+	{
+		//! No handlers found.
+		not_found,
+		//! Appropriate handler found and invoked.
+		found_and_called
+	};
+
 //
 // handlers_bunch_basics_t
 //
@@ -523,8 +537,8 @@ struct handlers_bunch_basics_t
 		 * \retval true if handler has been found
 		 * \retval false if handler has not been found.
 		 */
-		SO_5_FUNC
-		static bool
+		SO_5_FUNC static
+		find_then_call_result_t
 		find_and_use_handler(
 			const msg_type_and_handler_pair_t * left,
 			const msg_type_and_handler_pair_t * right,
@@ -533,7 +547,7 @@ struct handlers_bunch_basics_t
 
 		//FIXME: document this!
 		SO_5_FUNC static
-		so_5::cpp_coro::task_t< bool >
+		so_5::cpp_coro::task_t< find_then_call_result_t >
 		find_and_use_handler_async(
 			const msg_type_and_handler_pair_t * left,
 			const msg_type_and_handler_pair_t * right,
@@ -589,7 +603,8 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 		 * \retval true if handler was found.
 		 * \retval false if handler was not found.
 		 */
-		bool
+		[[nodiscard]]
+		find_then_call_result_t
 		handle(
 			//! Type of a message or signal.
 			const std::type_index & msg_type,
@@ -603,7 +618,7 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 			}
 
 		//FIXME: document this!
-		so_5::cpp_coro::task_t< bool >
+		so_5::cpp_coro::task_t< find_then_call_result_t >
 		handle_async(
 //FIXME: is it safe to pass msg_type by reference?
 			//! Type of a message or signal.
@@ -637,20 +652,20 @@ class handlers_bunch_t< 0 >
 				/* NOTHING TO DO! */
 			}
 
-		bool
+		find_then_call_result_t
 		handle(
 			const std::type_index & /*msg_type*/,
 			message_ref_t & /*message*/ ) const
 			{
-				return false;
+				return find_then_call_result_t::not_found;
 			}
 
-		so_5::cpp_coro::task_t< bool >
+		so_5::cpp_coro::task_t< find_then_call_result_t >
 		handle_async(
 			const std::type_index & /*msg_type*/,
 			message_ref_t /*message*/ ) const
 			{
-				co_return false;
+				co_return find_then_call_result_t::not_found;
 			}
 	};
 
