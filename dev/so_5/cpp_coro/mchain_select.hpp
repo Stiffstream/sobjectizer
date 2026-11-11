@@ -172,6 +172,52 @@ class async_select_notificator_t final
 			}
 	};
 
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+enum class proxy_mode_t { value, reference };
+
+//FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
+template< typename T, proxy_mode_t Mode >
+class arg_proxy_t;
+
+template< typename T >
+class arg_proxy_t< T, proxy_mode_t::value >
+	{
+		T m_value;
+
+	public:
+		arg_proxy_t( T value )
+			: m_value{ std::move(value) }
+			{}
+
+		const T &
+		get() const noexcept
+			{
+				return m_value;
+			}
+	};
+
+template< typename T >
+class arg_proxy_t< T, proxy_mode_t::reference >
+	{
+		const T & m_value;
+
+	public:
+		arg_proxy_t( const T & value ) : m_value{ value }
+			{}
+
+		const T &
+		get() const noexcept
+			{
+				return m_value;
+			}
+	};
+
 /*!
  * An alias for mchain_select_params_t with defined number of expected
  * messages.
@@ -192,20 +238,21 @@ using defined_select_params_t =
  * @since v.5.8.7
  */
 template<
-	class Total_Time_Counter,
-	class Empty_Time_Counter,
-	std::size_t Cases_Count >
+	typename Total_Time_Counter,
+	typename Empty_Time_Counter,
+	proxy_mode_t Proxy_Mode,
+	typename Cases_Holder >
 resumable_select_t
 do_select(
 	/// Parameters for the select call.
-	defined_select_params_t params,
+	arg_proxy_t< defined_select_params_t, Proxy_Mode > params,
 	/// Container with select_cases to be used.
-	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
+	arg_proxy_t< Cases_Holder, Proxy_Mode > cases_holder )
 	{
 		using namespace so_5::details;
 		using namespace so_5::mchain_props::details;
 
-		using holder_t = select_cases_holder_t< Cases_Count >;
+		using holder_t = Cases_Holder;
 
 		using performer_t = select_actions_performer_t<
 				holder_t,
@@ -214,18 +261,18 @@ do_select(
 		async_select_notificator_t notificator{
 				current_scheduler_setter_t::safe_get(),
 				co_await so_5::cpp_coro::details::current_coro_handle(),
-				cases_holder.begin(),
-				cases_holder.end()
+				cases_holder.get().begin(),
+				cases_holder.get().end()
 			};
 
 		performer_t performer{
-				params,
-				cases_holder,
+				params.get(),
+				cases_holder.get(),
 				notificator
 			};
 
-		Total_Time_Counter total_time_counter{ params.total_time() };
-		Empty_Time_Counter wait_incoming_time{ params.empty_timeout() };
+		Total_Time_Counter total_time_counter{ params.get().total_time() };
+		Empty_Time_Counter wait_incoming_time{ params.get().empty_timeout() };
 		bool wait_incoming_time_not_elapsed_yet = true;
 
 		do
@@ -237,7 +284,7 @@ do_select(
 						// Becase some message extracted we must restart
 						// wait_incoming_time counting.
 						wait_incoming_time =
-								Empty_Time_Counter{ params.empty_timeout() };
+								Empty_Time_Counter{ params.get().empty_timeout() };
 
 						wait_incoming_time_not_elapsed_yet = true;
 					}
@@ -299,13 +346,14 @@ do_select(
 ///
 /// @since v.5.8.7
 template<
-	std::size_t Cases_Count >
+	proxy_mode_t Proxy_Mode,
+	typename Cases_Holder >
 resumable_select_t
 perform_select(
 	/// Parameters for the select call.
-	defined_select_params_t params,
+	arg_proxy_t< defined_select_params_t, Proxy_Mode > params,
 	/// Container with select_cases to be used.
-	so_5::mchain_props::details::select_cases_holder_t< Cases_Count > cases_holder )
+	arg_proxy_t< Cases_Holder, Proxy_Mode > cases_holder )
 	{
 		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
 		using fake_time_counter_t = so_5::details::fake_remaining_time_counter_t;
@@ -317,9 +365,9 @@ perform_select(
 		constexpr int has_empty_timeout = 2;
 
 		const int timeouts_presence =
-				( is_infinite_wait_timevalue( params.total_time() )
+				( is_infinite_wait_timevalue( params.get().total_time() )
 					? no_total_time : has_total_time ) +
-				( is_infinite_wait_timevalue( params.empty_timeout() )
+				( is_infinite_wait_timevalue( params.get().empty_timeout() )
 					? no_empty_timeout : has_empty_timeout )
 				;
 		switch( timeouts_presence )
@@ -384,9 +432,45 @@ select(
 		fill_select_cases_holder(
 				cases_holder, 0, std::forward< Cases >(cases)... );
 
+		using select_params_proxy_t = async_select_impl::arg_proxy_t<
+				async_select_impl::defined_select_params_t,
+				async_select_impl::proxy_mode_t::value >;
+		using cases_holder_proxy_t = async_select_impl::arg_proxy_t<
+				select_cases_holder_t< sizeof...(cases) >,
+				async_select_impl::proxy_mode_t::value >;
+
 		return async_select_impl::perform_select(
-				std::move(params),
-				std::move(cases_holder) );
+				select_params_proxy_t{ std::move(params) },
+				cases_holder_proxy_t{ std::move(cases_holder) } );
+	}
+
+//FIXME: document this!
+/*!
+ * @since v.5.8.7
+ */
+template< std::size_t Cases_Count >
+resumable_select_t
+select(
+	const prepared_select_t< Cases_Count > & prepared )
+	{
+		using namespace so_5::mchain_props::details;
+
+		typename prepared_select_data_t<Cases_Count>::activation_locker_t locker{
+				outliving_mutable(prepared.data())
+		};
+
+		using cases_holder_t = std::remove_cvref_t< decltype(locker.cases()) >;
+
+		using select_params_proxy_t = async_select_impl::arg_proxy_t<
+				async_select_impl::defined_select_params_t,
+				async_select_impl::proxy_mode_t::reference >;
+		using cases_holder_proxy_t = async_select_impl::arg_proxy_t<
+				cases_holder_t,
+				async_select_impl::proxy_mode_t::reference >;
+
+		co_return co_await async_select_impl::perform_select(
+				select_params_proxy_t{ locker.params() },
+				cases_holder_proxy_t{ locker.cases() } );
 	}
 
 } /* namespace so_5::cpp_coro */

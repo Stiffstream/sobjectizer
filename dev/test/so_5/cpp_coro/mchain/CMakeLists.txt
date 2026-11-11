@@ -9,6 +9,8 @@ add_subdirectory(select_simple_nested)
 add_subdirectory(select_simple_nested_2)
 add_subdirectory(select_simple_nested_3)
 
+add_subdirectory(select_prepared)
+
 add_subdirectory(enveloped_msg_1)
 
 add_subdirectory(dangling_schedule)
