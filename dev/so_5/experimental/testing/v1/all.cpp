@@ -1473,7 +1473,7 @@ class special_event_queue_t final : public event_queue_t
 		void
 		push( execution_demand_t demand ) override
 			{
-				if( agent_t::get_demand_handler_for_cpp_coro_case_ptr() ==
+				if( agent_t::get_demand_handler_on_wakeup_msg_ptr() ==
 						demand.m_demand_handler )
 					{
 						// This wakeup demand should go directly to the queue.

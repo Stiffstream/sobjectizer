@@ -27,7 +27,7 @@ namespace so_5::impl
 {
 
 //
-// msg_wakeup_agent_for_cpp_coro_case
+// msg_wakeup_agent
 //
 /*!
  * \brief Special signal for case when agent support C++20 coroutines.
@@ -38,7 +38,7 @@ namespace so_5::impl
  *
  * \since v.5.8.7
  */
-struct msg_wakeup_agent_for_cpp_coro_case final
+struct msg_wakeup_agent final
 	: public so_5::signal_t
 	{};
 

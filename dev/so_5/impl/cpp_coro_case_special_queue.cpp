@@ -78,9 +78,9 @@ cpp_coro_case_special_queue_t::push_wakeup_demand_to_actual_queue(
 						agent_to_wakeup,
 						message_limit::control_block_t::none(),
 						null_mbox_id(),
-						typeid(msg_wakeup_agent_for_cpp_coro_case),
+						typeid(msg_wakeup_agent),
 						message_ref_t{} /* no actual message */,
-						agent_t::get_demand_handler_for_cpp_coro_case_ptr()
+						agent_t::get_demand_handler_on_wakeup_msg_ptr()
 				} );
 	}
 
@@ -148,7 +148,6 @@ void
 cpp_coro_case_special_queue_t::push(
 	execution_demand_t src_demand )
 	{
-std::cout << "cpp_coro_case_special_queue_t::push" << std::endl;
 		agent_t * agent_to_wakeup = src_demand.m_receiver;
 
 		demand_unique_ptr_t wrapped_demand = std::make_unique< demand_t >(
@@ -161,7 +160,6 @@ std::cout << "cpp_coro_case_special_queue_t::push" << std::endl;
 
 			store_demand( std::move(wrapped_demand) );
 
-std::cout << "cpp_coro_case_special_queue_t::push stored in local queue" << std::endl;
 			if( m_normal_work_enabled )
 				{
 					has_to_push_wakeup_demand = m_wakeup_demand_enabled;
@@ -171,7 +169,6 @@ std::cout << "cpp_coro_case_special_queue_t::push stored in local queue" << std:
 
 		if( has_to_push_wakeup_demand )
 			{
-std::cout << "cpp_coro_case_special_queue_t::push wakeup demand pushed" << std::endl;
 				push_wakeup_demand_to_actual_queue( agent_to_wakeup );
 			}
 	}
@@ -180,7 +177,6 @@ void
 cpp_coro_case_special_queue_t::push_evt_start(
 	execution_demand_t demand )
 	{
-std::cout << "cpp_coro_case_special_queue_t::push_evt_start" << std::endl;
 		// Simple delegate this call to the actual_queue.
 		//
 		// We assume that this is the first call to the queue and
@@ -192,7 +188,6 @@ void
 cpp_coro_case_special_queue_t::push_evt_finish(
 	execution_demand_t demand ) noexcept
 	{
-std::cout << "cpp_coro_case_special_queue_t::push_evt_finish" << std::endl;
 		bool do_actual_push = false;
 
 		{

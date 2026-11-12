@@ -3361,7 +3361,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.8.7
 		 */
 		static void
-		demand_handler_for_cpp_coro_support(
+		demand_handler_on_wakeup_msg(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
 
@@ -3372,7 +3372,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.8.7
 		 */
 		static demand_handler_pfn_t
-		get_demand_handler_for_cpp_coro_case_ptr() noexcept;
+		get_demand_handler_on_wakeup_msg_ptr() noexcept;
 
 		/*!
 		 * \brief Handles cases when C++20 coroutines are supported

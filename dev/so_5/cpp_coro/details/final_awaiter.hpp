@@ -46,8 +46,6 @@ struct final_awaiter_t
 		{
 			static_assert( promise_type_with_continuation<Promise_Type> );
 
-//std::cout << "final_awaiter::await_suspend | handle=" << handle.address()
-//<< ", cont=" << handle.promise().query_continuation().address() << std::endl;
 			return handle.promise().query_continuation();
 		}
 

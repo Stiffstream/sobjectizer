@@ -1775,12 +1775,11 @@ agent_t::get_demand_handler_on_enveloped_msg_ptr() noexcept
 }
 
 void
-agent_t::demand_handler_for_cpp_coro_support(
+agent_t::demand_handler_on_wakeup_msg(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
 	using so_5::impl::cpp_coro_case_special_queue_t;
-std::cout << "agent_t::demand_handler_for_cpp_coro_support" << std::endl;
 	agent_t * const self = d.m_receiver;
 
 	// The scheduler of this agent has to become the current
@@ -1799,13 +1798,11 @@ std::cout << "agent_t::demand_handler_for_cpp_coro_support" << std::endl;
 
 		if( demand_ptr )
 		{
-std::cout << "agent_t::demand_handler_for_cpp_coro_support => call_handler" << std::endl;
 			demand_ptr->m_execution_demand.call_handler(
 					working_thread_id );
 		}
 		else
 		{
-std::cout << "agent_t::demand_handler_for_cpp_coro_support => no demand" << std::endl;
 			// There is no more waiting demands. Have to break the loop.
 			break;
 		}
@@ -1815,7 +1812,6 @@ std::cout << "agent_t::demand_handler_for_cpp_coro_support => no demand" << std:
 		// of the current coroutine.
 		if( self->m_cpp_coro_data->m_current_top_level_task.has_value() )
 			{
-std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task" << std::endl;
 				impl::agent_impl::working_thread_id_sentinel_t sentinel(
 						self->m_working_thread_id,
 						working_thread_id );
@@ -1824,14 +1820,12 @@ std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task
 				if( !self->m_cpp_coro_data->m_current_top_level_task
 						->m_coro.done() )
 					{
-std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task 1" << std::endl;
 						// We must wait the next msg_resume_coro and this
 						// loop has to be finished.
 						break;
 					}
 				else
 					{
-std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task 2" << std::endl;
 						// The coroutine is completed and we can go to
 						// service ordinary demands.
 						consume_top_level_coroutine_result(
@@ -1844,9 +1838,9 @@ std::cout << "agent_t::demand_handler_for_cpp_coro_support => has top_level_task
 }
 
 demand_handler_pfn_t
-agent_t::get_demand_handler_for_cpp_coro_case_ptr() noexcept
+agent_t::get_demand_handler_on_wakeup_msg_ptr() noexcept
 {
-	return &agent_t::demand_handler_for_cpp_coro_support;
+	return &agent_t::demand_handler_on_wakeup_msg;
 }
 
 void
@@ -1900,10 +1894,10 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 	{
 		// Reuse the existing execution_demand_t instance for
 		// the subsequent demand_handler call.
-		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent_for_cpp_coro_case);
-		d.m_demand_handler = get_demand_handler_for_cpp_coro_case_ptr();
+		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent);
+		d.m_demand_handler = get_demand_handler_on_wakeup_msg_ptr();
 
-		demand_handler_for_cpp_coro_support( working_thread_id, d );
+		demand_handler_on_wakeup_msg( working_thread_id, d );
 	}
 }
 

@@ -254,12 +254,6 @@ this_agent_scheduler_t::try_suspend(
 							notifications.m_timeout_elapsed ) );
 		}
 
-//FIXME: remove after debugging.
-//std::cout << "coro will be suspended "
-//	<< what_to_handle.scheduler_data().m_to_be_resumed.address()
-//	<< " (" << std::addressof(what_to_handle) << ")"
-//	<< std::endl;
-
 		return so_5::cpp_coro::try_suspend_result_t::should_be_suspended;
 	}
 
@@ -283,12 +277,6 @@ this_agent_scheduler_t::do_resumption( const msg_resume_coro & cmd )
 			{
 				notifications->cancel_all();
 			}
-
-//FIXME: remove after debugging.
-//std::cout << "coro to be resumed via msg_resume_this: "
-//		<< scheduler_data.m_to_be_resumed.address()
-//		<< " (" << std::addressof(cmd) << ")"
-//		<< std::endl;
 
 			scheduler_data.m_to_be_resumed.resume();
 		}
