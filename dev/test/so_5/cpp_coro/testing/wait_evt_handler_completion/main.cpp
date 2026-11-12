@@ -83,11 +83,11 @@ public :
 			.in( st_initial )
 			.event(
 			[this]( mhood_t<start> ) -> so_5::cpp_coro::task_t< void > {
-				this >>= st_before;
+				so_change_state( st_before );
 
 				co_await dummy_yield( so_environment(), expected_delay );
 
-				this >>= st_after;
+				so_change_state( st_after );
 			} );
 	}
 };
