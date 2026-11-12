@@ -314,10 +314,16 @@ class receive_select_case_t : public select_case_t
 		try_handle_extracted_message( demand_t & demand ) = 0;
 
 		//FIXME: document this!
+		/*!
+		 * \attention
+		 * It's assumed that passing @a demand by reference is safe because
+		 * try_handle_extracted_message_async is called only in
+		 * try_handle_async() method and the demand live in the frame
+		 * of try_handle_async() coroutine.
+		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< mchain_receive_result_t >
 		try_handle_extracted_message_async(
-			//FIXME: is it safe to pass demand by reference?
 			demand_t & demand ) = 0;
 	};
 
@@ -1334,8 +1340,8 @@ class select_actions_performer_t
 					c.on_select_finish();
 			}
 
-//FIXME: [[nodiscard]]?
-		handle_next_result_t
+		//FIXME: document this!
+		void
 		handle_next( const duration_t & wait_time )
 			{
 				// This status has to be dropped to neutral value, it will be
@@ -1347,13 +1353,10 @@ class select_actions_performer_t
 					{
 						m_last_extraction_status = extraction_status_t::no_messages;
 						update_can_continue_flag();
-
-						return handle_next_result_t::no_ready_cases;
 					}
 				else
 					{
 						handle_ready_chain( ready_chain );
-						return handle_next_result_t::some_cases_were_ready;
 					}
 			}
 
