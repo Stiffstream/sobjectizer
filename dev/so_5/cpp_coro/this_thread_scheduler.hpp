@@ -31,7 +31,6 @@ namespace so_5::cpp_coro
 //
 // this_thread_scheduler_t
 //
-//FIXME: should this class be `final`?
 //FIXME: should here be some way to finish the scheduler before the
 //completion of the top-level coroutine?
 //FIXME: some examples have to be shown in the description of this class.
@@ -41,7 +40,7 @@ namespace so_5::cpp_coro
  *
  * @since v.5.8.7
  */
-class this_thread_scheduler_t
+class this_thread_scheduler_t final
 	: public scheduler_t
 	{
 		//! Helper class for managing list of resumable items.
@@ -190,8 +189,10 @@ class this_thread_scheduler_t
 				// top-level task.
 				wait_and_handle_coroutines( wrapped_top_level.m_coro );
 
-				//FIXME: should these checks be kept here or is it better to remove
-				//them?
+				// NOTE: this action is not needed. In normal circumstances
+				// it does nothing. But if there is an error and some tasks
+				// left in queues after completion of the top-level coro,
+				// then it's a hard error and it's better to inform about it.
 				ensure_lists_are_empty();
 
 				return wrapped_top_level.await_resume();
@@ -250,7 +251,6 @@ class this_thread_scheduler_t
 				/// Object for unlocking the mutex temporary.
 				std::unique_lock< std::mutex > & locker );
 
-		//FIXME: is this method really needed?
 		/*!
 		 * @brief Helper method that checks that all lists are empty
 		 * at the completion of sync_wait.

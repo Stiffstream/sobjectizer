@@ -227,6 +227,11 @@ struct promise_base_t< Actual_Promise_Type, void >
 //
 //FIXME: document this!
 /*!
+ * \note
+ * This type doesn't support move operator (but it has the move constructor).
+ * It's because if a task_t already has the task_data then this data can't
+ * be just dropped in the `operator=`.
+ *
  * \since v.5.8.7
  */
 template< typename Source_Awaitable >
@@ -369,7 +374,7 @@ struct resumption_by_specific_scheduler_task_t
 		operator=(
 			const resumption_by_specific_scheduler_task_t & ) = delete;
 
-		// Move operations.
+		// Move construction.
 		resumption_by_specific_scheduler_task_t(
 			resumption_by_specific_scheduler_task_t && other ) noexcept
 			: m_coro{ std::exchange( other.m_coro, coro_handle_t{} ) }
@@ -377,28 +382,9 @@ struct resumption_by_specific_scheduler_task_t
 				std::exchange( other.m_task_data, task_data_smart_ptr_t{} ) }
 			{}
 
-//FIXME: if code compiles without this operator then it's necessary to
-//describe why it's deleted.
-#if 0
+		// Move operation is disabled.
 		resumption_by_specific_scheduler_task_t &
-		operator=(
-			resumption_by_specific_scheduler_task_t && other ) noexcept
-			{
-				if( this != std::addressof(other) )
-					{
-//FIXME: is it a safe operation?
-						safe_destroy_task( std::move(m_task_data) );
-
-						m_coro = std::exchange( other.m_coro, coro_handle_t{} );
-
-						m_task_data = std::exchange(
-								other.m_task_data,
-								task_data_smart_ptr_t{} );
-					}
-
-				return *this;
-			}
-#endif
+		operator=( resumption_by_specific_scheduler_task_t && ) = delete;
 
 		bool
 		await_ready() const
@@ -426,6 +412,9 @@ struct resumption_by_specific_scheduler_task_t
 	};
 
 //FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
 template< typename Source_Awaitable >
 [[nodiscard]]
 resumption_by_specific_scheduler_task_t< Source_Awaitable >
@@ -443,11 +432,13 @@ wrap_foreign_awaitable(
 		auto this_coro_handle =
 				co_await so_5::cpp_coro::details::current_coro_handle();
 
-//FIXME: document those actions!
+		// We have to get an lvalue instance of coroutine_handle<promise_type>.
+		// It allows us to get non-const reference to the promise object.
 		std::coroutine_handle< promise_type > this_coro =
 				std::coroutine_handle< promise_type >::from_address(
 						this_coro_handle.address() );
 
+		// The underlying task has to be scheduled on the proper scheduler.
 		this_coro.promise().m_task_data->m_resumable_item.try_schedule();
 	}
 
