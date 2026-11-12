@@ -248,10 +248,16 @@ class select_case_t
 		try_handle( select_notificator_t & notificator ) = 0;
 
 		//FIXME: document this!
+		/*!
+		 * \attention
+		 * There is no other way than pass @a notificator as reference or
+		 * pointer because select_notificator_t is an interface (so an
+		 * instance of select_notificator_t can't be passed by value).
+		 * It's assumed that this reference remains valid.
+		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< handling_result_t >
 		try_handle_async(
-			//FIXME: is it safe to pass a reference here?
 			select_notificator_t & notificator ) = 0;
 
 		//! Get the underlying mchain.

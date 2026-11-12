@@ -1384,15 +1384,15 @@ class select_actions_performer_t
 					}
 			}
 
-//FIXME: [[nodiscard]]?
+		[[nodiscard]]
 		extraction_status_t
 		last_extraction_status() const noexcept { return m_last_extraction_status; }
 
-//FIXME: [[nodiscard]]?
+		[[nodiscard]]
 		bool
 		can_continue() const noexcept { return m_can_continue; }
 
-//FIXME: [[nodiscard]]?
+		[[nodiscard]]
 		mchain_select_result_t
 		make_result() const noexcept
 			{
