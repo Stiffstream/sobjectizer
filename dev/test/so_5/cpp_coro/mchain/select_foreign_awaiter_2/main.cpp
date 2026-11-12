@@ -13,6 +13,9 @@
 
 #include <test/so_5/mchain/mchain_params.hpp>
 
+#include <iostream>
+#include <syncstream>
+
 using namespace std;
 
 namespace test

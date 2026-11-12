@@ -3353,7 +3353,6 @@ class SO_5_TYPE agent_t
 		static demand_handler_pfn_t
 		get_demand_handler_on_enveloped_msg_ptr() noexcept;
 
-//FIXME: demand_handler_for_wakeup_demand is seems to be more appropriate.
 		/*!
 		 * \brief Handles cases when C++20 coroutines are supported
 		 * by the agent.

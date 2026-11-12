@@ -800,13 +800,15 @@ make_cpp_coro_agent_data_if_needed(
 		return result;
 	}
 
-//FIXME: may be this function should be noexcept? It's because
-//all exceptions have to be handled inside it.
 /*!
  * \brief Helper function for calling event-handler-like code and
  * intercepting possible exceptions.
  *
  * This is reusable function created to avoid code duplication.
+ *
+ * \attention
+ * This function is noexcept because there is no way to recover if
+ * some exception won't be caught and handled inside.
  *
  * \since v.5.8.7
  */
@@ -816,6 +818,7 @@ wrap_handler_invocation_with_exception_handling(
 	current_thread_id_t working_thread_id,
 	agent_t & exception_producer,
 	Lambda && what_to_call )
+noexcept
 	{
 		try
 		{
@@ -833,10 +836,6 @@ wrap_handler_invocation_with_exception_handling(
 		}
 	}
 
-//FIXME: it seems that this method has to be noexcept, because it's
-//impossible to return to the normal state if it throws.
-//But noexcept-ness of wrap_handler_invocation_with_exception_handling
-//has to be checked first.
 /*!
  * \brief Helper method for handling completion of top-level coroutine.
  *
@@ -849,6 +848,10 @@ wrap_handler_invocation_with_exception_handling(
  * \attention
  * The coro_related_data.m_current_top_level_task shouldn't be empty.
  *
+ * \attention
+ * This function is noexcept because there is no way to recover if
+ * some exception won't be caught and handled inside.
+ *
  * \since v.5.8.7
  */
 void
@@ -856,6 +859,7 @@ consume_top_level_coroutine_result(
 	so_5::impl::cpp_coro_case_agent_data_t & coro_related_data,
 	current_thread_id_t working_thread_id,
 	agent_t & data_owner )
+noexcept
 	{
 		wrap_handler_invocation_with_exception_handling(
 				working_thread_id,
@@ -1395,8 +1399,6 @@ agent_t::shutdown_agent() noexcept
 	}
 }
 
-//FIXME: if m_cpp_coro_data is not null then thread_safety flag has to be
-//changed to not_thread_safe.
 void
 agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
@@ -1859,11 +1861,14 @@ agent_t::demand_handler_for_cpp_coro_resumption(
 				self->m_cpp_coro_data->m_this_agent_scheduler
 			};
 
-		//FIXME: an exception from this operation leaves the program in the
-		//wrong state.
 		so_5::impl::msg_resume_coro & resume_msg =
-				dynamic_cast<so_5::impl::msg_resume_coro &>(
-						*(d.m_message_ref.get()) );
+				// If dynamic_cast fails then the program will stay in
+				// an invalid state. It's better to kill it.
+				so_5::details::invoke_noexcept_code(
+						[&d]() -> so_5::impl::msg_resume_coro & {
+							return dynamic_cast<so_5::impl::msg_resume_coro &>(
+									*(d.m_message_ref.get()) );
+						} );
 
 		impl::agent_impl::working_thread_id_sentinel_t sentinel(
 				self->m_working_thread_id,

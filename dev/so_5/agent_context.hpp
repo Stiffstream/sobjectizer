@@ -97,8 +97,6 @@ class agent_context_t
 		agent_tuning_options_t m_options;
 	};
 
-//FIXME: should the following operator+ be marked as [[nodiscard]]?
-
 /*!
  * \brief A plus operator for creating agent_context object from
  * a reference to Environment and single agent tuning option.
@@ -106,6 +104,7 @@ class agent_context_t
  * \since v.5.5.4
  */
 template< typename Option >
+[[nodiscard]]
 agent_context_t
 operator+( environment_t & env, Option arg )
 	{
@@ -117,7 +116,8 @@ operator+( environment_t & env, Option arg )
  * \name Operators for tuning agent_context.
  * \{
  */
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	subscription_storage_factory_t factory )
@@ -127,6 +127,7 @@ operator+(
 	}
 
 template< class M >
+[[nodiscard]]
 agent_context_t
 operator+(
 	agent_context_t ctx,
@@ -137,6 +138,7 @@ operator+(
 	}
 
 template< class M >
+[[nodiscard]]
 agent_context_t
 operator+(
 	agent_context_t ctx,
@@ -147,6 +149,7 @@ operator+(
 	}
 
 template< class M, class L >
+[[nodiscard]]
 agent_context_t
 operator+(
 	agent_context_t ctx,
@@ -157,6 +160,7 @@ operator+(
 	}
 
 template< class M, class L >
+[[nodiscard]]
 agent_context_t
 operator+(
 	agent_context_t ctx,
@@ -167,6 +171,7 @@ operator+(
 	}
 
 template< class M >
+[[nodiscard]]
 agent_context_t
 operator+(
 	agent_context_t ctx,
@@ -176,7 +181,8 @@ operator+(
 		return ctx;
 	}
 
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	so_5::priority_t agent_priority )
@@ -185,7 +191,8 @@ operator+(
 		return ctx;
 	}
 
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	custom_direct_mbox_factory_t factory )
@@ -194,7 +201,8 @@ operator+(
 		return ctx;
 	}
 
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	name_for_agent_t agent_name )
@@ -203,7 +211,8 @@ operator+(
 		return ctx;
 	}
 
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	demands_handling_on_dereg_t handling_mode )
@@ -212,7 +221,8 @@ operator+(
 		return ctx;
 	}
 
-inline agent_context_t
+[[nodiscard]] inline
+agent_context_t
 operator+(
 	agent_context_t ctx,
 	cpp_coro_support_t support_info )

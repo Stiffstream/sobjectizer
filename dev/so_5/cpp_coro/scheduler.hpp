@@ -24,9 +24,6 @@
 #include <optional>
 #include <utility>
 
-//FIXME: remove after debugging!
-#include <iostream>
-
 namespace so_5::cpp_coro
 {
 
@@ -417,7 +414,6 @@ class SO_5_TYPE scheduler_t
 		scheduler_t();
 		virtual ~scheduler_t();
 
-//FIXME: document why this method is not marked as noexcept.
 //FIXME: is this method still needed? It seems that it is not used now
 //in coroutine-related features. But it is still here until completion
 //of v.5.8.7 because there is probability that this method may be

@@ -26,10 +26,6 @@
 #include <utility>
 #include <variant>
 
-//FIXME: remove after testing!
-#include <syncstream>
-#include <thread>
-
 namespace so_5::cpp_coro
 {
 
@@ -230,6 +226,9 @@ struct promise_base_t< Actual_Promise_Type, void >
 // resumption_by_specific_scheduler_task_t
 //
 //FIXME: document this!
+/*!
+ * \since v.5.8.7
+ */
 template< typename Source_Awaitable >
 struct resumption_by_specific_scheduler_task_t
 	{
@@ -378,6 +377,9 @@ struct resumption_by_specific_scheduler_task_t
 				std::exchange( other.m_task_data, task_data_smart_ptr_t{} ) }
 			{}
 
+//FIXME: if code compiles without this operator then it's necessary to
+//describe why it's deleted.
+#if 0
 		resumption_by_specific_scheduler_task_t &
 		operator=(
 			resumption_by_specific_scheduler_task_t && other ) noexcept
@@ -396,6 +398,7 @@ struct resumption_by_specific_scheduler_task_t
 
 				return *this;
 			}
+#endif
 
 		bool
 		await_ready() const
