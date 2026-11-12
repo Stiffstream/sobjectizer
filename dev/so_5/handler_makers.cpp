@@ -29,24 +29,19 @@ process_envelope_when_handler_found(
 	{
 		using namespace so_5::enveloped_msg::impl;
 
-		find_then_call_result_t result = find_then_call_result_t::not_found;
+		// NOTE: an exception can be raised here. It shouldn't be a problem.
+		auto & envelope = message_to_envelope( message );
 
-//FIXME: is this part of code has to be noexcept?
-		// We don't expect exceptions here and can't restore after them.
-		so_5::details::invoke_noexcept_code( [&] {
-			auto & envelope = message_to_envelope( message );
+		// NOTE: the access_hook is noexcept (at least for v.5.8.7) and
+		// we don't care about exceptions here.
+		mchain_demand_handler_invoker_t invoker{ handler };
+		envelope.access_hook(
+				so_5::enveloped_msg::access_context_t::handler_found,
+				invoker );
 
-			mchain_demand_handler_invoker_t invoker{ handler };
-			envelope.access_hook(
-					so_5::enveloped_msg::access_context_t::handler_found,
-					invoker );
-
-			result = invoker.was_handled()
-					? find_then_call_result_t::found_and_called
-					: find_then_call_result_t::not_found;
-		} );
-
-		return result;
+		return invoker.was_handled()
+				? find_then_call_result_t::found_and_called
+				: find_then_call_result_t::not_found;
 	}
 
 } /* namespace anonymous */
@@ -93,7 +88,7 @@ so_5::cpp_coro::task_t< find_then_call_result_t >
 handlers_bunch_basics_t::find_and_use_handler_async(
 	const msg_type_and_handler_pair_t * left,
 	const msg_type_and_handler_pair_t * right,
-	const std::type_index & msg_type,
+	std::type_index msg_type,
 	message_ref_t message )
 	{
 		find_then_call_result_t ret_value = find_then_call_result_t::not_found;

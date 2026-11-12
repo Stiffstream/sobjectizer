@@ -217,9 +217,6 @@ class SO_5_TYPE envelope_t : public message_t
 		//FIXME: document this!
 		//FIXME: describe why this method is not noexcept.
 		//FIXME: describe that the default implementation throws.
-		//
-		//FIXME: is it safe to pass handler_invoker_t by reference?
-		//
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< void >
 		async_access_hook(

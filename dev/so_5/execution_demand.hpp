@@ -38,10 +38,6 @@ namespace so_5
  */
 using sync_event_handler_method_t = std::function< void(message_ref_t &) >;
 
-//FIXME: maybe it has sense to do that:
-//[[deprecated]]
-//using event_handler_method_t = sync_event_handler_method_t;
-
 //
 // async_event_handler_method_t
 //
@@ -444,7 +440,6 @@ struct msg_type_and_handler_pair_t
 				return *this;
 			}
 
-//FIXME: should operator<=> be defined here instead of operator<?
 		//! Comparison (strictly less than).
 		bool
 		operator<( const msg_type_and_handler_pair_t & o ) const

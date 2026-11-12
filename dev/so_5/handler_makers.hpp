@@ -533,9 +533,6 @@ struct handlers_bunch_basics_t
 		 *
 		 * \note The message handler vector [left, right) must be previously
 		 * prepared by prepare_handlers().
-		 *
-		 * \retval true if handler has been found
-		 * \retval false if handler has not been found.
 		 */
 		SO_5_FUNC static
 		find_then_call_result_t
@@ -551,7 +548,7 @@ struct handlers_bunch_basics_t
 		find_and_use_handler_async(
 			const msg_type_and_handler_pair_t * left,
 			const msg_type_and_handler_pair_t * right,
-			const std::type_index & msg_type,
+			std::type_index msg_type,
 			message_ref_t message );
 	};
 
@@ -599,10 +596,6 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 			}
 
 		//! Find handler for a message and execute it.
-		/*!
-		 * \retval true if handler was found.
-		 * \retval false if handler was not found.
-		 */
 		[[nodiscard]]
 		find_then_call_result_t
 		handle(
@@ -620,9 +613,8 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 		//FIXME: document this!
 		so_5::cpp_coro::task_t< find_then_call_result_t >
 		handle_async(
-//FIXME: is it safe to pass msg_type by reference?
 			//! Type of a message or signal.
-			const std::type_index & msg_type,
+			std::type_index msg_type,
 			//! Message instance to be processed.
 			message_ref_t message ) const
 			{
