@@ -11,24 +11,24 @@
 namespace test
 {
 
-so_5::cpp_coro::task_t< void >
-completes_synchronously()
+constexpr int iterations = 987'654;
+
+so_5::cpp_coro::task_t< int >
+completes_synchronously(int v)
 	{
-		std::cout << "___ completes_synchronously="
-			<< (co_await so_5::cpp_coro::details::current_coro_handle()).address()
-			<< std::endl;
-		co_return;
+		co_return (v + 1);
 	}
 
-so_5::cpp_coro::task_t< void >
+so_5::cpp_coro::task_t< int >
 loop_synchronously()
 	{
-		std::cout << "___ loop_synchronously="
-			<< (co_await so_5::cpp_coro::details::current_coro_handle()).address()
-			<< std::endl;
-		constexpr int iterations = 5;
+		int r = 0;
 		for( int i = 0; i < iterations; ++i )
-			co_await completes_synchronously();
+			{
+				r = co_await completes_synchronously(r);
+			}
+
+		co_return r;
 	}
 
 void
@@ -39,7 +39,10 @@ do_check()
 			};
 		so_5::cpp_coro::current_scheduler_setter_t scheduler_setter{ scheduler };
 
-		scheduler.sync_wait( loop_synchronously() );
+		const auto r = scheduler.sync_wait( loop_synchronously() );
+
+		std::cout << r << std::endl;
+		ensure_or_die( r == iterations, "unexpected result value" );
 	}
 
 } /* namespace test */

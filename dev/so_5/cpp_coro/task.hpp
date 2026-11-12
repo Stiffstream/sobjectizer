@@ -506,7 +506,7 @@ struct task_t
 			{
 				if( m_coro )
 				{
-std::cout << "*** destroying coro " << m_coro.address() << std::endl;
+//std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 					m_coro.destroy();
 				}
 			}
@@ -584,7 +584,7 @@ std::cout << "*** destroying coro " << m_coro.address() << std::endl;
 		std::coroutine_handle<>
 		await_suspend( std::coroutine_handle<> continuation ) noexcept
 			{
-std::cout << "await_suspend | m_coro=" << m_coro.address() << ", cont=" << continuation.address() << std::endl;
+//std::cout << "await_suspend | m_coro=" << m_coro.address() << ", cont=" << continuation.address() << std::endl;
 				m_coro.promise().m_continuation = continuation;
 				return m_coro;
 			}
