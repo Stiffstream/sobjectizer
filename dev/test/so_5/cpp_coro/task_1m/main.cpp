@@ -1,0 +1,68 @@
+// Simple test for many tasks and symmetric transfer.
+
+#include <so_5/cpp_coro/this_thread_scheduler.hpp>
+#include <so_5/cpp_coro/task.hpp>
+
+#include <test/3rd_party/various_helpers/time_limited_execution.hpp>
+#include <test/3rd_party/various_helpers/ensure.hpp>
+
+#include <test/3rd_party/utest_helper/helper.hpp>
+
+namespace test
+{
+
+so_5::cpp_coro::task_t< void >
+completes_synchronously()
+	{
+		std::cout << "___ completes_synchronously="
+			<< (co_await so_5::cpp_coro::details::current_coro_handle()).address()
+			<< std::endl;
+		co_return;
+	}
+
+so_5::cpp_coro::task_t< void >
+loop_synchronously()
+	{
+		std::cout << "___ loop_synchronously="
+			<< (co_await so_5::cpp_coro::details::current_coro_handle()).address()
+			<< std::endl;
+		constexpr int iterations = 5;
+		for( int i = 0; i < iterations; ++i )
+			co_await completes_synchronously();
+	}
+
+void
+do_check()
+	{
+		so_5::cpp_coro::this_thread_scheduler_t scheduler{
+				so_5::cpp_coro::this_thread_scheduler_t::no_environment
+			};
+		so_5::cpp_coro::current_scheduler_setter_t scheduler_setter{ scheduler };
+
+		scheduler.sync_wait( loop_synchronously() );
+	}
+
+} /* namespace test */
+
+using namespace test;
+
+int
+main()
+{
+	try
+	{
+		run_with_time_limit(
+			[]() {
+				do_check();
+			},
+			15 );
+	}
+	catch(const std::exception & ex)
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+
