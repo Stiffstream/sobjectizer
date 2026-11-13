@@ -20,11 +20,18 @@ namespace details {
 
 namespace {
 
-//FIXME: document this!
+/*!
+ * \brief Helper function for providing access to an enveloped
+ * message to synchronous event/message handler.
+ *
+ * \since v.5.8.7
+ */
 [[nodiscard]]
 find_then_call_result_t
 process_envelope_when_handler_found(
+	//! Handler to be called for processing an enveloped message.
 	const msg_type_and_handler_pair_t & handler,
+	//! Message with envelope.
 	message_ref_t & message )
 	{
 		using namespace so_5::enveloped_msg::impl;

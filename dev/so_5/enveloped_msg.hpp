@@ -98,10 +98,24 @@ class SO_5_TYPE handler_invoker_t
 		virtual void
 		invoke( const payload_info_t & payload ) noexcept = 0;
 
-		//FIXME: document this!
-		//FIXME: describe passing of `payload` by value.
-		//FIXME: describe why this method is not noexcept.
-		//FIXME: describe that the default implementation throws.
+		//FIXME(v.5.9.0): this method should be transformed into pure virtual and
+		//marked as pure virtual.
+		/*!
+		 * \brief Call an actual asynchronous handler for the enveloped
+		 * message/signal.
+		 *
+		 * To avoid breaking source code compatibility this method was added
+		 * in version 5.8.7 as virtual method with default implementation.
+		 * This default implementation throws an exception. That is why
+		 * this method is not marked as noexcept. It's specific of 5.8 branch,
+		 * this method will be noexcept and pure virtual in 5.9.
+		 *
+		 * \note
+		 * The @a payload is passed by value, not by reference to store its value
+		 * in the underlying coroutine frame.
+		 *
+		 * \since v.5.8.7
+		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< void >
 		async_invoke( const payload_info_t payload );
@@ -134,8 +148,12 @@ enum class access_context_t
 //
 // async_access_context_t
 //
-//FIXME: document this!
 /*!
+ * \brief Information about context on that enveloped message is handled
+ * in an asynchronous manner.
+ *
+ * This is analogue of access_context_t but for envelope_t::async_access_hook.
+ *
  * \since v.5.8.7
  */
 enum class async_access_context_t
@@ -173,7 +191,7 @@ enum class async_access_context_t
  *   and passed to a transformation function;
  * - envelope should be analyzed by a delivery filter for further delivery
  *   of message.
- * 
+ *
  * When access_hook() is called the envelope should check the
  * availability of the payload and, if the payload is available for processing,
  * should pass the payload info to handler_invoker_t::invoke() method.
@@ -183,6 +201,18 @@ enum class async_access_context_t
  * and does call to invoke() only if these conditions are meet. But if some
  * conditions are not fulfilled then access_hook() won't call
  * handler_invoker_t::invoke() method.
+ *
+ * \note
+ * Since v.5.8.7 there is async_access_hook. It's analogue of access_hook but
+ * async_access_hook is called when event/message handler is asynchronous.
+ * In that case async_access_hook has to invoke
+ * handler_invoker_t::async_invoke instead of old synchronous
+ * handler_invoker_t::invoke.
+ *
+ * \note
+ * In v.5.8.7 the async_access_hook is called only when event/message handler
+ * for a message is found. For filters and transformers the old synchronous
+ * access_hook() is used.
  *
  * \since v.5.5.23
  */
@@ -214,9 +244,24 @@ class SO_5_TYPE envelope_t : public message_t
 			//! Proxy object which can call an actual event handler.
 			handler_invoker_t & invoker ) noexcept = 0;
 
-		//FIXME: document this!
-		//FIXME: describe why this method is not noexcept.
-		//FIXME: describe that the default implementation throws.
+		//FIXME(v.5.9.0): this method should be transformed into pure virtual and
+		//marked as pure virtual.
+		/*!
+		 * \brief Provide access to the enveloped message for an asynchronous
+		 * handler.
+		 *
+		 * To avoid breaking source code compatibility this method was added
+		 * in version 5.8.7 as virtual method with default implementation.
+		 * This default implementation throws an exception. That is why
+		 * this method is not marked as noexcept. It's specific of 5.8 branch,
+		 * this method will be noexcept and pure virtual in 5.9.
+		 *
+		 * \attention
+		 * Implementations of this method has to call
+		 * handler_invoker_t::async_invoke() for @a invoker.
+		 *
+		 * \since v.5.8.7
+		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< void >
 		async_access_hook(

@@ -45,8 +45,11 @@ namespace details {
 namespace event_subscription_helpers
 {
 
-//FIXME: document this!
 /*!
+ * \brief Helper metafunction for detection of so_5::cpp_coro::task_t<void>.
+ *
+ * Has `true` value if @a Result is so_5::cpp_coro::task_t<void>.
+ *
  * \since v.5.8.7
  */
 template< typename Result >
@@ -542,7 +545,17 @@ struct handlers_bunch_basics_t
 			const std::type_index & msg_type,
 			message_ref_t & message );
 
-		//FIXME: document this!
+		/*!
+		 * \brief Find and exec asynchronous message handler.
+		 *
+		 * Message handlers vector to be used in handling of message
+		 * is defined by range [left, right).
+		 *
+		 * \note The message handler vector [left, right) must be previously
+		 * prepared by prepare_handlers().
+		 *
+		 * \since v.5.8.7
+		 */
 		SO_5_FUNC static
 		so_5::cpp_coro::task_t< find_then_call_result_t >
 		find_and_use_handler_async(
@@ -610,7 +623,10 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 						message );
 			}
 
-		//FIXME: document this!
+		//! Find a handler for a message and execute it asynchronously.
+		/*!
+		 * \since v.5.8.7
+		 */
 		so_5::cpp_coro::task_t< find_then_call_result_t >
 		handle_async(
 			//! Type of a message or signal.

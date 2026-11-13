@@ -68,8 +68,13 @@ using event_handler_holder_t = std::variant<
 namespace low_level_api
 {
 
-//FIXME: document this!
 /*!
+ * \brief Helper function to extract a reference to synchronous event
+ * handler.
+ *
+ * \attention
+ * It throws if @a holder contains asynchronous handler.
+ *
  * \since v.5.8.7
  */
 [[nodiscard]] inline
@@ -87,8 +92,13 @@ query_ref_to_sync_handler(
 		return *handler;
 	}
 
-//FIXME: document this!
 /*!
+ * \brief Helper function to extract a reference to asynchronous event
+ * handler.
+ *
+ * \attention
+ * It throws if @a holder contains synchronous handler.
+ *
  * \since v.5.8.7
  */
 [[nodiscard]] inline
@@ -108,8 +118,12 @@ query_ref_to_async_handler(
 		return *handler;
 	}
 
-//FIXME: document this!
 /*!
+ * \brief Helper method for calling synchronous event handler.
+ *
+ * \attention
+ * It throws if @a holder contains asynchronous handler.
+ *
  * \since v.5.8.7
  */
 inline void
@@ -120,8 +134,16 @@ invoke_sync_event_handler(
 		query_ref_to_sync_handler( holder )( msg );
 	}
 
-//FIXME: document this!
 /*!
+ * \brief Helper method for calling asynchronous event handler.
+ *
+ * \note
+ * This helper doesn't use co_await, it just creates a task object and
+ * returns it. The co_await has to be applied outside.
+ *
+ * \attention
+ * It throws if @a holder contains synchronous handler.
+ *
  * \since v.5.8.7
  */
 inline
@@ -133,8 +155,12 @@ invoke_async_event_handler(
 		return (query_ref_to_async_handler( holder )( std::move(msg) ));
 	}
 
-//FIXME: document this!
 /*!
+ * \brief Special helper for be used with std::visitor.
+ *
+ * If applied to sync_event_handler_method_t then emulates an asynchronous
+ * call that completes immediately.
+ *
  * \since v.5.8.7
  */
 class any_handler_as_async_invoker_t

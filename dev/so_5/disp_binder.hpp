@@ -95,7 +95,34 @@ class disp_binder_t
 			//! Agent for that previous bind() was called.
 			agent_t & agent ) noexcept = 0;
 
-		//FIXME: document this!
+		//FIXME(v.5.9.0): this method should be transformed into pure virtual
+		//method.
+		/*!
+		 * \brief Does the dispatcher supports C++20 coroutines with suspension
+		 * and resumption.
+		 *
+		 * Usually dispatchers supports C++20 coroutines automatically because
+		 * dispatcher do not see them at all. All coroutines related stuff is
+		 * packed into ordinary execution demands.
+		 *
+		 * But sometimes suspension of a coroutine could break the logic of a
+		 * dispatcher. For example, so_5::disp::prio_one_thread::strictly_ordered
+		 * dispatcher can't suspend the current demand and allows processing
+		 * of other demands in the queue because it may break priority handling.
+		 *
+		 * When agent with C++20 coroutines is being bound to a dispatcher this
+		 * method will be called for the disp_binder. If this method returns
+		 * `false` then binding will be interrupted by an exception.
+		 *
+		 * \attention
+		 * The default implementation of this method returns `false`. It means
+		 * that a dispatcher is considered as not supporting C++20 coroutines.
+		 * If you implement a disp_binder for your dispatcher and your dispatcher
+		 * has no problems with suspension/resumption then redefine this method
+		 * to return `true`.
+		 *
+		 * \since v.5.8.7
+		 */
 		[[nodiscard]] virtual
 		bool
 		does_support_cpp_coro_suspension() const noexcept
