@@ -31,14 +31,31 @@ namespace so_5::cpp_coro
 //
 // this_thread_scheduler_t
 //
-//FIXME: should here be some way to finish the scheduler before the
-//completion of the top-level coroutine?
-//FIXME: some examples have to be shown in the description of this class.
 /*!
  * @brief An implementation of scheduler interface for case when all coroutines
- * have to be scheduler on the context of the current thread.
+ * have to be scheduled on the context of the current thread.
  *
- * @since v.5.8.7
+ * Usage example for a case when SObjectizer Environment is available:
+ * \code
+ * so_5::wrapped_env_t sobj;
+ * ...
+ * so_5::cpp_coro::this_thread_scheduler_t scheduler{ sobj.environment() };
+ * // This scheduler has to be set as the current one.
+ * so_5::cpp_coro::current_scheduler_setter_t current_setter{ scheduler };
+ * \endcode
+ *
+ * Usage example for a case when SObjectizer Environment is not available or
+ * shouldn't be used for some reasons:
+ * \code
+ * so_5::cpp_coro::this_thread_scheduler_t scheduler{
+ * 		// Tell the scheduler that SObjectizer is not available.
+ * 		so_5::cpp_coro::this_thread_scheduler_t::no_environment
+ * 	};
+ * // This scheduler has to be set as the current one.
+ * so_5::cpp_coro::current_scheduler_setter_t current_setter{ scheduler };
+ * \endcode
+ *
+ * \since v.5.8.7
  */
 class this_thread_scheduler_t final
 	: public scheduler_t
@@ -109,19 +126,21 @@ class this_thread_scheduler_t final
 		items_list_t m_ready_items;
 
 	public:
-		//FIXME: document this!
+		//! Helper type for case when SObjectizer Environment is not available.
 		enum class no_environment_case_t { dummy_value };
-		//FIXME: document this!
+		//! Indicator that tells that SObjectizer Environment is not available.
 		static constexpr no_environment_case_t no_environment =
 				no_environment_case_t::dummy_value;
 
-		//FIXME: document this!
+		//! Initializing constructor for a case when SObjectizer Environment
+		//! is available.
 		SO_5_FUNC
 		explicit this_thread_scheduler_t(
 			/// SObjectizer Environment for that this scheduler is created.
 			so_5::environment_t & env );
 
-		//FIXME: document this!
+		//! Initializing constructor for a case when SObjectizer Environment
+		//! is not available.
 		SO_5_FUNC
 		explicit this_thread_scheduler_t(
 			/// Special marker that tells that scheduler is run without
@@ -150,7 +169,6 @@ class this_thread_scheduler_t final
 			resumable_item_t & what_to_handle,
 			monotonic_clock_t::duration sleep_time ) override;
 
-		//FIXME: some examples have to be shown in the description.
 		/*!
 		 * @brief Synchronous execution of the specified task.
 		 *
@@ -159,6 +177,20 @@ class this_thread_scheduler_t final
 		 *
 		 * Rethrows an exception that was thrown during execution of
 		 * the @a top_level_task.
+		 *
+		 * Usage example:
+		 * \code
+		 * so_5::cpp_coro::this_thread_scheduler_t scheduler{
+		 * 		so_5::cpp_coro::this_thread_scheduler_t::no_environment
+		 * 	};
+		 * so_5::cpp_coro::current_scheduler_setter_t scheduler_setter{ scheduler };
+		 *
+		 * int r = scheduler.sync_wait(
+		 * 	[]() -> so_5::cpp_coro::task_t<int> {
+		 * 		...
+		 * 		co_return co_await some_async_action(...);
+		 * 	});
+		 * \endcode
 		 *
 		 * @return the value returned by @a top_level_task.
 		 */
