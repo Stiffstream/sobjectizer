@@ -225,8 +225,20 @@ struct promise_base_t< Actual_Promise_Type, void >
 //
 // resumption_by_specific_scheduler_task_t
 //
-//FIXME: document this!
 /*!
+ * \brief Special task for resumption of a coroutine by using a specific
+ * scheduler.
+ *
+ * This task is used when a foreign awaiter is created inside
+ * asynchronous event/message handler. This awatable may be awoken on
+ * a different execution context (that is not controlled by SObjectizer).
+ * But resumption of a SO-5 related coroutine must be performed only
+ * by the appropriate scheduler.
+ *
+ * For such scheduler-bound resumption a foreign awaiter is wrapped into
+ * this task. When this task is resumed it asks the appropriate scheduler
+ * to dispatch the corresponding coroutine on the right execution context.
+ *
  * \note
  * This type doesn't support move operator (but it has the move constructor).
  * It's because if a task_t already has the task_data then this data can't
@@ -234,29 +246,42 @@ struct promise_base_t< Actual_Promise_Type, void >
  *
  * \since v.5.8.7
  */
-template< typename Source_Awaitable >
+template< typename Source_Awaiter >
 struct resumption_by_specific_scheduler_task_t
 	{
-		//! Special marker that this type is a SO-5 awaitable.
+		//! Special marker that this type is a SO-5 awaiter.
 		using so5_awaitable = void;
 
 		struct promise_type;
 
-		//FIXME: document this!
+		//! Short alias for coroutine handle.
 		using coro_handle_t = std::coroutine_handle< promise_type >;
 
-		//FIXME: document this!
-		using source_awaitable_ptr_t = std::add_pointer_t<
-				std::remove_reference_t< Source_Awaitable > >;
+		//! Short alias for the raw pointer to the source awaiter object.
+		using source_awaiter_ptr_t = std::add_pointer_t<
+				std::remove_reference_t< Source_Awaiter > >;
 
-		//FIXME: document this!
+		//! Data to be schared between task and promise_type.
+		/*!
+		 * There could be cases when the promise object is destroyed
+		 * on thread A before the destruction of the task object on
+		 * thread B. But the task has to hold the valid task_data.
+		 *
+		 * Otherwise, there could be cases when the task object is
+		 * destroyed in thread B before the destruction of the promise
+		 * on thread A. But the promise object has to hold the
+		 * valid task_data for the completion of try_schedule call.
+		 *
+		 * The easiest way is to create task_data_t in dynamic memory
+		 * and use reference counting for control its lifetime.
+		 */
 		struct task_data_t : public so_5::atomic_refcounted_t
 			{
 				//! Scheduler to be used for resumption.
 				so_5::cpp_coro::scheduler_t & m_scheduler;
 
-				//! Awaitable for that this task has been created.
-				source_awaitable_ptr_t m_source;
+				//! Awaiter for that this task has been created.
+				source_awaiter_ptr_t m_source;
 
 				//! The parent coroutine to be awoken.
 				/*!
@@ -271,7 +296,7 @@ struct resumption_by_specific_scheduler_task_t
 				//! Initializing constructor.
 				task_data_t(
 					so_5::cpp_coro::scheduler_t & scheduler,
-					source_awaitable_ptr_t source )
+					source_awaiter_ptr_t source )
 					: m_scheduler{ scheduler }
 					, m_source{ source }
 					, m_resumable_item{
@@ -291,6 +316,11 @@ struct resumption_by_specific_scheduler_task_t
 		using task_data_smart_ptr_t = so_5::intrusive_ptr_t< task_data_t >;
 
 		//! Promise type for this task type.
+		/*!
+		 * \attention
+		 * This promise_type just rethrows an exception in
+		 * unhandled_exception() method.
+		 */
 		struct promise_type
 			{
 				//! Data related to the task that created this promise.
@@ -299,7 +329,7 @@ struct resumption_by_specific_scheduler_task_t
 				//! Initializing constructor.
 				promise_type(
 					so_5::cpp_coro::scheduler_t & scheduler,
-					source_awaitable_ptr_t source )
+					source_awaiter_ptr_t source )
 					: m_task_data{ std::make_unique< task_data_t >(
 							scheduler,
 							source )
@@ -347,13 +377,6 @@ struct resumption_by_specific_scheduler_task_t
 		//! Task data associated with this task.
 		task_data_smart_ptr_t m_task_data;
 
-		//FIXME: document this!
-		static void
-		safe_destroy_data( task_data_smart_ptr_t data ) noexcept
-			{
-				data.reset();
-			}
-
 		//! Initializing constructor.
 		resumption_by_specific_scheduler_task_t(
 			std::coroutine_handle< promise_type > coro,
@@ -364,7 +387,7 @@ struct resumption_by_specific_scheduler_task_t
 
 		~resumption_by_specific_scheduler_task_t()
 			{
-				safe_destroy_data( std::move(m_task_data) );
+				m_task_data.reset();
 			}
 
 		// Copy is disabled.
@@ -395,12 +418,17 @@ struct resumption_by_specific_scheduler_task_t
 		auto
 		await_suspend( std::coroutine_handle<> parent_coro )
 			{
+				// The main trick: our parent coroutine to be suspended and
+				// resumed later will be stored in the task_data.
 				m_task_data->m_coro = parent_coro;
 				m_task_data->m_resumable_item.init(
 						parent_coro,
 						m_task_data->m_scheduler,
 						so_5::cpp_coro::resumable_item_t::status_t::waiting );
 
+				// But the for the source awaiter our coroutine will be
+				// used as the parent. When the foreign coroutine will be
+				// resumed it will also resume this task.
 				return m_task_data->m_source->await_suspend( m_coro );
 			}
 
@@ -411,22 +439,30 @@ struct resumption_by_specific_scheduler_task_t
 			}
 	};
 
-//FIXME: document this!
 /*!
+ * \brief Helper function for wrapping foreign awaiter object into
+ * a special task.
+ *
+ * This is a special coroutine that plays a role of the parent coroutine
+ * for @a awaiter. When this coroutine resumes it calls try_schedule
+ * for its parent coroutine.
+ *
  * \since v.5.8.7
  */
-template< typename Source_Awaitable >
+template< typename Source_Awaiter >
 [[nodiscard]]
-resumption_by_specific_scheduler_task_t< Source_Awaitable >
-wrap_foreign_awaitable(
+resumption_by_specific_scheduler_task_t< Source_Awaiter >
+wrap_foreign_awaiter(
+	//! Scheduler to be used for resumption.
 	so_5::cpp_coro::scheduler_t & scheduler,
-	Source_Awaitable * awaitable )
+	//! Foreign awaiter object. It's expected that this pointer is not null.
+	Source_Awaiter * awaiter )
 	{
 		(void) scheduler;
-		(void) awaitable;
+		(void) awaiter;
 
 		using promise_type =
-				typename resumption_by_specific_scheduler_task_t< Source_Awaitable >
+				typename resumption_by_specific_scheduler_task_t< Source_Awaiter >
 						::promise_type;
 
 		auto this_coro_handle =
@@ -443,16 +479,16 @@ wrap_foreign_awaitable(
 	}
 
 //
-// is_so5_awaitable
+// is_so5_awaiter
 //
-//! Helper concept for checking Awaitable type.
+//! Helper concept for checking Awaiter type.
 /*!
  * All SO-5 related awaitables have to have so5_awaitable inner type.
  *
  * \since 5.8.7
  */
 template< typename T >
-concept is_so5_awaitable = requires {
+concept is_so5_awaiter = requires {
 	typename T::so5_awaitable;
 };
 
@@ -462,7 +498,7 @@ concept is_so5_awaitable = requires {
 // task_t
 //
 /*!
- * @brief A task template that implements awaitable for value of type T.
+ * @brief A task template that implements awaiter for value of type T.
  *
  * The `T` could be `void`.
  *
@@ -477,7 +513,7 @@ concept is_so5_awaitable = requires {
 template< typename T >
 struct task_t
 	{
-		//! Special marker that this type is a SO-5 awaitable.
+		//! Special marker that this type is a SO-5 awaiter.
 		using so5_awaitable = void;
 
 		struct promise_type;
@@ -539,22 +575,32 @@ struct task_t
 							};
 					}
 
-				//FIXME: document this!
-				template< typename Awaitable >
+				//! Special wrapper for Awater object.
+				/*!
+				 * If the @a awaiter is instance of SObjectizer-related awaitable
+				 * then it does nothing and returns @a awaiter. But if @a awaiter
+				 * is a foreign awaitable the it will be wrapped into
+				 * resumption_by_specific_scheduler_task_t instance and this new
+				 * instance will be returned.
+				 *
+				 * This transformation allows resumption of SObjectizer-related
+				 * coroutines only by appropriate SObjectizer-related schedulers.
+				 */
+				template< typename Awaiter >
 				auto
-				await_transform( Awaitable && awaitable )
+				await_transform( Awaiter && awaiter )
 					{
 						using namespace task_impl;
 
-						if constexpr( is_so5_awaitable< Awaitable > )
+						if constexpr( is_so5_awaiter< Awaiter > )
 							{
-								return static_cast<Awaitable &&>(awaitable);
+								return static_cast<Awaiter &&>(awaiter);
 							}
 						else
 							{
-								return wrap_foreign_awaitable(
+								return wrap_foreign_awaiter(
 										current_scheduler_setter_t::safe_get(),
-										std::addressof(awaitable) );
+										std::addressof(awaiter) );
 							}
 					}
 			};
