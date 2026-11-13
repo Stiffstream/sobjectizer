@@ -1606,7 +1606,15 @@ agent_t::push_event(
 namespace
 {
 
-//FIXME: document this!
+/*!
+ * \brief Helper for wrapping a call of agent_t::so_evt_async_start into
+ * a top_level_task_t instance.
+ *
+ * This top_level_task_t instance is necessary because such a coroutine
+ * will be handled non-usual way (without co_await call in the code).
+ *
+ * \since v.5.8.7
+ */
 [[nodiscard]]
 so_5::cpp_coro::details::top_level_task_t< void >
 wrap_evt_async_start_into_top_level_task( agent_t * what )

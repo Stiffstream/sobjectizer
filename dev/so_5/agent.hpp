@@ -532,32 +532,35 @@ struct working_thread_id_sentinel_t
 	It should be reimplemented for the initial subscription of the agent
 	to messages.
 
-	There are two hook-methods related to important agent's lifetime events:
+	There are several hook-methods related to important agent's lifetime events:
 	agent_t::so_evt_start() and agent_t::so_evt_finish(). They are called
 	by SObjectizer in next circumstances:
 	- method so_evt_start() is called when the agent is starting its work
 	  inside of SObjectizer. At that moment all agents are defined (all 
 	  their methods agent_t::so_define_agent() have executed);
+	- method so_evt_async_start() is called just after successful completion
+	  of so_evt_start() if C++20 coroutines are enabled for the agent;
 	- method so_evt_finish() is called during the agent's cooperation
 	  deregistration just after agent processed the last pending event.
 
-	Methods so_evt_start() and so_evt_finish() are called by SObjectizer and
-	user can just reimplement them to implement the agent-specific logic.
+	Methods so_evt_start(), so_evt_async_start() and so_evt_finish() are called
+	by SObjectizer and user can just reimplement them to implement the
+	agent-specific logic.
 
 	<b>Message subscription and unsubscription methods</b>
 
 	Any method with one of the following prototypes can be used as an event
 	handler:
 	\code
-		return_type evt_handler( mhood_t< Message > msg );
-		return_type evt_handler( const mhood_t< Message > & msg );
-		return_type evt_handler( const Message & msg );
-		return_type evt_handler( Message msg );
+		void evt_handler( mhood_t< Message > msg );
+		void evt_handler( const mhood_t< Message > & msg );
+		void evt_handler( const Message & msg );
+		void evt_handler( Message msg );
 		// Since v.5.5.20:
-		return_type evt_handler( mhood_t< Message > msg ) const;
-		return_type evt_handler( const mhood_t< Message > & msg ) const;
-		return_type evt_handler( const Message & msg ) const;
-		return_type evt_handler( Message msg ) const;
+		void evt_handler( mhood_t< Message > msg ) const;
+		void evt_handler( const mhood_t< Message > & msg ) const;
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg ) const;
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c Message is a 
 	message type.
@@ -570,12 +573,29 @@ struct working_thread_id_sentinel_t
 	Please note that handlers with the following prototypes can be used
 	only for messages, not signals:
 	\code
-		return_type evt_handler( const Message & msg );
-		return_type evt_handler( Message msg );
+		void evt_handler( const Message & msg );
+		void evt_handler( Message msg );
 		// Since v.5.5.20:
-		return_type evt_handler( const Message & msg ) const;
-		return_type evt_handler( Message msg ) const;
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg ) const;
 	\endcode
+
+	If C++20 coroutines support is enabled for an agent then asynchronous
+	event handlers have to have one of the following prototypes:
+
+	\code
+		so_5::cpp_coro::task_t<void> evt_handler( mhood_t< Message > msg );
+		so_5::cpp_coro::task_t<void> evt_handler( const mhood_t< Message > & msg );
+		so_5::cpp_coro::task_t<void> evt_handler( const Message & msg );
+		so_5::cpp_coro::task_t<void> evt_handler( Message msg );
+		so_5::cpp_coro::task_t<void> evt_handler( mhood_t< Message > msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( const mhood_t< Message > & msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( const Message & msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( Message msg ) const;
+	\endcode
+
+	If asynchronous event handler is represented by a lambda function then
+	this lambda has to return so_5::cpp_coro::task_t<void>.
 
 	A subscription to the message is performed by the methods so_subscribe()
 	and so_subscribe_self().
@@ -600,13 +620,13 @@ struct working_thread_id_sentinel_t
 	function. Deadletter handler can have one of the following formats:
 	\code
 		void evt_handler( mhood_t< Message > msg );
-		void return_type evt_handler( mhood_t< Message > msg ) const;
-		void return_type evt_handler( const mhood_t< Message > & msg );
-		void return_type evt_handler( const mhood_t< Message > & msg ) const;
-		void return_type evt_handler( const Message & msg );
-		void return_type evt_handler( const Message & msg ) const;
-		void return_type evt_handler( Message msg );
-		void return_type evt_handler( Message msg ) const;
+		void evt_handler( mhood_t< Message > msg ) const;
+		void evt_handler( const mhood_t< Message > & msg );
+		void evt_handler( const mhood_t< Message > & msg ) const;
+		void evt_handler( const Message & msg );
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg );
+		void evt_handler( Message msg ) const;
 	\endcode
 
 	Subscription for a deadletter handler can be created by

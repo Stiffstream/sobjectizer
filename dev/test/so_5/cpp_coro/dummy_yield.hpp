@@ -25,9 +25,7 @@ dummy_yield(
 
 		return so_5::cpp_coro::select( so_5::from_all().handle_n(1),
 				so_5::receive_case( ch,
-					[]( so_5::mhood_t< msg_resume > ) {
-std::cout << "msg_resume received" << std::endl;
-					} ) );
+					[]( so_5::mhood_t< msg_resume > ) {} ) );
 	}
 
 } /* namespace test */

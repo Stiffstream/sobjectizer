@@ -5,6 +5,8 @@ add_subdirectory(no_coro_strictly_ordered_disp)
 
 add_subdirectory(sequential_limit)
 
+add_subdirectory(handlers_formats)
+
 add_subdirectory(simple_select)
 add_subdirectory(simple_select_empty_timeout)
 add_subdirectory(simple_select_total_time)
