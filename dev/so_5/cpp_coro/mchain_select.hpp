@@ -172,14 +172,33 @@ class async_select_notificator_t final
 			}
 	};
 
-//FIXME: document this!
 /*!
+ * \brief How arg_proxy_t should hold its argument.
+ *
  * \since v.5.8.7
  */
-enum class proxy_mode_t { value, reference };
+enum class proxy_mode_t
+	{
+		//! The argument has to be copied and stored by value.
+		value,
+		//! The argument should not be copied, only a reference has to be
+		//! stored.
+		reference
+	};
 
-//FIXME: document this!
 /*!
+ * \brief Helper class template for passing arguments to do_select
+ * function.
+ *
+ * For some cases do_select has to receieve copies of arguments passed
+ * to select() function. For example, when an ordinary select is used
+ * the select-parameters and select-cases have to be passed by values.
+ * But in case of prepared or extensible select only references to
+ * original select-parameters and select-cases have to be used.
+ *
+ * This template has different partical implementations -- one per each
+ * proxy_mode_t enumeration.
+ *
  * \since v.5.8.7
  */
 template< typename T, proxy_mode_t Mode >
@@ -318,7 +337,7 @@ do_select(
 								// Ask for awaitable object that is bound to
 								// appropriate wait time and wait until this
 								// awaitable resumes.
-								co_await try_suspend_for(
+								co_await so_5::cpp_coro::details::try_suspend_for(
 										notificator.resumable_item(),
 										// Sleeping time has to be limited with respect
 										// to empty_timeout and total_time.
@@ -406,9 +425,44 @@ perform_select(
 
 } /* namespace async_select_impl */
 
-//FIXME: document this!
 /*!
- * @since v.5.8.7
+ * \brief Asynchronous variant of simple select.
+ *
+ * This overload is for an ordinary case.
+ *
+ * The main difference from the so_5::select is support for asynchronous
+ * receive_case. For example:
+ *
+ * \code
+ * co_await so_5::cpp_coro::select(
+ * 	so_5::from_all().handle_n(1),
+ * 	so_5::receive_case(ch,
+ * 		[](so_5::mhood_t<some_msg> cmd) -> so_5::cpp_coro::task_t<void> {
+ * 			co_await ...; // Another asynchronous operation.
+ * 		}) );
+ * \endcode
+ *
+ * \note
+ * Only receive_case could be asynchronous. The send_case must be synchronous.
+ *
+ * Synchronous and asynchronous handlers can be mixed:
+ * \code
+ * co_await so_5::cpp_coro::select(
+ * 	so_5::from_all().handle_n(1),
+ * 	so_5::receive_case(ch,
+ * 		[](so_5::mhood_t<some_msg> cmd) -> so_5::cpp_coro::task_t<void> {
+ * 			co_await ...; // Asynchronous operation.
+ * 		}),
+ * 		[](so_5::mhood_t<another_msg> cmd) {
+ * 			... // Synchronous code.
+ * 		}) );
+ * \endcode
+ *
+ * \attention
+ * There must be the current scheduler that will be used for dispatching
+ * ready-to-resume coroutines. See so_5::cpp_coro::current_scheduler_setter_t.
+ *
+ * \since v.5.8.7
  */
 template<
 	so_5::mchain_props::msg_count_status_t Msg_Count_Status,
@@ -444,9 +498,48 @@ select(
 				cases_holder_proxy_t{ std::move(cases_holder) } );
 	}
 
-//FIXME: document this!
 /*!
- * @since v.5.8.7
+ * \brief Asynchronous version of prepared select.
+ *
+ * Usage example:
+ * \code
+ * auto prepared = so_5::prepare_select(
+ * 	so_5::from_all().extract_n(10).empty_timeout(200ms),
+ * 	receive_case( ch1, some_handlers... ),
+ * 	receive_case( ch2, more_handlers... ),
+ * 	receive_case( ch3, yet_more_handlers... ) );
+ * ...
+ * while( !some_condition )
+ * {
+ * 	auto r = co_await so_5::cpp_coro::select( prepared );
+ * 	...
+ * }
+ * \endcode
+ *
+ * \note
+ * Only receive_case could be asynchronous. The send_case must be synchronous.
+ *
+ * Synchronous and asynchronous handlers can be mixed:
+ * \code
+ * auto prepared = so_5::prepare_select(
+ * 	so_5::from_all().handle_n(1),
+ * 	so_5::receive_case(ch,
+ * 		[](so_5::mhood_t<some_msg> cmd) -> so_5::cpp_coro::task_t<void> {
+ * 			co_await ...; // Asynchronous operation.
+ * 		}),
+ * 		[](so_5::mhood_t<another_msg> cmd) {
+ * 			... // Synchronous code.
+ * 		}) );
+ * ...
+ * \endcode
+ *
+ * \attention
+ * There must be the current scheduler that will be used for dispatching
+ * ready-to-resume coroutines. See so_5::cpp_coro::current_scheduler_setter_t.
+ *
+ * \sa so_5::select(const prepared_select_t<Cases_Count> &)
+ *
+ * \since v.5.8.7
  */
 template< std::size_t Cases_Count >
 resumable_select_t
@@ -473,8 +566,47 @@ select(
 				cases_holder_proxy_t{ locker.cases() } );
 	}
 
-//FIXME: document this!
 /*!
+ * \brief Asynchronous version of extensible select.
+ *
+ * Usage example:
+ * \code
+ * so_5::cpp_coro::task_t<void>
+ * handle_messages_from(const std::vector<so_5::mchain_t> & chains) {
+ * 	auto sel = so_5::make_extensible_select(so_5::from_all().handle_all());
+ *
+ * 	for(auto & ch : chains)
+ * 		so_5::add_select_cases(receive_case(ch, ...));
+ *
+ * 	auto r = co_await so_5::select(sel);
+ * 	... // Handing of the select() result.
+ * }
+ * \endcode
+ *
+ * \note
+ * Only receive_case could be asynchronous. The send_case must be synchronous.
+ *
+ * Synchronous and asynchronous handlers can be mixed:
+ * \code
+ * auto sel = so_5::make_extensible_select(so_5::from_all().handle_n(1));
+ *
+ * so_5::add_select_cases(
+ * 	so_5::receive_case(ch,
+ * 		[](so_5::mhood_t<some_msg> cmd) -> so_5::cpp_coro::task_t<void> {
+ * 			co_await ...; // Asynchronous operation.
+ * 		}),
+ * 		[](so_5::mhood_t<another_msg> cmd) {
+ * 			... // Synchronous code.
+ * 		}) );
+ * ...
+ * \endcode
+ *
+ * \attention
+ * There must be the current scheduler that will be used for dispatching
+ * ready-to-resume coroutines. See so_5::cpp_coro::current_scheduler_setter_t.
+ *
+ * \sa so_5::select(const extensible_select_t &)
+ *
  * \since v.5.8.7
  */
 inline resumable_select_t

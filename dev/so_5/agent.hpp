@@ -500,7 +500,6 @@ struct working_thread_id_sentinel_t
 // agent_t
 //
 
-//FIXME: so_evt_async_start has to be mentioned in the description.
 //! A base class for agents.
 /*!
 	An agent in SObjctizer must be derived from the agent_t.
@@ -896,6 +895,49 @@ class SO_5_TYPE agent_t
 		virtual void
 		so_evt_start();
 
+		//! Hook on async start for agent inside SObjectizer.
+		/*!
+		 * \note
+		 * This method is used only if the support for C++20 coroutines is
+		 * enabled in the agent. Otherwise, it will not be called at all.
+		 *
+		 * If support for C++20 coroutines is enabled then SObjectizer calls
+		 * so_evt_async_start() just after a successful completion of
+		 * so_evt_start(). If so_evt_start() throws then so_evt_async_start()
+		 * won't be called.
+		 *
+		 * This method could be useful if agent has to do some async actions
+		 * at the start.
+		 *
+		 * \code
+		 * class a_sample_t : public so_5::agent_t
+		 * {
+		 * 	...
+		 * public:
+		 * 	a_sample_t(context_t ctx)
+		 * 		// Support for C++20 coroutines has to be enabled.
+		 * 		so_5::agent_t{ctx + so_5::enable_cpp_coro()}
+		 * 	{...}
+		 *
+		 * 	so_5::cpp_coro::task_t<void>
+		 * 	so_evt_start_event() override
+		 * 	{
+		 * 		// Initiate one or more asynchronous operations.
+		 * 		co_await ...;
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * The default implementation in agent_t does nothing.
+		 *
+		 * \since v.5.8.7
+		 */
+		virtual
+		so_5::cpp_coro::task_t< void >
+		so_evt_async_start();
+
 		//! Hook of agent finish in SObjectizer.
 		/*!
 			It is guaranteed that this method will be called last
@@ -928,14 +970,6 @@ class SO_5_TYPE agent_t
 		*/
 		virtual void
 		so_evt_finish();
-
-		//FIXME: document this!
-		/*!
-		 * \since v.5.8.7
-		 */
-		virtual
-		so_5::cpp_coro::task_t< void >
-		so_evt_async_start();
 
 		//! Access to the current agent state.
 		/*!
@@ -2850,16 +2884,32 @@ class SO_5_TYPE agent_t
 		agent_identity_t
 		so_agent_name() const noexcept;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Get a reference to C++20 coroutine scheduler associated
+		 * with this agent.
+		 *
+		 * This method maybe useful in case if you want to start an async
+		 * operation that has to be completed on execution context associated
+		 * with this agent.
+		 *
 		 * \since v.5.8.7
 		 */
 		[[nodiscard]]
 		so_5::cpp_coro::scheduler_t &
 		so_this_agent_scheduler() const;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Helper method for C++20 coroutines execution.
+		 *
+		 * \attention
+		 * This is a low-level detail of SObjectizer implementation. Please
+		 * don't use it in your application code. This method could be changed
+		 * or removed without a prior notice.
+		 *
+		 * \note
+		 * This method is declared as public for simplification of code
+		 * related to wrapping asynchronous event handlers.
+		 *
 		 * \since v.5.8.7
 		 */
 		void

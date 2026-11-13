@@ -414,12 +414,7 @@ class SO_5_TYPE scheduler_t
 		scheduler_t();
 		virtual ~scheduler_t();
 
-//FIXME: is this method still needed? It seems that it is not used now
-//in coroutine-related features. But it is still here until completion
-//of v.5.8.7 because there is probability that this method may be
-//necessary somewhere. If not then it has to be removed before the
-//release of v.5.8.7.
-		/// Access to SObjectizer Environment for that this scheduler has
+		/// @brief Access to SObjectizer Environment for that this scheduler has
 		/// been created.
 		///
 		/// @note
@@ -474,8 +469,29 @@ class SO_5_TYPE scheduler_t
 //
 // current_scheduler_setter_t
 //
-//FIXME: document this!
 /*!
+ * \brief Setter for the current scheduler in RAII style.
+ *
+ * Sets the specified scheduler as the current in the constructor and
+ * drops it in the destructor.
+ *
+ * \attention
+ * It throws if there already is the current scheduler. If you need to
+ * temporary change the current scheduler then use
+ * so_5::cpp_coro::scoped_scheduler_setter_t.
+ *
+ * Usage example:
+ * \code
+ * 	so_5::wrapped_env_t env{ ... };
+ * 	...
+ * 	// Scheduler to be used for this thread.
+ * 	so_5::cpp_coro::this_thread_scheduler_t scheduler{ env.environment() };
+ * 	// Make the scheduler accessible for select() functions.
+ * 	so_5::cpp_coro::current_scheduler_setter_t current_scheduler{ scheduler };
+ * 	...
+ * 	co_await so_5::cpp_coro::select(...);
+ * \endcode
+ *
  * \since v.5.8.7
  */
 class SO_5_TYPE current_scheduler_setter_t
@@ -511,8 +527,30 @@ class SO_5_TYPE current_scheduler_setter_t
 //
 // scoped_scheduler_setter_t
 //
-//FIXME: document this!
 /*!
+ * \brief Helper class for setting and dropping the current scheduler
+ * in RAII style.
+ *
+ * Sets the scheduler passed to the constructor as the current one.
+ * Drops this scheduler in the destructor.
+ *
+ * If there already is the current scheduler then pointer to it is stored
+ * inside the setter and restored at the destruction of the setter.
+ *
+ * Usage example:
+ * \code
+ * so_5::cpp_coro::this_thread_scheduler_t default_scheduler{ env };
+ * ...
+ * if(some_condition)
+ * {
+ * 	// Temporary switch to another scheduler.
+ * 	my_custom_coro_scheduler my_scheduler;
+ * 	so_5::cpp_coro::scoped_scheduler_setter_t current_setter{ my_scheduler };
+ *
+ * 	... // Operations will be dispatched via my_scheduler.
+ * } // The default_scheduler will be restored as the current one.
+ * \endcode
+ *
  * \since v.5.8.7
  */
 class SO_5_TYPE scoped_scheduler_setter_t
@@ -598,8 +636,6 @@ struct suspension_awaitable_t
 		await_resume() noexcept {}
 	};
 
-} /* namespace details */
-
 /*!
  * @brief Helper function for suspension of the current coroutine if
  * coroutine has to wait for some external event.
@@ -623,7 +659,7 @@ struct suspension_awaitable_t
  * @since v.5.8.7
  */
 [[nodiscard]] inline
-details::suspension_awaitable_t
+suspension_awaitable_t
 try_suspend_for(
 	/// Coroutine to be suspended.
 	resumable_item_t & what_to_suspend,
@@ -635,6 +671,8 @@ try_suspend_for(
 				.m_sleep_time = sleep_time
 			};
 	}
+
+} /* namespace details */
 
 } /* namespace so_5::cpp_coro */
 
