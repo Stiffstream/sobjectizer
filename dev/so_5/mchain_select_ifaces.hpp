@@ -247,13 +247,17 @@ class select_case_t
 		virtual handling_result_t
 		try_handle( select_notificator_t & notificator ) = 0;
 
-		//FIXME: document this!
+		//! An attempt to handle this case in asynchronous manner.
 		/*!
+		 * This is analogue of try_handle() but for asynchronous select.
+		 *
 		 * \attention
 		 * There is no other way than pass @a notificator as reference or
 		 * pointer because select_notificator_t is an interface (so an
 		 * instance of select_notificator_t can't be passed by value).
 		 * It's assumed that this reference remains valid.
+		 *
+		 * \since v.5.8.7
 		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< handling_result_t >

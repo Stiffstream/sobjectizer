@@ -23,7 +23,17 @@ namespace so_5::impl
 //
 // this_agent_scheduler_t::special_mbox_for_delayed_resumptions_t
 //
-//FIXME: document this!
+/*!
+ * \brief Special mbox for delayed messages used by this_agent_scheduler_t.
+ *
+ * The this_agent_scheduler_t uses ordinary delayed messages for timeouts.
+ * But such messages have to be sent to a mbox. It is possible to use
+ * ordinary mbox with special message_sink as a subscriber. But
+ * this_agent_scheduler_t uses a different approach: special mbox with
+ * a specific logic in do_deliver_message.
+ *
+ * \since v.5.8.7
+ */
 class this_agent_scheduler_t::special_mbox_for_delayed_resumptions_t final
 	: public abstract_message_box_t
 	{

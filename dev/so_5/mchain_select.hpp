@@ -313,13 +313,22 @@ class receive_select_case_t : public select_case_t
 		virtual mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) = 0;
 
-		//FIXME: document this!
 		/*!
+		 * \brief Attempt to handle extracted message in asynchronous
+		 * manner.
+		 *
+		 * This is analogue of synchronous try_handle_extracted_message()
+		 * method for case when asynchronous version of select() is used.
+		 *
+		 * This method will be overriden in derived classes.
+		 *
 		 * \attention
 		 * It's assumed that passing @a demand by reference is safe because
 		 * try_handle_extracted_message_async is called only in
 		 * try_handle_async() method and the demand live in the frame
 		 * of try_handle_async() coroutine.
+		 *
+		 * \since v.5.8.7
 		 */
 		[[nodiscard]] virtual
 		so_5::cpp_coro::task_t< mchain_receive_result_t >
@@ -450,7 +459,7 @@ class actual_receive_select_case_t : public receive_select_case_t
 			}
 
 	protected :
-		//FIXME: document this!
+		//! Attempt to handle extracted message synchronously.
 		[[nodiscard]]
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
@@ -468,7 +477,7 @@ class actual_receive_select_case_t : public receive_select_case_t
 						extraction_status_t::msg_extracted };
 			}
 
-		//FIXME: document this!
+		//! Attempt to handle extracted message asynchronously.
 		[[nodiscard]]
 		so_5::cpp_coro::task_t< mchain_receive_result_t >
 		try_handle_extracted_message_async( demand_t & demand ) override
@@ -1270,13 +1279,17 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 	};
 
-//FIXME: document this!
 /*!
+ * \brief Possible results of attempt to handle existing select cases.
+ *
  * \since v.5.8.7
  */
 enum class handle_next_result_t
 	{
+		//! No ready to use select cases to be processed.
 		no_ready_cases,
+		//! Some select cases were ready and an attempt to handle them
+		//! was performed.
 		some_cases_were_ready
 	};
 
@@ -1284,7 +1297,6 @@ enum class handle_next_result_t
 #pragma clang diagnostic pop
 #endif
 
-//FIXME: document Notificator template parameter.
 //
 // select_actions_performer_t
 //
@@ -1292,6 +1304,9 @@ enum class handle_next_result_t
  * \brief Helper class for performing select-specific operations.
  *
  * \tparam Holder type of actual select_cases_holder_t.
+ *
+ * \tparam Notificator type of notificator to be used for signaling that
+ * some select cases are ready for processing.
  *
  * \since v.5.5.16
  */
@@ -1340,9 +1355,15 @@ class select_actions_performer_t
 					c.on_select_finish();
 			}
 
-		//FIXME: document this!
+		//! An attempt to wait and handle next ready select case.
+		/*!
+		 * This is synchrouns method that returns after processing
+		 * of ready case or after the time-out expires.
+		 */
 		void
-		handle_next( const duration_t & wait_time )
+		handle_next(
+			//! How long we can wait for the next ready to process select case.
+			const duration_t & wait_time )
 			{
 				// This status has to be dropped to neutral value, it will be
 				// updated if some chain will become ready.
@@ -1360,7 +1381,11 @@ class select_actions_performer_t
 					}
 			}
 
-		//FIXME: document this!
+		//! An attempt to wait and handle next ready select case.
+		/*!
+		 * This is asynchrouns method that starts a coroutine that
+		 * waits and handles a ready select case.
+		 */
 		[[nodiscard]]
 		so_5::cpp_coro::task_t< handle_next_result_t >
 		handle_next_async()
@@ -1420,6 +1445,14 @@ class select_actions_performer_t
 				}
 			};
 
+		//! Attempt to handle a chain of ready select cases.
+		/*!
+		 * This is synchronous method that returns when the whole chain
+		 * will be processed.
+		 *
+		 * \note
+		 * @a ready_chain can be nullptr. It means that the chain is empty.
+		 */
 		void
 		handle_ready_chain( select_case_t * ready_chain )
 			{
@@ -1436,7 +1469,17 @@ class select_actions_performer_t
 					}
 			}
 
-		//FIXME: document this!
+		//! Attempt to handle a chain of ready select cases in
+		//! asynchronous manner.
+		/*!
+		 * This is asynchronous method that creates a coroutine that attempts
+		 * to handle the chain.
+		 *
+		 * \note
+		 * @a ready_chain can be nullptr. It means that the chain is empty.
+		 *
+		 * \since v.5.8.7
+		 */
 		[[nodiscard]]
 		so_5::cpp_coro::task_t< void >
 		handle_ready_chain_async( select_case_t * ready_chain )
@@ -1572,7 +1615,11 @@ class select_actions_performer_t
 			}
 	};
 
-//FIXME: document this!
+/*!
+ * \brief The actual implementation of synchronous select.
+ *
+ * \since v.5.8.7
+ */
 template<
 	typename Total_Time_Counter,
 	typename Holder >

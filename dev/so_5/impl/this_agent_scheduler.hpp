@@ -78,10 +78,18 @@ class this_agent_scheduler_t final
 		friend class special_mbox_for_delayed_resumptions_t;
 
 	public:
-//FIXME: thread safety for cancellation operations has to be described
-//in the comment.
 		//! Special type to be used as an extra_data inside
 		//! resumable_item_t.
+		/*!
+		 * \note
+		 * Cancellation operation modifies values inside notification_messages_t
+		 * itself and inside msg_resume_coro instance (pointer to that instance
+		 * is in m_ordinary_resume). This modification is assumed to be
+		 * thread-safe because cancellation happens in the destructor of
+		 * notification_messages_t (we assume that no one has access to this
+		 * object anymore) and in this_agent_scheduler_t::do_resumption demand
+		 * handler (and no one can access notification_messages_t at this time).
+		 */
 		struct notification_messages_t
 			{
 				//! Current instance of msg_resume_coro for ordinary
@@ -118,6 +126,7 @@ class this_agent_scheduler_t final
 						cancel_timeout_elapsed();
 					}
 
+			private:
 				//! Cancellation of ordinary resumption only.
 				void
 				cancel_ordinary_resume()
@@ -131,7 +140,6 @@ class this_agent_scheduler_t final
 
 							m_ordinary_resume.reset();
 						}
-
 					}
 
 				//! Cancellation of delayed resumption only.
@@ -150,6 +158,7 @@ class this_agent_scheduler_t final
 						}
 					}
 
+			public:
 				//! Deleter for instances of this type.
 				/*!
 				 * Pointer to this method will be used as deleter for
@@ -217,7 +226,15 @@ class this_agent_scheduler_t final
 			so_5::cpp_coro::resumable_item_t & what_to_handle,
 			so_5::cpp_coro::monotonic_clock_t::duration sleep_time ) override;
 
-		//FIXME: document this!
+		//! Perform actions necessary for resumption of the coroutine.
+		/*!
+		 * This method is called from
+		 * agent_t::demand_handler_for_cpp_coro_resumption().
+		 *
+		 * \note
+		 * The incoming @a cmd maybe not actual at the moment of
+		 * do_resumption invocation. In that case this method does nothing.
+		 */
 		void
 		do_resumption( const msg_resume_coro & cmd );
 	};
