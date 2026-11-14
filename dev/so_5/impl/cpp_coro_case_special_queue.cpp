@@ -212,7 +212,8 @@ cpp_coro_case_special_queue_t::push_evt_finish(
 
 void
 cpp_coro_case_special_queue_t::push_coro_resumption_demand(
-	execution_demand_t demand ) noexcept
+	execution_demand_t demand )
+noexcept
 	{
 		/*
 		 * NOTE: we don't expect a case when wakeup_demand will be inserted into
@@ -247,6 +248,7 @@ cpp_coro_case_special_queue_t::push_coro_resumption_demand(
 cpp_coro_case_special_queue_t::demand_unique_ptr_t
 cpp_coro_case_special_queue_t::try_extract_demand_for_execution(
 	sequential_limit_status_t limit_status )
+noexcept
 	{
 		bool need_push_pending_evt_finish = false;
 

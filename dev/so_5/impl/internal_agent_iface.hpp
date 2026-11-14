@@ -126,8 +126,12 @@ class internal_agent_iface_t final
 				m_agent.m_disp_binder.reset();
 			}
 
-		//FIXME: document this!
 		/*!
+		 * \brief Helper method for accessing coroutine related data.
+		 *
+		 * \note
+		 * Return nullptr if coroutine support wasn't enabled explicitly.
+		 *
 		 * \since v.5.8.7
 		 */
 		cpp_coro_case_agent_data_t *

@@ -45,8 +45,30 @@ struct msg_wakeup_agent final
 //
 // cpp_coro_case_special_queue_t
 //
-//FIXME: document this!
 /*!
+ * \brief Special local agent demand queue.
+ *
+ * If the coroutines support is enabled for the agent then incoming demands
+ * cannot be pushed to the actual dispatcher queue directly. They have to be
+ * buffered and extracted one after another. This class implements such a local
+ * buffer.
+ *
+ * The main idea: then a demand arrives it is stored in this local queue and a
+ * special wakeup demand is pushed to the actual dispatcher queue. When the
+ * agent receives this special wakeup demand it pops buffered demands from the
+ * local queue.
+ *
+ * The wakeup demand will be pushed to the actual dispatcher queue only if:
+ *
+ * - there is no currently running top-level coroutine;
+ * - the local queue is empty.
+ *
+ * If there is currently working coroutine then wakeup demand will be pushed
+ * explicitly after completion of the coroutine.
+ *
+ * If the local queue isn't empty then wakeup demand is already in the actual
+ * dispatcher queue.
+ *
  * \since v.5.8.7
  */
 class cpp_coro_case_special_queue_t final
@@ -97,27 +119,35 @@ class cpp_coro_case_special_queue_t final
 		 */
 		using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 
-		//FIXME: document this!
+		//! Possible states of the current coroutine.
 		enum class current_coroutine_presence_t
 			{
+				//! There is no currently running coroutine.
 				absent,
+				//! A coroutine is running right now.
 				present
 			};
 
+		//! Value that indicates that there is no currently running coroutine.
 		static constexpr current_coroutine_presence_t no_current_coro =
 				current_coroutine_presence_t::absent;
 
+		//! Value that indicates that some coroutine is running now.
 		static constexpr current_coroutine_presence_t current_coro_exists =
 				current_coroutine_presence_t::present;
 
-		//FIXME: document this!
+		//! Possible results of checking how many demands served sequentially.
 		enum class sequential_limit_status_t
 			{
+				//! The limit is not exceeded yet.
 				not_exceeded_yet,
+				//! The limit is exceeded and process of serving existing
+				//! demands has to be interrupted.
 				exceeded
 			};
 
-		//FIXME: document this!
+		//! Helper method for checking how many demands are served
+		//! sequentially.
 		[[nodiscard]] static
 		sequential_limit_status_t
 		check_sequential_limit(
@@ -181,7 +211,17 @@ class cpp_coro_case_special_queue_t final
 		 */
 		std::optional< execution_demand_t > m_pending_evt_finish;
 
-		//FIXME: document this!
+		//! Is the normal work of the queue enabled?
+		/*!
+		 * In normal mode the arrival of a demand to the empty local queue leads
+		 * to pushing the wakeup demand to the actual queue. But if there is a
+		 * non-finished coroutine then normal mode is disabled, all arrived
+		 * demands have to be stored in the local queue without pushing the
+		 * wakeup demand to the actual queue.
+		 *
+		 * The queue returns to the normal mode when the current top-level
+		 * coroutine finishes.
+		 */
 		bool m_normal_work_enabled{ false };
 
 		//! Status of the wakeup_demand.
@@ -245,9 +285,17 @@ class cpp_coro_case_special_queue_t final
 		void
 		bind_actual_queue( event_queue_t * actual_queue );
 
-		//FIXME: document this!
+		//! Switching the queue to the normal working mode.
+		/*!
+		 * This method is intended to be used when agent starts. While
+		 * agent_t::so_evt_start/agent_t::so_evt_async_start not run all normal
+		 * demands are buffered. After the completion of the
+		 * agent_t::so_evt_start/agent_t::so_evt_async_start the queue has to
+		 * be turned into normal working mode.
+		 */
 		void
 		turn_to_normal_working_mode(
+			//! Is there a currently running coroutine?
 			current_coroutine_presence_t current_coroutine_presence ) noexcept;
 
 		void
@@ -259,7 +307,8 @@ class cpp_coro_case_special_queue_t final
 		void
 		push_evt_finish( execution_demand_t demand ) noexcept override;
 
-		//FIXME: document this!
+		//! Push a special demand for coroutine resumption to the
+		//! actual dispatcher queue.
 		/*!
 		 * \attention
 		 * This method must be called only when m_lock is acquired by the
@@ -274,11 +323,27 @@ class cpp_coro_case_special_queue_t final
 		void
 		push_coro_resumption_demand( execution_demand_t demand ) noexcept;
 
-		//FIXME: document this!
+		//! An attempt to extract next demand from local buffer for
+		//! processing by the agent.
+		/*!
+		 * \note
+		 * The lock will be acquired inside this method.
+		 *
+		 * If the local queue is not empty and sequential limit is not
+		 * execeeded then the first demand will be extracted and returned.
+		 * But if sequential limit is already exceeded then nullptr will
+		 * be returned and wakeup demand will be pushed to the actual
+		 * dispatcher demand.
+		 *
+		 * \note
+		 * This method is marked as noexcept because if an attempt to push wakeup
+		 * demand to the actual dispatcher queue fails then it's impossible to
+		 * resume the normal processing of events for this agent.
+		 */
 		[[nodiscard]]
 		demand_unique_ptr_t
 		try_extract_demand_for_execution(
-			sequential_limit_status_t limit_status );
+			sequential_limit_status_t limit_status ) noexcept;
 
 		//! Give away the pointer to the actual_queue.
 		/*!
