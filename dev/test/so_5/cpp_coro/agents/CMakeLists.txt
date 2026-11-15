@@ -38,3 +38,5 @@ add_subdirectory(foreign_awaitable_2)
 add_subdirectory(foreign_awaitable_3)
 
 add_subdirectory(queue_size_limit)
+
+add_subdirectory(message_limits)
