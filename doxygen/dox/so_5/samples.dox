@@ -54,6 +54,7 @@
  * \example so_5/nohandler_msg_tracing/main.cpp
  * \example so_5/parent_coop/main.cpp
  * \example so_5/ping_pong/main.cpp
+ * \example so_5/ping_pong_async_agents/main.cpp
  * \example so_5/ping_pong_minimal/main.cpp
  * \example so_5/ping_pong_with_owner/main.cpp
  * \example so_5/prio_work_stealing/main.cpp
