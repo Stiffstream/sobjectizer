@@ -26,6 +26,7 @@
  * \example so_5/exception_reaction/main.cpp
  * \example so_5/hardwork_imit/main.cpp
  * \example so_5/hello_all/main.cpp
+ * \example so_5/hello_async/main.cpp
  * \example so_5/hello_delay/main.cpp
  * \example so_5/hello_evt_handler/main.cpp
  * \example so_5/hello_evt_lambda/main.cpp

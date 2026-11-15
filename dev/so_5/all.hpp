@@ -44,5 +44,9 @@
 
 #include <so_5/msg_tracing_individual.hpp>
 
+#include <so_5/cpp_coro/scheduler.hpp>
+#include <so_5/cpp_coro/this_thread_scheduler.hpp>
+#include <so_5/cpp_coro/mchain_select.hpp>
+
 #endif
 
