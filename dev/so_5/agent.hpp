@@ -433,7 +433,7 @@ class subscription_bind_t
 		void
 		create_subscription_for_states(
 			const std::type_index & msg_type,
-			const sync_event_handler_method_t & method,
+			const event_handler_method_t & method,
 			thread_safety_t thread_safety,
 			event_handler_kind_t handler_kind ) const;
 
@@ -1552,7 +1552,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const sync_event_handler_method_t & method,
+			const event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety,
 			//! Kind of that event handler.
@@ -2114,7 +2114,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & msg_type,
 			//! Event handler caller.
-			const sync_event_handler_method_t & method,
+			const event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety );
 
@@ -4029,7 +4029,7 @@ subscription_bind_t::just_switch_to(
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
-	const sync_event_handler_method_t & method,
+	const event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind ) const
 {

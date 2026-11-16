@@ -65,6 +65,9 @@ using event_handler_holder_t = std::variant<
 		async_event_handler_method_t
 	>;
 
+//FIXME: document this!
+using event_handler_method_t = event_handler_holder_t;
+
 namespace low_level_api
 {
 
