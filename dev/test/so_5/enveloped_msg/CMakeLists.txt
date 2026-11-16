@@ -7,6 +7,7 @@ add_subdirectory(simple_delivery_filter)
 add_subdirectory(simple_mchain_delivery)
 add_subdirectory(simple_mchain_timer)
 add_subdirectory(mchain_handled_count)
+add_subdirectory(mchain_handled_count_2)
 
 add_subdirectory(message_limits)
 

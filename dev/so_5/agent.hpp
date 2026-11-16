@@ -39,6 +39,10 @@
 
 #include <so_5/disp_binder.hpp>
 
+#include <so_5/cpp_coro/scheduler.hpp>
+
+#include <so_5/cpp_coro/details/top_level_task.hpp>
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -429,7 +433,7 @@ class subscription_bind_t
 		void
 		create_subscription_for_states(
 			const std::type_index & msg_type,
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			thread_safety_t thread_safety,
 			event_handler_kind_t handler_kind ) const;
 
@@ -527,32 +531,35 @@ struct working_thread_id_sentinel_t
 	It should be reimplemented for the initial subscription of the agent
 	to messages.
 
-	There are two hook-methods related to important agent's lifetime events:
+	There are several hook-methods related to important agent's lifetime events:
 	agent_t::so_evt_start() and agent_t::so_evt_finish(). They are called
 	by SObjectizer in next circumstances:
 	- method so_evt_start() is called when the agent is starting its work
 	  inside of SObjectizer. At that moment all agents are defined (all 
 	  their methods agent_t::so_define_agent() have executed);
+	- method so_evt_async_start() is called just after successful completion
+	  of so_evt_start() if C++20 coroutines are enabled for the agent;
 	- method so_evt_finish() is called during the agent's cooperation
 	  deregistration just after agent processed the last pending event.
 
-	Methods so_evt_start() and so_evt_finish() are called by SObjectizer and
-	user can just reimplement them to implement the agent-specific logic.
+	Methods so_evt_start(), so_evt_async_start() and so_evt_finish() are called
+	by SObjectizer and user can just reimplement them to implement the
+	agent-specific logic.
 
 	<b>Message subscription and unsubscription methods</b>
 
 	Any method with one of the following prototypes can be used as an event
 	handler:
 	\code
-		return_type evt_handler( mhood_t< Message > msg );
-		return_type evt_handler( const mhood_t< Message > & msg );
-		return_type evt_handler( const Message & msg );
-		return_type evt_handler( Message msg );
+		void evt_handler( mhood_t< Message > msg );
+		void evt_handler( const mhood_t< Message > & msg );
+		void evt_handler( const Message & msg );
+		void evt_handler( Message msg );
 		// Since v.5.5.20:
-		return_type evt_handler( mhood_t< Message > msg ) const;
-		return_type evt_handler( const mhood_t< Message > & msg ) const;
-		return_type evt_handler( const Message & msg ) const;
-		return_type evt_handler( Message msg ) const;
+		void evt_handler( mhood_t< Message > msg ) const;
+		void evt_handler( const mhood_t< Message > & msg ) const;
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg ) const;
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c Message is a 
 	message type.
@@ -565,12 +572,29 @@ struct working_thread_id_sentinel_t
 	Please note that handlers with the following prototypes can be used
 	only for messages, not signals:
 	\code
-		return_type evt_handler( const Message & msg );
-		return_type evt_handler( Message msg );
+		void evt_handler( const Message & msg );
+		void evt_handler( Message msg );
 		// Since v.5.5.20:
-		return_type evt_handler( const Message & msg ) const;
-		return_type evt_handler( Message msg ) const;
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg ) const;
 	\endcode
+
+	If C++20 coroutines support is enabled for an agent then asynchronous
+	event handlers have to have one of the following prototypes:
+
+	\code
+		so_5::cpp_coro::task_t<void> evt_handler( mhood_t< Message > msg );
+		so_5::cpp_coro::task_t<void> evt_handler( const mhood_t< Message > & msg );
+		so_5::cpp_coro::task_t<void> evt_handler( const Message & msg );
+		so_5::cpp_coro::task_t<void> evt_handler( Message msg );
+		so_5::cpp_coro::task_t<void> evt_handler( mhood_t< Message > msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( const mhood_t< Message > & msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( const Message & msg ) const;
+		so_5::cpp_coro::task_t<void> evt_handler( Message msg ) const;
+	\endcode
+
+	If asynchronous event handler is represented by a lambda function then
+	this lambda has to return so_5::cpp_coro::task_t<void>.
 
 	A subscription to the message is performed by the methods so_subscribe()
 	and so_subscribe_self().
@@ -595,13 +619,13 @@ struct working_thread_id_sentinel_t
 	function. Deadletter handler can have one of the following formats:
 	\code
 		void evt_handler( mhood_t< Message > msg );
-		void return_type evt_handler( mhood_t< Message > msg ) const;
-		void return_type evt_handler( const mhood_t< Message > & msg );
-		void return_type evt_handler( const mhood_t< Message > & msg ) const;
-		void return_type evt_handler( const Message & msg );
-		void return_type evt_handler( const Message & msg ) const;
-		void return_type evt_handler( Message msg );
-		void return_type evt_handler( Message msg ) const;
+		void evt_handler( mhood_t< Message > msg ) const;
+		void evt_handler( const mhood_t< Message > & msg );
+		void evt_handler( const mhood_t< Message > & msg ) const;
+		void evt_handler( const Message & msg );
+		void evt_handler( const Message & msg ) const;
+		void evt_handler( Message msg );
+		void evt_handler( Message msg ) const;
 	\endcode
 
 	Subscription for a deadletter handler can be created by
@@ -870,6 +894,49 @@ class SO_5_TYPE agent_t
 		*/
 		virtual void
 		so_evt_start();
+
+		//! Hook on async start for agent inside SObjectizer.
+		/*!
+		 * \note
+		 * This method is used only if the support for C++20 coroutines is
+		 * enabled in the agent. Otherwise, it will not be called at all.
+		 *
+		 * If support for C++20 coroutines is enabled then SObjectizer calls
+		 * so_evt_async_start() just after a successful completion of
+		 * so_evt_start(). If so_evt_start() throws then so_evt_async_start()
+		 * won't be called.
+		 *
+		 * This method could be useful if agent has to do some async actions
+		 * at the start.
+		 *
+		 * \code
+		 * class a_sample_t : public so_5::agent_t
+		 * {
+		 * 	...
+		 * public:
+		 * 	a_sample_t(context_t ctx)
+		 * 		// Support for C++20 coroutines has to be enabled.
+		 * 		so_5::agent_t{ctx + so_5::enable_cpp_coro()}
+		 * 	{...}
+		 *
+		 * 	so_5::cpp_coro::task_t<void>
+		 * 	so_evt_start_event() override
+		 * 	{
+		 * 		// Initiate one or more asynchronous operations.
+		 * 		co_await ...;
+		 * 		...
+		 * 	}
+		 * };
+		 * \endcode
+		 *
+		 * \note
+		 * The default implementation in agent_t does nothing.
+		 *
+		 * \since v.5.8.7
+		 */
+		virtual
+		so_5::cpp_coro::task_t< void >
+		so_evt_async_start();
 
 		//! Hook of agent finish in SObjectizer.
 		/*!
@@ -1485,7 +1552,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety,
 			//! Kind of that event handler.
@@ -2047,7 +2114,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const std::type_index & msg_type,
 			//! Event handler caller.
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety );
 
@@ -2138,7 +2205,8 @@ class SO_5_TYPE agent_t
 				so_create_deadletter_subscription(
 						mbox,
 						ev.m_msg_type,
-						ev.m_handler,
+						so_5::low_level_api::query_ref_to_sync_handler(
+								ev.m_handler ),
 						thread_safety );
 			}
 
@@ -2816,6 +2884,38 @@ class SO_5_TYPE agent_t
 		agent_identity_t
 		so_agent_name() const noexcept;
 
+		/*!
+		 * \brief Get a reference to C++20 coroutine scheduler associated
+		 * with this agent.
+		 *
+		 * This method maybe useful in case if you want to start an async
+		 * operation that has to be completed on execution context associated
+		 * with this agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		[[nodiscard]]
+		so_5::cpp_coro::scheduler_t &
+		so_this_agent_scheduler() const;
+
+		/*!
+		 * \brief Helper method for C++20 coroutines execution.
+		 *
+		 * \attention
+		 * This is a low-level detail of SObjectizer implementation. Please
+		 * don't use it in your application code. This method could be changed
+		 * or removed without a prior notice.
+		 *
+		 * \note
+		 * This method is declared as public for simplification of code
+		 * related to wrapping asynchronous event handlers.
+		 *
+		 * \since v.5.8.7
+		 */
+		void
+		so_execute_top_level_task(
+			so_5::cpp_coro::details::top_level_task_t< void > what );
+
 	private:
 		const state_t st_default{ self_ptr(), "<DEFAULT>" };
 
@@ -3085,6 +3185,17 @@ class SO_5_TYPE agent_t
 		/// \since v.5.8.5
 		const demands_handling_on_dereg_t m_demands_handling_on_dereg;
 
+		/*!
+		 * \brief Data related to C++20 coroutines support.
+		 *
+		 * \attention
+		 * This field will be defined only if coroutines support is enabled
+		 * in the agent's context.
+		 *
+		 * \since v.5.8.7
+		 */
+		std::unique_ptr< impl::cpp_coro_case_agent_data_t > m_cpp_coro_data;
+
 		//! Destroy all agent's subscriptions.
 		/*!
 		 * \note
@@ -3311,6 +3422,46 @@ class SO_5_TYPE agent_t
 		 */
 		static demand_handler_pfn_t
 		get_demand_handler_on_enveloped_msg_ptr() noexcept;
+
+		/*!
+		 * \brief Handles cases when C++20 coroutines are supported
+		 * by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static void
+		demand_handler_on_wakeup_msg(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
+
+		/*!
+		 * \brief Get pointer to demand handler for case when C++20
+		 * coroutines are supported by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_on_wakeup_msg_ptr() noexcept;
+
+		/*!
+		 * \brief Handles cases when C++20 coroutines are supported
+		 * by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static void
+		demand_handler_for_cpp_coro_resumption(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
+
+		/*!
+		 * \brief Get pointer to demand handler for case when C++20
+		 * coroutines are supported by the agent.
+		 *
+		 * \since v.5.8.7
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_for_cpp_coro_resumption_ptr() noexcept;
 		/*!
 		 * \}
 		 */
@@ -3344,7 +3495,7 @@ class SO_5_TYPE agent_t
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d,
 			thread_safety_t thread_safety,
-			event_handler_method_t method );
+			sync_event_handler_method_t method );
 
 		/*!
 		 * \brief Actual implementation of enveloped message handling.
@@ -3661,9 +3812,9 @@ subscription_bind_t::event(
 	using namespace details::event_subscription_helpers;
 
 	const auto ev = preprocess_agent_event_handler( m_mbox_ref, *m_agent, pfn );
-	create_subscription_for_states( 
+	create_subscription_for_states(
 			ev.m_msg_type,
-			ev.m_handler,
+			so_5::low_level_api::query_ref_to_sync_handler( ev.m_handler ),
 			thread_safety,
 			event_handler_kind_t::final_handler );
 
@@ -3687,7 +3838,7 @@ subscription_bind_t::event(
 
 	create_subscription_for_states(
 			ev.m_msg_type,
-			ev.m_handler,
+			so_5::low_level_api::query_ref_to_sync_handler( ev.m_handler ),
 			thread_safety,
 			event_handler_kind_t::final_handler );
 
@@ -3878,7 +4029,7 @@ subscription_bind_t::just_switch_to(
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind ) const
 {

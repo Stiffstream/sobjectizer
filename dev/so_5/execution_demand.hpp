@@ -4,8 +4,7 @@
 
 /*!
 	\file
-	\since
-	v.5.4.0
+	\since v.5.4.0
 
 	\brief Event-related stuff.
 */
@@ -20,19 +19,182 @@
 
 #include <so_5/message.hpp>
 
+#include <so_5/cpp_coro/task.hpp>
+
+#include <so_5/exception.hpp>
+
+#include <variant>
+
 namespace so_5
 {
 
 //
-// event_handler_method_t
+// sync_event_handler_method_t
 //
 /*!
- * \since
- * v.5.3.0
+ * \brief Holder of a synchronous handler for a message.
  *
- * \brief Type of event handler method.
+ * \since v.5.8.7
  */
-using event_handler_method_t = std::function< void(message_ref_t &) >;
+using sync_event_handler_method_t = std::function< void(message_ref_t &) >;
+
+//
+// async_event_handler_method_t
+//
+/*!
+ * \brief Holder of asynchronous handler for a message.
+ *
+ * \since v.5.8.7
+ */
+using async_event_handler_method_t = std::function<
+		so_5::cpp_coro::task_t<void>(message_ref_t) >;
+
+//
+// event_handler_holder_t
+//
+/*!
+ * \brief Type of holder of a handler for a message.
+ *
+ * This type can hold different types of handlers (synchronous
+ * and asynchronous).
+ *
+ * \since v.5.8.7
+ */
+using event_handler_holder_t = std::variant<
+		sync_event_handler_method_t,
+		async_event_handler_method_t
+	>;
+
+namespace low_level_api
+{
+
+/*!
+ * \brief Helper function to extract a reference to synchronous event
+ * handler.
+ *
+ * \attention
+ * It throws if @a holder contains asynchronous handler.
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]] inline
+const sync_event_handler_method_t &
+query_ref_to_sync_handler(
+	const event_handler_holder_t & holder )
+	{
+		const auto * handler = std::get_if<sync_event_handler_method_t>(
+				std::addressof(holder) );
+		if( !handler )
+			SO_5_THROW_EXCEPTION( rc_sync_handler_expected,
+					"synchronous event handler is expected, but asynchronous "
+					"is found" );
+
+		return *handler;
+	}
+
+/*!
+ * \brief Helper function to extract a reference to asynchronous event
+ * handler.
+ *
+ * \attention
+ * It throws if @a holder contains synchronous handler.
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]] inline
+const async_event_handler_method_t &
+query_ref_to_async_handler(
+	const event_handler_holder_t & holder )
+	{
+		const auto * handler = std::get_if<async_event_handler_method_t>(
+				std::addressof(holder) );
+		if( !handler )
+			{
+				SO_5_THROW_EXCEPTION( rc_async_handler_expected,
+						"asynchronous event handler is expected, but synchronous "
+						"is found" );
+			}
+
+		return *handler;
+	}
+
+/*!
+ * \brief Helper method for calling synchronous event handler.
+ *
+ * \attention
+ * It throws if @a holder contains asynchronous handler.
+ *
+ * \since v.5.8.7
+ */
+inline void
+invoke_sync_event_handler(
+	const event_handler_holder_t & holder,
+	message_ref_t & msg )
+	{
+		query_ref_to_sync_handler( holder )( msg );
+	}
+
+/*!
+ * \brief Helper method for calling asynchronous event handler.
+ *
+ * \note
+ * This helper doesn't use co_await, it just creates a task object and
+ * returns it. The co_await has to be applied outside.
+ *
+ * \attention
+ * It throws if @a holder contains synchronous handler.
+ *
+ * \since v.5.8.7
+ */
+inline
+so_5::cpp_coro::task_t< void >
+invoke_async_event_handler(
+	const event_handler_holder_t & holder,
+	message_ref_t msg )
+	{
+		return (query_ref_to_async_handler( holder )( std::move(msg) ));
+	}
+
+/*!
+ * \brief Special helper for be used with std::visitor.
+ *
+ * If applied to sync_event_handler_method_t then emulates an asynchronous
+ * call that completes immediately.
+ *
+ * \since v.5.8.7
+ */
+class any_handler_as_async_invoker_t
+	{
+		/// Message to be passed to the handler.
+		message_ref_t & m_msg_ref;
+
+	public :
+		any_handler_as_async_invoker_t(
+			message_ref_t & msg_ref )
+			: m_msg_ref{ msg_ref }
+			{}
+
+		so_5::cpp_coro::task_t< void >
+		operator()( const sync_event_handler_method_t & sync_handler )
+			{
+				sync_handler( m_msg_ref );
+
+				// This co_return is needed here to transform the code
+				// into a coroutine.
+				co_return;
+			}
+
+		so_5::cpp_coro::task_t< void >
+		operator()( const async_event_handler_method_t & async_handler )
+			{
+				// NOTE: there is no need to do co_return/co_await here,
+				// just return of task_t object from async_handler.
+				// The co_await will be applied to this object later.
+				return async_handler( std::move(m_msg_ref) );
+			}
+	};
+
+} /* namespace low_level_api */
 
 struct execution_demand_t;
 
@@ -212,23 +374,21 @@ namespace details {
 // msg_type_and_handler_pair_t
 //
 /*!
- * \since
- * v.5.5.13
- *
  * \brief Description of an event handler.
+ *
+ * \since v.5.5.13
  */
 struct msg_type_and_handler_pair_t
 	{
 		//! Type of a message or signal.
 		std::type_index m_msg_type;
 		//! A handler for processing this message or signal.
-		event_handler_method_t m_handler;
+		event_handler_holder_t m_handler;
 		//! What message is expected by handler: mutable or immutable.
 		/*!
 		 * By default immutable message is expected.
 		 *
-		 * \since
-		 * v.5.5.19
+		 * \since v.5.5.19
 		 */
 		message_mutability_t m_mutability;
 
@@ -254,7 +414,7 @@ struct msg_type_and_handler_pair_t
 			//! Type of a message or signal.
 			std::type_index msg_type,
 			//! A handler for processing this message or signal.
-			event_handler_method_t handler,
+			event_handler_holder_t handler,
 			//! What message is expected by handler: mutable or immutable?
 			message_mutability_t mutability )
 			:	m_msg_type{ std::move(msg_type) }

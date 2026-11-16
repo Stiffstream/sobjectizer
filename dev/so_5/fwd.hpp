@@ -30,6 +30,8 @@ class layer_core_t;
 class state_switch_guard_t;
 class sinks_storage_t;
 
+struct cpp_coro_case_agent_data_t;
+
 } /* namespace impl */
 
 class abstract_message_sink_t;

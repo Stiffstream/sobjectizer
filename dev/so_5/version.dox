@@ -2,6 +2,11 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_8_6 5.8.6 "Salin"
+
+The most significant change is the removal of MxxRu build files. Since this
+version, the only build tool is CMake.
+
 \section so_5__5_8_5 5.8.5 "San Fransisco"
 
 Implementation of so_5::state_t::time_limit has been changed. Now it is more

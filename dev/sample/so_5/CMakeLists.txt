@@ -87,3 +87,6 @@ add_subdirectory(agent_name)
 add_subdirectory(mchain_empty_notificator)
 add_subdirectory(mchain_empty_notificator_2)
 
+add_subdirectory(hello_async)
+add_subdirectory(ping_pong_async_agents)
+

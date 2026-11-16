@@ -1,114 +1,119 @@
 /*
- * SObjectizer-5
- */
+* SObjectizer-5
+*/
 
 /*!
- * \file
- * \brief Testing related stuff.
- *
- * \since v.5.5.24
- */
+* \file
+* \brief Testing related stuff.
+*
+* \since v.5.5.24
+*/
 
 #include <so_5/experimental/testing/v1/all.hpp>
 
 #include <so_5/details/safe_cv_wait_for.hpp>
 
 #include <so_5/impl/enveloped_msg_details.hpp>
+#include <so_5/impl/internal_agent_iface.hpp>
+#include <so_5/impl/cpp_coro_case_agent_data.hpp>
+
+#include <syncstream>
+#include <iostream>
 
 namespace so_5 {
-	
+
 namespace experimental {
-	
+
 namespace testing {
-	
+
 inline namespace v1 {
 
 namespace details {
 
 trigger_t::trigger_t(
-	incident_status_t incident_status,
-	const agent_t & target,
-	std::type_index msg_type,
-	mbox_id_t src_mbox_id )
-	:	m_incident_status( incident_status )
-	,	m_target_agent( target )
-	,	m_target_id( target.so_direct_mbox()->id() )
-	,	m_msg_type( std::move(msg_type) )
-	,	m_src_mbox_id( src_mbox_id )
-	{}
+incident_status_t incident_status,
+const agent_t & target,
+std::type_index msg_type,
+mbox_id_t src_mbox_id )
+:	m_incident_status( incident_status )
+,	m_target_agent( target )
+,	m_target_id( target.so_direct_mbox()->id() )
+,	m_msg_type( std::move(msg_type) )
+,	m_src_mbox_id( src_mbox_id )
+{}
 
 trigger_t::~trigger_t()
-	{}
+{}
 
 [[nodiscard]]
 const agent_t &
 trigger_t::target_agent() const noexcept
-	{
-		return m_target_agent;
-	}
+{
+	return m_target_agent;
+}
 
 void
 trigger_t::set_completion( completion_function_t fn )
-	{
-		if( !m_completion )
-			// Simple store the new function.
-			m_completion = std::move(fn);
-		else
-			{
-				// We have to join the old and the new ones.
-				completion_function_t joined_version =
-					[old_fn = m_completion, new_fn = std::move(fn)]
-					( const trigger_completion_context_t & ctx ) {
-						// NOTE: don't care about exception because completion
-						// functions have to be noexcept.
-						old_fn( ctx );
-						new_fn( ctx );
-					};
+{
+	if( !m_completion )
+		// Simple store the new function.
+		m_completion = std::move(fn);
+	else
+		{
+			// We have to join the old and the new ones.
+			completion_function_t joined_version =
+				[old_fn = m_completion, new_fn = std::move(fn)]
+				( const trigger_completion_context_t & ctx ) {
+					// NOTE: don't care about exception because completion
+					// functions have to be noexcept.
+					old_fn( ctx );
+					new_fn( ctx );
+				};
 
-				m_completion = std::move(joined_version);
-			}
-	}
+			m_completion = std::move(joined_version);
+		}
+}
 
 void
 trigger_t::set_activation( activation_function_t fn )
-	{
-		if( !m_activation )
-			// Simple store the new function.
-			m_activation = std::move(fn);
-		else
-			{
-				// We have to join the old and the new ones.
-				activation_function_t joined_version =
-					[old_fn = m_activation, new_fn = std::move(fn)]
-					( const trigger_activation_context_t & ctx ) {
-						// NOTE: don't care about exception because completion
-						// functions have to be noexcept.
-						old_fn( ctx );
-						new_fn( ctx );
-					};
+{
+	if( !m_activation )
+		// Simple store the new function.
+		m_activation = std::move(fn);
+	else
+		{
+			// We have to join the old and the new ones.
+			activation_function_t joined_version =
+				[old_fn = m_activation, new_fn = std::move(fn)]
+				( const trigger_activation_context_t & ctx ) {
+					// NOTE: don't care about exception because completion
+					// functions have to be noexcept.
+					old_fn( ctx );
+					new_fn( ctx );
+				};
 
-				m_activation = std::move(joined_version);
-			}
-	}
+			m_activation = std::move(joined_version);
+		}
+}
 
 [[nodiscard]]
 bool
 trigger_t::check(
-	const incident_status_t incident_status,
-	const incident_info_t & info ) const noexcept
-	{
-		return incident_status == m_incident_status
-				&& info.m_agent->so_direct_mbox()->id() == m_target_id
-				&& info.m_msg_type == m_msg_type
-				&& info.m_src_mbox_id == m_src_mbox_id;
-	}
+const incident_status_t incident_status,
+const incident_info_t & info ) const noexcept
+{
+	return incident_status == m_incident_status
+			&& info.m_agent->so_direct_mbox()->id() == m_target_id
+			&& info.m_msg_type == m_msg_type
+			&& info.m_src_mbox_id == m_src_mbox_id;
+}
 
 [[nodiscard]]
 bool
 trigger_t::requires_completion() const noexcept
-	{
-		return static_cast<bool>(m_completion);
-	}
+{
+	return static_cast<bool>(m_completion);
+}
 
 void
 trigger_t::activate(
@@ -955,6 +960,51 @@ namespace impl {
 
 namespace details = so_5::experimental::testing::v1::details;
 
+//
+// postponed_post_handler_hook_caller_t
+//
+/*!
+ * \brief Special watcher for the current coroutine completion.
+ *
+ * If event handler starts a coroutine then we can't call post_handler_hook
+ * just after the completion of the event handler. We have to wait while
+ * the coroutine completes. To do this an instance of this type will be
+ * installed as coutine watcher in the agent's cpp_coro_data.
+ *
+ * The post_handler_hook is called in the on_completion() method.
+ *
+ * \since v.5.8.7
+ */
+class postponed_post_handler_hook_caller_t final
+	: public so_5::impl::cpp_coro_completion_watcher_t
+	{
+		//! Scenario for that hook has to be called.
+		/*!
+		 * \note
+		 * It's assumed that we can store the reference to the scenario
+		 * here. It's because the scenario has to overlive the agents
+		 * in the testing environment.
+		 */
+		outliving_reference_t< details::abstract_scenario_t > m_scenario;
+
+		//! The token to be passed to the hook.
+		details::abstract_scenario_t::token_t m_token;
+
+	public:
+		//! Initializing constructor.
+		postponed_post_handler_hook_caller_t(
+			outliving_reference_t< details::abstract_scenario_t > scenario,
+			details::abstract_scenario_t::token_t token )
+			: m_scenario{ scenario }
+			, m_token{ std::move(token) }
+			{}
+
+		void
+		on_completion() noexcept override
+			{
+				m_scenario.get().post_handler_hook( m_token );
+			}
+	};
 
 /*!
  * \brief A special envelope that is necessary for testing scenarios.
@@ -1009,6 +1059,9 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 		//! A special invoker to be used to call pre_handler_hook.
 		class pre_handler_hook_invoker_t final : public handler_invoker_t
 			{
+				//! Receiver of the demand.
+				agent_t * m_receiver;
+
 				//! Owner of this invoker.
 				outliving_reference_t< special_envelope_t > m_owner;
 
@@ -1018,17 +1071,21 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 			public:
 				//! Intializing constructor.
 				pre_handler_hook_invoker_t(
+					//! Receiver of the demand.
+					agent_t * receiver,
 					//! Owner of this invoker.
 					outliving_reference_t< special_envelope_t > owner,
 					//! Invoker to be used to call the actual event handler.
 					outliving_reference_t< handler_invoker_t > actual_invoker )
-					:	m_owner{ owner }
+					:	m_receiver{ receiver }
+					,	m_owner{ owner }
 					,	m_actual_invoker{ actual_invoker }
 					{}
 
 				void
 				invoke( const payload_info_t & payload ) noexcept override
 					{
+
 						// We must get token...
 						auto token = m_owner.get()
 								.m_scenario.get()
@@ -1039,8 +1096,34 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 						// Actual event handler has to be called.
 						m_actual_invoker.get().invoke( payload );
 
-						// And now the token must be passed back.
-						m_owner.get().m_scenario.get().post_handler_hook( token );
+						// In case of non-finished C++ coroutine we can't
+						// call post_handler_hook right now. This call has to
+						// be postponed.
+						auto * cpp_coro_data =
+								so_5::impl::internal_agent_iface_t{ *m_receiver }
+								.access_cpp_coro_data();
+						if( cpp_coro_data &&
+								cpp_coro_data->m_current_top_level_task.has_value() )
+							{
+								// Special caller has to be created and stored along
+								// with the current coroutine.
+								using caller_t =
+										postponed_post_handler_hook_caller_t;
+
+								cpp_coro_data->m_current_completion_watcher =
+										std::make_unique< caller_t >(
+												m_owner.get().m_scenario,
+												token );
+							}
+						else
+							{
+								// There is no non-finished coroutine, so the
+								// post_handler_hook can be called right now.
+
+								// And now the token must be passed back.
+								m_owner.get().m_scenario.get().post_handler_hook(
+										token );
+							}
 					}
 			};
 
@@ -1175,6 +1258,7 @@ class special_envelope_t final : public so_5::enveloped_msg::envelope_t
 							// This invoker will call pre/post_handler_hooks and
 							// the actual event-handler.
 							pre_handler_hook_invoker_t pre_handler_hook_invoker{
+									m_demand_info.m_agent,
 									outliving_mutable( *this ),
 									outliving_mutable( invoker )
 								};
@@ -1263,6 +1347,49 @@ enum class queue_mode_t
  */
 class special_event_queue_t final : public event_queue_t
 	{
+		/*!
+		 * \brief What kind of a demand has to be stored in temporary
+		 * queue.
+		 *
+		 * It's very important to distinguish between
+		 * event_queue_t::push, event_queue_t::push_evt_start and
+		 * event_queue_t::push_evt_finish methods when demands from
+		 * the temporary queue are moved to the appropriate queues.
+		 * The flag of type demand_kind_t will help to call the
+		 * right method of the destination queue.
+		 *
+		 * \since v.5.8.7
+		 */
+		enum class demand_kind_t
+			{
+				ordinary,
+				evt_start,
+				evt_finish
+			};
+
+		/*!
+		 * \brief Actual type of the demand to be stored in the
+		 * temporary queue.
+		 *
+		 * \since v.5.8.7
+		 */
+		struct buffered_demand_t
+			{
+				//! Actual demand.
+				execution_demand_t m_demand;
+
+				//! What kind of demand?
+				demand_kind_t m_kind;
+
+				//! Initializing constructor.
+				buffered_demand_t(
+					execution_demand_t demand,
+					demand_kind_t kind )
+					: m_demand{ std::move(demand) }
+					, m_kind{ kind }
+					{}
+			};
+
 		//! Object lock.
 		/*!
 		 * All operations will be performed under that lock.
@@ -1277,7 +1404,7 @@ class special_event_queue_t final : public event_queue_t
 		//! The current mode of operation.
 		queue_mode_t m_mode;
 		//! Local storage for demands to be used in buffered mode.
-		std::vector< execution_demand_t > m_buffer;
+		std::vector< buffered_demand_t > m_buffer;
 
 		static bool
 		is_ordinary_demand( const execution_demand_t & demand ) noexcept
@@ -1288,15 +1415,49 @@ class special_event_queue_t final : public event_queue_t
 								demand.m_demand_handler;
 			}
 
+		static void
+		push_to_target_queue_by_appropriate_way(
+			//! The destination for the demand,
+			event_queue_t & target,
+			//! What to push.
+			execution_demand_t demand,
+			//! What kind of demand it is.
+			demand_kind_t kind )
+			{
+				switch( kind )
+					{
+					case demand_kind_t::ordinary:
+						target.push( std::move(demand) );
+					break;
+
+					case demand_kind_t::evt_start:
+						target.push_evt_start( std::move(demand) );
+					break;
+
+					case demand_kind_t::evt_finish:
+						target.push_evt_finish( std::move(demand) );
+					break;
+					}
+			}
+
 		void
-		push_to_queue( execution_demand_t demand )
+		push_to_queue(
+			//! What to push.
+			execution_demand_t demand,
+			//! What kind of demand it is.
+			demand_kind_t kind )
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
 				if( queue_mode_t::buffer == m_mode )
-					m_buffer.push_back( std::move(demand) );
+					m_buffer.emplace_back( std::move(demand), kind );
 				else
-					m_original_queue.get().push( std::move(demand) );
+					{
+						push_to_target_queue_by_appropriate_way(
+								m_original_queue.get(),
+								std::move(demand),
+								kind );
+					}
 			}
 
 	public :
@@ -1312,9 +1473,32 @@ class special_event_queue_t final : public event_queue_t
 		void
 		push( execution_demand_t demand ) override
 			{
-				if( !is_ordinary_demand( demand ) )
-					// Demand must go into the original queue without transformations.
-					push_to_queue( std::move(demand) );
+				if( agent_t::get_demand_handler_on_wakeup_msg_ptr() ==
+						demand.m_demand_handler )
+					{
+						// This wakeup demand should go directly to the queue.
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::ordinary );
+					}
+				else if( agent_t::get_demand_handler_on_start_ptr() ==
+						demand.m_demand_handler )
+					{
+						// Demand must go into the original queue without
+						// transformations.
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::evt_start );
+					}
+				else if( agent_t::get_demand_handler_on_finish_ptr() ==
+						demand.m_demand_handler )
+					{
+						// Demand must go into the original queue without
+						// transformations.
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::evt_start );
+					}
 				else
 					{
 						// Original message must be wrapped into a special
@@ -1329,7 +1513,9 @@ class special_event_queue_t final : public event_queue_t
 						demand.m_demand_handler =
 								agent_t::get_demand_handler_on_enveloped_msg_ptr();
 
-						push_to_queue( std::move(demand) );
+						push_to_queue(
+								std::move(demand),
+								demand_kind_t::ordinary );
 					}
 			}
 
@@ -1337,14 +1523,18 @@ class special_event_queue_t final : public event_queue_t
 		push_evt_start( execution_demand_t demand ) override
 			{
 				// Demand must go into the original queue without transformations.
-				push_to_queue( std::move(demand) );
+				push_to_queue(
+						std::move(demand),
+						demand_kind_t::evt_start );
 			}
 
 		void
 		push_evt_finish( execution_demand_t demand ) noexcept override
 			{
 				// Demand must go into the original queue without transformations.
-				push_to_queue( std::move(demand) );
+				push_to_queue(
+						std::move(demand),
+						demand_kind_t::evt_finish );
 			}
 
 		void
@@ -1359,7 +1549,12 @@ class special_event_queue_t final : public event_queue_t
 					m_mode = queue_mode_t::direct;
 
 					for( auto & d : m_buffer )
-						m_original_queue.get().push( std::move(d) );
+						{
+							push_to_target_queue_by_appropriate_way(
+									m_original_queue.get(),
+									std::move(d.m_demand),
+									d.m_kind );
+						}
 
 					using std::swap;
 					swap( tmp, m_buffer );

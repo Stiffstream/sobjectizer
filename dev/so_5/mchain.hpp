@@ -15,6 +15,7 @@
 #include <so_5/mbox.hpp>
 #include <so_5/handler_makers.hpp>
 #include <so_5/exception_control_flags.hpp>
+#include <so_5/outliving.hpp>
 
 #include <so_5/fwd.hpp>
 
@@ -45,8 +46,9 @@ namespace details {
  *
  * \since v.5.5.13
  */
-inline duration_t
-no_wait_special_timevalue() { return duration_t::zero(); }
+[[nodiscard]] inline constexpr
+duration_t
+no_wait_special_timevalue() noexcept { return duration_t::zero(); }
 
 //
 // infinite_wait_special_timevalue
@@ -56,7 +58,8 @@ no_wait_special_timevalue() { return duration_t::zero(); }
  *
  * \since v.5.5.13
  */
-inline duration_t
+[[nodiscard]] inline constexpr
+duration_t
 infinite_wait_special_timevalue() { return duration_t::max(); }
 
 //
@@ -1638,11 +1641,13 @@ class receive_actions_performer_t
 
 				if( extraction_status_t::msg_extracted == m_status )
 					{
+						using enum so_5::details::find_then_call_result_t;
+
 						++m_extracted_messages;
-						const bool handled = m_bunch.handle(
+						const auto handled = m_bunch.handle(
 								extracted_demand.m_msg_type,
 								extracted_demand.m_message_ref );
-						if( handled )
+						if( found_and_called == handled )
 							++m_handled_messages;
 					}
 				// Since v.5.5.17 we must check presence of chain-closed handler.

@@ -23,6 +23,8 @@
 #include <so_5/message_handler_format_detector.hpp>
 #include <so_5/mbox.hpp>
 
+#include <so_5/cpp_coro/details/top_level_task.hpp>
+
 #include <algorithm>
 
 #if defined(__clang__) && (__clang_major__ >= 16)
@@ -42,6 +44,17 @@ namespace details {
  */
 namespace event_subscription_helpers
 {
+
+/*!
+ * \brief Helper metafunction for detection of so_5::cpp_coro::task_t<void>.
+ *
+ * Has `true` value if @a Result is so_5::cpp_coro::task_t<void>.
+ *
+ * \since v.5.8.7
+ */
+template< typename Result >
+constexpr bool does_return_task_of_void_v =
+		std::is_same_v< Result, so_5::cpp_coro::task_t<void> >;
 
 /*!
  * \brief Get actual agent pointer.
@@ -222,26 +235,43 @@ make_handler_with_arg( Handler_Type lambda )
 
 		arg_maker::ensure_appropriate_type();
 
-		auto method = [lambda](message_ref_t & message_ref) mutable
+		event_handler_holder_t method;
+
+		if constexpr( does_return_task_of_void_v< Result > )
 			{
-				lambda( arg_maker::make_arg( message_ref ) );
-			};
+				method = async_event_handler_method_t{
+						[lambda]
+						(message_ref_t message_ref) mutable
+						-> so_5::cpp_coro::task_t< void >
+						{
+							co_await lambda( arg_maker::make_arg( message_ref ) );
+						}
+					};
+			}
+		else
+			{
+				method = sync_event_handler_method_t{
+						[lambda](message_ref_t & message_ref) mutable
+						{
+							lambda( arg_maker::make_arg( message_ref ) );
+						}
+					};
+			}
 
 		return msg_type_and_handler_pair_t{
 				arg_maker::traits_type::subscription_type_index(),
-				method,
+				std::move(method),
 				arg_maker::traits_type::mutability() };
 	}
 
 /*!
  * \brief A function for creation event handler.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 template< class Lambda >
 details::msg_type_and_handler_pair_t
-make_handler_from_lambda_of_free_function( Lambda && lambda )
+make_handler_from_lambda_or_free_function( Lambda && lambda )
 	{
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
@@ -259,8 +289,7 @@ make_handler_from_lambda_of_free_function( Lambda && lambda )
  * \brief Helper template for creation of event handler with actual
  * argument.
  *
- * \since
- * v.5.5.14
+ * \since v.5.5.14
  */
 template< typename Agent, typename Method_Pointer >
 typename std::enable_if<
@@ -281,12 +310,37 @@ make_handler_with_arg_for_agent(
 				typename so_5::details::lambda_traits::plain_argument_type<
 						typename pfn_traits::argument_type>::type >;
 
+		using result_type = typename pfn_traits::result_type;
+
 		arg_maker::ensure_appropriate_type();
 
-		auto method = [agent, pfn](message_ref_t & message_ref)
+		event_handler_holder_t method;
+
+		if constexpr( does_return_task_of_void_v< result_type > )
 			{
-				(agent->*pfn)( arg_maker::make_arg( message_ref ) );
-			};
+				using so_5::cpp_coro::details::top_level_task_t;
+
+				method = [agent, pfn](message_ref_t & message_ref)
+				{
+					const auto task =
+						[]( Agent * agent, Method_Pointer pfn, message_ref_t msg )
+						-> top_level_task_t< void >
+					{
+						co_return co_await (agent->*pfn)(
+								arg_maker::make_arg( msg ) );
+					};
+
+					agent->so_execute_top_level_task(
+							task( agent, pfn, message_ref ) );
+				};
+			}
+		else
+			{
+				method = [agent, pfn](message_ref_t & message_ref)
+				{
+					(agent->*pfn)( arg_maker::make_arg( message_ref ) );
+				};
+			}
 
 		return msg_type_and_handler_pair_t{
 				arg_maker::traits_type::subscription_type_index(),
@@ -298,8 +352,7 @@ make_handler_with_arg_for_agent(
  * \brief Ensure that mutability of message is compatible with
  * mutability of target mbox.
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 inline void
 ensure_handler_can_be_used_with_mbox(
@@ -332,8 +385,7 @@ ensure_handler_can_be_used_with_mbox(
  * (for example: handler is for mutable message but mbox is
  * Multi-Consumer one).
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
 template< typename Method_Pointer >
 typename std::enable_if<
@@ -380,22 +432,44 @@ preprocess_agent_event_handler(
  * ret_type (mhood_t<message_type>);
  * \endcode
  *
- * \since
- * v.5.5.21
+ * \since v.5.5.21
  */
-template< typename Lambda >
+template< typename Agent, typename Lambda >
 typename std::enable_if<
 		details::lambda_traits::is_lambda<Lambda>::value,
 		details::msg_type_and_handler_pair_t >::type
 preprocess_agent_event_handler(
 	const mbox_t & mbox,
-	agent_t & /*agent*/,
+	Agent & agent,
 	Lambda && lambda )
 	{
 		using namespace details::event_subscription_helpers;
 
-		const auto ev = make_handler_from_lambda_of_free_function(
+		auto ev = make_handler_from_lambda_or_free_function(
 				std::forward<Lambda>(lambda) );
+
+		// If async_handler is specified then it has to be wrapped
+		// into special sync_handler.
+		if( auto * async = std::get_if<async_event_handler_method_t>(
+				std::addressof(ev.m_handler) ) )
+			{
+				ev.m_handler =
+						[agent_ptr = std::addressof(agent),
+						h = std::move(*async)]
+						( message_ref_t & msg )
+						{
+							using so_5::cpp_coro::details::top_level_task_t;
+
+							const auto task =
+								[]( async_event_handler_method_t hld, message_ref_t msg )
+								-> top_level_task_t< void >
+							{
+								co_return co_await hld( msg );
+							};
+
+							agent_ptr->so_execute_top_level_task( task( h, msg ) );
+						};
+			}
 
 		ensure_handler_can_be_used_with_mbox( ev, mbox );
 
@@ -403,6 +477,20 @@ preprocess_agent_event_handler(
 	}
 
 namespace details {
+
+/*!
+ * \brief The result of an attempt to find and call handler for
+ * a message.
+ *
+ * \since v.5.8.7
+ */
+enum class find_then_call_result_t
+	{
+		//! No handlers found.
+		not_found,
+		//! Appropriate handler found and invoked.
+		found_and_called
+	};
 
 //
 // handlers_bunch_basics_t
@@ -448,17 +536,33 @@ struct handlers_bunch_basics_t
 		 *
 		 * \note The message handler vector [left, right) must be previously
 		 * prepared by prepare_handlers().
-		 *
-		 * \retval true if handler has been found
-		 * \retval false if handler has not been found.
 		 */
-		SO_5_FUNC
-		static bool
+		SO_5_FUNC static
+		find_then_call_result_t
 		find_and_use_handler(
 			const msg_type_and_handler_pair_t * left,
 			const msg_type_and_handler_pair_t * right,
 			const std::type_index & msg_type,
 			message_ref_t & message );
+
+		/*!
+		 * \brief Find and exec asynchronous message handler.
+		 *
+		 * Message handlers vector to be used in handling of message
+		 * is defined by range [left, right).
+		 *
+		 * \note The message handler vector [left, right) must be previously
+		 * prepared by prepare_handlers().
+		 *
+		 * \since v.5.8.7
+		 */
+		SO_5_FUNC static
+		so_5::cpp_coro::task_t< find_then_call_result_t >
+		find_and_use_handler_async(
+			const msg_type_and_handler_pair_t * left,
+			const msg_type_and_handler_pair_t * right,
+			std::type_index msg_type,
+			message_ref_t message );
 	};
 
 //
@@ -505,11 +609,8 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 			}
 
 		//! Find handler for a message and execute it.
-		/*!
-		 * \retval true if handler was found.
-		 * \retval false if handler was not found.
-		 */
-		bool
+		[[nodiscard]]
+		find_then_call_result_t
 		handle(
 			//! Type of a message or signal.
 			const std::type_index & msg_type,
@@ -520,6 +621,23 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 						m_handlers, m_handlers + N,
 						msg_type,
 						message );
+			}
+
+		//! Find a handler for a message and execute it asynchronously.
+		/*!
+		 * \since v.5.8.7
+		 */
+		so_5::cpp_coro::task_t< find_then_call_result_t >
+		handle_async(
+			//! Type of a message or signal.
+			std::type_index msg_type,
+			//! Message instance to be processed.
+			message_ref_t message ) const
+			{
+				return find_and_use_handler_async(
+						m_handlers, m_handlers + N,
+						msg_type,
+						std::move(message) );
 			}
 	};
 
@@ -542,12 +660,20 @@ class handlers_bunch_t< 0 >
 				/* NOTHING TO DO! */
 			}
 
-		bool
+		find_then_call_result_t
 		handle(
 			const std::type_index & /*msg_type*/,
 			message_ref_t & /*message*/ ) const
 			{
-				return false;
+				return find_then_call_result_t::not_found;
+			}
+
+		so_5::cpp_coro::task_t< find_then_call_result_t >
+		handle_async(
+			const std::type_index & /*msg_type*/,
+			message_ref_t /*message*/ ) const
+			{
+				co_return find_then_call_result_t::not_found;
 			}
 	};
 
@@ -594,7 +720,7 @@ fill_handlers_bunch(
 		using namespace event_subscription_helpers;
 
 		bunch.add_handler( index,
-				make_handler_from_lambda_of_free_function(
+				make_handler_from_lambda_or_free_function(
 						std::forward<Lambda>( lambda ) ) );
 
 		fill_handlers_bunch( bunch, index + 1,

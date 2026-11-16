@@ -3,11 +3,10 @@
  */
 
 /*!
- * \since
- * v.5.6.0
- *
  * \file
  * \brief Helper class for accessing private functionality of agent-class.
+ *
+ * \since v.5.6.0
  */
 
 #if !defined( SO_5_IMPL_INTERNAL_AGENT_IFACE_HPP )
@@ -28,8 +27,7 @@ namespace impl {
  * \brief A special class for access to private/protected members
  * of agent class.
  *
- * \since
- * v.5.6.0
+ * \since v.5.6.0
  */
 class internal_agent_iface_t final
 	{
@@ -76,6 +74,14 @@ class internal_agent_iface_t final
 							"m_agent.m_disp_binder is not nullptr when "
 							"set_disp_binder is called" );
 
+				if( m_agent.m_cpp_coro_data &&
+						!binder->does_support_cpp_coro_suspension() )
+					SO_5_THROW_EXCEPTION(
+							rc_cpp_coro_not_supported_by_dispatcher,
+							"agent with cpp_coro support can't be bound to "
+							"a dispatcher that doesn't support C++20 coroutines "
+							"suspension" );
+
 				m_agent.m_disp_binder = std::move(binder);
 			}
 
@@ -118,6 +124,20 @@ class internal_agent_iface_t final
 		drop_disp_binder() noexcept
 			{
 				m_agent.m_disp_binder.reset();
+			}
+
+		/*!
+		 * \brief Helper method for accessing coroutine related data.
+		 *
+		 * \note
+		 * Return nullptr if coroutine support wasn't enabled explicitly.
+		 *
+		 * \since v.5.8.7
+		 */
+		cpp_coro_case_agent_data_t *
+		access_cpp_coro_data() const noexcept
+			{
+				return m_agent.m_cpp_coro_data.get();
 			}
 	};
 

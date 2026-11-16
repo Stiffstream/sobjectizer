@@ -19,6 +19,8 @@
 #include <so_5/details/remaining_time_counter.hpp>
 #include <so_5/details/safe_cv_wait_for.hpp>
 
+#include <so_5/outliving.hpp>
+
 #include <iterator>
 #include <array>
 
@@ -275,6 +277,33 @@ class receive_select_case_t : public select_case_t
 				return mchain_receive_result_t{ 0u, 0u, status };
 			}
 
+		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async(
+			select_notificator_t & notificator ) override
+			{
+				// See the code of synchronous try_handle for more
+				// information.
+				m_notificator = &notificator;
+
+				demand_t demand;
+				const auto status = extract( demand );
+				// Notificator pointer must retain its value only if
+				// there is no messages in mchain.
+				// In other cases this pointer must be dropped.
+				if( extraction_status_t::no_messages != status )
+					m_notificator = nullptr;
+
+				if( extraction_status_t::msg_extracted == status )
+				{
+					const handling_result_t actual_result =
+							co_await try_handle_extracted_message_async( demand );
+
+					co_return actual_result;
+				}
+
+				co_return mchain_receive_result_t{ 0u, 0u, status };
+			}
+
 	protected :
 		//! Attempt to handle extracted message.
 		/*!
@@ -283,6 +312,28 @@ class receive_select_case_t : public select_case_t
 		[[nodiscard]]
 		virtual mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) = 0;
+
+		/*!
+		 * \brief Attempt to handle extracted message in asynchronous
+		 * manner.
+		 *
+		 * This is analogue of synchronous try_handle_extracted_message()
+		 * method for case when asynchronous version of select() is used.
+		 *
+		 * This method will be overriden in derived classes.
+		 *
+		 * \attention
+		 * It's assumed that passing @a demand by reference is safe because
+		 * try_handle_extracted_message_async is called only in
+		 * try_handle_async() method and the demand live in the frame
+		 * of try_handle_async() coroutine.
+		 *
+		 * \since v.5.8.7
+		 */
+		[[nodiscard]] virtual
+		so_5::cpp_coro::task_t< mchain_receive_result_t >
+		try_handle_extracted_message_async(
+			demand_t & demand ) = 0;
 	};
 
 //
@@ -355,6 +406,16 @@ class send_select_case_t : public select_case_t
 					};
 			}
 
+		so_5::cpp_coro::task_t< handling_result_t >
+		try_handle_async(
+			select_notificator_t & notificator ) override
+			{
+				// Just delegate the work to the synchronous version
+				// because send_case doesn't support asynchronous
+				// handlers.
+				co_return this->try_handle( notificator );
+			}
+
 	protected :
 		//! Hook for handling successful push attempt.
 		/*!
@@ -398,17 +459,39 @@ class actual_receive_select_case_t : public receive_select_case_t
 			}
 
 	protected :
+		//! Attempt to handle extracted message synchronously.
 		[[nodiscard]]
 		mchain_receive_result_t
 		try_handle_extracted_message( demand_t & demand ) override
 			{
-				const bool handled = m_handlers.handle(
+				using so_5::details::find_then_call_result_t;
+
+				const auto handled = m_handlers.handle(
 						demand.m_msg_type,
 						demand.m_message_ref );
 
 				return mchain_receive_result_t{
 						1u,
-						handled ? 1u : 0u,
+						handled == find_then_call_result_t::found_and_called
+								? 1u : 0u,
+						extraction_status_t::msg_extracted };
+			}
+
+		//! Attempt to handle extracted message asynchronously.
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< mchain_receive_result_t >
+		try_handle_extracted_message_async( demand_t & demand ) override
+			{
+				using so_5::details::find_then_call_result_t;
+
+				const auto handled = co_await m_handlers.handle_async(
+						demand.m_msg_type,
+						demand.m_message_ref );
+
+				co_return mchain_receive_result_t{
+						1u,
+						handled == find_then_call_result_t::found_and_called
+								? 1u : 0u,
 						extraction_status_t::msg_extracted };
 			}
 	};
@@ -1196,6 +1279,20 @@ class actual_select_notificator_t : public select_notificator_t
 			}
 	};
 
+/*!
+ * \brief Possible results of attempt to handle existing select cases.
+ *
+ * \since v.5.8.7
+ */
+enum class handle_next_result_t
+	{
+		//! No ready to use select cases to be processed.
+		no_ready_cases,
+		//! Some select cases were ready and an attempt to handle them
+		//! was performed.
+		some_cases_were_ready
+	};
+
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
@@ -1208,15 +1305,20 @@ class actual_select_notificator_t : public select_notificator_t
  *
  * \tparam Holder type of actual select_cases_holder_t.
  *
+ * \tparam Notificator type of notificator to be used for signaling that
+ * some select cases are ready for processing.
+ *
  * \since v.5.5.16
  */
-template< typename Holder >
+template<
+	typename Holder,
+	typename Notificator >
 class select_actions_performer_t
 	{
 		const mchain_select_params_t< msg_count_status_t::defined > & m_params;
 
 		const Holder & m_select_cases;
-		actual_select_notificator_t m_notificator;
+		Notificator & m_notificator;
 
 		std::size_t m_closed_chains = 0;
 		std::size_t m_extracted_messages = 0;
@@ -1227,7 +1329,7 @@ class select_actions_performer_t
 		 * \brief The counter of completed send_cases.
 		 *
 		 * A send_case is completed if the corresponding message is sent
-		 * of if the target mchain is closed.
+		 * or if the target mchain is closed.
 		 *
 		 * \since v.5.7.0
 		 */
@@ -1241,10 +1343,11 @@ class select_actions_performer_t
 	public :
 		select_actions_performer_t(
 			const mchain_select_params_t< msg_count_status_t::defined > & params,
-			const Holder & select_cases )
+			const Holder & select_cases,
+			Notificator & notificator )
 			:	m_params( params )
 			,	m_select_cases( select_cases )
-			,	m_notificator( select_cases.begin(), select_cases.end() )
+			,	m_notificator( notificator )
 			{}
 		~select_actions_performer_t()
 			{
@@ -1252,9 +1355,20 @@ class select_actions_performer_t
 					c.on_select_finish();
 			}
 
+		//! An attempt to wait and handle next ready select case.
+		/*!
+		 * This is synchrouns method that returns after processing
+		 * of ready case or after the time-out expires.
+		 */
 		void
-		handle_next( const duration_t & wait_time )
+		handle_next(
+			//! How long we can wait for the next ready to process select case.
+			const duration_t & wait_time )
 			{
+				// This status has to be dropped to neutral value, it will be
+				// updated if some chain will become ready.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
 				select_case_t * ready_chain = m_notificator.wait( wait_time );
 				if( !ready_chain )
 					{
@@ -1262,15 +1376,48 @@ class select_actions_performer_t
 						update_can_continue_flag();
 					}
 				else
-					handle_ready_chain( ready_chain );
+					{
+						handle_ready_chain( ready_chain );
+					}
 			}
 
+		//! An attempt to wait and handle next ready select case.
+		/*!
+		 * This is asynchrouns method that starts a coroutine that
+		 * waits and handles a ready select case.
+		 */
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< handle_next_result_t >
+		handle_next_async()
+			{
+				// This status has to be dropped to neutral value, it will be
+				// updated if some chain will become ready.
+				m_last_extraction_status = extraction_status_t::no_messages;
+
+				select_case_t * ready_chain = m_notificator.wait();
+				if( !ready_chain )
+					{
+						m_last_extraction_status = extraction_status_t::no_messages;
+						update_can_continue_flag();
+
+						co_return handle_next_result_t::no_ready_cases;
+					}
+				else
+					{
+						co_await handle_ready_chain_async( ready_chain );
+						co_return handle_next_result_t::some_cases_were_ready;
+					}
+			}
+
+		[[nodiscard]]
 		extraction_status_t
 		last_extraction_status() const noexcept { return m_last_extraction_status; }
 
+		[[nodiscard]]
 		bool
 		can_continue() const noexcept { return m_can_continue; }
 
+		[[nodiscard]]
 		mchain_select_result_t
 		make_result() const noexcept
 			{
@@ -1298,6 +1445,14 @@ class select_actions_performer_t
 				}
 			};
 
+		//! Attempt to handle a chain of ready select cases.
+		/*!
+		 * This is synchronous method that returns when the whole chain
+		 * will be processed.
+		 *
+		 * \note
+		 * @a ready_chain can be nullptr. It means that the chain is empty.
+		 */
 		void
 		handle_ready_chain( select_case_t * ready_chain )
 			{
@@ -1314,12 +1469,60 @@ class select_actions_performer_t
 					}
 			}
 
+		//! Attempt to handle a chain of ready select cases in
+		//! asynchronous manner.
+		/*!
+		 * This is asynchronous method that creates a coroutine that attempts
+		 * to handle the chain.
+		 *
+		 * \note
+		 * @a ready_chain can be nullptr. It means that the chain is empty.
+		 *
+		 * \since v.5.8.7
+		 */
+		[[nodiscard]]
+		so_5::cpp_coro::task_t< void >
+		handle_ready_chain_async( select_case_t * ready_chain )
+			{
+				while( ready_chain && m_can_continue )
+					{
+						auto * current = ready_chain;
+						ready_chain = current->giveout_next();
+
+						std::visit(
+								select_result_handler_t{ this, current },
+								co_await current->try_handle_async( m_notificator ) );
+
+						update_can_continue_flag();
+					}
+			}
+
 		void
 		on_receive_result(
 			select_case_t * current,
 			const mchain_receive_result_t & result )
 			{
-				m_last_extraction_status = result.status();
+				// Update of m_last_extraction_status should be taken with
+				// a care: msg_extracted and chain_closed should not be
+				// overriden by no_messages.
+				switch( m_last_extraction_status )
+					{
+					case extraction_status_t::no_messages :
+						m_last_extraction_status = result.status();
+					break;
+
+					case extraction_status_t::msg_extracted :
+						// The value of result.status() can be ignored because
+						// msg_extracted is most important and can't be overriden.
+					break;
+
+					case extraction_status_t::chain_closed :
+						// The chain_closed value could be replaced by
+						// msg_extracted only.
+						if( extraction_status_t::msg_extracted == result.status() )
+							m_last_extraction_status = result.status();
+					break;
+					}
 
 				if( extraction_status_t::msg_extracted == result.status() )
 					{
@@ -1342,8 +1545,8 @@ class select_actions_performer_t
 			select_case_t * current,
 			const mchain_send_result_t & result )
 			{
-				// No extracted messages for that case.
-				m_last_extraction_status = extraction_status_t::no_messages;
+				// NOTE: there is no need to change m_last_extraction_status, because
+				// the value was dropped to the default value in handle_next.
 
 				switch( result.status() )
 					{
@@ -1395,7 +1598,7 @@ class select_actions_performer_t
 
 					if( m_params.to_handle() &&
 							(m_handled_messages + m_completed_send_cases >=
-							 		m_params.to_handle()) )
+									m_params.to_handle()) )
 						return false;
 
 					if( m_params.to_extract() &&
@@ -1412,18 +1615,38 @@ class select_actions_performer_t
 			}
 	};
 
-template< typename Holder >
+/*!
+ * \brief The actual implementation of synchronous select.
+ *
+ * \since v.5.8.7
+ */
+template<
+	typename Total_Time_Counter,
+	typename Holder >
 mchain_select_result_t
-do_adv_select_with_total_time(
+do_adv_select(
 	const mchain_select_params_t< msg_count_status_t::defined > & params,
 	const Holder & select_cases )
 	{
 		using namespace so_5::details;
+		using performer_t = select_actions_performer_t<
+				Holder,
+				actual_select_notificator_t >;
 
-		select_actions_performer_t< Holder > performer{ params, select_cases };
+		actual_select_notificator_t notificator{
+				select_cases.begin(),
+				select_cases.end()
+			};
+		performer_t performer{
+				params,
+				select_cases,
+				notificator
+			};
 
-		remaining_time_counter_t total_time_counter{ params.total_time() };
+		Total_Time_Counter total_time_counter{ params.total_time() };
 		remaining_time_counter_t wait_incoming_time{ params.empty_timeout() };
+		bool wait_incoming_time_not_elapsed_yet = true;
+
 		do
 			{
 				// Since v.5.8.4 we have to take the empty_timeout value
@@ -1435,56 +1658,29 @@ do_adv_select_with_total_time(
 				performer.handle_next( this_iteration_wait_time );
 				if( extraction_status_t::msg_extracted ==
 						performer.last_extraction_status() )
-					// Becase some message extracted we must restart
-					// wait_incoming_time counting.
-					wait_incoming_time =
-							remaining_time_counter_t{ params.empty_timeout() };
+					{
+						// Becase some message extracted we must restart
+						// wait_incoming_time counting.
+						wait_incoming_time =
+								remaining_time_counter_t{ params.empty_timeout() };
+
+						wait_incoming_time_not_elapsed_yet = true;
+					}
 				else
-					// Otherwise wait_incoming_time should be updated to
-					// reduce it value.
-					wait_incoming_time.update();
+					{
+						// Otherwise wait_incoming_time should be updated to
+						// reduce it value.
+						wait_incoming_time.update();
+
+						wait_incoming_time_not_elapsed_yet =
+								static_cast<bool>(wait_incoming_time);
+					}
 
 				total_time_counter.update();
 			}
 		while( total_time_counter
-				&& wait_incoming_time
+				&& wait_incoming_time_not_elapsed_yet
 				&& performer.can_continue() );
-
-		return performer.make_result();
-	}
-
-template< typename Holder >
-mchain_select_result_t
-do_adv_select_without_total_time(
-	const mchain_select_params_t< msg_count_status_t::defined > & params,
-	const Holder & select_cases )
-	{
-		using namespace so_5::details;
-
-		select_actions_performer_t< Holder > performer{ params, select_cases };
-
-		remaining_time_counter_t wait_time{ params.empty_timeout() };
-		do
-			{
-				performer.handle_next( wait_time.remaining() );
-				if( extraction_status_t::msg_extracted ==
-						performer.last_extraction_status() )
-					// Becase some message extracted we must restart wait_time
-					// counting.
-					wait_time = remaining_time_counter_t{ params.empty_timeout() };
-				else
-					// There could be one of two situations:
-					// 1) several threads do select on the same mchain.
-					//    Both threads will be awoken when some message is
-					//    pushed into the mchain. But only one thread will get
-					//    this message. Second thread will receive no_messages
-					//    status. In this case we should wait for the next message,
-					//    but wait_time must be decremented.
-					// 2) some chain is closed. Wait time should be updated and
-					//    next wait attempt must be performed.
-					wait_time.update();
-			}
-		while( wait_time && performer.can_continue() );
 
 		return performer.make_result();
 	}
@@ -1505,10 +1701,13 @@ perform_select(
 	//! Select cases.
 	const Cases_Holder & cases_holder )
 	{
+		using normal_time_counter_t = so_5::details::remaining_time_counter_t;
+		using fake_time_counter_t = so_5::details::fake_remaining_time_counter_t;
+
 		if( is_infinite_wait_timevalue( params.total_time() ) )
-			return do_adv_select_without_total_time( params, cases_holder );
+			return do_adv_select< fake_time_counter_t >( params, cases_holder );
 		else
-			return do_adv_select_with_total_time( params, cases_holder );
+			return do_adv_select< normal_time_counter_t >( params, cases_holder );
 	}
 
 } /* namespace details */

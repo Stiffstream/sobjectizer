@@ -1,27 +1,28 @@
 * [What is SObjectizer?](#what-is-sobjectizer)
 * [What distinguishes SObjectizer?](#what-distinguishes-sobjectizer)
-	* [SObjectizer is not like TBB, taskflow or HPX](#sobjectizer-is-not-like-tbb-taskflow-or-hpx)
+   * [SObjectizer is not like TBB, taskflow or HPX](#sobjectizer-is-not-like-tbb-taskflow-or-hpx)
 * [Show me the code!](#show-me-the-code)
-	* [HelloWorld example](#helloworld-example)
-	* [Ping-Pong example](#ping-pong-example)
-	* [Pub/Sub example](#pubsub-example)
-	* [BlinkingLed example](#blinkingled-example)
-	* [CSP-like Ping-Pong example](#csp-like-ping-pong-example)
-	* [Another CSP-example with Golang's like select() statement](#another-csp-example-with-golangs-like-select-statement)
-	* [Want to know more?](#want-to-know-more)
+   * [HelloWorld example](#helloworld-example)
+   * [Ping-Pong example](#ping-pong-example)
+   * [Pub/Sub example](#pubsub-example)
+   * [BlinkingLed example](#blinkingled-example)
+   * [CSP-like Ping-Pong example](#csp-like-ping-pong-example)
+   * [Another CSP-example with Golang's like select() statement](#another-csp-example-with-golangs-like-select-statement)
+   * [Combining agents, mchains and C++20 coroutines](#combining-agents-mchains-and-c20-coroutines)
+   * [Want to know more?](#want-to-know-more)
 * [There are more useful stuff in a companion project so5extra](#there-are-more-useful-stuff-in-a-companion-project-so5extra)
 * [Limitations](#limitations)
 * [Obtaining and building](#obtaining-and-building)
-	* [SObjectizer-5.8 requires Cpp-17!](#sobjectizer-58-requires-c17)
-	* [Building via CMake](#building-via-cmake)
-	* [Building for Android](#building-for-android)
-		* [Building with Android NDK](#building-with-android-ndk)
-		* [Building with CrystaX NDK](#building-with-crystax-ndk)
-	* [Using C   Dependency Managers](#using-c-dependency-managers)
-		* [Using via vcpkg](#using-via-vcpkg)
-		* [Using via Conan](#using-via-conan)
-			* [Installing SObjectizer And Adding It To conanfile.txt](#installing-sobjectizer-and-adding-it-to-conanfiletxt)
-			* [Adding SObjectizer To Your CMakeLists.txt](#adding-sobjectizer-to-your-cmakeliststxt)
+   * [SObjectizer-5.8.7 requires C++20!](#sobjectizer-587-requires-c20)
+   * [Building via CMake](#building-via-cmake)
+   * [Building for Android](#building-for-android)
+      * [Building with Android NDK](#building-with-android-ndk)
+      * [Building with CrystaX NDK](#building-with-crystax-ndk)
+   * [Using C++ Dependency Managers](#using-c-dependency-managers)
+      * [Using via vcpkg](#using-via-vcpkg)
+      * [Using via Conan](#using-via-conan)
+         * [Installing SObjectizer And Adding It To conanfile.txt](#installing-sobjectizer-and-adding-it-to-conanfiletxt)
+         * [Adding SObjectizer To Your CMakeLists.txt](#adding-sobjectizer-to-your-cmakeliststxt)
 * [License](#license)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
@@ -500,6 +501,97 @@ int main()
 }
 ```
 
+## Combining agents, mchains and C++20 coroutines
+
+Since v.5.8.7 SObjectizer supports C++20 coroutines: SO-5 allows to write
+asynchronous event-handlers and provides an asynchronous version of the `select`
+function.
+
+There is a ping-pong example with two agents that use mchain and asynchrous
+`select` for interaction:
+
+```cpp
+#include <so_5/all.hpp>
+
+struct msg_ping final : public so_5::signal_t {};
+struct msg_pong final : public so_5::signal_t {};
+
+constexpr unsigned int total_exchanges = 3u;
+
+class a_pinger final : public so_5::agent_t
+{
+   so_5::mchain_t m_ping_ch, m_pong_ch;
+
+public:
+   a_pinger( context_t ctx, so_5::mchain_t ping_ch, so_5::mchain_t pong_ch )
+      // Support for C++20 coroutines has to be enabled explicitly.
+      : so_5::agent_t{ ctx + so_5::enable_cpp_coro() }
+      , m_ping_ch{ std::move(ping_ch) }
+      , m_pong_ch{ std::move(pong_ch) }
+   {}
+
+   so_5::cpp_coro::task_t< void > so_evt_async_start() override
+   {
+      // The first ping to start exchanges.
+      so_5::send< msg_ping >( m_ping_ch );
+
+      // Receive and handle pongs asynchronously.
+      co_await so_5::cpp_coro::select(
+            so_5::from_all().handle_n( total_exchanges ),
+            so_5::receive_case( m_pong_ch, [this]( so_5::mhood_t< msg_pong > )
+               {
+                  std::cout << "pong received" << std::endl;
+                  so_5::send< msg_ping >( m_ping_ch );
+               } ) );
+
+      // The work can be finished now.
+      so_deregister_agent_coop_normally();
+   }
+};
+
+class a_ponger final : public so_5::agent_t
+{
+   so_5::mchain_t m_ping_ch, m_pong_ch;
+
+public:
+   a_ponger( context_t ctx, so_5::mchain_t ping_ch, so_5::mchain_t pong_ch )
+      // Support for C++20 coroutines has to be enabled explicitly.
+      : so_5::agent_t{ ctx + so_5::enable_cpp_coro() }
+      , m_ping_ch{ std::move(ping_ch) }
+      , m_pong_ch{ std::move(pong_ch) }
+   {}
+
+   so_5::cpp_coro::task_t< void > so_evt_async_start() override
+   {
+      // Receive and handle pings asynchronously.
+      co_await so_5::cpp_coro::select(
+            so_5::from_all().handle_n( total_exchanges ),
+            so_5::receive_case( m_ping_ch, [this]( so_5::mhood_t< msg_ping > )
+               {
+                  std::cout << "ping received" << std::endl;
+                  so_5::send< msg_pong >( m_pong_ch );
+               } ) );
+   }
+};
+
+int main()
+{
+   so_5::launch( []( so_5::environment_t & env ) {
+         env.introduce_coop( []( so_5::coop_t & coop ) {
+            auto pings_ch = so_5::create_mchain( coop.environment() );
+            auto pongs_ch = so_5::create_mchain( coop.environment() );
+
+            // Both agents are bound to the same default one_thread
+            // dispatcher. So they will share the same worker thread.
+            coop.make_agent< a_pinger >( pings_ch, pongs_ch );
+            coop.make_agent< a_ponger >( pings_ch, pongs_ch );
+         } );
+      } );
+
+   return 0;
+}
+```
+
 ## Want to know more?
 
 More information about SObjectizer can be found in the corresponding section of
@@ -620,14 +712,9 @@ doxygen
 
 Generated html-files will be located in sobjectizer/dev/doc/html.
 
-## SObjectizer-5.8 requires C++17!
+## SObjectizer-5.8.7 requires C++20!
 
-The 5.8-branch of SObjectizer requires C++17.
-
-If you need support for C++14 or C++11 try to look to older versions of
-SObjectizer on [SourceForge](https://sourceforge.net/projects/sobjectizer).  Or
-contact [stiffstream](https://stiffstream.com/en/services.html) to discuss
-porting of SObjectizer-5.8 to older C++ standards.
+Since v.5.8.7 the 5.8-branch of SObjectizer requires C++20.
 
 ## Building via CMake
 

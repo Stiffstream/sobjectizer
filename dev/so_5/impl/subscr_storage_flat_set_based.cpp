@@ -58,7 +58,7 @@ class storage_t : public subscription_storage_t
 			const std::type_index & type_index,
 			abstract_message_sink_t & message_sink,
 			const state_t & target_state,
-			const event_handler_method_t & method,
+			const sync_event_handler_method_t & method,
 			thread_safety_t thread_safety,
 			event_handler_kind_t handler_kind ) override;
 
@@ -267,7 +267,7 @@ storage_t::create_event_subscription(
 	const std::type_index & msg_type,
 	abstract_message_sink_t & message_sink,
 	const state_t & target_state,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind )
 	{

@@ -52,6 +52,8 @@ add_subdirectory(env_infrastructure)
 
 add_subdirectory(event_queue_hook)
 
+add_subdirectory(cpp_coro)
+
 add_subdirectory(testing)
 
 add_subdirectory(bench/ping_pong)
@@ -69,4 +71,6 @@ add_subdirectory(bench/prepared_select)
 add_subdirectory(bench/named_mboxes)
 add_subdirectory(bench/subscribe_unsubscribe)
 add_subdirectory(bench/state_time_limit)
+add_subdirectory(bench/mchain_ping_pong_select)
+add_subdirectory(bench/mchain_ping_pong_select_async)
 

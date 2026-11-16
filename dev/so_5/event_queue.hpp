@@ -4,8 +4,7 @@
 
 /*!
 	\file
-	\since
-	v.5.4.0
+	\since v.5.4.0
 
 	\brief An interface of event queue for agent.
 */
@@ -19,10 +18,9 @@ namespace so_5
 {
 
 /*!
- * \since
- * v.5.4.0
- *
  * \brief An interface of event queue for agent.
+ *
+ * \since v.5.4.0
  */
 class SO_5_TYPE event_queue_t
 	{

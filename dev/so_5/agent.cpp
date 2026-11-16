@@ -19,6 +19,9 @@
 
 #include <so_5/impl/enveloped_msg_details.hpp>
 
+#include <so_5/impl/cpp_coro_case_special_queue.hpp>
+#include <so_5/impl/cpp_coro_case_agent_data.hpp>
+
 #include <so_5/details/abort_on_fatal_error.hpp>
 
 #include <so_5/spinlocks.hpp>
@@ -28,6 +31,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <limits>
+#include <utility>
 
 namespace so_5
 {
@@ -766,6 +770,120 @@ detect_subscription_storage_factory_to_use(
 			return impl::internal_env_iface_t{ env }.default_subscription_storage_factory();
 	}
 
+/*!
+ * \brief Helper for creation of data instance for holding information
+ * related to C++20 coroutines handling.
+ *
+ * Returns empty unique_ptr if support for C++20 coroutines is disabled.
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]]
+std::unique_ptr< so_5::impl::cpp_coro_case_agent_data_t >
+make_cpp_coro_agent_data_if_needed(
+	partially_constructed_agent_ptr_t agent_ptr,
+	environment_t & env,
+	const agent_tuning_options_t & tuning_options )
+	{
+		using so_5::impl::cpp_coro_case_agent_data_t;
+
+		std::unique_ptr< cpp_coro_case_agent_data_t > result;
+
+		const auto info = tuning_options.cpp_coro_support();
+		if( info )
+			result = std::make_unique< cpp_coro_case_agent_data_t >(
+					agent_ptr,
+					env,
+					info->max_local_queue_size(),
+					info->sequential_limit() );
+
+		return result;
+	}
+
+/*!
+ * \brief Helper function for calling event-handler-like code and
+ * intercepting possible exceptions.
+ *
+ * This is reusable function created to avoid code duplication.
+ *
+ * \attention
+ * This function is noexcept because there is no way to recover if
+ * some exception won't be caught and handled inside.
+ *
+ * \since v.5.8.7
+ */
+template< typename Lambda >
+void
+wrap_handler_invocation_with_exception_handling(
+	current_thread_id_t working_thread_id,
+	agent_t & exception_producer,
+	Lambda && what_to_call )
+noexcept
+	{
+		try
+		{
+			what_to_call();
+		}
+		catch( const std::exception & x )
+		{
+			impl::process_unhandled_exception(
+					working_thread_id, x, exception_producer );
+		}
+		catch( ... ) // Since v.5.5.24.3
+		{
+			impl::process_unhandled_unknown_exception(
+					working_thread_id, exception_producer );
+		}
+	}
+
+/*!
+ * \brief Helper method for handling completion of top-level coroutine.
+ *
+ * Calls await_resume for the top-level coroutine. This call has no sense
+ * if there wasn't exception in coroutine. But it leads to rethrowing of
+ * an exception if it was thrown inside coroutine.
+ *
+ * Then the top-level coroutine is deleted.
+ *
+ * \attention
+ * The coro_related_data.m_current_top_level_task shouldn't be empty.
+ *
+ * \attention
+ * This function is noexcept because there is no way to recover if
+ * some exception won't be caught and handled inside.
+ *
+ * \since v.5.8.7
+ */
+void
+consume_top_level_coroutine_result(
+	so_5::impl::cpp_coro_case_agent_data_t & coro_related_data,
+	current_thread_id_t working_thread_id,
+	agent_t & data_owner )
+noexcept
+	{
+		wrap_handler_invocation_with_exception_handling(
+				working_thread_id,
+				data_owner,
+				[&coro_related_data]() {
+					// Because co_await is not called for top-level task we
+					// have to call await_resume manually. If the coroutine
+					// finished because of an exception then this exception
+					// will be rethrown here.
+					coro_related_data.m_current_top_level_task->await_resume();
+				} );
+
+		// The coroutine is no more needed.
+		coro_related_data.m_current_top_level_task.reset();
+
+		// A case when watcher is present has to be handled now.
+		if( coro_related_data.m_current_completion_watcher )
+			{
+				// NOTE: don't expect exceptions here.
+				coro_related_data.m_current_completion_watcher->on_completion();
+				coro_related_data.m_current_completion_watcher.reset();
+			}
+	}
+
 } /* namespace anonymous */
 
 //
@@ -818,6 +936,11 @@ agent_t::agent_t(
 	,	m_name( ctx.options().giveout_agent_name() )
 	,	m_demands_handling_on_dereg(
 			ctx.options().demands_handling_on_dereg() )
+	,	m_cpp_coro_data{
+			make_cpp_coro_agent_data_if_needed(
+				partially_constructed_agent_ptr_t{ self_ptr() },
+				ctx.env(),
+				ctx.options() ) }
 {
 }
 
@@ -838,6 +961,13 @@ void
 agent_t::so_evt_finish()
 {
 	// Default implementation do nothing.
+}
+
+so_5::cpp_coro::task_t< void >
+agent_t::so_evt_async_start()
+{
+	// Default implementation do nothing.
+	co_return;
 }
 
 bool
@@ -1006,10 +1136,24 @@ void
 agent_t::so_bind_to_dispatcher(
 	event_queue_t & queue ) noexcept
 {
+	// What queue will be pushed to event_queue_hook?
+	event_queue_t * queue_to_hook = m_cpp_coro_data
+			? std::addressof(m_cpp_coro_data->m_special_queue)
+			: std::addressof(queue)
+			;
+
 	// Since v.5.5.24 we should use event_queue_hook to get an
 	// actual event_queue.
 	auto * actual_queue = impl::internal_env_iface_t{ m_env }
-			.event_queue_on_bind( this, &queue );
+			.event_queue_on_bind( this, queue_to_hook );
+
+	// Since v.5.8.7 special queue has to be used as wrapper around
+	// the actual_queue if C++20 coroutines support is enabled.
+	if( m_cpp_coro_data )
+	{
+		m_cpp_coro_data->m_special_queue.bind_actual_queue(
+				std::addressof(queue) );
+	}
 
 	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
@@ -1135,6 +1279,47 @@ agent_t::so_agent_name() const noexcept
 		return { this };
 }
 
+so_5::cpp_coro::scheduler_t &
+agent_t::so_this_agent_scheduler() const
+{
+	if( !m_cpp_coro_data )
+		SO_5_THROW_EXCEPTION(
+				rc_no_support_for_cpp_coro_in_agent,
+				"C++20 coroutines have to be enabled for the agent" );
+
+	return m_cpp_coro_data->m_this_agent_scheduler;
+}
+
+void
+agent_t::so_execute_top_level_task(
+	so_5::cpp_coro::details::top_level_task_t< void > what )
+{
+	/*
+	 * NOTE: it's assumed that this method is called only during processing
+	 * an execution_demand of this agent. Because of this there is no
+	 * possibility that someone will call this method in parallel.
+	 *
+	 * There is also no need to drop
+	 * cpp_coro_case_special_queue_t::m_wakeup_demand_enabled flag, because
+	 * it's already dropped. This flag returns to `true` only after completion
+	 * of all demands in agent's local queue.
+	 */
+	ensure_operation_is_on_working_thread( "so_execute_top_level_task" );
+
+	if( !m_cpp_coro_data )
+		SO_5_THROW_EXCEPTION(
+				rc_no_support_for_cpp_coro_in_agent,
+				"C++20 coroutines have to be enabled for the agent" );
+
+	if( m_cpp_coro_data->m_current_top_level_task.has_value() )
+		SO_5_THROW_EXCEPTION(
+				rc_top_level_coro_already_exists,
+				"so_execute_top_level_task can't be performed because"
+				" a top-level coroutine is already set for the agent" );
+
+	m_cpp_coro_data->m_current_top_level_task = std::move(what);
+}
+
 void
 agent_t::destroy_all_subscriptions_and_filters() noexcept
 {
@@ -1188,7 +1373,6 @@ agent_t::shutdown_agent() noexcept
 					// No more events will be stored to the queue.
 					m_event_queue = nullptr;
 				} );
-
 		}
 		else
 			so_5::details::abort_on_fatal_error( [&] {
@@ -1207,10 +1391,12 @@ agent_t::shutdown_agent() noexcept
 		m_current_status = agent_status_t::shutdown_with_skipping_pending_demands;
 
 	if( actual_queue )
+	{
 		// Since v.5.5.24 we should utilize event_queue via
 		// event_queue_hook.
 		impl::internal_env_iface_t{ m_env }
 				.event_queue_on_unbind( this, actual_queue );
+	}
 }
 
 void
@@ -1218,7 +1404,7 @@ agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
 	std::type_index msg_type,
 	const state_t & target_state,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind )
 {
@@ -1248,7 +1434,7 @@ void
 agent_t::so_create_deadletter_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const event_handler_method_t & method,
+	const sync_event_handler_method_t & method,
 	thread_safety_t thread_safety )
 {
 	ensure_operation_is_on_working_thread( "so_create_deadletter_subscription" );
@@ -1417,30 +1603,93 @@ agent_t::push_event(
 					handler ) );
 }
 
+namespace
+{
+
+/*!
+ * \brief Helper for wrapping a call of agent_t::so_evt_async_start into
+ * a top_level_task_t instance.
+ *
+ * This top_level_task_t instance is necessary because such a coroutine
+ * will be handled non-usual way (without co_await call in the code).
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]]
+so_5::cpp_coro::details::top_level_task_t< void >
+wrap_evt_async_start_into_top_level_task( agent_t * what )
+	{
+		co_return co_await what->so_evt_async_start();
+	}
+
+} /* namespace anonymous */
+
 void
 agent_t::demand_handler_on_start(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
-	d.m_receiver->ensure_binding_finished();
+	agent_t * self = d.m_receiver;
+	self->ensure_binding_finished();
 
 	impl::agent_impl::working_thread_id_sentinel_t sentinel(
-			d.m_receiver->m_working_thread_id,
+			self->m_working_thread_id,
 			working_thread_id );
 
-	try
+	wrap_handler_invocation_with_exception_handling(
+			working_thread_id,
+			*self,
+			[self]() {
+				self->so_evt_start();
+
+				// If cpp_coro support is enabled, then it's time for
+				// so_evt_async_start().
+				//
+				// NOTE: if so_evt_start throws then so_evt_async_start won't
+				// be called at all.
+				if( self->m_cpp_coro_data )
+				{
+					// The scheduler of this agent has to become the current
+					// scheduler.
+					so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+							self->m_cpp_coro_data->m_this_agent_scheduler
+						};
+
+					self->m_cpp_coro_data->m_current_top_level_task =
+						wrap_evt_async_start_into_top_level_task( self );
+
+					// The current top-level coroutine has to be resumed because
+					// it uses lazy start and is suspended at the starting point.
+					self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
+
+					// NOTE: the completion of the so_evt_async_start coroutine
+					// will be checked a bit later.
+				}
+			} );
+
+	// In case of cpp_coro support the agent's queue has to be turned into
+	// the normal working mode.
+	//
+	// NOTE: don't expect exceptions here.
+	if( self->m_cpp_coro_data )
 	{
-		d.m_receiver->so_evt_start();
-	}
-	catch( const std::exception & x )
-	{
-		impl::process_unhandled_exception(
-				working_thread_id, x, *(d.m_receiver) );
-	}
-	catch( ... ) // Since v.5.5.24.3
-	{
-		impl::process_unhandled_unknown_exception(
-				working_thread_id, *(d.m_receiver) );
+		// The current top-level coroutine may be finished after
+		// completion of the `resume`.
+		if( self->m_cpp_coro_data->m_current_top_level_task
+				.value().m_coro.done() )
+		{
+			consume_top_level_coroutine_result(
+					*(self->m_cpp_coro_data),
+					working_thread_id,
+					*self );
+		}
+
+		// The special_queue has to be turned into normal working mode.
+		using so_5::impl::cpp_coro_case_special_queue_t;
+		self->m_cpp_coro_data->m_special_queue.turn_to_normal_working_mode(
+				self->m_cpp_coro_data->m_current_top_level_task.has_value()
+					? cpp_coro_case_special_queue_t::current_coro_exists
+					: cpp_coro_case_special_queue_t::no_current_coro );
 	}
 }
 
@@ -1471,20 +1720,12 @@ agent_t::demand_handler_on_finish(
 				d.m_receiver->m_working_thread_id,
 				working_thread_id );
 
-		try
-		{
-			d.m_receiver->so_evt_finish();
-		}
-		catch( const std::exception & x )
-		{
-			impl::process_unhandled_exception(
-					working_thread_id, x, *(d.m_receiver) );
-		}
-		catch( ... ) // Since v.5.5.24.3
-		{
-			impl::process_unhandled_unknown_exception(
-					working_thread_id, *(d.m_receiver) );
-		}
+		wrap_handler_invocation_with_exception_handling(
+				working_thread_id,
+				(*d.m_receiver),
+				[&d]() {
+					d.m_receiver->so_evt_finish();
+				} );
 
 		// Since v.5.5.15 agent should be returned in default state.
 		d.m_receiver->return_to_default_state_if_possible();
@@ -1544,11 +1785,147 @@ agent_t::get_demand_handler_on_enveloped_msg_ptr() noexcept
 }
 
 void
+agent_t::demand_handler_on_wakeup_msg(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	using so_5::impl::cpp_coro_case_special_queue_t;
+	agent_t * const self = d.m_receiver;
+
+	// The scheduler of this agent has to become the current
+	// scheduler.
+	so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+			self->m_cpp_coro_data->m_this_agent_scheduler
+		};
+
+	for( unsigned int sequentially_processed{}; ; ++sequentially_processed )
+	{
+		auto demand_ptr = self->m_cpp_coro_data->m_special_queue
+				.try_extract_demand_for_execution(
+						cpp_coro_case_special_queue_t::check_sequential_limit(
+								sequentially_processed,
+								self->m_cpp_coro_data->m_sequential_limit ) );
+
+		if( demand_ptr )
+		{
+			demand_ptr->m_execution_demand.call_handler(
+					working_thread_id );
+		}
+		else
+		{
+			// There is no more waiting demands. Have to break the loop.
+			break;
+		}
+
+		// If there is the current coroutine then it has to be resumed.
+		// It's because we can't handle ordinary demands before completion
+		// of the current coroutine.
+		if( self->m_cpp_coro_data->m_current_top_level_task.has_value() )
+			{
+				impl::agent_impl::working_thread_id_sentinel_t sentinel(
+						self->m_working_thread_id,
+						working_thread_id );
+
+				self->m_cpp_coro_data->m_current_top_level_task->m_coro.resume();
+				if( !self->m_cpp_coro_data->m_current_top_level_task
+						->m_coro.done() )
+					{
+						// We must wait the next msg_resume_coro and this
+						// loop has to be finished.
+						break;
+					}
+				else
+					{
+						// The coroutine is completed and we can go to
+						// service ordinary demands.
+						consume_top_level_coroutine_result(
+								*(self->m_cpp_coro_data),
+								working_thread_id,
+								*self );
+					}
+			}
+	}
+}
+
+demand_handler_pfn_t
+agent_t::get_demand_handler_on_wakeup_msg_ptr() noexcept
+{
+	return &agent_t::demand_handler_on_wakeup_msg;
+}
+
+void
+agent_t::demand_handler_for_cpp_coro_resumption(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	agent_t * const self = d.m_receiver;
+	bool current_coroutine_completed = false;
+
+	// The first task is the resumption of the specified coroutine.
+	{
+		// The scheduler of this agent has to become the current
+		// scheduler.
+		so_5::cpp_coro::current_scheduler_setter_t current_scheduler{
+				self->m_cpp_coro_data->m_this_agent_scheduler
+			};
+
+		so_5::impl::msg_resume_coro & resume_msg =
+				// If dynamic_cast fails then the program will stay in
+				// an invalid state. It's better to kill it.
+				so_5::details::invoke_noexcept_code(
+						[&d]() -> so_5::impl::msg_resume_coro & {
+							return dynamic_cast<so_5::impl::msg_resume_coro &>(
+									*(d.m_message_ref.get()) );
+						} );
+
+		impl::agent_impl::working_thread_id_sentinel_t sentinel(
+				self->m_working_thread_id,
+				working_thread_id );
+
+		self->m_cpp_coro_data->m_this_agent_scheduler.do_resumption( resume_msg );
+		// If the current top-level coroutine has been completed after resumption
+		// then the top-level coroutine has to be destroyed.
+		if( self->m_cpp_coro_data->m_current_top_level_task->m_coro.done() )
+		{
+			// It's necessary for handling an exception from the current
+			// top-level coroutine.
+			consume_top_level_coroutine_result(
+					*(self->m_cpp_coro_data),
+					working_thread_id,
+					*self );
+
+			current_coroutine_completed = true;
+		}
+	}
+
+	// Delivered message is no more needed.
+	d.m_message_ref.reset();
+
+	// If the current top-level coroutine has been completed after resumption
+	// then agent has to be turned for the normal work.
+	if( current_coroutine_completed )
+	{
+		// Reuse the existing execution_demand_t instance for
+		// the subsequent demand_handler call.
+		d.m_msg_type = typeid(so_5::impl::msg_wakeup_agent);
+		d.m_demand_handler = get_demand_handler_on_wakeup_msg_ptr();
+
+		demand_handler_on_wakeup_msg( working_thread_id, d );
+	}
+}
+
+demand_handler_pfn_t
+agent_t::get_demand_handler_for_cpp_coro_resumption_ptr() noexcept
+{
+	return &agent_t::demand_handler_for_cpp_coro_resumption;
+}
+
+void
 agent_t::process_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d,
 	thread_safety_t thread_safety,
-	event_handler_method_t method )
+	sync_event_handler_method_t method )
 {
 	// Since v.5.8.5 pending demands may be skipped after dereg.
 	if( agent_status_t::shutdown_with_skipping_pending_demands ==
@@ -1568,20 +1945,12 @@ agent_t::process_message(
 				: working_thread_id
 		};
 
-	try
-	{
-		method( d.m_message_ref );
-	}
-	catch( const std::exception & x )
-	{
-		impl::process_unhandled_exception(
-				working_thread_id, x, *(d.m_receiver) );
-	}
-	catch( ... ) // Since v.5.5.24.3
-	{
-		impl::process_unhandled_unknown_exception(
-				working_thread_id, *(d.m_receiver) );
-	}
+	wrap_handler_invocation_with_exception_handling(
+			working_thread_id,
+			(*d.m_receiver),
+			[&method, &d]() {
+				method( d.m_message_ref );
+			} );
 }
 
 void

@@ -526,6 +526,106 @@ const int rc_agent_name_too_long = 197;
  */
 const int rc_stored_msg_inspection_result_not_found = 198;
 
+/*!
+ * \brief Promise type has no value to be obtained by an Awaiter.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_value_in_promise_object = 199;
+
+/*!
+ * \brief A this_thread_scheduler_t for C++20 coroutines is not
+ * bound with a SObjectizer Environment.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_soenv_for_cpp_coro_scheduler = 200;
+
+/*!
+ * \brief A coroutine to be scheduled or suspended has an unexpected status and
+ * can't be handled.
+ *
+ * \since v.5.8.7
+ */
+const int rc_unexpected_coro_status = 201;
+
+/*!
+ * \brief An attempt to call synchronous event handler, but asynchronous
+ * handler is provided instead.
+ *
+ * \since v.5.8.7
+ */
+const int rc_sync_handler_expected = 202;
+
+/*!
+ * \brief An attempt to call asynchronous event handler, but synchronous
+ * handler is provided instead.
+ *
+ * \since v.5.8.7
+ */
+const int rc_async_handler_expected = 203;
+
+/*!
+ * \brief An attempt to use C++20 coroutines for an agent without explicit
+ * enabling of coroutines support.
+ *
+ * \since v.5.8.7
+ */
+const int rc_no_support_for_cpp_coro_in_agent = 204;
+
+/*!
+ * \brief There is already a top-level coroutine for the agent.
+ *
+ * \since v.5.8.7
+ */
+const int rc_top_level_coro_already_exists = 205;
+
+/*!
+ * \brief A resumable_item_t is already initialized.
+ *
+ * \since v.5.8.7
+ */
+const int rc_resumable_item_already_initialized = 206;
+
+/*!
+ * \brief A resumable_item is not initialized yet.
+ *
+ * \since v.5.8.7
+ */
+const int rc_resumable_item_not_initialized = 207;
+
+/*!
+ * \brief A scheduler object for this thread is already defined.
+ *
+ * \since v.5.8.7
+ */
+const int rc_this_thread_scheduler_already_defined = 208;
+
+/*!
+ * \brief There is no a scheduler object for this thread.
+ *
+ * \since v.5.8.7
+ */
+const int rc_this_thread_scheduler_not_defined = 209;
+
+/*!
+ * \brief Unexpected coroutine handle.
+ *
+ * Sometimes we have a coroutine handle to be resumed and expect that
+ * this handle will be received in await_suspend method. But another
+ * handle actually received.
+ *
+ * \since v.5.8.7
+ */
+const int rc_unexpected_coro_handle = 210;
+
+/*!
+ * \brief Suspension of C++20 coroutines is not supported by a dispatcher.
+ *
+ * \since v.5.8.7
+ */
+const int rc_cpp_coro_not_supported_by_dispatcher = 211;
+
 //! \name Common error codes.
 //! \{
 

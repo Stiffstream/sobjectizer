@@ -1,0 +1,368 @@
+/*
+ * SObjectizer-5
+ */
+
+/// @file
+/// @brief Implementation of special "this thread" scheduler for C++20 coroutines.
+///
+/// @since v.5.8.7
+
+#include <so_5/cpp_coro/this_thread_scheduler.hpp>
+
+#include <so_5/ret_code.hpp>
+#include <so_5/exception.hpp>
+
+#include <so_5/details/safe_cv_wait_for.hpp>
+
+#include <utility>
+
+namespace so_5::cpp_coro
+{
+
+//
+// this_thread_scheduler_t::items_list_t
+//
+this_thread_scheduler_t::items_list_t::items_list_t() = default;
+
+this_thread_scheduler_t::items_list_t::~items_list_t() = default;
+
+bool
+this_thread_scheduler_t::items_list_t::empty() const noexcept
+	{
+		return nullptr == m_head;
+	}
+
+resumable_item_t *
+this_thread_scheduler_t::items_list_t::pop_front() noexcept
+	{
+		resumable_item_t * result = m_head;
+		m_head = result->scheduler_data().m_next;
+		if( m_head )
+			m_head->scheduler_data().m_prev = nullptr;
+		else
+			{
+				m_tail = nullptr;
+			}
+
+		return result;
+	}
+
+void
+this_thread_scheduler_t::items_list_t::push_back(
+	resumable_item_t & item ) noexcept
+	{
+		auto & d = item.scheduler_data();
+		d.m_prev = m_tail;
+		d.m_next = nullptr;
+		m_tail = std::addressof(item);
+		if( !m_head )
+			m_head = m_tail;
+	}
+
+void
+this_thread_scheduler_t::items_list_t::extract(
+	resumable_item_t & item ) noexcept
+	{
+		auto & d = item.scheduler_data();
+		if( d.m_prev )
+			d.m_prev->scheduler_data().m_next = d.m_next;
+		else
+			m_head = d.m_next;
+
+		if( d.m_next )
+			d.m_next->scheduler_data().m_prev = d.m_prev;
+		else
+			m_tail = d.m_prev;
+	}
+
+resumable_item_t *
+this_thread_scheduler_t::items_list_t::head() const noexcept
+	{
+		return m_head;
+	}
+
+//
+// this_thread_scheduler_t
+//
+this_thread_scheduler_t::this_thread_scheduler_t(
+	so_5::environment_t & env )
+	: m_env{ std::addressof(env) }
+	{}
+
+this_thread_scheduler_t::this_thread_scheduler_t(
+	no_environment_case_t )
+	: m_env{ nullptr }
+	{}
+
+this_thread_scheduler_t::~this_thread_scheduler_t() = default;
+
+so_5::environment_t &
+this_thread_scheduler_t::environment() const
+	{
+		if( !m_env )
+			{
+				SO_5_THROW_EXCEPTION( rc_no_soenv_for_cpp_coro_scheduler,
+						"so_5::cpp_coro::this_thread_scheduler_t is not "
+						"bound to SOEnv instance" );
+			}
+
+		return *m_env;
+	}
+
+void
+this_thread_scheduler_t::try_schedule( resumable_item_t & what_to_resume )
+	{
+		// All further actions have to be done under locked mutex.
+		std::lock_guard< std::mutex > lock{ m_lock };
+
+		bool was_empty = m_ready_items.empty();
+
+		auto & item_data = what_to_resume.scheduler_data();
+		switch( item_data.m_status )
+			{
+			case resumable_item_t::status_t::neutral :
+				item_data.m_status = resumable_item_t::status_t::notified;
+
+				// NOTE: we don't push the coroutine to any of lists because
+				// this coroutine is running right now.
+			break;
+
+			case resumable_item_t::status_t::notified :
+				// Nothing to be done. The item already has the proper status.
+			break;
+
+			case resumable_item_t::status_t::waiting :
+				item_data.m_status = resumable_item_t::status_t::ready;
+				m_waiting_items.extract( what_to_resume );
+				m_ready_items.push_back( what_to_resume );
+			break;
+
+			case resumable_item_t::status_t::ready:
+				// Nothing to do. The item is already in ready list.
+			break;
+			}
+
+		if( was_empty )
+			m_wakeup_cv.notify_one();
+	}
+
+try_suspend_result_t
+this_thread_scheduler_t::try_suspend(
+	resumable_item_t & what_to_handle,
+	monotonic_clock_t::duration sleep_time )
+	{
+		// All further actions have to be done under locked mutex.
+		std::lock_guard< std::mutex > lock{ m_lock };
+
+		auto result = try_suspend_result_t::should_be_suspended;
+
+		auto & item_data = what_to_handle.scheduler_data();
+		switch( item_data.m_status )
+			{
+			case resumable_item_t::status_t::neutral :
+				item_data.m_status = resumable_item_t::status_t::waiting;
+
+				if( infinite_speep_time() != sleep_time )
+					item_data.m_sleeping_time =
+							so_5::details::remaining_time_counter_t{ sleep_time };
+				else
+					item_data.m_sleeping_time = std::nullopt;
+
+				m_waiting_items.push_back( what_to_handle );
+			break;
+
+			case resumable_item_t::status_t::notified :
+				// There is no need to suspend the coroutine.
+				item_data.m_status = resumable_item_t::status_t::neutral;
+
+				result = try_suspend_result_t::should_be_resumed;
+			break;
+
+			case resumable_item_t::status_t::waiting :
+				// This should not happen!
+				// Something went wrong, it's better to inform about this case.
+				SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
+						"coro has 'waiting' status in "
+						"this_thread_scheduler_t::try_suspend()" );
+			break;
+
+			case resumable_item_t::status_t::ready :
+				// This should not happen!
+				// Something went wrong, it's better to inform about this case.
+				SO_5_THROW_EXCEPTION( rc_unexpected_coro_status,
+						"coro has 'ready' status in "
+						"this_thread_scheduler_t::try_suspend()" );
+			break;
+			}
+
+		return result;
+	}
+
+void
+this_thread_scheduler_t::wait_and_handle_coroutines(
+	std::coroutine_handle<> top_level )
+	{
+		// Acquire the mutex now and unlock it temporary when it's needed.
+		std::unique_lock lock{ m_lock };
+
+		// Work has to be continued while the top_level coroutine is not
+		// finished yet.
+		while( !top_level.done() )
+			{
+				// Check waiting coroutines for resumption time.
+				monotonic_clock_t::duration sleep_time =
+						check_resumption_time_for_waiting_coroutines();
+
+				std::size_t coroutines_resumed = 0;
+				if( !m_ready_items.empty() )
+					coroutines_resumed = resume_ready_coroutines( lock );
+
+				// NOTE: if a coroutine was resumed then we don't sleep and
+				// have to check the waiting list again (and recalculate
+				// sleep_time appropriately).
+				if( !coroutines_resumed )
+					{
+						// Have to wait while one of coroutines become ready.
+						so_5::details::wait_for_big_interval(
+								lock,
+								m_wakeup_cv,
+								sleep_time );
+					}
+			}
+	}
+
+monotonic_clock_t::duration
+this_thread_scheduler_t::check_resumption_time_for_waiting_coroutines()
+	{
+		monotonic_clock_t::duration sleep_time = infinite_speep_time();
+
+		// NOTE: will be set for the first coroutine with non-empty
+		// m_resume_at.
+		std::optional< monotonic_clock_t::time_point > current_time;
+
+		resumable_item_t * item = m_waiting_items.head();
+		while( item )
+			{
+				auto & item_data = item->scheduler_data();
+
+				// Store the next pointer now because m_next may be changed
+				// if the item is moved into ready list.
+				resumable_item_t * next = item_data.m_next;
+
+				if( item_data.m_sleeping_time.has_value() )
+					{
+						if( !current_time.has_value() )
+							current_time = monotonic_clock_t::now();
+
+						item_data.m_sleeping_time->update( *current_time );
+						if( !( *item_data.m_sleeping_time ) )
+							{
+								// This coroutine has to be moved to the ready list.
+								item_data.m_sleeping_time = std::nullopt;
+								m_waiting_items.extract( *item );
+
+								// The coroutine to be resumed must have a special status.
+								item_data.m_status = resumable_item_t::status_t::ready;
+								m_ready_items.push_back( *item );
+							}
+						else
+							{
+								// Sleep time has to be updated.
+								const auto d = item_data.m_sleeping_time->remaining();
+								if( sleep_time > d )
+									sleep_time = d;
+							}
+					}
+
+				item = next;
+			}
+
+		return sleep_time;
+	}
+
+namespace
+{
+
+//! Helper class for unlocking and locking a mutex back in RAII style.
+//!
+//! @attention
+//! Because the lock will be performed in the destructor an exception
+//! from lock() method will kill the whole application.
+template< typename M >
+class unlocker_locker_helper_t
+	{
+		//! What to unlock/lock.
+		M & m_mutex;
+
+	public:
+		unlocker_locker_helper_t( M & mutex ) : m_mutex{ mutex }
+			{
+				m_mutex.unlock();
+			}
+
+		~unlocker_locker_helper_t()
+			{
+				m_mutex.lock();
+			}
+	};
+
+} /* namespace anonymous */
+
+std::size_t
+this_thread_scheduler_t::resume_ready_coroutines(
+		std::unique_lock< std::mutex > & locker )
+	{
+		std::size_t count = 0;
+
+		resumable_item_t * item = m_ready_items.head();
+
+		while( item )
+			{
+				++count;
+
+				m_ready_items.extract( *item );
+				auto & item_data = item->scheduler_data();
+				// The status has to be changed while mutex is locked.
+				item_data.m_status = resumable_item_t::status_t::neutral;
+
+				{
+					unlocker_locker_helper_t< std::unique_lock<std::mutex> >
+							unlocker_locker{ locker };
+
+					// NOTE: the status can be changed to status_t::notified by a
+					// parallel thread.
+					item_data.m_to_be_resumed.resume();
+				}
+
+				item = m_ready_items.head();
+			}
+
+		return count;
+	}
+
+void
+this_thread_scheduler_t::ensure_lists_are_empty() const
+	{
+		// NOTE: Generally speaking, non-empty lists are a hard error. This means
+		// that coroutines within them will never be destroyed. Is this really a
+		// good approach to throwing an exception here? An exception can be
+		// caught and work can resume, but the coroutines in those lists will
+		// still exist (they will not be destroyed). Perhaps it would be better
+		// to abort the entire application?
+		//
+		// Another possible approach is additional parameter for sync_wait
+		// with default value. This parameter will tell what to do if those lists
+		// are not empty. By default the application will be aborted, but there
+		// could be other approaches (like throwing an exception or ignoring
+		// that case).
+		if( !m_waiting_items.empty() )
+			SO_5_THROW_EXCEPTION( rc_unexpected_error,
+					"this_thread_scheduler_t::m_waiting_items is not empty" );
+
+		if( !m_ready_items.empty() )
+			SO_5_THROW_EXCEPTION( rc_unexpected_error,
+					"this_thread_scheduler_t::m_ready_items is not empty" );
+	}
+
+} /* namespace so_5::cpp_coro */
+
