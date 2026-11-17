@@ -1404,7 +1404,7 @@ agent_t::so_create_event_subscription(
 	const mbox_t & mbox_ref,
 	std::type_index msg_type,
 	const state_t & target_state,
-	const event_handler_method_t & method,
+	const event_handler_holder_t & method,
 	thread_safety_t thread_safety,
 	event_handler_kind_t handler_kind )
 {
@@ -1434,7 +1434,7 @@ void
 agent_t::so_create_deadletter_subscription(
 	const mbox_t & mbox,
 	const std::type_index & msg_type,
-	const event_handler_method_t & method,
+	const event_handler_holder_t & method,
 	thread_safety_t thread_safety )
 {
 	ensure_operation_is_on_working_thread( "so_create_deadletter_subscription" );

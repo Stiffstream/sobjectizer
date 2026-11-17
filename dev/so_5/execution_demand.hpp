@@ -65,8 +65,24 @@ using event_handler_holder_t = std::variant<
 		async_event_handler_method_t
 	>;
 
-//FIXME: document this!
-using event_handler_method_t = event_handler_holder_t;
+//
+// is_defined
+//
+/*!
+ * \brief Check the presence of an actual handler in a holder.
+ *
+ * \return true if there is non-null handler in @a holder.
+ *
+ * \since v.5.8.7
+ */
+[[nodiscard]] inline
+bool
+is_defined( const event_handler_holder_t & holder ) noexcept
+	{
+		return std::visit(
+			[]( const auto & fn ) -> bool { return static_cast<bool>(fn); },
+			holder );
+	}
 
 namespace low_level_api
 {
