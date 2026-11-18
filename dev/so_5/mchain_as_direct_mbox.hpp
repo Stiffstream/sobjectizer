@@ -136,12 +136,33 @@ class redirecting_wrapper_t final
 } /* namespace impl */
 
 //
-// make_factory
+// use_chain
 //
-//FIXME: document this!
+/*!
+ * \brief Helper function that creates a factory for custom direct mbox.
+ *
+ * This factory makes an instance of mbox that will redirect all incoming
+ * messages (even messages without a subscription) to the @a chain.
+ *
+ * Usage example:
+ * \code
+ * class my_agent : public so_5::agent_t
+ * {
+ * public:
+ * 	my_agent(context_t ctx)
+ * 		: so_5::agent_t{ ctx + so_5::mchain_as_direct_mbox::use_chain(
+ * 			so_5::create_mchain(ctx.environment()) }
+ * 	{...}
+ *
+ * 	...
+ * };
+ * \endcode
+ *
+ * \since v.5.8.7
+ */
 [[nodiscard]] inline
 custom_direct_mbox_factory_t
-make_factory( mchain_t chain )
+use_chain( mchain_t chain )
 	{
 		return [chain]( partially_constructed_agent_ptr_t, mbox_t orig ) -> mbox_t
 			{
@@ -152,7 +173,43 @@ make_factory( mchain_t chain )
 //
 // as_mchain
 //
-//FIXME: document this!
+/*!
+ * \brief Helper function for accessing underlying mchain from a custom
+ * direct mbox.
+ *
+ * Usage example:
+ * \code
+ * class my_agent : public so_5::agent_t
+ * {
+ * public:
+ * 	my_agent(context_t ctx)
+ * 		: so_5::agent_t{ ctx
+ * 			+ so_5::enable_cpp_coro()
+ * 			+ so_5::mchain_as_direct_mbox::use_chain(so_5::create_mchain(
+ * 				ctx.environment()) }
+ * 	{...}
+ *
+ * 	...
+ *
+ * 	so_5::cpp_coro::task_t<void>
+ * 	so_evt_async_start() override
+ * 	{
+ * 		// Receive and handle all messages from mchain used as the direct mbox.
+ * 		so_5::cpp_coro::select(
+ * 			so_5::from_all().handle_all(),
+ * 			so_5::receive_case(
+ * 				// The mbox can't be passed to receive_case, so the underlying
+ * 				// mchain has to be extracted from it.
+ * 				so_5::mchain_as_direct_mbox::as_chain( so_direct_mbox() ),
+ * 				... ) );
+ * 	}
+ * };
+ * \endcode
+ *
+ * \throw std::exception if @a direct_mbox has non-appropriate type.
+ *
+ * \since v.5.8.7
+ */
 [[nodiscard]] inline
 mchain_t
 as_mchain( const so_5::mbox_t & direct_mbox )
