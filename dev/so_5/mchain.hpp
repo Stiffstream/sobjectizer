@@ -464,6 +464,8 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_
 		friend class intrusive_ptr_t< abstract_message_chain_t >;
 		friend class mchain_props::select_case_t;
 
+		friend class mchain_as_direct_mbox::impl::redirecting_wrapper_t;
+
 		abstract_message_chain_t( const abstract_message_chain_t & ) = delete;
 		abstract_message_chain_t &
 		operator=( const abstract_message_chain_t & ) = delete;

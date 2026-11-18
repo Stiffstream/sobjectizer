@@ -56,6 +56,16 @@ class agent_demand_handler_invoker_t;
 
 } /* namespace enveloped_msg */
 
+namespace mchain_as_direct_mbox {
+
+namespace impl {
+
+class redirecting_wrapper_t;
+
+} /* namespace impl */
+
+} /* namespace mchain_as_direct_mbox */
+
 namespace low_level_api {
 
 } /* namespace low_level_api */
