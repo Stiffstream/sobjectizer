@@ -26,6 +26,8 @@
 
 #include <so_5/spinlocks.hpp>
 
+#include <so_5/mchain_as_direct_mbox.hpp>
+
 #include <algorithm>
 #include <sstream>
 #include <cstdint>
@@ -884,6 +886,39 @@ noexcept
 			}
 	}
 
+/*!
+ * \brief Helper for handling mchain_as_direct_mbox during deregistration
+ * of agent's coop.
+ *
+ * If mchain is used as the direct mbox for an agent then this mchain
+ * will be closed.
+ *
+ * \since v.5.8.7
+ */
+void
+handle_mchain_as_direct_mbox_on_agent_shutdown(
+	//! The direct mbox of the agent.
+	const mbox_t & direct_mbox )
+	{
+		using namespace ::so_5::mchain_as_direct_mbox::impl;
+
+		// Use a very simple approach: if mchain is used as direct_mbox
+		// then dynamic_cast successed. Otherwise we will get nullptr.
+		if( auto * wrapper = dynamic_cast< redirecting_wrapper_t * >(
+				direct_mbox.get() ) )
+			{
+				// The chain has to be closed.
+				// We assume that repeative close() calls are safe. So it the
+				// chain is already closed then nothing happens.
+				wrapper->as_chain()->close(
+						// The normal work can't be continued if this close()
+						// raised an exception.
+						terminate_if_throws,
+						// The content of the mchain has to be kept.
+						::so_5::mchain_props::close_mode_t::retain_content );
+			}
+	}
+
 } /* namespace anonymous */
 
 //
@@ -1343,6 +1378,10 @@ agent_t::bind_to_coop( coop_t & coop )
 void
 agent_t::shutdown_agent() noexcept
 {
+std::cout << this << " | agent_t::shutdown_agent" << std::endl;
+	// Since v.5.8.7 mchain_as_direct_mbox case has to be handled.
+//	handle_mchain_as_direct_mbox_on_agent_shutdown( so_direct_mbox() );
+
 	event_queue_t * actual_queue = nullptr;
 	{
 		std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
