@@ -32,7 +32,7 @@ public:
 	{}
 
 	void
-	so_define_agent() override
+	so_evt_start() override
 	{
 		so_5::send< msg_work >( *this );
 		so_5::send< msg_work >( *this );
