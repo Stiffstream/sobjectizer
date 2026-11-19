@@ -27,6 +27,11 @@ add_subdirectory(evt_async_start_1)
 add_subdirectory(select_ping_pong)
 add_subdirectory(select_ping_pong_st_env_1)
 
+add_subdirectory(mchain_as_direct_mbox)
+add_subdirectory(mchain_as_direct_mbox_msg_limits)
+add_subdirectory(mchain_as_direct_mbox_at_shutdown)
+add_subdirectory(mchain_as_direct_mbox_at_shutdown_2)
+
 add_subdirectory(simple_select_lambda)
 
 add_subdirectory(wakeup_on_another_ctx)

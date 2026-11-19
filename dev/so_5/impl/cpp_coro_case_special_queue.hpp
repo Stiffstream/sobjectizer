@@ -243,8 +243,12 @@ class cpp_coro_case_special_queue_t final
 		 * The value will be changed from `false` to `true` only in
 		 * try_extract_demand_for_execution() call that is performed
 		 * on empty queue.
+		 *
+		 * \note
+		 * The initial value is `false`. It may be changed to `true` in
+		 * the turn_to_normal_working_mode().
 		 */
-		bool m_wakeup_demand_enabled{ true };
+		bool m_wakeup_demand_enabled{ false };
 
 		//! Helper method for deleting queue's head object.
 		demand_unique_ptr_t
@@ -267,6 +271,10 @@ class cpp_coro_case_special_queue_t final
 		void
 		push_wakeup_demand_to_actual_queue(
 			agent_t * agent_to_wakeup ) noexcept;
+
+		//! Helper method for pushing pending evt_finish demand.
+		void
+		push_pending_evt_finish() noexcept;
 
 	public:
 		//! Initializing constructor.

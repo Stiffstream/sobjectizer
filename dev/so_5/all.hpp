@@ -48,5 +48,7 @@
 #include <so_5/cpp_coro/this_thread_scheduler.hpp>
 #include <so_5/cpp_coro/mchain_select.hpp>
 
+#include <so_5/mchain_as_direct_mbox.hpp>
+
 #endif
 
