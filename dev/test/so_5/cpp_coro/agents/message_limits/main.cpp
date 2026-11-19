@@ -5,6 +5,8 @@
 #include <test/3rd_party/various_helpers/time_limited_execution.hpp>
 #include <test/3rd_party/various_helpers/ensure.hpp>
 
+#include <string>
+
 using namespace std::chrono_literals;
 
 namespace test
@@ -21,6 +23,7 @@ class a_sender_t final : public so_5::agent_t
 
 	unsigned int m_sent{ 0 };
 
+std::chrono::steady_clock::time_point m_start;
 public:
 	a_sender_t( context_t ctx, so_5::mbox_t dest )
 		: so_5::agent_t{ std::move(ctx) }
@@ -36,6 +39,7 @@ public:
 	void
 	so_evt_start() override
 	{
+		m_start = std::chrono::steady_clock::now();
 		so_5::send< msg_send_next >( *this );
 	}
 
@@ -44,7 +48,8 @@ public:
 	{
 		std::cout << "sent: " << m_sent << std::endl;
 		ensure_or_die( 5u == m_sent,
-				"unexpected number of sent messages" );
+				"unexpected number of sent messages: "
+				+ std::to_string( m_sent ) );
 	}
 
 protected:
@@ -55,7 +60,7 @@ protected:
 		so_5::send< msg_b >( m_dest );
 
 		if( m_sent < 5u )
-			so_5::send_delayed< msg_send_next >( *this, 20ms );
+			so_5::send_delayed< msg_send_next >( *this, 25ms );
 	}
 };
 
@@ -92,15 +97,15 @@ public:
 	{
 		std::cout << "received: " << m_received << std::endl;
 		ensure_or_die( 3u == m_received,
-				"unexpected number of received messages" );
+				"unexpected number of received messages: " +
+				std::to_string( m_received ) );
 	}
 
 private:
 	so_5::cpp_coro::task_t< void >
 	evt_a( mhood_t< msg_a > )
 	{
-		co_await dummy_yield( so_environment(), 100ms );
-
+		co_await dummy_yield( so_environment(), 125ms );
 		so_deregister_agent_coop_normally();
 	}
 
