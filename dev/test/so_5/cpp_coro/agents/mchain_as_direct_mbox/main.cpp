@@ -23,7 +23,7 @@ struct communications_t
 auto
 make_mchain_as_mbox( const so_5::agent_context_t & ctx )
 {
-	return so_5::mchain_as_direct_mbox::use_chain(
+	return so_5::mchain_as_direct_mbox::use_mchain(
 			so_5::create_mchain( ctx.environment() ) );
 }
 

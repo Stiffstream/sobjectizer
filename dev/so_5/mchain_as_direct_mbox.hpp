@@ -136,7 +136,7 @@ class redirecting_wrapper_t final
 } /* namespace impl */
 
 //
-// use_chain
+// use_mchain
 //
 /*!
  * \brief Helper function that creates a factory for custom direct mbox.
@@ -150,7 +150,7 @@ class redirecting_wrapper_t final
  * {
  * public:
  * 	my_agent(context_t ctx)
- * 		: so_5::agent_t{ ctx + so_5::mchain_as_direct_mbox::use_chain(
+ * 		: so_5::agent_t{ ctx + so_5::mchain_as_direct_mbox::use_mchain(
  * 			so_5::create_mchain(ctx.environment()) }
  * 	{...}
  *
@@ -162,7 +162,7 @@ class redirecting_wrapper_t final
  */
 [[nodiscard]] inline
 custom_direct_mbox_factory_t
-use_chain( mchain_t chain )
+use_mchain( mchain_t chain )
 	{
 		return [chain]( partially_constructed_agent_ptr_t, mbox_t orig ) -> mbox_t
 			{
@@ -185,7 +185,7 @@ use_chain( mchain_t chain )
  * 	my_agent(context_t ctx)
  * 		: so_5::agent_t{ ctx
  * 			+ so_5::enable_cpp_coro()
- * 			+ so_5::mchain_as_direct_mbox::use_chain(so_5::create_mchain(
+ * 			+ so_5::mchain_as_direct_mbox::use_mchain(so_5::create_mchain(
  * 				ctx.environment()) }
  * 	{...}
  *
