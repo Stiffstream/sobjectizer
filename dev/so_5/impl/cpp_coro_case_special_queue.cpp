@@ -84,6 +84,13 @@ cpp_coro_case_special_queue_t::push_wakeup_demand_to_actual_queue(
 				} );
 	}
 
+void
+cpp_coro_case_special_queue_t::push_pending_evt_finish() noexcept
+	{
+		m_actual_queue->push_evt_finish( std::move(*m_pending_evt_finish) );
+		m_pending_evt_finish.reset();
+	}
+
 cpp_coro_case_special_queue_t::cpp_coro_case_special_queue_t(
 	environment_t & env,
 	std::size_t queue_size_limit,
@@ -127,17 +134,35 @@ cpp_coro_case_special_queue_t::turn_to_normal_working_mode(
 			// If there is no current coroutine and the queue isn't empty,
 			// then the first wakeup_demand has to be pushed to the actual
 			// queue.
-			if( current_coroutine_presence_t::absent == current_coroutine_presence
-					&& m_head )
+			if( current_coroutine_presence_t::absent == current_coroutine_presence )
 				{
-					m_wakeup_demand_enabled = false;
+					if( m_head )
+						{
+							// The queue is not empty, wakeup_demand must be
+							// pushed to the actual queue.
+							m_wakeup_demand_enabled = false;
 
-					agent_to_wakeup = m_head->m_execution_demand.m_receiver;
+							agent_to_wakeup = m_head->m_execution_demand.m_receiver;
+						}
+					else
+						{
+							// Cooperation may already be deregistered and pending
+							// evt_finish has to be delivered.
+							if( m_pending_evt_finish )
+								{
+									push_pending_evt_finish();
+								}
+							else
+								{
+									// The queue is empty. The first incoming demand
+									// must lead to wakeup demand pushing.
+									m_wakeup_demand_enabled = true;
+								}
+						}
 				}
 
 			// Other cases:
 			// - the current coroutine exists, demands must remain in the queue;
-			// - the queue is empty, there is no need to push wakeup_demand.
 		}
 
 		if( agent_to_wakeup )
@@ -289,9 +314,11 @@ noexcept
 					need_push_pending_evt_finish = true;
 				}
 			else
-				// When the next demand arrives the wakeup_demand has
-				// to be pushed to the actual_queue.
-				m_wakeup_demand_enabled = true;
+				{
+					// When the next demand arrives the wakeup_demand has
+					// to be pushed to the actual_queue.
+					m_wakeup_demand_enabled = true;
+				}
 		}
 
 		if( need_push_pending_evt_finish )
@@ -299,8 +326,7 @@ noexcept
 				// We assume that only one thread can do a call
 				// to try_extract_demand_for_execution, so there is
 				// no need to protect this access to m_pending_evt_finish.
-				m_actual_queue->push_evt_finish(
-						std::move(*m_pending_evt_finish) );
+				push_pending_evt_finish();
 			}
 
 		return {};

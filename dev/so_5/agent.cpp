@@ -1378,9 +1378,8 @@ agent_t::bind_to_coop( coop_t & coop )
 void
 agent_t::shutdown_agent() noexcept
 {
-std::cout << this << " | agent_t::shutdown_agent" << std::endl;
 	// Since v.5.8.7 mchain_as_direct_mbox case has to be handled.
-//	handle_mchain_as_direct_mbox_on_agent_shutdown( so_direct_mbox() );
+	handle_mchain_as_direct_mbox_on_agent_shutdown( so_direct_mbox() );
 
 	event_queue_t * actual_queue = nullptr;
 	{
