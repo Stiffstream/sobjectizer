@@ -54,7 +54,7 @@ public:
 					},
 					[this]( so_5::mhood_t< msg_dummy > )
 					{
-						std::cout << "msg_dummy completed" << std::endl;
+						std::cout << "msg_dummy received" << std::endl;
 					} ) );
 
 		std::cout << "async select completed" << std::endl;
