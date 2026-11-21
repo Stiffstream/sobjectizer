@@ -1641,6 +1641,26 @@ agent_t::push_event(
 					handler ) );
 }
 
+void
+agent_t::push_demand(
+	const message_limit::control_block_t * limit,
+	mbox_id_t mbox_id,
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	demand_handler_pfn_t demand_handler )
+{
+	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
+	if( m_event_queue )
+		m_event_queue->push( execution_demand_t{
+				this,
+				limit,
+				mbox_id,
+				msg_type,
+				message,
+				demand_handler } );
+}
+
 namespace
 {
 

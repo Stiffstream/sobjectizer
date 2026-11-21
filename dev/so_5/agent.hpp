@@ -1146,6 +1146,39 @@ class SO_5_TYPE agent_t
 			}
 
 		/*!
+		 * \brief Make and push execution demand directly to the agent's
+		 * event queue.
+		 *
+		 * \attention
+		 * This is an experimental low-level feature that could be changed
+		 * or removed without prior notice.
+		 *
+		 * This method allows to make an instance of execution_demand and
+		 * store it to the event queue. The main difference from
+		 * call_push_event() method is ability to specify own demand_handler
+		 * (in call_push_event() demand_handled is selected by SObjectizer).
+		 *
+		 * \since v.5.8.7
+		 */
+		static inline
+		void
+		call_push_demand(
+			agent_t & agent,
+			const message_limit::control_block_t * limit,
+			mbox_id_t mbox_id,
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			demand_handler_pfn_t demand_handler )
+			{
+				agent.push_demand(
+						limit,
+						mbox_id,
+						msg_type,
+						message,
+						demand_handler );
+			}
+
+		/*!
 		 * \brief Get the agent's direct mbox.
 		 *
 		 * \since v.5.4.0
@@ -3333,6 +3366,26 @@ class SO_5_TYPE agent_t
 			const std::type_index & msg_type,
 			//! Event message.
 			const message_ref_t & message );
+
+		//! Make and push execution_demand to the queue.
+		/*!
+		 * \attention
+		 * This is an experimental feature that can be changed or removed
+		 * without prior notice.
+		 */
+		void
+		push_demand(
+			//! Optional message limit.
+			const message_limit::control_block_t * limit,
+			//! ID of mbox for this event.
+			mbox_id_t mbox_id,
+			//! Message type for event.
+			const std::type_index & msg_type,
+			//! Event message.
+			const message_ref_t & message,
+			//! Demand handler to be used for that execution_demand.
+			demand_handler_pfn_t demand_handler );
+
 		/*!
 		 * \}
 		 */
